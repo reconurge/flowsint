@@ -1,0 +1,75 @@
+import {
+    Dropdown,
+    DropdownSection,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
+    Button,
+} from "@heroui/react";
+import { PlusIcon } from 'lucide-react';
+import { JSX, SVGProps } from "react";
+
+export const AddIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => {
+    return (
+        <svg
+            aria-hidden="true"
+            fill="none"
+            focusable="false"
+            height="1em"
+            role="presentation"
+            viewBox="0 0 24 24"
+            width="1em"
+            {...props}
+        >
+            <path
+                d="M7.37 22h9.25a4.87 4.87 0 0 0 4.87-4.87V8.37a4.87 4.87 0 0 0-4.87-4.87H7.37A4.87 4.87 0 0 0 2.5 8.37v8.75c0 2.7 2.18 4.88 4.87 4.88Z"
+                fill="currentColor"
+                opacity={0.4}
+            />
+            <path
+                d="M8.29 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM15.71 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM12 14.75h-1.69V13c0-.41-.34-.75-.75-.75s-.75.34-.75.75v1.75H7c-.41 0-.75.34-.75.75s.34.75.75.75h1.81V18c0 .41.34.75.75.75s.75-.34.75-.75v-1.75H12c.41 0 .75-.34.75-.75s-.34-.75-.75-.75Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+};
+export default function NewActions({ handleAddNode, handleAddEdge }: any) {
+    const iconClasses = "text-xl text-default-500 pointer-events-none flex-shrink-0";
+    return (
+        <Dropdown
+            classNames={{
+                base: "before:bg-default-200", // change arrow background
+                content:
+                    "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
+            }}
+        >
+            <DropdownTrigger>
+                <Button radius='sm' startContent={<PlusIcon className='h-4 w-4' />} size="sm" aria-label="new_individual" color='primary'>
+                    New
+                </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Dropdown menu with description" variant="faded">
+                <DropdownSection title="New">
+                    <DropdownItem
+                        onPress={handleAddNode}
+                        key="new_individual"
+                        description="Create a new individual profile."
+                        shortcut="⌘N"
+                        startContent={<AddIcon className={iconClasses} />}
+                    >
+                        New individual
+                    </DropdownItem>
+                    <DropdownItem
+                        onPress={handleAddEdge}
+                        key="new_relation"
+                        shortcut="⌘R"
+                        description="Create a new relation between two individuals."
+                        startContent={<AddIcon className={iconClasses} />}
+                    >
+                        New relation
+                    </DropdownItem>
+                </DropdownSection>
+            </DropdownMenu>
+        </Dropdown >
+    );
+}

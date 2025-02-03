@@ -7,10 +7,11 @@ const DashboardPage = async ({
     params: Promise<{ investigation_id: string }>
 }) => {
     const { investigation_id } = await (params)
+    console.log(investigation_id)
     const { nodes, edges } = await getInvestigationData(investigation_id)
     return (
         <div>
-        <InvestigationGraph initialNodes={nodes} initialEdges={edges} />
+            <InvestigationGraph initialNodes={nodes} initialEdges={edges} />
         </div>
     )
 }

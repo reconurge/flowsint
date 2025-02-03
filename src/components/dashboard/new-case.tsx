@@ -1,73 +1,82 @@
-import {
-    Dropdown,
-    DropdownSection,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Button,
-    Chip,
-} from "@heroui/react";
+"use client"
+import { DropdownMenu, Button, IconButton, Dialog, Flex, TextField, Text, Badge, Box } from "@radix-ui/themes";
 import { PlusIcon } from 'lucide-react';
-import { JSX, SVGProps } from "react";
+import { useState } from "react";
+import { supabase } from '@/src/lib/supabase/client';
+import { useRouter } from "next/navigation";
 
-export const AddIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => {
-    return (
-        <svg
-            aria-hidden="true"
-            fill="none"
-            focusable="false"
-            height="1em"
-            role="presentation"
-            viewBox="0 0 24 24"
-            width="1em"
-            {...props}
-        >
-            <path
-                d="M7.37 22h9.25a4.87 4.87 0 0 0 4.87-4.87V8.37a4.87 4.87 0 0 0-4.87-4.87H7.37A4.87 4.87 0 0 0 2.5 8.37v8.75c0 2.7 2.18 4.88 4.87 4.88Z"
-                fill="currentColor"
-                opacity={0.4}
-            />
-            <path
-                d="M8.29 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM15.71 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM12 14.75h-1.69V13c0-.41-.34-.75-.75-.75s-.75.34-.75.75v1.75H7c-.41 0-.75.34-.75.75s.34.75.75.75h1.81V18c0 .41.34.75.75.75s.75-.34.75-.75v-1.75H12c.41 0 .75-.34.75-.75s-.34-.75-.75-.75Z"
-                fill="currentColor"
-            />
-        </svg>
-    );
-};
 export default function NewCase() {
-    const iconClasses = "text-xl text-default-500 pointer-events-none flex-shrink-0";
+    const [open, setOpen] = useState(false)
+    const router = useRouter()
+
+    async function handleNewCase(e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.currentTarget))
+        const investigation = await supabase.from("investigations").insert(data).select("id")
+            .single()
+            .then(({ data, error }) => {
+                if (error)
+                    throw error
+                return data
+            })
+        if (investigation)
+            router.push(`/investigations/${investigation.id}`)
+        setOpen(false)
+    }
     return (
-        <Dropdown
-            backdrop="blur"
-            classNames={{
-                base: "before:bg-default-200", // change arrow background
-                content:
-                    "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
-            }}
-        >
-            <DropdownTrigger>
-                <Button size="sm" isIconOnly aria-label="options" variant='bordered'>
-                    <PlusIcon className='h-4 w-4' />
-                </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Dropdown menu with description" variant="faded" disabledKeys={["new_org"]}>
-                <DropdownSection title="New">
-                    <DropdownItem
-                        key="new"
-                        description="Create a new investigation case."
-                        startContent={<AddIcon className={iconClasses} />}
-                    >
-                        New case
-                    </DropdownItem>
-                    <DropdownItem
-                        key="new_org"
-                        description="Create a new organization."
-                        startContent={<AddIcon className={iconClasses} />}
-                    >
-                        New organization <Chip size="sm" color="primary" variant="flat">Soon</Chip>
-                    </DropdownItem>
-                </DropdownSection>
-            </DropdownMenu>
-        </Dropdown >
+        <>
+            <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                    <IconButton color="gray" size="2" variant="soft">
+                        <PlusIcon className="h-5" />
+                    </IconButton>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content size="2">
+                    <DropdownMenu.Item onClick={() => setOpen(true)} shortcut="⌘ E">New case</DropdownMenu.Item>
+                    <DropdownMenu.Item disabled shortcut="⌘ D">New organization <Badge radius="full" color="orange" size={"1"}>Soon</Badge></DropdownMenu.Item>
+                </DropdownMenu.Content>
+            </DropdownMenu.Root>
+            <Dialog.Root open={open} onOpenChange={setOpen}>
+                <Dialog.Content maxWidth="450px">
+                    <form onSubmit={handleNewCase}>
+                        <Box>
+                            <Dialog.Title>New case</Dialog.Title>
+                            <Dialog.Description size="2" mb="4">
+                                Create a new blank case.
+                            </Dialog.Description>
+                            <Flex direction="column" gap="3">
+                                <label>
+                                    <Text as="div" size="2" mb="1" weight="bold">
+                                        Investigation name
+                                    </Text>
+                                    <TextField.Root
+                                        required
+                                        name="title"
+                                        placeholder="Suspicion de fraude"
+                                    />
+                                </label>
+                                <label>
+                                    <Text as="div" size="2" mb="1" weight="bold">
+                                        Description
+                                    </Text>
+                                    <TextField.Root
+                                        name="description"
+                                        placeholder="Investigation sur une campagne de phishing via Twitter et LinkedIn."
+                                    />
+                                </label>
+                            </Flex>
+                            <Flex gap="3" mt="4" justify="end">
+                                <Dialog.Close>
+                                    <Button variant="soft" color="gray">
+                                        Cancel
+                                    </Button>
+                                </Dialog.Close>
+                                <Button type="submit">Save</Button>
+                            </Flex>
+                        </Box>
+                    </form>
+                </Dialog.Content>
+            </Dialog.Root >
+        </>
     );
 }

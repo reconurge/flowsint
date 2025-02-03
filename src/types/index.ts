@@ -7,7 +7,8 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 export type NodeData = {
   id: string;
   position: any,
-  data: any
+  type: string,
+  data: any,
 };
 
 export type EdgeData = {
@@ -15,6 +16,8 @@ export type EdgeData = {
   target: string;
   id: string;
   label: string;
+  type: string,
+  confidence_level?: number | string
 };
 
 export type InvestigationGraph = {

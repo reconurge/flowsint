@@ -1,12 +1,12 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import { Link } from "@heroui/link";
 import clsx from "clsx";
 import "@/styles/globals.css"
 import { Providers } from "./providers";
-
+import "@radix-ui/themes/styles.css";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
+import { Theme } from "@radix-ui/themes";
 
 export const metadata: Metadata = {
   title: {
@@ -41,9 +41,11 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <main>
-            {children}
-          </main>
+          <Theme>
+            <main>
+              {children}
+            </main>
+          </Theme>
         </Providers>
       </body>
     </html>

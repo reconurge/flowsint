@@ -15,17 +15,17 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/src/lib/supabase/client';
-import CustomNode from './custom-node';
+import IndividualNode from './nodes/individual';
+import PhoneNode from './nodes/phone';
 import CustomEdge from './custom-edge';
-import { Button } from '@heroui/button';
-import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, PlusIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
-import ContextMenu from './context-menu';
+import IpNode from './nodes/ip_address';
+import EmailNode from './nodes/email';
+import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Spinner, Tooltip } from '@heroui/react';
 import NewActions from './new-actions';
-import { useInvestigationContext } from './investigation-provider';
+import { IconButton, Tooltip, Spinner } from '@radix-ui/themes';
 
-const nodeTypes = { custom: CustomNode };
+const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode };
 const edgeTypes = {
     'custom': CustomEdge,
 };
@@ -59,20 +59,16 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: a
 };
 
 const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, initialEdges: any, theme: ColorMode }) => {
-    const { fitView, zoomIn, zoomOut, addEdges, addNodes } = useReactFlow();
-    const { investigation } = useInvestigationContext()
+    const { fitView, zoomIn, zoomOut, addNodes } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [menu, setMenu] = useState<null | any>(null);
     const ref = useRef(null);
 
     const onLayout = useCallback(
         (direction: any) => {
             const layouted = getLayoutedElements(nodes, edges, { direction });
-
             setNodes([...layouted.nodes]);
             setEdges([...layouted.edges]);
-
             window.requestAnimationFrame(() => {
                 fitView();
             });
@@ -80,56 +76,14 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         [nodes, edges],
     );
     const onConnect = useCallback(
-        (params: any) => setEdges((els) => addEdge(params, els)),
+        async (params: any) => {
+            console.log(params)
+            await supabase.from("relationships")
+                .insert({ individual_a: params.source, individual_b: params.target, relation_type: "relation" })
+            setEdges((els) => addEdge({ ...params, label: "relation", type: "custom" }, els))
+        },
         [setEdges],
     );
-    const onNodeContextMenu = useCallback(
-        (event: { preventDefault: () => void; clientY: number; clientX: number; }, node: { id: any; }) => {
-            event.preventDefault();
-            // @ts-ignore
-            const pane = ref.current.getBoundingClientRect();
-            setMenu({
-                id: node.id,
-                top: event.clientY < pane.height - 100 && event.clientY,
-                left: event.clientX < pane.width - 100 && event.clientX,
-                right: event.clientX >= pane.width - 100 && pane.width - event.clientX,
-                bottom:
-                    event.clientY >= pane.height - 100 && pane.height - event.clientY,
-            });
-        },
-        [setMenu],
-    );
-    const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
-
-    const handleAddNode = async () => {
-        if (!investigation) return
-        // create individual
-        const individual = await supabase.from("individuals").insert({
-            full_name: "Franck Marshall",
-        }).select("*")
-            .single()
-            .then(({ data, error }) => {
-                if (error)
-                    console.log(error)
-                return data
-            })
-        if (!individual) return
-        // create relation to investigation
-        await supabase.from("investigation_individuals").insert({
-            individual_id: individual.id,
-            investigation_id: investigation.id
-        }).then(({ error }) => console.log(error))
-        addNodes({
-            id: individual.id.toString(),
-            type: 'custom',
-            data: { ...individual, label: individual.full_name },
-            position: { x: 0, y: 100 }
-        });
-    }
-
-    const handleAddEdge = async () => {
-
-    }
 
     useEffect(() => {
         onLayout('LR')
@@ -145,50 +99,47 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                onPaneClick={onPaneClick}
-                onNodeContextMenu={onNodeContextMenu}
                 fitView
                 nodeTypes={nodeTypes}
                 // @ts-ignore
                 edgeTypes={edgeTypes}
             >
                 <Panel position="top-left" className='flex items-center gap-1'>
-                    <Tooltip showArrow content="Auto layout (vertical)" placement={"bottom-start"}>
-                        <Button onPress={() => onLayout('TB')} size="sm" isIconOnly aria-label="options" variant='bordered'>
+                    <Tooltip content="Auto layout (vertical)">
+                        <IconButton color="gray" variant="soft" onClick={() => onLayout('TB')}>
                             <AlignCenterVertical className='h-4 w-4' />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
-                    <Tooltip showArrow content="Auto layout (horizontal)" placement={"bottom-start"}>
-                        <Button onPress={() => onLayout('LR')} size="sm" isIconOnly aria-label="options" variant='bordered'>
+                    <Tooltip content="Auto layout (horizontal)">
+                        <IconButton color="gray" variant="soft" onClick={() => onLayout('LR')}>
                             <AlignCenterHorizontal className='h-4 w-4' />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
-                    <NewActions handleAddEdge={handleAddEdge} handleAddNode={handleAddNode} />
+                    <NewActions addNodes={addNodes} />
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>
-                    <Tooltip showArrow delay={1000} content="Center view" placement={"right"}>
+                    <Tooltip content="Center view">
                         {/* @ts-ignore */}
-                        <Button onPress={fitView} placement={"right"} size="sm" isIconOnly aria-label="options" variant='bordered'>
+                        <IconButton color="gray" variant="soft" onClick={fitView}>
                             <MaximizeIcon className='h-4 w-4' />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
-                    <Tooltip showArrow delay={1000} placement={"right"} content="Zoom in">
+                    <Tooltip content="Zoom in">
                         {/* @ts-ignore */}
-                        <Button onPress={zoomIn} size="sm" isIconOnly aria-label="options" variant='bordered'>
+                        <IconButton color="gray" variant="soft" onClick={zoomIn}>
                             <ZoomInIcon className='h-4 w-4' />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
-                    <Tooltip showArrow delay={1000} placement={"right"} content="Zoom out">
+                    <Tooltip content="Zoom out">
                         {/* @ts-ignore */}
-                        <Button onPress={zoomOut} size="sm" isIconOnly aria-label="options" variant='bordered'>
+                        <IconButton color="gray" variant="soft" onClick={zoomOut}>
                             <ZoomOutIcon className='h-4 w-4' />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
                 </Panel>
                 <Background />
-                {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
                 <MiniMap />
             </ReactFlow>
         </div>
@@ -203,7 +154,8 @@ export default function (props: any) {
     }, [])
 
     if (!mounted) {
-        return <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'><Spinner color="primary" label="Loading schema..." /></div>
+        return <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'><Spinner size="3" />
+        </div>
     }
     return (
         <ReactFlowProvider>

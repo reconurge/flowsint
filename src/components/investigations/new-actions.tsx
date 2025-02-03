@@ -1,75 +1,58 @@
-import {
-    Dropdown,
-    DropdownSection,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Button,
-} from "@heroui/react";
-import { PlusIcon } from 'lucide-react';
-import { JSX, SVGProps } from "react";
+import { supabase } from "@/src/lib/supabase/client";
+import { DropdownMenu, Button, Popover, Flex, Box, TextField, Avatar } from "@radix-ui/themes";
+import { PlusIcon } from "lucide-react";
+import { useParams } from "next/navigation";
 
-export const AddIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => {
+
+export default function NewActions({ addNodes }: { addNodes: any }) {
+    const { investigation_id } = useParams()
+    const onSubmit = async (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.currentTarget));
+        const node = await supabase.from("individuals").insert({ ...data, investigation_id: investigation_id?.toString() }).select("*")
+            .single()
+            .then(({ data, error }) => {
+                if (error)
+                    console.error(error)
+                return data
+            })
+        addNodes({
+            id: node.id,
+            type: "individual",
+            data: node,
+            position: { x: -100, y: -100 }
+        });
+
+    }
     return (
-        <svg
-            aria-hidden="true"
-            fill="none"
-            focusable="false"
-            height="1em"
-            role="presentation"
-            viewBox="0 0 24 24"
-            width="1em"
-            {...props}
-        >
-            <path
-                d="M7.37 22h9.25a4.87 4.87 0 0 0 4.87-4.87V8.37a4.87 4.87 0 0 0-4.87-4.87H7.37A4.87 4.87 0 0 0 2.5 8.37v8.75c0 2.7 2.18 4.88 4.87 4.88Z"
-                fill="currentColor"
-                opacity={0.4}
-            />
-            <path
-                d="M8.29 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM15.71 6.29c-.42 0-.75-.34-.75-.75V2.75a.749.749 0 1 1 1.5 0v2.78c0 .42-.33.76-.75.76ZM12 14.75h-1.69V13c0-.41-.34-.75-.75-.75s-.75.34-.75.75v1.75H7c-.41 0-.75.34-.75.75s.34.75.75.75h1.81V18c0 .41.34.75.75.75s.75-.34.75-.75v-1.75H12c.41 0 .75-.34.75-.75s-.34-.75-.75-.75Z"
-                fill="currentColor"
-            />
-        </svg>
-    );
-};
-export default function NewActions({ handleAddNode, handleAddEdge }: any) {
-    const iconClasses = "text-xl text-default-500 pointer-events-none flex-shrink-0";
-    return (
-        <Dropdown
-            classNames={{
-                base: "before:bg-default-200", // change arrow background
-                content:
-                    "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
-            }}
-        >
-            <DropdownTrigger>
-                <Button radius='sm' startContent={<PlusIcon className='h-4 w-4' />} size="sm" aria-label="new_individual" color='primary'>
-                    New
+        <Popover.Root>
+            <Popover.Trigger>
+                <Button variant="soft">
+                    <PlusIcon width="16" height="16" />
+                    Individual
                 </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Dropdown menu with description" variant="faded">
-                <DropdownSection title="New">
-                    <DropdownItem
-                        onPress={handleAddNode}
-                        key="new_individual"
-                        description="Create a new individual profile."
-                        shortcut="⌘N"
-                        startContent={<AddIcon className={iconClasses} />}
-                    >
-                        New individual
-                    </DropdownItem>
-                    <DropdownItem
-                        onPress={handleAddEdge}
-                        key="new_relation"
-                        shortcut="⌘R"
-                        description="Create a new relation between two individuals."
-                        startContent={<AddIcon className={iconClasses} />}
-                    >
-                        New relation
-                    </DropdownItem>
-                </DropdownSection>
-            </DropdownMenu>
-        </Dropdown >
+            </Popover.Trigger>
+            <Popover.Content width="260px">
+                <form onSubmit={onSubmit}>
+                    <Flex gap="3">
+                        <Avatar
+                            size="3"
+                            fallback="A"
+                            radius="full"
+                        />
+                        <Box flexGrow="1">
+                            <TextField.Root
+                                defaultValue={""}
+                                name={"full_name"}
+                                placeholder={`Name of the individual`}
+                            />
+                            <Flex justify={"end"} className="mt-2">
+                                <Button type="submit" size="2">Add</Button>
+                            </Flex>
+                        </Box>
+                    </Flex>
+                </form>
+            </Popover.Content>
+        </Popover.Root>
     );
 }

@@ -137,7 +137,7 @@ const IndividualModal = () => {
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
                                                                 value={email}
-                                                                onChange={(e) => handleFieldChange(index, e.target.value, setEmails)}
+                                                                onChange={(e) => handleFieldChange(index as any, e.target.value, setEmails)}
                                                                 placeholder="Email"
                                                                 type="email"
                                                                 disabled={!editMode}
@@ -147,7 +147,7 @@ const IndividualModal = () => {
                                                                 <IconButton
                                                                     type="button"
                                                                     variant="ghost"
-                                                                    onClick={() => handleRemoveField(index, setEmails)}
+                                                                    onClick={() => handleRemoveField(index as any, setEmails)}
                                                                     aria-label="Remove email"
                                                                 >
                                                                     <TrashIcon />
@@ -189,7 +189,6 @@ const IndividualModal = () => {
                                                     )}
                                                 </Flex>
                                             </Tabs.Content>
-
                                             <Tabs.Content value="social_account">
                                                 <Flex direction="column" gap="3">
                                                     <TextField.Root

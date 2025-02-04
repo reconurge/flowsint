@@ -6,29 +6,16 @@ import { Avatar, Card, Box, Flex, Text, ContextMenu, Spinner, Badge, Tooltip } f
 import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon } from 'lucide-react';
 import { NodeProvider, useNodeContext } from './node-context';
 import { cn } from '@/utils';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 function Custom({ data }: any) {
     const { settings } = useInvestigationContext()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
 
-            return params.toString()
-        },
-        [searchParams]
-    )
-    const handleOpenIndividualModal = () => router.push(pathname + '?' + createQueryString('individual_id', data.id))
     return (
         <>
             <ContextMenu.Root>
                 <ContextMenu.Trigger>
-                    <Box onClick={handleOpenIndividualModal} className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel ?
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel ?
                         <Card className='!py-1'>
                             <Flex gap="2" align="center">
                                 <Avatar
@@ -49,7 +36,7 @@ function Custom({ data }: any) {
                             </Flex>
                         </Card> :
                         <Tooltip content={data.full_name}>
-                            <button onClick={handleOpenIndividualModal} className='!rounded-full border-transparent'>
+                            <button className='!rounded-full border-transparent'>
                                 <Avatar
                                     size="3"
                                     src={data?.image_url}
@@ -98,7 +85,7 @@ function Custom({ data }: any) {
                         Delete
                     </ContextMenu.Item>
                 </ContextMenu.Content>
-            </ContextMenu.Root>
+            </ContextMenu.Root >
         </>
     );
 }

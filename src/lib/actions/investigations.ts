@@ -2,6 +2,7 @@
 import { createClient } from "../supabase/server"
 import { Investigation } from "@/src/types/investigation"
 import { NodeData, EdgeData } from "@/src/types"
+import { notFound } from "next/navigation"
 interface ReturnTypeGetInvestigations {
     investigations: Investigation[],
     error?: any
@@ -30,7 +31,7 @@ export async function getInvestigation(investigationId: string): Promise<ReturnT
         .single()
 
     if (error) {
-        throw error
+        throw notFound()
     }
     return { investigation: investigation as Investigation, error: error }
 }
@@ -41,7 +42,8 @@ export async function getInvestigationData(investigationId: string): Promise<{ n
         .from('individuals')
         .select('*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*)')
         .eq('investigation_id', investigationId);
-    if (indError) throw indError;
+    if (indError) throw notFound();
+
     if (!individuals) individuals = [];
 
     // Extraire les IDs

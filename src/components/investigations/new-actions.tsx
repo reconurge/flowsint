@@ -42,6 +42,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                         />
                         <Box flexGrow="1">
                             <TextField.Root
+                                required
                                 defaultValue={""}
                                 name={"full_name"}
                                 placeholder={`Name of the individual`}

@@ -20,12 +20,13 @@ import PhoneNode from './nodes/phone';
 import CustomEdge from './custom-edge';
 import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
-import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import SocialNode from './nodes/social'
+import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import { IconButton, Tooltip, Spinner } from '@radix-ui/themes';
 
-const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode };
+const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode };
 const edgeTypes = {
     'custom': CustomEdge,
 };
@@ -100,6 +101,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 fitView
+                proOptions={{
+                    hideAttribution: true
+                }}
                 nodeTypes={nodeTypes}
                 // @ts-ignore
                 edgeTypes={edgeTypes}
@@ -117,6 +121,11 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     </Tooltip>
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
+                    <Tooltip content="Reload schema">
+                        <IconButton onClick={() => window.location.reload()} variant="soft">
+                            <RotateCcwIcon className='h-4 w-4' />
+                        </IconButton>
+                    </Tooltip>
                     <NewActions addNodes={addNodes} />
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>

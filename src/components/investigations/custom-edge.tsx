@@ -21,7 +21,7 @@ export default function CustomEdge({ id, label, confidence_level, sourceX, sourc
             <BaseEdge id={id} path={edgePath} />
             <EdgeLabelRenderer>
                 {settings.showEdgeLabel &&
-                    <Badge color={label === "relation" ? 'orange' : "blue"} style={{
+                    <Badge size={"1"} color={label === "relation" ? 'orange' : "blue"} style={{
                         position: 'absolute',
                         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                         pointerEvents: 'all',

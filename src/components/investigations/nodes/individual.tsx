@@ -2,28 +2,28 @@
 import React, { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useInvestigationContext } from '../investigation-provider';
-import { Avatar, Card, Box, Flex, Text, ContextMenu, Dialog, TextField, Button } from '@radix-ui/themes';
-import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, PhoneIcon, UserIcon } from 'lucide-react';
+import { Avatar, Card, Box, Flex, Text, ContextMenu, Dialog, TextField, Button, Spinner, Badge, Tooltip, Inset } from '@radix-ui/themes';
+import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon } from 'lucide-react';
 import { NodeProvider, useNodeContext } from './node-context';
+import { cn } from '@/utils';
 
 function Custom({ data }: any) {
-    console.log(data)
     const { settings } = useInvestigationContext()
-    const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode } = useNodeContext()
+    const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const [open, setOpen] = useState(false);
-    if (!data) return
+
     return (
         <>
             <ContextMenu.Root>
                 <ContextMenu.Trigger>
-                    <Box>{settings.showNodeLabel ?
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel ?
                         <Card className='!py-1' onClick={() => setOpen(true)}>
                             <Flex gap="2" align="center">
                                 <Avatar
                                     size="2"
                                     src={data?.image_url}
                                     radius="full"
-                                    fallback={data.full_name?.[0]}
+                                    fallback={loading ? <Spinner /> : data.full_name[0]}
                                 />
                                 {settings.showNodeLabel &&
                                     <Box>
@@ -35,12 +35,17 @@ function Custom({ data }: any) {
                                         </Text>
                                     </Box>}
                             </Flex>
-                        </Card> : <Avatar
-                            size="3"
-                            src={data?.image_url}
-                            radius="full"
-                            fallback={data.full_name?.[0]}
-                        />}
+                        </Card> :
+                        <Tooltip content={data.full_name}>
+                            <button className='!rounded-full border-transparent' onClick={() => setOpen(true)}>
+                                    <Avatar
+                                        size="3"
+                                        src={data?.image_url}
+                                        radius="full"
+                                        fallback={<UserIcon className='h-4 w-4' />}
+                                    />
+                            </button>
+                        </Tooltip>}
                         <Handle
                             type="target"
                             position={Position.Top}
@@ -64,10 +69,12 @@ function Custom({ data }: any) {
                             <ContextMenu.Sub>
                                 <ContextMenu.SubTrigger >Social account</ContextMenu.SubTrigger>
                                 <ContextMenu.SubContent>
-                                    <ContextMenu.Item><FacebookIcon className='h-4 w-4' />Facebook</ContextMenu.Item>
-                                    <ContextMenu.Item><InstagramIcon className='h-4 w-4' />Instagram</ContextMenu.Item>
-                                    <ContextMenu.Item><CameraIcon className='h-4 w-4' />Snapchat</ContextMenu.Item>
-                                    <ContextMenu.Item>Coco</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={() => setOpenAddNodeModal("social_accounts_facebook", data.id)}><FacebookIcon className='h-4 w-4' />Facebook</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={() => setOpenAddNodeModal("social_accounts_instagram", data.id)}><InstagramIcon className='h-4 w-4' />Instagram</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={() => setOpenAddNodeModal("social_accounts_telegram", data.id)}><SendIcon className='h-4 w-4' />Telegram</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={() => setOpenAddNodeModal("social_accounts_signal", data.id)}><MessageCircleDashedIcon className='h-4 w-4' />Signal</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={() => setOpenAddNodeModal("social_accounts_snapchat", data.id)}><CameraIcon className='h-4 w-4' />Snapchat</ContextMenu.Item>
+                                    <ContextMenu.Item disabled onClick={() => setOpenAddNodeModal("social_accounts_coco", data.id)}>Coco <Badge radius='full'>soon</Badge></ContextMenu.Item>
                                 </ContextMenu.SubContent>
                             </ContextMenu.Sub>
                         </ContextMenu.SubContent>

@@ -4,15 +4,16 @@ import { Handle, Position } from '@xyflow/react';
 import { Card, Box, Text, ContextMenu, Flex, Inset, Badge } from '@radix-ui/themes';
 import { NodeProvider, useNodeContext } from './node-context';
 import { LocateIcon } from 'lucide-react';
+import { cn } from '@/utils';
 
 function Custom({ data }: any) {
-    const { handleDeleteNode } = useNodeContext()
+    const { handleDeleteNode, loading } = useNodeContext()
 
     return (
         <>
             <ContextMenu.Root>
                 <ContextMenu.Trigger>
-                    <Box>
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>
                         <Card>
                             <Inset>
                                 <Flex className='items-center p-0'>

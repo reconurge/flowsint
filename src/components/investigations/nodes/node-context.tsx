@@ -8,15 +8,20 @@ import { useNodeId, useReactFlow } from "@xyflow/react";
 interface NodeContextType {
     setOpenAddNodeModal: any,
     handleDuplicateNode: any,
-    handleDeleteNode: any
+    handleDeleteNode: any,
+    loading: boolean
 }
 
 const nodesTypes = {
-    "emails": { table: "emails", type: "email", field: "email" },
-    "individuals": { table: "individuals", type: "individual", field: "full_name" },
-    "phone_numbers": { table: "phone_numbers", type: "phone", field: "phone_number" },
-    "ip_addresses": { table: "ip_addresses", type: "ip", field: "ip_address" },
-    "social_accounts": { table: "social_accounts", type: "social", field: "username" },
+    "emails": { table: "emails", type: "email", fields: ["email"] },
+    "individuals": { table: "individuals", type: "individual", fields: ["full_name"] },
+    "phone_numbers": { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
+    "ip_addresses": { table: "ip_addresses", type: "ip", fields: ["ip_address"] },
+    "social_accounts_facebook": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:facebook"] },
+    "social_accounts_instagram": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:instagram"] },
+    "social_accounts_telegram": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:telegram"] },
+    "social_accounts_snapchat": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:snapchat"] },
+    "social_accounts_signal": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:signal"] },
 }
 
 const NodeContext = createContext<NodeContextType | undefined>(undefined);
@@ -41,10 +46,25 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
         setOpenNodeModal(true)
     }
 
-    const onSubmitNewNodeModal = (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
+    const onSubmitNewNodeModal = async (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.currentTarget));
-        handleAddNode(data);
+        const newNodeId = crypto.randomUUID()
+        addNodes({
+            id: newNodeId,
+            type: nodeType.type,
+            data: { ...data, label: data[nodeType.fields[0]] },
+            position: { x: -100, y: -100 }
+        });
+        if (nodeId)
+            addEdges({
+                source: nodeId,
+                target: newNodeId,
+                type: 'custom',
+                id: `${nodeId}-${newNodeId}`.toString(),
+                label: nodeType.type,
+            });
+        await handleAddNode({ ...data, id: newNodeId });
     };
 
     const handleAddNode = async (data: any) => {
@@ -74,19 +94,6 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                 relation_type: "relation"
             }).then(({ error }) => console.log(error))
         }
-        addNodes({
-            id: node.id,
-            type: nodeType.type,
-            data: { ...node, label: node[nodeType.field] },
-            position: { x: -100, y: -100 }
-        });
-        addEdges({
-            source: nodeId,
-            target: node.id,
-            type: 'custom',
-            id: `${nodeId}-${node.id}`.toString(),
-            label: nodeType.type,
-        });
         setLoading(false)
         setOpenNodeModal(false)
     }
@@ -119,7 +126,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     }, [nodeId, setNodes, setEdges]);
 
     return (
-        <NodeContext.Provider {...props} value={{ setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode }}>
+        <NodeContext.Provider {...props} value={{ setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading }}>
             {props.children}
             <Dialog.Root open={openAddNodeModal && nodeType} onOpenChange={setOpenNodeModal}>
                 <Dialog.Content maxWidth="450px">
@@ -129,16 +136,23 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                     </Dialog.Description>
                     <form onSubmit={onSubmitNewNodeModal}>
                         <Flex direction="column" gap="3">
-                            <label>
-                                <Text as="div" size="2" mb="1" weight="bold">
-                                    Value
-                                </Text>
-                                <TextField.Root
-                                    defaultValue={""}
-                                    name={nodeType?.field}
-                                    placeholder={`Your value here (${nodeType?.field})`}
-                                />
-                            </label>
+                            {nodeType?.fields.map((field: any, i: number) => {
+                                const [key, value] = field.split(":")
+                                console.log(Boolean(value))
+                                return (
+                                    <label key={i}>
+                                        <Text as="div" size="2" mb="1" weight="bold">
+                                            {key}
+                                        </Text>
+                                        <TextField.Root
+                                            defaultValue={value || ""}
+                                            disabled={Boolean(value)}
+                                            name={key}
+                                            placeholder={`Your value here (${key})`}
+                                        />
+                                    </label>
+                                )
+                            })}
                         </Flex>
                         <Flex gap="3" mt="4" justify="end">
                             <Dialog.Close>

@@ -1,33 +1,48 @@
 "use client"
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Card, Box, Text, ContextMenu, Flex, Inset, Badge } from '@radix-ui/themes';
+import { Card, Box, Text, ContextMenu, Flex, Inset, Badge, Tooltip, Avatar } from '@radix-ui/themes';
 import { NodeProvider, useNodeContext } from './node-context';
 import { LocateIcon } from 'lucide-react';
 import { cn } from '@/utils';
+import { useInvestigationContext } from '../investigation-provider';
 
 function Custom({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
+    const { settings } = useInvestigationContext()
 
     return (
         <>
             <ContextMenu.Root>
                 <ContextMenu.Trigger>
                     <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>
-                        <Card>
-                            <Inset>
-                                <Flex className='items-center p-0'>
-                                    <Badge className='!h-[24px] !rounded-r-none'>
-                                        <LocateIcon className='h-3 w-3' />
-                                    </Badge>
-                                    <Box className='p-1'>
-                                        <Text as="div" size="1" weight="regular">
-                                            {data.label}
-                                        </Text>
-                                    </Box>
-                                </Flex>
-                            </Inset>
-                        </Card>
+                        {settings.showNodeLabel ?
+                            <Card>
+                                <Inset>
+                                    <Flex className='items-center p-0'>
+                                        <Badge className='!h-[24px] !rounded-r-none'>
+                                            <LocateIcon className='h-3 w-3' />
+                                        </Badge>
+                                        <Box className='p-1'>
+                                            <Text as="div" size="1" weight="regular">
+                                                {data.label}
+                                            </Text>
+                                        </Box>
+                                    </Flex>
+                                </Inset>
+                            </Card>
+                            :
+                            <Tooltip content={data.label}>
+                                <button className='!rounded-full border-transparent'>
+                                    <Avatar
+                                        size="1"
+                                        src={data?.image_url}
+                                        radius="full"
+                                        /* @ts-ignore */
+                                        fallback={<LocateIcon className='h-3 w-3' />}
+                                    />
+                                </button>
+                            </Tooltip>}
                         <Handle
                             type="target"
                             position={Position.Top}

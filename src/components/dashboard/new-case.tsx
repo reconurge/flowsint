@@ -61,7 +61,7 @@ export default function NewCase() {
                                     </Text>
                                     <TextField.Root
                                         name="description"
-                                        placeholder="Investigation sur une campagne de phishing via Twitter et LinkedIn."
+                                        placeholder="Investigation sur une campagne de phishing via LinkedIn."
                                     />
                                 </label>
                             </Flex>

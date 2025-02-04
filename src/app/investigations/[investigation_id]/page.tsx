@@ -1,5 +1,6 @@
 import { getInvestigationData } from '@/src/lib/actions/investigations'
 import InvestigationGraph from '@/src/components/investigations/graph'
+import IndividualModal from '@/src/components/investigations/individual-modal'
 
 const DashboardPage = async ({
     params,
@@ -8,9 +9,11 @@ const DashboardPage = async ({
 }) => {
     const { investigation_id } = await (params)
     const { nodes, edges } = await getInvestigationData(investigation_id)
+
     return (
         <div>
             <InvestigationGraph initialNodes={nodes} initialEdges={edges} />
+            <IndividualModal />
         </div>
     )
 }

@@ -25,6 +25,7 @@ import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, RotateCcwIcon
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import { IconButton, Tooltip, Spinner } from '@radix-ui/themes';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 
 const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode };
 const edgeTypes = {
@@ -63,8 +64,19 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const { fitView, zoomIn, zoomOut, addNodes } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
     const ref = useRef(null);
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set(name, value)
 
+            return params.toString()
+        },
+        [searchParams]
+    )
     const onLayout = useCallback(
         (direction: any) => {
             const layouted = getLayoutedElements(nodes, edges, { direction });
@@ -90,6 +102,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         onLayout('LR')
     }, [initialEdges])
 
+    const handleOpenIndividualModal = (id: string) => router.push(pathname + '?' + createQueryString('individual_id', id))
+
+
     return (
         <div className='h-[calc(100vh_-_48px)]'>
             <ReactFlow
@@ -100,6 +115,10 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeClick={(_, node) => {
+                    if (node.type !== "individual") return
+                    handleOpenIndividualModal(node.id);
+                }}
                 fitView
                 proOptions={{
                     hideAttribution: true

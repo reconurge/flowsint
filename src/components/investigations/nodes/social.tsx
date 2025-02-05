@@ -1,23 +1,16 @@
 "use client"
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card, Box, Text, ContextMenu, Flex, Inset, Badge, Tooltip, Avatar } from '@radix-ui/themes';
 import { NodeProvider, useNodeContext } from './node-context';
-import { CameraIcon, FacebookIcon, InstagramIcon, MessageCircleDashedIcon, SendIcon } from 'lucide-react';
 import { cn } from '@/utils';
 import { useInvestigationContext } from '../investigation-provider';
+import { usePlatformIcons } from '@/src/lib/hooks/use-platform-icons';
 
 function Custom({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings } = useInvestigationContext()
-
-    const platformsIcons = useMemo(() => ({
-        "facebook": <FacebookIcon className='h-3 w-3' />,
-        "instagram": <InstagramIcon className='h-3 w-3' />,
-        "telegram": <SendIcon className='h-3 w-3' />,
-        "signal": <MessageCircleDashedIcon className='h-3 w-3' />,
-        "snapchat": <CameraIcon className='h-3 w-3' />
-    }), [])
+    const platformsIcons = usePlatformIcons()
     return (
         <>
             <ContextMenu.Root>
@@ -27,12 +20,14 @@ function Custom({ data }: any) {
                             <Card>
                                 <Inset>
                                     <Flex className='items-center p-0'>
-                                        <Badge className='!h-[24px] !rounded-r-none'>
+                                        {/* @ts-ignore */}
+                                        <Badge color={platformsIcons?.[data?.platform]?.color as any || "amber"}
+                                            className='!h-[24px] !rounded-r-none'>
                                             {/* @ts-ignore */}
-                                            {platformsIcons[data.platform]}
+                                            {platformsIcons?.[data?.platform]?.icon || "?"}
                                         </Badge>
                                         <Box maxWidth={"20px"} className='!max-w-[240px] p-1'>
-                                            <Text as="div" size="1" weight="medium" color='blue' className='truncate text-ellipsis underline'>
+                                            <Text as="div" size="1" weight="medium">
                                                 {data.username || data.profile_url}
                                             </Text>
                                         </Box>
@@ -44,10 +39,12 @@ function Custom({ data }: any) {
                                 <button className='!rounded-full border-transparent'>
                                     <Avatar
                                         size="1"
+                                        /* @ts-ignore */
+                                        color={platformsIcons?.[data?.platform]?.color || "amber"}
                                         src={data?.image_url}
                                         radius="full"
                                         /* @ts-ignore */
-                                        fallback={platformsIcons[data.platform]}
+                                        fallback={platformsIcons?.[data?.platform]?.icon || "?"}
                                     />
                                 </button>
                             </Tooltip>}

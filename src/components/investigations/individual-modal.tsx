@@ -14,33 +14,43 @@ import {
     Avatar,
     Tabs,
     IconButton,
+    Text,
+    Spinner,
+    Badge,
+    Grid,
+    Link,
 } from "@radix-ui/themes"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useIndividual } from "@/src/lib/hooks/use-individual"
 import { Pencil1Icon, Cross2Icon, PlusIcon, TrashIcon } from "@radix-ui/react-icons"
-import social from "./nodes/social"
+import { useRelations } from "@/src/lib/hooks/use-relations"
+import { useInvestigationContext } from "./investigation-provider"
+import { usePlatformIcons } from "@/src/lib/hooks/use-platform-icons"
 
 const IndividualModal = () => {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const individual_id = searchParams.get("individual_id")
+    const { handleOpenIndividualModal } = useInvestigationContext()
     const { individual, isLoading } = useIndividual(individual_id)
+    const platformsIcons = usePlatformIcons("medium")
+    const { relations, isLoading: isLoadingRelations } = useRelations(individual_id)
     const [editMode, setEditMode] = useState(false)
     const [emails, setEmails] = useState([""])
     const [phones, setPhones] = useState([""])
     const [accounts, setAccounts] = useState([""])
-    const [ipAddresses, setIpAddresses] = useState([""])
+    const [ips, setIps] = useState([""])
 
-    console.log(individual)
     useEffect(() => {
         setEmails(individual?.emails.map(({ email }: any) => email) || [""])
         setPhones(individual?.phone_numbers.map(({ phone_number }: any) => phone_number) || [""])
-        setIpAddresses(individual?.ip_addresses.map(({ ip_address }: any) => ip_address) || [""])
-        setAccounts(individual?.social_accounts.map(({ username }: any) => username) || [""])
+        setIps(individual?.ip_addresses.map(({ ip_address }: any) => ip_address) || [""])
+        setAccounts(individual?.social_accounts || [""])
     }, [individual])
 
     const handleCloseModal = () => {
+        setEditMode(false)
         router.push(pathname)
     }
 
@@ -50,12 +60,14 @@ const IndividualModal = () => {
         const formContent = Object.fromEntries(formData.entries())
         formContent.emails = emails as any
         formContent.phones = phones as any
-        formContent.ip_addresses = ipAddresses as any
+        formContent.ip_addresses = ips as any
+        formContent.accounts = accounts as any
         alert(JSON.stringify(formContent, null, 2))
         setEditMode(false)
     }
 
     const handleAddField = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+        setEditMode(true)
         setter((prev) => [...prev, ""])
     }
 
@@ -87,10 +99,10 @@ const IndividualModal = () => {
 
     return (
         <Dialog.Root open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-            <Dialog.Content style={{ maxWidth: "900px", width: "90vw" }} minHeight={"80vh"}>
+            <Dialog.Content style={{ maxWidth: "1200px", width: "90vw" }} minHeight={"80vh"}>
                 <Skeleton loading={isLoading}>
                     <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
-                        <Flex direction="column" gap="4">
+                        <Flex direction="column" gap="4" flexGrow="0">
                             <Flex justify="between" align="center">
                                 <Dialog.Title>User Profile</Dialog.Title>
                                 <IconButton
@@ -106,6 +118,7 @@ const IndividualModal = () => {
                                 <Flex direction={"column"}>
                                     <Avatar
                                         size="9"
+                                        src={individual?.image_url}
                                         fallback={individual?.full_name?.[0] || "?"}
                                         radius="full"
                                     />
@@ -119,20 +132,31 @@ const IndividualModal = () => {
                                     <Tabs.Root defaultValue="overview">
                                         <Tabs.List>
                                             <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-                                            <Tabs.Trigger value="social_account">Social accounts</Tabs.Trigger>
-                                            <Tabs.Trigger value="emails">Emails</Tabs.Trigger>
-                                            <Tabs.Trigger value="phone_numbers">Phone numbers</Tabs.Trigger>
-                                            <Tabs.Trigger value="ip_addresses">IP addresses</Tabs.Trigger>
+                                            <Tabs.Trigger value="social_account">Social accounts<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={accounts?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{accounts?.length}</Badge></Spinner></Tabs.Trigger>
+                                            <Tabs.Trigger value="emails">Emails<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={emails?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{emails?.length}</Badge></Spinner></Tabs.Trigger>
+                                            <Tabs.Trigger value="phone_numbers">Phone numbers<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={phones?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{phones?.length}</Badge></Spinner></Tabs.Trigger>
+                                            <Tabs.Trigger value="ip_addresses">IP addresses<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={ips?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{ips?.length}</Badge></Spinner></Tabs.Trigger>
+                                            <Tabs.Trigger value="relations">Relations<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={relations?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{relations?.length}</Badge></Spinner></Tabs.Trigger>
                                         </Tabs.List>
                                         <Box pt="3">
                                             <Tabs.Content value="overview">
                                                 <Flex direction="column" gap="3">
-                                                    <TextField.Root
-                                                        defaultValue={individual?.full_name}
-                                                        placeholder="Full Name"
-                                                        name="full_name"
-                                                        disabled={!editMode}
-                                                    />
+                                                    {individual && Object.keys(individual).filter((key) => typeof individual[key] !== "object" || !Array.isArray(individual[key])).map((key) => (
+                                                        <Flex key={key} direction="column" gap="1">
+                                                            <label className="capitalize-first">{key}</label>
+                                                            <TextField.Root
+                                                                defaultValue={individual[key]}
+                                                                placeholder={key}
+                                                                name={key}
+                                                                disabled={!editMode}
+                                                            />
+                                                        </Flex>
+                                                    ))}
+                                                </Flex>
+                                            </Tabs.Content>
+                                            <Tabs.Content value="emails">
+                                                <Flex direction="column" gap="3" maxWidth={"420px"}>
+                                                    {emails.length === 0 && <Text className="italic opacity-60 text-sm">No email registered. Click on edit to add one.</Text>}
                                                     {emails.map((email: string | number | undefined, index: React.Key | null | undefined) => (
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
@@ -160,6 +184,42 @@ const IndividualModal = () => {
                                                             <PlusIcon /> Add Email
                                                         </Button>
                                                     )}
+                                                </Flex>
+                                            </Tabs.Content>
+                                            <Tabs.Content value="social_account">
+                                                <Grid columns="3" gap="3" width="auto">
+                                                    {accounts.length === 0 && <Text className="italic opacity-60 text-sm">No account registered. Click on edit to add one.</Text>}
+                                                    {accounts.map((account: any, index) => (
+                                                        <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={index} asChild size="1">
+                                                            <Flex gap="3" align="center" direction={"row"} className="w-full">
+                                                                {/* @ts-ignore */}
+                                                                <Avatar size="3" radius="full" color={platformsIcons[account?.platform]?.color || "amber"} fallback={platformsIcons[account?.platform]?.icon || "?"} />
+                                                                <Box width={"80%"}>
+                                                                    <Text as="div" size="1" weight="bold">
+                                                                        {account?.platform}
+                                                                    </Text>
+                                                                    <Text as="div" size="2" weight="bold">
+                                                                        {account?.username || <span className="italic font-light">No username</span>}
+                                                                    </Text>
+                                                                    <Link href={account?.profile_url} size="2" className="!max-w-full" color="indigo">
+                                                                        <Text as="div" truncate>
+                                                                            {account?.profile_url}
+                                                                        </Text>
+                                                                    </Link>
+                                                                </Box>
+                                                            </Flex>
+                                                        </Badge>
+                                                    ))}
+                                                    {editMode && (
+                                                        <Button type="button" onClick={() => handleAddField(setAccounts)} variant="soft">
+                                                            <PlusIcon /> Add account
+                                                        </Button>
+                                                    )}
+                                                </Grid>
+                                            </Tabs.Content>
+                                            <Tabs.Content value="phone_numbers">
+                                                <Flex direction="column" gap="3" maxWidth={"420px"}>
+                                                    {phones.length === 0 && <Text className="italic opacity-60 text-sm">No phone number registered. Click on edit to add one.</Text>}
                                                     {phones.map((phone, index) => (
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
@@ -189,31 +249,25 @@ const IndividualModal = () => {
                                                     )}
                                                 </Flex>
                                             </Tabs.Content>
-                                            <Tabs.Content value="social_account">
+                                            <Tabs.Content value="ip_addresses">
                                                 <Flex direction="column" gap="3">
-                                                    <TextField.Root
-                                                        defaultValue={individual?.username}
-                                                        placeholder="Username"
-                                                        name="username"
-                                                        disabled={!editMode}
-                                                    />
-                                                    {editMode && (
-                                                        <TextField.Root placeholder="New Password" name="new_password" type="password" />
-                                                    )}
-                                                    {accounts.map((account, index) => (
+                                                    {ips.length === 0 && <Text className="italic opacity-60 text-sm">No IP address registered. Click on edit to add one.</Text>}
+                                                    {ips.map((ip, index) => (
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
-                                                                value={account}
-                                                                onChange={(e) => handleFieldChange(index, e.target.value, setAccounts)}
-                                                                placeholder="Social account"
+                                                                value={ip}
+                                                                onChange={(e) => handleFieldChange(index, e.target.value, setIps)}
+                                                                placeholder="IP address"
+                                                                type="text"
                                                                 disabled={!editMode}
                                                                 style={{ flexGrow: 1 }}
                                                             />
                                                             {editMode && (
                                                                 <IconButton
+                                                                    type="button"
                                                                     variant="ghost"
-                                                                    onClick={() => handleRemoveField(index, setAccounts)}
-                                                                    aria-label="Remove social account"
+                                                                    onClick={() => handleRemoveField(index, setIps)}
+                                                                    aria-label="Remove ip"
                                                                 >
                                                                     <TrashIcon />
                                                                 </IconButton>
@@ -221,44 +275,31 @@ const IndividualModal = () => {
                                                         </Flex>
                                                     ))}
                                                     {editMode && (
-                                                        <Button type="button" onClick={() => handleAddField(setIpAddresses)} variant="soft">
-                                                            <PlusIcon /> Add IP Address
+                                                        <Button type="button" onClick={() => handleAddField(setIps)} variant="soft">
+                                                            <PlusIcon /> Add IP address
                                                         </Button>
                                                     )}
                                                 </Flex>
                                             </Tabs.Content>
-
-                                            <Tabs.Content value="emails">
-                                                <Flex direction="column" gap="3">
-                                                    <TextField.Root
-                                                        defaultValue={individual?.language}
-                                                        placeholder="Preferred Language"
-                                                        name="language"
-                                                        disabled={!editMode}
-                                                    />
-                                                    <TextField.Root
-                                                        defaultValue={individual?.timezone}
-                                                        placeholder="Timezone"
-                                                        name="timezone"
-                                                        disabled={!editMode}
-                                                    />
-                                                </Flex>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="phone_numbers">
-                                                <Flex direction="column" gap="3">
-                                                    <TextField.Root
-                                                        defaultValue={individual?.language}
-                                                        placeholder="Preferred Language"
-                                                        name="language"
-                                                        disabled={!editMode}
-                                                    />
-                                                    <TextField.Root
-                                                        defaultValue={individual?.timezone}
-                                                        placeholder="Timezone"
-                                                        name="timezone"
-                                                        disabled={!editMode}
-                                                    />
-                                                </Flex>
+                                            <Tabs.Content value="relations">
+                                                <Grid columns="3" gap="3" width="auto">
+                                                    {relations.length === 0 && <Text className="italic opacity-60 text-sm">No relation registered. Click on edit to add one.</Text>}
+                                                    {relations.map((relation) => (
+                                                        <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={relation.id} onClick={() => handleOpenIndividualModal(relation.id)} asChild size="1">
+                                                            <Flex gap="3" align="center" direction={"row"} className="w-full">
+                                                                <Avatar src={relation?.image_url} size="3" radius="full" fallback={relation.full_name[0]} color="indigo" />
+                                                                <Box>
+                                                                    <Text as="div" size="2" weight="bold">
+                                                                        {relation.full_name}
+                                                                    </Text>
+                                                                    <Text as="div" size="2" color="gray">
+                                                                        {relation.relation_type}
+                                                                    </Text>
+                                                                </Box>
+                                                            </Flex>
+                                                        </Badge>
+                                                    ))}
+                                                </Grid>
                                             </Tabs.Content>
                                         </Box>
                                     </Tabs.Root>

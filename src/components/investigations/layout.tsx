@@ -8,10 +8,12 @@ import NewCase from '../dashboard/new-case';
 
 const InvestigationLayout = ({
     children,
-    investigation
+    investigation,
+    left
 }: {
     children: React.ReactNode;
-    investigation: Investigation
+    investigation: Investigation,
+    left: React.ReactNode;
 }) => {
     return (
         <div className='h-screen w-screen flex'>
@@ -20,10 +22,9 @@ const InvestigationLayout = ({
                     <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center flex-row justify-end p-2'>
                         <NewCase />
                     </div>
-                    <div className='p-3'>
+                    <div className='p-3 grow overflow-y-auto'>
                         <div className="flex flex-col">
-                            <p className="text-md">{investigation.title}</p>
-                            <p className="text-sm opacity-60">{investigation.description}</p>
+                            {left}
                         </div>
                     </div>
                 </div>

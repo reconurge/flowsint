@@ -20,7 +20,7 @@ function Custom({ data }: any) {
                             <Card>
                                 <Inset>
                                     <Flex className='items-center p-0'>
-                                        <Badge className='!h-[24px] !rounded-r-none'>
+                                        <Badge color='violet' className='!h-[24px] !rounded-r-none'>
                                             <PhoneIcon className='h-3 w-3' />
                                         </Badge>
                                         <Box className='p-1'>

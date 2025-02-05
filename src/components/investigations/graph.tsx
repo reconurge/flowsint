@@ -12,6 +12,8 @@ import {
     addEdge,
     ColorMode,
     MiniMap,
+    Node,
+    Edge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/src/lib/supabase/client';
@@ -21,13 +23,15 @@ import CustomEdge from './custom-edge';
 import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
 import SocialNode from './nodes/social'
+import AddressNode from './nodes/physical_address'
 import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import { IconButton, Tooltip, Spinner } from '@radix-ui/themes';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
+import { EdgeBase } from '@xyflow/system';
 
-const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode };
+const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const edgeTypes = {
     'custom': CustomEdge,
 };
@@ -61,22 +65,136 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: a
 };
 
 const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, initialEdges: any, theme: ColorMode }) => {
-    const { fitView, zoomIn, zoomOut, addNodes } = useReactFlow();
+    const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
     const ref = useRef(null);
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
+    const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
+        const incomers = getIncomers(node, nodes, edges);
+        const result = incomers.reduce(
+            (memo, incomer) => {
+                memo.push(incomer);
+                //@ts-ignore
+                if ((prevIncomers.findIndex(n => n.id == incomer.id) == -1)) {
+                    prevIncomers.push(incomer as never);
 
-            return params.toString()
+                    getAllIncomers(incomer, nodes, edges, prevIncomers).forEach((foundNode: { id: any; }) => {
+                        memo.push(foundNode);
+                        //@ts-ignore
+                        if ((prevIncomers.findIndex(n => n.id == foundNode.id) == -1)) {
+                            prevIncomers.push(incomer as never);
+
+                        }
+                    });
+                }
+                return memo;
+            },
+            []
+        );
+        return result;
+    }, [])
+
+    const getAllOutgoers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevOutgoers: any = []) => {
+        const outgoers = getOutgoers(node, nodes, edges);
+        return outgoers.reduce(
+            (memo, outgoer) => {
+                memo.push(outgoer);
+                if ((prevOutgoers.findIndex((n: any) => n.id == outgoer.id) == -1)) {
+                    prevOutgoers.push(outgoer);
+                    getAllOutgoers(outgoer, nodes, edges, prevOutgoers).forEach((foundNode: { id: any; }) => {
+                        memo.push(foundNode);
+                        if ((prevOutgoers.findIndex((n: any) => n.id == foundNode.id) == -1)) {
+                            prevOutgoers.push(foundNode);
+                        }
+                    });
+                }
+                return memo;
+            },
+            []
+        )
+    }, [])
+
+    const highlightPath = useCallback(
+        (selectedNode: Node | null) => {
+            if (!selectedNode) {
+                setNodes((nodes) =>
+                    nodes.map((node) => ({
+                        ...node,
+                        style: { ...node.style, opacity: 1 },
+                    })),
+                )
+                setEdges((edges) =>
+                    edges.map((edge) => ({
+                        ...edge,
+                        animated: false,
+                        style: { ...edge.style, stroke: "#b1b1b7", opacity: 1 },
+                    })),
+                )
+                return
+            }
+            const nodes = getNodes()
+            const edges = getEdges()
+            const allIncomers = getIncomers(selectedNode, nodes, edges)
+            const allOutgoers = getOutgoers(selectedNode, nodes, edges)
+            const incomerIds = new Set(allIncomers.map((node) => node.id))
+            const outgoerIds = new Set(allOutgoers.map((node) => node.id))
+            setNodes((prevNodes) =>
+                prevNodes.map((node) => {
+                    const highlight = node.id === selectedNode.id || incomerIds.has(node.id) || outgoerIds.has(node.id)
+                    return {
+                        ...node,
+                        disabled: !highlight,
+                        draggable: highlight,
+                        style: {
+                            ...node.style,
+                            opacity: highlight ? 1 : 0.25,
+                        },
+                    }
+                }),
+            )
+            setEdges((prevEdges) =>
+                prevEdges.map((edge) => {
+                    const animated =
+                        incomerIds.has(edge.source) && (incomerIds.has(edge.target) || selectedNode.id === edge.target)
+                    return {
+                        ...edge,
+                        animated,
+                        style: {
+                            ...edge.style,
+                            stroke: animated ? "#3030e6" : "#b1b1b7",
+                            opacity: animated ? 1 : 0.25,
+                        },
+                    }
+                }),
+            )
         },
-        [searchParams]
+        [getNodes, getEdges, setNodes, setEdges],
     )
+
+    const resetNodeStyles = useCallback(() => {
+        setNodes((nodes) =>
+            nodes.map((node) => ({
+                ...node,
+                disabled: false,
+                draggable: true,
+                style: {
+                    ...node.style,
+                    opacity: 1,
+                },
+            })),
+        )
+        setEdges((edges) =>
+            edges.map((edge) => ({
+                ...edge,
+                animated: false, // Désactive l'animation
+                style: {
+                    ...edge.style,
+                    stroke: "#b1b1b7",
+                    opacity: 1,
+                },
+            })),
+        )
+    }, [setNodes, setEdges])
     const onLayout = useCallback(
         (direction: any) => {
             const layouted = getLayoutedElements(nodes, edges, { direction });
@@ -90,7 +208,6 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     );
     const onConnect = useCallback(
         async (params: any) => {
-            console.log(params)
             await supabase.from("relationships")
                 .insert({ individual_a: params.source, individual_b: params.target, relation_type: "relation" })
             setEdges((els) => addEdge({ ...params, label: "relation", type: "custom" }, els))
@@ -98,12 +215,24 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         [setEdges],
     );
 
+
+    const onNodeClick = useCallback(
+        (_: React.MouseEvent, node: Node) => {
+            highlightPath(node)
+        },
+        [highlightPath],
+    )
+
+    const onPaneClick = useCallback(
+        () => {
+            resetNodeStyles()
+        },
+        [resetNodeStyles],
+    )
+
     useEffect(() => {
         onLayout('LR')
     }, [initialEdges])
-
-    const handleOpenIndividualModal = (id: string) => router.push(pathname + '?' + createQueryString('individual_id', id))
-
 
     return (
         <div className='h-[calc(100vh_-_48px)]'>
@@ -115,10 +244,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                onNodeClick={(_, node) => {
-                    if (node.type !== "individual") return
-                    handleOpenIndividualModal(node.id);
-                }}
+                onNodeClick={onNodeClick}
+                onPaneClick={onPaneClick}
                 fitView
                 proOptions={{
                     hideAttribution: true
@@ -168,7 +295,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     </Tooltip>
                 </Panel>
                 <Background />
-                <MiniMap />
+                <MiniMap pannable />
             </ReactFlow>
         </div>
     );

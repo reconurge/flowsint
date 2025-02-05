@@ -3,14 +3,13 @@ import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card, Box, Text, ContextMenu, Badge, Flex, Inset, Tooltip, Avatar } from '@radix-ui/themes';
 import { NodeProvider, useNodeContext } from './node-context';
-import { AtSignIcon } from 'lucide-react';
+import { MapPinHouseIcon } from 'lucide-react';
 import { cn } from '@/utils';
 import { useInvestigationContext } from '../investigation-provider';
 
-function EmailNode({ data }: any) {
+function AddressNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings } = useInvestigationContext()
-
     return (
         <ContextMenu.Root>
             <ContextMenu.Trigger>
@@ -19,8 +18,8 @@ function EmailNode({ data }: any) {
                         <Card>
                             <Inset>
                                 <Flex className='items-center p-0'>
-                                    <Badge color='green' className='!h-[24px] !rounded-r-none'>
-                                        <AtSignIcon className='h-3 w-3' />
+                                    <Badge color='ruby' className='!h-[24px] !rounded-r-none'>
+                                        <MapPinHouseIcon className='h-3 w-3' />
                                     </Badge>
                                     <Box className='p-1'>
                                         <Text as="div" size="1" weight="regular">
@@ -38,7 +37,7 @@ function EmailNode({ data }: any) {
                                     src={data?.image_url}
                                     radius="full"
                                     /* @ts-ignore */
-                                    fallback={<AtSignIcon className='h-3 w-3' />}
+                                    fallback={<MapPinHouseIcon className='h-3 w-3' />}
                                 />
                             </button>
                         </Tooltip>}
@@ -64,7 +63,7 @@ function EmailNode({ data }: any) {
 
 const MemoizedNode = (props: any) => (
     <NodeProvider>
-        <EmailNode {...props} />
+        <AddressNode {...props} />
     </NodeProvider>
 );
 

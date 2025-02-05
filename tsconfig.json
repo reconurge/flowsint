@@ -23,6 +23,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../ReconOps/src/lib/utils.ts", "src/components/investigations/collide.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../ReconOps/src/lib/utils.ts", "src/components/investigations/collide.js", "src/lib/utils/flow.js"],
   "exclude": ["node_modules"]
 }

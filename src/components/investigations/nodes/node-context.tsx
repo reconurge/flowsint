@@ -1,9 +1,10 @@
 "use client"
 import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
-import { Button, Dialog, Flex, Text, TextField } from "@radix-ui/themes";
+import { Button, Callout, Dialog, Flex, Text, TextField } from "@radix-ui/themes";
 import { useParams } from "next/navigation";
 import { supabase } from "@/src/lib/supabase/client";
 import { useNodeId, useReactFlow } from "@xyflow/react";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 interface NodeContextType {
     setOpenAddNodeModal: any,
@@ -22,6 +23,7 @@ const nodesTypes = {
     "social_accounts_telegram": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:telegram"] },
     "social_accounts_snapchat": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:snapchat"] },
     "social_accounts_signal": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:signal"] },
+    "physical_addresses": { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
 }
 
 const NodeContext = createContext<NodeContextType | undefined>(undefined);
@@ -34,50 +36,44 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     const { addNodes, addEdges, setNodes, setEdges } = useReactFlow();
     const { investigation_id } = useParams()
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
+    const [error, setError] = useState<null | string>(null)
     const [loading, setLoading] = useState(false)
     const [nodeType, setnodeType] = useState<any | null>(null)
     const nodeId = useNodeId();
 
-    const setOpenAddNodeModal = (tableName: string) => {
+    const returnError = (message: string) => {
+        setLoading(false)
+        setError(message)
+        return
+    }
+
+    const setOpenAddNodeModal = (e: { stopPropagation: () => void; }, tableName: string) => {
+        e.stopPropagation()
         // @ts-ignore
         if (!nodesTypes[tableName]) return
         // @ts-ignore
         setnodeType(nodesTypes[tableName])
+        setError(null)
         setOpenNodeModal(true)
     }
 
     const onSubmitNewNodeModal = async (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.currentTarget));
-        const newNodeId = crypto.randomUUID()
-        addNodes({
-            id: newNodeId,
-            type: nodeType.type,
-            data: { ...data, label: data[nodeType.fields[0]] },
-            position: { x: -100, y: -100 }
-        });
-        if (nodeId)
-            addEdges({
-                source: nodeId,
-                target: newNodeId,
-                type: 'custom',
-                id: `${nodeId}-${newNodeId}`.toString(),
-                label: nodeType.type,
-            });
-        await handleAddNode({ ...data, id: newNodeId });
+        await handleAddNode(data);
     };
 
     const handleAddNode = async (data: any) => {
         setLoading(true)
-        if (!nodeId) return alert("No node detected.")
-        const dataToInsert = { ...data, investigation_id, }
+        if (!nodeId) return returnError("No node detected.")
+        const dataToInsert = { ...data, investigation_id }
         if (nodeType.table !== "individuals")
             dataToInsert["individual_id"] = nodeId
         const node = await supabase.from(nodeType.table).insert(dataToInsert).select("*")
             .single()
             .then(({ data, error }) => {
                 if (error)
-                    console.log(error)
+                    returnError(error.details)
                 return data
             })
         if (!node) return
@@ -88,13 +84,29 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                 investigation_id: investigation_id
             }).then(({ error }) => console.log(error))
 
-            await supabase.from("relationships").insert({
+            await supabase.from("relationships").upsert({
                 individual_a: nodeId,
                 individual_b: node.id,
                 relation_type: "relation"
-            }).then(({ error }) => console.log(error))
+            }).then(({ error }) => { if (error) returnError(error.details) }
+            )
         }
+        addNodes({
+            id: node.id,
+            type: nodeType.type,
+            data: { ...node, label: data[nodeType.fields[0]] },
+            position: { x: 0, y: 0 }
+        });
+        if (nodeId)
+            addEdges({
+                source: nodeId,
+                target: node.id,
+                type: 'custom',
+                id: `${nodeId}-${node.id}`.toString(),
+                label: nodeType.type === "individual" ? "relation" : nodeType.type,
+            });
         setLoading(false)
+        setError(null)
         setOpenNodeModal(false)
     }
 
@@ -109,7 +121,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                     .insert({ full_name: data.full_name })
                     .select("*")
                     .single()
-                if (insertError) throw error
+                if (insertError) returnError(insertError.details)
                 addNodes({
                     id: node.id,
                     type: "individual",
@@ -138,7 +150,6 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                         <Flex direction="column" gap="3">
                             {nodeType?.fields.map((field: any, i: number) => {
                                 const [key, value] = field.split(":")
-                                console.log(Boolean(value))
                                 return (
                                     <label key={i}>
                                         <Text as="div" size="2" mb="1" weight="bold">
@@ -146,7 +157,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                                         </Text>
                                         <TextField.Root
                                             defaultValue={value || ""}
-                                            disabled={Boolean(value)}
+                                            // disabled={Boolean(value)}
                                             name={key}
                                             placeholder={`Your value here (${key})`}
                                         />
@@ -154,15 +165,21 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                                 )
                             })}
                         </Flex>
+                        {error && <Callout.Root className="mt-4" color="red">
+                            <Callout.Icon>
+                                <InfoCircledIcon />
+                            </Callout.Icon>
+                            <Callout.Text>
+                                {error}
+                            </Callout.Text>
+                        </Callout.Root>}
                         <Flex gap="3" mt="4" justify="end">
                             <Dialog.Close>
                                 <Button variant="soft" color="gray">
                                     Cancel
                                 </Button>
                             </Dialog.Close>
-                            <Dialog.Close>
-                                <Button loading={loading} type="submit">Save</Button>
-                            </Dialog.Close>
+                            <Button loading={loading} type="submit">Save</Button>
                         </Flex>
                     </form>
                 </Dialog.Content>

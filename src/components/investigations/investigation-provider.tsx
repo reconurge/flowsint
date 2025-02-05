@@ -1,11 +1,10 @@
 "use client"
-import useLocalStorage from "@/src/lib/use-local-storage";
-import React, { createContext, useContext, ReactNode, useState } from "react";
+import useLocalStorage from "@/src/lib/hooks/use-local-storage";
+import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
 import { Button, Dialog, Flex, Switch } from "@radix-ui/themes";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Investigation } from "@/src/types/investigation";
 import { useInvestigation } from "@/src/lib/hooks/investigation";
-import { supabase } from "@/src/lib/supabase/client";
 import { ThemeSwitch } from "../theme-switch";
 
 interface InvestigationContextType {
@@ -16,6 +15,7 @@ interface InvestigationContextType {
     setOpenSettingsModal: any,
     investigation: Investigation | null,
     isLoadingInvestigation: boolean | undefined,
+    handleOpenIndividualModal: any
 }
 const InvestigationContext = createContext<InvestigationContextType | undefined>(undefined);
 
@@ -24,23 +24,30 @@ interface InvestigationProviderProps {
 }
 
 export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ children }) => {
-    const [filters, setFilters] = useLocalStorage('filters', {});
     const { investigation_id } = useParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
+    const [filters, setFilters] = useLocalStorage('filters', {});
     const { investigation, isLoading: isLoadingInvestigation } = useInvestigation(investigation_id)
     const [openSettingsModal, setOpenSettingsModal] = useState(false)
+
     const [settings, setSettings] = useLocalStorage('settings', {
         showNodeLabel: true,
         showEdgeLabel: true
     });
 
-    const handleDeleteNode = async (id: string) => {
-        await supabase.from("individuals").delete().eq("id", id)
-            .then(({ data, error }) => {
-                if (error)
-                    alert('an error occured.')
-                return data
-            })
-    }
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set(name, value)
+
+            return params.toString()
+        },
+        [searchParams]
+    )
+    const handleOpenIndividualModal = (id: string) => router.push(pathname + '?' + createQueryString('individual_id', id))
+
 
     const SettingSwitch = ({ setting, value, title, description }: { setting: string, value: boolean, title: string, description: string }) => (
         <div className="flex items-center justify-between gap-4">
@@ -54,7 +61,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         </div>
     )
     return (
-        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation }}>
+        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal }}>
             {children}
             <Dialog.Root open={openSettingsModal}>
                 <Dialog.Content maxWidth="450px">
@@ -64,7 +71,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                     </Dialog.Description>
                     <Flex direction="column" gap="3">
                         <SettingSwitch setting={"showNodeLabel"} value={settings.showNodeLabel} title={"Show labels on nodes"} description={"Displays the labels on the nodes, like username or avatar."} />
-                        <SettingSwitch setting={"showEdgeLabel"} value={settings.showEdgeLabel} title={"Show labels on edeges"} description={"Displays the labels on the edges, like relation type."} />
+                        <SettingSwitch setting={"showEdgeLabel"} value={settings.showEdgeLabel} title={"Show labels on edges"} description={"Displays the labels on the edges, like relation type."} />
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <p className="font-medium">Theme</p>
@@ -74,7 +81,6 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                             </div>
                             <ThemeSwitch />
                         </div>
-
                     </Flex>
                     <Flex gap="3" mt="4" justify="end">
                         <Dialog.Close onClick={() => setOpenSettingsModal(false)}>

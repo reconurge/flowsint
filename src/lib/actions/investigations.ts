@@ -40,7 +40,7 @@ export async function getInvestigationData(investigationId: string): Promise<{ n
     const supabase = await createClient();
     let { data: individuals, error: indError } = await supabase
         .from('individuals')
-        .select('*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*)')
+        .select('*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*)')
         .eq('investigation_id', investigationId);
     if (indError) throw notFound();
 
@@ -141,6 +141,22 @@ export async function getInvestigationData(investigationId: string): Promise<{ n
                 type: 'custom',
                 id: `${individualId}-${ip.id}`.toString(),
                 label: 'IP',
+            });
+        });
+
+        ind.physical_addresses?.forEach((address: any) => {
+            nodes.push({
+                id: address.id.toString(),
+                type: 'address',
+                data: { ...address, label: [address.address, address.city, address.country].join(", ") },
+                position: { x: 100, y: 100 }
+            });
+            edges.push({
+                source: individualId,
+                target: address.id.toString(),
+                type: 'custom',
+                id: `${individualId}-${address.id}`.toString(),
+                label: 'address',
             });
         });
     });

@@ -2,15 +2,19 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card, Box, Text, ContextMenu, Flex, Inset, Badge, Tooltip, Avatar } from '@radix-ui/themes';
-import { NodeProvider, useNodeContext } from './node-context';
-import { cn } from '@/utils';
-import { useInvestigationContext } from '../investigation-provider';
+import { NodeProvider, useNodeContext } from '../../contexts/node-context';
+import { cn } from '@/src/lib/utils';
+import { useInvestigationContext } from '../../contexts/investigation-provider';
 import { usePlatformIcons } from '@/src/lib/hooks/use-platform-icons';
+import { CopyButton } from '../../copy';
+import { ZapIcon } from 'lucide-react';
+import { useSearchContext } from '../../contexts/search-context';
 
 function Custom({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings } = useInvestigationContext()
     const platformsIcons = usePlatformIcons()
+    const { handleOpenSearchModal } = useSearchContext()
     return (
         <>
             <ContextMenu.Root>
@@ -26,11 +30,14 @@ function Custom({ data }: any) {
                                             {/* @ts-ignore */}
                                             {platformsIcons?.[data?.platform]?.icon || "?"}
                                         </Badge>
-                                        <Box maxWidth={"20px"} className='!max-w-[240px] p-1'>
-                                            <Text as="div" size="1" weight="medium">
+                                        <Flex align={"center"} className='p-1 px-1.5' gap="2">
+                                            <Text as="div" size="1" weight="regular">
                                                 {data.username || data.profile_url}
+
                                             </Text>
-                                        </Box>
+                                            <CopyButton content={data.username || data.profile_url}
+                                            />
+                                        </Flex>
                                     </Flex>
                                 </Inset>
                             </Card>
@@ -56,6 +63,7 @@ function Custom({ data }: any) {
                     </Box>
                 </ContextMenu.Trigger>
                 <ContextMenu.Content>
+                    <ContextMenu.Item className='font-bold' onClick={() => handleOpenSearchModal(data.username || data.profile_url)}>Launch search<ZapIcon color='orange' className='h-4 w-4' /></ContextMenu.Item>
                     <ContextMenu.Item shortcut="⌘ C">Copy content</ContextMenu.Item>
                     <ContextMenu.Item shortcut="⌘ D">Duplicate</ContextMenu.Item>
                     <ContextMenu.Separator />

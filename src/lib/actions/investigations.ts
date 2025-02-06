@@ -12,10 +12,6 @@ export async function getInvestigations(): Promise<ReturnTypeGetInvestigations> 
     let { data: investigations, error } = await supabase
         .from('investigations')
         .select('id, title, description')
-
-    if (error) {
-        throw error
-    }
     return { investigations: investigations as Investigation[], error: error }
 }
 interface ReturnTypeGetInvestigation {
@@ -29,10 +25,6 @@ export async function getInvestigation(investigationId: string): Promise<ReturnT
         .select('id, title, description')
         .eq("id", investigationId)
         .single()
-
-    if (error) {
-        throw notFound()
-    }
     return { investigation: investigation as Investigation, error: error }
 }
 

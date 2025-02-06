@@ -21,10 +21,10 @@ import {
     Link,
 } from "@radix-ui/themes"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useIndividual } from "@/src/lib/hooks/use-individual"
+import { useIndividual } from "@/src/lib/hooks/individuals/use-individual"
 import { Pencil1Icon, Cross2Icon, PlusIcon, TrashIcon } from "@radix-ui/react-icons"
-import { useRelations } from "@/src/lib/hooks/use-relations"
-import { useInvestigationContext } from "./investigation-provider"
+import { useRelations } from "@/src/lib/hooks/individuals/use-relations"
+import { useInvestigationContext } from "../contexts/investigation-provider"
 import { usePlatformIcons } from "@/src/lib/hooks/use-platform-icons"
 
 const IndividualModal = () => {
@@ -130,7 +130,7 @@ const IndividualModal = () => {
                                 </Flex>
                                 <Box style={{ flexGrow: 1 }}>
                                     <Tabs.Root defaultValue="overview">
-                                        <Tabs.List>
+                                        <Tabs.List className="!overflow-x-auto">
                                             <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
                                             <Tabs.Trigger value="social_account">Social accounts<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={accounts?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{accounts?.length}</Badge></Spinner></Tabs.Trigger>
                                             <Tabs.Trigger value="emails">Emails<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={emails?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{emails?.length}</Badge></Spinner></Tabs.Trigger>

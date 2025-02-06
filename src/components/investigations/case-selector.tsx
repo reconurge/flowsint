@@ -1,5 +1,5 @@
-import { useInvestigations } from "@/src/lib/hooks/investigation";
-import { useInvestigationContext } from "./investigation-provider";
+import { useInvestigations } from "@/src/lib/hooks/investigation/investigation";
+import { useInvestigationContext } from "../contexts/investigation-provider";
 import { useRouter } from "next/navigation";
 import { Select, Spinner } from "@radix-ui/themes";
 

@@ -7,6 +7,7 @@ import "@radix-ui/themes/styles.css";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Theme } from "@radix-ui/themes";
+import { ConfirmContextProvider } from "@/src/components/use-confirm-dialog";
 
 export const metadata: Metadata = {
   title: {
@@ -43,7 +44,9 @@ export default function RootLayout({
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <Theme>
             <main>
-              {children}
+              <ConfirmContextProvider>
+                {children}
+              </ConfirmContextProvider>
             </main>
           </Theme>
         </Providers>

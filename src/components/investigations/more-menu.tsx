@@ -1,10 +1,10 @@
 import { Ellipsis } from 'lucide-react';
-import { useInvestigationContext } from "./investigation-provider";
+import { useInvestigationContext } from "../contexts/investigation-provider";
 import { DropdownMenu, IconButton } from "@radix-ui/themes";
 
 
 export default function MoreMenu() {
-    const { setOpenSettingsModal } = useInvestigationContext()
+    const { setOpenSettingsModal, handleDeleteInvestigation } = useInvestigationContext()
 
     return (
         <DropdownMenu.Root>
@@ -15,6 +15,9 @@ export default function MoreMenu() {
             </DropdownMenu.Trigger>
             <DropdownMenu.Content size="2">
                 <DropdownMenu.Item onClick={setOpenSettingsModal} shortcut="⌘ E">Settings</DropdownMenu.Item>
+                <DropdownMenu.Item onClick={handleDeleteInvestigation} shortcut="⌘ ⌫" color="red">
+                    Delete
+                </DropdownMenu.Item>
             </DropdownMenu.Content>
         </DropdownMenu.Root>
     );

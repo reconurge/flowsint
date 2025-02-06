@@ -25,11 +25,11 @@ export default function DisplaySelector({ values }: { values: string[] }) {
                     mass: 0.5,
                 }}
             >
-                {values.map((value: string) => {
+                {values.map((value: string, i: number) => {
                     const isSelected = selected.includes(value)
                     return (
                         <motion.button
-                            key={value}
+                            key={i}
                             onClick={() => toggleSelect(value)}
                             layout
                             initial={false}

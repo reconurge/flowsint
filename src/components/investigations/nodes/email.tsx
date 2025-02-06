@@ -2,14 +2,17 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card, Box, Text, ContextMenu, Badge, Flex, Inset, Tooltip, Avatar } from '@radix-ui/themes';
-import { NodeProvider, useNodeContext } from './node-context';
-import { AtSignIcon } from 'lucide-react';
-import { cn } from '@/utils';
-import { useInvestigationContext } from '../investigation-provider';
+import { NodeProvider, useNodeContext } from '../../contexts/node-context';
+import { AtSignIcon, ZapIcon } from 'lucide-react';
+import { cn } from '@/src/lib/utils';
+import { useInvestigationContext } from '../../contexts/investigation-provider';
+import { CopyButton } from '../../copy';
+import { useSearchContext } from '../../contexts/search-context';
 
 function EmailNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings } = useInvestigationContext()
+    const { handleOpenSearchModal } = useSearchContext()
 
     return (
         <ContextMenu.Root>
@@ -22,11 +25,12 @@ function EmailNode({ data }: any) {
                                     <Badge color='green' className='!h-[24px] !rounded-r-none'>
                                         <AtSignIcon className='h-3 w-3' />
                                     </Badge>
-                                    <Box className='p-1'>
+                                    <Flex align={"center"} className='p-1 px-1.5' gap="2">
                                         <Text as="div" size="1" weight="regular">
                                             {data.label}
                                         </Text>
-                                    </Box>
+                                        <CopyButton content={data.label} />
+                                    </Flex>
                                 </Flex>
                             </Inset>
                         </Card>
@@ -51,6 +55,7 @@ function EmailNode({ data }: any) {
 
             </ContextMenu.Trigger>
             <ContextMenu.Content>
+                <ContextMenu.Item className='font-bold' onClick={() => handleOpenSearchModal(data.email)}>Launch search<ZapIcon color='orange' className='h-4 w-4' /></ContextMenu.Item>
                 <ContextMenu.Item shortcut="⌘ C">Copy content</ContextMenu.Item>
                 <ContextMenu.Item shortcut="⌘ D">Duplicate</ContextMenu.Item>
                 <ContextMenu.Separator />

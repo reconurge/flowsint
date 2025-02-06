@@ -4,8 +4,10 @@ import React, { createContext, useContext, ReactNode, useState, useCallback } fr
 import { Button, Dialog, Flex, Switch } from "@radix-ui/themes";
 import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Investigation } from "@/src/types/investigation";
-import { useInvestigation } from "@/src/lib/hooks/investigation";
+import { useInvestigation } from "@/src/lib/hooks/investigation/investigation";
 import { ThemeSwitch } from "../theme-switch";
+import { useConfirm } from "../use-confirm-dialog";
+import { supabase } from "@/src/lib/supabase/client";
 
 interface InvestigationContextType {
     filters: any,
@@ -15,7 +17,8 @@ interface InvestigationContextType {
     setOpenSettingsModal: any,
     investigation: Investigation | null,
     isLoadingInvestigation: boolean | undefined,
-    handleOpenIndividualModal: any
+    handleOpenIndividualModal: any,
+    handleDeleteInvestigation: any
 }
 const InvestigationContext = createContext<InvestigationContextType | undefined>(undefined);
 
@@ -31,7 +34,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     const [filters, setFilters] = useLocalStorage('filters', {});
     const { investigation, isLoading: isLoadingInvestigation } = useInvestigation(investigation_id)
     const [openSettingsModal, setOpenSettingsModal] = useState(false)
-
+    const { confirm } = useConfirm()
     const [settings, setSettings] = useLocalStorage('settings', {
         showNodeLabel: true,
         showEdgeLabel: true
@@ -48,6 +51,15 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     )
     const handleOpenIndividualModal = (id: string) => router.push(pathname + '?' + createQueryString('individual_id', id))
 
+    const handleDeleteInvestigation = async () => {
+        if (await confirm({ title: "Delete investigation", message: "Are you really sure you want to delete this investigation ?" })) {
+            if (await confirm({ title: "Just making sure", message: "You will definetly delete all nodes, edges and relationships." })) {
+                const { error } = await supabase.from("investigations").delete().eq('id', investigation_id)
+                if (error) throw error
+                return router.push("/dashboard")
+            }
+        }
+    }
 
     const SettingSwitch = ({ setting, value, title, description }: { setting: string, value: boolean, title: string, description: string }) => (
         <div className="flex items-center justify-between gap-4">
@@ -61,7 +73,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         </div>
     )
     return (
-        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal }}>
+        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation }}>
             {children}
             <Dialog.Root open={openSettingsModal}>
                 <Dialog.Content maxWidth="450px">

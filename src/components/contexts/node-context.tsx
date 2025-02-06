@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/src/lib/supabase/client";
 import { useNodeId, useReactFlow } from "@xyflow/react";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { useConfirm } from "../use-confirm-dialog";
 
 interface NodeContextType {
     setOpenAddNodeModal: any,
@@ -40,6 +41,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     const [loading, setLoading] = useState(false)
     const [nodeType, setnodeType] = useState<any | null>(null)
     const nodeId = useNodeId();
+    const { confirm } = useConfirm();
 
     const returnError = (message: string) => {
         setLoading(false)
@@ -133,8 +135,10 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
 
     const handleDeleteNode = useCallback(async () => {
         if (!nodeId) return
-        setNodes((nodes: any[]) => nodes.filter((node: { id: any; }) => node.id !== nodeId.toString()));
-        setEdges((edges: any[]) => edges.filter((edge: { source: any; }) => edge.source !== nodeId.toString()));
+        if (await confirm({ title: "Node deletion", message: "Are you sure you want to delete this node ?" })) {
+            setNodes((nodes: any[]) => nodes.filter((node: { id: any; }) => node.id !== nodeId.toString()));
+            setEdges((edges: any[]) => edges.filter((edge: { source: any; }) => edge.source !== nodeId.toString()));
+        }
     }, [nodeId, setNodes, setEdges]);
 
     return (

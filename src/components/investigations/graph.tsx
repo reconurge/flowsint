@@ -24,10 +24,10 @@ import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
 import SocialNode from './nodes/social'
 import AddressNode from './nodes/physical_address'
-import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon, LockIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
-import { IconButton, Tooltip, Spinner } from '@radix-ui/themes';
+import { IconButton, Tooltip, Spinner, Card, Flex } from '@radix-ui/themes';
 import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
 
@@ -68,6 +68,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [isLocked, setIsLocked] = useState(false)
+    const [currentNode, setCurrentNode] = useState<null | Node>(null)
     const ref = useRef(null);
     const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
         const incomers = getIncomers(node, nodes, edges);
@@ -218,6 +220,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
 
     const onNodeClick = useCallback(
         (_: React.MouseEvent, node: Node) => {
+            setCurrentNode(node)
             highlightPath(node)
         },
         [highlightPath],
@@ -225,6 +228,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
 
     const onPaneClick = useCallback(
         () => {
+            setCurrentNode(null)
             resetNodeStyles()
         },
         [resetNodeStyles],
@@ -232,7 +236,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
 
     useEffect(() => {
         onLayout('LR')
-    }, [initialEdges])
+    }, [initialNodes, initialEdges])
 
     return (
         <div className='h-[calc(100vh_-_48px)]'>
@@ -246,6 +250,12 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
+                // edgesUpdatable={!isLocked}
+                // edgesFocusable={!isLocked}
+                // nodesDraggable={!isLocked}
+                // nodesConnectable={!isLocked}
+                // nodesFocusable={!isLocked}
+                // elementsSelectable={!isLocked}
                 fitView
                 proOptions={{
                     hideAttribution: true
@@ -267,12 +277,21 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     </Tooltip>
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
-                    <Tooltip content="Reload schema">
-                        <IconButton onClick={() => window.location.reload()} variant="soft">
-                            <RotateCcwIcon className='h-4 w-4' />
-                        </IconButton>
-                    </Tooltip>
-                    <NewActions addNodes={addNodes} />
+                    <Flex direction={"column"} align={"end"} gap={"1"}>
+                        <Flex gap="1">
+                            <Tooltip content="Reload schema">
+                                <IconButton onClick={() => window.location.reload()} variant="soft">
+                                    <RotateCcwIcon className='h-4 w-4' />
+                                </IconButton>
+                            </Tooltip>
+                            <NewActions addNodes={addNodes} />
+                        </Flex>
+                        {currentNode &&
+                            <Card>
+                                {/* @ts-ignore */}
+                                {currentNode?.data?.label}
+                            </Card>}
+                    </Flex>
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>
                     <Tooltip content="Center view">
@@ -291,6 +310,12 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                         {/* @ts-ignore */}
                         <IconButton color="gray" variant="soft" onClick={zoomOut}>
                             <ZoomOutIcon className='h-4 w-4' />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip content="Lock">
+                        {/* @ts-ignore */}
+                        <IconButton color="gray" variant="soft" onClick={() => setIsLocked((prev) => !prev)}>
+                            {isLocked ? <LockIcon className='h-4 w-4' /> : <LockOpenIcon className='h-4 w-4' />}
                         </IconButton>
                     </Tooltip>
                 </Panel>

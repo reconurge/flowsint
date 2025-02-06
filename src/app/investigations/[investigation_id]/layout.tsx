@@ -1,9 +1,9 @@
-import DisplaySelector from '@/src/components/investigations/display-selector';
-import { InvestigationProvider } from '@/src/components/investigations/investigation-provider';
+import { InvestigationProvider } from '@/src/components/contexts/investigation-provider';
 import InvestigationLayout from '@/src/components/investigations/layout';
 import { getInvestigation } from '@/src/lib/actions/investigations';
-import { Text } from '@radix-ui/themes';
-import { usernames, countries, settings } from './data.js'
+import Filters from './filters';
+import { SearchProvider } from '@/src/components/contexts/search-context';
+import { notFound } from 'next/navigation';
 const DashboardLayout = async ({
     children,
     params,
@@ -12,25 +12,16 @@ const DashboardLayout = async ({
     params: Promise<{ investigation_id: string }>
 }) => {
     const { investigation_id } = await (params)
-    const { investigation, error } = await getInvestigation(investigation_id)
-    if (error) return <div>An error occured.</div>
+    const { error } = await getInvestigation(investigation_id)
+    if (error) return notFound()
 
-    const Left = () => (
-        <div className='flex flex-col gap-2'>
-            <Text size={"2"}>Display</Text>
-            <DisplaySelector values={settings} />
-            <Text size={"2"}>Countries</Text>
-            <DisplaySelector values={countries} />
-            <Text size={"2"}>Usernames</Text>
-            <DisplaySelector values={usernames} />
-
-        </div>
-    )
     return (
         <InvestigationProvider>
-            <InvestigationLayout left={<Left />} investigation={investigation}>
-                {children}
-            </InvestigationLayout>
+            <SearchProvider>
+                <InvestigationLayout left={<Filters investigation_id={investigation_id} />}>
+                    {children}
+                </InvestigationLayout>
+            </SearchProvider>
         </InvestigationProvider>
     )
 }

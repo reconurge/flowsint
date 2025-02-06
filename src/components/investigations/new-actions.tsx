@@ -19,7 +19,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         addNodes({
             id: node.id,
             type: "individual",
-            data: node,
+            data: { ...node, "label": data.full_name },
             position: { x: -100, y: -100 }
         });
 

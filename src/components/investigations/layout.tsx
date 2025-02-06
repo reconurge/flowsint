@@ -8,11 +8,9 @@ import NewCase from '../dashboard/new-case';
 
 const InvestigationLayout = ({
     children,
-    investigation,
     left
 }: {
     children: React.ReactNode;
-    investigation: Investigation,
     left: React.ReactNode;
 }) => {
     return (

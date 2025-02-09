@@ -7,7 +7,7 @@ import { SearchIcon } from "lucide-react"
 import Highlighter from "react-highlight-words";
 import Link from 'next/link';
 import { useSearchResults } from '../../lib/hooks/investigation/use-search-results';
-import { Card, Dialog, IconButton, TextField } from '@radix-ui/themes';
+import { Card, Dialog, IconButton, Spinner, TextField } from '@radix-ui/themes';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useInvestigationContext } from '../contexts/investigation-provider';
 
@@ -93,14 +93,14 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                     <TextField.Root
                         defaultValue={search}
                         onChange={debouncedChangeHandler}
-                        placeholder="Search the docs…">
+                        placeholder="Your search here…">
                         <TextField.Slot>
                             <MagnifyingGlassIcon height="16" width="16" />
                         </TextField.Slot>
                     </TextField.Root>
                     <div className='min-h-[20vh] max-h-[60vh] w-full relative text-center flex flex-col items-center justify-center gap-2'>
                         {error && "An error occured."}
-                        {isLoading && <span className="loading loading-bars loading-md"></span>}
+                        {isLoading && <Spinner />}
                         {results?.length === 0 && `No results found for "${search}".`}
                         <ul className='w-full h-full flex flex-col gap-1 overflow-auto mt-2'>{!error && !isLoading && Array.isArray(results) && results?.map((item) => (
                             <SearchItem key={item.id} item={item} />

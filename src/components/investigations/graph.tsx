@@ -235,8 +235,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         if (currentNode) {
             const internalNode = getNode(currentNode)
             if (!internalNode) return
-            updateNode(internalNode.id, { ...internalNode, zIndex: 2000, style: { ...internalNode.style, opacity: 1 } })
-            setCenter(internalNode?.position.x + 100, internalNode?.position.y, { duration: 1000, zoom: 1.5 })
+            updateNode(internalNode.id, { ...internalNode, zIndex: 5000, style: { ...internalNode.style, opacity: 1 } })
+            //@ts-ignore
+            setCenter(internalNode?.position.x + (internalNode?.measured?.width / 2), internalNode?.position.y + (internalNode?.measured?.height / 2) + 20, { duration: 1000, zoom: 1.5 })
             highlightPath(internalNode);
         }
     }, [currentNode, highlightPath, setCenter, resetNodeStyles]);
@@ -265,6 +266,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
+                minZoom={0.1}
                 // edgesUpdatable={!isLocked}
                 // edgesFocusable={!isLocked}
                 // nodesDraggable={!isLocked}

@@ -26,7 +26,7 @@ const DashboardLayout = async ({
     return (
         <InvestigationProvider>
             <SearchProvider>
-                <InvestigationLayout left={<Individuals investigation_id={investigation_id} />}>
+                <InvestigationLayout investigation_id={investigation_id} left={<Individuals investigation_id={investigation_id} />}>
                     {children}
                 </InvestigationLayout>
             </SearchProvider>

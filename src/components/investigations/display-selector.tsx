@@ -34,13 +34,13 @@ export default function DisplaySelector({ values }: { values: string[] }) {
                             layout
                             initial={false}
                             animate={{
-                                backgroundColor: isSelected ? "#2a1711" : "rgba(39, 39, 42, 0.5)",
+                                backgroundColor: isSelected ? "#2a1711" : "rgba(39, 39, 42, 0.07)",
                             }}
                             whileHover={{
-                                backgroundColor: isSelected ? "#2a1711" : "rgba(39, 39, 42, 0.8)",
+                                backgroundColor: isSelected ? "#2a1711" : "rgba(39, 39, 42, 0.07)",
                             }}
                             whileTap={{
-                                backgroundColor: isSelected ? "#1f1209" : "rgba(39, 39, 42, 0.9)",
+                                backgroundColor: isSelected ? "#1f1209" : "rgba(39, 39, 42, 0.07)",
                             }}
                             transition={{
                                 type: "spring",
@@ -53,8 +53,8 @@ export default function DisplaySelector({ values }: { values: string[] }) {
                   inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                   whitespace-nowrap overflow-hidden ring-1 ring-inset
                   ${isSelected
-                                    ? "text-[#ff9066] ring-[hsla(0,0%,100%,0.12)]"
-                                    : "text-zinc-400 ring-[hsla(0,0%,100%,0.06)]"}
+                                    ? "text-[#ff9066] ring-[hsla(0, 0.00%, 100.00%, 0.32)]"
+                                    : "text-zinc-400 ring-[hsla(0, 0.00%, 100.00%, 0.33)]"}
                 `}
                         >
                             <motion.div

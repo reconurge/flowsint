@@ -18,7 +18,9 @@ interface InvestigationContextType {
     investigation: Investigation | null,
     isLoadingInvestigation: boolean | undefined,
     handleOpenIndividualModal: any,
-    handleDeleteInvestigation: any
+    handleDeleteInvestigation: any,
+    currentNode: any,
+    setCurrentNode: any
 }
 const InvestigationContext = createContext<InvestigationContextType | undefined>(undefined);
 
@@ -32,6 +34,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const [filters, setFilters] = useLocalStorage('filters', {});
+    const [currentNode, setCurrentNode] = useState<null | Node>(null)
     const { investigation, isLoading: isLoadingInvestigation } = useInvestigation(investigation_id)
     const [openSettingsModal, setOpenSettingsModal] = useState(false)
     const { confirm } = useConfirm()
@@ -73,7 +76,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         </div>
     )
     return (
-        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation }}>
+        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation, currentNode, setCurrentNode }}>
             {children}
             <Dialog.Root open={openSettingsModal}>
                 <Dialog.Content maxWidth="450px">

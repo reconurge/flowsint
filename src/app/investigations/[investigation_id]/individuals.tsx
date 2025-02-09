@@ -4,7 +4,7 @@ import { Avatar, Box, Card, Flex, IconButton, Skeleton, Text } from '@radix-ui/t
 import { useIndividuals } from '@/src/lib/hooks/individuals/use-individuals';
 import { useInvestigationContext } from '@/src/components/contexts/investigation-provider';
 import { cn } from '@/src/lib/utils';
-import { Pencil1Icon } from '@radix-ui/react-icons';
+import { MagnifyingGlassIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { RotateCwIcon } from 'lucide-react';
 
 const Filters = ({ investigation_id }: { investigation_id: string }) => {
@@ -12,9 +12,13 @@ const Filters = ({ investigation_id }: { investigation_id: string }) => {
     const { currentNode, setCurrentNode, handleOpenIndividualModal } = useInvestigationContext()
 
     return (
-        <div className='flex flex-col gap-2'>
-            <Flex justify={"between"} align={"center"}><Text size={"2"}>Profiles</Text> <IconButton disabled={isLoading} onClick={() => refetch()} size={"1"} variant='ghost' color='gray'><RotateCwIcon className={cn('h-3.5', isLoading && 'animate-spin')} /></IconButton></Flex>
-            <Flex direction={"column"} gap="1">
+        <div className='flex flex-col gap-2 p-1'>
+            <Flex justify={"between"} align={"center"}><Text size={"2"}>Profiles</Text>
+                <IconButton className='!p-1 !mr-2' radius='medium' disabled={isLoading} onClick={() => refetch()} size="1" variant="ghost" color="gray">
+                    <RotateCwIcon width="15" height="15" />
+                </IconButton>
+            </Flex>
+            <Flex direction={"column"} gap="2">
                 {isLoading && <>
                     <Skeleton height={"48px"} />
                     <Skeleton height={"48px"} />
@@ -23,7 +27,7 @@ const Filters = ({ investigation_id }: { investigation_id: string }) => {
                 }
                 {individuals?.map((individual: any) => (
                     <Box key={individual.id}>
-                        <Card className={cn('relative group cursor-pointer border border-transparent hover:border-sky-400', currentNode === individual.id && 'border-sky-400')} onClick={() => setCurrentNode(individual.id)}>
+                        <Card size={"1"} className={cn('!p-2 relative group cursor-pointer border border-transparent hover:border-sky-400', currentNode === individual.id && 'border-sky-400')} onClick={() => setCurrentNode(individual.id)}>
                             <Flex gap="3" align="center">
                                 <Avatar
                                     size="3"

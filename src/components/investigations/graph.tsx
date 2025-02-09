@@ -13,7 +13,9 @@ import {
     ColorMode,
     MiniMap,
     Node,
-    Edge
+    Edge,
+    useNodeConnections,
+    useInternalNode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/src/lib/supabase/client';
@@ -30,6 +32,7 @@ import NewActions from './new-actions';
 import { IconButton, Tooltip, Spinner, Card, Flex } from '@radix-ui/themes';
 import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
+import { useInvestigationContext } from '../contexts/investigation-provider';
 
 const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const edgeTypes = {
@@ -65,11 +68,11 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: a
 };
 
 const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, initialEdges: any, theme: ColorMode }) => {
-    const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges } = useReactFlow();
+    const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges, setCenter, getNode, updateNode } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isLocked, setIsLocked] = useState(false)
-    const [currentNode, setCurrentNode] = useState<null | Node>(null)
+    const { currentNode, setCurrentNode } = useInvestigationContext()
     const ref = useRef(null);
     const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
         const incomers = getIncomers(node, nodes, edges);
@@ -129,7 +132,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     edges.map((edge) => ({
                         ...edge,
                         animated: false,
-                        style: { ...edge.style, stroke: "#b1b1b7", opacity: 1 },
+                        style: { ...edge.style, stroke: "#b1b1b750", opacity: 1 },
                     })),
                 )
                 return
@@ -156,14 +159,17 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
             )
             setEdges((prevEdges) =>
                 prevEdges.map((edge) => {
-                    const animated =
+                    const animatedIn =
                         incomerIds.has(edge.source) && (incomerIds.has(edge.target) || selectedNode.id === edge.target)
+                    const animatedOut =
+                        outgoerIds.has(edge.target) && (outgoerIds.has(edge.source) || selectedNode.id === edge.source)
+                    const animated = animatedIn || animatedOut
                     return {
                         ...edge,
                         animated,
                         style: {
                             ...edge.style,
-                            stroke: animated ? "#3030e6" : "#b1b1b7",
+                            stroke: animated ? "#00D3F2" : "#b1b1b750",
                             opacity: animated ? 1 : 0.25,
                         },
                     }
@@ -191,7 +197,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 animated: false, // Désactive l'animation
                 style: {
                     ...edge.style,
-                    stroke: "#b1b1b7",
+                    stroke: "#b1b1b750",
                     opacity: 1,
                 },
             })),
@@ -217,14 +223,23 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         [setEdges],
     );
 
-
     const onNodeClick = useCallback(
         (_: React.MouseEvent, node: Node) => {
-            setCurrentNode(node)
-            highlightPath(node)
+            setCurrentNode(node.id)
         },
-        [highlightPath],
+        [],
     )
+
+    useEffect(() => {
+        resetNodeStyles()
+        if (currentNode) {
+            const internalNode = getNode(currentNode)
+            if (!internalNode) return
+            updateNode(internalNode.id, { ...internalNode, zIndex: 2000, style: { ...internalNode.style, opacity: 1 } })
+            setCenter(internalNode?.position.x + 100, internalNode?.position.y, { duration: 1000, zoom: 1.5 })
+            highlightPath(internalNode);
+        }
+    }, [currentNode, highlightPath, setCenter, resetNodeStyles]);
 
     const onPaneClick = useCallback(
         () => {
@@ -289,7 +304,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                         {currentNode &&
                             <Card>
                                 {/* @ts-ignore */}
-                                {currentNode?.data?.label}
+                                {getNode(currentNode)?.data?.label}
                             </Card>}
                     </Flex>
                 </Panel>

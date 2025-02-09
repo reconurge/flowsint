@@ -4,6 +4,7 @@ import { Button, Callout, Card, Dialog, Flex, Text, TextField } from "@radix-ui/
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { investigateValue } from "@/src/lib/actions/search";
 import { useParams } from "next/navigation";
+import Breaches from "../breach";
 
 interface SearchContextType {
     openSearchModal: boolean,
@@ -20,7 +21,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = (props: any) => {
     const [openSearchModal, setOpenSearchModal] = useState(false)
     const { investigation_id } = useParams()
     const [value, setValue] = useState<string | null>(null)
-    const [results, setResults] = useState<null | any>(null)
+    const [results, setResults] = useState<null | any>()
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
 
@@ -63,40 +64,53 @@ export const SearchProvider: React.FC<SearchProviderProps> = (props: any) => {
                     <form onSubmit={onSubmitNewSearch}>
                         <Flex direction="column" gap="3">
                             <Card><Text weight={"regular"}>value: </Text><Text weight={"medium"}>"{value}"</Text></Card>
-                            <Callout.Root size="1">
+                            {/* <Callout.Root size="1">
                                 <Callout.Icon>
                                     <InfoCircledIcon />
                                 </Callout.Icon>
                                 <Callout.Text>
                                     This query may return some (a lot) or no results. Make sure you filter your results manually afterwards.
                                 </Callout.Text>
-                            </Callout.Root>
+                            </Callout.Root> */}
                             {error &&
                                 <Callout.Root color="red" size="1">
                                     <Callout.Icon>
                                         <InfoCircledIcon />
                                     </Callout.Icon>
                                     <Callout.Text>
-                                        This query may return some (a lot) or no results. Make sure you filter your results manually afterwards.
+                                        {JSON.stringify(error)}
                                     </Callout.Text>
                                 </Callout.Root>}
-                            {results &&
-                                <Callout.Root color="green" size="1">
+                            {results && Array.isArray(results) ?
+                                <>
+                                    <Callout.Root color="orange" size="1">
+                                        <Callout.Icon>
+                                            <InfoCircledIcon />
+                                        </Callout.Icon>
+                                        <Callout.Text>
+                                            "{value}" has appeared in {results.length} data breach(es). Here are the infos we have:
+                                        </Callout.Text>
+                                    </Callout.Root>
+                                    <Breaches breaches={results} />
+                                </> : results && <Callout.Root color="green" size="1">
                                     <Callout.Icon>
                                         <InfoCircledIcon />
                                     </Callout.Icon>
                                     <Callout.Text>
-                                        {JSON.stringify(results, null, 2)}
+                                        {JSON.stringify(results)}
                                     </Callout.Text>
-                                </Callout.Root>}
+                                </Callout.Root>
+                            }
                         </Flex>
                         <Flex gap="3" mt="4" justify="end">
                             <Dialog.Close>
                                 <Button variant="soft" color="gray">
-                                    Cancel
+                                    Close
                                 </Button>
                             </Dialog.Close>
-                            <Button autoFocus loading={isLoading} type="submit">Save</Button>
+                            {!results &&
+                                <Button autoFocus loading={isLoading} type="submit">Save</Button>
+                            }
                         </Flex>
                     </form>
                 </Dialog.Content>

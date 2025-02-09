@@ -5,15 +5,16 @@ import { useIndividuals } from '@/src/lib/hooks/individuals/use-individuals';
 import { useInvestigationContext } from '@/src/components/contexts/investigation-provider';
 import { cn } from '@/src/lib/utils';
 import { Pencil1Icon } from '@radix-ui/react-icons';
+import { RotateCwIcon } from 'lucide-react';
 
 const Filters = ({ investigation_id }: { investigation_id: string }) => {
-    const { individuals, isLoading } = useIndividuals(investigation_id)
+    const { individuals, isLoading, refetch } = useIndividuals(investigation_id)
     const { currentNode, setCurrentNode, handleOpenIndividualModal } = useInvestigationContext()
 
     return (
         <div className='flex flex-col gap-2'>
-            <Text size={"2"}>Profiles</Text>
-            <Flex direction={"column"} gap="3">
+            <Flex justify={"between"} align={"center"}><Text size={"2"}>Profiles</Text> <IconButton disabled={isLoading} onClick={() => refetch()} size={"1"} variant='ghost' color='gray'><RotateCwIcon className={cn('h-3.5', isLoading && 'animate-spin')} /></IconButton></Flex>
+            <Flex direction={"column"} gap="1">
                 {isLoading && <>
                     <Skeleton height={"48px"} />
                     <Skeleton height={"48px"} />
@@ -21,7 +22,7 @@ const Filters = ({ investigation_id }: { investigation_id: string }) => {
                 </>
                 }
                 {individuals?.map((individual: any) => (
-                    <Box key={individual.id} maxWidth="240px">
+                    <Box key={individual.id}>
                         <Card className={cn('relative group cursor-pointer border border-transparent hover:border-sky-400', currentNode === individual.id && 'border-sky-400')} onClick={() => setCurrentNode(individual.id)}>
                             <Flex gap="3" align="center">
                                 <Avatar

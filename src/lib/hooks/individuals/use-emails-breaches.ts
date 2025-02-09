@@ -9,7 +9,6 @@ export function useEmailsAndBreaches(individualId: string | null | undefined) {
             revalidateOnReconnect: false,
         },
     )
-    console.log(emails)
 
     const emailAddresses = emails?.emails?.map(({ email }: { email: string }) => email) || []
 

@@ -38,7 +38,7 @@ function Custom(props: any) {
                             </Flex>
                         </Card> :
                         <Tooltip content={data.full_name}>
-                            <button onDoubleClick={() => handleOpenIndividualModal(data.id)} className='!rounded-full border-transparent'>
+                            <button onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('rounded-full border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
                                 <Avatar
                                     size="3"
                                     src={data?.image_url}

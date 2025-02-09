@@ -17,7 +17,7 @@ export default function CustomEdge(props: any) {
     const { settings } = useInvestigationContext()
     return (
         <>
-            <BaseEdge id={id} path={edgePath} />
+            <BaseEdge id={id} path={edgePath} style={style} />
             <EdgeLabelRenderer>
                 {settings.showEdgeLabel &&
                     <Badge size={"1"} color={label === "relation" ? 'orange' : "blue"} style={{

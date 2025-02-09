@@ -8,9 +8,6 @@ import {
     Button,
     Box,
     Skeleton,
-    Card,
-    Inset,
-    Separator,
     Avatar,
     Tabs,
     IconButton,
@@ -19,13 +16,17 @@ import {
     Badge,
     Grid,
     Link,
+    Callout,
 } from "@radix-ui/themes"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useIndividual } from "@/src/lib/hooks/individuals/use-individual"
+import { useEmailsAndBreaches } from "@/src/lib/hooks/individuals/use-emails-breaches"
 import { Pencil1Icon, Cross2Icon, PlusIcon, TrashIcon } from "@radix-ui/react-icons"
 import { useRelations } from "@/src/lib/hooks/individuals/use-relations"
 import { useInvestigationContext } from "../contexts/investigation-provider"
 import { usePlatformIcons } from "@/src/lib/hooks/use-platform-icons"
+import Breaches from "../breach"
+import { supabase } from "@/src/lib/supabase/client"
 
 const IndividualModal = () => {
     const router = useRouter()
@@ -34,19 +35,20 @@ const IndividualModal = () => {
     const individual_id = searchParams.get("individual_id")
     const { handleOpenIndividualModal } = useInvestigationContext()
     const { individual, isLoading } = useIndividual(individual_id)
+    const { emails, isLoading: isLoadingEmails } = useEmailsAndBreaches(individual_id)
     const platformsIcons = usePlatformIcons("medium")
     const { relations, isLoading: isLoadingRelations } = useRelations(individual_id)
     const [editMode, setEditMode] = useState(false)
-    const [emails, setEmails] = useState([""])
+    const [image, setImage] = useState<string | null>('')
     const [phones, setPhones] = useState([""])
     const [accounts, setAccounts] = useState([""])
     const [ips, setIps] = useState([""])
 
     useEffect(() => {
-        setEmails(individual?.emails.map(({ email }: any) => email) || [""])
         setPhones(individual?.phone_numbers.map(({ phone_number }: any) => phone_number) || [""])
         setIps(individual?.ip_addresses.map(({ ip_address }: any) => ip_address) || [""])
         setAccounts(individual?.social_accounts || [""])
+        setImage(individual?.image_url)
     }, [individual])
 
     const handleCloseModal = () => {
@@ -54,15 +56,12 @@ const IndividualModal = () => {
         router.push(pathname)
     }
 
-    const handleSave = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
         const formContent = Object.fromEntries(formData.entries())
-        formContent.emails = emails as any
-        formContent.phones = phones as any
-        formContent.ip_addresses = ips as any
-        formContent.accounts = accounts as any
-        alert(JSON.stringify(formContent, null, 2))
+        const { data } = await supabase.from("individuals").update({ ...formContent, birth_date: null }).eq("id", individual_id).select("image_url").single()
+        setImage(data?.image_url)
         setEditMode(false)
     }
 
@@ -118,22 +117,22 @@ const IndividualModal = () => {
                                 <Flex direction={"column"}>
                                     <Avatar
                                         size="9"
-                                        src={individual?.image_url}
+                                        src={image || undefined}
                                         fallback={individual?.full_name?.[0] || "?"}
                                         radius="full"
                                     />
-                                    {editMode && (
+                                    {/* {editMode && (
                                         <Button type="button" size="1" variant="soft" style={{ marginTop: "8px" }}>
                                             Change Photo
                                         </Button>
-                                    )}
+                                    )} */}
                                 </Flex>
                                 <Box style={{ flexGrow: 1 }}>
                                     <Tabs.Root defaultValue="overview">
                                         <Tabs.List className="!overflow-x-auto">
                                             <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
                                             <Tabs.Trigger value="social_account">Social accounts<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={accounts?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{accounts?.length}</Badge></Spinner></Tabs.Trigger>
-                                            <Tabs.Trigger value="emails">Emails<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={emails?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{emails?.length}</Badge></Spinner></Tabs.Trigger>
+                                            <Tabs.Trigger value="emails">Emails<Spinner className="ml-1" loading={isLoadingEmails}><Badge color={emails?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{emails?.length}</Badge></Spinner></Tabs.Trigger>
                                             <Tabs.Trigger value="phone_numbers">Phone numbers<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={phones?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{phones?.length}</Badge></Spinner></Tabs.Trigger>
                                             <Tabs.Trigger value="ip_addresses">IP addresses<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={ips?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{ips?.length}</Badge></Spinner></Tabs.Trigger>
                                             <Tabs.Trigger value="relations">Relations<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={relations?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{relations?.length}</Badge></Spinner></Tabs.Trigger>
@@ -145,45 +144,29 @@ const IndividualModal = () => {
                                                         <Flex key={key} direction="column" gap="1">
                                                             <label className="capitalize-first">{key}</label>
                                                             <TextField.Root
+                                                                type={key === "birth_date" ? "date" : "text"}
                                                                 defaultValue={individual[key]}
                                                                 placeholder={key}
                                                                 name={key}
-                                                                disabled={!editMode}
+                                                                disabled={key === "id" || key === "investigation_id" || !editMode}
                                                             />
                                                         </Flex>
                                                     ))}
                                                 </Flex>
                                             </Tabs.Content>
                                             <Tabs.Content value="emails">
-                                                <Flex direction="column" gap="3" maxWidth={"420px"}>
+                                                <Flex direction="column" gap="3">
                                                     {emails.length === 0 && <Text className="italic opacity-60 text-sm">No email registered. Click on edit to add one.</Text>}
-                                                    {emails.map((email: string | number | undefined, index: React.Key | null | undefined) => (
-                                                        <Flex key={index} gap="2" align="center">
-                                                            <TextField.Root
-                                                                value={email}
-                                                                onChange={(e) => handleFieldChange(index as any, e.target.value, setEmails)}
-                                                                placeholder="Email"
-                                                                type="email"
-                                                                disabled={!editMode}
-                                                                style={{ flexGrow: 1 }}
-                                                            />
-                                                            {editMode && (
-                                                                <IconButton
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    onClick={() => handleRemoveField(index as any, setEmails)}
-                                                                    aria-label="Remove email"
-                                                                >
-                                                                    <TrashIcon />
-                                                                </IconButton>
-                                                            )}
+                                                    {emails.map((email: any, index: number) => (
+                                                        <Flex direction={"column"} key={index}>
+                                                            <Callout.Root color={email.breaches.length > 0 ? "orange" : "green"} size="1">
+                                                                <Callout.Text>
+                                                                    <Text weight={"bold"}>{email.email}</Text> {email.breaches.length === 0 ? " is not yet involved in a data breach." : ` was involved in ${email.breaches.length} data breach(es).`}
+                                                                </Callout.Text>
+                                                            </Callout.Root>
+                                                            <Breaches breaches={email.breaches} />
                                                         </Flex>
                                                     ))}
-                                                    {editMode && (
-                                                        <Button type="button" onClick={() => handleAddField(setEmails)} variant="soft">
-                                                            <PlusIcon /> Add Email
-                                                        </Button>
-                                                    )}
                                                 </Flex>
                                             </Tabs.Content>
                                             <Tabs.Content value="social_account">
@@ -316,8 +299,8 @@ const IndividualModal = () => {
                         </Flex>
                     </form>
                 </Skeleton>
-            </Dialog.Content>
-        </Dialog.Root>
+            </Dialog.Content >
+        </Dialog.Root >
     )
 }
 

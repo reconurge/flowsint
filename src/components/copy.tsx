@@ -32,7 +32,7 @@ export function CopyButton({ content, delay = 2000 }: CopyButtonProps) {
     return (
         <Tooltip open={isCopied} content="Copied !">
             <IconButton size={"1"} color="gray" radius="large" variant="ghost" onClick={handleCopy} aria-label="Copy content">
-                <Copy className="h-3 w-3" />
+                <Copy className="h-3 w-3 opacity-50" />
             </IconButton>
         </Tooltip>
     )

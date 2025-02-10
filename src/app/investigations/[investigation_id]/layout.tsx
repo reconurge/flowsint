@@ -6,6 +6,7 @@ import { SearchProvider } from '@/src/components/contexts/search-context';
 import { notFound } from 'next/navigation';
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ChatProvider } from '@/src/components/contexts/chatbot-context';
 
 const DashboardLayout = async ({
     children,
@@ -26,9 +27,11 @@ const DashboardLayout = async ({
     return (
         <InvestigationProvider>
             <SearchProvider>
-                <InvestigationLayout investigation_id={investigation_id} left={<Individuals investigation_id={investigation_id} />}>
-                    {children}
-                </InvestigationLayout>
+                <ChatProvider>
+                    <InvestigationLayout investigation_id={investigation_id} left={<Individuals investigation_id={investigation_id} />}>
+                        {children}
+                    </InvestigationLayout>
+                </ChatProvider>
             </SearchProvider>
         </InvestigationProvider>
     )

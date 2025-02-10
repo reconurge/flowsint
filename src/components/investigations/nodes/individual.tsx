@@ -1,26 +1,28 @@
 "use client"
 import React, { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useStore } from '@xyflow/react';
 import { useInvestigationContext } from '../../contexts/investigation-provider';
 import { Avatar, Card, Box, Flex, Text, ContextMenu, Spinner, Badge, Tooltip } from '@radix-ui/themes';
 import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon, MapPinHouseIcon, ZapIcon, BotIcon } from 'lucide-react';
 import { NodeProvider, useNodeContext } from '../../contexts/node-context';
 import { useSearchContext } from '../../contexts/search-context';
-import { cn } from '@/src/lib/utils';
+import { cn, zoomSelector } from '@/src/lib/utils';
 import { CopyButton } from '../../copy';
 import { useChatContext } from '../../contexts/chatbot-context';
+
 
 function Custom(props: any) {
     const { settings, handleOpenIndividualModal, currentNode } = useInvestigationContext()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const { handleOpenSearchModal } = useSearchContext()
     const { setOpen: setOpenChat } = useChatContext()
+    const showContent = useStore(zoomSelector);
     const { data } = props
     return (
         <>
             <ContextMenu.Root>
                 <ContextMenu.Trigger onContextMenu={(e) => { e.stopPropagation() }}>
-                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel ?
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel && showContent ?
                         <Card onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('!py-1 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
                             <Flex gap="2" align="center">
                                 <Avatar
@@ -30,12 +32,12 @@ function Custom(props: any) {
                                     radius="full"
                                     fallback={loading ? <Spinner /> : data.full_name[0]}
                                 />
-                                {settings.showNodeLabel &&
+                                {settings.showNodeLabel && showContent &&
                                     <Flex align={"center"} gap="2">
                                         <Text as="div" size="1" weight="regular">
                                             {data.full_name}
                                         </Text>
-                                        <CopyButton content={data.full_name} />
+                                        {settings.showCopyIcon && <CopyButton content={data.full_name} />}
                                     </Flex>}
                             </Flex>
                         </Card> :

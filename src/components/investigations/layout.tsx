@@ -1,30 +1,33 @@
 "use client"
-import { Investigation } from '@/src/types/investigation';
 import React from 'react'
-import { ThemeSwitch } from '../theme-switch';
 import MoreMenu from './more-menu';
 import CaseSelector from './case-selector';
 import NewCase from '../dashboard/new-case';
 import SearchModal from '../dashboard/seach-palette';
 import { Flex, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { BotMessageSquareIcon } from 'lucide-react';
+import { BotMessageSquareIcon, PanelRightIcon } from 'lucide-react';
 import { useChatContext } from '../contexts/chatbot-context';
 import Logo from '../logo';
+import { useInvestigationContext } from '../contexts/investigation-provider';
+import User from '../user';
 
 const InvestigationLayout = ({
     children,
     left,
-    investigation_id
+    investigation_id,
+    user
 }: {
     children: React.ReactNode;
     left: React.ReactNode;
     investigation_id: string
+    user: any
 }) => {
     const { setOpen: setOpenChat } = useChatContext()
+    const { panelOpen, setPanelOpen } = useInvestigationContext()
     return (
-        <PanelGroup className='h-screen w-screen flex' direction="horizontal">
-            <Panel className='h-screen' defaultSize={20} minSize={20}>
+        <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
+            {panelOpen && <Panel id="left" className='h-screen' defaultSize={20} minSize={10}>
                 <div className='flex flex-col w-full h-full rounded-none shadow-none border-r border-gray-400/20'>
                     <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
@@ -39,14 +42,21 @@ const InvestigationLayout = ({
                             {left}
                         </div>
                     </ScrollArea>
-
+                    <Flex justify={"end"} className='p-2'>
+                        <User user={user} />
+                    </Flex>
                 </div>
-            </Panel>
+            </Panel>}
             <PanelResizeHandle />
-            <Panel defaultSize={80} minSize={50} className='grow flex flex-col'>
+            <Panel id="center" defaultSize={80} minSize={50} className='grow flex flex-col'>
                 <div>
                     <div className='w-full rounded-none shadow-none h-12 justify-between border-b border-gray-400/20 flex flex-row items-center p-2'>
-                        <CaseSelector />
+                        <Flex gap={"1"}>
+                            <IconButton onClick={() => setPanelOpen(!panelOpen)} variant='soft' color='gray'>
+                                <PanelRightIcon className='h-4 w-4' />
+                            </IconButton>
+                            <CaseSelector />
+                        </Flex>
                         <MoreMenu />
                     </div>
                     {children}

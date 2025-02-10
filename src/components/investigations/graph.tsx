@@ -29,7 +29,7 @@ import AddressNode from './nodes/physical_address'
 import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon, LockIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
-import { IconButton, Tooltip, Spinner, Card, Flex } from '@radix-ui/themes';
+import { IconButton, Tooltip, Spinner, Card, Flex, SegmentedControl } from '@radix-ui/themes';
 import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
 import { useInvestigationContext } from '../contexts/investigation-provider';
@@ -72,7 +72,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isLocked, setIsLocked] = useState(false)
-    const { currentNode, setCurrentNode } = useInvestigationContext()
+    const { currentNode, setCurrentNode, settings } = useInvestigationContext()
     const ref = useRef(null);
     const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
         const incomers = getIncomers(node, nodes, edges);
@@ -293,6 +293,13 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                         </IconButton>
                     </Tooltip>
                 </Panel>
+                <Panel position="top-center" className='flex items-center gap-1'>
+                    <SegmentedControl.Root defaultValue="graph">
+                        <SegmentedControl.Item value="graph">Graph</SegmentedControl.Item>
+                        <SegmentedControl.Item value="timeline">Timeline</SegmentedControl.Item>
+                        <SegmentedControl.Item value="map">Map</SegmentedControl.Item>
+                    </SegmentedControl.Root>
+                </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <Flex direction={"column"} align={"end"} gap={"1"}>
                         <Flex gap="1">
@@ -337,9 +344,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     </Tooltip>
                 </Panel>
                 <Background />
-                <MiniMap pannable />
+                {settings.showMiniMap && <MiniMap pannable />}
             </ReactFlow>
-        </div>
+        </div >
     );
 };
 

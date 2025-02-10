@@ -1,15 +1,15 @@
-import { Avatar, Button, DropdownMenu, Inset, Text } from '@radix-ui/themes'
+import { Avatar, Button, DropdownMenu, IconButton, Inset, Text } from '@radix-ui/themes'
 import React from 'react'
 
 const User = ({ user }: any) => {
     return (
         <DropdownMenu.Root>
             <DropdownMenu.Trigger>
-                <Button className='!mr-1' size={"1"} variant='ghost'>
+                <IconButton radius='full' className='!mr-1' size={"1"} variant='ghost'>
                     <Inset>
                         <Avatar size={"2"} radius='full' src={user?.user_metadata?.avatar_url} fallback={user?.user_metadata?.user_name?.[0] || "?"} variant="soft" />
                     </Inset>
-                </Button>
+                </IconButton>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content className='p-2'>
                 <Text weight={"medium"}>{user?.user_metadata?.user_name}</Text>

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, useContext, useState } from 'react';
-import { Avatar, Box, Card, Dialog, Flex, Spinner, Text, TextField } from '@radix-ui/themes';
+import { Avatar, Box, Card, Dialog, Flex, Spinner, Text, TextArea, TextField } from '@radix-ui/themes';
 import { useChat } from '@ai-sdk/react';
 import { BotIcon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -100,7 +100,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                         <Text size="2" as='div' weight="bold" className={cn(m.role === 'user' ? 'text-right' : 'text-left')}>
                                             {m.role === 'user' ? 'User' : 'Chatbot'}
                                         </Text>
-                                        <Card className='max-w-[70%]'>
+                                        <Card className='max-w-[80%]'>
                                             <Box>
                                                 <Text as="div" size="2" color="gray">
                                                     <ReactMarkdown>{m.content}</ReactMarkdown>
@@ -135,11 +135,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                         </Flex>}
                     </Flex>
                     <form onSubmit={handleSubmit} className="mt-4">
-                        <TextField.Root
-                            value={input}
-                            placeholder="Say something..."
-                            onChange={handleInputChange}
-                        />
+                        <Box width={"100%"}>
+                            <TextField.Root value={input}
+                                onChange={handleInputChange}
+                                size="2" placeholder="'What pattern can you extract from those relations ?'" />
+                        </Box>
                     </form>
                 </Dialog.Content>
             </Dialog.Root>

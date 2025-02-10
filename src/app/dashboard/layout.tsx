@@ -21,13 +21,13 @@ const DashboardLayout = async ({
         <Flex className='h-screen w-screen flex'>
             <Flex className='h-screen'>
                 <div className='flex flex-col w-[300px] h-full rounded-none shadow-none border-r border-gray-400/20'>
-                    <div className='w-full rounded-none shadow-none h-14 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
+                    <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
                         <Flex gap={"1"}>
                             <NewCase />
                         </Flex>
                     </div>
-                    <ScrollArea type="auto" scrollbars="vertical" className='p-3 w-full !h-[calc(100vh_-56px)] grow overflow-y-auto'>
+                    <ScrollArea type="auto" scrollbars="vertical" className='p-3 w-full !h-[calc(100vh_-48px)] grow overflow-y-auto'>
                         <div className="flex flex-col">
 
                         </div>
@@ -37,8 +37,8 @@ const DashboardLayout = async ({
             </Flex>
             <Flex className='grow flex flex-col'>
                 <div>
-                    <div className='w-full rounded-none shadow-none !h-14 justify-between border-b border-gray-400/20 flex flex-row justify-between items-center p-2'>
-                        <TextField.Root placeholder="Search an investigation..." className='w-full max-w-xs !h-10'>
+                    <div className='w-full rounded-none shadow-none !h-12 justify-between border-b border-gray-400/20 flex flex-row justify-between items-center p-2'>
+                        <TextField.Root placeholder="Search an investigation..." className='w-full max-w-xs !h-8'>
                             <TextField.Slot>
                                 <MagnifyingGlassIcon height="16" width="16" />
                             </TextField.Slot>

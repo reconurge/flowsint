@@ -5,6 +5,7 @@ import { Avatar, Box, Card, Dialog, Flex, Spinner, Text, TextField } from '@radi
 import { useChat } from '@ai-sdk/react';
 import { BotIcon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import ReactMarkdown from 'react-markdown'
 
 
 interface ChatContextType {
@@ -102,7 +103,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                         <Card className='max-w-[70%]'>
                                             <Box>
                                                 <Text as="div" size="2" color="gray">
-                                                    {m.content}
+                                                    <ReactMarkdown>{m.content}</ReactMarkdown>
                                                 </Text>
                                             </Box>
                                         </Card>

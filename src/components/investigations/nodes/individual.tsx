@@ -3,16 +3,18 @@ import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useInvestigationContext } from '../../contexts/investigation-provider';
 import { Avatar, Card, Box, Flex, Text, ContextMenu, Spinner, Badge, Tooltip } from '@radix-ui/themes';
-import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon, MapPinHouseIcon, ZapIcon } from 'lucide-react';
+import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon, MapPinHouseIcon, ZapIcon, BotIcon } from 'lucide-react';
 import { NodeProvider, useNodeContext } from '../../contexts/node-context';
 import { useSearchContext } from '../../contexts/search-context';
 import { cn } from '@/src/lib/utils';
 import { CopyButton } from '../../copy';
+import { useChatContext } from '../../contexts/chatbot-context';
 
 function Custom(props: any) {
     const { settings, handleOpenIndividualModal, currentNode } = useInvestigationContext()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const { handleOpenSearchModal } = useSearchContext()
+    const { setOpen: setOpenChat } = useChatContext()
     const { data } = props
     return (
         <>
@@ -61,6 +63,7 @@ function Custom(props: any) {
                 </ContextMenu.Trigger>
                 <ContextMenu.Content>
                     <ContextMenu.Item className='font-bold' onClick={() => handleOpenSearchModal(data.full_name)}>Launch search<ZapIcon color='orange' className='h-4 w-4' /></ContextMenu.Item>
+                    <ContextMenu.Item className='font-bold' onClick={() => setOpenChat(true)}>Ask AI<BotIcon color='#12A594' className='h-4 w-4' /></ContextMenu.Item>
                     <ContextMenu.Sub>
                         <ContextMenu.SubTrigger >New</ContextMenu.SubTrigger>
                         <ContextMenu.SubContent>

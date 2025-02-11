@@ -1,9 +1,9 @@
 "use client"
 import React, { memo } from 'react';
-import { Handle, Position, useStore } from '@xyflow/react';
+import { Handle, NodeToolbar, Position, useStore } from '@xyflow/react';
 import { useInvestigationContext } from '../../contexts/investigation-provider';
-import { Avatar, Card, Box, Flex, Text, ContextMenu, Spinner, Badge, Tooltip } from '@radix-ui/themes';
-import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon, MapPinHouseIcon, ZapIcon, BotIcon } from 'lucide-react';
+import { Avatar, Card, Box, Flex, Text, ContextMenu, Spinner, Badge, Tooltip, IconButton, Button } from '@radix-ui/themes';
+import { AtSignIcon, CameraIcon, FacebookIcon, InstagramIcon, LocateIcon, MessageCircleDashedIcon, PhoneIcon, SendIcon, UserIcon, MapPinHouseIcon, ZapIcon, BotIcon, EditIcon } from 'lucide-react';
 import { NodeProvider, useNodeContext } from '../../contexts/node-context';
 import { useSearchContext } from '../../contexts/search-context';
 import { cn, zoomSelector } from '@/src/lib/utils';
@@ -20,14 +20,26 @@ function Custom(props: any) {
     const { data } = props
     return (
         <>
+            {settings.showNodeToolbar &&
+                <NodeToolbar
+                    isVisible={data.forceToolbarVisible || undefined}
+                    position={Position.Top}
+                >
+                    <Card data-radius='full' className='!p-1'>
+                        <Flex gap={"1"}>
+                            <Button variant='soft' onClick={() => handleOpenIndividualModal(data.id)}><EditIcon className='h-4 w-4' />Edit</Button>
+                            <Button variant='soft' onClick={() => setOpenChat(true)}><ZapIcon color='orange' className='h-4 w-4' />Ask AI</Button>
+                        </Flex>
+                    </Card>
+                </NodeToolbar>}
             <ContextMenu.Root>
                 <ContextMenu.Trigger onContextMenu={(e) => { e.stopPropagation() }}>
-                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>{settings.showNodeLabel && showContent ?
-                        <Card onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('!py-1 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
-                            <Flex gap="2" align="center">
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100", "overflow-hidden")}>{settings.showNodeLabel && showContent ?
+                        <Card data-radius='full' onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('!p-1 !pr-2 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
+                            <Flex gap="2" align="center" className='rounded-full'>
                                 <Avatar
                                     color='gray'
-                                    size="2"
+                                    size="1"
                                     src={data?.image_url}
                                     radius="full"
                                     fallback={loading ? <Spinner /> : data.full_name[0]}
@@ -44,6 +56,7 @@ function Custom(props: any) {
                         <Tooltip content={data.full_name}>
                             <button onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('rounded-full border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
                                 <Avatar
+                                    color='gray'
                                     size="3"
                                     src={data?.image_url}
                                     radius="full"

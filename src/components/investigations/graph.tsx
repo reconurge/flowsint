@@ -185,6 +185,10 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 ...node,
                 disabled: false,
                 draggable: true,
+                data: {
+                    ...node.data,
+                    forceToolbarVisible: false
+                },
                 style: {
                     ...node.style,
                     opacity: 1,
@@ -235,7 +239,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         if (currentNode) {
             const internalNode = getNode(currentNode)
             if (!internalNode) return
-            updateNode(internalNode.id, { ...internalNode, zIndex: 5000, style: { ...internalNode.style, opacity: 1 } })
+            updateNode(internalNode.id, { ...internalNode, zIndex: 5000, data: { ...internalNode.data, forceToolbarVisible: true }, style: { ...internalNode.style, opacity: 1 } })
             //@ts-ignore
             setCenter(internalNode?.position.x + (internalNode?.measured?.width / 2), internalNode?.position.y + (internalNode?.measured?.height / 2) + 20, { duration: 1000, zoom: 1.5 })
             highlightPath(internalNode);

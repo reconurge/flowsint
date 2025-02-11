@@ -45,7 +45,8 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         showNodeLabel: true,
         showEdgeLabel: true,
         showMiniMap: true,
-        showCopyIcon: true
+        showCopyIcon: true,
+        showNodeToolbar: true
     });
 
     const createQueryString = useCallback(
@@ -94,6 +95,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                         <SettingSwitch setting={"showEdgeLabel"} value={settings.showEdgeLabel} title={"Show labels on edges"} description={"Displays the labels on the edges, like relation type."} />
                         <SettingSwitch setting={"showMiniMap"} value={settings.showMiniMap} title={"Show minimap on the canva"} description={"Displays the minimap on canva."} />
                         <SettingSwitch setting={"showCopyIcon"} value={settings.showCopyIcon} title={"Show copy button on nodes"} description={"Displays a copy button on the nodes."} />
+                        <SettingSwitch setting={"showNodeToolbar"} value={settings.showNodeToolbar} title={"Show toolbar on nodes"} description={"Displays a toolbar with actions on the nodes."} />
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <p className="font-medium">Theme</p>

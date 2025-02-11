@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Avatar, Box, Card, Dialog, Flex, Spinner, Text, TextArea, TextField } from '@radix-ui/themes';
 import { useChat } from '@ai-sdk/react';
 import { BotIcon } from 'lucide-react';
@@ -22,62 +22,7 @@ interface ChatProviderProps {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [open, setOpen] = useState(false);
     const { messages, input, handleInputChange, handleSubmit, error, isLoading } = useChat();
-    console.log(messages)
-    const du = [
-        {
-            "id": "KiYOaqV7dMH3suuG",
-            "createdAt": "2025-02-10T13:43:08.269Z",
-            "role": "user",
-            "content": "How can I assist you today? The data you provide is used to help OpenAI train for you",
-            "parts": [
-                {
-                    "type": "text",
-                    "text": "Hi !"
-                }
-            ]
-        },
-        {
-            "id": "msg-ypC3dSAKxps7AdstARujIElS",
-            "createdAt": "2025-02-10T13:43:08.890Z",
-            "role": "assistant",
-            "content": "Hello! How can I assist you today? The data you provide is used to help OpenAI train the ChatGPT model to become better at answering questions and helping users. With OpenAI collecting and storing identifying information about you and the user content you submit, countless companies across the world have moved to ban employees from using it. However, at Forcepoint, we don’t think that’s the right move.",
-            "parts": [
-                {
-                    "type": "text",
-                    "text": "Hello! How can I assist you today?"
-                }
-            ],
-            "revisionId": "KEMTqIzqfLQVvgaP"
-        }
-    ]
 
-    const su = [
-        {
-            "id": "gyHIBSO61JMvlVh9",
-            "createdAt": "2025-02-10T13:58:53.588Z",
-            "role": "user",
-            "content": "Hey ! Could you help me with something ?",
-            "parts": [
-                {
-                    "type": "text",
-                    "text": "Hey ! Could you help me with something ?"
-                }
-            ]
-        },
-        {
-            "id": "msg-qgrLAn4cLwax0xgYcum7JFoj",
-            "createdAt": "2025-02-10T13:58:54.230Z",
-            "role": "assistant",
-            "content": "Of course! What do you need help with?",
-            "parts": [
-                {
-                    "type": "text",
-                    "text": "Of course! What do you need help with?"
-                }
-            ],
-            "revisionId": "JydtwMc56LdZIkoT"
-        }
-    ]
     return (
         <ChatContext.Provider value={{ open, setOpen }}>
             {children}
@@ -98,7 +43,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                     />
                                     <Flex direction={"column"} align={m.role === 'user' ? 'end' : 'start'} gap="1" className='w-full'>
                                         <Text size="2" as='div' weight="bold" className={cn(m.role === 'user' ? 'text-right' : 'text-left')}>
-                                            {m.role === 'user' ? 'User' : 'Chatbot'}
+                                            {isLoading ? <LoadingDots /> : m.role === 'user' ? 'User' : 'Chatbot'}
                                         </Text>
                                         <Card className='max-w-[80%]'>
                                             <Box>
@@ -126,7 +71,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                     <Card className='max-w-[70%]'>
                                         <Box>
                                             <Text as="div" size="2" color="red">
-                                                {"Oops, an error occured. Make sure you provided a valid OpenAI API key."}
+                                                {"Oops, an error occured. Make sure you provided a valid Mistral API key."}
                                             </Text>
                                         </Box>
                                     </Card>
@@ -154,3 +99,32 @@ export const useChatContext = (): ChatContextType => {
     }
     return context;
 };
+
+interface LoadingDotsProps {
+    speed?: number
+    text?: string
+}
+
+const LoadingDots: React.FC<LoadingDotsProps> = ({ speed = 200, text = "Thinking" }) => {
+    const [dots, setDots] = useState("")
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDots((prevDots) => {
+                if (prevDots.length >= 3) {
+                    return ""
+                }
+                return prevDots + "."
+            })
+        }, speed)
+
+        return () => clearInterval(interval)
+    }, [speed])
+
+    return (
+        <div className="flex items-center">
+            <span>{text}</span>
+            <span className="w-8 text-left">{dots}</span>
+        </div>
+    )
+}

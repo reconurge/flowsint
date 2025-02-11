@@ -27,8 +27,8 @@ function Custom(props: any) {
                 >
                     <Card data-radius='full' className='!p-1'>
                         <Flex gap={"1"}>
-                            <Button variant='soft' onClick={() => handleOpenIndividualModal(data.id)}><EditIcon className='h-4 w-4' />Edit</Button>
-                            <Button variant='soft' onClick={() => setOpenChat(true)}><ZapIcon color='orange' className='h-4 w-4' />Ask AI</Button>
+                            <Button variant='soft' color='gray' onClick={() => handleOpenIndividualModal(data.id)}><EditIcon className='h-4 w-4' />Edit</Button>
+                            <Button variant='soft' color='gray' onClick={() => setOpenChat(true)}><ZapIcon color='orange' className='h-4 w-4' />Ask AI</Button>
                         </Flex>
                     </Card>
                 </NodeToolbar>}

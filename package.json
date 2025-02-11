@@ -9,9 +9,11 @@
         "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix"
     },
     "dependencies": {
+        "@ai-sdk/mistral": "^1.1.8",
         "@ai-sdk/openai": "^1.1.9",
         "@dagrejs/dagre": "^1.1.4",
         "@internationalized/date": "^3.7.0",
+        "@mistralai/mistralai": "^1.5.0",
         "@radix-ui/react-icons": "^1.3.2",
         "@radix-ui/themes": "^3.2.0",
         "@react-aria/ssr": "3.9.7",

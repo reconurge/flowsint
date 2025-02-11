@@ -2,11 +2,36 @@ import React from 'react'
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Logo from '@/src/components/logo';
-import { Flex, ScrollArea, TextField } from '@radix-ui/themes';
+import { Box, Flex, ScrollArea, TextField, Text } from '@radix-ui/themes';
 import NewCase from '@/src/components/dashboard/new-case';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import User from '@/src/components/user';
+import Link from 'next/link';
 
+const navigation = [
+    {
+        name: "Dashboard",
+        children: [
+            {
+                name: "Your investigations",
+                href: "/dashboard"
+            }
+        ]
+    },
+    {
+        name: "Configuration",
+        children: [
+            {
+                name: "Settings",
+                href: "/dashboard/settings"
+            },
+            {
+                name: "API keys",
+                href: "/dashboard/keys"
+            }
+        ]
+    }
+]
 const DashboardLayout = async ({
     children,
 }: {
@@ -17,6 +42,7 @@ const DashboardLayout = async ({
     if (error || !data?.user) {
         redirect('/login')
     }
+
     return (
         <Flex className='h-screen w-screen flex'>
             <Flex className='h-screen'>
@@ -28,9 +54,18 @@ const DashboardLayout = async ({
                         </Flex>
                     </div>
                     <ScrollArea type="auto" scrollbars="vertical" className='p-3 w-full !h-[calc(100vh_-48px)] grow overflow-y-auto'>
-                        <div className="flex flex-col">
-
-                        </div>
+                        <Flex direction={"column"} gap="4" className='p-4'>
+                            {navigation.map((nav, i) => (
+                                <Flex direction={"column"} gap="1" key={i}>
+                                    <Text className='opacity-60' weight="light">{nav.name}</Text>
+                                    <Flex direction={"column"} gap="1">
+                                        {nav?.children?.map((child, i) => (
+                                            <Link className='hover:text-sky-400 hover:underline' key={i} href={child.href}><Text weight={"medium"} truncate>{child.name}</Text></Link>
+                                        ))}
+                                    </Flex>
+                                </Flex>
+                            ))}
+                        </Flex>
                     </ScrollArea>
 
                 </div>

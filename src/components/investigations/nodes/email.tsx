@@ -20,7 +20,7 @@ function EmailNode({ data }: any) {
             <ContextMenu.Trigger>
                 <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>
                     {settings.showNodeLabel && showContent ?
-                        <Card className={cn('border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
+                        <Card data-radius='full' className={cn('!pr-4 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
                             <Inset>
                                 <Flex className='items-center p-0'>
                                     <Badge color='green' className='!h-[24px] !rounded-r-none'>

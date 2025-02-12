@@ -113,7 +113,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                                     aria-hidden="true"
                                 />
                                 <p className="mt-4 font-semibold">Search for ip_addresses, domain names and other</p>
-                                <p className="mt-2 opacity-60">
+                                <p className="mt-2 opacity-70">
                                     Put you search between quotes for an exact match search.
                                 </p>
                             </div>

@@ -33,10 +33,12 @@ import { IconButton, Tooltip, Spinner, Card, Flex, SegmentedControl } from '@rad
 import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
 import { useInvestigationContext } from '../contexts/investigation-provider';
+import FloatingEdge from './floating-edge';
+import FloatingConnectionLine from './floating-connection';
 
 const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const edgeTypes = {
-    'custom': CustomEdge,
+    'custom': FloatingEdge,
 };
 const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: any; }) => {
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -271,6 +273,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
                 minZoom={0.1}
+                connectionLineComponent={FloatingConnectionLine as any}
                 // edgesUpdatable={!isLocked}
                 // edgesFocusable={!isLocked}
                 // nodesDraggable={!isLocked}

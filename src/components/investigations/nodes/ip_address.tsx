@@ -51,7 +51,7 @@ function Custom({ data }: any) {
                         <Handle
                             type="target"
                             position={Position.Top}
-                            className="w-16 !bg-teal-500"
+                            className="w-16 !bg-teal-500 hidden"
                         />
                     </Box>
                 </ContextMenu.Trigger>

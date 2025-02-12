@@ -13,7 +13,7 @@ const User = ({ user }: any) => {
             </DropdownMenu.Trigger>
             <DropdownMenu.Content className='p-2'>
                 <Text weight={"medium"}>{user?.user_metadata?.user_name}</Text>
-                <Text weight={"light"} size={"2"} className='opacity-60'>{user?.user_metadata?.email}</Text>
+                <Text weight={"light"} size={"2"} className='opacity-70'>{user?.user_metadata?.email}</Text>
                 <DropdownMenu.Item>Profile</DropdownMenu.Item>
                 <DropdownMenu.Item>Settings</DropdownMenu.Item>
                 <DropdownMenu.Separator />

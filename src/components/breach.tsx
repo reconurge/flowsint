@@ -61,11 +61,11 @@ const Breaches: React.FC<BreachProps> = ({ breaches }) => {
                         <div className="space-y-3">
                             <div>
                                 <h4 className="text-sm font-semibold">Description:</h4>
-                                <p className="text-sm opacity-60" dangerouslySetInnerHTML={{ __html: breach.Description }} />
+                                <p className="text-sm opacity-70" dangerouslySetInnerHTML={{ __html: breach.Description }} />
                             </div>
                             <div>
                                 <h4 className="text-sm font-semibold">Compromised Data:</h4>
-                                <ul className="list-disc list-inside text-sm opacity-60">
+                                <ul className="list-disc list-inside text-sm opacity-70">
                                     {breach.DataClasses.map((dataClass) => (
                                         <li key={dataClass}>{dataClass}</li>
                                     ))}
@@ -74,19 +74,19 @@ const Breaches: React.FC<BreachProps> = ({ breaches }) => {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <h4 className="font-semibold">Affected Accounts:</h4>
-                                    <p className="opacity-60">{breach.PwnCount.toLocaleString()}</p>
+                                    <p className="opacity-70">{breach.PwnCount.toLocaleString()}</p>
                                 </div>
                                 <div>
                                     <h4 className="font-semibold">Domain:</h4>
-                                    <p className="opacity-60">{breach.Domain || "N/A"}</p>
+                                    <p className="opacity-70">{breach.Domain || "N/A"}</p>
                                 </div>
                                 <div>
                                     <h4 className="font-semibold">Added Date:</h4>
-                                    <p className="opacity-60">{new Date(breach.AddedDate).toLocaleDateString()}</p>
+                                    <p className="opacity-70">{new Date(breach.AddedDate).toLocaleDateString()}</p>
                                 </div>
                                 <div>
                                     <h4 className="font-semibold">Modified Date:</h4>
-                                    <p className="opacity-60">{new Date(breach.ModifiedDate).toLocaleDateString()}</p>
+                                    <p className="opacity-70">{new Date(breach.ModifiedDate).toLocaleDateString()}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -95,7 +95,7 @@ const Breaches: React.FC<BreachProps> = ({ breaches }) => {
                                     .map(([key, value]) => (
                                         <div key={key} className="flex items-center">
                                             <span className={`w-4 h-4 mr-2 rounded-full ${value ? "bg-green-500" : "bg-red-500"}`}></span>
-                                            <span className="opacity-60">{key.replace(/^Is/, "")}</span>
+                                            <span className="opacity-70">{key.replace(/^Is/, "")}</span>
                                         </div>
                                     ))}
                             </div>

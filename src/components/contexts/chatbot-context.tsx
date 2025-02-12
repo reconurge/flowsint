@@ -27,7 +27,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         <ChatContext.Provider value={{ open, setOpen }}>
             {children}
             <Dialog.Root open={open} onOpenChange={setOpen}>
-                <Dialog.Content maxWidth={messages?.length > 0 ? "630px" : '480px'} className="w-full p-4">
+                <Dialog.Content maxWidth={messages?.length > 0 ? "730px" : '480px'} className="w-full p-4">
                     <Dialog.Title>Ask AI</Dialog.Title>
                     <Dialog.Description size="2" mb="4">
                         Ask AI chat bot to help you understant patterns.</Dialog.Description>
@@ -43,7 +43,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                     />
                                     <Flex direction={"column"} align={m.role === 'user' ? 'end' : 'start'} gap="1" className='w-full'>
                                         <Text size="2" as='div' weight="bold" className={cn(m.role === 'user' ? 'text-right' : 'text-left')}>
-                                            {isLoading ? <LoadingDots /> : m.role === 'user' ? 'User' : 'Chatbot'}
+                                            {isLoading && m.role !== 'user' ? <LoadingDots /> : m.role === 'user' ? 'User' : 'Chatbot'}
                                         </Text>
                                         <Card className='max-w-[80%]'>
                                             <Box>

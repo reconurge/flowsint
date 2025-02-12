@@ -9,6 +9,7 @@ import { useSearchContext } from '../../contexts/search-context';
 import { cn, zoomSelector } from '@/src/lib/utils';
 import { CopyButton } from '../../copy';
 import { useChatContext } from '../../contexts/chatbot-context';
+import { GithubIcon } from '../../icons';
 
 
 function Custom(props: any) {
@@ -82,19 +83,20 @@ function Custom(props: any) {
                     <ContextMenu.Sub>
                         <ContextMenu.SubTrigger >New</ContextMenu.SubTrigger>
                         <ContextMenu.SubContent>
-                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "individuals")}><UserIcon className='h-4 w-4 opacity-60' /> New relation</ContextMenu.Item>
-                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "phone_numbers", data.id)}><PhoneIcon className='h-4 w-4 opacity-60' />Phone number</ContextMenu.Item>
-                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "physical_addresses", data.id)}><MapPinHouseIcon className='h-4 w-4 opacity-60' />Physical address</ContextMenu.Item>
-                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "emails", data.id)}><AtSignIcon className='h-4 w-4 opacity-60' />Email address</ContextMenu.Item>
-                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "ip_addresses", data.id)}><LocateIcon className='h-4 w-4 opacity-60' />IP address</ContextMenu.Item>
+                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "individuals")}><UserIcon className='h-4 w-4 opacity-70' /> New relation</ContextMenu.Item>
+                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "phone_numbers", data.id)}><PhoneIcon className='h-4 w-4 opacity-70' />Phone number</ContextMenu.Item>
+                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "physical_addresses", data.id)}><MapPinHouseIcon className='h-4 w-4 opacity-70' />Physical address</ContextMenu.Item>
+                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "emails", data.id)}><AtSignIcon className='h-4 w-4 opacity-70' />Email address</ContextMenu.Item>
+                            <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "ip_addresses", data.id)}><LocateIcon className='h-4 w-4 opacity-70' />IP address</ContextMenu.Item>
                             <ContextMenu.Sub>
                                 <ContextMenu.SubTrigger >Social account</ContextMenu.SubTrigger>
                                 <ContextMenu.SubContent>
-                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_facebook", data.id)}><FacebookIcon className='h-4 w-4 opacity-60' />Facebook</ContextMenu.Item>
-                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_instagram", data.id)}><InstagramIcon className='h-4 w-4 opacity-60' />Instagram</ContextMenu.Item>
-                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_telegram", data.id)}><SendIcon className='h-4 w-4 opacity-60' />Telegram</ContextMenu.Item>
-                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_signal", data.id)}><MessageCircleDashedIcon className='h-4 w-4 opacity-60' />Signal</ContextMenu.Item>
-                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_snapchat", data.id)}><CameraIcon className='h-4 w-4 opacity-60' />Snapchat</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_facebook", data.id)}><FacebookIcon className='h-4 w-4 opacity-70' />Facebook</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_instagram", data.id)}><InstagramIcon className='h-4 w-4 opacity-70' />Instagram</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_telegram", data.id)}><SendIcon className='h-4 w-4 opacity-70' />Telegram</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_signal", data.id)}><MessageCircleDashedIcon className='h-4 w-4 opacity-70' />Signal</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_snapchat", data.id)}><CameraIcon className='h-4 w-4 opacity-70' />Snapchat</ContextMenu.Item>
+                                    <ContextMenu.Item onClick={(e) => setOpenAddNodeModal(e, "social_accounts_github", data.id)}><GithubIcon className='h-4 w-4 opacity-70' />Github</ContextMenu.Item>
                                     <ContextMenu.Item disabled onClick={(e) => setOpenAddNodeModal(e, "social_accounts_coco", data.id)}>Coco <Badge radius='full'>soon</Badge></ContextMenu.Item>
                                 </ContextMenu.SubContent>
                             </ContextMenu.Sub>

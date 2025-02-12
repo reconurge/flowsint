@@ -8,7 +8,13 @@ const DashboardPage = async () => {
     const { investigations, error } = await getInvestigations()
     if (error) return <div>An error occured.</div>
     return (
-        <div className='space-y-6'>
+        <div className='space-y-6 max-w-6xl mx-auto p-6'>
+            <div>
+                <h1 className="text-3xl font-semibold mb-2">Vos investigations</h1>
+                <p className="mb-6 opacity-70">
+                    La liste de vos investigations. Vous pouvez également en créer d'autres.
+                </p>
+            </div>
             <Flex gap="3">
                 <Button><PlusIcon className='h-4 w-4' />Create</Button>
                 <Button color="gray" variant='soft'><DownloadIcon className='h-4 w-4' />Upload</Button>

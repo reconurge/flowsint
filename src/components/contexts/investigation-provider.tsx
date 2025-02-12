@@ -74,7 +74,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
                 <p className="font-medium">{title}</p>
-                <p className="opacity-60 text-sm">
+                <p className="opacity-70 text-sm">
                     {description}
                 </p>
             </div>
@@ -99,7 +99,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <p className="font-medium">Theme</p>
-                                <p className="opacity-60 text-sm">
+                                <p className="opacity-70 text-sm">
                                     Switch to dark or light mode.
                                 </p>
                             </div>

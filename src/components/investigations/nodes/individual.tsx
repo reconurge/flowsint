@@ -65,15 +65,16 @@ function Custom(props: any) {
                                 />
                             </button>
                         </Tooltip>}
+
                         <Handle
                             type="target"
                             position={Position.Top}
-                            className="w-16 !bg-teal-500"
+                            className={cn("w-16 !bg-teal-500", showContent ? "opacity-100" : "opacity-0")}
                         />
                         <Handle
                             type="source"
                             position={Position.Bottom}
-                            className="w-16 !bg-teal-500"
+                            className={cn("w-16 !bg-teal-500", showContent ? "opacity-100" : "opacity-0")}
                         />
                     </Box>
                 </ContextMenu.Trigger>

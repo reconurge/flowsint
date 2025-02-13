@@ -156,7 +156,7 @@ const IndividualModal = () => {
                                             </Tabs.Content>
                                             <Tabs.Content value="emails">
                                                 <Flex direction="column" gap="3">
-                                                    {emails.length === 0 && <Text className="italic opacity-60 text-sm">No email registered. Click on edit to add one.</Text>}
+                                                    {emails.length === 0 && <Text className="italic opacity-70 text-sm">No email registered. Click on edit to add one.</Text>}
                                                     {emails.map((email: any, index: number) => (
                                                         <Flex direction={"column"} key={index}>
                                                             <Callout.Root color={email.breaches.length > 0 ? "orange" : "green"} size="1">
@@ -171,7 +171,7 @@ const IndividualModal = () => {
                                             </Tabs.Content>
                                             <Tabs.Content value="social_account">
                                                 <Grid columns="3" gap="3" width="auto">
-                                                    {accounts.length === 0 && <Text className="italic opacity-60 text-sm">No account registered. Click on edit to add one.</Text>}
+                                                    {accounts.length === 0 && <Text className="italic opacity-70 text-sm">No account registered. Click on edit to add one.</Text>}
                                                     {accounts.map((account: any, index) => (
                                                         <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={index} asChild size="1">
                                                             <Flex gap="3" align="center" direction={"row"} className="w-full">
@@ -202,7 +202,7 @@ const IndividualModal = () => {
                                             </Tabs.Content>
                                             <Tabs.Content value="phone_numbers">
                                                 <Flex direction="column" gap="3" maxWidth={"420px"}>
-                                                    {phones.length === 0 && <Text className="italic opacity-60 text-sm">No phone number registered. Click on edit to add one.</Text>}
+                                                    {phones.length === 0 && <Text className="italic opacity-70 text-sm">No phone number registered. Click on edit to add one.</Text>}
                                                     {phones.map((phone, index) => (
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
@@ -234,7 +234,7 @@ const IndividualModal = () => {
                                             </Tabs.Content>
                                             <Tabs.Content value="ip_addresses">
                                                 <Flex direction="column" gap="3">
-                                                    {ips.length === 0 && <Text className="italic opacity-60 text-sm">No IP address registered. Click on edit to add one.</Text>}
+                                                    {ips.length === 0 && <Text className="italic opacity-70 text-sm">No IP address registered. Click on edit to add one.</Text>}
                                                     {ips.map((ip, index) => (
                                                         <Flex key={index} gap="2" align="center">
                                                             <TextField.Root
@@ -266,7 +266,7 @@ const IndividualModal = () => {
                                             </Tabs.Content>
                                             <Tabs.Content value="relations">
                                                 <Grid columns="3" gap="3" width="auto">
-                                                    {relations.length === 0 && <Text className="italic opacity-60 text-sm">No relation registered. Click on edit to add one.</Text>}
+                                                    {relations.length === 0 && <Text className="italic opacity-70 text-sm">No relation registered. Click on edit to add one.</Text>}
                                                     {relations.map((relation) => (
                                                         <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={relation.id} onClick={() => handleOpenIndividualModal(relation.id)} asChild size="1">
                                                             <Flex gap="3" align="center" direction={"row"} className="w-full">

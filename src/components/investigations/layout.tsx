@@ -2,15 +2,16 @@
 import React from 'react'
 import MoreMenu from './more-menu';
 import CaseSelector from './case-selector';
-import NewCase from '../dashboard/new-case';
-import SearchModal from '../dashboard/search-palette';
-import { Flex, IconButton, ScrollArea } from '@radix-ui/themes';
+import NewCase from '@/components/dashboard/new-case';
+import SearchModal from '@/components/dashboard/search-palette';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { BotMessageSquareIcon, PanelRightIcon, PlusIcon } from 'lucide-react';
-import { useChatContext } from '../contexts/chatbot-context';
-import Logo from '../logo';
-import { useInvestigationContext } from '../contexts/investigation-provider';
-import User from '../user';
+import { useChatContext } from '@/components/contexts/chatbot-context';
+import Logo from '@/components/logo';
+import { useInvestigationContext } from '@/components/contexts/investigation-provider';
+import { NavUser } from '@/components/user';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 
 const InvestigationLayout = ({
     children,
@@ -28,45 +29,45 @@ const InvestigationLayout = ({
     return (
         <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
             {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={15}>
-                <div className='flex flex-col w-full h-full rounded-none shadow-none border-r border-gray-400/20'>
-                    <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
+                <div className='flex flex-col w-full h-full rounded-none shadow-none border-r'>
+                    <div className='w-full rounded-none shadow-none h-12 border-b flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
-                        <Flex gap={"1"}>
-                            <IconButton onClick={() => handleOpenChat(investigation)} color="gray" size="2" variant="soft"><BotMessageSquareIcon className="h-4" /></IconButton>
+                        <div className='flex gap-1'>
+                            <Button variant="outline" size="icon" onClick={() => handleOpenChat(investigation)} color="gray"><BotMessageSquareIcon className="h-4" /></Button>
                             <SearchModal investigation_id={investigation_id} />
                             <NewCase>
-                                <IconButton color="gray" size="2" variant="soft">
+                                <Button variant="outline" size="icon">
                                     <PlusIcon className="h-5" />
-                                </IconButton>
+                                </Button>
                             </NewCase>
-                        </Flex>
+                        </div>
                     </div>
-                    <ScrollArea type="auto" scrollbars="vertical" className='p-3 h-full grow overflow-y-auto'>
+                    <ScrollArea type="auto" className='p-3 h-full grow overflow-y-auto'>
                         <div className="flex flex-col">
                             {left}
                         </div>
                     </ScrollArea>
-                    <Flex justify={"end"} className='p-2'>
-                        <User user={user} />
-                    </Flex>
+                    <div className="flex justify-end p-2">
+                        <NavUser user={user} />
+                    </div>
                 </div>
             </Panel>}
             <PanelResizeHandle />
             <Panel id="right" order={2} defaultSize={80} minSize={50} className='grow flex flex-col'>
                 <div>
-                    <div className='w-full rounded-none shadow-none h-12 justify-between border-b border-gray-400/20 flex flex-row items-center p-2'>
-                        <Flex gap={"1"}>
-                            <IconButton onClick={() => setPanelOpen(!panelOpen)} variant='soft' color='gray'>
+                    <div className='w-full rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center p-2'>
+                        <div className='flex gap-1'>
+                            <Button onClick={() => setPanelOpen(!panelOpen)} size="icon" variant="outline">
                                 <PanelRightIcon className='h-4 w-4' />
-                            </IconButton>
+                            </Button>
                             <CaseSelector />
-                        </Flex>
+                        </div>
                         <MoreMenu />
                     </div>
                     {children}
                 </div>
             </Panel>
-        </PanelGroup>
+        </PanelGroup >
     )
 }
 

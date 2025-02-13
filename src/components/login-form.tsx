@@ -1,27 +1,28 @@
 import Link from "next/link"
-
-import { Button, Card, TextField, Box, Text, Flex } from "@radix-ui/themes"
-import { login, signup, signInWithGithub } from '@/src/lib/actions/auth'
+import { Button } from "@/components/ui/button"
+import { login, signup, signInWithGithub } from '@/lib/actions/auth'
+import { Card } from "./ui/card"
+import { Input } from "./ui/input"
 
 export function LoginForm() {
     return (
         <Card className="mx-auto w-full max-w-md !p-6">
-            <Flex direction={"column"} gap="2">
-                <Text as="div" size="6" weight="bold">
+            <div className="flex flex-cl gap-2">
+                <div>
                     Login
-                </Text>
-                <Text as="div" size="2" color="gray">
+                </div>
+                <div>
                     Login into your account or create a new one.
-                </Text>
-            </Flex>
-            <Flex direction={"column"} gap="3">
+                </div>
+            </div>
+            <div className="flex flex-cl gap-3">
                 <form>
-                    <Flex direction={"column"} gap="3">
+                    <div className="flex flex-cl gap-2">
                         <label htmlFor="email">
-                            <Text as="div" size="2" mb="1" weight="bold">
+                            <div>
                                 Email
-                            </Text>
-                            <TextField.Root
+                            </div>
+                            <Input
                                 id="email"
                                 type="email"
                                 name="email"
@@ -30,10 +31,8 @@ export function LoginForm() {
                             />
                         </label>
                         <label htmlFor="email">
-                            <Text as="div" size="2" mb="1" weight="bold">
-                                Password
-                            </Text>
-                            <TextField.Root id="password" name="password" placeholder="Your password" type="password" required />
+                            Password
+                            <Input id="password" name="password" placeholder="Your password" type="password" required />
                         </label>
                         <Link href="#" className="ml-auto inline-block text-sm underline">
                             Forgot your password?
@@ -41,16 +40,16 @@ export function LoginForm() {
                         <Button formAction={login} type="submit" className="w-full mt-4">
                             Login
                         </Button>
-                    </Flex>
+                    </div>
                 </form>
                 <form>
-                    <Flex direction={"column"} gap="3">
+                    <div className="flex flex-cl gap-3">
                         <Button formAction={signInWithGithub} variant="outline" className="w-full">
                             Login with Github
                         </Button>
-                    </Flex>
+                    </div>
                 </form>
-            </Flex>
+            </div>
             <div className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}
                 <Button variant="ghost" formAction={signup}>

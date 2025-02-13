@@ -24,6 +24,7 @@ const nodesTypes = {
     "social_accounts_telegram": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:telegram"] },
     "social_accounts_snapchat": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:snapchat"] },
     "social_accounts_signal": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:signal"] },
+    "social_accounts_github": { table: "social_accounts", type: "social", fields: ["profile_url", "username", "platform:github"] },
     "physical_addresses": { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
 }
 

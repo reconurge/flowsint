@@ -4,7 +4,7 @@ import { Avatar, Box, Card, Flex, IconButton, Skeleton, Text } from '@radix-ui/t
 import { useIndividuals } from '@/src/lib/hooks/individuals/use-individuals';
 import { useInvestigationContext } from '@/src/components/contexts/investigation-provider';
 import { cn } from '@/src/lib/utils';
-import { MagnifyingGlassIcon, Pencil1Icon } from '@radix-ui/react-icons';
+import { Pencil1Icon } from '@radix-ui/react-icons';
 import { RotateCwIcon } from 'lucide-react';
 
 const Filters = ({ investigation_id }: { investigation_id: string }) => {
@@ -30,9 +30,10 @@ const Filters = ({ investigation_id }: { investigation_id: string }) => {
                         <Card size={"1"} className={cn('!p-2 relative group cursor-pointer border border-transparent hover:border-sky-400', currentNode === individual.id && 'border-sky-400')} onClick={() => setCurrentNode(individual.id)}>
                             <Flex gap="3" align="center">
                                 <Avatar
-                                    size="3"
+                                    size="1"
                                     src={individual?.image_url}
                                     radius="full"
+                                    color="gray"
                                     fallback={individual?.full_name[0]}
                                 />
                                 <Box>

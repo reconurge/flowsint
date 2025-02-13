@@ -1,5 +1,6 @@
 import { supabase } from "@/src/lib/supabase/client";
 import { useQuery } from "@supabase-cache-helpers/postgrest-swr";
+import { notFound } from "next/navigation";
 
 export function useInvestigations() {
     const { data: investigations, count, mutate, isLoading, error } = useQuery(
@@ -28,6 +29,5 @@ export function useInvestigation(investigationId: string | string[] | undefined)
             revalidateOnReconnect: false,
         }
     );
-
     return { investigation: investigation ?? null, isLoading, refetch: mutate, error };
 }

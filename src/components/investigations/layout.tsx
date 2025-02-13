@@ -3,7 +3,7 @@ import React from 'react'
 import MoreMenu from './more-menu';
 import CaseSelector from './case-selector';
 import NewCase from '../dashboard/new-case';
-import SearchModal from '../dashboard/seach-palette';
+import SearchModal from '../dashboard/search-palette';
 import { Flex, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { BotMessageSquareIcon, PanelRightIcon, PlusIcon } from 'lucide-react';
@@ -27,7 +27,7 @@ const InvestigationLayout = ({
     const { panelOpen, setPanelOpen, investigation } = useInvestigationContext()
     return (
         <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
-            {panelOpen && <Panel id="left" className='h-screen' defaultSize={20} minSize={10}>
+            {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={15}>
                 <div className='flex flex-col w-full h-full rounded-none shadow-none border-r border-gray-400/20'>
                     <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
@@ -52,7 +52,7 @@ const InvestigationLayout = ({
                 </div>
             </Panel>}
             <PanelResizeHandle />
-            <Panel id="center" defaultSize={80} minSize={50} className='grow flex flex-col'>
+            <Panel id="right" order={2} defaultSize={80} minSize={50} className='grow flex flex-col'>
                 <div>
                     <div className='w-full rounded-none shadow-none h-12 justify-between border-b border-gray-400/20 flex flex-row items-center p-2'>
                         <Flex gap={"1"}>

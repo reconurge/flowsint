@@ -52,7 +52,7 @@ function Custom(props: any) {
         <>
             {settings.showNodeToolbar && (
                 <NodeToolbar isVisible={data.forceToolbarVisible || undefined} position={Position.Top}>
-                    <Card className="p-1 rounded-full shadow-none">
+                    <Card className="p-1 rounded-full shadow-none backdrop-blur bg-background/40">
                         <div className="flex gap-1">
                             <Button variant="outline" className="rounded-full" size="sm" onClick={() => handleOpenIndividualModal(data.id)}>
                                 <Edit className="h-4 w-4 mr-2" />
@@ -77,8 +77,8 @@ function Custom(props: any) {
                             <Card
                                 onDoubleClick={() => handleOpenIndividualModal(data.id)}
                                 className={cn(
-                                    "p-1 border border-border hover:border-sky-400 rounded-full shadow-none",
-                                    currentNode === data.id && "border-sky-400",
+                                    "p-1 border border-border hover:border-primary/40 rounded-full shadow-none backdrop-blur bg-background/40",
+                                    currentNode === data.id && "border-primary/40",
                                 )}
                             >
                                 <div className="flex gap-2 items-center rounded-full">
@@ -101,8 +101,8 @@ function Custom(props: any) {
                                         <button
                                             onDoubleClick={() => handleOpenIndividualModal(data.id)}
                                             className={cn(
-                                                "rounded-full border border-transparent hover:border-sky-400",
-                                                currentNode === data.id && "border-sky-400",
+                                                "rounded-full border border-transparent hover:border-primary",
+                                                currentNode === data.id && "border-primary",
                                             )}
                                         >
                                             <Avatar className="h-12 w-12">

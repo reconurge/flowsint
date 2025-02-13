@@ -50,7 +50,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
 
     const SearchItem = ({ item }: any) => (
         <li onClick={() => setOpen(false)}>
-            <Card className='cursor-pointer hover:border-sky-400 border border-transparent' onClick={() => setCurrentNode(item.id)}>
+            <Card className='cursor-pointer hover:border-primary border border-transparent' onClick={() => setCurrentNode(item.id)}>
                 <CardContent className='p-3'>
                     <div className='flex flex-col gap-1 text-left'>
                         <span className='text-xs text-muted-foreground'>Individual</span>

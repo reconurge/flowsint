@@ -125,12 +125,12 @@ const ConfirmDialog = ({
                     {message}
                 </AlertDialogDescription>
                 <div className="flex items-center gap-3 mt-4 justify-end">
-                    <AlertDialogCancel>
-                        <Button onClick={onCancel} variant="ghost" color="gray">
+                    <AlertDialogCancel asChild>
+                        <Button onClick={onCancel} variant="destructive">
                             Cancel
                         </Button>
                     </AlertDialogCancel>
-                    <AlertDialogAction>
+                    <AlertDialogAction asChild>
                         <Button onClick={onConfirm} variant={"destructive"}>
                             Continue
                         </Button>

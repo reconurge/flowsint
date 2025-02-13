@@ -363,8 +363,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                                 <ZoomOutIcon className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
-                        Zoom out
                         <TooltipContent>
+                            Zoom out
                         </TooltipContent>
                     </Tooltip>
                 </Panel>

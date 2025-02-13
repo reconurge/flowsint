@@ -3,12 +3,12 @@ import React from 'react'
 import { Investigation } from '@/types/investigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card } from '../ui/card';
+import { Card } from '@/components/ui/card';
 const investigation = ({ investigation }: { investigation: Investigation }) => {
     return (
         <Link href={`/investigations/${investigation.id}`} >
             <div className="w-full h-full">
-                <Card className='h-full hover:border-sky-400 border border-transparent'>
+                <Card className='h-full'>
                     <div className="group relative h-full overflow-hidden rounded-lg">
                         <div className="aspect-[4/3] overflow-hidden">
                             <Image

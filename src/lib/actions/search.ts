@@ -1,6 +1,6 @@
 'use server'
 
-import { getInvestigation } from "@/src/lib/actions/investigations"
+import { getInvestigation } from "@/lib/actions/investigations"
 import { notFound } from "next/navigation"
 import { createClient } from "../supabase/server";
 

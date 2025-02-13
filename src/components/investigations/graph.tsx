@@ -13,9 +13,6 @@ import {
     ColorMode,
     MiniMap,
     Node,
-    Edge,
-    useNodeConnections,
-    useInternalNode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/src/lib/supabase/client';
@@ -30,16 +27,17 @@ import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon,
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import { IconButton, Tooltip, Spinner, Card, Flex, SegmentedControl } from '@radix-ui/themes';
-import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
+import { getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
 import { useInvestigationContext } from '../contexts/investigation-provider';
 import FloatingEdge from './floating-edge';
 import FloatingConnectionLine from './floating-connection';
+import { useParams } from 'next/navigation';
 
-const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const edgeTypes = {
-    'custom': FloatingEdge,
-};
+    "custom": FloatingEdge
+}
+const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: any; }) => {
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
     g.setGraph({ rankdir: options.direction });
@@ -74,8 +72,14 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isLocked, setIsLocked] = useState(false)
+    const { investigation_id } = useParams()
     const { currentNode, setCurrentNode, settings } = useInvestigationContext()
     const ref = useRef(null);
+
+    // const edgeTypes = useMemo(() => ({
+    //     'custom': settings.floatingEdges ? FloatingEdge : CustomEdge,
+    // }), [settings.floatingEdges]);
+
     const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
         const incomers = getIncomers(node, nodes, edges);
         const result = incomers.reduce(
@@ -222,8 +226,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     );
     const onConnect = useCallback(
         async (params: any) => {
+            if (!investigation_id) return
             await supabase.from("relationships")
-                .insert({ individual_a: params.source, individual_b: params.target, relation_type: "relation" })
+                .upsert({ individual_a: params.source, individual_b: params.target, investigation_id: investigation_id, relation_type: "relation" })
             setEdges((els) => addEdge({ ...params, label: "relation", type: "custom" }, els))
         },
         [setEdges],

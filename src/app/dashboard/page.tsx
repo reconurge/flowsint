@@ -3,6 +3,7 @@ import { getInvestigations } from '@/src/lib/actions/investigations'
 import Investigation from '@/src/components/dashboard/investigation'
 import { Button, Flex } from '@radix-ui/themes'
 import { DownloadIcon, FolderIcon, PlusIcon } from 'lucide-react'
+import NewCase from '@/src/components/dashboard/new-case'
 
 const DashboardPage = async () => {
     const { investigations, error } = await getInvestigations()
@@ -16,7 +17,9 @@ const DashboardPage = async () => {
                 </p>
             </div>
             <Flex gap="3">
-                <Button><PlusIcon className='h-4 w-4' />Create</Button>
+                <NewCase>
+                    <Button><PlusIcon className='h-4 w-4' />Create</Button>
+                </NewCase>
                 <Button color="gray" variant='soft'><DownloadIcon className='h-4 w-4' />Upload</Button>
                 <Button color="gray" variant='soft'><FolderIcon className='h-4 w-4' />Create organization</Button>
             </Flex>

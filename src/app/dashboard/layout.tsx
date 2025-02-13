@@ -2,11 +2,12 @@ import type React from "react"
 import { createClient } from "@/src/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Logo from "@/src/components/logo"
-import { Box, Flex, ScrollArea, TextField, Text } from "@radix-ui/themes"
+import { Box, Flex, ScrollArea, TextField, Text, IconButton } from "@radix-ui/themes"
 import NewCase from "@/src/components/dashboard/new-case"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import User from "@/src/components/user"
 import Link from "next/link"
+import { PlusIcon } from 'lucide-react';
 
 const navigation = [
     {
@@ -60,7 +61,11 @@ const DashboardLayout = async ({
                     }}
                 >
                     <Logo />
-                    <NewCase />
+                    <NewCase>
+                        <IconButton color="gray" size="2" variant="soft">
+                            <PlusIcon className="h-5" />
+                        </IconButton>
+                    </NewCase>
                 </Box>
 
                 {/* Left Panel Content */}

@@ -51,7 +51,7 @@ function Custom({ data }: any) {
                         <Handle
                             type="target"
                             position={Position.Top}
-                            className="w-16 !bg-teal-500 hidden"
+                            className={cn("w-16 !bg-teal-500 hidden", settings.floatingEdges && "hidden")}
                         />
                     </Box>
                 </ContextMenu.Trigger>

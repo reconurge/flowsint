@@ -1,11 +1,10 @@
 "use client"
-import { DropdownMenu, Button, IconButton, Dialog, Flex, TextField, Text, Badge, Box } from "@radix-ui/themes";
-import { PlusIcon } from 'lucide-react';
+import { DropdownMenu, Button, Dialog, Flex, TextField, Text, Badge, Box } from "@radix-ui/themes";
 import { useState } from "react";
 import { supabase } from '@/src/lib/supabase/client';
 import { useRouter } from "next/navigation";
 
-export default function NewCase() {
+export default function NewCase({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
@@ -27,9 +26,7 @@ export default function NewCase() {
         <>
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
-                    <IconButton color="gray" size="2" variant="soft">
-                        <PlusIcon className="h-5" />
-                    </IconButton>
+                    {children}
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content size="2">
                     <DropdownMenu.Item onClick={() => setOpen(true)} shortcut="⌘ E">New case</DropdownMenu.Item>

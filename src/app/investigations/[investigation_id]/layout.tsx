@@ -1,6 +1,6 @@
 import { InvestigationProvider } from '@/components/contexts/investigation-provider';
 import InvestigationLayout from '@/components/investigations/layout';
-import Individuals from './individuals';
+import Left from './left';
 import { SearchProvider } from '@/components/contexts/search-context';
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
@@ -26,7 +26,7 @@ const DashboardLayout = async ({
         <InvestigationProvider>
             <SearchProvider>
                 <ChatProvider>
-                    <InvestigationLayout user={data.user} investigation_id={investigation_id} left={<Individuals investigation_id={investigation_id} />}>
+                    <InvestigationLayout user={data.user} investigation_id={investigation_id} left={<Left investigation_id={investigation_id} />}>
                         {children}
                     </InvestigationLayout>
                 </ChatProvider>

@@ -92,7 +92,7 @@ const IndividualModal = () => {
 
     return (
         <Dialog open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-            <DialogContent className="max-w-[90vw] w-[1200px] min-h-[80vh]">
+            <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
                 <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
                     <div className="flex flex-col gap-4 flex-grow-0">
                         <div className="flex justify-between items-center">

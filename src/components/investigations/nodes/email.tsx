@@ -3,7 +3,7 @@
 import { memo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
 import { NodeProvider, useNodeContext } from "../../contexts/node-context"
-import { AtSign, Zap } from "lucide-react"
+import { AtSign, LocateIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
 import { useInvestigationContext } from "../../contexts/investigation-provider"
 import { CopyButton } from "../../copy"
@@ -34,17 +34,17 @@ function EmailNode({ data }: any) {
                     {settings.showNodeLabel && showContent ? (
                         <Card
                             className={cn(
-                                "pr-4 border border-transparent hover:border-sky-400 rounded-full",
-                                currentNode === data.id && "border-sky-400",
+                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                                currentNode === data.id && "border-primary",
                             )}
                         >
-                            <div className="flex items-center">
-                                <Badge variant="secondary" className="h-6 rounded-r-none">
-                                    <AtSign className="h-3 w-3" />
+                            <div className="flex items-center gap-2 p-1">
+                                <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                                    <LocateIcon className="h-4 w-4" />
                                 </Badge>
-                                <div className="flex items-center p-1 px-1.5 gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-sm">{data.label}</span>
-                                    {settings.showCopyIcon && <CopyButton content={data.label} />}
+                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
                                 </div>
                             </div>
                         </Card>

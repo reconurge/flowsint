@@ -2,12 +2,12 @@
 
 import { memo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
-import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
-import { MapPinHouseIcon, Zap } from "lucide-react"
+import { NodeProvider, useNodeContext } from "../../contexts/node-context"
+import { MapPinIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
-import { useInvestigationContext } from "@/components/contexts/investigation-provider"
-import { CopyButton } from "@/components/copy"
-import { useSearchContext } from "@/components/contexts/search-context"
+import { useInvestigationContext } from "../../contexts/investigation-provider"
+import { CopyButton } from "../../copy"
+import { useSearchContext } from "../../contexts/search-context"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-function EmailNode({ data }: any) {
+function AddressNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings, currentNode } = useInvestigationContext()
     const { handleOpenSearchModal } = useSearchContext()
@@ -34,17 +34,17 @@ function EmailNode({ data }: any) {
                     {settings.showNodeLabel && showContent ? (
                         <Card
                             className={cn(
-                                "pr-4 border border-transparent hover:border-sky-400 rounded-full",
-                                currentNode === data.id && "border-sky-400",
+                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                                currentNode === data.id && "border-primary",
                             )}
                         >
-                            <div className="flex items-center">
-                                <Badge variant="secondary" className="h-6 rounded-r-none">
-                                    <MapPinHouseIcon className="h-3 w-3" />
+                            <div className="flex items-center gap-2 p-1">
+                                <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                                    <MapPinIcon className="h-4 w-4" />
                                 </Badge>
-                                <div className="flex items-center p-1 px-1.5 gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-sm">{data.label}</span>
-                                    {settings.showCopyIcon && <CopyButton content={data.label} />}
+                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
                                 </div>
                             </div>
                         </Card>
@@ -55,7 +55,7 @@ function EmailNode({ data }: any) {
                                     <Button variant="ghost" className="rounded-full p-0">
                                         <Avatar className="h-6 w-6">
                                             <AvatarFallback>
-                                                <MapPinHouseIcon className="h-3 w-3" />
+                                                <MapPinIcon className="h-3 w-3" />
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>
@@ -96,7 +96,7 @@ function EmailNode({ data }: any) {
 
 const MemoizedNode = (props: any) => (
     <NodeProvider>
-        <EmailNode {...props} />
+        <AddressNode {...props} />
     </NodeProvider>
 )
 

@@ -6,7 +6,7 @@ import NewCase from '../dashboard/new-case';
 import SearchModal from '../dashboard/seach-palette';
 import { Flex, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { BotMessageSquareIcon, PanelRightIcon } from 'lucide-react';
+import { BotMessageSquareIcon, PanelRightIcon, PlusIcon } from 'lucide-react';
 import { useChatContext } from '../contexts/chatbot-context';
 import Logo from '../logo';
 import { useInvestigationContext } from '../contexts/investigation-provider';
@@ -23,8 +23,8 @@ const InvestigationLayout = ({
     investigation_id: string
     user: any
 }) => {
-    const { setOpen: setOpenChat } = useChatContext()
-    const { panelOpen, setPanelOpen } = useInvestigationContext()
+    const { handleOpenChat } = useChatContext()
+    const { panelOpen, setPanelOpen, investigation } = useInvestigationContext()
     return (
         <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
             {panelOpen && <Panel id="left" className='h-screen' defaultSize={20} minSize={10}>
@@ -32,9 +32,13 @@ const InvestigationLayout = ({
                     <div className='w-full rounded-none shadow-none h-12 border-b border-gray-400/20 flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
                         <Flex gap={"1"}>
-                            <IconButton onClick={() => setOpenChat(true)} color="gray" size="2" variant="soft"><BotMessageSquareIcon className="h-4" /></IconButton>
+                            <IconButton onClick={() => handleOpenChat(investigation)} color="gray" size="2" variant="soft"><BotMessageSquareIcon className="h-4" /></IconButton>
                             <SearchModal investigation_id={investigation_id} />
-                            <NewCase />
+                            <NewCase>
+                                <IconButton color="gray" size="2" variant="soft">
+                                    <PlusIcon className="h-5" />
+                                </IconButton>
+                            </NewCase>
                         </Flex>
                     </div>
                     <ScrollArea type="auto" scrollbars="vertical" className='p-3 h-full grow overflow-y-auto'>

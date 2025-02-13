@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIndividuals } from '@/lib/hooks/individuals/use-individuals';
 import { useInvestigationContext } from '@/components/contexts/investigation-provider';
 import { cn } from '@/lib/utils';
-import { AtSignIcon, UserIcon } from 'lucide-react';
+import { AtSignIcon, RotateCwIcon, UserIcon } from 'lucide-react';
 import { useEmails } from '@/lib/hooks/emails/use-emails';
 import {
     Accordion,
@@ -12,24 +12,25 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
+import { useFlowStore } from '@/components/contexts/use-flow-store';
 
 
 const Left = ({ investigation_id }: { investigation_id: string }) => {
-    const { individuals, isLoading, refetch } = useIndividuals(investigation_id)
+    const { individuals, isLoading: isLoadingIndividuals, refetch: refetchIndividuals } = useIndividuals(investigation_id)
     const { emails, isLoading: isLoadingEmails, refetch: refetchEmails } = useEmails(investigation_id)
-    const { currentNode, setCurrentNode } = useInvestigationContext()
+    const { currentNode, setCurrentNode } = useFlowStore()
 
     return (
         <div className='flex flex-col'>
-            <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
-                    <AccordionTrigger className='mt-4 p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none'>
-                        Profiles</AccordionTrigger>
+            <Accordion type="single" collapsible defaultValue='individuals'>
+                <AccordionItem value="individuals">
+                    <AccordionTrigger className='p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none'>
+                        Profiles {!isLoadingIndividuals && <>({individuals?.length})</>}</AccordionTrigger>
                     <AccordionContent>
-                        {isLoading && <div className='flex flex-col gap-1'>
-                            <Skeleton className='w-full h-[20px]' />
-                            <Skeleton className='w-full h-[20px]' />
-                            <Skeleton className='w-full h-[20px]' />
+                        {isLoadingIndividuals && <div className='flex flex-col gap-1'>
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
                         </div>
                         }
                         <ul>
@@ -46,15 +47,15 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
-            <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
+            <Accordion type="single" collapsible defaultValue='emails'>
+                <AccordionItem value="emails">
                     <AccordionTrigger className='p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none'>
-                        Emails</AccordionTrigger>
+                        Emails {!isLoadingEmails && <>({emails?.length})</>}</AccordionTrigger>
                     <AccordionContent>
                         {isLoadingEmails && <div className='flex flex-col gap-1'>
-                            <Skeleton className='w-full h-[20px]' />
-                            <Skeleton className='w-full h-[20px]' />
-                            <Skeleton className='w-full h-[20px]' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
                         </div>
                         }
                         <ul>
@@ -71,7 +72,7 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
-        </div>
+        </div >
     )
 }
 

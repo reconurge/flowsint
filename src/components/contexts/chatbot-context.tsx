@@ -22,11 +22,12 @@ interface ChatProviderProps {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [open, setOpen] = useState(false);
     // content is the object passed to the chat, as a secondary object
-    const [content, setContent] = useState(false);
-    const { messages, input, handleInputChange, handleSubmit, error, isLoading } = useChat();
+    const [context, setContext] = useState(false);
+    const { messages, input, handleInputChange, setInput, handleSubmit, error, isLoading } = useChat();
 
     const handleOpenChat = (content: any) => {
-        setContent(content)
+        setContext(content)
+        setInput(`What pattern can you extract from this person ?\n ${JSON.stringify(content)}`)
         setOpen(true)
     }
 
@@ -91,7 +92,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     </Flex>
                     <form onSubmit={handleSubmit} className="mt-4">
                         <Box width={"100%"}>
-                            <TextField.Root value={input}
+                            <TextField.Root
+                                value={input}
                                 onChange={handleInputChange}
                                 size="2" placeholder="'What pattern can you extract from those relations ?'" />
                         </Box>

@@ -10,7 +10,7 @@ import ReactMarkdown from 'react-markdown'
 
 interface ChatContextType {
     open: boolean,
-    setOpen: any
+    handleOpenChat: any
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -21,16 +21,26 @@ interface ChatProviderProps {
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [open, setOpen] = useState(false);
+    // content is the object passed to the chat, as a secondary object
+    const [content, setContent] = useState(false);
     const { messages, input, handleInputChange, handleSubmit, error, isLoading } = useChat();
 
+    const handleOpenChat = (content: any) => {
+        setContent(content)
+        setOpen(true)
+    }
+
     return (
-        <ChatContext.Provider value={{ open, setOpen }}>
+        <ChatContext.Provider value={{ open, handleOpenChat }}>
             {children}
             <Dialog.Root open={open} onOpenChange={setOpen}>
                 <Dialog.Content maxWidth={messages?.length > 0 ? "730px" : '480px'} className="w-full p-4">
                     <Dialog.Title>Ask AI</Dialog.Title>
                     <Dialog.Description size="2" mb="4">
                         Ask AI chat bot to help you understant patterns.</Dialog.Description>
+                    {/* <div>
+                        context: {content?.title || content?.full_name}
+                    </div> */}
                     <Flex direction={"column"} gap="3" className=" overflow-y-auto w-full">
                         {messages.map(m => (
                             <Flex key={m.id} className='grow'>

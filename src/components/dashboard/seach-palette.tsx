@@ -55,14 +55,14 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                         <Highlighter
                             searchWords={search.split(" ")}
                             autoEscape={true}
-                            textToHighlight={item.full_name}
+                            textToHighlight={item?.full_name}
                         />
                     </span>
                     <span className='truncate text-ellipsis text-sm opacity-75'>
                         <Highlighter
                             searchWords={search.split(" ")}
                             autoEscape={true}
-                            textToHighlight={item.notes}
+                            textToHighlight={item?.notes}
                         />
                     </span>
                 </span>

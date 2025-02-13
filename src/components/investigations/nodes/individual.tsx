@@ -16,7 +16,7 @@ function Custom(props: any) {
     const { settings, handleOpenIndividualModal, currentNode } = useInvestigationContext()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const { handleOpenSearchModal } = useSearchContext()
-    const { setOpen: setOpenChat } = useChatContext()
+    const { handleOpenChat } = useChatContext()
     const showContent = useStore(zoomSelector);
     const { data } = props
     return (
@@ -29,13 +29,13 @@ function Custom(props: any) {
                     <Card data-radius='full' className='!p-1'>
                         <Flex gap={"1"}>
                             <Button variant='soft' color='gray' onClick={() => handleOpenIndividualModal(data.id)}><EditIcon className='h-4 w-4' />Edit</Button>
-                            <Button variant='soft' color='gray' onClick={() => setOpenChat(true)}><ZapIcon color='orange' className='h-4 w-4' />Ask AI</Button>
+                            <Button variant='soft' color='gray' onClick={() => handleOpenChat(data)}><ZapIcon color='orange' className='h-4 w-4' />Ask AI</Button>
                         </Flex>
                     </Card>
                 </NodeToolbar>}
             <ContextMenu.Root>
                 <ContextMenu.Trigger onContextMenu={(e) => { e.stopPropagation() }}>
-                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100", "overflow-hidden")}>{settings.showNodeLabel && showContent ?
+                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100", "overflow-hidden group")}>{settings.showNodeLabel && showContent ?
                         <Card data-radius='full' onDoubleClick={() => handleOpenIndividualModal(data.id)} className={cn('!p-1 !pr-2 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
                             <Flex gap="2" align="center" className='rounded-full'>
                                 <Avatar
@@ -69,18 +69,18 @@ function Custom(props: any) {
                         <Handle
                             type="target"
                             position={Position.Top}
-                            className={cn("w-16 !bg-teal-500", showContent ? "opacity-100" : "opacity-0")}
+                            className={cn("w-16 !bg-teal-500", showContent ? "group-hover:opacity-100 opacity-0" : "opacity-0")}
                         />
                         <Handle
                             type="source"
                             position={Position.Bottom}
-                            className={cn("w-16 !bg-teal-500", showContent ? "opacity-100" : "opacity-0")}
+                            className={cn("w-16 !bg-teal-500", showContent ? "group-hover:opacity-100 opacity-0" : "opacity-0")}
                         />
                     </Box>
                 </ContextMenu.Trigger>
                 <ContextMenu.Content>
                     <ContextMenu.Item className='font-bold' onClick={() => handleOpenSearchModal(data.full_name)}>Launch search<ZapIcon color='orange' className='h-4 w-4' /></ContextMenu.Item>
-                    <ContextMenu.Item className='font-bold' onClick={() => setOpenChat(true)}>Ask AI<BotIcon color='#12A594' className='h-4 w-4' /></ContextMenu.Item>
+                    <ContextMenu.Item className='font-bold' onClick={() => handleOpenChat(data)}>Ask AI<BotIcon color='#12A594' className='h-4 w-4' /></ContextMenu.Item>
                     <ContextMenu.Sub>
                         <ContextMenu.SubTrigger >New</ContextMenu.SubTrigger>
                         <ContextMenu.SubContent>

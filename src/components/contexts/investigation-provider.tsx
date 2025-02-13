@@ -8,6 +8,8 @@ import { useInvestigation } from "@/src/lib/hooks/investigation/investigation";
 import { ThemeSwitch } from "../theme-switch";
 import { useConfirm } from "../use-confirm-dialog";
 import { supabase } from "@/src/lib/supabase/client";
+import FloatingEdge from "../investigations/floating-edge";
+import { cn } from "@/src/lib/utils";
 
 interface InvestigationContextType {
     filters: any,
@@ -46,7 +48,8 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         showEdgeLabel: true,
         showMiniMap: true,
         showCopyIcon: true,
-        showNodeToolbar: true
+        showNodeToolbar: true,
+        floatingEdges: false
     });
 
     const createQueryString = useCallback(
@@ -70,15 +73,15 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         }
     }
 
-    const SettingSwitch = ({ setting, value, title, description }: { setting: string, value: boolean, title: string, description: string }) => (
-        <div className="flex items-center justify-between gap-4">
+    const SettingSwitch = ({ setting, value, title, description, disabled = false }: { setting: string, value: boolean, title: string, description: string, disabled?: boolean }) => (
+        <div className={cn("flex items-center justify-between gap-4", disabled && 'opacity-60')}>
             <div className="flex flex-col gap-1">
                 <p className="font-medium">{title}</p>
                 <p className="opacity-70 text-sm">
                     {description}
                 </p>
             </div>
-            <Switch checked={value} onCheckedChange={(val: boolean) => setSettings({ ...settings, [setting]: val })} />
+            <Switch disabled={disabled} checked={value} onCheckedChange={(val: boolean) => setSettings({ ...settings, [setting]: val })} />
         </div>
     )
     return (
@@ -96,6 +99,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                         <SettingSwitch setting={"showMiniMap"} value={settings.showMiniMap} title={"Show minimap on the canva"} description={"Displays the minimap on canva."} />
                         <SettingSwitch setting={"showCopyIcon"} value={settings.showCopyIcon} title={"Show copy button on nodes"} description={"Displays a copy button on the nodes."} />
                         <SettingSwitch setting={"showNodeToolbar"} value={settings.showNodeToolbar} title={"Show toolbar on nodes"} description={"Displays a toolbar with actions on the nodes."} />
+                        <SettingSwitch disabled setting={"floatingEdges"} value={settings.floatingEdges} title={"Floating edges"} description={"Edges are not stuck to one point."} />
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <p className="font-medium">Theme</p>

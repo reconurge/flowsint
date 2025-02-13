@@ -18,23 +18,19 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData)
-
         try {
             const { data: node, error } = await supabase
                 .from("individuals")
                 .insert({ ...data, investigation_id: investigation_id?.toString() })
                 .select("*")
                 .single()
-
             if (error) throw error
-
             addNodes({
                 id: node.id,
                 type: "individual",
                 data: { ...node, label: data.full_name },
                 position: { x: -100, y: -100 },
             })
-
             setOpen(false)
         } catch (error) {
             console.error("Error adding individual:", error)

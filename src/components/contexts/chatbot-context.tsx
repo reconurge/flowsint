@@ -52,7 +52,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     m.role === "user" ? "flex-row-reverse justify-end" : "flex-row justify-start",
                   )}
                 >
-                  <Avatar className={cn("h-8 w-8", m.role === "user" ? "bg-blue-500" : "bg-orange-500")}>
+                  <Avatar className={cn("h-8 w-8")}>
                     <AvatarFallback>
                       {m.role === "user" ? (
                         <User className="h-4 w-4" />

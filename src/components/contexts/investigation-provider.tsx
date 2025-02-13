@@ -1,15 +1,23 @@
 "use client"
-import useLocalStorage from "@/src/lib/hooks/use-local-storage";
+import useLocalStorage from "@/lib/hooks/use-local-storage";
 import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
-import { Button, Dialog, Flex, Switch } from "@radix-ui/themes";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogClose,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Investigation } from "@/src/types/investigation";
-import { useInvestigation } from "@/src/lib/hooks/investigation/investigation";
-import { ThemeSwitch } from "../theme-switch";
-import { useConfirm } from "../use-confirm-dialog";
-import { supabase } from "@/src/lib/supabase/client";
-import FloatingEdge from "../investigations/floating-edge";
-import { cn } from "@/src/lib/utils";
+import { Investigation } from "@/types/investigation";
+import { useInvestigation } from "@/lib/hooks/investigation/investigation";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { useConfirm } from "@/components/use-confirm-dialog";
+import { supabase } from "@/lib/supabase/client";
+// import FloatingEdge from "../investigations/floating-edge";
+import { cn } from "@/lib/utils";
 
 interface InvestigationContextType {
     filters: any,
@@ -87,13 +95,13 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     return (
         <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation, currentNode, setCurrentNode, panelOpen, setPanelOpen }}>
             {children}
-            <Dialog.Root open={openSettingsModal}>
-                <Dialog.Content maxWidth="450px">
-                    <Dialog.Title>Settings</Dialog.Title>
-                    <Dialog.Description size="2" mb="4">
+            <Dialog open={openSettingsModal}>
+                <DialogContent>
+                    <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
                         Make changes to your settings.
-                    </Dialog.Description>
-                    <Flex direction="column" gap="3">
+                    </DialogDescription>
+                    <div className="flex flex-col gap-3">
                         <SettingSwitch setting={"showNodeLabel"} value={settings.showNodeLabel} title={"Show labels on nodes"} description={"Displays the labels on the nodes, like username or avatar."} />
                         <SettingSwitch setting={"showEdgeLabel"} value={settings.showEdgeLabel} title={"Show labels on edges"} description={"Displays the labels on the edges, like relation type."} />
                         <SettingSwitch setting={"showMiniMap"} value={settings.showMiniMap} title={"Show minimap on the canva"} description={"Displays the minimap on canva."} />
@@ -109,16 +117,16 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                             </div>
                             <ThemeSwitch />
                         </div>
-                    </Flex>
-                    <Flex gap="3" mt="4" justify="end">
-                        <Dialog.Close onClick={() => setOpenSettingsModal(false)}>
-                            <Button variant="soft" color="gray">
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
+                        <DialogClose asChild onClick={() => setOpenSettingsModal(false)}>
+                            <Button variant="outline">
                                 Cancel
                             </Button>
-                        </Dialog.Close>
-                    </Flex>
-                </Dialog.Content>
-            </Dialog.Root>
+                        </DialogClose>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </InvestigationContext.Provider >
     );
 };

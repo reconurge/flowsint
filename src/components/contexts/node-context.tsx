@@ -1,11 +1,20 @@
 "use client"
 import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
-import { Button, Callout, Dialog, Flex, Text, TextField } from "@radix-ui/themes";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
-import { supabase } from "@/src/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { useNodeId, useReactFlow } from "@xyflow/react";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useConfirm } from "../use-confirm-dialog";
+import { useConfirm } from "@/components/use-confirm-dialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface NodeContextType {
     setOpenAddNodeModal: any,
@@ -145,22 +154,22 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     return (
         <NodeContext.Provider {...props} value={{ setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading }}>
             {props.children}
-            <Dialog.Root open={openAddNodeModal && nodeType} onOpenChange={setOpenNodeModal}>
-                <Dialog.Content maxWidth="450px">
-                    <Dialog.Title>New {nodeType?.type}</Dialog.Title>
-                    <Dialog.Description size="2" mb="4">
+            <Dialog open={openAddNodeModal && nodeType} onOpenChange={setOpenNodeModal}>
+                <DialogContent>
+                    <DialogTitle>New {nodeType?.type}</DialogTitle>
+                    <DialogDescription>
                         Add a new related {nodeType?.type}.
-                    </Dialog.Description>
+                    </DialogDescription>
                     <form onSubmit={onSubmitNewNodeModal}>
-                        <Flex direction="column" gap="3">
+                        <div className="flex flex-col ga-3">
                             {nodeType?.fields.map((field: any, i: number) => {
                                 const [key, value] = field.split(":")
                                 return (
                                     <label key={i}>
-                                        <Text as="div" size="2" mb="1" weight="bold">
+                                        <p>
                                             {key}
-                                        </Text>
-                                        <TextField.Root
+                                        </p>
+                                        <Input
                                             defaultValue={value || ""}
                                             // disabled={Boolean(value)}
                                             name={key}
@@ -169,26 +178,26 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                                     </label>
                                 )
                             })}
-                        </Flex>
-                        {error && <Callout.Root className="mt-4" color="red">
-                            <Callout.Icon>
-                                <InfoCircledIcon />
-                            </Callout.Icon>
-                            <Callout.Text>
-                                {error}
-                            </Callout.Text>
-                        </Callout.Root>}
-                        <Flex gap="3" mt="4" justify="end">
-                            <Dialog.Close>
-                                <Button variant="soft" color="gray">
+                        </div>
+                        {error &&
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>
+                                    {error}
+                                </AlertDescription>
+                            </Alert>}
+                        <div className="flex items-center gap-2 justify-end mt-4">
+                            <DialogClose asChild>
+                                <Button variant="outline">
                                     Cancel
                                 </Button>
-                            </Dialog.Close>
-                            <Button loading={loading} type="submit">Save</Button>
-                        </Flex>
+                            </DialogClose>
+                            <Button disabled={loading} type="submit">Save</Button>
+                        </div>
                     </form>
-                </Dialog.Content>
-            </Dialog.Root>
+                </DialogContent>
+            </Dialog>
         </NodeContext.Provider>
     );
 };

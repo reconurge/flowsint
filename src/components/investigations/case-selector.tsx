@@ -1,7 +1,14 @@
-import { useInvestigations } from "@/src/lib/hooks/investigation/investigation";
+import { useInvestigations } from "@/lib/hooks/investigation/investigation";
 import { useInvestigationContext } from "../contexts/investigation-provider";
 import { useRouter } from "next/navigation";
-import { Select, Spinner } from "@radix-ui/themes";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CaseSelector() {
     const router = useRouter()
@@ -12,16 +19,17 @@ export default function CaseSelector() {
     };
     return (
         <div className="ml-2 flex items-center">
-            <Spinner loading={isLoading || isLoadingInvestigation}>
-                <Select.Root onValueChange={handleSelectionChange} defaultValue={investigation?.id}>
-                    <Select.Trigger className="min-w-none w-full text-ellipsis truncate" variant="ghost" />
-                    <Select.Content>
+            {isLoading || isLoadingInvestigation ? <Skeleton className="h-8 w-40" /> :
+                <Select onValueChange={handleSelectionChange} defaultValue={investigation?.id}>
+                    <SelectTrigger className="min-w-none w-full text-ellipsis truncate">
+                        <SelectValue defaultValue={investigation?.title || ""} placeholder="Select a fruit" />
+                    </SelectTrigger>
+                    <SelectContent>
                         {investigations?.map((investigation) => (
-                            <Select.Item className="text-ellipsis truncate" key={investigation.id} value={investigation.id}>{investigation.title}</Select.Item>
+                            <SelectItem className="text-ellipsis truncate" key={investigation.id} value={investigation.id}>{investigation.title}</SelectItem>
                         ))}
-                    </Select.Content>
-                </Select.Root >
-            </Spinner>
+                    </SelectContent>
+                </Select >}
         </div>
     );
 }

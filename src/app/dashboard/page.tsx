@@ -1,33 +1,52 @@
-import React from 'react'
-import { getInvestigations } from '@/src/lib/actions/investigations'
-import Investigation from '@/src/components/dashboard/investigation'
-import { Button, Flex } from '@radix-ui/themes'
-import { DownloadIcon, FolderIcon, PlusIcon } from 'lucide-react'
-import NewCase from '@/src/components/dashboard/new-case'
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
-const DashboardPage = async () => {
-    const { investigations, error } = await getInvestigations()
-    if (error) return <div>An error occured.</div>
-    return (
-        <div className='space-y-6 max-w-6xl mx-auto p-6'>
-            <div>
-                <h1 className="text-3xl font-semibold mb-2">Vos investigations</h1>
-                <p className="mb-6 opacity-70">
-                    La liste de vos investigations. Vous pouvez également en créer d'autres.
-                </p>
-            </div>
-            <Flex gap="3">
-                <NewCase>
-                    <Button><PlusIcon className='h-4 w-4' />Create</Button>
-                </NewCase>
-                <Button color="gray" variant='soft'><DownloadIcon className='h-4 w-4' />Upload</Button>
-                <Button color="gray" variant='soft'><FolderIcon className='h-4 w-4' />Create organization</Button>
-            </Flex>
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5'>{investigations.map((investigation) => (
-                <Investigation key={investigation.id} investigation={investigation} />
-            ))}
-            </div>
+export default function Page() {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    Building Your Application
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+          </div>
+          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
         </div>
-    )
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }
-export default DashboardPage

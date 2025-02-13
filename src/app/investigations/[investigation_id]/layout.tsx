@@ -1,11 +1,11 @@
-import { InvestigationProvider } from '@/src/components/contexts/investigation-provider';
-import InvestigationLayout from '@/src/components/investigations/layout';
+import { InvestigationProvider } from '@/components/contexts/investigation-provider';
+import InvestigationLayout from '@/components/investigations/layout';
 import Individuals from './individuals';
-import { SearchProvider } from '@/src/components/contexts/search-context';
-import { createClient } from "@/src/lib/supabase/server";
+import { SearchProvider } from '@/components/contexts/search-context';
+import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
-import { ChatProvider } from '@/src/components/contexts/chatbot-context';
-import { getInvestigation } from '@/src/lib/actions/investigations';
+import { ChatProvider } from '@/components/contexts/chatbot-context';
+import { getInvestigation } from '@/lib/actions/investigations';
 
 const DashboardLayout = async ({
     children,

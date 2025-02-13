@@ -4,7 +4,7 @@ import {
     getBezierPath,
 } from '@xyflow/react';
 import { useInvestigationContext } from '../contexts/investigation-provider';
-import { Badge } from '@radix-ui/themes';
+import { Badge } from '@/components/ui/badge';
 
 export default function CustomEdge(props: any) {
     const { id, label, confidence_level, sourceX, sourceY, targetX, targetY, style } = props
@@ -20,7 +20,7 @@ export default function CustomEdge(props: any) {
             <BaseEdge id={id} path={edgePath} style={style} />
             <EdgeLabelRenderer>
                 {settings.showEdgeLabel &&
-                    <Badge size={"1"} color={label === "relation" ? 'orange' : "blue"} style={{
+                    <Badge color={label === "relation" ? 'orange' : "blue"} style={{
                         position: 'absolute',
                         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                         pointerEvents: 'all',

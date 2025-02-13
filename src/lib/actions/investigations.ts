@@ -37,7 +37,6 @@ export async function getInvestigationData(investigationId: string): Promise<{ n
     if (indError) throw notFound();
 
     if (!individuals) individuals = [];
-
     // Extraire les IDs
     // @ts-ignore
     const individualIds = individuals.map((ind) => ind.id);

@@ -23,7 +23,7 @@ import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
 import SocialNode from './nodes/social'
 import AddressNode from './nodes/physical_address'
-import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon, LockIcon } from 'lucide-react';
+import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon, RotateCwIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import { getIncomers, getOutgoers } from "@xyflow/react";
@@ -36,6 +36,8 @@ import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { Card } from '@/components/ui/card';
+import { getInvestigationData } from '@/lib/actions/investigations';
+import { cn } from '@/lib/utils';
 
 const edgeTypes = {
     "custom": FloatingEdge
@@ -74,8 +76,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges, setCenter, getNode, updateNode } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [isLocked, setIsLocked] = useState(false)
     const { investigation_id } = useParams()
+    const [loading, setLoading] = useState(false)
     const { currentNode, setCurrentNode, settings } = useInvestigationContext()
     const ref = useRef(null);
 
@@ -178,7 +180,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                         animated,
                         style: {
                             ...edge.style,
-                            stroke: animated ? "#00D3F2" : "#b1b1b750",
+                            stroke: animated ? "var(--primary)" : "#b1b1b750",
                             opacity: animated ? 1 : 0.25,
                         },
                     }
@@ -216,6 +218,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
             })),
         )
     }, [setNodes, setEdges])
+
     const onLayout = useCallback(
         (direction: any) => {
             const layouted = getLayoutedElements(nodes, edges, { direction });
@@ -267,6 +270,16 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     useEffect(() => {
         onLayout('LR')
     }, [initialNodes, initialEdges])
+
+    const handleRefresh = useCallback(
+        async () => {
+            setLoading(true);
+            const { nodes: newNodes, edges: newEdges } = await getInvestigationData(investigation_id as string);
+            setNodes([...newNodes]);
+            setEdges([...newEdges]);
+            onLayout('LR');
+            setLoading(false);
+        }, []);
 
     return (
         <div className='h-[calc(100vh_-_48px)]'>
@@ -321,8 +334,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" variant="outline" onClick={() => window.location.reload()}>
-                                <RotateCcwIcon className='h-4 w-4' />
+                            <Button size="icon" disabled={loading} variant="outline" onClick={handleRefresh}>
+                                <RotateCwIcon className={cn('h-4 w-4', loading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>

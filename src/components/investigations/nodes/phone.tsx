@@ -20,10 +20,12 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useFlowStore } from "@/components/contexts/use-flow-store"
 
 function PhoneNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
-    const { settings, currentNode } = useInvestigationContext()
+    const { settings } = useInvestigationContext()
+    const { currentNode } = useFlowStore()
     const { handleOpenSearchModal } = useSearchContext()
     const showContent = useStore(zoomSelector)
 

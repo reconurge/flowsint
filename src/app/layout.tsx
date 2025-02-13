@@ -42,7 +42,7 @@ export default function RootLayout({
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <main>
-            <NextTopLoader />
+            <NextTopLoader color="var(--primary)"/>
             <TooltipProvider>
               <ConfirmContextProvider>
                 {children}

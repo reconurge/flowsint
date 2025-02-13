@@ -39,9 +39,11 @@ import {
     User,
     Zap,
 } from "lucide-react"
+import { useFlowStore } from "@/components/contexts/use-flow-store"
 
 function Custom(props: any) {
-    const { settings, handleOpenIndividualModal, currentNode } = useInvestigationContext()
+    const { settings, handleOpenIndividualModal } = useInvestigationContext()
+    const { currentNode } = useFlowStore()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const { handleOpenSearchModal } = useSearchContext()
     const { handleOpenChat } = useChatContext()

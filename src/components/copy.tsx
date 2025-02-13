@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { IconButton, Tooltip } from "@radix-ui/themes"
 import { Copy } from "lucide-react"
 import { useTimeout } from "usehooks-ts"
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
+import { Button } from "./ui/button"
 
 interface CopyButtonProps {
     content: string
     delay?: number
+    className?: string
 }
 
-export function CopyButton({ content, delay = 2000 }: CopyButtonProps) {
+export function CopyButton({ content, className, delay = 2000 }: CopyButtonProps) {
     const [isCopied, setIsCopied] = useState(false)
 
     const handleCopy = useCallback((e: { stopPropagation: () => void }) => {
@@ -30,10 +32,15 @@ export function CopyButton({ content, delay = 2000 }: CopyButtonProps) {
     )
 
     return (
-        <Tooltip open={isCopied} content="Copied !">
-            <IconButton size={"1"} color="gray" radius="large" variant="ghost" onClick={handleCopy} aria-label="Copy content">
-                <Copy className="h-3 w-3 opacity-50" />
-            </IconButton>
+        <Tooltip open={isCopied}>
+            <TooltipTrigger asChild>
+                <Button className={className} size={"icon"} variant="ghost" onClick={handleCopy} aria-label="Copy content">
+                    <Copy className="h-3 w-3 opacity-50" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                Copied !
+            </TooltipContent>
         </Tooltip>
     )
 }

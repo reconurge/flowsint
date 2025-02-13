@@ -1,15 +1,18 @@
 "use client"
+
 import { useState, useCallback, useEffect, SetStateAction } from 'react'
 // @ts-ignore
-import debounce from "lodash.debounce";
-import { SearchIcon } from "lucide-react"
+import debounce from "lodash.debounce"
+import { Search } from 'lucide-react'
 // @ts-ignore
-import Highlighter from "react-highlight-words";
-import Link from 'next/link';
-import { useSearchResults } from '../../lib/hooks/investigation/use-search-results';
-import { Card, Dialog, Flex, IconButton, ScrollArea, Spinner, TextField } from '@radix-ui/themes';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { useInvestigationContext } from '../contexts/investigation-provider';
+import Highlighter from "react-highlight-words"
+import { useSearchResults } from '../../lib/hooks/investigation/use-search-results'
+import { useInvestigationContext } from '../contexts/investigation-provider'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
     const [search, setSearch] = useState("")
@@ -20,111 +23,93 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
         error,
         isLoading,
         refetch,
-    } = useSearchResults(search, investigation_id);
+    } = useSearchResults(search, investigation_id)
 
-    const changeHandler = (event: { target: { value: SetStateAction<string>; }; }) => {
-        setSearch(event.target.value);
-        refetch && refetch();
-    };
-    const debouncedChangeHandler = useCallback(debounce(changeHandler, 300), []);
+    const changeHandler = (event: { target: { value: SetStateAction<string> } }) => {
+        setSearch(event.target.value)
+        refetch && refetch()
+    }
+    const debouncedChangeHandler = useCallback(debounce(changeHandler, 300), [])
 
     const handleClose = () => {
-        () => setSearch('')
+        setSearch('')
         setOpen(false)
     }
 
     useEffect(() => {
-        const handleKeyPress = (event: { ctrlKey: any; key: string; }) => {
+        const handleKeyPress = (event: KeyboardEvent) => {
             if (event.ctrlKey && event.key === 'k') {
                 setOpen(true)
             }
-        };
-        window.addEventListener('keydown', handleKeyPress);
+        }
+        window.addEventListener('keydown', handleKeyPress)
         return () => {
-            window.removeEventListener('keydown', handleKeyPress);
-        };
-    }, []);
+            window.removeEventListener('keydown', handleKeyPress)
+        }
+    }, [])
 
-    const SearchItem = ({ item }: any) =>
-    (<li onClick={() => setOpen(false)}>
-        <Card className='cursor-pointer hover:border-sky-400 border border-transparent' onClick={() => setCurrentNode(item.id)}>
-            <span className='flex flex-col gap-1 text-left'>
-                <span className='text-xs opacity-50'>Individual</span>
-                <span className='flex items-center gap-1'>
-                    <span className='truncate text-ellipsis'>
-                        <Highlighter
-                            searchWords={search.split(" ")}
-                            autoEscape={true}
-                            textToHighlight={item?.full_name}
-                        />
-                    </span>
-                    <span className='truncate text-ellipsis text-sm opacity-75'>
-                        <Highlighter
-                            searchWords={search.split(" ")}
-                            autoEscape={true}
-                            textToHighlight={item?.notes}
-                        />
-                    </span>
-                </span>
-                {/* <span className='text-sm opacity-75'>
-                    <Highlighter
-                        searchWords={search.split(" ")}
-                        autoEscape={true}
-                        textToHighlight={item.netname}
-                    />
-                </span> */}
-            </span>
-        </Card>
-    </li>
+    const SearchItem = ({ item }: any) => (
+        <li onClick={() => setOpen(false)}>
+            <Card className='cursor-pointer hover:border-primary border border-transparent' onClick={() => setCurrentNode(item.id)}>
+                <CardContent className='p-3'>
+                    <div className='flex flex-col gap-1 text-left'>
+                        <span className='text-xs text-muted-foreground'>Individual</span>
+                        <div className='flex items-center gap-1'>
+                            <span className='truncate'>
+                                <Highlighter
+                                    searchWords={search.split(" ")}
+                                    autoEscape={true}
+                                    textToHighlight={item?.full_name}
+                                />
+                            </span>
+                            <span className='truncate text-sm text-muted-foreground'>
+                                <Highlighter
+                                    searchWords={search.split(" ")}
+                                    autoEscape={true}
+                                    textToHighlight={item?.notes}
+                                />
+                            </span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </li>
     )
+
     return (
         <>
-
-            <Dialog.Root open={open} onOpenChange={handleClose}>
-                <IconButton onClick={() => setOpen(true)} color="gray" size="2" variant="soft">
-                    <SearchIcon className="h-4" />
-                </IconButton>
-                <Dialog.Content maxWidth="450px">
-                    <Dialog.Title>Search</Dialog.Title>
-                    <Dialog.Description size="2" mb="4">
-                        Find the profile you're looking for.
-                    </Dialog.Description>
-
-                    <TextField.Root
-                        defaultValue={search}
-                        onChange={debouncedChangeHandler}
-                        placeholder="Your search here…">
-                        <TextField.Slot>
-                            <MagnifyingGlassIcon height="16" width="16" />
-                        </TextField.Slot>
-                    </TextField.Root>
-                    <div className='w-full relative text-center flex flex-col items-center justify-center gap-2'>
-                        {error && "An error occured."}
-                        {isLoading && <Spinner />}
-                        {results?.length === 0 && `No results found for "${search}".`}
-                        <Flex direction={"column"}>
-                            <ScrollArea className='max-h-[60vh] p-2'>
-                                <ul className='w-full h-full flex flex-col gap-1 mt-2'>{!error && !isLoading && Array.isArray(results) && results?.map((item) => (
-                                    <SearchItem key={item.id} item={item} />
-                                ))}
+            <Dialog open={open} onOpenChange={handleClose}>
+                <Button variant="outline" size="icon" onClick={() => setOpen(true)}>
+                    <Search className="h-4 w-4" />
+                </Button>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Search</DialogTitle>
+                        <DialogDescription>
+                            Find the profile you're looking for.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            defaultValue={search}
+                            onChange={debouncedChangeHandler}
+                            placeholder="Your search here…"
+                        />
+                        <div className='w-full relative text-center flex flex-col items-center justify-center gap-2'>
+                            {error && <p className="text-red-500">An error occurred.</p>}
+                            {isLoading && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>}
+                            {results?.length === 0 && <p>No results found for "{search}".</p>}
+                            <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
+                                <ul className='space-y-2'>
+                                    {!error && !isLoading && Array.isArray(results) && results?.map((item) => (
+                                        <SearchItem key={item.id} item={item} />
+                                    ))}
                                 </ul>
                             </ScrollArea>
-                        </Flex>
-                        {/* {search === '' && (
-                            <div className="px-6 py-14 text-center flex items-center justify-center flex-col text-sm sm:px-14">
-                                <SearchIcon
-                                    className="h-12 w-12 opacity-40"
-                                    aria-hidden="true"
-                                />
-                                <p className="mt-4 font-semibold">Search for ip_addresses, domain names and other</p>
-                                <p className="mt-2 opacity-70">
-                                    Put you search between quotes for an exact match search.
-                                </p>
-                            </div>
-                        )} */}
+                        </div>
                     </div>
-                </Dialog.Content>
-            </Dialog.Root>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

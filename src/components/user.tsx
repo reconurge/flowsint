@@ -1,26 +1,103 @@
-import { Avatar, Button, DropdownMenu, IconButton, Inset, Text } from '@radix-ui/themes'
-import React from 'react'
+"use client"
 
-const User = ({ user }: any) => {
+import {
+    BadgeCheck,
+    Bell,
+    ChevronsUpDown,
+    CreditCard,
+    LogOut,
+    Sparkles,
+} from "lucide-react"
+
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "./ui/button"
+
+export function NavUser({
+    user,
+}: {
+    user: {
+        name?: string
+        email: string
+        avatar?: string
+    }
+}) {
+
     return (
-        <DropdownMenu.Root>
-            <DropdownMenu.Trigger>
-                <IconButton radius='full' className='!mr-1' size={"1"} variant='ghost'>
-                    <Inset>
-                        <Avatar size={"2"} radius='full' src={user?.user_metadata?.avatar_url} fallback={user?.user_metadata?.user_name?.[0] || "?"} variant="soft" />
-                    </Inset>
-                </IconButton>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content className='p-2'>
-                <Text weight={"medium"}>{user?.user_metadata?.user_name}</Text>
-                <Text weight={"light"} size={"2"} className='opacity-70'>{user?.user_metadata?.email}</Text>
-                <DropdownMenu.Item>Profile</DropdownMenu.Item>
-                <DropdownMenu.Item>Settings</DropdownMenu.Item>
-                <DropdownMenu.Separator />
-                <DropdownMenu.Item>API keys</DropdownMenu.Item>
-            </DropdownMenu.Content>
-        </DropdownMenu.Root>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    size="lg"
+                    variant="outline"
+                >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">{user.name}</span>
+                        <span className="truncate text-xs">{user.email}</span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto size-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                align="end"
+                sideOffset={4}
+            >
+                <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                            <span className="truncate font-semibold">{user.name}</span>
+                            <span className="truncate text-xs">{user.email}</span>
+                        </div>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        <Sparkles />
+                        Upgrade to Pro
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        <BadgeCheck />
+                        Account
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <CreditCard />
+                        Billing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Bell />
+                        Notifications
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <LogOut />
+                    Log out
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }
-
-export default User

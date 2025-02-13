@@ -1,11 +1,11 @@
-import { getEdgeParams } from '@/src/lib/utils';
+import { getEdgeParams } from '@/lib/utils';
 import {
     EdgeLabelRenderer,
     getBezierPath,
     useInternalNode
 } from '@xyflow/react';
-import { useInvestigationContext } from '../contexts/investigation-provider';
-import { Badge } from '@radix-ui/themes';
+import { useInvestigationContext } from '@/components/contexts/investigation-provider';
+import { Badge } from '@/components/ui/badge';
 function FloatingEdge(props: any) {
     const { id, source, target, markerEnd, label, confidence_level, sourceX, sourceY, targetX, targetY, style } = props
     const sourceNode = useInternalNode(source);
@@ -41,7 +41,7 @@ function FloatingEdge(props: any) {
             />
             <EdgeLabelRenderer>
                 {settings.showEdgeLabel &&
-                    <Badge size={"1"} color={label === "relation" ? 'orange' : "blue"} style={{
+                    <Badge color={label === "relation" ? 'orange' : "blue"} style={{
                         position: 'absolute',
                         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                         pointerEvents: 'all',

@@ -1,4 +1,4 @@
-import { supabase } from "@/src/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useQuery } from "@supabase-cache-helpers/postgrest-swr"
 
 export function useEmailsAndBreaches(individualId: string | null | undefined) {

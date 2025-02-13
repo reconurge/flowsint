@@ -1,6 +1,6 @@
-import { getInvestigationData } from '@/src/lib/actions/investigations'
-import InvestigationGraph from '@/src/components/investigations/graph'
-import IndividualModal from '@/src/components/investigations/individual-modal'
+import { getInvestigationData } from '@/lib/actions/investigations'
+import InvestigationGraph from '@/components/investigations/graph'
+import IndividualModal from '@/components/investigations/individual-modal'
 
 const DashboardPage = async ({
     params,

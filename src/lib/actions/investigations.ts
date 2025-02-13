@@ -1,7 +1,7 @@
 "use server"
 import { createClient } from "../supabase/server"
-import { Investigation } from "@/src/types/investigation"
-import { NodeData, EdgeData } from "@/src/types"
+import { Investigation } from "@/types/investigation"
+import { NodeData, EdgeData } from "@/types"
 import { notFound } from "next/navigation"
 interface ReturnTypeGetInvestigations {
     investigations: Investigation[],
@@ -37,7 +37,6 @@ export async function getInvestigationData(investigationId: string): Promise<{ n
     if (indError) throw notFound();
 
     if (!individuals) individuals = [];
-
     // Extraire les IDs
     // @ts-ignore
     const individualIds = individuals.map((ind) => ind.id);

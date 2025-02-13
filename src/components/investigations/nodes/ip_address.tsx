@@ -1,78 +1,104 @@
 "use client"
-import React, { memo } from 'react';
-import { Handle, Position, useStore } from '@xyflow/react';
-import { Card, Box, Text, ContextMenu, Flex, Inset, Badge, Tooltip, Avatar } from '@radix-ui/themes';
-import { NodeProvider, useNodeContext } from '../../contexts/node-context';
-import { LocateIcon, ZapIcon } from 'lucide-react';
-import { cn, zoomSelector } from '@/src/lib/utils';
-import { useInvestigationContext } from '../../contexts/investigation-provider';
-import { CopyButton } from '../../copy';
-import { useSearchContext } from '../../contexts/search-context';
 
-function Custom({ data }: any) {
+import { memo } from "react"
+import { Handle, Position, useStore } from "@xyflow/react"
+import { NodeProvider, useNodeContext } from "../../contexts/node-context"
+import { AtSign, LocateIcon, Zap } from "lucide-react"
+import { cn, zoomSelector } from "@/lib/utils"
+import { useInvestigationContext } from "../../contexts/investigation-provider"
+import { CopyButton } from "../../copy"
+import { useSearchContext } from "../../contexts/search-context"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+function IpNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings, currentNode } = useInvestigationContext()
     const { handleOpenSearchModal } = useSearchContext()
-    const showContent = useStore(zoomSelector);
+    const showContent = useStore(zoomSelector)
 
     return (
-        <>
-            <ContextMenu.Root>
-                <ContextMenu.Trigger>
-                    <Box className={cn(loading ? "!opacity-40" : "!opacity-100")}>
-                        {settings.showNodeLabel && showContent ?
-                            <Card data-radius='full' className={cn('!pr-4 border border-transparent hover:border-sky-400', currentNode === data.id && "border-sky-400")}>
-                                <Inset>
-                                    <Flex className='items-center p-0'>
-                                        <Badge color='orange' className='!h-[24px] !rounded-r-none'>
-                                            <LocateIcon className='h-3 w-3' />
-                                        </Badge>
-                                        <Flex align={"center"} className='p-1 px-1.5' gap="2">
-                                            <Text as="div" size="1" weight="regular">
-                                                {data.label}
-                                            </Text>
-                                            {settings.showCopyIcon && <CopyButton content={data.label} />}
-                                        </Flex>
-                                    </Flex>
-                                </Inset>
-                            </Card>
-                            :
-                            <Tooltip content={data.label}>
-                                <button className='!rounded-full border-transparent'>
-                                    <Avatar
-                                        size="1"
-                                        src={data?.image_url}
-                                        radius="full"
-                                        /* @ts-ignore */
-                                        fallback={<LocateIcon className='h-3 w-3' />}
-                                    />
-                                </button>
-                            </Tooltip>}
-                        <Handle
-                            type="target"
-                            position={Position.Top}
-                            className={cn("w-16 !bg-teal-500 hidden", settings.floatingEdges && "hidden")}
-                        />
-                    </Box>
-                </ContextMenu.Trigger>
-                <ContextMenu.Content>
-                    <ContextMenu.Item className='font-bold' onClick={() => handleOpenSearchModal(data.ip_address)}>Launch search<ZapIcon color='orange' className='h-4 w-4' /></ContextMenu.Item>
-                    <ContextMenu.Item shortcut="⌘ C">Copy content</ContextMenu.Item>
-                    <ContextMenu.Item shortcut="⌘ D">Duplicate</ContextMenu.Item>
-                    <ContextMenu.Separator />
-                    <ContextMenu.Item onClick={handleDeleteNode} shortcut="⌘ ⌫" color="red">
-                        Delete
-                    </ContextMenu.Item>
-                </ContextMenu.Content>
-            </ContextMenu.Root>
-        </>
-    );
+        <ContextMenu>
+            <ContextMenuTrigger>
+                <div className={cn(loading ? "opacity-40" : "opacity-100")}>
+                    {settings.showNodeLabel && showContent ? (
+                        <Card
+                            className={cn(
+                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                                currentNode === data.id && "border-primary",
+                            )}
+                        >
+                            <div className="flex items-center gap-2 p-1">
+                                <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                                    <LocateIcon className="h-4 w-4" />
+                                </Badge>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm">{data.label}</span>
+                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
+                                </div>
+                            </div>
+                        </Card>
+                    ) : (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" className="rounded-full p-0">
+                                        <Avatar className="h-6 w-6">
+                                            <AvatarFallback>
+                                                <LocateIcon className="h-3 w-3" />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{data.label}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                    <Handle
+                        type="target"
+                        position={Position.Top}
+                        className={cn("w-16 bg-teal-500 hidden", settings.floatingEdges && "hidden")}
+                    />
+                </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+                <ContextMenuItem onClick={() => handleOpenSearchModal(data.email)}>
+                    Launch search
+                    <Zap className="ml-2 h-4 w-4 text-orange-500" />
+                </ContextMenuItem>
+                <ContextMenuItem>
+                    Copy content
+                    <span className="ml-auto text-xs text-muted-foreground">⌘ C</span>
+                </ContextMenuItem>
+                <ContextMenuItem>
+                    Duplicate
+                    <span className="ml-auto text-xs text-muted-foreground">⌘ D</span>
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={handleDeleteNode} className="text-red-600">
+                    Delete
+                    <span className="ml-auto text-xs text-muted-foreground">⌘ ⌫</span>
+                </ContextMenuItem>
+            </ContextMenuContent>
+        </ContextMenu>
+    )
 }
 
-const IpNode = (props: any) => (
+const MemoizedNode = (props: any) => (
     <NodeProvider>
-        <Custom {...props} />
+        <IpNode {...props} />
     </NodeProvider>
-);
+)
 
-export default memo(IpNode);
+export default memo(MemoizedNode)
+

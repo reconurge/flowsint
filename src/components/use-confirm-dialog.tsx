@@ -1,7 +1,15 @@
 "use client";
 
-import { AlertDialog, Button, Flex } from "@radix-ui/themes";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
+import { Button } from "@/components/ui/button";
 import React, {
     createContext,
     ReactNode,
@@ -110,25 +118,25 @@ const ConfirmDialog = ({
     message: string;
 }) => {
     return (
-        <AlertDialog.Root open={open} onOpenChange={onCancel}>
-            <AlertDialog.Content maxWidth="450px">
-                <AlertDialog.Title>{title}</AlertDialog.Title>
-                <AlertDialog.Description size="2">
+        <AlertDialog open={open} onOpenChange={onCancel}>
+            <AlertDialogContent>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
+                <AlertDialogDescription>
                     {message}
-                </AlertDialog.Description>
-                <Flex gap="3" mt="4" justify="end">
-                    <AlertDialog.Cancel>
-                        <Button onClick={onCancel} variant="soft" color="gray">
+                </AlertDialogDescription>
+                <div className="flex items-center gap-3 mt-4 justify-end">
+                    <AlertDialogCancel asChild>
+                        <Button onClick={onCancel} variant="destructive">
                             Cancel
                         </Button>
-                    </AlertDialog.Cancel>
-                    <AlertDialog.Action>
-                        <Button onClick={onConfirm} variant="solid" color="red">
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                        <Button onClick={onConfirm} variant={"destructive"}>
                             Continue
                         </Button>
-                    </AlertDialog.Action>
-                </Flex>
-            </AlertDialog.Content>
-        </AlertDialog.Root>
+                    </AlertDialogAction>
+                </div>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 };

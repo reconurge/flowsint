@@ -13,9 +13,6 @@ import {
     ColorMode,
     MiniMap,
     Node,
-    Edge,
-    useNodeConnections,
-    useInternalNode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/src/lib/supabase/client';
@@ -29,15 +26,18 @@ import AddressNode from './nodes/physical_address'
 import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon, LockIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
-import { IconButton, Tooltip, Spinner, Card, Flex } from '@radix-ui/themes';
-import { isNode, isEdge, getIncomers, getOutgoers } from "@xyflow/react";
+import { IconButton, Tooltip, Spinner, Card, Flex, SegmentedControl } from '@radix-ui/themes';
+import { getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
 import { useInvestigationContext } from '../contexts/investigation-provider';
+import FloatingEdge from './floating-edge';
+import FloatingConnectionLine from './floating-connection';
+import { useParams } from 'next/navigation';
 
-const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const edgeTypes = {
-    'custom': CustomEdge,
-};
+    "custom": FloatingEdge
+}
+const nodeTypes = { individual: IndividualNode, phone: PhoneNode, ip: IpNode, email: EmailNode, social: SocialNode, address: AddressNode };
 const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: any; }) => {
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
     g.setGraph({ rankdir: options.direction });
@@ -72,8 +72,14 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isLocked, setIsLocked] = useState(false)
-    const { currentNode, setCurrentNode } = useInvestigationContext()
+    const { investigation_id } = useParams()
+    const { currentNode, setCurrentNode, settings } = useInvestigationContext()
     const ref = useRef(null);
+
+    // const edgeTypes = useMemo(() => ({
+    //     'custom': settings.floatingEdges ? FloatingEdge : CustomEdge,
+    // }), [settings.floatingEdges]);
+
     const getAllIncomers = useCallback((node: any, nodes: any[], edges: EdgeBase[], prevIncomers = []) => {
         const incomers = getIncomers(node, nodes, edges);
         const result = incomers.reduce(
@@ -185,6 +191,10 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 ...node,
                 disabled: false,
                 draggable: true,
+                data: {
+                    ...node.data,
+                    forceToolbarVisible: false
+                },
                 style: {
                     ...node.style,
                     opacity: 1,
@@ -216,8 +226,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     );
     const onConnect = useCallback(
         async (params: any) => {
+            if (!investigation_id) return
             await supabase.from("relationships")
-                .insert({ individual_a: params.source, individual_b: params.target, relation_type: "relation" })
+                .upsert({ individual_a: params.source, individual_b: params.target, investigation_id: investigation_id, relation_type: "relation" })
             setEdges((els) => addEdge({ ...params, label: "relation", type: "custom" }, els))
         },
         [setEdges],
@@ -235,7 +246,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         if (currentNode) {
             const internalNode = getNode(currentNode)
             if (!internalNode) return
-            updateNode(internalNode.id, { ...internalNode, zIndex: 5000, style: { ...internalNode.style, opacity: 1 } })
+            updateNode(internalNode.id, { ...internalNode, zIndex: 5000, data: { ...internalNode.data, forceToolbarVisible: true }, style: { ...internalNode.style, opacity: 1 } })
             //@ts-ignore
             setCenter(internalNode?.position.x + (internalNode?.measured?.width / 2), internalNode?.position.y + (internalNode?.measured?.height / 2) + 20, { duration: 1000, zoom: 1.5 })
             highlightPath(internalNode);
@@ -267,6 +278,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
                 minZoom={0.1}
+                connectionLineComponent={FloatingConnectionLine as any}
                 // edgesUpdatable={!isLocked}
                 // edgesFocusable={!isLocked}
                 // nodesDraggable={!isLocked}
@@ -292,6 +304,13 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                             <AlignCenterHorizontal className='h-4 w-4' />
                         </IconButton>
                     </Tooltip>
+                </Panel>
+                <Panel position="top-center" className='flex items-center gap-1'>
+                    <SegmentedControl.Root defaultValue="graph">
+                        <SegmentedControl.Item value="graph">Graph</SegmentedControl.Item>
+                        <SegmentedControl.Item value="timeline">Timeline</SegmentedControl.Item>
+                        <SegmentedControl.Item value="map">Map</SegmentedControl.Item>
+                    </SegmentedControl.Root>
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <Flex direction={"column"} align={"end"} gap={"1"}>
@@ -337,9 +356,9 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                     </Tooltip>
                 </Panel>
                 <Background />
-                <MiniMap pannable />
+                {settings.showMiniMap && <MiniMap pannable />}
             </ReactFlow>
-        </div>
+        </div >
     );
 };
 

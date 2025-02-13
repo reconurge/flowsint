@@ -7,7 +7,7 @@ import { SearchIcon } from "lucide-react"
 import Highlighter from "react-highlight-words";
 import Link from 'next/link';
 import { useSearchResults } from '../../lib/hooks/investigation/use-search-results';
-import { Card, Dialog, IconButton, Spinner, TextField } from '@radix-ui/themes';
+import { Card, Dialog, Flex, IconButton, ScrollArea, Spinner, TextField } from '@radix-ui/themes';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useInvestigationContext } from '../contexts/investigation-provider';
 
@@ -55,14 +55,14 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                         <Highlighter
                             searchWords={search.split(" ")}
                             autoEscape={true}
-                            textToHighlight={item.full_name}
+                            textToHighlight={item?.full_name}
                         />
                     </span>
                     <span className='truncate text-ellipsis text-sm opacity-75'>
                         <Highlighter
                             searchWords={search.split(" ")}
                             autoEscape={true}
-                            textToHighlight={item.notes}
+                            textToHighlight={item?.notes}
                         />
                     </span>
                 </span>
@@ -98,26 +98,30 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                             <MagnifyingGlassIcon height="16" width="16" />
                         </TextField.Slot>
                     </TextField.Root>
-                    <div className='min-h-[20vh] max-h-[60vh] w-full relative text-center flex flex-col items-center justify-center gap-2'>
+                    <div className='w-full relative text-center flex flex-col items-center justify-center gap-2'>
                         {error && "An error occured."}
                         {isLoading && <Spinner />}
                         {results?.length === 0 && `No results found for "${search}".`}
-                        <ul className='w-full h-full flex flex-col gap-1 overflow-auto mt-2'>{!error && !isLoading && Array.isArray(results) && results?.map((item) => (
-                            <SearchItem key={item.id} item={item} />
-                        ))}
-                        </ul>
-                        {search === '' && (
+                        <Flex direction={"column"}>
+                            <ScrollArea className='max-h-[60vh] p-2'>
+                                <ul className='w-full h-full flex flex-col gap-1 mt-2'>{!error && !isLoading && Array.isArray(results) && results?.map((item) => (
+                                    <SearchItem key={item.id} item={item} />
+                                ))}
+                                </ul>
+                            </ScrollArea>
+                        </Flex>
+                        {/* {search === '' && (
                             <div className="px-6 py-14 text-center flex items-center justify-center flex-col text-sm sm:px-14">
                                 <SearchIcon
                                     className="h-12 w-12 opacity-40"
                                     aria-hidden="true"
                                 />
                                 <p className="mt-4 font-semibold">Search for ip_addresses, domain names and other</p>
-                                <p className="mt-2 opacity-60">
+                                <p className="mt-2 opacity-70">
                                     Put you search between quotes for an exact match search.
                                 </p>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </Dialog.Content>
             </Dialog.Root>

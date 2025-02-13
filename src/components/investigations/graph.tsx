@@ -15,24 +15,29 @@ import {
     Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { supabase } from '@/src/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import IndividualNode from './nodes/individual';
 import PhoneNode from './nodes/phone';
-import CustomEdge from './custom-edge';
+// import CustomEdge from './custom-edge';
 import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
 import SocialNode from './nodes/social'
 import AddressNode from './nodes/physical_address'
-import { AlignCenterHorizontal, AlignCenterVertical, LockOpenIcon, MaximizeIcon, RotateCcwIcon, ZoomInIcon, ZoomOutIcon, LockIcon } from 'lucide-react';
+import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon, RotateCwIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
-import { IconButton, Tooltip, Spinner, Card, Flex, SegmentedControl } from '@radix-ui/themes';
 import { getIncomers, getOutgoers } from "@xyflow/react";
 import { EdgeBase } from '@xyflow/system';
-import { useInvestigationContext } from '../contexts/investigation-provider';
+import { useInvestigationContext } from '@/components/contexts/investigation-provider';
 import FloatingEdge from './floating-edge';
 import FloatingConnectionLine from './floating-connection';
 import { useParams } from 'next/navigation';
+import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { TooltipTrigger } from '@radix-ui/react-tooltip';
+import { Card } from '@/components/ui/card';
+import { getInvestigationData } from '@/lib/actions/investigations';
+import { cn } from '@/lib/utils';
 
 const edgeTypes = {
     "custom": FloatingEdge
@@ -71,8 +76,8 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
     const { fitView, zoomIn, zoomOut, addNodes, getNodes, getEdges, setCenter, getNode, updateNode } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [isLocked, setIsLocked] = useState(false)
     const { investigation_id } = useParams()
+    const [loading, setLoading] = useState(false)
     const { currentNode, setCurrentNode, settings } = useInvestigationContext()
     const ref = useRef(null);
 
@@ -175,7 +180,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                         animated,
                         style: {
                             ...edge.style,
-                            stroke: animated ? "#00D3F2" : "#b1b1b750",
+                            stroke: animated ? "var(--primary)" : "#b1b1b750",
                             opacity: animated ? 1 : 0.25,
                         },
                     }
@@ -213,6 +218,7 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
             })),
         )
     }, [setNodes, setEdges])
+
     const onLayout = useCallback(
         (direction: any) => {
             const layouted = getLayoutedElements(nodes, edges, { direction });
@@ -265,6 +271,16 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
         onLayout('LR')
     }, [initialNodes, initialEdges])
 
+    const handleRefresh = useCallback(
+        async () => {
+            setLoading(true);
+            const { nodes: newNodes, edges: newEdges } = await getInvestigationData(investigation_id as string);
+            setNodes([...newNodes]);
+            setEdges([...newEdges]);
+            onLayout('LR');
+            setLoading(false);
+        }, []);
+
     return (
         <div className='h-[calc(100vh_-_48px)]'>
             <ReactFlow
@@ -294,71 +310,81 @@ const LayoutFlow = ({ initialNodes, initialEdges, theme }: { initialNodes: any, 
                 edgeTypes={edgeTypes}
             >
                 <Panel position="top-left" className='flex items-center gap-1'>
-                    <Tooltip content="Auto layout (vertical)">
-                        <IconButton color="gray" variant="soft" onClick={() => onLayout('TB')}>
-                            <AlignCenterVertical className='h-4 w-4' />
-                        </IconButton>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button size="icon" variant="outline" onClick={() => onLayout('TB')}>
+                                <AlignCenterVertical className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Auto layout (vertical)
+                        </TooltipContent>
                     </Tooltip>
-                    <Tooltip content="Auto layout (horizontal)">
-                        <IconButton color="gray" variant="soft" onClick={() => onLayout('LR')}>
-                            <AlignCenterHorizontal className='h-4 w-4' />
-                        </IconButton>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button size="icon" variant="outline" onClick={() => onLayout('LR')}>
+                                <AlignCenterHorizontal className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Auto layout (horizontal)
+                        </TooltipContent>
                     </Tooltip>
-                </Panel>
-                <Panel position="top-center" className='flex items-center gap-1'>
-                    <SegmentedControl.Root defaultValue="graph">
-                        <SegmentedControl.Item value="graph">Graph</SegmentedControl.Item>
-                        <SegmentedControl.Item value="timeline">Timeline</SegmentedControl.Item>
-                        <SegmentedControl.Item value="map">Map</SegmentedControl.Item>
-                    </SegmentedControl.Root>
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
-                    <Flex direction={"column"} align={"end"} gap={"1"}>
-                        <Flex gap="1">
-                            <Tooltip content="Reload schema">
-                                <IconButton onClick={() => window.location.reload()} variant="soft">
-                                    <RotateCcwIcon className='h-4 w-4' />
-                                </IconButton>
-                            </Tooltip>
+                    <div className='flex flex-col items-end gap-2'>
+                        <div className='flex gap-1 items-center'>
+                            <Button size="icon" disabled={loading} variant="outline" onClick={handleRefresh}>
+                                <RotateCwIcon className={cn('h-4 w-4', loading && 'animate-spin')} />
+                            </Button>
                             <NewActions addNodes={addNodes} />
-                        </Flex>
+                        </div>
                         {currentNode &&
                             <Card>
                                 {/* @ts-ignore */}
                                 {getNode(currentNode)?.data?.label}
                             </Card>}
-                    </Flex>
+                    </div>
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>
-                    <Tooltip content="Center view">
-                        {/* @ts-ignore */}
-                        <IconButton color="gray" variant="soft" onClick={fitView}>
-                            <MaximizeIcon className='h-4 w-4' />
-                        </IconButton>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* @ts-ignore */}
+                            <Button size="icon" variant="outline" onClick={fitView}>
+                                <MaximizeIcon className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Center view
+                        </TooltipContent>
                     </Tooltip>
-                    <Tooltip content="Zoom in">
-                        {/* @ts-ignore */}
-                        <IconButton color="gray" variant="soft" onClick={zoomIn}>
-                            <ZoomInIcon className='h-4 w-4' />
-                        </IconButton>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* @ts-ignore */}
+                            <Button size="icon" variant="outline" onClick={zoomIn}>
+                                <ZoomInIcon className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Zoom in
+                        </TooltipContent>
                     </Tooltip>
-                    <Tooltip content="Zoom out">
-                        {/* @ts-ignore */}
-                        <IconButton color="gray" variant="soft" onClick={zoomOut}>
-                            <ZoomOutIcon className='h-4 w-4' />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip content="Lock">
-                        {/* @ts-ignore */}
-                        <IconButton color="gray" variant="soft" onClick={() => setIsLocked((prev) => !prev)}>
-                            {isLocked ? <LockIcon className='h-4 w-4' /> : <LockOpenIcon className='h-4 w-4' />}
-                        </IconButton>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* @ts-ignore */}
+                            <Button size="icon" variant="outline" onClick={zoomOut}>
+                                <ZoomOutIcon className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Zoom out
+                        </TooltipContent>
                     </Tooltip>
                 </Panel>
                 <Background />
                 {settings.showMiniMap && <MiniMap pannable />}
             </ReactFlow>
-        </div >
+        </div>
     );
 };
 
@@ -370,7 +396,7 @@ export default function (props: any) {
     }, [])
 
     if (!mounted) {
-        return <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'><Spinner size="3" />
+        return <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'>Loading...
         </div>
     }
     return (

@@ -1,14 +1,13 @@
 import React from 'react'
-import { CableIcon, HomeIcon } from 'lucide-react'
+import { HomeIcon } from 'lucide-react'
 import Link from 'next/link'
-import { IconButton } from '@radix-ui/themes'
+import { Button } from './ui/button'
 const Logo = () => {
     return (
-
         <Link href="/dashboard">
-            <IconButton color="gray" size="2" variant="soft">
+            <Button variant="outline" size="icon">
                 <HomeIcon className="h-5" />
-            </IconButton>
+            </Button>
         </Link>
     )
 }

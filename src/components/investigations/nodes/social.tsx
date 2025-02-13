@@ -2,15 +2,15 @@
 
 import { memo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
-import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
+import { NodeProvider, useNodeContext } from "../../contexts/node-context"
+import { MapPinIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
-import { useInvestigationContext } from "@/components/contexts/investigation-provider"
-import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
-import { CopyButton } from "@/components/copy"
-import { useSearchContext } from "@/components/contexts/search-context"
+import { useInvestigationContext } from "../../contexts/investigation-provider"
+import { CopyButton } from "../../copy"
+import { useSearchContext } from "../../contexts/search-context"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
     ContextMenu,
@@ -20,9 +20,9 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Zap } from "lucide-react"
+import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
 
-function Custom({ data }: any) {
+function SocialNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
     const { settings, currentNode } = useInvestigationContext()
     const platformsIcons = usePlatformIcons()
@@ -36,22 +36,19 @@ function Custom({ data }: any) {
                     {settings.showNodeLabel && showContent ? (
                         <Card
                             className={cn(
-                                "pr-4 border border-transparent hover:border-sky-400 rounded-full",
-                                currentNode === data.id && "border-sky-400",
+                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                                currentNode === data.id && "border-primary",
                             )}
                         >
-                            <div className="flex items-center">
-                                <Badge
-                                    variant="secondary"
-                                    /* @ts-ignore */
-                                    className={cn("h-6 rounded-r-none", `bg-${platformsIcons?.[data?.platform]?.color}-100`)}
+                            <div className="flex items-center gap-2 p-1">
+                                {/* @ts-ignore */}
+                                <Badge variant="secondary" className={cn("h-6 h-6 w-6 p-0 rounded-full", `bg-${platformsIcons?.[data?.platform]?.color}-100`)}
                                 >
-                                    {/* @ts-ignore */}
-                                    {platformsIcons?.[data?.platform]?.icon || "?"}
+                                    <MapPinIcon className="h-4 w-4" />
                                 </Badge>
-                                <div className="flex items-center p-1 px-1.5 gap-2">
+                                <div className="flex items-center gap-2">
                                     <span className="text-sm">{data.username || data.profile_url}</span>
-                                    {settings.showCopyIcon && <CopyButton content={data.username || data.profile_url} />}
+                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.username || data.profile_url} />}
                                 </div>
                             </div>
                         </Card>
@@ -59,16 +56,15 @@ function Custom({ data }: any) {
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="ghost" className="p-0 h-auto">
-                                        {/* @ts-ignore */}
-                                        <Avatar className={cn("h-6 w-6", `bg-${platformsIcons?.[data?.platform]?.color}-100`)}>
-                                            <AvatarImage src={data?.image_url} alt={data.username || data.profile_url} />
-                                            {/* @ts-ignore */}
-                                            <AvatarFallback>{platformsIcons?.[data?.platform]?.icon || "?"}</AvatarFallback>
+                                    <Button variant="ghost" className="rounded-full p-0">
+                                        <Avatar className="h-6 w-6">
+                                            <AvatarFallback>
+                                                <MapPinIcon className="h-3 w-3" />
+                                            </AvatarFallback>
                                         </Avatar>
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>{data.username || data.profile_url}</TooltipContent>
+                                <TooltipContent>{data.label}</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     )}
@@ -80,7 +76,7 @@ function Custom({ data }: any) {
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleOpenSearchModal(data.username || data.profile_url)}>
+                <ContextMenuItem onClick={() => handleOpenSearchModal(data.email)}>
                     Launch search
                     <Zap className="ml-2 h-4 w-4 text-orange-500" />
                 </ContextMenuItem>
@@ -102,11 +98,11 @@ function Custom({ data }: any) {
     )
 }
 
-const SocialNode = (props: any) => (
+const MemoizedNode = (props: any) => (
     <NodeProvider>
-        <Custom {...props} />
+        <SocialNode {...props} />
     </NodeProvider>
 )
 
-export default memo(SocialNode)
+export default memo(MemoizedNode)
 

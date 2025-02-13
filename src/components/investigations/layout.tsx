@@ -42,7 +42,7 @@ const InvestigationLayout = ({
                             </NewCase>
                         </div>
                     </div>
-                    <ScrollArea type="auto" className='p-3 h-full grow overflow-y-auto'>
+                    <ScrollArea type="auto" className='h-full grow overflow-y-auto'>
                         <div className="flex flex-col">
                             {left}
                         </div>

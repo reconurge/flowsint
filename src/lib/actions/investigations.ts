@@ -1,7 +1,7 @@
 "use server"
 import { createClient } from "../supabase/server"
-import { Investigation } from "@/src/types/investigation"
-import { NodeData, EdgeData } from "@/src/types"
+import { Investigation } from "@/types/investigation"
+import { NodeData, EdgeData } from "@/types"
 import { notFound } from "next/navigation"
 interface ReturnTypeGetInvestigations {
     investigations: Investigation[],

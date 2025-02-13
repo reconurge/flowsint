@@ -1,32 +1,23 @@
 "use client"
 import type React from "react"
 import { useEffect, useState } from "react"
-import {
-    Flex,
-    Dialog,
-    TextField,
-    Button,
-    Box,
-    Skeleton,
-    Avatar,
-    Tabs,
-    IconButton,
-    Text,
-    Spinner,
-    Badge,
-    Grid,
-    Link,
-    Callout,
-} from "@radix-ui/themes"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useIndividual } from "@/src/lib/hooks/individuals/use-individual"
-import { useEmailsAndBreaches } from "@/src/lib/hooks/individuals/use-emails-breaches"
-import { Pencil1Icon, Cross2Icon, PlusIcon, TrashIcon } from "@radix-ui/react-icons"
-import { useRelations } from "@/src/lib/hooks/individuals/use-relations"
+import { useIndividual } from "@/lib/hooks/individuals/use-individual"
+import { useEmailsAndBreaches } from "@/lib/hooks/individuals/use-emails-breaches"
+import { useRelations } from "@/lib/hooks/individuals/use-relations"
 import { useInvestigationContext } from "../contexts/investigation-provider"
-import { usePlatformIcons } from "@/src/lib/hooks/use-platform-icons"
+import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
+import { supabase } from "@/lib/supabase/client"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent } from "@/components/ui/card"
+import { Pencil, X, Plus, Trash2 } from "lucide-react"
 import Breaches from "../breach"
-import { supabase } from "@/src/lib/supabase/client"
 
 const IndividualModal = () => {
     const router = useRouter()
@@ -39,7 +30,7 @@ const IndividualModal = () => {
     const platformsIcons = usePlatformIcons("medium")
     const { relations, isLoading: isLoadingRelations } = useRelations(individual_id)
     const [editMode, setEditMode] = useState(false)
-    const [image, setImage] = useState<string | null>('')
+    const [image, setImage] = useState<string | null>("")
     const [phones, setPhones] = useState([""])
     const [accounts, setAccounts] = useState([""])
     const [ips, setIps] = useState([""])
@@ -60,7 +51,12 @@ const IndividualModal = () => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
         const formContent = Object.fromEntries(formData.entries())
-        const { data } = await supabase.from("individuals").update({ ...formContent, birth_date: null }).eq("id", individual_id).select("image_url").single()
+        const { data } = await supabase
+            .from("individuals")
+            .update({ ...formContent, birth_date: null })
+            .eq("id", individual_id)
+            .select("image_url")
+            .single()
         setImage(data?.image_url)
         setEditMode(false)
     }
@@ -80,229 +76,292 @@ const IndividualModal = () => {
 
     if (!isLoading && !individual) {
         return (
-            <Dialog.Root open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-                <Dialog.Content>
-                    <Dialog.Title>No data</Dialog.Title>
-                    <Dialog.Description size="2" mb="4">
-                        No data found for this individual.
-                    </Dialog.Description>
-                    <Dialog.Close>
-                        <Button variant="soft" color="gray">
+            <Dialog open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
+                <DialogContent>
+                    <DialogTitle>No data</DialogTitle>
+                    <DialogDescription>No data found for this individual.</DialogDescription>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={handleCloseModal}>
                             Close
                         </Button>
-                    </Dialog.Close>
-                </Dialog.Content>
-            </Dialog.Root>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         )
     }
 
     return (
-        <Dialog.Root open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-            <Dialog.Content style={{ maxWidth: "1200px", width: "90vw" }} minHeight={"80vh"}>
-                <Skeleton loading={isLoading}>
-                    <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
-                        <Flex direction="column" gap="4" flexGrow="0">
-                            <Flex justify="between" align="center">
-                                <Dialog.Title>User Profile</Dialog.Title>
-                                <IconButton
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => setEditMode(!editMode)}
-                                    aria-label={editMode ? "Cancel edit" : "Edit profile"}
-                                >
-                                    {editMode ? <Cross2Icon /> : <Pencil1Icon />}
-                                </IconButton>
-                            </Flex>
-                            <Flex gap="6">
-                                <Flex direction={"column"}>
-                                    <Avatar
-                                        size="9"
-                                        src={image || undefined}
-                                        fallback={individual?.full_name?.[0] || "?"}
-                                        radius="full"
-                                    />
-                                    {/* {editMode && (
-                                        <Button type="button" size="1" variant="soft" style={{ marginTop: "8px" }}>
-                                            Change Photo
-                                        </Button>
-                                    )} */}
-                                </Flex>
-                                <Box style={{ flexGrow: 1 }}>
-                                    <Tabs.Root defaultValue="overview">
-                                        <Tabs.List className="!overflow-x-auto">
-                                            <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-                                            <Tabs.Trigger value="social_account">Social accounts<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={accounts?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{accounts?.length}</Badge></Spinner></Tabs.Trigger>
-                                            <Tabs.Trigger value="emails">Emails<Spinner className="ml-1" loading={isLoadingEmails}><Badge color={emails?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{emails?.length}</Badge></Spinner></Tabs.Trigger>
-                                            <Tabs.Trigger value="phone_numbers">Phone numbers<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={phones?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{phones?.length}</Badge></Spinner></Tabs.Trigger>
-                                            <Tabs.Trigger value="ip_addresses">IP addresses<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={ips?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{ips?.length}</Badge></Spinner></Tabs.Trigger>
-                                            <Tabs.Trigger value="relations">Relations<Spinner className="ml-1" loading={isLoadingRelations}><Badge color={relations?.length > 0 ? "indigo" : "gray"} radius="full" className="ml-1">{relations?.length}</Badge></Spinner></Tabs.Trigger>
-                                        </Tabs.List>
-                                        <Box pt="3">
-                                            <Tabs.Content value="overview">
-                                                <Flex direction="column" gap="3">
-                                                    {individual && Object.keys(individual).filter((key) => typeof individual[key] !== "object" || !Array.isArray(individual[key])).map((key) => (
-                                                        <Flex key={key} direction="column" gap="1">
-                                                            <label className="capitalize-first">{key}</label>
-                                                            <TextField.Root
-                                                                type={key === "birth_date" ? "date" : "text"}
-                                                                defaultValue={individual[key]}
-                                                                placeholder={key}
-                                                                name={key}
-                                                                disabled={key === "id" || key === "investigation_id" || !editMode}
-                                                            />
-                                                        </Flex>
-                                                    ))}
-                                                </Flex>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="emails">
-                                                <Flex direction="column" gap="3">
-                                                    {emails.length === 0 && <Text className="italic opacity-70 text-sm">No email registered. Click on edit to add one.</Text>}
-                                                    {emails.map((email: any, index: number) => (
-                                                        <Flex direction={"column"} key={index}>
-                                                            <Callout.Root color={email.breaches.length > 0 ? "orange" : "green"} size="1">
-                                                                <Callout.Text>
-                                                                    <Text weight={"bold"}>{email.email}</Text> {email.breaches.length === 0 ? " is not yet involved in a data breach." : ` was involved in ${email.breaches.length} data breach(es).`}
-                                                                </Callout.Text>
-                                                            </Callout.Root>
-                                                            <Breaches breaches={email.breaches} />
-                                                        </Flex>
-                                                    ))}
-                                                </Flex>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="social_account">
-                                                <Grid columns="3" gap="3" width="auto">
-                                                    {accounts.length === 0 && <Text className="italic opacity-70 text-sm">No account registered. Click on edit to add one.</Text>}
-                                                    {accounts.map((account: any, index) => (
-                                                        <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={index} asChild size="1">
-                                                            <Flex gap="3" align="center" direction={"row"} className="w-full">
+        <Dialog open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
+            <DialogContent className="max-w-[90vw] w-[1200px] min-h-[80vh]">
+                <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
+                    <div className="flex flex-col gap-4 flex-grow-0">
+                        <div className="flex justify-between items-center">
+                            <DialogTitle>User Profile</DialogTitle>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditMode(!editMode)}
+                                aria-label={editMode ? "Cancel edit" : "Edit profile"}
+                            >
+                                {editMode ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                        <div className="flex gap-6">
+                            <div className="flex flex-col">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={image || undefined} alt={individual?.full_name} />
+                                    <AvatarFallback>{individual?.full_name?.[0] || "?"}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <div className="flex-grow">
+                                <Tabs defaultValue="overview">
+                                    <TabsList className="overflow-x-auto">
+                                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                                        <TabsTrigger value="social_account">
+                                            Social accounts
+                                            {isLoadingRelations ? (
+                                                <span className="ml-1">Loading...</span>
+                                            ) : (
+                                                <Badge variant={accounts?.length > 0 ? "default" : "outline"} className="ml-1">
+                                                    {accounts?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="emails">
+                                            Emails
+                                            {isLoadingEmails ? (
+                                                <span className="ml-1">Loading...</span>
+                                            ) : (
+                                                <Badge variant={emails?.length > 0 ? "default" : "outline"} className="ml-1">
+                                                    {emails?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="phone_numbers">
+                                            Phone numbers
+                                            {isLoadingRelations ? (
+                                                <span className="ml-1">Loading...</span>
+                                            ) : (
+                                                <Badge variant={phones?.length > 0 ? "default" : "outline"} className="ml-1">
+                                                    {phones?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="ip_addresses">
+                                            IP addresses
+                                            {isLoadingRelations ? (
+                                                <span className="ml-1">Loading...</span>
+                                            ) : (
+                                                <Badge variant={ips?.length > 0 ? "default" : "outline"} className="ml-1">
+                                                    {ips?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="relations">
+                                            Relations
+                                            {isLoadingRelations ? (
+                                                <span className="ml-1">Loading...</span>
+                                            ) : (
+                                                <Badge variant={relations?.length > 0 ? "default" : "outline"} className="ml-1">
+                                                    {relations?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <div className="pt-3">
+                                        <TabsContent value="overview">
+                                            <div className="flex flex-col gap-3">
+                                                {individual &&
+                                                    Object.keys(individual)
+                                                        .filter((key) => typeof individual[key] !== "object" || !Array.isArray(individual[key]))
+                                                        .map((key) => (
+                                                            <div key={key} className="flex flex-col gap-1">
+                                                                <label className="capitalize-first">{key}</label>
+                                                                <Input
+                                                                    type={key === "birth_date" ? "date" : "text"}
+                                                                    defaultValue={individual[key]}
+                                                                    placeholder={key}
+                                                                    name={key}
+                                                                    disabled={key === "id" || key === "investigation_id" || !editMode}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="emails">
+                                            <div className="flex flex-col gap-3">
+                                                {emails.length === 0 && (
+                                                    <p className="italic text-muted-foreground text-sm">
+                                                        No email registered. Click on edit to add one.
+                                                    </p>
+                                                )}
+                                                {emails.map((email: any, index: number) => (
+                                                    <div key={index} className="flex flex-col">
+                                                        <Alert variant={email.breaches.length > 0 ? "destructive" : "default"}>
+                                                            <AlertDescription>
+                                                                <span className="font-bold">{email.email}</span>{" "}
+                                                                {email.breaches.length === 0
+                                                                    ? " is not yet involved in a data breach."
+                                                                    : ` was involved in ${email.breaches.length} data breach(es).`}
+                                                            </AlertDescription>
+                                                        </Alert>
+                                                        <Breaches breaches={email.breaches} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="social_account">
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {accounts.length === 0 && (
+                                                    <p className="italic text-muted-foreground text-sm">
+                                                        No account registered. Click on edit to add one.
+                                                    </p>
+                                                )}
+                                                {accounts.map((account: any, index) => (
+                                                    <Card key={index} className="p-3 cursor-pointer">
+                                                        <CardContent className="flex items-center gap-3 p-0">
+                                                            <Avatar className="h-8 w-8">
                                                                 {/* @ts-ignore */}
-                                                                <Avatar size="3" radius="full" color={platformsIcons[account?.platform]?.color || "amber"} fallback={platformsIcons[account?.platform]?.icon || "?"} />
-                                                                <Box width={"80%"}>
-                                                                    <Text as="div" size="1" weight="bold">
-                                                                        {account?.platform}
-                                                                    </Text>
-                                                                    <Text as="div" size="2" weight="bold">
-                                                                        {account?.username || <span className="italic font-light">No username</span>}
-                                                                    </Text>
-                                                                    <Link href={account?.profile_url} size="2" className="!max-w-full" color="indigo">
-                                                                        <Text as="div" truncate>
-                                                                            {account?.profile_url}
-                                                                        </Text>
-                                                                    </Link>
-                                                                </Box>
-                                                            </Flex>
-                                                        </Badge>
-                                                    ))}
-                                                    {editMode && (
-                                                        <Button type="button" onClick={() => handleAddField(setAccounts)} variant="soft">
-                                                            <PlusIcon /> Add account
-                                                        </Button>
-                                                    )}
-                                                </Grid>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="phone_numbers">
-                                                <Flex direction="column" gap="3" maxWidth={"420px"}>
-                                                    {phones.length === 0 && <Text className="italic opacity-70 text-sm">No phone number registered. Click on edit to add one.</Text>}
-                                                    {phones.map((phone, index) => (
-                                                        <Flex key={index} gap="2" align="center">
-                                                            <TextField.Root
-                                                                value={phone}
-                                                                onChange={(e) => handleFieldChange(index, e.target.value, setPhones)}
-                                                                placeholder="Phone Number"
-                                                                type="tel"
-                                                                disabled={!editMode}
-                                                                style={{ flexGrow: 1 }}
-                                                            />
-                                                            {editMode && (
-                                                                <IconButton
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    onClick={() => handleRemoveField(index, setPhones)}
-                                                                    aria-label="Remove phone"
+                                                                <AvatarImage src={platformsIcons[account?.platform]?.icon} />
+                                                                <AvatarFallback>{account?.platform?.[0] || "?"}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="overflow-hidden">
+                                                                <p className="text-sm font-semibold">{account?.platform}</p>
+                                                                <p className="text-sm font-bold">
+                                                                    {account?.username || <span className="italic font-light">No username</span>}
+                                                                </p>
+                                                                <a
+                                                                    href={account?.profile_url}
+                                                                    className="text-sm text-blue-600 hover:underline truncate block"
                                                                 >
-                                                                    <TrashIcon />
-                                                                </IconButton>
-                                                            )}
-                                                        </Flex>
-                                                    ))}
-                                                    {editMode && (
-                                                        <Button type="button" onClick={() => handleAddField(setPhones)} variant="soft">
-                                                            <PlusIcon /> Add Phone
-                                                        </Button>
-                                                    )}
-                                                </Flex>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="ip_addresses">
-                                                <Flex direction="column" gap="3">
-                                                    {ips.length === 0 && <Text className="italic opacity-70 text-sm">No IP address registered. Click on edit to add one.</Text>}
-                                                    {ips.map((ip, index) => (
-                                                        <Flex key={index} gap="2" align="center">
-                                                            <TextField.Root
-                                                                value={ip}
-                                                                onChange={(e) => handleFieldChange(index, e.target.value, setIps)}
-                                                                placeholder="IP address"
-                                                                type="text"
-                                                                disabled={!editMode}
-                                                                style={{ flexGrow: 1 }}
-                                                            />
-                                                            {editMode && (
-                                                                <IconButton
-                                                                    type="button"
+                                                                    {account?.profile_url}
+                                                                </a>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                ))}
+                                                {editMode && (
+                                                    <Button onClick={() => handleAddField(setAccounts)} variant="outline">
+                                                        <Plus className="mr-2 h-4 w-4" /> Add account
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="phone_numbers">
+                                            <div className="flex flex-col gap-3 max-w-md">
+                                                {phones.length === 0 && (
+                                                    <p className="italic text-muted-foreground text-sm">
+                                                        No phone number registered. Click on edit to add one.
+                                                    </p>
+                                                )}
+                                                {phones.map((phone, index) => (
+                                                    <div key={index} className="flex items-center gap-2">
+                                                        <Input
+                                                            value={phone}
+                                                            onChange={(e) => handleFieldChange(index, e.target.value, setPhones)}
+                                                            placeholder="Phone Number"
+                                                            type="tel"
+                                                            disabled={!editMode}
+                                                            className="flex-grow"
+                                                        />
+                                                        {editMode && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleRemoveField(index, setPhones)}
+                                                                aria-label="Remove phone"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {editMode && (
+                                                    <Button onClick={() => handleAddField(setPhones)} variant="outline">
+                                                        <Plus className="mr-2 h-4 w-4" /> Add Phone
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="ip_addresses">
+                                            <div className="flex flex-col gap-3">
+                                                {ips.length === 0 && (
+                                                    <p className="italic text-muted-foreground text-sm">
+                                                        No IP address registered. Click on edit to add one.
+                                                    </p>
+                                                )}
+                                                {ips.map((ip, index) => (
+                                                    <div key={index} className="flex items-center gap-2">
+                                                        <Input
+                                                            value={ip}
+                                                            onChange={(e) => handleFieldChange(index, e.target.value, setIps)}
+                                                            placeholder="IP address"
+                                                            type="text"
+                                                            disabled={!editMode}
+                                                            className="flex-grow"
+                                                        />
+                                                        {editMode &&
+                                                            (
+                                                                <Button
                                                                     variant="ghost"
+                                                                    size="icon"
                                                                     onClick={() => handleRemoveField(index, setIps)}
-                                                                    aria-label="Remove ip"
+                                                                    aria-label="Remove IP"
                                                                 >
-                                                                    <TrashIcon />
-                                                                </IconButton>
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
                                                             )}
-                                                        </Flex>
-                                                    ))}
-                                                    {editMode && (
-                                                        <Button type="button" onClick={() => handleAddField(setIps)} variant="soft">
-                                                            <PlusIcon /> Add IP address
-                                                        </Button>
-                                                    )}
-                                                </Flex>
-                                            </Tabs.Content>
-                                            <Tabs.Content value="relations">
-                                                <Grid columns="3" gap="3" width="auto">
-                                                    {relations.length === 0 && <Text className="italic opacity-70 text-sm">No relation registered. Click on edit to add one.</Text>}
-                                                    {relations.map((relation) => (
-                                                        <Badge className="!p-3 cursor-pointer" color="gray" radius="large" key={relation.id} onClick={() => handleOpenIndividualModal(relation.id)} asChild size="1">
-                                                            <Flex gap="3" align="center" direction={"row"} className="w-full">
-                                                                <Avatar src={relation?.image_url} size="3" radius="full" fallback={relation.full_name[0]} color="indigo" />
-                                                                <Box>
-                                                                    <Text as="div" size="2" weight="bold">
-                                                                        {relation.full_name}
-                                                                    </Text>
-                                                                    <Text as="div" size="2" color="gray">
-                                                                        {relation.relation_type}
-                                                                    </Text>
-                                                                </Box>
-                                                            </Flex>
-                                                        </Badge>
-                                                    ))}
-                                                </Grid>
-                                            </Tabs.Content>
-                                        </Box>
-                                    </Tabs.Root>
-                                </Box>
-                            </Flex>
-                        </Flex>
-                        <Flex gap="3" justify="end">
-                            <Dialog.Close>
-                                <Button variant="soft" color="gray">
-                                    Cancel
-                                </Button>
-                            </Dialog.Close>
-                            {editMode && <Button type="submit">Save Changes</Button>}
-                        </Flex>
-                    </form>
-                </Skeleton>
-            </Dialog.Content >
-        </Dialog.Root >
+                                                    </div>
+                                                ))}
+                                                {editMode && (
+                                                    <Button onClick={() => handleAddField(setIps)} variant="outline">
+                                                        <Plus className="mr-2 h-4 w-4" /> Add IP address
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="relations">
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {relations.length === 0 && (
+                                                    <p className="italic text-muted-foreground text-sm">
+                                                        No relation registered. Click on edit to add one.
+                                                    </p>
+                                                )}
+                                                {relations.map((relation) => (
+                                                    <Card
+                                                        key={relation.id}
+                                                        className="p-3 cursor-pointer"
+                                                        onClick={() => handleOpenIndividualModal(relation.id)}
+                                                    >
+                                                        <CardContent className="flex items-center gap-3 p-0">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarImage src={relation?.image_url} alt={relation.full_name} />
+                                                                <AvatarFallback>{relation.full_name[0]}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="text-sm font-semibold">{relation.full_name}</p>
+                                                                <p className="text-sm text-muted-foreground">{relation.relation_type}</p>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                ))}
+                                            </div>
+                                        </TabsContent>
+                                    </div>
+                                </Tabs>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={handleCloseModal}>
+                            Cancel
+                        </Button>
+                        {editMode && <Button type="submit">Save Changes</Button>}
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }
 
 export default IndividualModal
-

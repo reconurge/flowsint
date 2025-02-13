@@ -1,14 +1,12 @@
-import "@/styles/globals.css";
+import "../../styles/globals.css";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
-import "@/styles/globals.css"
 import { Providers } from "./providers";
-import "@radix-ui/themes/styles.css";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
-import { Theme } from "@radix-ui/themes";
-import { ConfirmContextProvider } from "@/src/components/use-confirm-dialog";
+import { ConfirmContextProvider } from "@/components/use-confirm-dialog";
 import NextTopLoader from 'nextjs-toploader';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: {
@@ -38,19 +36,19 @@ export default function RootLayout({
       <head />
       <body
         className={clsx(
-          "min-h-screen dark:bg-[#1C1C1C] font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <Theme>
-            <main>
-              <NextTopLoader />
+          <main>
+            <NextTopLoader />
+            <TooltipProvider>
               <ConfirmContextProvider>
                 {children}
               </ConfirmContextProvider>
-            </main>
-          </Theme>
+            </TooltipProvider>
+          </main>
         </Providers>
       </body>
     </html>

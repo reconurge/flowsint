@@ -18,10 +18,10 @@ export default function CaseSelector() {
         router.push(`/investigations/${value}`);
     };
     return (
-        <div className="ml-2 flex items-center">
+        <div className="flex items-center">
             {isLoading || isLoadingInvestigation ? <Skeleton className="h-8 w-40" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={investigation?.id}>
-                    <SelectTrigger className="min-w-none w-full text-ellipsis truncate">
+                    <SelectTrigger className="min-w-none w-full shadow-none text-ellipsis truncate gap-1">
                         <SelectValue defaultValue={investigation?.title || ""} placeholder="Select a fruit" />
                     </SelectTrigger>
                     <SelectContent>

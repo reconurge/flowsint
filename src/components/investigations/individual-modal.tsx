@@ -100,6 +100,7 @@ const IndividualModal = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                type="button"
                                 onClick={() => setEditMode(!editMode)}
                                 aria-label={editMode ? "Cancel edit" : "Edit profile"}
                             >
@@ -113,8 +114,8 @@ const IndividualModal = () => {
                                     <AvatarFallback>{individual?.full_name?.[0] || "?"}</AvatarFallback>
                                 </Avatar>
                             </div>
-                            <div className="flex-grow">
-                                <Tabs defaultValue="overview">
+                            <div className="flex-grow w-full">
+                                <Tabs defaultValue="overview" className="w-full">
                                     <TabsList className="overflow-x-auto">
                                         <TabsTrigger value="overview">Overview</TabsTrigger>
                                         <TabsTrigger value="social_account">

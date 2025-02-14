@@ -82,7 +82,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                 <Button variant="outline" size="icon" onClick={() => setOpen(true)}>
                     <Search className="h-4 w-4" />
                 </Button>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] min-h-none">
                     <DialogHeader>
                         <DialogTitle>Search</DialogTitle>
                         <DialogDescription>
@@ -99,13 +99,13 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                             {error && <p className="text-red-500">An error occurred.</p>}
                             {isLoading && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>}
                             {results?.length === 0 && <p>No results found for "{search}".</p>}
-                            <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
+                            {results && results?.length !== 0 && <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
                                 <ul className='space-y-2'>
                                     {!error && !isLoading && Array.isArray(results) && results?.map((item) => (
                                         <SearchItem key={item.id} item={item} />
                                     ))}
                                 </ul>
-                            </ScrollArea>
+                            </ScrollArea>}
                         </div>
                     </div>
                 </DialogContent>

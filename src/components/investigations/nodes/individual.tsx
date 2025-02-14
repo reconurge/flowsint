@@ -89,7 +89,7 @@ function Custom(props: any) {
                                         <AvatarFallback>{loading ? "..." : data.full_name[0]}</AvatarFallback>
                                     </Avatar>
                                     {settings.showNodeLabel && showContent && (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
                                             <span className="text-sm">{data.full_name}</span>
                                             {settings.showCopyIcon && <CopyButton className="rounded-full" content={data.full_name} />}
                                         </div>

@@ -95,7 +95,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     return (
         <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation, currentNode, setCurrentNode, panelOpen, setPanelOpen }}>
             {children}
-            <Dialog open={openSettingsModal}>
+            <Dialog open={openSettingsModal} onOpenChange={setOpenSettingsModal}>
                 <DialogContent>
                     <DialogTitle>Settings</DialogTitle>
                     <DialogDescription>
@@ -119,8 +119,8 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                         </div>
                     </div>
                     <div className="flex items-center gap-2 justify-end">
-                        <DialogClose asChild onClick={() => setOpenSettingsModal(false)}>
-                            <Button variant="outline">
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
                                 Cancel
                             </Button>
                         </DialogClose>

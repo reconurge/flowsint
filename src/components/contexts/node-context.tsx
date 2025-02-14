@@ -189,7 +189,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                             </Alert>}
                         <div className="flex items-center gap-2 justify-end mt-4">
                             <DialogClose asChild>
-                                <Button variant="outline">
+                                <Button type="button" variant="outline">
                                     Cancel
                                 </Button>
                             </DialogClose>

@@ -44,7 +44,7 @@ function AddressNode({ data }: any) {
                                 <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
                                     <MapPinIcon className="h-4 w-4" />
                                 </Badge>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                     <span className="text-sm">{data.label}</span>
                                     {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
                                 </div>

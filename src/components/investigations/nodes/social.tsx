@@ -44,9 +44,10 @@ function SocialNode({ data }: any) {
                         >
                             <div className="flex items-center gap-2 p-1">
                                 {/* @ts-ignore */}
-                                <Badge variant="secondary" className={cn("h-6 h-6 w-6 p-0 rounded-full", `bg-${platformsIcons?.[data?.platform]?.color}-100`)}
+                                <Badge variant="secondary" className={cn("h-6 h-6 w-6 p-0 rounded-full")}
                                 >
-                                    <MapPinIcon className="h-4 w-4" />
+                                    {/* @ts-ignore */}
+                                    {platformsIcons?.[data?.platform]?.icon}
                                 </Badge>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm">{data.username || data.profile_url}</span>

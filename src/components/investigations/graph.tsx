@@ -108,6 +108,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                 proOptions={{ hideAttribution: true }}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
+                className='!bg-background'
             >
                 <Panel position="top-left" className='flex items-center gap-1'>
                     <Tooltip>
@@ -131,7 +132,6 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                         </TooltipContent>
                     </Tooltip>
                 </Panel>
-
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
@@ -149,7 +149,6 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                         )}
                     </div>
                 </Panel>
-
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>
                     <Tooltip>
                         <TooltipTrigger asChild>

@@ -1,11 +1,11 @@
 "use client"
 import React from 'react'
 import { Skeleton } from '@/components/ui/skeleton';
-import { useIndividuals } from '@/lib/hooks/individuals/use-individuals';
-import { useInvestigationContext } from '@/components/contexts/investigation-provider';
+import { useIndividuals } from '@/lib/hooks/investigation/use-individuals';
 import { cn } from '@/lib/utils';
-import { AtSignIcon, RotateCwIcon, UserIcon } from 'lucide-react';
-import { useEmails } from '@/lib/hooks/emails/use-emails';
+import { AtSignIcon, PhoneIcon, UserIcon } from 'lucide-react';
+import { useEmails } from '@/lib/hooks/investigation/use-emails';
+import { usePhones } from '@/lib/hooks/investigation/use-phones';
 import {
     Accordion,
     AccordionContent,
@@ -18,6 +18,8 @@ import { useFlowStore } from '@/components/contexts/use-flow-store';
 const Left = ({ investigation_id }: { investigation_id: string }) => {
     const { individuals, isLoading: isLoadingIndividuals, refetch: refetchIndividuals } = useIndividuals(investigation_id)
     const { emails, isLoading: isLoadingEmails, refetch: refetchEmails } = useEmails(investigation_id)
+    const { phones, isLoading: isLoadingPhones, refetch: refetchPhones } = usePhones(investigation_id)
+
     const { currentNode, setCurrentNode } = useFlowStore()
 
     return (
@@ -64,6 +66,31 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                                     <button onClick={() => setCurrentNode(email.id)} className='flex items-center p-1 px-4 w-full gap-2'>
                                         <AtSignIcon className='h-3 w-3' />
                                         {email.email}
+                                    </button>
+                                </li>
+                            ))
+                            }
+                        </ul>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+            <Accordion type="single" collapsible defaultValue='phones'>
+                <AccordionItem value="phones">
+                    <AccordionTrigger className='p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none'>
+                        Phones {!isLoadingPhones && <>({phones?.length})</>}</AccordionTrigger>
+                    <AccordionContent>
+                        {isLoadingPhones && <div className='flex flex-col gap-1'>
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                            <Skeleton className='w-full h-[20px] bg-foreground/10 rounded-none' />
+                        </div>
+                        }
+                        <ul>
+                            {phones?.map((phone: any) => (
+                                <li className={cn('hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm', currentNode === phone.id && "bg-sidebar-accent text-sidebar-accent-foreground")} key={phone.id}>
+                                    <button onClick={() => setCurrentNode(phone.id)} className='flex items-center p-1 px-4 w-full gap-2'>
+                                        <PhoneIcon className='h-3 w-3' />
+                                        {phone.phone_number}
                                     </button>
                                 </li>
                             ))

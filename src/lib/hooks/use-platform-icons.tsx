@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { CameraIcon, FacebookIcon, InstagramIcon, MessageCircleDashedIcon, SendIcon } from 'lucide-react';
+import { CameraIcon, FacebookIcon, GithubIcon, InstagramIcon, MessageCircleDashedIcon, SendIcon } from 'lucide-react';
 
 export const usePlatformIcons = (size = "small") => {
     const className = size === "small" ? 'h-3 w-3' : 'h-5 w-5'
@@ -18,6 +18,9 @@ export const usePlatformIcons = (size = "small") => {
         },
         "snapchat": {
             icon: <CameraIcon className={className} />, color: "yellow"
+        },
+        "github": {
+            icon: <GithubIcon className={className} />, color: "gray"
         },
     }), [])
     return platformsIcons

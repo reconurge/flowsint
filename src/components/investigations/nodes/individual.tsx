@@ -79,8 +79,8 @@ function Custom(props: any) {
                             <Card
                                 onDoubleClick={() => handleOpenIndividualModal(data.id)}
                                 className={cn(
-                                    "p-1 border border-border hover:border-primary/40 rounded-full shadow-none backdrop-blur bg-background/40",
-                                    currentNode === data.id && "border-primary/40",
+                                    "p-1 border border-border hover:border-primary/40 duration-100 rounded-full shadow-none backdrop-blur bg-background/40",
+                                    currentNode === data.id && "border-primary",
                                 )}
                             >
                                 <div className="flex gap-2 items-center rounded-full">

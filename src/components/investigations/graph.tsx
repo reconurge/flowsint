@@ -98,7 +98,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
+                onConnect={(p: any) => onConnect(p, investigation_id as string)}
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
                 minZoom={0.1}

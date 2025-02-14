@@ -74,7 +74,7 @@ function PhoneNode({ data }: any) {
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleOpenSearchModal(data.email)}>
+                <ContextMenuItem onClick={() => handleOpenSearchModal(data.phone_number)}>
                     Launch search
                     <Zap className="ml-2 h-4 w-4 text-orange-500" />
                 </ContextMenuItem>

@@ -74,6 +74,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
             set({ currentNode: nodeId });
         },
         onConnect: async (params: any, investigation_id?: string) => {
+            console.log(investigation_id)
             if (!investigation_id) return;
             try {
                 // Insertion dans Supabase

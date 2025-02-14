@@ -74,9 +74,9 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
                         <SheetTitle>New search</SheetTitle>
                         <SheetDescription>Make a new keyword associated research.</SheetDescription>
                     </SheetHeader>
-                    <form onSubmit={onSubmitNewSearch}>
-                        <div className="flex flex-col gap-3">
-                            <Card className="p-4">
+                    <form onSubmit={onSubmitNewSearch} className="grow flex flex-col">
+                        <div className="flex flex-col grow gap-3 p-2">
+                            <Card className="p-4 shadow-none">
                                 <p>
                                     value: <span className="font-medium">"{value}"</span>
                                 </p>
@@ -106,7 +106,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
                                 )
                             )}
                         </div>
-                        <SheetFooter className="mt-4">
+                        <SheetFooter className="mt-auto flex flex-row justify-end gap-2">
                             <SheetClose asChild>
                                 <Button type="button" variant="outline">
                                     Close

@@ -3,7 +3,7 @@
 import { memo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
 import { NodeProvider, useNodeContext } from "../../contexts/node-context"
-import { AtSign, LocateIcon, Zap } from "lucide-react"
+import { AtSignIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
 import { useInvestigationContext } from "../../contexts/investigation-provider"
 import { CopyButton } from "../../copy"
@@ -42,7 +42,7 @@ function EmailNode({ data }: any) {
                         >
                             <div className="flex items-center gap-2 p-1">
                                 <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
-                                    <LocateIcon className="h-4 w-4" />
+                                    <AtSignIcon className="h-4 w-4" />
                                 </Badge>
                                 <div className="flex items-center gap-1">
                                     <span className="text-sm">{data.label}</span>
@@ -57,7 +57,7 @@ function EmailNode({ data }: any) {
                                     <Button variant="ghost" className="rounded-full p-0">
                                         <Avatar className="h-6 w-6">
                                             <AvatarFallback>
-                                                <AtSign className="h-3 w-3" />
+                                                <AtSignIcon className="h-3 w-3" />
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>

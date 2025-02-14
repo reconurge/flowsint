@@ -140,18 +140,18 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
         },
         onNodeClick: (_event: any, node: { id: string; }) => {
             set({ currentNode: node.id });
-            get().resetNodeStyles()
+            get().resetNodeStyles();
         },
         onPaneClick: (_envent: any) => {
             set({ currentNode: null });
-            get().resetNodeStyles()
+            get().resetNodeStyles();
 
         },
         onLayout: (direction = 'TB', fitView: () => void) => {
             const { nodes, edges } = getLayoutedElements(get().nodes, get().edges, { direction });
             set({ nodes });
-            set({ edges })
-            fitView()
+            set({ edges });
+            fitView();
         },
         highlightPath: (selectedNode: Node | null) => {
             if (!selectedNode) {

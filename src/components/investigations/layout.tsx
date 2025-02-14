@@ -12,6 +12,7 @@ import { useInvestigationContext } from '@/components/contexts/investigation-pro
 import { NavUser } from '@/components/user';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
+import Assistant from '../assistant';
 
 const InvestigationLayout = ({
     children,
@@ -24,8 +25,7 @@ const InvestigationLayout = ({
     investigation_id: string
     user: any
 }) => {
-    const { handleOpenChat } = useChatContext()
-    const { panelOpen, setPanelOpen, investigation } = useInvestigationContext()
+    const { panelOpen, setPanelOpen } = useInvestigationContext()
     return (
         <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
             {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={15}>
@@ -33,7 +33,6 @@ const InvestigationLayout = ({
                     <div className='w-full rounded-none shadow-none h-12 border-b flex items-center gap-1 flex-row justify-between p-2'>
                         <Logo />
                         <div className='flex gap-1'>
-                            <Button variant="outline" size="icon" onClick={() => handleOpenChat(investigation)} color="gray"><BotMessageSquareIcon className="h-4" /></Button>
                             <SearchModal investigation_id={investigation_id} />
                             <NewCase>
                                 <Button variant="outline" size="icon">
@@ -55,14 +54,19 @@ const InvestigationLayout = ({
             <PanelResizeHandle />
             <Panel id="right" order={2} defaultSize={80} minSize={50} className='grow flex flex-col'>
                 <div>
-                    <div className='w-full rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center p-2'>
-                        <div className='flex gap-1'>
-                            <Button onClick={() => setPanelOpen(!panelOpen)} size="icon" variant="outline">
-                                <PanelRightIcon className='h-4 w-4' />
-                            </Button>
-                            <CaseSelector />
+                    <div className='w-full rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center'>
+                        <div className='grow flex items-center justify-between p-2'>
+                            <div className='flex gap-1 p-2'>
+                                <Button onClick={() => setPanelOpen(!panelOpen)} size="icon" variant="outline">
+                                    <PanelRightIcon className='h-4 w-4' />
+                                </Button>
+                                <CaseSelector />
+                            </div>
+                            <MoreMenu />
                         </div>
-                        <MoreMenu />
+                        <div className='border-l h-full flex items-center'>
+                            <Assistant />
+                        </div>
                     </div>
                     {children}
                 </div>

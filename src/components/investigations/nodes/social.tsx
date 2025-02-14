@@ -49,7 +49,7 @@ function SocialNode({ data }: any) {
                                     {/* @ts-ignore */}
                                     {platformsIcons?.[data?.platform]?.icon}
                                 </Badge>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                     <span className="text-sm">{data.username || data.profile_url}</span>
                                     {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.username || data.profile_url} />}
                                 </div>

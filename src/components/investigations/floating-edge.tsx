@@ -47,7 +47,7 @@ function FloatingEdge(props: any) {
                         pointerEvents: 'all',
                         opacity: style?.opacity || 1
                     }}
-                        className="nodrag nopan !text-[.6rem] !px-1 !py-0">{label} {confidence_level &&
+                        className="nodrag nopan bg-primary/80 backdrop-blur leading-3.5 border border-primary !text-[.6rem] !px-1 !py-0">{label} {confidence_level &&
                             <>{confidence_level}%</>}
                     </Badge>}
             </EdgeLabelRenderer></>

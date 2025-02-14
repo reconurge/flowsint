@@ -27,7 +27,6 @@ import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { Card } from '@/components/ui/card';
-import { getInvestigationData } from '@/lib/actions/investigations';
 import { cn } from '@/lib/utils';
 import { useInvestigationContext } from '@/components/contexts/investigation-provider';
 import { useFlowStore } from '../contexts/use-flow-store';
@@ -141,7 +140,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                             <NewActions addNodes={addNodes} />
                         </div>
                         {currentNode && (
-                            <Card>
+                            <Card className='p-3'>
                                 <>
                                     {getNode(currentNode)?.data?.label}
                                 </>

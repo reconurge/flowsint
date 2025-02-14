@@ -4,13 +4,15 @@ import { createContext, useContext, type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { InfoIcon } from "lucide-react"
 import { investigateValue } from "@/lib/actions/search"
@@ -66,12 +68,12 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     return (
         <SearchContext.Provider value={{ openSearchModal, handleOpenSearchModal }}>
             {children}
-            <Dialog open={openSearchModal} onOpenChange={handleCloseModal}>
-                <DialogContent className={results ? "sm:max-w-[950px]" : "sm:max-w-[450px]"}>
-                    <DialogHeader>
-                        <DialogTitle>New search</DialogTitle>
-                        <DialogDescription>Make a new keyword associated research.</DialogDescription>
-                    </DialogHeader>
+            <Sheet open={openSearchModal} onOpenChange={handleCloseModal}>
+                <SheetContent className={results ? "sm:max-w-[950px]" : "sm:max-w-[450px]"}>
+                    <SheetHeader>
+                        <SheetTitle>New search</SheetTitle>
+                        <SheetDescription>Make a new keyword associated research.</SheetDescription>
+                    </SheetHeader>
                     <form onSubmit={onSubmitNewSearch}>
                         <div className="flex flex-col gap-3">
                             <Card className="p-4">
@@ -104,20 +106,22 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
                                 )
                             )}
                         </div>
-                        <DialogFooter className="mt-4">
-                            <Button variant="outline" onClick={handleCloseModal}>
-                                Close
-                            </Button>
+                        <SheetFooter className="mt-4">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    Close
+                                </Button>
+                            </SheetClose>
                             {!results && (
                                 <Button disabled={isLoading} type="submit">
                                     {isLoading ? "Saving..." : "Save"}
                                 </Button>
                             )}
-                        </DialogFooter>
+                        </SheetFooter>
                     </form>
-                </DialogContent>
-            </Dialog>
-        </SearchContext.Provider>
+                </SheetContent>
+            </Sheet>
+        </SearchContext.Provider >
     )
 }
 

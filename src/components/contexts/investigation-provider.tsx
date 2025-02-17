@@ -57,7 +57,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
         showMiniMap: true,
         showCopyIcon: true,
         showNodeToolbar: true,
-        floatingEdges: false
+        // floatingEdges: false
     });
 
     const createQueryString = useCallback(
@@ -107,7 +107,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                         <SettingSwitch setting={"showMiniMap"} value={settings.showMiniMap} title={"Show minimap on the canva"} description={"Displays the minimap on canva."} />
                         <SettingSwitch setting={"showCopyIcon"} value={settings.showCopyIcon} title={"Show copy button on nodes"} description={"Displays a copy button on the nodes."} />
                         <SettingSwitch setting={"showNodeToolbar"} value={settings.showNodeToolbar} title={"Show toolbar on nodes"} description={"Displays a toolbar with actions on the nodes."} />
-                        <SettingSwitch disabled setting={"floatingEdges"} value={settings.floatingEdges} title={"Floating edges"} description={"Edges are not stuck to one point."} />
+                        {/* <SettingSwitch disabled setting={"floatingEdges"} value={settings.floatingEdges} title={"Floating edges"} description={"Edges are not stuck to one point."} /> */}
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <p className="font-medium">Theme</p>

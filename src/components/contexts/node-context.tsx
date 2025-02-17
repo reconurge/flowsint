@@ -166,7 +166,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                                 const [key, value] = field.split(":")
                                 return (
                                     <label key={i}>
-                                        <p>
+                                        <p className="my-2">
                                             {key}
                                         </p>
                                         <Input

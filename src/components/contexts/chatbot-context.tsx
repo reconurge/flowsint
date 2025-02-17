@@ -50,27 +50,21 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                             <div key={m.id} className="flex grow mb-2">
                                 <div
                                     className={cn(
-                                        "flex gap-1 items-start w-full",
-                                        m.role === "user" ? "flex-row-reverse justify-end" : "flex-row justify-start",
+                                        "flex gap-3 items-start w-full flex-row justify-start",
                                     )}
                                 >
                                     <Avatar className={cn("h-8 w-8")}>
                                         <AvatarFallback>
                                             {m.role === "user" ? (
                                                 <User className="h-4 w-4" />
-                                            ) : isLoading ? (
-                                                <LoadingDots />
                                             ) : (
                                                 <Bot className="h-4 w-4" />
                                             )}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className={cn("flex flex-col gap-1 w-full", m.role === "user" ? "items-end" : "items-start")}>
-                                        <span className={cn("text-sm font-bold", m.role === "user" ? "text-right" : "text-left")}>
-                                            {isLoading && m.role !== "user" ? <LoadingDots /> : m.role === "user" ? "User" : "Chatbot"}
-                                        </span>
-                                        <Card className="max-w-[80%]">
-                                            <CardContent className="p-3">
+                                    <div className={cn("flex flex-col gap-1 w-full items-start")}>
+                                        <Card className="bg-transparent border-0">
+                                            <CardContent className="p-0">
                                                 <ReactMarkdown>{m.content}</ReactMarkdown>
                                             </CardContent>
                                         </Card>

@@ -63,7 +63,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className={cn("flex flex-col gap-1 w-full items-start")}>
-                                        <Card className="bg-transparent border-0">
+                                        <Card className="bg-transparent shadow-none border-0">
                                             <CardContent className="p-0">
                                                 <ReactMarkdown>{m.content}</ReactMarkdown>
                                             </CardContent>
@@ -82,7 +82,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                                     </Avatar>
                                     <div className="flex flex-col gap-1 items-start w-full">
                                         <span className="text-sm font-bold text-red-500">Error</span>
-                                        <Card className="max-w-[80%]">
+                                        <Card className="bg-transparent shadow-none border-0">
                                             <CardContent className="p-3 text-red-500">
                                                 Oops, an error occurred. Make sure you provided a valid Mistral API key.
                                             </CardContent>

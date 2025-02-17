@@ -19,10 +19,10 @@ export default function CaseSelector() {
     };
     return (
         <div className="flex items-center">
-            {isLoading || isLoadingInvestigation ? <Skeleton className="h-8 w-40" /> :
+            {isLoading || isLoadingInvestigation ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={investigation?.id}>
-                    <SelectTrigger className="min-w-none w-full shadow-none text-ellipsis truncate gap-1">
-                        <SelectValue defaultValue={investigation?.title || ""} placeholder="Select a fruit" />
+                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent shadow-none border-none text-ellipsis truncate gap-1">
+                        <SelectValue defaultValue={investigation?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
                         {investigations?.map((investigation) => (

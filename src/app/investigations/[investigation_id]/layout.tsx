@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { ChatProvider } from '@/components/contexts/chatbot-context';
 import { getInvestigation } from '@/lib/actions/investigations';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/app-sidebar';
 
 const DashboardLayout = async ({
     children,

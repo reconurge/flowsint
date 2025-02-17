@@ -30,6 +30,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useInvestigationContext } from '@/components/contexts/investigation-provider';
 import { useFlowStore } from '../contexts/use-flow-store';
+import CurrentNode from './current-node-card';
 
 const edgeTypes = {
     "custom": FloatingEdge
@@ -139,12 +140,15 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>
-                        {currentNode && (
-                            <Card className='p-3'>
-                                <>
-                                    {getNode(currentNode)?.data?.label}
-                                </>
-                            </Card>
+                        {currentNode && getNode(currentNode) && (
+                            getNode(currentNode)?.type === "individual" ?
+                                // @ts-ignore
+                                <CurrentNode individual={getNode(currentNode).data} /> :
+                                <Card className='p-3 bg-background'>
+                                    <>
+                                        {getNode(currentNode)?.data.label}
+                                    </>
+                                </Card>
                         )}
                     </div>
                 </Panel>

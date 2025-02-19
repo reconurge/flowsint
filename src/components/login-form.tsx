@@ -7,7 +7,7 @@ import { Input } from "./ui/input"
 export function LoginForm() {
     return (
         <Card className="mx-auto w-full max-w-md !p-6">
-            <div className="flex flex-cl gap-2">
+            <div className="flex flex-col gap-2">
                 <div>
                     Login
                 </div>
@@ -15,9 +15,9 @@ export function LoginForm() {
                     Login into your account or create a new one.
                 </div>
             </div>
-            <div className="flex flex-cl gap-3">
+            <div className="flex flex-col gap-3">
                 <form>
-                    <div className="flex flex-cl gap-2">
+                    <div className="flex flex-col gap-2">
                         <label htmlFor="email">
                             <div>
                                 Email
@@ -43,7 +43,7 @@ export function LoginForm() {
                     </div>
                 </form>
                 <form>
-                    <div className="flex flex-cl gap-3">
+                    <div className="flex flex-col gap-3">
                         <Button formAction={signInWithGithub} variant="outline" className="w-full">
                             Login with Github
                         </Button>

@@ -54,7 +54,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                 <CardContent className='p-3'>
                     <div className='flex flex-col gap-1 text-left'>
                         <span className='text-xs text-muted-foreground'>Individual</span>
-                        <div className='flex items-center gap-1'>
+                        <div className='flex items-center flex-col items-start gap-1'>
                             <span className='truncate'>
                                 <Highlighter
                                     searchWords={search.split(" ")}
@@ -62,7 +62,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                                     textToHighlight={item?.full_name}
                                 />
                             </span>
-                            <span className='truncate text-sm text-muted-foreground'>
+                            <span className='truncate text-ellipsis text-sm text-muted-foreground'>
                                 <Highlighter
                                     searchWords={search.split(" ")}
                                     autoEscape={true}
@@ -82,7 +82,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                 <Button variant="outline" size="icon" onClick={() => setOpen(true)}>
                     <Search className="h-4 w-4" />
                 </Button>
-                <DialogContent className="sm:max-w-[425px] min-h-none">
+                <DialogContent className="min-h-none">
                     <DialogHeader>
                         <DialogTitle>Search</DialogTitle>
                         <DialogDescription>

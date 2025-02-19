@@ -1,7 +1,10 @@
 "use client"
+
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
+import { createNewCase } from "@/lib/actions/investigations"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -15,25 +18,30 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { useFormStatus } from "react-dom"
+
+function SubmitButton() {
+    const { pending } = useFormStatus()
+
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? "Saving..." : "Save"}
+        </Button>
+    )
+}
 
 export default function NewCase({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
-    async function handleNewCase(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        const formData = new FormData(e.currentTarget)
-        const data = Object.fromEntries(formData)
-
-        try {
-            const { data: investigation, error } = await supabase.from("investigations").insert(data).select("id").single()
-
-            if (error) throw error
-            if (investigation) router.push(`/investigations/${investigation.id}`)
+    async function handleNewCase(formData: FormData) {
+        const result = await createNewCase(formData)
+        if (result.success) {
+            router.push(`/investigations/${result.id}`)
             setOpen(false)
-        } catch (error) {
-            console.error("Error creating new case:", error)
-            // Handle error (e.g., show error message to user)
+        } else {
+            console.error(result.error)
+            // You might want to show an error message to the user here
         }
     }
 
@@ -61,7 +69,7 @@ export default function NewCase({ children }: { children: React.ReactNode }) {
                         <DialogTitle>New case</DialogTitle>
                         <DialogDescription>Create a new blank case.</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleNewCase}>
+                    <form action={handleNewCase}>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Investigation name</Label>
@@ -80,7 +88,7 @@ export default function NewCase({ children }: { children: React.ReactNode }) {
                             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                                 Cancel
                             </Button>
-                            <Button type="submit">Save</Button>
+                            <SubmitButton />
                         </DialogFooter>
                     </form>
                 </DialogContent>

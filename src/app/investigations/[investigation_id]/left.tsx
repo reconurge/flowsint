@@ -14,6 +14,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import { useFlowStore } from '@/components/contexts/use-flow-store';
+import { usePlatformIcons } from '@/lib/hooks/use-platform-icons';
 
 
 const Left = ({ investigation_id }: { investigation_id: string }) => {
@@ -21,6 +22,7 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
     const { emails, isLoading: isLoadingEmails, refetch: refetchEmails } = useEmails(investigation_id)
     const { phones, isLoading: isLoadingPhones, refetch: refetchPhones } = usePhones(investigation_id)
     const { socials, isLoading: isLoadingSocials, refetch: refetchSocials } = useSocials(investigation_id)
+    const platformsIcons = usePlatformIcons()
 
     const { currentNode, setCurrentNode } = useFlowStore()
 
@@ -116,7 +118,10 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                             {socials?.map((social: any) => (
                                 <li className={cn('hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm', currentNode === social.id && "bg-sidebar-accent text-sidebar-accent-foreground")} key={social.id}>
                                     <button onClick={() => setCurrentNode(social.id)} className='flex items-center p-1 px-4 w-full gap-2'>
-                                        <PhoneIcon className='h-3 w-3 opacity-60' />
+                                        <span className='opacity-60'>
+                                            {/* @ts-ignore */}
+                                            {platformsIcons?.[social?.platform]?.icon}
+                                        </span>
                                         {social.username || social.profile_url}
                                     </button>
                                 </li>

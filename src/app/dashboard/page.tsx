@@ -9,7 +9,7 @@ const DashboardPage = async () => {
     const { investigations, error } = await getInvestigations()
     if (error) return <div>An error occured.</div>
     return (
-        <div className='space-y-6 max-w-6xl mx-auto p-6'>
+        <div className='space-y-6 w-full max-w-5xl mx-auto p-6'>
             <div>
                 <h1 className="text-3xl font-semibold mb-2">Vos investigations</h1>
                 <p className="mb-6 opacity-70">

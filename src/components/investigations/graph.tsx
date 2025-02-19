@@ -1,6 +1,5 @@
 "use client"
-import Dagre from '@dagrejs/dagre';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ReactFlow,
     ReactFlowProvider,
@@ -26,11 +25,10 @@ import { useParams } from 'next/navigation';
 import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
-import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useInvestigationContext } from '@/components/contexts/investigation-provider';
 import { useFlowStore } from '../contexts/use-flow-store';
-import CurrentNode from './current-node-card';
+// import CurrentNode from './current-node-card';
 
 const edgeTypes = {
     "custom": FloatingEdge
@@ -140,7 +138,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>
-                        {currentNode && getNode(currentNode) && (
+                        {/* {currentNode && getNode(currentNode) && (
                             getNode(currentNode)?.type === "individual" ?
                                 // @ts-ignore
                                 <CurrentNode individual={getNode(currentNode).data} /> :
@@ -149,7 +147,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                                         {getNode(currentNode)?.data.label}
                                     </>
                                 </Card>
-                        )}
+                        )} */}
                     </div>
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>

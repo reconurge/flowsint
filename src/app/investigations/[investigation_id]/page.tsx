@@ -9,7 +9,6 @@ const DashboardPage = async ({
 }) => {
     const { investigation_id } = await (params)
     const { nodes, edges } = await getInvestigationData(investigation_id)
-
     return (
         <div>
             <InvestigationGraph initialNodes={nodes} initialEdges={edges} />

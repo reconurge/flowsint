@@ -1,14 +1,13 @@
 "use client"
 import type React from "react"
 import { useEffect, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useIndividual } from "@/lib/hooks/individuals/use-individual"
 import { useEmailsAndBreaches } from "@/lib/hooks/individuals/use-emails-breaches"
 import { useRelations } from "@/lib/hooks/individuals/use-relations"
-import { useInvestigationContext } from "../contexts/investigation-provider"
+import { useInvestigationStore } from '@/store/investigation-store';
 import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
 import { supabase } from "@/lib/supabase/client"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -18,17 +17,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Pencil, X, Plus, Trash2 } from "lucide-react"
 import Breaches from "../breach"
+import { useQueryState } from "nuqs"
 
 const IndividualModal = () => {
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
-    const individual_id = searchParams.get("individual_id")
-    const { handleOpenIndividualModal } = useInvestigationContext()
-    const { individual, isLoading } = useIndividual(individual_id)
-    const { emails, isLoading: isLoadingEmails } = useEmailsAndBreaches(individual_id)
+    const [individualId, setIndividualId] = useQueryState("individual_id")
+    const { handleOpenIndividualModal } = useInvestigationStore()
+    const { individual, isLoading } = useIndividual(individualId)
+    const { emails, isLoading: isLoadingEmails } = useEmailsAndBreaches(individualId)
     const platformsIcons = usePlatformIcons("medium")
-    const { relations, isLoading: isLoadingRelations } = useRelations(individual_id)
+    const { relations, isLoading: isLoadingRelations } = useRelations(individualId)
     const [editMode, setEditMode] = useState(false)
     const [image, setImage] = useState<string | null>("")
     const [phones, setPhones] = useState([""])
@@ -44,7 +41,7 @@ const IndividualModal = () => {
 
     const handleCloseModal = () => {
         setEditMode(false)
-        router.push(pathname)
+        setIndividualId(null)
     }
 
     const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -54,7 +51,7 @@ const IndividualModal = () => {
         const { data } = await supabase
             .from("individuals")
             .update({ ...formContent, birth_date: null })
-            .eq("id", individual_id)
+            .eq("id", individualId)
             .select("image_url")
             .single()
         setImage(data?.image_url)
@@ -76,27 +73,27 @@ const IndividualModal = () => {
 
     if (!isLoading && !individual) {
         return (
-            <Dialog open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-                <DialogContent>
-                    <DialogTitle>No data</DialogTitle>
-                    <DialogDescription>No data found for this individual.</DialogDescription>
-                    <DialogFooter>
+            <Sheet open={Boolean(individualId)} onOpenChange={handleCloseModal}>
+                <SheetContent>
+                    <SheetTitle>No data</SheetTitle>
+                    <SheetDescription>No data found for this individual.</SheetDescription>
+                    <SheetFooter>
                         <Button variant="outline" onClick={handleCloseModal}>
                             Close
                         </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
         )
     }
 
     return (
-        <Dialog open={Boolean(individual_id)} onOpenChange={handleCloseModal}>
-            <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
+        <Sheet open={Boolean(individualId)} onOpenChange={handleCloseModal}>
+            <SheetContent className="sm:max-w-[80vw] p-12 overflow-y-auto">
                 <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
                     <div className="flex flex-col gap-4 flex-grow-0">
                         <div className="flex justify-between items-center">
-                            <DialogTitle>User Profile</DialogTitle>
+                            <SheetTitle>User Profile</SheetTitle>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -353,15 +350,15 @@ const IndividualModal = () => {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <SheetFooter>
                         <Button variant="outline" onClick={handleCloseModal}>
                             Cancel
                         </Button>
                         {editMode && <Button type="submit">Save Changes</Button>}
-                    </DialogFooter>
+                    </SheetFooter>
                 </form>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     )
 }
 

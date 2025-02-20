@@ -3,7 +3,7 @@ import {
     EdgeLabelRenderer,
     getBezierPath,
 } from '@xyflow/react';
-import { useInvestigationContext } from '../contexts/investigation-provider';
+import { useInvestigationStore } from '@/store/investigation-store';
 import { Badge } from '@/components/ui/badge';
 
 export default function CustomEdge(props: any) {
@@ -14,7 +14,7 @@ export default function CustomEdge(props: any) {
         targetX,
         targetY,
     });
-    const { settings } = useInvestigationContext()
+    const { settings } = useInvestigationStore()
     return (
         <>
             <BaseEdge id={id} path={edgePath} style={style} />

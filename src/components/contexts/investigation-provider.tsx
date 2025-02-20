@@ -1,43 +1,18 @@
 "use client"
-import useLocalStorage from "@/lib/hooks/use-local-storage";
-import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogClose,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Investigation } from "@/types/investigation";
-import { useInvestigation } from "@/lib/hooks/investigation/investigation";
-import { ThemeSwitch } from "@/components/theme-switch";
-import { useConfirm } from "@/components/use-confirm-dialog";
-import { supabase } from "@/lib/supabase/client";
-// import FloatingEdge from "../investigations/floating-edge";
-import { cn } from "@/lib/utils";
-
-interface InvestigationContextType {
-    filters: any,
-    setFilters: any,
-    settings: any,
-    setSettings: any,
-    setOpenSettingsModal: any,
-    investigation: Investigation | null,
-    isLoadingInvestigation: boolean | undefined,
-    handleOpenIndividualModal: any,
-    handleDeleteInvestigation: any,
-    currentNode: any,
-    setCurrentNode: any,
-    panelOpen: boolean,
-    setPanelOpen: any
-}
-const InvestigationContext = createContext<InvestigationContextType | undefined>(undefined);
+import type React from "react"
+import { type ReactNode, useEffect } from "react"
+import { useInvestigationStore } from "@/store/investigation-store"
+import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useInvestigation } from "@/lib/hooks/investigation/investigation"
+import { useConfirm } from "@/components/use-confirm-dialog"
+import { supabase } from "@/lib/supabase/client"
+import { Dialog, DialogContent, DialogDescription, DialogClose, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 
 interface InvestigationProviderProps {
-    children: ReactNode;
+    children: ReactNode
 }
 
 export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ children }) => {
@@ -45,78 +20,128 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
-    const [panelOpen, setPanelOpen] = useLocalStorage('panel_open', false)
-    const [filters, setFilters] = useLocalStorage('filters', {});
-    const [currentNode, setCurrentNode] = useState<null | Node>(null)
-    const { investigation, isLoading: isLoadingInvestigation } = useInvestigation(investigation_id)
-    const [openSettingsModal, setOpenSettingsModal] = useState(false)
     const { confirm } = useConfirm()
-    const [settings, setSettings] = useLocalStorage('settings', {
-        showNodeLabel: true,
-        showEdgeLabel: true,
-        showMiniMap: true,
-        showCopyIcon: true,
-        showNodeToolbar: true,
-        // floatingEdges: false
-    });
+    const { investigation, isLoading: isLoadingInvestigation } = useInvestigation(investigation_id)
 
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
+    const {
+        settings,
+        setSettings,
+        openSettingsModal,
+        setOpenSettingsModal,
+        setInvestigation,
+        setIsLoadingInvestigation,
+        setHandleOpenIndividualModal,
+        setHandleDeleteInvestigation,
+    } = useInvestigationStore()
+
+    useEffect(() => {
+        setInvestigation(investigation)
+        setIsLoadingInvestigation(isLoadingInvestigation)
+
+        const createQueryString = (name: string, value: string) => {
             const params = new URLSearchParams(searchParams.toString())
             params.set(name, value)
-
             return params.toString()
-        },
-        [searchParams]
-    )
-    const handleOpenIndividualModal = (id: string) => router.push(pathname + '?' + createQueryString('individual_id', id))
+        }
 
-    const handleDeleteInvestigation = async () => {
-        if (await confirm({ title: "Delete investigation", message: "Are you really sure you want to delete this investigation ?" })) {
-            if (await confirm({ title: "Just making sure", message: "You will definetly delete all nodes, edges and relationships." })) {
-                const { error } = await supabase.from("investigations").delete().eq('id', investigation_id)
-                if (error) throw error
-                return router.push("/dashboard")
+        const handleOpenIndividualModal = (id: string) =>
+            router.push(pathname + "?" + createQueryString("individual_id", id))
+
+        setHandleOpenIndividualModal(() => handleOpenIndividualModal)
+
+        const handleDeleteInvestigation = async () => {
+            if (
+                await confirm({
+                    title: "Delete investigation",
+                    message: "Are you really sure you want to delete this investigation ?",
+                })
+            ) {
+                if (
+                    await confirm({
+                        title: "Just making sure",
+                        message: "You will definitely delete all nodes, edges and relationships.",
+                    })
+                ) {
+                    const { error } = await supabase.from("investigations").delete().eq("id", investigation_id)
+                    if (error) throw error
+                    return router.push("/dashboard")
+                }
             }
         }
-    }
 
-    const SettingSwitch = ({ setting, value, title, description, disabled = false }: { setting: string, value: boolean, title: string, description: string, disabled?: boolean }) => (
-        <div className={cn("flex items-center justify-between gap-4", disabled && 'opacity-60')}>
+        setHandleDeleteInvestigation(handleDeleteInvestigation)
+    }, [
+        investigation,
+        isLoadingInvestigation,
+        investigation_id,
+        router,
+        pathname,
+        searchParams,
+        confirm,
+        setInvestigation,
+        setIsLoadingInvestigation,
+        setHandleOpenIndividualModal,
+        setHandleDeleteInvestigation,
+    ])
+
+    const SettingSwitch = ({
+        setting,
+        value,
+        title,
+        description,
+        disabled = false,
+    }: { setting: string; value: boolean; title: string; description: string; disabled?: boolean }) => (
+        <div className={cn("flex items-center justify-between gap-4", disabled && "opacity-60")}>
             <div className="flex flex-col gap-1">
                 <p className="font-medium">{title}</p>
-                <p className="opacity-70 text-sm">
-                    {description}
-                </p>
+                <p className="opacity-70 text-sm">{description}</p>
             </div>
-            <Switch disabled={disabled} checked={value} onCheckedChange={(val: boolean) => setSettings({ ...settings, [setting]: val })} />
+            <Switch
+                disabled={disabled}
+                checked={value}
+                onCheckedChange={(val: boolean) => setSettings({ ...settings, [setting]: val })}
+            />
         </div>
     )
+
     return (
-        <InvestigationContext.Provider value={{ filters, setFilters, settings, setSettings, setOpenSettingsModal, investigation, isLoadingInvestigation, handleOpenIndividualModal, handleDeleteInvestigation, currentNode, setCurrentNode, panelOpen, setPanelOpen }}>
+        <>
             {children}
             <Dialog open={openSettingsModal} onOpenChange={setOpenSettingsModal}>
                 <DialogContent>
                     <DialogTitle>Settings</DialogTitle>
-                    <DialogDescription>
-                        Make changes to your settings.
-                    </DialogDescription>
+                    <DialogDescription>Make changes to your settings.</DialogDescription>
                     <div className="flex flex-col gap-3">
-                        <SettingSwitch setting={"showNodeLabel"} value={settings.showNodeLabel} title={"Show labels on nodes"} description={"Displays the labels on the nodes, like username or avatar."} />
-                        <SettingSwitch setting={"showEdgeLabel"} value={settings.showEdgeLabel} title={"Show labels on edges"} description={"Displays the labels on the edges, like relation type."} />
-                        <SettingSwitch setting={"showMiniMap"} value={settings.showMiniMap} title={"Show minimap on the canva"} description={"Displays the minimap on canva."} />
-                        <SettingSwitch setting={"showCopyIcon"} value={settings.showCopyIcon} title={"Show copy button on nodes"} description={"Displays a copy button on the nodes."} />
-                        <SettingSwitch setting={"showNodeToolbar"} value={settings.showNodeToolbar} title={"Show toolbar on nodes"} description={"Displays a toolbar with actions on the nodes."} />
-                        {/* <SettingSwitch disabled setting={"floatingEdges"} value={settings.floatingEdges} title={"Floating edges"} description={"Edges are not stuck to one point."} /> */}
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex flex-col gap-1">
-                                <p className="font-medium">Theme</p>
-                                <p className="opacity-70 text-sm">
-                                    Switch to dark or light mode.
-                                </p>
-                            </div>
-                            <ThemeSwitch />
-                        </div>
+                        <SettingSwitch
+                            setting={"showNodeLabel"}
+                            value={settings.showNodeLabel}
+                            title={"Show labels on nodes"}
+                            description={"Displays the labels on the nodes, like username or avatar."}
+                        />
+                        <SettingSwitch
+                            setting={"showEdgeLabel"}
+                            value={settings.showEdgeLabel}
+                            title={"Show labels on edges"}
+                            description={"Displays the labels on the edges, like relation type."}
+                        />
+                        <SettingSwitch
+                            setting={"showMiniMap"}
+                            value={settings.showMiniMap}
+                            title={"Show minimap on the canva"}
+                            description={"Displays the minimap on canva."}
+                        />
+                        <SettingSwitch
+                            setting={"showCopyIcon"}
+                            value={settings.showCopyIcon}
+                            title={"Show copy button on nodes"}
+                            description={"Displays a copy button on the nodes."}
+                        />
+                        <SettingSwitch
+                            setting={"showNodeToolbar"}
+                            value={settings.showNodeToolbar}
+                            title={"Show toolbar on nodes"}
+                            description={"Displays a toolbar with actions on the nodes."}
+                        />
                     </div>
                     <div className="flex items-center gap-2 justify-end">
                         <DialogClose asChild>
@@ -127,14 +152,9 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
                     </div>
                 </DialogContent>
             </Dialog>
-        </InvestigationContext.Provider >
-    );
-};
+        </>
+    )
+}
 
-export const useInvestigationContext = (): InvestigationContextType => {
-    const context = useContext(InvestigationContext);
-    if (!context) {
-        throw new Error("useInvestigationContext must be used within a InvestigationProvider");
-    }
-    return context;
-};
+export const useInvestigationContext = useInvestigationStore
+

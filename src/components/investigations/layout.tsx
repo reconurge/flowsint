@@ -5,11 +5,9 @@ import CaseSelector from './case-selector';
 import NewCase from '@/components/dashboard/new-case';
 import SearchModal from '@/components/dashboard/search-palette';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { BotMessageSquareIcon, PanelRightIcon, PlusIcon } from 'lucide-react';
-import { useChatContext } from '@/components/contexts/chatbot-context';
+import { PanelRightIcon, PlusIcon } from 'lucide-react';
 import Logo from '@/components/logo';
-import { useInvestigationContext } from '@/components/contexts/investigation-provider';
-import { NavUser } from '@/components/user';
+import { useInvestigationStore } from '@/store/investigation-store';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import Assistant from '../assistant';
@@ -27,7 +25,7 @@ const InvestigationLayout = ({
     investigation_id: string
     user: any
 }) => {
-    const { panelOpen, setPanelOpen } = useInvestigationContext()
+    const { panelOpen, setPanelOpen } = useInvestigationStore()
     return (
         <SidebarProvider defaultOpen={false}>
             <AppSidebar user={user} defaultChecked={false} />

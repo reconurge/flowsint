@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Phone, User2, XIcon } from "lucide-react"
+import { Phone, XIcon } from "lucide-react"
 import { useState } from "react"
-import { useInvestigationContext } from "../contexts/investigation-provider"
+import { useInvestigationStore } from '@/store/investigation-store';
 
 interface PhoneNumber {
     id: string
@@ -31,7 +31,7 @@ interface CurrentNodeProps {
 }
 
 export default function CurrentNode({ individual }: CurrentNodeProps) {
-    const { handleOpenIndividualModal } = useInvestigationContext()
+    const { handleOpenIndividualModal } = useInvestigationStore()
     const [show, setShow] = useState(true)
     if (!show) return
     return (
@@ -65,7 +65,7 @@ export default function CurrentNode({ individual }: CurrentNodeProps) {
                     </div>
                 )}
                 <div className="flex gap-2 justify-center">
-                    <Button onClick={() => handleOpenIndividualModal(individual.id)}
+                    <Button onClick={() => handleOpenIndividualModal(individual.id as string)}
                         variant="outline">View Details</Button>
                     {/* <Button>Contact</Button> */}
                 </div>

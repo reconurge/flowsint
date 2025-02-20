@@ -7,6 +7,7 @@ import { fontSans } from "@/config/fonts";
 import { ConfirmContextProvider } from "@/components/use-confirm-dialog";
 import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 export const metadata: Metadata = {
   title: {
@@ -40,16 +41,18 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <main>
-            <NextTopLoader color="var(--primary)"/>
-            <TooltipProvider>
-              <ConfirmContextProvider>
-                {children}
-              </ConfirmContextProvider>
-            </TooltipProvider>
-          </main>
-        </Providers>
+        <NuqsAdapter>
+          <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+            <main>
+              <NextTopLoader color="var(--primary)" />
+              <TooltipProvider>
+                <ConfirmContextProvider>
+                  {children}
+                </ConfirmContextProvider>
+              </TooltipProvider>
+            </main>
+          </Providers>
+        </NuqsAdapter>
       </body>
     </html>
   );

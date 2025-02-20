@@ -2,12 +2,12 @@
 
 import { memo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
-import { NodeProvider, useNodeContext } from "../../contexts/node-context"
+import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
 import { AtSignIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
-import { useInvestigationContext } from "../../contexts/investigation-provider"
-import { CopyButton } from "../../copy"
-import { useSearchContext } from "../../contexts/search-context"
+import { useInvestigationStore } from "@/store/investigation-store"
+import { CopyButton } from "@/components/copy"
+import { useSearchContext } from "@/components/contexts/search-context"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -20,11 +20,11 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useFlowStore } from "@/components/contexts/use-flow-store"
+import { useFlowStore } from "@/store/flow-store"
 
 function EmailNode({ data }: any) {
     const { handleDeleteNode, loading } = useNodeContext()
-    const { settings } = useInvestigationContext()
+    const { settings } = useInvestigationStore()
     const { currentNode } = useFlowStore()
     const { handleOpenSearchModal } = useSearchContext()
     const showContent = useStore(zoomSelector)

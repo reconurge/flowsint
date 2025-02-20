@@ -26,8 +26,8 @@ import { Tooltip, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
-import { useInvestigationContext } from '@/components/contexts/investigation-provider';
-import { useFlowStore } from '../contexts/use-flow-store';
+import { useInvestigationStore } from '@/store/investigation-store';
+import { useFlowStore } from '../../store/flow-store';
 // import CurrentNode from './current-node-card';
 
 const edgeTypes = {
@@ -46,7 +46,7 @@ const nodeTypes = {
 const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { investigation_id } = useParams();
-    const { settings } = useInvestigationContext();
+    const { settings } = useInvestigationStore();
 
     const {
         nodes,

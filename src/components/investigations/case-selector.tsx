@@ -1,5 +1,5 @@
 import { useInvestigations } from "@/lib/hooks/investigation/investigation";
-import { useInvestigationContext } from "../contexts/investigation-provider";
+import { useInvestigationStore } from '@/store/investigation-store';
 import { useRouter } from "next/navigation";
 import {
     Select,
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function CaseSelector() {
     const router = useRouter()
     const { investigations, isLoading } = useInvestigations()
-    const { investigation, isLoadingInvestigation } = useInvestigationContext()
+    const { investigation, isLoadingInvestigation } = useInvestigationStore()
     const handleSelectionChange = (value: string) => {
         router.push(`/investigations/${value}`);
     };

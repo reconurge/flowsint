@@ -3,21 +3,22 @@
 import { useState, useCallback, useEffect, SetStateAction } from 'react'
 // @ts-ignore
 import debounce from "lodash.debounce"
-import { Search } from 'lucide-react'
+import { Search, UserIcon } from 'lucide-react'
 // @ts-ignore
 import Highlighter from "react-highlight-words"
-import { useSearchResults } from '../../lib/hooks/investigation/use-search-results'
-import { useInvestigationContext } from '../contexts/investigation-provider'
+import { useSearchResults } from '@/lib/hooks/investigation/use-search-results'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useFlowStore } from '@/store/flow-store'
+import { cn } from '@/lib/utils'
 
 const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
     const [search, setSearch] = useState("")
     const [open, setOpen] = useState(false)
-    const { setCurrentNode } = useInvestigationContext()
+    const { setCurrentNode } = useFlowStore()
     const {
         results,
         error,
@@ -49,30 +50,20 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
     }, [])
 
     const SearchItem = ({ item }: any) => (
-        <li onClick={() => setOpen(false)}>
-            <Card className='cursor-pointer hover:border-primary border border-transparent' onClick={() => setCurrentNode(item.id)}>
-                <CardContent className='p-3'>
-                    <div className='flex flex-col gap-1 text-left'>
-                        <span className='text-xs text-muted-foreground'>Individual</span>
-                        <div className='flex items-center flex-col items-start gap-1'>
-                            <span className='truncate'>
-                                <Highlighter
-                                    searchWords={search.split(" ")}
-                                    autoEscape={true}
-                                    textToHighlight={item?.full_name}
-                                />
-                            </span>
-                            <span className='truncate text-ellipsis text-sm text-muted-foreground'>
-                                <Highlighter
-                                    searchWords={search.split(" ")}
-                                    autoEscape={true}
-                                    textToHighlight={item?.notes}
-                                />
-                            </span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+        <li
+            className={cn(
+                "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
+                "bg-sidebar-accent text-sidebar-accent-foreground",
+            )}
+            key={item.id}
+        >
+            <button
+                onClick={() => setCurrentNode(item.id)}
+                className="flex items-center p-1 px-4 w-full gap-2"
+            >
+                <UserIcon className="h-3 w-3 opacity-60" />
+                {item.full_name}
+            </button>
         </li>
     )
 

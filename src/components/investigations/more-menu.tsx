@@ -1,5 +1,5 @@
 import { Ellipsis } from "lucide-react";
-import { useInvestigationContext } from "../contexts/investigation-provider";
+import { useInvestigationStore } from '@/store/investigation-store';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 export default function MoreMenu() {
-    const { setOpenSettingsModal, handleDeleteInvestigation } = useInvestigationContext();
+    const { setOpenSettingsModal, handleDeleteInvestigation } = useInvestigationStore();
 
     return (
         <DropdownMenu>
@@ -18,6 +18,7 @@ export default function MoreMenu() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+                {/* @ts-ignore */}
                 <DropdownMenuItem onClick={setOpenSettingsModal}>Settings</DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDeleteInvestigation} className="text-red-500">
                     Delete

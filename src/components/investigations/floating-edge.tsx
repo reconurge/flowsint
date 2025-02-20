@@ -4,13 +4,13 @@ import {
     getBezierPath,
     useInternalNode
 } from '@xyflow/react';
-import { useInvestigationContext } from '@/components/contexts/investigation-provider';
+import { useInvestigationStore } from '@/store/investigation-store';
 import { Badge } from '@/components/ui/badge';
 function FloatingEdge(props: any) {
     const { id, source, target, markerEnd, label, confidence_level, sourceX, sourceY, targetX, targetY, style } = props
     const sourceNode = useInternalNode(source);
     const targetNode = useInternalNode(target);
-    const { settings } = useInvestigationContext()
+    const { settings } = useInvestigationStore()
 
     if (!sourceNode || !targetNode) {
         return null;

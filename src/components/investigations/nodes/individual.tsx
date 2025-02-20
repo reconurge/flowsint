@@ -2,7 +2,7 @@
 
 import { memo } from "react"
 import { Handle, NodeToolbar, Position, useStore } from "@xyflow/react"
-import { useInvestigationContext } from "@/components/contexts/investigation-provider"
+import { useInvestigationStore } from "@/store/investigation-store"
 import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
 import { useSearchContext } from "@/components/contexts/search-context"
 import { cn, zoomSelector } from "@/lib/utils"
@@ -39,15 +39,17 @@ import {
     User,
     Zap,
 } from "lucide-react"
-import { useFlowStore } from "@/components/contexts/use-flow-store"
+import { useFlowStore } from "@/store/flow-store"
+import { useQueryState } from "nuqs"
 
 function Custom(props: any) {
-    const { settings, handleOpenIndividualModal } = useInvestigationContext()
+    const { settings } = useInvestigationStore()
     const { currentNode } = useFlowStore()
     const { setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading } = useNodeContext()
     const { handleOpenSearchModal } = useSearchContext()
     const { handleOpenChat } = useChatContext()
     const showContent = useStore(zoomSelector)
+    const [_, setIndividualId] = useQueryState("individual_id")
     const { data } = props
 
     return (
@@ -56,7 +58,7 @@ function Custom(props: any) {
                 <NodeToolbar isVisible={data.forceToolbarVisible || undefined} position={Position.Top}>
                     <Card className="p-1 rounded-full shadow-none backdrop-blur bg-background/40">
                         <div className="flex gap-1">
-                            <Button variant="outline" className="rounded-full" size="sm" onClick={() => handleOpenIndividualModal(data.id)}>
+                            <Button variant="outline" className="rounded-full" size="sm" onClick={() => setIndividualId(data.id)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
                             </Button>
@@ -77,7 +79,7 @@ function Custom(props: any) {
                     <div className={cn(loading ? "opacity-40" : "opacity-100", "overflow-hidden group")}>
                         {settings.showNodeLabel && showContent ? (
                             <Card
-                                onDoubleClick={() => handleOpenIndividualModal(data.id)}
+                                onDoubleClick={() => setIndividualId(data.id)}
                                 className={cn(
                                     "p-1 border border-border hover:border-primary/40 duration-100 rounded-full shadow-none backdrop-blur bg-background/40",
                                     currentNode === data.id && "border-primary",
@@ -101,7 +103,7 @@ function Custom(props: any) {
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <button
-                                            onDoubleClick={() => handleOpenIndividualModal(data.id)}
+                                            onDoubleClick={() => setIndividualId(data.id)}
                                             className={cn(
                                                 "rounded-full border border-transparent hover:border-primary",
                                                 currentNode === data.id && "border-primary",
@@ -200,7 +202,7 @@ function Custom(props: any) {
                             </ContextMenuSub>
                         </ContextMenuSubContent>
                     </ContextMenuSub>
-                    <ContextMenuItem onClick={() => handleOpenIndividualModal(data.id)}>View and edit</ContextMenuItem>
+                    <ContextMenuItem onClick={() => setIndividualId(data.id)}>View and edit</ContextMenuItem>
                     <ContextMenuItem onClick={handleDuplicateNode}>Duplicate</ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem onClick={handleDeleteNode} className="text-red-600">

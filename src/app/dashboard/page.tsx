@@ -27,7 +27,7 @@ const DashboardPage = async () => {
                 <Button variant='secondary'><FolderIcon className='h-4 w-4' />Create organization</Button> */}
                 </div>
             </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5'>{investigations.map((investigation) => (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5'>{investigations.map((investigation) => (
                 <Investigation key={investigation.id} investigation={investigation} />
             ))}
             </div>

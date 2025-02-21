@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
-import { useQuery, useQueryClient, type QueryObserverResult } from "@tanstack/react-query"
+import { useQuery, type QueryObserverResult } from "@tanstack/react-query"
 import type { Investigation, Individual, Email, Phone, Social, IP, Relation, Address } from "@/types/investigation"
 
 // Define a generic type for query results
@@ -38,6 +38,7 @@ interface InvestigationState {
     currentNode: any
     panelOpen: boolean
     investigation: Investigation | null
+    isRefetching: boolean
 
     // UI Actions
     setFilters: (filters: any) => void
@@ -54,15 +55,16 @@ interface InvestigationState {
     setHandleDeleteInvestigation: (handler: () => Promise<void>) => void
 
     // Query Hooks
-    useInvestigationData: (investigationId: string) => InvestigationData
-    refetchAll: (investigationId: string) => Promise<void>
+    useInvestigationData: (investigationId: string) => InvestigationData & {
+        refetchAll: () => Promise<void>
+    }
 }
 
 const isServer = typeof window === "undefined"
 
 export const useInvestigationStore = create(
     persist<InvestigationState>(
-        (set, _) => ({
+        (set, get) => ({
             // UI State
             filters: {},
             settings: {
@@ -76,6 +78,7 @@ export const useInvestigationStore = create(
             currentNode: null,
             panelOpen: false,
             investigation: null,
+            isRefetching: false,
 
             // UI Actions
             setFilters: (filters) => set({ filters }),
@@ -92,6 +95,7 @@ export const useInvestigationStore = create(
                 const wrapRefetch = async (refetch: () => Promise<QueryObserverResult>) => {
                     await refetch()
                 }
+
                 const investigationQuery = useQuery<Investigation>({
                     queryKey: ["investigation", investigationId, 'investigation'],
                     queryFn: async () => {
@@ -101,6 +105,7 @@ export const useInvestigationStore = create(
                         return data.investigation as Investigation
                     },
                 })
+
                 const individualsQuery = useQuery<Individual[]>({
                     queryKey: ["investigation", investigationId, "individuals"],
                     queryFn: async () => {
@@ -110,6 +115,7 @@ export const useInvestigationStore = create(
                         return data.individuals
                     },
                 })
+
                 const emailsQuery = useQuery<Email[]>({
                     queryKey: ["investigation", investigationId, "emails"],
                     queryFn: async () => {
@@ -119,6 +125,7 @@ export const useInvestigationStore = create(
                         return data.emails
                     },
                 })
+
                 const phonesQuery = useQuery<Phone[]>({
                     queryKey: ["investigation", investigationId, "phones"],
                     queryFn: async () => {
@@ -128,6 +135,31 @@ export const useInvestigationStore = create(
                         return data.phones
                     },
                 })
+
+                const socialsQuery = useQuery<Social[]>({
+                    queryKey: ["investigation", investigationId, "socials"],
+                    queryFn: async () => {
+                        const res = await fetch(`/api/investigations/${investigationId}/socials`)
+                        if (!res.ok) throw new Error("Failed to fetch socials")
+                        const data = await res.json()
+                        return data.socials
+                    },
+                })
+
+                const refetchAll = async () => {
+                    set({ isRefetching: true })
+                    try {
+                        await Promise.all([
+                            individualsQuery.refetch(),
+                            emailsQuery.refetch(),
+                            phonesQuery.refetch(),
+                            socialsQuery.refetch(),
+                        ])
+                    } finally {
+                        set({ isRefetching: false })
+                    }
+                }
+
                 return {
                     investigation: {
                         data: investigationQuery.data as Investigation,
@@ -150,9 +182,9 @@ export const useInvestigationStore = create(
                         refetch: () => wrapRefetch(phonesQuery.refetch),
                     },
                     socials: {
-                        data: [],
-                        isLoading: false,
-                        refetch: async () => { },
+                        data: socialsQuery.data ?? [],
+                        isLoading: socialsQuery.isLoading,
+                        refetch: () => wrapRefetch(socialsQuery.refetch),
                     },
                     ips: {
                         data: [],
@@ -169,21 +201,8 @@ export const useInvestigationStore = create(
                         isLoading: false,
                         refetch: async () => { },
                     },
+                    refetchAll,
                 }
-            },
-            refetchAll: async (investigationId: string) => {
-                const queryClient = useQueryClient()
-                await Promise.all([
-                    queryClient.invalidateQueries({
-                        queryKey: ["investigation", investigationId, "individuals"]
-                    }),
-                    queryClient.invalidateQueries({
-                        queryKey: ["investigation", investigationId, "emails"]
-                    }),
-                    queryClient.invalidateQueries({
-                        queryKey: ["investigation", investigationId, "phones"]
-                    }),
-                ])
             },
         }),
         {
@@ -195,4 +214,3 @@ export const useInvestigationStore = create(
         },
     )
 )
-

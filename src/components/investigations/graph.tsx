@@ -44,7 +44,7 @@ const nodeTypes = {
     address: AddressNode
 };
 
-const LayoutFlow = ({ refetch, theme }: { refetch: any, theme: ColorMode }) => {
+const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: boolean, theme: ColorMode }) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { investigation_id } = useParams();
     const { settings } = useInvestigationStore();
@@ -60,7 +60,6 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, theme: ColorMode }) => {
         onPaneClick,
         currentNode,
         resetNodeStyles,
-        reloading
     } = useFlowStore();
 
     useEffect(() => {
@@ -133,8 +132,8 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, theme: ColorMode }) => {
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" disabled={reloading} variant="outline" onClick={refetch}>
-                                <RotateCwIcon className={cn('h-4 w-4', reloading && 'animate-spin')} />
+                            <Button size="icon" disabled={isLoading} variant="outline" onClick={refetch}>
+                                <RotateCwIcon className={cn('h-4 w-4', isLoading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>
@@ -211,10 +210,9 @@ export default function Graph({ graphQuery }: { graphQuery: any }) {
             </div>
         );
     }
-
     return (
         <ReactFlowProvider>
-            <LayoutFlow refetch={refetch} theme={resolvedTheme as ColorMode} />
+            <LayoutFlow refetch={refetch} isLoading={isLoading} theme={resolvedTheme as ColorMode} />
         </ReactFlowProvider>
     );
 }

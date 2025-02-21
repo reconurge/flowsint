@@ -329,7 +329,7 @@ const IndividualModal = () => {
                                                     <Card
                                                         key={relation.id}
                                                         className="p-3 cursor-pointer"
-                                                        onClick={() => handleOpenIndividualModal(relation.id)}
+                                                        onClick={() => setIndividualId(relation.id)}
                                                     >
                                                         <CardContent className="flex items-center gap-3 p-0">
                                                             <Avatar className="h-8 w-8">

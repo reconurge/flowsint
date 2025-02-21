@@ -3,9 +3,8 @@ import InvestigationLayout from '@/components/investigations/layout';
 import Left from './left';
 import { SearchProvider } from '@/components/contexts/search-context';
 import { createClient } from "@/lib/supabase/server";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ChatProvider } from '@/components/contexts/chatbot-context';
-import { getInvestigation } from '@/lib/actions/investigations';
 const DashboardLayout = async ({
     children,
     params,
@@ -19,8 +18,6 @@ const DashboardLayout = async ({
         redirect('/login')
     }
     const { investigation_id } = await (params)
-    const { investigation, error } = await getInvestigation(investigation_id)
-    if (!investigation || error) return notFound()
     return (
         <InvestigationProvider>
             <SearchProvider>

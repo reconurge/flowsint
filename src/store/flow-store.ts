@@ -8,7 +8,6 @@ import {
     type OnNodesChange,
     type OnEdgesChange,
 } from '@xyflow/react';
-import { getInvestigationData } from '@/lib/actions/investigations';
 
 export type AppNode = Node;
 
@@ -29,7 +28,6 @@ export type AppState = {
     setCurrentNode: (nodeId: string | null) => void;
     updateNode: (nodeId: string, nodeData: Partial<Node>) => void;
     resetNodeStyles: () => void;
-    refreshData: (Investigation_id: string, fitView: () => void) => void,
 };
 const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: any; }) => {
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -205,19 +203,6 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                     };
                 })
             });
-        },
-        refreshData: async (investigation_id: string, fitView: () => void) => {
-            set({ reloading: true });
-            try {
-                const { nodes: newNodes, edges: newEdges } = await getInvestigationData(investigation_id);
-                set({ nodes: newNodes, edges: newEdges });
-                get().onLayout('LR', fitView);
-            } catch (error) {
-                console.error('Error refreshing data:', error);
-                set({ reloading: false });
-            } finally {
-                set({ reloading: false });
-            }
         },
     }))
 }

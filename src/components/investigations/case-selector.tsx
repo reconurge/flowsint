@@ -1,6 +1,6 @@
 import { useInvestigations } from "@/lib/hooks/investigation/investigation";
 import { useInvestigationStore } from '@/store/investigation-store';
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
     Select,
     SelectContent,
@@ -12,17 +12,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CaseSelector() {
     const router = useRouter()
+    const { investigation_id } = useParams()
+    const useInvestigationData = useInvestigationStore(
+        (state) => state.useInvestigationData
+    );
     const { investigations, isLoading } = useInvestigations()
-    const { investigation, isLoadingInvestigation } = useInvestigationStore()
+    const { investigation } = useInvestigationData(investigation_id as string);
+
     const handleSelectionChange = (value: string) => {
         router.push(`/investigations/${value}`);
     };
     return (
         <div className="flex items-center">
-            {isLoading || isLoadingInvestigation ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
-                <Select onValueChange={handleSelectionChange} defaultValue={investigation?.id}>
+            {isLoading || investigation.isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
+                <Select onValueChange={handleSelectionChange} defaultValue={investigation?.data.id}>
                     <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent shadow-none border-none text-ellipsis truncate gap-1">
-                        <SelectValue defaultValue={investigation?.title || ""} placeholder="Select an investigation" />
+                        <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
                         {investigations?.map((investigation) => (

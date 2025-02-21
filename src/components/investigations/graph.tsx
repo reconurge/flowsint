@@ -28,6 +28,7 @@ import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import { useInvestigationStore } from '@/store/investigation-store';
 import { useFlowStore } from '../../store/flow-store';
+import Loader from '../loader';
 // import CurrentNode from './current-node-card';
 
 const edgeTypes = {
@@ -43,7 +44,7 @@ const nodeTypes = {
     address: AddressNode
 };
 
-const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
+const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: boolean, theme: ColorMode }) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { investigation_id } = useParams();
     const { settings } = useInvestigationStore();
@@ -59,8 +60,6 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
         onPaneClick,
         currentNode,
         resetNodeStyles,
-        refreshData,
-        reloading
     } = useFlowStore();
 
     useEffect(() => {
@@ -133,8 +132,8 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" disabled={reloading} variant="outline" onClick={() => refreshData(investigation_id as string, fitView)}>
-                                <RotateCwIcon className={cn('h-4 w-4', reloading && 'animate-spin')} />
+                            <Button size="icon" disabled={isLoading} variant="outline" onClick={refetch}>
+                                <RotateCwIcon className={cn('h-4 w-4', isLoading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>
@@ -190,29 +189,30 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
     );
 };
 
-export default function Graph({ initialNodes, initialEdges }: { initialNodes: any, initialEdges: any }) {
+export default function Graph({ graphQuery }: { graphQuery: any }) {
     const [mounted, setMounted] = useState(false);
+    const { refetch, isLoading, data } = graphQuery
     const { resolvedTheme } = useTheme();
     useEffect(() => {
         setMounted(true);
     }, []);
-
     useEffect(() => {
-        useFlowStore.setState({ nodes: initialNodes, edges: initialEdges });
-        setMounted(true);
-    }, [initialNodes, initialEdges]);
+        if (data) {
+            useFlowStore.setState({ nodes: data?.nodes, edges: data?.edges });
+            setMounted(true);
+        }
+    }, [data, data?.nodes, data?.edges]);
 
-    if (!mounted) {
+    if (!mounted || isLoading) {
         return (
             <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'>
-                Loading...
+                <Loader /> Loading...
             </div>
         );
     }
-
     return (
         <ReactFlowProvider>
-            <LayoutFlow theme={resolvedTheme as ColorMode} />
+            <LayoutFlow refetch={refetch} isLoading={isLoading} theme={resolvedTheme as ColorMode} />
         </ReactFlowProvider>
     );
 }

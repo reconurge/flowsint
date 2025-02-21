@@ -69,7 +69,7 @@ function EmailNode({ data }: any) {
                     <Handle
                         type="target"
                         position={Position.Top}
-                        className={cn("w-16 bg-teal-500 hidden", settings.floatingEdges && "hidden")}
+                        className={cn("w-16 bg-teal-500 hidden")}
                     />
                 </div>
             </ContextMenuTrigger>

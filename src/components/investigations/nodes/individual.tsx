@@ -81,7 +81,7 @@ function Custom(props: any) {
                             <Card
                                 onDoubleClick={() => setIndividualId(data.id)}
                                 className={cn(
-                                    "p-1 border border-border hover:border-primary/40 duration-100 rounded-full shadow-none backdrop-blur bg-background/40",
+                                    "p-1 border border-border hover:border-primary duration-100 rounded-full shadow-none backdrop-blur bg-background/40",
                                     currentNode === data.id && "border-primary",
                                 )}
                             >

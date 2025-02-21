@@ -29,7 +29,7 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
     )
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
             <Accordion type="single" collapsible defaultValue="individuals">
                 <AccordionItem value="individuals">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">
@@ -92,7 +92,6 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
-
             <Accordion type="single" collapsible defaultValue="phones">
                 <AccordionItem value="phones">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">

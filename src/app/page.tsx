@@ -1,12 +1,14 @@
-import { Button } from '@/components/ui/button'
-import Link from "next/link";
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  return (
-    <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-      <div className="inline-block max-w-xl text-center justify-center">
-        <Link href="/dashboard"><Button>Dashboard</Button></Link>
-      </div>
-    </section>
-  );
+export default async function Home() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (!user || userError) {
+    return redirect("/login")
+  }
+  return redirect("/dashboard")
 }

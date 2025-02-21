@@ -28,6 +28,7 @@ import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import { useInvestigationStore } from '@/store/investigation-store';
 import { useFlowStore } from '../../store/flow-store';
+import Loader from '../loader';
 // import CurrentNode from './current-node-card';
 
 const edgeTypes = {
@@ -206,7 +207,7 @@ export default function Graph({ graphQuery }: { graphQuery: any }) {
     if (!mounted || isLoading) {
         return (
             <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'>
-                Loading...
+                <Loader /> Loading...
             </div>
         );
     }

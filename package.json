@@ -50,6 +50,7 @@
         "@supabase/supabase-js": "^2.48.1",
         "@tailwindcss/cli": "^4.0.3",
         "@tailwindcss/postcss": "^4.0.3",
+        "@tanstack/react-query": "^5.66.8",
         "@xyflow/react": "^12.4.2",
         "ai": "^4.1.34",
         "class-variance-authority": "^0.7.1",

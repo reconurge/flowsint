@@ -3,11 +3,25 @@ import { cookies } from 'next/headers'
 
 export async function createClient() {
     const cookieStore = await cookies()
+    const supabaseToken = cookieStore.get('sb-token')?.value
 
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+            auth: {
+                persistSession: false,
+                // Add the token if it exists
+                ...(supabaseToken && {
+                    autoRefreshToken: false,
+                    detectSessionInUrl: false,
+                    storage: {
+                        getItem: () => supabaseToken,
+                        setItem: () => { },
+                        removeItem: () => { },
+                    },
+                }),
+            },
             cookies: {
                 getAll() {
                     return cookieStore.getAll()

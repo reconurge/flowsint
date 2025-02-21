@@ -40,9 +40,8 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" size={"icon"} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Individual
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">

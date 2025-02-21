@@ -1,23 +1,49 @@
 "use client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { AtSignIcon, PhoneIcon, UserIcon } from "lucide-react"
+import { AtSignIcon, PhoneIcon, RotateCwIcon, UserIcon } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useInvestigationStore } from "@/store/investigation-store"
 import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
 import { useFlowStore } from "@/store/flow-store"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { useState, useMemo } from "react"
 
 const Left = ({ investigation_id }: { investigation_id: string }) => {
     const platformsIcons = usePlatformIcons()
     const { currentNode, setCurrentNode } = useFlowStore()
+    const [filterValue, setFilterValue] = useState("")
 
     // Utiliser le hook useInvestigationData pour récupérer les données
     const {
         individuals,
         emails,
         phones,
-        socials
+        socials,
+        refetchAll
     } = useInvestigationStore((state) => state.useInvestigationData(investigation_id))
+    const { isRefetching } = useInvestigationStore()
+
+    // Filtrer les données
+    const filteredData = useMemo(() => {
+        const searchTerm = filterValue.toLowerCase().trim()
+        return {
+            individuals: individuals.data.filter(individual =>
+                individual.full_name.toLowerCase().includes(searchTerm)
+            ),
+            emails: emails.data.filter(email =>
+                email.email.toLowerCase().includes(searchTerm)
+            ),
+            phones: phones.data.filter(phone =>
+                phone.phone_number.toLowerCase().includes(searchTerm)
+            ),
+            socials: socials.data.filter(social =>
+                (social.username?.toLowerCase() || social.profile_url?.toLowerCase() || "")
+                    .includes(searchTerm)
+            )
+        }
+    }, [filterValue, individuals.data, emails.data, phones.data, socials.data])
 
     // Composant réutilisable pour le skeleton loader
     const LoadingSkeleton = () => (
@@ -30,17 +56,33 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
 
     return (
         <div className="flex flex-col w-full">
+            <div className="flex items-center gap-2 p-2 border-b">
+                <Input
+                    className="h-7"
+                    placeholder="Filter..."
+                    value={filterValue}
+                    onChange={(e) => setFilterValue(e.target.value)}
+                />
+                <Button
+                    className="h-7 w-7 opacity-70"
+                    variant="ghost"
+                    disabled={isRefetching}
+                    onClick={refetchAll}
+                >
+                    <RotateCwIcon className={cn(isRefetching && 'animate-spin', 'h-5 w-5')} />
+                </Button>
+            </div>
             <Accordion type="single" collapsible defaultValue="individuals">
                 <AccordionItem value="individuals">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">
-                        Profiles {!individuals.isLoading && <>({individuals.data.length})</>}
+                        Profiles {!individuals.isLoading && <>({filteredData.individuals.length})</>}
                     </AccordionTrigger>
                     <AccordionContent>
                         {individuals.isLoading ? (
                             <LoadingSkeleton />
                         ) : (
                             <ul>
-                                {individuals.data.map((individual) => (
+                                {filteredData.individuals.map((individual) => (
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
@@ -66,14 +108,14 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
             <Accordion type="single" collapsible defaultValue="emails">
                 <AccordionItem value="emails">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">
-                        Emails {!emails.isLoading && <>({emails.data.length})</>}
+                        Emails {!emails.isLoading && <>({filteredData.emails.length})</>}
                     </AccordionTrigger>
                     <AccordionContent>
                         {emails.isLoading ? (
                             <LoadingSkeleton />
                         ) : (
                             <ul>
-                                {emails.data.map((email) => (
+                                {filteredData.emails.map((email) => (
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
@@ -92,17 +134,18 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
+
             <Accordion type="single" collapsible defaultValue="phones">
                 <AccordionItem value="phones">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">
-                        Phones {!phones.isLoading && <>({phones.data.length})</>}
+                        Phones {!phones.isLoading && <>({filteredData.phones.length})</>}
                     </AccordionTrigger>
                     <AccordionContent>
                         {phones.isLoading ? (
                             <LoadingSkeleton />
                         ) : (
                             <ul>
-                                {phones.data.map((phone) => (
+                                {filteredData.phones.map((phone) => (
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
@@ -125,14 +168,14 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
             <Accordion type="single" collapsible defaultValue="socials">
                 <AccordionItem value="socials">
                     <AccordionTrigger className="p-2 px-4 hover:bg-sidebar-accent text-sidebar-accent-foreground/60 hover:text-sidebar-accent-foreground text-sm rounded-none">
-                        Socials {!socials.isLoading && <>({socials.data.length})</>}
+                        Socials {!socials.isLoading && <>({filteredData.socials.length})</>}
                     </AccordionTrigger>
                     <AccordionContent>
                         {socials.isLoading ? (
                             <LoadingSkeleton />
                         ) : (
                             <ul>
-                                {socials.data.map((social) => (
+                                {filteredData.socials.map((social) => (
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",

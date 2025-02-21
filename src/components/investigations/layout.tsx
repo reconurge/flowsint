@@ -5,7 +5,7 @@ import CaseSelector from './case-selector';
 import NewCase from '@/components/dashboard/new-case';
 import SearchModal from '@/components/dashboard/search-palette';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { PanelRightIcon, PlusIcon } from 'lucide-react';
+import { PanelRightIcon, PlusIcon, RotateCwIcon } from 'lucide-react';
 import Logo from '@/components/logo';
 import { useInvestigationStore } from '@/store/investigation-store';
 import { Button } from '../ui/button';
@@ -13,6 +13,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import Assistant from '../assistant';
 import { AppSidebar } from '../app-sidebar';
 import { SidebarProvider } from '../ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const InvestigationLayout = ({
     children,
@@ -25,7 +26,8 @@ const InvestigationLayout = ({
     investigation_id: string
     user: any
 }) => {
-    const { panelOpen, setPanelOpen } = useInvestigationStore()
+    const { panelOpen, setPanelOpen, useInvestigationData, isRefetching } = useInvestigationStore()
+    const { refetchAll } = useInvestigationData(investigation_id)
     return (
         <SidebarProvider defaultOpen={false}>
             <AppSidebar user={user} defaultChecked={false} />

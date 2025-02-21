@@ -43,7 +43,7 @@ const nodeTypes = {
     address: AddressNode
 };
 
-const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
+const LayoutFlow = ({ refetch, theme }: { refetch: any, theme: ColorMode }) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { investigation_id } = useParams();
     const { settings } = useInvestigationStore();
@@ -59,7 +59,6 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
         onPaneClick,
         currentNode,
         resetNodeStyles,
-        refreshData,
         reloading
     } = useFlowStore();
 
@@ -133,7 +132,7 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" disabled={reloading} variant="outline" onClick={() => refreshData(investigation_id as string, fitView)}>
+                            <Button size="icon" disabled={reloading} variant="outline" onClick={refetch}>
                                 <RotateCwIcon className={cn('h-4 w-4', reloading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
@@ -190,19 +189,21 @@ const LayoutFlow = ({ theme }: { theme: ColorMode }) => {
     );
 };
 
-export default function Graph({ initialNodes, initialEdges }: { initialNodes: any, initialEdges: any }) {
+export default function Graph({ graphQuery }: { graphQuery: any }) {
     const [mounted, setMounted] = useState(false);
+    const { refetch, isLoading, data } = graphQuery
     const { resolvedTheme } = useTheme();
     useEffect(() => {
         setMounted(true);
     }, []);
-
     useEffect(() => {
-        useFlowStore.setState({ nodes: initialNodes, edges: initialEdges });
-        setMounted(true);
-    }, [initialNodes, initialEdges]);
+        if (data) {
+            useFlowStore.setState({ nodes: data?.nodes, edges: data?.edges });
+            setMounted(true);
+        }
+    }, [data, data?.nodes, data?.edges]);
 
-    if (!mounted) {
+    if (!mounted || isLoading) {
         return (
             <div className='h-[calc(100vh_-_48px)] w-full flex items-center justify-center'>
                 Loading...
@@ -212,7 +213,7 @@ export default function Graph({ initialNodes, initialEdges }: { initialNodes: an
 
     return (
         <ReactFlowProvider>
-            <LayoutFlow theme={resolvedTheme as ColorMode} />
+            <LayoutFlow refetch={refetch} theme={resolvedTheme as ColorMode} />
         </ReactFlowProvider>
     );
 }

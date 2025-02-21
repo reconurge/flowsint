@@ -1,6 +1,5 @@
 'use server'
 
-import { getInvestigation } from "@/lib/actions/investigations"
 import { notFound } from "next/navigation"
 import { createClient } from "../supabase/server";
 
@@ -56,13 +55,9 @@ async function checkBreachedAccount(account: string | number | boolean, apiKey: 
 const apiKey = process.env.HIBP_API_KEY || ""
 const appName = 'MyHIBPChecker';
 
-export async function investigateValue(investigation_id: any, username: string) {
+export async function investigateValue(username: string) {
     if (!username) {
         throw new Error("Malformed query.")
-    }
-    const { investigation, error } = await getInvestigation(investigation_id)
-    if (error || !investigation) {
-        notFound()
     }
     return checkBreachedAccount(username, apiKey, appName);
 

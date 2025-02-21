@@ -21,7 +21,6 @@ import { useQueryState } from "nuqs"
 
 const IndividualModal = () => {
     const [individualId, setIndividualId] = useQueryState("individual_id")
-    const { handleOpenIndividualModal } = useInvestigationStore()
     const { individual, isLoading } = useIndividual(individualId)
     const { emails, isLoading: isLoadingEmails } = useEmailsAndBreaches(individualId)
     const platformsIcons = usePlatformIcons("medium")

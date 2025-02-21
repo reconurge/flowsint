@@ -44,7 +44,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
         setIsLoading(true)
         setError("")
         try {
-            const data = await investigateValue(investigation_id as string, value)
+            const data = await investigateValue(value)
             setResults(data)
         } catch (err) {
             setError(err instanceof Error ? err.message : "An error occurred.")

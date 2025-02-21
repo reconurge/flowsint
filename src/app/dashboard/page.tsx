@@ -1,13 +1,15 @@
 import React from 'react'
-import { getInvestigations } from '@/lib/actions/investigations'
 import Investigation from '@/components/dashboard/investigation'
 import { Button } from '@/components/ui/button'
 import { DownloadIcon, FolderIcon, PlusIcon } from 'lucide-react'
 import NewCase from '@/components/dashboard/new-case'
+import { createClient } from '@/lib/supabase/server'
+import { unauthorized } from 'next/navigation'
 
 const DashboardPage = async () => {
-    const { investigations, error } = await getInvestigations()
-    if (error) return <div>An error occured.</div>
+    const supabase = await createClient()
+    const { data: investigations, error } = await supabase.from("investigations").select("id, title, description")
+    if (error) return unauthorized()
     return (
         <div className='space-y-6 w-full max-w-5xl mx-auto p-6'>
             <div>

@@ -27,7 +27,7 @@ interface ChatProviderProps {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [open, setOpen] = useState(false)
     const [context, setContext] = useState<any>(null)
-    const { messages, input, handleInputChange, setInput, handleSubmit, error, isLoading } = useChat()
+    const { messages, input, handleInputChange, setInput, handleSubmit, error } = useChat()
 
     const handleOpenChat = (content: any) => {
         setContext(content)

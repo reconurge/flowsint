@@ -53,30 +53,32 @@ function Custom(props: any) {
     const { data } = props
 
     return (
-        <>
-            {settings.showNodeToolbar && (
-                <NodeToolbar isVisible={data.forceToolbarVisible || undefined} position={Position.Top}>
-                    <Card className="p-1 rounded-full shadow-none backdrop-blur bg-background/40">
-                        <div className="flex gap-1">
-                            <Button variant="outline" className="rounded-full" size="sm" onClick={() => setIndividualId(data.id)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                            </Button>
-                            <Button variant="outline" className="rounded-full" size="sm" onClick={() => handleOpenChat(data)}>
-                                <Zap className="h-4 w-4 mr-2 text-orange-500" />
-                                Ask AI
-                            </Button>
-                        </div>
-                    </Card>
-                </NodeToolbar>
-            )}
+        <div style={{ ...props.style, borderRadius: "100000px!important" }} >
+            {
+                settings.showNodeToolbar && (
+                    <NodeToolbar isVisible={data.forceToolbarVisible || undefined} position={Position.Top}>
+                        <Card className="p-1 rounded-full shadow-none backdrop-blur bg-background/40">
+                            <div className="flex gap-1">
+                                <Button variant="outline" className="rounded-full" size="sm" onClick={() => setIndividualId(data.id)}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                </Button>
+                                <Button variant="outline" className="rounded-full" size="sm" onClick={() => handleOpenChat(data)}>
+                                    <Zap className="h-4 w-4 mr-2 text-orange-500" />
+                                    Ask AI
+                                </Button>
+                            </div>
+                        </Card>
+                    </NodeToolbar>
+                )
+            }
             <ContextMenu>
                 <ContextMenuTrigger
                     onContextMenu={(e) => {
                         e.stopPropagation()
                     }}
                 >
-                    <div className={cn(loading ? "opacity-40" : "opacity-100", "overflow-hidden group")}>
+                    <div className={cn(loading ? "opacity-40" : "opacity-100", "overflow-hidden group rounded-full")}>
                         {settings.showNodeLabel && showContent ? (
                             <Card
                                 onDoubleClick={() => setIndividualId(data.id)}
@@ -210,8 +212,8 @@ function Custom(props: any) {
                         <span className="ml-auto text-xs text-muted-foreground">⌘ ⌫</span>
                     </ContextMenuItem>
                 </ContextMenuContent>
-            </ContextMenu>
-        </>
+            </ ContextMenu>
+        </div>
     )
 }
 

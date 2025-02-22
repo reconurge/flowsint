@@ -13,7 +13,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import Assistant from '../assistant';
 import { AppSidebar } from '../app-sidebar';
 import { SidebarProvider } from '../ui/sidebar';
-import { cn } from '@/lib/utils';
 
 const InvestigationLayout = ({
     children,

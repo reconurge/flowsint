@@ -18,6 +18,7 @@ import { InfoIcon } from "lucide-react"
 import { investigateValue } from "@/lib/actions/search"
 import { useParams } from "next/navigation"
 import Breaches from "../breach"
+import { cn } from "@/lib/utils"
 
 interface SearchContextType {
     openSearchModal: boolean
@@ -69,7 +70,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
         <SearchContext.Provider value={{ openSearchModal, handleOpenSearchModal }}>
             {children}
             <Sheet open={openSearchModal} onOpenChange={handleCloseModal}>
-                <SheetContent className={results ? "sm:max-w-[950px]" : "sm:max-w-[450px]"}>
+                <SheetContent className={cn(results ? "sm:max-w-[950px]" : "sm:max-w-[450px]", "h-screen overflow-auto")}>
                     <SheetHeader>
                         <SheetTitle>New search</SheetTitle>
                         <SheetDescription>Make a new keyword associated research.</SheetDescription>

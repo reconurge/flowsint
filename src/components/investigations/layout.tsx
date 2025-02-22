@@ -26,8 +26,7 @@ const InvestigationLayout = ({
     investigation_id: string
     user: any
 }) => {
-    const { panelOpen, setPanelOpen, useInvestigationData, isRefetching } = useInvestigationStore()
-    const { refetchAll } = useInvestigationData(investigation_id)
+    const { panelOpen, setPanelOpen } = useInvestigationStore()
     return (
         <SidebarProvider defaultOpen={false}>
             <AppSidebar user={user} defaultChecked={false} />

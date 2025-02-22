@@ -4,10 +4,9 @@ import { useEffect, useState } from "react"
 import { useIndividual } from "@/lib/hooks/individuals/use-individual"
 import { useEmailsAndBreaches } from "@/lib/hooks/individuals/use-emails-breaches"
 import { useRelations } from "@/lib/hooks/individuals/use-relations"
-import { useInvestigationStore } from '@/store/investigation-store';
 import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
 import { supabase } from "@/lib/supabase/client"
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetTitle } from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -72,27 +71,27 @@ const IndividualModal = () => {
 
     if (!isLoading && !individual) {
         return (
-            <Sheet open={Boolean(individualId)} onOpenChange={handleCloseModal}>
-                <SheetContent>
-                    <SheetTitle>No data</SheetTitle>
-                    <SheetDescription>No data found for this individual.</SheetDescription>
-                    <SheetFooter>
+            <Dialog open={Boolean(individualId)} onOpenChange={handleCloseModal}>
+                <DialogContent>
+                    <DialogTitle>No data</DialogTitle>
+                    <DialogDescription>No data found for this individual.</DialogDescription>
+                    <DialogFooter>
                         <Button variant="outline" onClick={handleCloseModal}>
                             Close
                         </Button>
-                    </SheetFooter>
-                </SheetContent>
-            </Sheet>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         )
     }
 
     return (
-        <Sheet open={Boolean(individualId)} onOpenChange={handleCloseModal}>
-            <SheetContent className="sm:max-w-[80vw] p-12 overflow-y-auto">
+        <Dialog open={Boolean(individualId)} onOpenChange={handleCloseModal}>
+            <DialogContent className="sm:max-w-[70vw] h-[90vh] overflow-auto p-12">
                 <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
                     <div className="flex flex-col gap-4 flex-grow-0">
                         <div className="flex justify-between items-center">
-                            <SheetTitle>User Profile</SheetTitle>
+                            <DialogTitle>User Profile</DialogTitle>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -349,15 +348,15 @@ const IndividualModal = () => {
                             </div>
                         </div>
                     </div>
-                    <SheetFooter>
+                    <DialogFooter>
                         <Button variant="outline" onClick={handleCloseModal}>
                             Cancel
                         </Button>
                         {editMode && <Button type="submit">Save Changes</Button>}
-                    </SheetFooter>
+                    </DialogFooter>
                 </form>
-            </SheetContent>
-        </Sheet>
+            </DialogContent>
+        </Dialog>
     )
 }
 

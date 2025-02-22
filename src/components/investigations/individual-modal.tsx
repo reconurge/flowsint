@@ -17,7 +17,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Pencil, X, Plus, Trash2 } from "lucide-react"
 import Breaches from "../breach"
 import { useQueryState } from "nuqs"
-
+import { Building2, Mail, MapPin, Phone, User } from "lucide-react"
+import Image from "next/image"
 const IndividualModal = () => {
     const [individualId, setIndividualId] = useQueryState("individual_id")
     const { individual, isLoading } = useIndividual(individualId)
@@ -84,12 +85,11 @@ const IndividualModal = () => {
             </Dialog>
         )
     }
-
     return (
         <Dialog open={Boolean(individualId)} onOpenChange={handleCloseModal}>
             <DialogContent className="sm:max-w-[70vw] h-[90vh] overflow-auto p-12">
-                <form className="flex flex-col gap-3 justify-between h-full" onSubmit={handleSave}>
-                    <div className="flex flex-col gap-4 flex-grow-0">
+                <form className="flex flex-col gap-3 justify-between h-full w-full" onSubmit={handleSave}>
+                    <div className="flex flex-col gap-4 flex-grow-0 w-full">
                         <div className="flex justify-between items-center">
                             <DialogTitle>User Profile</DialogTitle>
                             <Button
@@ -104,14 +104,14 @@ const IndividualModal = () => {
                         </div>
                         <div className="flex gap-6">
                             <div className="flex flex-col">
-                                <Avatar className="h-20 w-20">
+                                <Avatar className="h-32 w-32">
                                     <AvatarImage src={image || undefined} alt={individual?.full_name} />
                                     <AvatarFallback>{individual?.full_name?.[0] || "?"}</AvatarFallback>
                                 </Avatar>
                             </div>
                             <div className="flex-grow w-full">
                                 <Tabs defaultValue="overview" className="w-full">
-                                    <TabsList className="overflow-x-auto">
+                                    <TabsList className="overflow-x-auto w-full justify-start">
                                         <TabsTrigger value="overview">Overview</TabsTrigger>
                                         <TabsTrigger value="social_account">
                                             Social accounts

@@ -1,5 +1,8 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+// @ts-ignore
+import * as d3 from 'd3';
+import { Slider } from "@/components/ui/slider"
 import {
     ReactFlow,
     ReactFlowProvider,
@@ -7,7 +10,7 @@ import {
     useReactFlow,
     Background,
     ColorMode,
-    MiniMap,
+    MiniMap
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import IndividualNode from './nodes/individual';
@@ -16,7 +19,7 @@ import IpNode from './nodes/ip_address';
 import EmailNode from './nodes/email';
 import SocialNode from './nodes/social';
 import AddressNode from './nodes/physical_address';
-import { AlignCenterHorizontal, AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon, RotateCwIcon } from 'lucide-react';
+import { AlignCenterVertical, MaximizeIcon, ZoomInIcon, ZoomOutIcon, RotateCwIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import NewActions from './new-actions';
 import FloatingEdge from './floating-edge';
@@ -29,7 +32,6 @@ import { cn } from '@/lib/utils';
 import { useInvestigationStore } from '@/store/investigation-store';
 import { useFlowStore } from '../../store/flow-store';
 import Loader from '../loader';
-// import CurrentNode from './current-node-card';
 
 const edgeTypes = {
     "custom": FloatingEdge
@@ -44,10 +46,11 @@ const nodeTypes = {
     address: AddressNode
 };
 
-const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: boolean, theme: ColorMode }) => {
-    const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
+const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, theme: ColorMode }) => {
+    const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter, getNodes, getEdges } = useReactFlow();
     const { investigation_id } = useParams();
     const { settings } = useInvestigationStore();
+    const [distance, setDistance] = useState([150]);
 
     const {
         nodes,
@@ -55,12 +58,41 @@ const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: bo
         onNodesChange,
         onEdgesChange,
         onConnect,
-        onLayout,
         onNodeClick,
         onPaneClick,
         currentNode,
         resetNodeStyles,
+        reloading,
+        setNodes
     } = useFlowStore();
+
+    // Force simulation setup
+    const onClickLayout = useCallback(() => {
+        fitView()
+        const sim = d3.forceSimulation(nodes)
+            .force('charge', d3.forceManyBody().strength(-5000))
+            .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2))
+            .force('collision', d3.forceCollide().radius(100))
+            .force('link', d3.forceLink(edges.map(e => ({
+                source: e.source,
+                target: e.target
+            }))).id((d: any) => d.id).distance(distance));
+
+        sim.on('tick', () => {
+            setNodes(nodes.map(node => ({
+                ...node,
+                position: {
+                    x: (node as any).x,
+                    y: (node as any).y
+                }
+            })));
+        });
+        // sim.start()
+        setTimeout(() => {
+            sim.stop();
+            fitView()
+        }, 2000);
+    }, [nodes, edges, setNodes, distance]);
 
     useEffect(() => {
         resetNodeStyles();
@@ -84,10 +116,6 @@ const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: bo
         }
     }, [currentNode, getNode, setCenter]);
 
-    useEffect(() => {
-        onLayout('LR', fitView);
-    }, []);
-
     return (
         <div className='h-[calc(100vh_-_48px)]'>
             <ReactFlow
@@ -107,46 +135,32 @@ const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: bo
                 edgeTypes={edgeTypes}
                 className='!bg-background'
             >
-                <Panel position="top-left" className='flex items-center gap-1'>
+                <Panel position="top-left" className='flex items-center gap-1 w-53'>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button size="icon" variant="outline" onClick={() => onLayout('TB', fitView)}>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={onClickLayout}
+                            >
                                 <AlignCenterVertical className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            Auto layout (vertical)
+                            Auto layout
                         </TooltipContent>
                     </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button size="icon" variant="outline" onClick={() => onLayout('LR', fitView)}>
-                                <AlignCenterHorizontal className='h-4 w-4' />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            Auto layout (horizontal)
-                        </TooltipContent>
-                    </Tooltip>
+                    {/* distance: {distance}
+                    <Slider defaultValue={distance} onValueChange={(val) => setDistance(val)} max={420} step={10} /> */}
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" disabled={isLoading} variant="outline" onClick={refetch}>
-                                <RotateCwIcon className={cn('h-4 w-4', isLoading && 'animate-spin')} />
+                            <Button size="icon" disabled={reloading} variant="outline" onClick={refetch}>
+                                <RotateCwIcon className={cn('h-4 w-4', reloading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
                         </div>
-                        {/* {currentNode && getNode(currentNode) && (
-                            getNode(currentNode)?.type === "individual" ?
-                                // @ts-ignore
-                                <CurrentNode individual={getNode(currentNode).data} /> :
-                                <Card className='p-3 bg-background'>
-                                    <>
-                                        {getNode(currentNode)?.data.label}
-                                    </>
-                                </Card>
-                        )} */}
                     </div>
                 </Panel>
                 <Panel position="bottom-left" className='flex flex-col items-center gap-1'>
@@ -191,11 +205,13 @@ const LayoutFlow = ({ refetch, isLoading, theme }: { refetch: any, isLoading: bo
 
 export default function Graph({ graphQuery }: { graphQuery: any }) {
     const [mounted, setMounted] = useState(false);
-    const { refetch, isLoading, data } = graphQuery
+    const { refetch, isLoading, data } = graphQuery;
     const { resolvedTheme } = useTheme();
+
     useEffect(() => {
         setMounted(true);
     }, []);
+
     useEffect(() => {
         if (data) {
             useFlowStore.setState({ nodes: data?.nodes, edges: data?.edges });
@@ -210,6 +226,7 @@ export default function Graph({ graphQuery }: { graphQuery: any }) {
             </div>
         );
     }
+
     return (
         <ReactFlowProvider>
             <LayoutFlow refetch={refetch} isLoading={isLoading} theme={resolvedTheme as ColorMode} />

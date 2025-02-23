@@ -1,7 +1,7 @@
 import { getEdgeParams } from '@/lib/utils';
 import {
     EdgeLabelRenderer,
-    getBezierPath,
+    getStraightPath,
     useInternalNode
 } from '@xyflow/react';
 import { useInvestigationStore } from '@/store/investigation-store';
@@ -16,16 +16,14 @@ function FloatingEdge(props: any) {
         return null;
     }
 
-    const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
+    const { sx, sy, tx, ty } = getEdgeParams(
         sourceNode,
         targetNode,
     );
 
-    const [edgePath, labelX, labelY] = getBezierPath({
+    const [edgePath, labelX, labelY] = getStraightPath({
         sourceX: sx,
         sourceY: sy,
-        sourcePosition: sourcePos,
-        targetPosition: targetPos,
         targetX: tx,
         targetY: ty,
     });

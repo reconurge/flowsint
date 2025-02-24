@@ -1,8 +1,5 @@
 "use client"
-import React, { useEffect, useState, useCallback } from 'react';
-// @ts-ignore
-import * as d3 from 'd3';
-import { Slider } from "@/components/ui/slider"
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ReactFlow,
     ReactFlowProvider,
@@ -32,7 +29,9 @@ import { cn } from '@/lib/utils';
 import { useInvestigationStore } from '@/store/investigation-store';
 import { useFlowStore } from '../../store/flow-store';
 import Loader from '../loader';
-
+import { WorkflowIcon } from 'lucide-react';
+import { useQueryState } from 'nuqs';
+import { on } from 'events';
 const edgeTypes = {
     "custom": FloatingEdge
 };
@@ -50,7 +49,7 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, them
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter, getNodes, getEdges } = useReactFlow();
     const { investigation_id } = useParams();
     const { settings } = useInvestigationStore();
-    const [distance, setDistance] = useState([150]);
+    const [_, setView] = useQueryState("view", { defaultValue: "flow-graph" })
 
     const {
         nodes,
@@ -63,36 +62,20 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, them
         currentNode,
         resetNodeStyles,
         reloading,
-        setNodes
+        onLayout
     } = useFlowStore();
 
-    // Force simulation setup
-    const onClickLayout = useCallback(() => {
-        fitView()
-        const sim = d3.forceSimulation(nodes)
-            .force('charge', d3.forceManyBody().strength(-5000))
-            .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2))
-            .force('collision', d3.forceCollide().radius(100))
-            .force('link', d3.forceLink(edges.map(e => ({
-                source: e.source,
-                target: e.target
-            }))).id((d: any) => d.id).distance(distance));
-
-        sim.on('tick', () => {
-            setNodes(nodes.map(node => ({
-                ...node,
-                position: {
-                    x: (node as any).x,
-                    y: (node as any).y
-                }
-            })));
-        });
-        // sim.start()
+    useEffect(() => {
         setTimeout(() => {
-            sim.stop();
-            fitView()
-        }, 2000);
-    }, [nodes, edges, setNodes, distance]);
+            onLayout("TB", fitView); fitView()
+        }
+            , 100)
+    }, [onLayout, fitView])
+
+    const handleRefetch = useCallback(() => {
+        refetch()
+        onLayout("TB", fitView); setTimeout(() => { fitView() }, 100)
+    }, [refetch, onLayout, fitView])
 
     useEffect(() => {
         resetNodeStyles();
@@ -141,7 +124,7 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, them
                             <Button
                                 size="icon"
                                 variant="outline"
-                                onClick={onClickLayout}
+                                onClick={() => { onLayout("TB", fitView); setTimeout(() => { fitView() }, 100) }}
                             >
                                 <AlignCenterVertical className='h-4 w-4' />
                             </Button>
@@ -150,13 +133,27 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, them
                             Auto layout
                         </TooltipContent>
                     </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => setView("large-graph")}
+                            >
+                                <WorkflowIcon className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            View 2D Graph
+                        </TooltipContent>
+                    </Tooltip>
                     {/* distance: {distance}
                     <Slider defaultValue={distance} onValueChange={(val) => setDistance(val)} max={420} step={10} /> */}
                 </Panel>
                 <Panel position="top-right" className='flex items-center gap-1'>
                     <div className='flex flex-col items-end gap-2'>
                         <div className='flex gap-1 items-center'>
-                            <Button size="icon" disabled={reloading} variant="outline" onClick={refetch}>
+                            <Button size="icon" disabled={reloading} variant="outline" onClick={() => handleRefetch()}>
                                 <RotateCwIcon className={cn('h-4 w-4', reloading && 'animate-spin')} />
                             </Button>
                             <NewActions addNodes={addNodes} />
@@ -195,11 +192,10 @@ const LayoutFlow = ({ refetch, theme }: { refetch: any, isLoading: boolean, them
                         </TooltipContent>
                     </Tooltip>
                 </Panel>
-
                 <Background />
                 {settings.showMiniMap && <MiniMap pannable />}
             </ReactFlow>
-        </div>
+        </div >
     );
 };
 

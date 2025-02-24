@@ -3,12 +3,12 @@
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
-
+/* 
 [data-radius='full'] {
     --radius-factor: 3 !important;
     --radius-full: 999999px !important;
     --radius-thumb: 999999px !important;
-}
+} */
 
 :root {
     --card: hsl(0 0% 100%);

@@ -1,0 +1,2814 @@
+{
+    "nodes": [
+        {
+            "id": "G0130",
+            "type": "group",
+            "attributes": {
+                "val": 2,
+                "name": "Ajax Security Team",
+                "aliases": [
+                    "Operation Woolen-Goldfish",
+                    "AjaxTM",
+                    "Rocket Kitten",
+                    "Flying Kitten",
+                    "Operation Saffron Rose"
+                ],
+                "description": "Ajax Security Team is a group that has been active since at least 2010 and believed to be operating out of Iran. By 2014 Ajax Security Team transitioned from website defacement operations to malware-based cyber espionage campaigns targeting the US defense industrial base and Iranian users of anti-censorship technologies.",
+                "tools": [
+                    "S0224",
+                    "S0225"
+                ],
+                "techniques": [
+                    "T1204.002",
+                    "T1566.003",
+                    "T1566.001",
+                    "T1555.003",
+                    "T1056.001",
+                    "T1105"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0225",
+            "type": "tool",
+            "attributes": {
+                "name": "sqlmap",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "sqlmap is an open source penetration testing tool that can be used to automate the process of detecting and exploiting SQL injection flaws. ",
+                "platforms": [
+                    "Linux",
+                    "Windows",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "S0224",
+            "type": "tool",
+            "attributes": {
+                "name": "Havij",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Havij is an automatic SQL Injection tool distributed by the Iranian ITSecTeam security company. Havij has been used by penetration testers and adversaries. ",
+                "platforms": [
+                    "Linux",
+                    "Windows",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "G0129",
+            "type": "group",
+            "attributes": {
+                "val": 4,
+                "name": "Mustang Panda",
+                "aliases": [
+                    "TA416",
+                    "RedDelta",
+                    "BRONZE PRESIDENT"
+                ],
+                "description": "Mustang Panda is a China-based cyber espionage threat actor that was first observed in 2017 but may have been conducting operations since at least 2014. Mustang Panda has targeted government entities, nonprofits, religious, and other non-governmental organizations in the U.S., Germany, Mongolia, Myanmar, Pakistan, and Vietnam, among others. ",
+                "tools": [
+                    "S0012",
+                    "S0590",
+                    "S0154",
+                    "S0013"
+                ],
+                "techniques": [
+                    "T1583.001",
+                    "T1573.001",
+                    "T1071.001",
+                    "T1074.001",
+                    "T1574.002",
+                    "T1204.002",
+                    "T1204.001",
+                    "T1052.001",
+                    "T1059.005",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1564.001",
+                    "T1560.003",
+                    "T1560.001",
+                    "T1003.003",
+                    "T1036.005",
+                    "T1027.001",
+                    "T1070.004",
+                    "T1546.003",
+                    "T1547.001",
+                    "T1218.005",
+                    "T1218.004",
+                    "T1053.005",
+                    "T1518",
+                    "T1219",
+                    "T1203",
+                    "T1119",
+                    "T1105",
+                    "T1091",
+                    "T1083",
+                    "T1082",
+                    "T1057",
+                    "T1049",
+                    "T1047",
+                    "T1036",
+                    "T1027",
+                    "T1016"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0590",
+            "type": "tool",
+            "attributes": {
+                "name": "NBTscan",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "NBTscan is an open source tool that has been used by state groups to conduct internal reconnaissance within a compromised network.",
+                "platforms": [
+                    "Windows",
+                    "Linux",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "S0154",
+            "type": "tool",
+            "attributes": {
+                "name": "Cobalt Strike",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Cobalt Strike is a commercial, full-featured, remote access tool that bills itself as “adversary simulation software designed to execute targeted attacks and emulate the post-exploitation actions of advanced threat actors”. Cobalt Strike’s interactive post-exploit capabilities cover the full range of ATT&CK tactics, all executed within a single, integrated system.\n\nIn addition to its own capabilities, Cobalt Strike leverages the capabilities of other well-known tools such as Metasploit and Mimikatz.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0013",
+            "type": "tool",
+            "attributes": {
+                "name": "PlugX",
+                "aliases": [
+                    "DestroyRAT",
+                    "Sogu",
+                    "Kaba",
+                    "Korplug"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "PlugX is a remote access tool (RAT) that uses modular plugins. It has been used by multiple threat groups.    ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0012",
+            "type": "tool",
+            "attributes": {
+                "name": "PoisonIvy",
+                "aliases": [
+                    "Poison Ivy",
+                    "Darkmoon"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "PoisonIvy is a popular remote access tool (RAT) that has been used by many groups.   ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0128",
+            "type": "group",
+            "attributes": {
+                "val": 0,
+                "name": "ZIRCONIUM",
+                "aliases": [
+                    "APT31"
+                ],
+                "description": "ZIRCONIUM is a threat group operating out of China, active since at least 2017, that has targeted individuals associated with the 2020 US presidential election and prominent leaders in the international affairs community.",
+                "tools": [],
+                "techniques": [
+                    "T1598",
+                    "T1583.006",
+                    "T1583.001",
+                    "T1573.001",
+                    "T1102.002",
+                    "T1204.001",
+                    "T1567.002",
+                    "T1059.006",
+                    "T1059.003",
+                    "T1566.002",
+                    "T1555.003",
+                    "T1036.004",
+                    "T1027.002",
+                    "T1218.007",
+                    "T1547.001",
+                    "T1140",
+                    "T1124",
+                    "T1105",
+                    "T1082",
+                    "T1068",
+                    "T1041",
+                    "T1036",
+                    "T1033",
+                    "T1016",
+                    "T1012"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0127",
+            "type": "group",
+            "attributes": {
+                "val": 3,
+                "name": "TA551",
+                "aliases": [
+                    "GOLD CABIN",
+                    "Shathak"
+                ],
+                "description": "TA551 is a financially-motivated threat group that has been active since at least 2018.  The group has primarily targeted English, German, Italian, and Japanese speakers through email-based malware distribution campaigns. ",
+                "tools": [
+                    "S0386",
+                    "S0476",
+                    "S0483"
+                ],
+                "techniques": [
+                    "T1589.002",
+                    "T1071.001",
+                    "T1132.001",
+                    "T1204.002",
+                    "T1568.002",
+                    "T1059.003",
+                    "T1566.001",
+                    "T1027.003",
+                    "T1218.010",
+                    "T1218.005",
+                    "T1218.011",
+                    "T1105",
+                    "T1036",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0483",
+            "type": "tool",
+            "attributes": {
+                "name": "IcedID",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "IcedID is a modular banking malware designed to steal financial information that has been observed in the wild since at least 2017.  IcedID  has been downloaded by Emotet in multiple campaigns.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0476",
+            "type": "tool",
+            "attributes": {
+                "name": "Valak",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Valak is a multi-stage modular malware that can function as a standalone information stealer or downloader, first observed in 2019 targeting enterprises in the US and Germany.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0386",
+            "type": "tool",
+            "attributes": {
+                "name": "Ursnif",
+                "aliases": [
+                    "Gozi-ISFB",
+                    "PE_URSNIF",
+                    "Dreambot"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Ursnif is a banking trojan and variant of the Gozi malware observed being spread through various automated exploit kits, Spearphishing Attachments, and malicious links. Ursnif is associated primarily with data theft, but variants also include components (backdoors, spyware, file injectors, etc.) capable of a wide variety of behaviors.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0126",
+            "type": "group",
+            "attributes": {
+                "val": 3,
+                "name": "Higaisa",
+                "aliases": [],
+                "description": "Higaisa is a threat group suspected to have South Korean origins. Higaisa has targeted government, public, and trade organizations in North Korea; however, they have also carried out attacks in China, Japan, Russia, Poland, and other nations. Higaisa was first disclosed in early 2019 but is assessed to have operated as early as 2009.",
+                "tools": [
+                    "S0032",
+                    "S0160",
+                    "S0013"
+                ],
+                "techniques": [
+                    "T1059.007",
+                    "T1573.001",
+                    "T1071.001",
+                    "T1001.003",
+                    "T1090.001",
+                    "T1564.003",
+                    "T1574.002",
+                    "T1204.002",
+                    "T1059.005",
+                    "T1059.003",
+                    "T1566.001",
+                    "T1036.004",
+                    "T1027.001",
+                    "T1547.001",
+                    "T1053.005",
+                    "T1220",
+                    "T1203",
+                    "T1140",
+                    "T1124",
+                    "T1106",
+                    "T1082",
+                    "T1057",
+                    "T1041",
+                    "T1029",
+                    "T1027",
+                    "T1016"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0160",
+            "type": "tool",
+            "attributes": {
+                "name": "certutil",
+                "aliases": [
+                    "certutil.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "certutil is a command-line utility that can be used to obtain certificate authority information and configure Certificate Services. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0032",
+            "type": "tool",
+            "attributes": {
+                "name": "gh0st RAT",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "gh0st RAT is a remote access tool (RAT). The source code is public and it has been used by multiple groups. ",
+                "platforms": [
+                    "Windows",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "G0125",
+            "type": "group",
+            "attributes": {
+                "val": 3,
+                "name": "HAFNIUM",
+                "aliases": [
+                    "Operation Exchange Marauder"
+                ],
+                "description": "HAFNIUM is a likely state-sponsored cyber espionage group operating out of China that has been active since at least January 2021. HAFNIUM primarily targets entities in the US across a number of industry sectors, including infectious disease researchers, law firms, higher education institutions, defense contractors, policy think tanks, and NGOs.",
+                "tools": [
+                    "S0020",
+                    "S0029",
+                    "S0073"
+                ],
+                "techniques": [
+                    "T1592.004",
+                    "T1590.005",
+                    "T1590",
+                    "T1589.002",
+                    "T1583.006",
+                    "T1583.003",
+                    "T1071.001",
+                    "T1132.001",
+                    "T1078.003",
+                    "T1567.002",
+                    "T1059.001",
+                    "T1560.001",
+                    "T1114.002",
+                    "T1003.003",
+                    "T1003.001",
+                    "T1136.002",
+                    "T1218.011",
+                    "T1505.003",
+                    "T1203",
+                    "T1105",
+                    "T1095"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0073",
+            "type": "tool",
+            "attributes": {
+                "name": "ASPXSpy",
+                "aliases": [
+                    "ASPXTool"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "ASPXSpy is a Web shell. It has been modified by Threat Group-3390 actors to create the ASPXTool version. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0029",
+            "type": "tool",
+            "attributes": {
+                "name": "PsExec",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "PsExec is a free Microsoft tool that can be used to execute a program on another computer. It is used by IT administrators and attackers.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0020",
+            "type": "tool",
+            "attributes": {
+                "name": "China Chopper",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "China Chopper is a Web Shell hosted on Web servers to provide access back into an enterprise network that does not rely on an infected system calling back to a remote command and control server.  It has been used by several threat groups.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0124",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Windigo",
+                "aliases": [],
+                "description": "The Windigo group has been operating since at least 2011, compromising thousands of Linux and Unix servers using the Ebury SSH backdoor to create a spam botnet. Despite law enforcement intervention against the creators, Windigo operators continued updating Ebury through 2019.",
+                "tools": [
+                    "S0377"
+                ],
+                "techniques": [
+                    "T1518",
+                    "T1189",
+                    "T1090",
+                    "T1083",
+                    "T1082",
+                    "T1059",
+                    "T1005"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0377",
+            "type": "tool",
+            "attributes": {
+                "name": "Ebury",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Ebury is an SSH backdoor targeting Linux operating systems. Attackers require root-level access, which allows them to replace SSH binaries (ssh, sshd, ssh-add, etc) or modify a shared library used by OpenSSH (libkeyutils).",
+                "platforms": [
+                    "Linux"
+                ]
+            }
+        },
+        {
+            "id": "G0123",
+            "type": "group",
+            "attributes": {
+                "val": 2,
+                "name": "Volatile Cedar",
+                "aliases": [
+                    "Lebanese Cedar"
+                ],
+                "description": "Volatile Cedar is a Lebanese threat group that has targeted individuals, companies, and institutions worldwide. Volatile Cedar has been operating since 2012 and is motivated by political and ideological interests.",
+                "tools": [
+                    "S0572",
+                    "S0569"
+                ],
+                "techniques": [
+                    "T1595.002",
+                    "T1505.003",
+                    "T1190",
+                    "T1105"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0572",
+            "type": "tool",
+            "attributes": {
+                "name": "Caterpillar WebShell",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Caterpillar WebShell is a self-developed Web Shell tool created by the group Volatile Cedar. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0569",
+            "type": "tool",
+            "attributes": {
+                "name": "Explosive",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Explosive is a custom-made remote access tool used by the group Volatile Cedar. It was first identified in the wild in 2015.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0122",
+            "type": "group",
+            "attributes": {
+                "val": 0,
+                "name": "Silent Librarian",
+                "aliases": [
+                    "TA407",
+                    "COBALT DICKENS"
+                ],
+                "description": "Silent Librarian is a group that has targeted research and proprietary data at universities, government agencies, and private sector companies worldwide since at least 2013. Members of  Silent Librarian are known to have been affiliated with the Iran-based Mabna Institute which has conducted cyber intrusions at the behest of the government of Iran, specifically the Islamic Revolutionary Guard Corps (IRGC).",
+                "tools": [],
+                "techniques": [
+                    "T1608.005",
+                    "T1598.003",
+                    "T1594",
+                    "T1589.003",
+                    "T1589.002",
+                    "T1588.004",
+                    "T1588.002",
+                    "T1585.002",
+                    "T1583.001",
+                    "T1114.003",
+                    "T1110.003",
+                    "T1114",
+                    "T1078"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0121",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Sidewinder",
+                "aliases": [
+                    "T-APT-04",
+                    "Rattlesnake"
+                ],
+                "description": "Sidewinder is a suspected Indian threat actor group that has been active since at least 2012. They have been observed targeting government, military, and business entities throughout Asia, primarily focusing on Pakistan, China, Nepal, and Afghanistan.",
+                "tools": [
+                    "S0250"
+                ],
+                "techniques": [
+                    "T1598.003",
+                    "T1598.002",
+                    "T1059.007",
+                    "T1071.001",
+                    "T1074.001",
+                    "T1574.002",
+                    "T1204.002",
+                    "T1204.001",
+                    "T1059.005",
+                    "T1059.001",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1518.001",
+                    "T1559.002",
+                    "T1036.005",
+                    "T1547.001",
+                    "T1218.005",
+                    "T1518",
+                    "T1203",
+                    "T1124",
+                    "T1119",
+                    "T1105",
+                    "T1083",
+                    "T1082",
+                    "T1057",
+                    "T1033",
+                    "T1027",
+                    "T1020",
+                    "T1016"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0250",
+            "type": "tool",
+            "attributes": {
+                "name": "Koadic",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Koadic is a Windows post-exploitation framework and penetration testing tool. Koadic is publicly available on GitHub and the tool is executed via the command-line. Koadic has several options for staging payloads and creating implants. Koadic performs most of its operations using Windows Script Host.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0120",
+            "type": "group",
+            "attributes": {
+                "val": 3,
+                "name": "Evilnum",
+                "aliases": [],
+                "description": "Evilnum is a financially motivated threat group that has been active since at least 2018.",
+                "tools": [
+                    "S0284",
+                    "S0568",
+                    "S0349"
+                ],
+                "techniques": [
+                    "T1059.007",
+                    "T1574.001",
+                    "T1204.001",
+                    "T1497.001",
+                    "T1566.002",
+                    "T1555",
+                    "T1070.004",
+                    "T1548.002",
+                    "T1539",
+                    "T1219",
+                    "T1105"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0568",
+            "type": "tool",
+            "attributes": {
+                "name": "EVILNUM",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "EVILNUM is fully capable backdoor that was first identified in 2018. EVILNUM is used by the APT group Evilnum which has the same name.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0349",
+            "type": "tool",
+            "attributes": {
+                "name": "LaZagne",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "LaZagne is a post-exploitation, open-source tool used to recover stored passwords on a system. It has modules for Windows, Linux, and OSX, but is mainly focused on Windows systems. LaZagne is publicly available on GitHub.",
+                "platforms": [
+                    "Linux",
+                    "macOS",
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0284",
+            "type": "tool",
+            "attributes": {
+                "name": "More_eggs",
+                "aliases": [
+                    "SKID",
+                    "Terra Loader",
+                    "SpicyOmelette"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "More_eggs is a JScript backdoor used by Cobalt Group and FIN6. Its name was given based on the variable \"More_eggs\" being present in its code. There are at least two different versions of the backdoor being used, version 2.0 and version 4.4. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0119",
+            "type": "group",
+            "attributes": {
+                "val": 4,
+                "name": "Indrik Spider",
+                "aliases": [],
+                "description": "Indrik Spider is a financially motivated threat group that has leveraged the Dridex banking trojan since at least June 2014 and delivered ransomware variants since 2017. ",
+                "tools": [
+                    "S0002",
+                    "S0384",
+                    "S0570",
+                    "S0363"
+                ],
+                "techniques": [
+                    "T1484.001",
+                    "T1584.004",
+                    "T1078.002",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1036.005",
+                    "T1486",
+                    "T1105"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0570",
+            "type": "tool",
+            "attributes": {
+                "name": "BitPaymer",
+                "aliases": [
+                    "wp_encrypt",
+                    "FriedEx"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "BitPaymer is a ransomware variant first observed in August 2017 targeting hospitals in the U.K. BitPaymer uses a unique encryption key, ransom note, and contact information for each operation. BitPaymer has several indicators suggesting overlap with the Dridex malware and is often delivered via Dridex.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0384",
+            "type": "tool",
+            "attributes": {
+                "name": "Dridex",
+                "aliases": [
+                    "Bugat v5"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Dridex is a banking Trojan that has been used for financial gain. Dridex was created from the source code of the Bugat banking trojan (also known as Cridex).",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0363",
+            "type": "tool",
+            "attributes": {
+                "name": "Empire",
+                "aliases": [
+                    "EmPyre",
+                    "PowerShell Empire"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Empire is an open source, cross-platform remote administration and post-exploitation framework that is publicly available on GitHub. While the tool itself is primarily written in Python, the post-exploitation agents are written in pure PowerShell for Windows and Python for Linux/macOS. Empire was one of five tools singled out by a joint report on public hacking tools being widely used by adversaries.",
+                "platforms": [
+                    "Linux",
+                    "macOS",
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0002",
+            "type": "tool",
+            "attributes": {
+                "name": "Mimikatz",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Mimikatz is a credential dumper capable of obtaining plaintext Windows account logins and passwords, along with many other features that make it useful for testing the security of networks.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0117",
+            "type": "group",
+            "attributes": {
+                "val": 4,
+                "name": "Fox Kitten",
+                "aliases": [
+                    "UNC757",
+                    "PIONEER KITTEN",
+                    "Parisite"
+                ],
+                "description": "Fox Kitten is threat actor with a suspected nexus to the Iranian government that has been active since at least 2017 against entities in the Middle East, North Africa, Europe, Australia, and North America. Fox Kitten has targeted multiple industrial verticals including oil and gas, technology, government, defense, healthcare, manufacturing, and engineering.",
+                "tools": [
+                    "S0556",
+                    "S0029",
+                    "S0020",
+                    "S0508"
+                ],
+                "techniques": [
+                    "T1555.005",
+                    "T1585.001",
+                    "T1585",
+                    "T1572",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1087.002",
+                    "T1087.001",
+                    "T1560.001",
+                    "T1003.003",
+                    "T1003.001",
+                    "T1021.005",
+                    "T1021.004",
+                    "T1021.002",
+                    "T1021.001",
+                    "T1036.005",
+                    "T1036.004",
+                    "T1552.001",
+                    "T1136.001",
+                    "T1546.008",
+                    "T1505.003",
+                    "T1053.005",
+                    "T1530",
+                    "T1190",
+                    "T1210",
+                    "T1217",
+                    "T1213",
+                    "T1110",
+                    "T1105",
+                    "T1102",
+                    "T1090",
+                    "T1083",
+                    "T1078",
+                    "T1059",
+                    "T1046",
+                    "T1039",
+                    "T1027",
+                    "T1018",
+                    "T1012",
+                    "T1005"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0556",
+            "type": "tool",
+            "attributes": {
+                "name": "Pay2Key",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Pay2Key is a ransomware written in C++ that has been used by Fox Kitten since at least July 2020 including campaigns against Israeli companies. Pay2Key has been incorporated with a leak site to display stolen sensitive information to further pressure victims into payment.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0508",
+            "type": "tool",
+            "attributes": {
+                "name": "Ngrok",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Ngrok is a legitimate reverse proxy tool that can create a secure tunnel to servers located behind firewalls or on local machines that do not have a public IP. Ngrok has been leveraged by threat actors in several campaigns including use for lateral movement and data exfiltration.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0116",
+            "type": "group",
+            "attributes": {
+                "val": 6,
+                "name": "Operation Wocao",
+                "aliases": [],
+                "description": "Operation Wocao described activities carried out by a China-based cyber espionage adversary. Operation Wocao targeted entities within the government, managed service providers, energy, health care, and technology sectors across several countries, including China, France, Germany, the United Kingdom, and the United States. Operation Wocao used similar TTPs and tools to APT20, suggesting a possible overlap.",
+                "tools": [
+                    "S0357",
+                    "S0002",
+                    "S0104",
+                    "S0521",
+                    "S0105",
+                    "S0194"
+                ],
+                "techniques": [
+                    "T1555.005",
+                    "T1027.005",
+                    "T1573.002",
+                    "T1090.003",
+                    "T1090.001",
+                    "T1074.001",
+                    "T1078.003",
+                    "T1078.002",
+                    "T1069.001",
+                    "T1570",
+                    "T1569.002",
+                    "T1059.006",
+                    "T1059.005",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1518.001",
+                    "T1087.002",
+                    "T1562.004",
+                    "T1560.001",
+                    "T1056.001",
+                    "T1003.006",
+                    "T1558.003",
+                    "T1003.001",
+                    "T1021.002",
+                    "T1552.004",
+                    "T1070.004",
+                    "T1070.001",
+                    "T1505.003",
+                    "T1053.005",
+                    "T1518",
+                    "T1190",
+                    "T1135",
+                    "T1133",
+                    "T1124",
+                    "T1120",
+                    "T1119",
+                    "T1115",
+                    "T1112",
+                    "T1111",
+                    "T1106",
+                    "T1105",
+                    "T1095",
+                    "T1090",
+                    "T1083",
+                    "T1082",
+                    "T1078",
+                    "T1057",
+                    "T1055",
+                    "T1049",
+                    "T1047",
+                    "T1046",
+                    "T1041",
+                    "T1033",
+                    "T1027",
+                    "T1018",
+                    "T1016",
+                    "T1012",
+                    "T1007",
+                    "T1005",
+                    "T1001"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0521",
+            "type": "tool",
+            "attributes": {
+                "name": "BloodHound",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "BloodHound is an Active Directory (AD) reconnaissance tool that can reveal hidden relationships and identify attack paths within an AD environment.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0357",
+            "type": "tool",
+            "attributes": {
+                "name": "Impacket",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Impacket is an open source collection of modules written in Python for programmatically constructing and manipulating network protocols. Impacket contains several tools for remote service execution, Kerberos manipulation, Windows credential dumping, packet sniffing, and relay attacks.",
+                "platforms": [
+                    "Linux",
+                    "macOS",
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0194",
+            "type": "tool",
+            "attributes": {
+                "name": "PowerSploit",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "PowerSploit is an open source, offensive security framework comprised of PowerShell modules and scripts that perform a wide range of tasks related to penetration testing such as code execution, persistence, bypassing anti-virus, recon, and exfiltration.   ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0105",
+            "type": "tool",
+            "attributes": {
+                "name": "dsquery",
+                "aliases": [
+                    "dsquery.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "dsquery is a command-line utility that can be used to query Active Directory for information from a system within a domain.  It is typically installed only on Windows Server versions but can be installed on non-server variants through the Microsoft-provided Remote Server Administration Tools bundle.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0104",
+            "type": "tool",
+            "attributes": {
+                "name": "netstat",
+                "aliases": [
+                    "netstat.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "netstat is an operating system utility that displays active TCP connections, listening ports, and network statistics. ",
+                "platforms": [
+                    "Windows",
+                    "Linux",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "G0115",
+            "type": "group",
+            "attributes": {
+                "val": 2,
+                "name": "GOLD SOUTHFIELD",
+                "aliases": [],
+                "description": "GOLD SOUTHFIELD is a financially motivated threat group active since at least 2019 that operates the REvil Ransomware-as-a Service (RaaS). GOLD SOUTHFIELD provides backend infrastructure for affiliates recruited on underground forums to perpetrate high value deployments.",
+                "tools": [
+                    "S0591",
+                    "S0496"
+                ],
+                "techniques": [
+                    "T1195.002",
+                    "T1059.001",
+                    "T1566",
+                    "T1190",
+                    "T1219",
+                    "T1199",
+                    "T1133",
+                    "T1113",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0591",
+            "type": "tool",
+            "attributes": {
+                "name": "ConnectWise",
+                "aliases": [
+                    "ScreenConnect"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "ConnectWise is a legitimate remote administration tool that has been used since at least 2016 by threat actors including MuddyWater and GOLD SOUTHFIELD to connect to and conduct lateral movement in target environments.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0496",
+            "type": "tool",
+            "attributes": {
+                "name": "REvil",
+                "aliases": [
+                    "Sodin",
+                    "Sodinokibi"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "REvil is a ransomware family that has been linked to the GOLD SOUTHFIELD group and operated as ransomware-as-a-service (RaaS) since at least April 2019. REvil is highly configurable and shares code similarities with the GandCrab RaaS.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0114",
+            "type": "group",
+            "attributes": {
+                "val": 6,
+                "name": "Chimera",
+                "aliases": [],
+                "description": "Chimera is a suspected China-based threat group that has been active since at least 2018 targeting the semiconductor industry in Taiwan as well as data from the airline industry.",
+                "tools": [
+                    "S0039",
+                    "S0002",
+                    "S0029",
+                    "S0521",
+                    "S0154",
+                    "S0404"
+                ],
+                "techniques": [
+                    "T1589.001",
+                    "T1071.004",
+                    "T1071.001",
+                    "T1572",
+                    "T1074.002",
+                    "T1074.001",
+                    "T1078.002",
+                    "T1574.002",
+                    "T1069.001",
+                    "T1570",
+                    "T1569.002",
+                    "T1567.002",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1087.002",
+                    "T1087.001",
+                    "T1560.001",
+                    "T1114.002",
+                    "T1114.001",
+                    "T1213.002",
+                    "T1556.001",
+                    "T1003.003",
+                    "T1110.004",
+                    "T1110.003",
+                    "T1021.006",
+                    "T1021.002",
+                    "T1021.001",
+                    "T1036.005",
+                    "T1070.006",
+                    "T1070.004",
+                    "T1550.002",
+                    "T1070.001",
+                    "T1053.005",
+                    "T1482",
+                    "T1217",
+                    "T1201",
+                    "T1135",
+                    "T1133",
+                    "T1124",
+                    "T1119",
+                    "T1111",
+                    "T1106",
+                    "T1105",
+                    "T1083",
+                    "T1082",
+                    "T1078",
+                    "T1057",
+                    "T1049",
+                    "T1047",
+                    "T1046",
+                    "T1041",
+                    "T1039",
+                    "T1033",
+                    "T1027",
+                    "T1018",
+                    "T1016",
+                    "T1012",
+                    "T1007"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0404",
+            "type": "tool",
+            "attributes": {
+                "name": "esentutl",
+                "aliases": [
+                    "esentutl.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "esentutl is a command-line tool that provides database utilities for the Windows Extensible Storage Engine.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0039",
+            "type": "tool",
+            "attributes": {
+                "name": "Net",
+                "aliases": [
+                    "net.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "The Net utility is a component of the Windows operating system. It is used in command-line operations for control of users, groups, services, and network connections. \n\nNet has a great deal of functionality,  much of which is useful for an adversary, such as gathering system and network information for Discovery, moving laterally through SMB/Windows Admin Shares using <code>net use</code> commands, and interacting with services. The net1.exe utility is executed for certain functionality when net.exe is run and can be used directly in commands such as <code>net1 user</code>.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0112",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Windshift",
+                "aliases": [
+                    "Bahamut"
+                ],
+                "description": "Windshift is a threat group that has been active since at least 2017, targeting specific individuals for surveillance in government departments and critical infrastructure across the Middle East.",
+                "tools": [
+                    "S0466"
+                ],
+                "techniques": [
+                    "T1071.001",
+                    "T1204.002",
+                    "T1204.001",
+                    "T1059.005",
+                    "T1566.003",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1518.001",
+                    "T1036.001",
+                    "T1547.001",
+                    "T1518",
+                    "T1189",
+                    "T1105",
+                    "T1082",
+                    "T1057",
+                    "T1047",
+                    "T1036",
+                    "T1033",
+                    "T1027",
+                    "T1581",
+                    "T1533",
+                    "T1523",
+                    "T1521",
+                    "T1512",
+                    "T1475",
+                    "T1476",
+                    "T1478",
+                    "T1406",
+                    "T1417",
+                    "T1420",
+                    "T1426",
+                    "T1412",
+                    "T1407",
+                    "T1429",
+                    "T1430",
+                    "T1432"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0466",
+            "type": "tool",
+            "attributes": {
+                "name": "WindTail",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "WindTail is a macOS surveillance implant used by Windshift. WindTail shares code similarities with Hack Back aka KitM OSX.",
+                "platforms": [
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "G0108",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Blue Mockingbird",
+                "aliases": [],
+                "description": "Blue Mockingbird is a cluster of observed activity involving Monero cryptocurrency-mining payloads in dynamic-link library (DLL) form on Windows systems. The earliest observed Blue Mockingbird tools were created in December 2019.",
+                "tools": [
+                    "S0002"
+                ],
+                "techniques": [
+                    "T1574.012",
+                    "T1569.002",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1003.001",
+                    "T1021.002",
+                    "T1021.001",
+                    "T1036.005",
+                    "T1546.003",
+                    "T1218.010",
+                    "T1218.011",
+                    "T1543.003",
+                    "T1053.005",
+                    "T1496",
+                    "T1190",
+                    "T1134",
+                    "T1112",
+                    "T1090",
+                    "T1082",
+                    "T1047",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0107",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Whitefly",
+                "aliases": [],
+                "description": "Whitefly is a cyber espionage group that has been operating since at least 2017. The group has targeted organizations based mostly in Singapore across a wide variety of sectors, and is primarily interested in stealing large amounts of sensitive information. The group has been linked to an attack against Singapore’s largest public health organization, SingHealth.",
+                "tools": [
+                    "S0002"
+                ],
+                "techniques": [
+                    "T1574.001",
+                    "T1204.002",
+                    "T1003.001",
+                    "T1036.005",
+                    "T1105",
+                    "T1068",
+                    "T1059",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0106",
+            "type": "group",
+            "attributes": {
+                "val": 0,
+                "name": "Rocke",
+                "aliases": [],
+                "description": "Rocke is an alleged Chinese-speaking adversary whose primary objective appeared to be cryptojacking, or stealing victim system resources for the purposes of mining cryptocurrency. The name Rocke comes from the email address \"rocke@live.cn\" used to create the wallet which held collected cryptocurrency. Researchers have detected overlaps between Rocke and the Iron Cybercrime Group, though this attribution has not been confirmed.",
+                "tools": [],
+                "techniques": [
+                    "T1027.004",
+                    "T1071.001",
+                    "T1102.001",
+                    "T1571",
+                    "T1574.006",
+                    "T1059.006",
+                    "T1059.004",
+                    "T1564.001",
+                    "T1518.001",
+                    "T1562.004",
+                    "T1562.001",
+                    "T1021.004",
+                    "T1036.005",
+                    "T1027.002",
+                    "T1222.002",
+                    "T1552.004",
+                    "T1070.006",
+                    "T1070.004",
+                    "T1070.002",
+                    "T1547.001",
+                    "T1543.002",
+                    "T1055.002",
+                    "T1053.003",
+                    "T1496",
+                    "T1190",
+                    "T1140",
+                    "T1105",
+                    "T1102",
+                    "T1082",
+                    "T1071",
+                    "T1057",
+                    "T1046",
+                    "T1037",
+                    "T1027",
+                    "T1018",
+                    "T1014"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0105",
+            "type": "group",
+            "attributes": {
+                "val": 2,
+                "name": "DarkVishnya",
+                "aliases": [],
+                "description": "DarkVishnya is a financially motivated threat actor targeting financial institutions in Eastern Europe. In 2017-2018 the group attacked at least 8 banks in this region.",
+                "tools": [
+                    "S0029",
+                    "S0191"
+                ],
+                "techniques": [
+                    "T1571",
+                    "T1059.001",
+                    "T1543.003",
+                    "T1219",
+                    "T1200",
+                    "T1135",
+                    "T1110",
+                    "T1046",
+                    "T1040"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0191",
+            "type": "tool",
+            "attributes": {
+                "name": "Winexe",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Winexe is a lightweight, open source tool similar to PsExec designed to allow system administrators to execute commands on remote servers.  Winexe is unique in that it is a GNU/Linux based client. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0104",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Sharpshooter",
+                "aliases": [],
+                "description": "Operation Sharpshooter is the name of a cyber espionage campaign discovered in October 2018 targeting nuclear, defense, energy, and financial companies. Though overlaps between this adversary and Lazarus Group have been noted, definitive links have not been established.",
+                "tools": [
+                    "S0448"
+                ],
+                "techniques": [
+                    "T1204.002",
+                    "T1059.005",
+                    "T1566.001",
+                    "T1559.002",
+                    "T1547.001",
+                    "T1106",
+                    "T1105",
+                    "T1055"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0448",
+            "type": "tool",
+            "attributes": {
+                "name": "Rising Sun",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Rising Sun is a modular backdoor malware used extensively in Operation Sharpshooter. The malware has been observed targeting nuclear, defense, energy, and financial services companies across the world. Rising Sun uses source code from Lazarus Group's Trojan Duuzer.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0103",
+            "type": "group",
+            "attributes": {
+                "val": 2,
+                "name": "Mofang",
+                "aliases": [],
+                "description": "Mofang is a likely China-based cyber espionage group, named for its frequent practice of imitating a victim's infrastructure. This adversary has been observed since at least May 2012 conducting focused attacks against government and critical infrastructure in Myanmar, as well as several other countries and sectors including military, automobile, and weapons industries.",
+                "tools": [
+                    "S0445",
+                    "S0444"
+                ],
+                "techniques": [
+                    "T1204.002",
+                    "T1204.001",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0445",
+            "type": "tool",
+            "attributes": {
+                "name": "ShimRatReporter",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "ShimRatReporter is a tool used by suspected Chinese adversary Mofang to automatically conduct initial discovery. The details from this discovery are used to customize follow-on payloads (such as ShimRat) as well as set up faux infrastructure which mimics the adversary's targets. ShimRatReporter has been used in campaigns targeting multiple countries and sectors including government, military, critical infrastructure, automobile, and weapons development.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0444",
+            "type": "tool",
+            "attributes": {
+                "name": "ShimRat",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "ShimRat has been used by the suspected China-based adversary Mofang in campaigns targeting multiple countries and sectors including government, military, critical infrastructure, automobile, and weapons development. The name \"ShimRat\" comes from the malware's extensive use of Windows Application Shimming to maintain persistence. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0102",
+            "type": "group",
+            "attributes": {
+                "val": 13,
+                "name": "Wizard Spider",
+                "aliases": [
+                    "UNC1878",
+                    "TEMP.MixMaster",
+                    "Grim Spider"
+                ],
+                "description": "Wizard Spider is a financially motivated criminal group that has been conducting ransomware campaigns since at least August 2018 against a variety of organizations, ranging from major corporations to hospitals.",
+                "tools": [
+                    "S0039",
+                    "S0552",
+                    "S0097",
+                    "S0002",
+                    "S0029",
+                    "S0446",
+                    "S0266",
+                    "S0024",
+                    "S0521",
+                    "S0154",
+                    "S0363",
+                    "S0367",
+                    "S0359"
+                ],
+                "techniques": [
+                    "T1588.003",
+                    "T1071.001",
+                    "T1048.003",
+                    "T1078.002",
+                    "T1570",
+                    "T1204.002",
+                    "T1204.001",
+                    "T1569.002",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1518.001",
+                    "T1087.002",
+                    "T1562.001",
+                    "T1557.001",
+                    "T1558.003",
+                    "T1003.003",
+                    "T1003.002",
+                    "T1021.006",
+                    "T1021.002",
+                    "T1021.001",
+                    "T1036.004",
+                    "T1553.002",
+                    "T1222.001",
+                    "T1070.004",
+                    "T1547.004",
+                    "T1547.001",
+                    "T1543.003",
+                    "T1055.001",
+                    "T1053.005",
+                    "T1489",
+                    "T1210",
+                    "T1135",
+                    "T1133",
+                    "T1112",
+                    "T1082",
+                    "T1078",
+                    "T1074",
+                    "T1047",
+                    "T1041",
+                    "T1033",
+                    "T1027",
+                    "T1018",
+                    "T1016"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0552",
+            "type": "tool",
+            "attributes": {
+                "name": "AdFind",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "AdFind is a free command-line query tool that can be used for gathering information from Active Directory.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0446",
+            "type": "tool",
+            "attributes": {
+                "name": "Ryuk",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Ryuk is a ransomware designed to target enterprise environments that has been used in attacks since at least 2018. Ryuk shares code similarities with Hermes ransomware.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0367",
+            "type": "tool",
+            "attributes": {
+                "name": "Emotet",
+                "aliases": [
+                    "Geodo"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Emotet is a modular malware variant which is primarily used as a downloader for other malware variants such as TrickBot and IcedID. Emotet first emerged in June 2014 and has been primarily used to target the banking sector. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0359",
+            "type": "tool",
+            "attributes": {
+                "name": "Nltest",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Nltest is a Windows command-line utility used to list domain controllers and enumerate domain trusts.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0266",
+            "type": "tool",
+            "attributes": {
+                "name": "TrickBot",
+                "aliases": [
+                    "Totbrick",
+                    "TSPY_TRICKLOAD"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "TrickBot is a Trojan spyware program that has mainly been used for targeting banking sites in United States, Canada, UK, Germany, Australia, Austria, Ireland, London, Switzerland, and Scotland. TrickBot first emerged in the wild in September 2016 and appears to be a successor to Dyre. TrickBot is developed in the C++ programming language.   ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0097",
+            "type": "tool",
+            "attributes": {
+                "name": "Ping",
+                "aliases": [
+                    "ping.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Ping is an operating system utility commonly used to troubleshoot and verify network connections. ",
+                "platforms": [
+                    "Linux",
+                    "Windows",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "S0024",
+            "type": "tool",
+            "attributes": {
+                "name": "Dyre",
+                "aliases": [
+                    "Dyzap",
+                    "Dyreza"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Dyre is a banking Trojan that has been used for financial gain. \n ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0101",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Frankenstein",
+                "aliases": [],
+                "description": "Frankenstein is a campaign carried out between January and April 2019 by unknown threat actors. The campaign name comes from the actors' ability to piece together several unrelated components.  ",
+                "tools": [
+                    "S0363"
+                ],
+                "techniques": [
+                    "T1127.001",
+                    "T1573.001",
+                    "T1204.002",
+                    "T1059.005",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1497.001",
+                    "T1566.001",
+                    "T1518.001",
+                    "T1053.005",
+                    "T1221",
+                    "T1203",
+                    "T1140",
+                    "T1119",
+                    "T1105",
+                    "T1082",
+                    "T1057",
+                    "T1047",
+                    "T1041",
+                    "T1033",
+                    "T1027",
+                    "T1020",
+                    "T1016",
+                    "T1005",
+                    "T1003"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "G0100",
+            "type": "group",
+            "attributes": {
+                "val": 3,
+                "name": "Inception",
+                "aliases": [
+                    "Inception Framework",
+                    "Cloud Atlas"
+                ],
+                "description": "Inception is a cyber espionage group active since at least 2014. The group has targeted multiple industries and governmental entities primarily in Russia, but has also been active in the United States and throughout Europe, Asia, Africa, and the Middle East.",
+                "tools": [
+                    "S0349",
+                    "S0442",
+                    "S0441"
+                ],
+                "techniques": [
+                    "T1573.001",
+                    "T1071.001",
+                    "T1090.003",
+                    "T1204.002",
+                    "T1059.005",
+                    "T1059.001",
+                    "T1566.001",
+                    "T1069.002",
+                    "T1555.003",
+                    "T1547.001",
+                    "T1218.010",
+                    "T1218.005",
+                    "T1518",
+                    "T1221",
+                    "T1203",
+                    "T1102",
+                    "T1083",
+                    "T1082",
+                    "T1057",
+                    "T1027",
+                    "T1005"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0442",
+            "type": "tool",
+            "attributes": {
+                "name": "VBShower",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "VBShower is a backdoor that has been used by Inception since at least 2019. VBShower has been used as a downloader for second stage payloads, including PowerShower.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0441",
+            "type": "tool",
+            "attributes": {
+                "name": "PowerShower",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "PowerShower is a PowerShell backdoor used by Inception for initial reconnaissance and to download and execute second stage payloads.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0099",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "APT-C-36",
+                "aliases": [
+                    "Blind Eagle"
+                ],
+                "description": "APT-C-36 is a suspected South America espionage group that has been active since at least 2018. The group mainly targets Colombian government institutions as well as important corporations in the financial sector, petroleum industry, and professional manufacturing.",
+                "tools": [
+                    "S0434"
+                ],
+                "techniques": [
+                    "T1571",
+                    "T1204.002",
+                    "T1059.005",
+                    "T1566.001",
+                    "T1036.004",
+                    "T1053.005",
+                    "T1105",
+                    "T1027"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0434",
+            "type": "tool",
+            "attributes": {
+                "name": "Imminent Monitor",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "Imminent Monitor was a commodity remote access tool (RAT) offered for sale from 2012 until 2019, when an operation was conducted to take down the Imminent Monitor infrastructure. Various cracked versions and variations of this RAT are still in circulation.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0098",
+            "type": "group",
+            "attributes": {
+                "val": 4,
+                "name": "BlackTech",
+                "aliases": [],
+                "description": "BlackTech is a cyber espionage group operating against targets in East Asia, particularly Taiwan, and occasionally, Japan and Hong Kong.",
+                "tools": [
+                    "S0437",
+                    "S0435",
+                    "S0436",
+                    "S0579"
+                ],
+                "techniques": [
+                    "T1574.002",
+                    "T1204.002",
+                    "T1204.001",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1036.002",
+                    "T1190",
+                    "T1203"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0579",
+            "type": "tool",
+            "attributes": {
+                "name": "Waterbear",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Waterbear is modular malware attributed to BlackTech that has been used primarily for lateral movement, decrypting, and triggering payloads and is capable of hiding network behaviors.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0437",
+            "type": "tool",
+            "attributes": {
+                "name": "Kivars",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Kivars is a modular remote access tool (RAT), derived from the Bifrost RAT, that was used by BlackTech in a 2010 campaign.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0436",
+            "type": "tool",
+            "attributes": {
+                "name": "TSCookie",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "TSCookie is a remote access tool (RAT) that has been used by BlackTech in campaigns against Japanese targets.. TSCookie has been referred to as PLEAD though more recent reporting indicates a separation between the two.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0435",
+            "type": "tool",
+            "attributes": {
+                "name": "PLEAD",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "PLEAD is a remote access tool (RAT) and downloader used by BlackTech in targeted attacks in East Asia including Taiwan, Japan, and Hong Kong. PLEAD has also been referred to as TSCookie, though more recent reporting indicates likely separation between the two. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0096",
+            "type": "group",
+            "attributes": {
+                "val": 23,
+                "name": "APT41",
+                "aliases": [
+                    "WICKED PANDA"
+                ],
+                "description": "APT41 is a threat group that researchers have assessed as Chinese state-sponsored espionage group that also conducts financially-motivated operations. APT41 has been active since as early as 2012. The group has been observed targeting healthcare, telecom, technology, and video game industries in 14 countries.",
+                "tools": [
+                    "S0032",
+                    "S0095",
+                    "S0002",
+                    "S0430",
+                    "S0104",
+                    "S0194",
+                    "S0020",
+                    "S0013",
+                    "S0097",
+                    "S0190",
+                    "S0412",
+                    "S0443",
+                    "S0596",
+                    "S0112",
+                    "S0154",
+                    "S0073",
+                    "S0039",
+                    "S0069",
+                    "S0385",
+                    "S0160",
+                    "S0006",
+                    "S0363",
+                    "S0021"
+                ],
+                "techniques": [
+                    "T1480.001",
+                    "T1071.004",
+                    "T1071.002",
+                    "T1071.001",
+                    "T1102.001",
+                    "T1574.006",
+                    "T1574.002",
+                    "T1574.001",
+                    "T1195.002",
+                    "T1569.002",
+                    "T1568.002",
+                    "T1059.004",
+                    "T1059.003",
+                    "T1059.001",
+                    "T1566.001",
+                    "T1560.001",
+                    "T1056.001",
+                    "T1003.001",
+                    "T1110.002",
+                    "T1021.002",
+                    "T1021.001",
+                    "T1036.005",
+                    "T1553.002",
+                    "T1070.004",
+                    "T1070.003",
+                    "T1070.001",
+                    "T1136.001",
+                    "T1546.008",
+                    "T1547.001",
+                    "T1218.001",
+                    "T1218.011",
+                    "T1543.003",
+                    "T1542.003",
+                    "T1053.005",
+                    "T1496",
+                    "T1486",
+                    "T1190",
+                    "T1197",
+                    "T1203",
+                    "T1135",
+                    "T1133",
+                    "T1112",
+                    "T1105",
+                    "T1104",
+                    "T1090",
+                    "T1083",
+                    "T1078",
+                    "T1055",
+                    "T1049",
+                    "T1047",
+                    "T1046",
+                    "T1033",
+                    "T1027",
+                    "T1016",
+                    "T1014",
+                    "T1008"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0596",
+            "type": "tool",
+            "attributes": {
+                "name": "ShadowPad",
+                "aliases": [
+                    "POISONPLUG.SHADOW"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "ShadowPad is a modular backdoor that was first identified in a supply chain compromise of the NetSarang software in mid-July 2017. The malware was originally thought to be exclusively used by APT41, but has since been observed to be used by various Chinese threat activity groups.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0443",
+            "type": "tool",
+            "attributes": {
+                "name": "MESSAGETAP",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "MESSAGETAP is a data mining malware family deployed by APT41 into telecommunications networks to monitor and save SMS traffic from specific phone numbers, IMSI numbers, or that contain specific keywords. ",
+                "platforms": [
+                    "Linux"
+                ]
+            }
+        },
+        {
+            "id": "S0430",
+            "type": "tool",
+            "attributes": {
+                "name": "Winnti for Linux",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Winnti for Linux is a trojan, seen since at least 2015, designed specifically for targeting Linux systems. Reporting indicates the winnti malware family is shared across a number of actors including Winnti Group. The Windows variant is tracked separately under Winnti for Windows.",
+                "platforms": [
+                    "Linux"
+                ]
+            }
+        },
+        {
+            "id": "S0412",
+            "type": "tool",
+            "attributes": {
+                "name": "ZxShell",
+                "aliases": [
+                    "Sensocode"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "ZxShell is a remote administration tool and backdoor that can be downloaded from the Internet, particularly from Chinese hacker websites. It has been used since at least 2004.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0385",
+            "type": "tool",
+            "attributes": {
+                "name": "njRAT",
+                "aliases": [
+                    "Njw0rm",
+                    "LV",
+                    "Bladabindi"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "njRAT is a remote access tool (RAT) that was first observed in 2012. It has been used by threat actors in the Middle East.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0190",
+            "type": "tool",
+            "attributes": {
+                "name": "BITSAdmin",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "BITSAdmin is a command line tool used to create and manage BITS Jobs. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0112",
+            "type": "tool",
+            "attributes": {
+                "name": "ROCKBOOT",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "ROCKBOOT is a Bootkit that has been used by an unidentified, suspected China-based group. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0095",
+            "type": "tool",
+            "attributes": {
+                "name": "FTP",
+                "aliases": [
+                    "ftp.exe"
+                ],
+                "labels": [
+                    "tool"
+                ],
+                "description": "FTP is a utility commonly available with operating systems to transfer information over the File Transfer Protocol (FTP). Adversaries can use it to transfer other tools onto a system or to exfiltrate data. ",
+                "platforms": [
+                    "Linux",
+                    "Windows",
+                    "macOS"
+                ]
+            }
+        },
+        {
+            "id": "S0069",
+            "type": "tool",
+            "attributes": {
+                "name": "BLACKCOFFEE",
+                "aliases": [],
+                "labels": [
+                    "malware"
+                ],
+                "description": "BLACKCOFFEE is malware that has been used by several Chinese groups since at least 2013.  ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "S0021",
+            "type": "tool",
+            "attributes": {
+                "name": "Derusbi",
+                "aliases": [
+                    "PHOTO"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Derusbi is malware used by multiple Chinese APT groups.   Both Windows and Linux variants have been observed. ",
+                "platforms": [
+                    "Windows",
+                    "Linux"
+                ]
+            }
+        },
+        {
+            "id": "S0006",
+            "type": "tool",
+            "attributes": {
+                "name": "pwdump",
+                "aliases": [],
+                "labels": [
+                    "tool"
+                ],
+                "description": "pwdump is a credential dumper. ",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        },
+        {
+            "id": "G0095",
+            "type": "group",
+            "attributes": {
+                "val": 1,
+                "name": "Machete",
+                "aliases": [
+                    "APT-C-43",
+                    "El Machete"
+                ],
+                "description": "Machete is a suspected Spanish-speaking cyber espionage group that has been active since at least 2010. It has primarily focused its operations within Latin America, with a particular emphasis on Venezuela, but also in the US, Europe, Russia, and parts of Asia. Machete generally targets high-profile organizations such as government institutions, intelligence services, and military units, as well as telecommunications and power companies.",
+                "tools": [
+                    "S0409"
+                ],
+                "techniques": [
+                    "T1204.002",
+                    "T1204.001",
+                    "T1059.006",
+                    "T1059.005",
+                    "T1059.003",
+                    "T1566.002",
+                    "T1566.001",
+                    "T1036.005",
+                    "T1218.007",
+                    "T1053.005",
+                    "T1189",
+                    "T1032"
+                ],
+                "affiliation": "",
+                "targets": [],
+                "speciality": []
+            }
+        },
+        {
+            "id": "S0409",
+            "type": "tool",
+            "attributes": {
+                "name": "Machete",
+                "aliases": [
+                    "Pyark"
+                ],
+                "labels": [
+                    "malware"
+                ],
+                "description": "Machete is a cyber espionage toolset used by Machete. It is a Python-based backdoor targeting Windows machines that was first observed in 2010.",
+                "platforms": [
+                    "Windows"
+                ]
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "G0130",
+            "target": "S0225"
+        },
+        {
+            "source": "G0130",
+            "target": "S0224"
+        },
+        {
+            "source": "G0129",
+            "target": "S0590"
+        },
+        {
+            "source": "G0129",
+            "target": "S0154"
+        },
+        {
+            "source": "G0129",
+            "target": "S0013"
+        },
+        {
+            "source": "G0129",
+            "target": "S0012"
+        },
+        {
+            "source": "G0127",
+            "target": "S0483"
+        },
+        {
+            "source": "G0127",
+            "target": "S0476"
+        },
+        {
+            "source": "G0127",
+            "target": "S0386"
+        },
+        {
+            "source": "G0126",
+            "target": "S0160"
+        },
+        {
+            "source": "G0126",
+            "target": "S0032"
+        },
+        {
+            "source": "G0126",
+            "target": "S0013"
+        },
+        {
+            "source": "G0125",
+            "target": "S0073"
+        },
+        {
+            "source": "G0125",
+            "target": "S0029"
+        },
+        {
+            "source": "G0125",
+            "target": "S0020"
+        },
+        {
+            "source": "G0124",
+            "target": "S0377"
+        },
+        {
+            "source": "G0123",
+            "target": "S0572"
+        },
+        {
+            "source": "G0123",
+            "target": "S0569"
+        },
+        {
+            "source": "G0121",
+            "target": "S0250"
+        },
+        {
+            "source": "G0120",
+            "target": "S0568"
+        },
+        {
+            "source": "G0120",
+            "target": "S0349"
+        },
+        {
+            "source": "G0120",
+            "target": "S0284"
+        },
+        {
+            "source": "G0119",
+            "target": "S0570"
+        },
+        {
+            "source": "G0119",
+            "target": "S0384"
+        },
+        {
+            "source": "G0119",
+            "target": "S0363"
+        },
+        {
+            "source": "G0119",
+            "target": "S0002"
+        },
+        {
+            "source": "G0117",
+            "target": "S0556"
+        },
+        {
+            "source": "G0117",
+            "target": "S0508"
+        },
+        {
+            "source": "G0117",
+            "target": "S0029"
+        },
+        {
+            "source": "G0117",
+            "target": "S0020"
+        },
+        {
+            "source": "G0116",
+            "target": "S0521"
+        },
+        {
+            "source": "G0116",
+            "target": "S0357"
+        },
+        {
+            "source": "G0116",
+            "target": "S0194"
+        },
+        {
+            "source": "G0116",
+            "target": "S0105"
+        },
+        {
+            "source": "G0116",
+            "target": "S0104"
+        },
+        {
+            "source": "G0116",
+            "target": "S0002"
+        },
+        {
+            "source": "G0115",
+            "target": "S0591"
+        },
+        {
+            "source": "G0115",
+            "target": "S0496"
+        },
+        {
+            "source": "G0115",
+            "target": "S0496"
+        },
+        {
+            "source": "G0114",
+            "target": "S0521"
+        },
+        {
+            "source": "G0114",
+            "target": "S0404"
+        },
+        {
+            "source": "G0114",
+            "target": "S0154"
+        },
+        {
+            "source": "G0114",
+            "target": "S0039"
+        },
+        {
+            "source": "G0114",
+            "target": "S0029"
+        },
+        {
+            "source": "G0114",
+            "target": "S0002"
+        },
+        {
+            "source": "G0112",
+            "target": "S0466"
+        },
+        {
+            "source": "G0108",
+            "target": "S0002"
+        },
+        {
+            "source": "G0107",
+            "target": "S0002"
+        },
+        {
+            "source": "G0105",
+            "target": "S0191"
+        },
+        {
+            "source": "G0105",
+            "target": "S0029"
+        },
+        {
+            "source": "G0104",
+            "target": "S0448"
+        },
+        {
+            "source": "G0103",
+            "target": "S0445"
+        },
+        {
+            "source": "G0103",
+            "target": "S0444"
+        },
+        {
+            "source": "G0102",
+            "target": "S0552"
+        },
+        {
+            "source": "G0102",
+            "target": "S0521"
+        },
+        {
+            "source": "G0102",
+            "target": "S0446"
+        },
+        {
+            "source": "G0102",
+            "target": "S0367"
+        },
+        {
+            "source": "G0102",
+            "target": "S0363"
+        },
+        {
+            "source": "G0102",
+            "target": "S0359"
+        },
+        {
+            "source": "G0102",
+            "target": "S0266"
+        },
+        {
+            "source": "G0102",
+            "target": "S0154"
+        },
+        {
+            "source": "G0102",
+            "target": "S0097"
+        },
+        {
+            "source": "G0102",
+            "target": "S0039"
+        },
+        {
+            "source": "G0102",
+            "target": "S0029"
+        },
+        {
+            "source": "G0102",
+            "target": "S0024"
+        },
+        {
+            "source": "G0102",
+            "target": "S0002"
+        },
+        {
+            "source": "G0102",
+            "target": "S0446"
+        },
+        {
+            "source": "G0101",
+            "target": "S0363"
+        },
+        {
+            "source": "G0100",
+            "target": "S0442"
+        },
+        {
+            "source": "G0100",
+            "target": "S0441"
+        },
+        {
+            "source": "G0100",
+            "target": "S0349"
+        },
+        {
+            "source": "G0099",
+            "target": "S0434"
+        },
+        {
+            "source": "G0098",
+            "target": "S0579"
+        },
+        {
+            "source": "G0098",
+            "target": "S0437"
+        },
+        {
+            "source": "G0098",
+            "target": "S0436"
+        },
+        {
+            "source": "G0098",
+            "target": "S0435"
+        },
+        {
+            "source": "G0096",
+            "target": "S0596"
+        },
+        {
+            "source": "G0096",
+            "target": "S0443"
+        },
+        {
+            "source": "G0096",
+            "target": "S0430"
+        },
+        {
+            "source": "G0096",
+            "target": "S0412"
+        },
+        {
+            "source": "G0096",
+            "target": "S0385"
+        },
+        {
+            "source": "G0096",
+            "target": "S0363"
+        },
+        {
+            "source": "G0096",
+            "target": "S0194"
+        },
+        {
+            "source": "G0096",
+            "target": "S0190"
+        },
+        {
+            "source": "G0096",
+            "target": "S0160"
+        },
+        {
+            "source": "G0096",
+            "target": "S0154"
+        },
+        {
+            "source": "G0096",
+            "target": "S0112"
+        },
+        {
+            "source": "G0096",
+            "target": "S0104"
+        },
+        {
+            "source": "G0096",
+            "target": "S0097"
+        },
+        {
+            "source": "G0096",
+            "target": "S0095"
+        },
+        {
+            "source": "G0096",
+            "target": "S0073"
+        },
+        {
+            "source": "G0096",
+            "target": "S0069"
+        },
+        {
+            "source": "G0096",
+            "target": "S0039"
+        },
+        {
+            "source": "G0096",
+            "target": "S0032"
+        },
+        {
+            "source": "G0096",
+            "target": "S0021"
+        },
+        {
+            "source": "G0096",
+            "target": "S0020"
+        },
+        {
+            "source": "G0096",
+            "target": "S0013"
+        },
+        {
+            "source": "G0096",
+            "target": "S0006"
+        },
+        {
+            "source": "G0096",
+            "target": "S0002"
+        },
+        {
+            "source": "G0095",
+            "target": "S0409"
+        }
+    ]
+}

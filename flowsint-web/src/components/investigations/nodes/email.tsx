@@ -83,7 +83,7 @@ function EmailNode({ data }: any) {
                     <ContextMenuSubTrigger>Search</ContextMenuSubTrigger>
                     <ContextMenuSubContent>
                         <ContextMenuItem onClick={() => {
-                            toast.promise(checkEmail(data.email), {
+                            toast.promise(checkEmail(data.email, data.investigation_id), {
                                 loading: 'Loading...',
                                 success: () => {
                                     return `Scan on ${data.email} has been launched.`;

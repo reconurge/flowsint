@@ -15,7 +15,7 @@ export function ScanTable({ scans, onScanClick, selectedScanId }: ScanTableProps
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Scan Name</TableHead>
+                    <TableHead>Item</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Results</TableHead>
                 </TableRow>
@@ -34,7 +34,7 @@ export function ScanTable({ scans, onScanClick, selectedScanId }: ScanTableProps
                             className={`cursor-pointer hover:bg-muted/50 ${selectedScanId === scan.id ? "bg-muted" : ""}`}
                             onClick={() => onScanClick(scan.id)}
                         >
-                            <TableCell className="font-medium">{scan.scan_name}</TableCell>
+                            <TableCell className="font-medium"><span className=" max-w-[200px] block truncate text-ellipsis">{scan.value}</span></TableCell>
                             <TableCell>
                                 {scan.status === "pending" ? (
                                     <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">

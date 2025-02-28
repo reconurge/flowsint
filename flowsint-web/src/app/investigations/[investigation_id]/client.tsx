@@ -10,7 +10,7 @@ interface DashboardClientProps {
 }
 export default function DashboardClient({ investigationId }: DashboardClientProps) {
     // Use the initial data from the server, but enable background updates
-    const [view, setView] = useQueryState("view", { defaultValue: "flow-graph" })
+    const [view, _] = useQueryState("view", { defaultValue: "flow-graph" })
     const graphQuery = useQuery({
         queryKey: ["investigation", investigationId, "data"],
         queryFn: async () => {

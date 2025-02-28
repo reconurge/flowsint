@@ -1,19 +1,20 @@
 'use server'
 import { createClient } from "../supabase/server";
 
-export async function checkEmail(email: string) {
+export async function checkEmail(email: string, investigation_id: string) {
     const url = `http://localhost:5000/scan/`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                "email": email
-            })
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
         },
-        );
-        return response.json();
+        body: JSON.stringify({
+            "email": email,
+            "investigation_id": investigation_id
+        })
+    },
+    );
+    return response.json();
 }
 
 async function checkBreachedAccount(account: string | number | boolean, apiKey: string, appName: string) {

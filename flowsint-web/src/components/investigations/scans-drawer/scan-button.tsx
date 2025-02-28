@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Zap } from "lucide-react"
+import { Zap, ZapIcon } from "lucide-react"
 import { createClient } from "@supabase/supabase-js"
 import { useQueryState } from "nuqs"
 
@@ -27,7 +27,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 export type Scan = {
   id: string
-  scan_name: string
+  value: string
   status: "pending" | "finished" | "failed"
   results: { results: any[] }
 }
@@ -72,11 +72,12 @@ export function ScanButton() {
             setScans((current) => {
               const newScans = current.map((scan) => (scan.id === payload.new.id ? (payload.new as Scan) : scan))
               updatePendingCount(newScans)
-              toast('Scan complete ! view results.', {
-                action: {
-                  label: 'Results',
-                  onClick: () => setScanId(payload.new.id),
-                }
+              toast(<div>
+                <p className="text-primary font-medium">{payload.new.value}</p>
+                <div className="flex items-center gap-1">
+                  <p> Scan complete on this item.</p> <Button variant="outline" onClick={() => setScanId(payload.new.id)}>Click to see results</Button>
+                </div></div>, {
+                duration: 6000,
               })
               return newScans
             })
@@ -110,20 +111,25 @@ export function ScanButton() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size={"icon"} className="h-full relative w-12 rounded-none">
-          <Zap className="mr-2 h-4 w-4" />
           {pendingCount > 0 ? (
-            <Badge variant="default" className="ml-2 bg-primary/50 absolute top-1 right-1 text-primary-foreground rounded-full">
-              {pendingCount}
-            </Badge>
+            <>
+              <ZapIcon className="mr-2 !h-4 !w-4" />
+              <Badge variant="default" className="text-xs px-0 h-5 w-5 absolute top-1 right-1 border-none rounded-full">
+                {pendingCount}
+              </Badge>
+            </>
           ) : (
-            <Badge variant="outline" className="ml-2 absolute top-1 right-1 border-none rounded-full">
-              0
-            </Badge>
+            <>
+              <ZapIcon className="mr-2 !h-4 !w-4" />
+              <Badge variant="outline" className="text-xs px-0 h-5 w-5 absolute top-1 right-1 border-none rounded-full">
+                0
+              </Badge>
+            </>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent>
-        <div className="mx-auto w-full max-w-4xl h-screen overflow-auto">
+      <SheetContent className="w-full !max-w-[500px]">
+        <div className="mx-auto w-full !max-w-[500px] h-screen overflow-auto">
           <SheetHeader>
             <SheetTitle>Scans</SheetTitle>
             <SheetDescription>View all your scans. Click on a scan to select it.</SheetDescription>

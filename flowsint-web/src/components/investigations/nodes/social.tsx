@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
 import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
 import { MapPinIcon, Zap } from "lucide-react"
@@ -29,57 +29,83 @@ function SocialNode({ data }: any) {
     const { currentNode } = useFlowStore()
     const platformsIcons = usePlatformIcons()
     const { handleOpenSearchModal } = useSearchContext()
-    const showContent = useStore(zoomSelector)
+    // Optimisation avec fonction d'égalité pour éviter les re-rendus inutiles
+    const showContent = useStore(zoomSelector, (a, b) => a === b)
 
-    return (
-        <ContextMenu>
-            <ContextMenuTrigger>
-                <div className={cn(loading ? "opacity-40" : "opacity-100")}>
-                    {settings.showNodeLabel && showContent ? (
-                        <Card
-                            className={cn(
-                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
-                                currentNode === data.id && "border-primary",
-                            )}
-                        >
-                            <div className="flex items-center gap-2 p-1">
-                                {/* @ts-ignore */}
-                                <Badge variant="secondary" className={cn("h-6 h-6 w-6 p-0 rounded-full")}
-                                >
-                                    {/* @ts-ignore */}
-                                    {platformsIcons?.[data?.platform]?.icon}
-                                </Badge>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-sm">{data.username || data.profile_url}</span>
-                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.username || data.profile_url} />}
-                                </div>
-                            </div>
-                        </Card>
-                    ) : (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" className="rounded-full p-0">
-                                        <Avatar className="h-6 w-6">
-                                            <AvatarFallback>
-                                                <MapPinIcon className="h-3 w-3" />
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>{data.label}</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+    // Callbacks mémorisés
+    const handleDelete = useCallback(() => handleDeleteNode(data.type), [data.type, handleDeleteNode])
+    const handleSearch = useCallback(() => handleOpenSearchModal(data.label), [data.label, handleOpenSearchModal])
+
+    // Mémorisation de l'icône de la plateforme
+    const platformIcon = useMemo(() => {
+        // @ts-ignore
+        return platformsIcons?.[data?.platform]?.icon
+    }, [platformsIcons, data?.platform])
+
+    // Mémorisation du contenu du nœud
+    const nodeContent = useMemo(() => {
+        if (settings.showNodeLabel && showContent) {
+            return (
+                <Card
+                    className={cn(
+                        "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                        currentNode === data.id && "border-primary",
                     )}
-                    <Handle
-                        type="target"
-                        position={Position.Top}
-                        className={cn("w-16 bg-teal-500 hidden")}
-                    />
-                </div>
-            </ContextMenuTrigger>
+                >
+                    <div className="flex items-center gap-2 p-1">
+                        <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                            {platformIcon}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                            <span className="text-sm">{data.username || data.profile_url}</span>
+                            {settings.showCopyIcon && (
+                                <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.username || data.profile_url} />
+                            )}
+                        </div>
+                    </div>
+                </Card>
+            )
+        }
+
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" className="rounded-full p-0">
+                            <Avatar className="h-6 w-6">
+                                <AvatarFallback>
+                                    <MapPinIcon className="h-3 w-3" />
+                                </AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{data.label}</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }, [
+        settings.showNodeLabel,
+        showContent,
+        currentNode,
+        data.id,
+        data.username,
+        data.profile_url,
+        data.label,
+        settings.showCopyIcon,
+        platformIcon,
+    ])
+
+    // Mémorisation de la poignée
+    const handle = useMemo(
+        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 hidden")} />,
+        [],
+    )
+
+    // Mémorisation du menu contextuel
+    const contextMenu = useMemo(
+        () => (
             <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleOpenSearchModal(data.label)}>
+                <ContextMenuItem onClick={handleSearch}>
                     Launch search
                     <Zap className="ml-2 h-4 w-4 text-orange-500" />
                 </ContextMenuItem>
@@ -92,20 +118,46 @@ function SocialNode({ data }: any) {
                     <span className="ml-auto text-xs text-muted-foreground">⌘ D</span>
                 </ContextMenuItem>
                 <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => handleDeleteNode(data.type)} className="text-red-600">
+                <ContextMenuItem onClick={handleDelete} className="text-red-600">
                     Delete
                     <span className="ml-auto text-xs text-muted-foreground">⌘ ⌫</span>
                 </ContextMenuItem>
             </ContextMenuContent>
+        ),
+        [handleSearch, handleDelete],
+    )
+
+    return (
+        <ContextMenu>
+            <ContextMenuTrigger>
+                <div className={cn(loading ? "opacity-40" : "opacity-100")}>
+                    {nodeContent}
+                    {handle}
+                </div>
+            </ContextMenuTrigger>
+            {contextMenu}
         </ContextMenu>
     )
 }
 
-const MemoizedNode = (props: any) => (
-    <NodeProvider>
-        <SocialNode {...props} />
-    </NodeProvider>
+// Composant enveloppé avec une fonction de comparaison personnalisée
+const MemoizedNode = memo(
+    (props: any) => (
+        <NodeProvider>
+            <SocialNode {...props} />
+        </NodeProvider>
+    ),
+    (prevProps, nextProps) => {
+        // Ne re-rendre que si les données importantes ont changé
+        return (
+            prevProps.id === nextProps.id &&
+            prevProps.data.username === nextProps.data.username &&
+            prevProps.data.profile_url === nextProps.data.profile_url &&
+            prevProps.data.platform === nextProps.data.platform &&
+            prevProps.selected === nextProps.selected
+        )
+    },
 )
 
-export default memo(MemoizedNode)
+export default MemoizedNode
 

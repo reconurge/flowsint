@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase/client"
 import {
     AlertCircle,
     CheckCircle2,
@@ -25,6 +24,8 @@ import { useQueryState } from "nuqs"
 import { useQuery } from "@tanstack/react-query"
 import { useParams } from "next/navigation"
 import Loader from "../loader"
+import { format } from 'date-fns';
+
 
 export type ScanResult = {
     name: string
@@ -60,7 +61,7 @@ export function ScanDrawer() {
     const [viewMode, setViewMode] = useState<"grid" | "table">("table")
 
     const { data: currentScan = null, isLoading } = useQuery({
-        queryKey: ["investigation", investigation_id, "scans", scanId],
+        queryKey: ["investigations", investigation_id, "scans", scanId],
         queryFn: async (): Promise<Scan | null> => {
             const res = await fetch(`/api/investigations/${investigation_id}/scans/${scanId}`)
             if (!res.ok) {
@@ -109,7 +110,7 @@ export function ScanDrawer() {
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerContent className="h-[95vh] !max-h-none border">
+            <DrawerContent className="h-[90vh] !max-h-none border">
                 {isLoading &&
                     <DrawerHeader className="border-b pb-4 p-4">
                         <DrawerTitle className="flex items-center gap-2 mb-2">
@@ -123,7 +124,7 @@ export function ScanDrawer() {
                     <>
                         <DrawerHeader className="border-b pb-4 p-4">
                             <DrawerTitle className="flex items-center gap-2 mb-2">
-                                Scan Results
+                                Scan Results  <span className="font-normal">({format(new Date(currentScan?.created_at as string), 'dd MMMM, HH:mm')})</span>
                                 <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
                             </DrawerTitle>
                             <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>

@@ -10,10 +10,10 @@ import { useSearchResults } from '@/lib/hooks/investigation/use-search-results'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
+import Loader from '../loader'
 
 const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
     const [search, setSearch] = useState("")
@@ -52,19 +52,24 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
     const SearchItem = ({ item }: any) => (
         <li
             className={cn(
-                "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
+                "hover:bg-sidebar-accent rounded-md text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
                 "bg-sidebar-accent text-sidebar-accent-foreground",
             )}
             key={item.id}
         >
             <button
-                onClick={() => setCurrentNode(item.id)}
+                onClick={() => { setCurrentNode(item.id); setOpen(false) }}
                 className="flex items-center p-1 px-4 w-full gap-2"
             >
                 <UserIcon className="h-3 w-3 opacity-60" />
-                {item.full_name}
+                <Highlighter
+                    highlightClassName="bg-primary/60"
+                    searchWords={[search]}
+                    autoEscape={true}
+                    textToHighlight={item.full_name}
+                />
             </button>
-        </li>
+        </li >
     )
 
     return (
@@ -88,7 +93,7 @@ const SearchModal = ({ investigation_id }: { investigation_id: string }) => {
                         />
                         <div className='w-full relative text-center flex flex-col items-center justify-center gap-2'>
                             {error && <p className="text-red-500">An error occurred.</p>}
-                            {isLoading && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>}
+                            {isLoading && <div><Loader /> Loading..</div>}
                             {results?.length === 0 && <p>No results found for "{search}".</p>}
                             {results && results?.length !== 0 && <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
                                 <ul className='space-y-2'>

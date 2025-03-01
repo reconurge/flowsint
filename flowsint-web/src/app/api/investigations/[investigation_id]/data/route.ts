@@ -17,7 +17,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             .select("*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*)")
             .eq("investigation_id", investigation_id)
         if (indError) {
-            console.log(indError.message)
             return NextResponse.json({ error: indError.message }, { status: 500 })
         }
         if (!individuals || individuals.length === 0) {

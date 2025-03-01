@@ -15,12 +15,15 @@ import { useNodeId, useReactFlow } from "@xyflow/react";
 import { useConfirm } from "@/components/use-confirm-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { NodeNotesEditor } from "../node-notes-editor";
 
 interface NodeContextType {
     setOpenAddNodeModal: any,
     handleDuplicateNode: any,
     handleDeleteNode: any,
-    loading: boolean
+    loading: boolean,
+    openNote: boolean,
+    setOpenNote: any
 }
 
 const nodesTypes = {
@@ -48,6 +51,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     const { investigation_id } = useParams()
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
     const [error, setError] = useState<null | string>(null)
+    const [openNote, setOpenNote] = useState(false)
     const [loading, setLoading] = useState(false)
     const [nodeType, setnodeType] = useState<any | null>(null)
     const nodeId = useNodeId();
@@ -158,7 +162,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     }, [nodeId, setNodes, setEdges]);
 
     return (
-        <NodeContext.Provider {...props} value={{ setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading }}>
+        <NodeContext.Provider {...props} value={{ setOpenAddNodeModal, handleDuplicateNode, handleDeleteNode, loading, openNote, setOpenNote }}>
             {props.children}
             <Dialog open={openAddNodeModal && nodeType} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
@@ -204,6 +208,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                     </form>
                 </DialogContent>
             </Dialog>
+            <NodeNotesEditor individualId={nodeId as string} />
         </NodeContext.Provider>
     );
 };

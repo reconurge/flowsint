@@ -1,9 +1,9 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Handle, Position, useStore } from "@xyflow/react"
 import { NodeProvider, useNodeContext } from "@/components/contexts/node-context"
-import { PhoneIcon, Zap } from "lucide-react"
+import { LocateIcon, Zap } from "lucide-react"
 import { cn, zoomSelector } from "@/lib/utils"
 import { useInvestigationStore } from "@/store/investigation-store"
 import { CopyButton } from "@/components/copy"
@@ -27,54 +27,57 @@ function PhoneNode({ data }: any) {
     const { settings } = useInvestigationStore()
     const { currentNode } = useFlowStore()
     const { handleOpenSearchModal } = useSearchContext()
-    const showContent = useStore(zoomSelector)
+    const showContent = useStore(zoomSelector, (a, b) => a === b)
+    const handleDelete = useCallback(() => handleDeleteNode(data.type), [data.type, handleDeleteNode])
+    const handleSearch = useCallback(() => handleOpenSearchModal(data.label), [data.label, handleOpenSearchModal])
 
-    return (
-        <ContextMenu>
-            <ContextMenuTrigger>
-                <div className={cn(loading ? "opacity-40" : "opacity-100")}>
-                    {settings.showNodeLabel && showContent ? (
-                        <Card
-                            className={cn(
-                                "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
-                                currentNode === data.id && "border-primary",
-                            )}
-                        >
-                            <div className="flex items-center gap-2 p-1">
-                                <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
-                                    <PhoneIcon className="h-4 w-4" />
-                                </Badge>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-sm">{data.label}</span>
-                                    {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
-                                </div>
-                            </div>
-                        </Card>
-                    ) : (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" className="rounded-full p-0">
-                                        <Avatar className="h-6 w-6">
-                                            <AvatarFallback>
-                                                <PhoneIcon className="h-3 w-3" />
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>{data.label}</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+    const nodeContent = useMemo(() => {
+        if (settings.showNodeLabel && showContent) {
+            return (
+                <Card
+                    className={cn(
+                        "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                        currentNode === data.id && "border-primary",
                     )}
-                    <Handle
-                        type="target"
-                        position={Position.Top}
-                        className={cn("w-16 bg-teal-500 hidden")}
-                    />
-                </div>
-            </ContextMenuTrigger>
+                >
+                    <div className="flex items-center gap-2 p-1">
+                        <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                            <LocateIcon className="h-4 w-4" />
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                            <span className="text-sm">{data.label}</span>
+                            {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
+                        </div>
+                    </div>
+                </Card>
+            )
+        }
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" className="rounded-full p-0">
+                            <Avatar className="h-6 w-6">
+                                <AvatarFallback>
+                                    <LocateIcon className="h-3 w-3" />
+                                </AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{data.label}</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }, [settings.showNodeLabel, showContent, currentNode, data.id, data.label, settings.showCopyIcon])
+
+    const handle = useMemo(
+        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 hidden")} />,
+        [],
+    )
+    const contextMenu = useMemo(
+        () => (
             <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleOpenSearchModal(data.phone_number)}>
+                <ContextMenuItem onClick={handleSearch}>
                     Launch search
                     <Zap className="ml-2 h-4 w-4 text-orange-500" />
                 </ContextMenuItem>
@@ -87,20 +90,41 @@ function PhoneNode({ data }: any) {
                     <span className="ml-auto text-xs text-muted-foreground">⌘ D</span>
                 </ContextMenuItem>
                 <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => handleDeleteNode(data.type)} className="text-red-600">
+                <ContextMenuItem onClick={handleDelete} className="text-red-600">
                     Delete
                     <span className="ml-auto text-xs text-muted-foreground">⌘ ⌫</span>
                 </ContextMenuItem>
             </ContextMenuContent>
+        ),
+        [handleSearch, handleDelete],
+    )
+
+    return (
+        <ContextMenu>
+            <ContextMenuTrigger>
+                <div className={cn(loading ? "opacity-40" : "opacity-100")}>
+                    {nodeContent}
+                    {handle}
+                </div>
+            </ContextMenuTrigger>
+            {contextMenu}
         </ContextMenu>
     )
 }
-
-const MemoizedNode = (props: any) => (
-    <NodeProvider>
-        <PhoneNode {...props} />
-    </NodeProvider>
+const MemoizedNode = memo(
+    (props: any) => (
+        <NodeProvider>
+            <PhoneNode {...props} />
+        </NodeProvider>
+    ),
+    (prevProps, nextProps) => {
+        return (
+            prevProps.id === nextProps.id &&
+            prevProps.data.label === nextProps.data.label &&
+            prevProps.selected === nextProps.selected
+        )
+    },
 )
 
-export default memo(MemoizedNode)
+export default MemoizedNode
 

@@ -1,4 +1,4 @@
-import { notFound, unauthorized } from "next/navigation"
+import { notFound, redirect, unauthorized } from "next/navigation"
 import DashboardClient from "./client"
 import { createClient } from "@/lib/supabase/server"
 
@@ -15,6 +15,10 @@ const DashboardPage = async ({
         error: userError,
     } = await supabase.auth.getUser();
     if (!user || userError) {
+        return redirect("/login")
+    }
+    const { data: investigation, error } = await supabase.from("investigations").select("id").eq("id", investigation_id).single()
+    if (!investigation || error) {
         return notFound()
     }
     return <DashboardClient investigationId={investigation_id} />

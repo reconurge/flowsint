@@ -47,7 +47,7 @@ export const InvestigationProvider: React.FC<InvestigationProviderProps> = ({ ch
             try {
                 const { error } = await supabase
                     .from("investigations")
-                    .delete()
+                    .update({ status: "archived" })
                     .eq("id", investigation_id)
 
                 if (error) throw error

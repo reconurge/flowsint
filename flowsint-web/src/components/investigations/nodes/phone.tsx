@@ -71,7 +71,7 @@ function PhoneNode({ data }: any) {
     }, [settings.showNodeLabel, showContent, currentNode, data.id, data.label, settings.showCopyIcon])
 
     const handle = useMemo(
-        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 hidden")} />,
+        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500")} />,
         [],
     )
     const contextMenu = useMemo(

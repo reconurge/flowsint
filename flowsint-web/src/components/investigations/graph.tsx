@@ -45,10 +45,13 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import AddNodeModal from "./add-node-modal"
 import { Dialog, DialogTrigger } from "../ui/dialog"
 import { memo } from "react"
+import { shallow } from "zustand/shallow"
+import CustomEdge from "./custom-edge"
+import floatingEdge from "./floating-edge"
 
 // Define constants outside component to prevent recreation
 const edgeTypes = {
-    custom: FloatingEdge,
+    custom: floatingEdge
 }
 
 const nodeTypes = {
@@ -59,8 +62,6 @@ const nodeTypes = {
     social: SocialNode,
     address: AddressNode,
 }
-
-import { shallow } from "zustand/shallow"
 
 // Split selectors to minimize re-renders
 const nodeEdgeSelector = (store: { nodes: any; edges: any }) => ({
@@ -252,6 +253,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                             fitView
                             proOptions={{ hideAttribution: true }}
                             nodeTypes={nodeTypes}
+                            // @ts-ignore
                             edgeTypes={edgeTypes}
                             className="!bg-background"
                         >

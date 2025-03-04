@@ -97,7 +97,7 @@ function SocialNode({ data }: any) {
 
     // Mémorisation de la poignée
     const handle = useMemo(
-        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 hidden")} />,
+        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500")} />,
         [],
     )
 

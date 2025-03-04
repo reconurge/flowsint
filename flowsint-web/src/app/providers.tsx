@@ -24,8 +24,10 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       }),
   )
   return (
-    <QueryClientProvider client={queryClient}>
-      <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
-    </QueryClientProvider>
+    <NextThemesProvider {...themeProps}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </NextThemesProvider>
   );
 }

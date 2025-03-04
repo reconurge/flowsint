@@ -11,7 +11,8 @@ export async function GET() {
         if (!user || userError) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
-        const { data: investigations, error } = await supabase.from("investigations").select("id, title, description")
+        const { data: investigations, error } = await supabase.from("investigations")
+        .select("id, title, description")
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })
         }

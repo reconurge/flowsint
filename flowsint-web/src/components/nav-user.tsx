@@ -98,10 +98,12 @@ export function NavUser({
                 <Bell />
                 Notifications
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <ThemeSwitch />
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-light opacity-60">Preferences</DropdownMenuLabel>
+              <div className="flex text-sm items-center justify-between px-3">
                 Theme
-              </DropdownMenuItem>
+                <ThemeSwitch />
+              </div>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>

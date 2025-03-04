@@ -32,46 +32,28 @@ function AddressNode({ data }: any) {
     const handleSearch = useCallback(() => handleOpenSearchModal(data.label), [data.label, handleOpenSearchModal])
 
     const nodeContent = useMemo(() => {
-        if (settings.showNodeLabel && showContent) {
-            return (
-                <Card
-                    className={cn(
-                        "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
-                        currentNode === data.id && "border-primary",
-                    )}
-                >
-                    <div className="flex items-center gap-2 p-1">
-                        <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
-                            <LocateIcon className="h-4 w-4" />
-                        </Badge>
-                        <div className="flex items-center gap-1">
-                            <span className="text-sm">{data.label}</span>
-                            {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
-                        </div>
-                    </div>
-                </Card>
-            )
-        }
         return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" className="rounded-full p-0">
-                            <Avatar className="h-6 w-6">
-                                <AvatarFallback>
-                                    <LocateIcon className="h-3 w-3" />
-                                </AvatarFallback>
-                            </Avatar>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{data.label}</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            <Card
+                className={cn(
+                    "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                    currentNode === data.id && "border-primary",
+                )}
+            >
+                <div className="flex items-center gap-2 p-1">
+                    <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
+                        <LocateIcon className="h-4 w-4" />
+                    </Badge>
+                    <div className="flex items-center gap-1">
+                        <span className="text-sm">{data.label}</span>
+                        {settings.showCopyIcon && <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />}
+                    </div>
+                </div>
+            </Card>
         )
-    }, [settings.showNodeLabel, showContent, currentNode, data.id, data.label, settings.showCopyIcon])
+    }, [currentNode, data.id, data.label, settings.showCopyIcon])
 
     const handle = useMemo(
-        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 hidden")} />,
+        () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500")} />,
         [],
     )
     const contextMenu = useMemo(

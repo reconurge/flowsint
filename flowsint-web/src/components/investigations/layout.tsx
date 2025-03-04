@@ -30,7 +30,7 @@ const InvestigationLayout = ({
     const { panelOpen, setPanelOpen } = useInvestigationStore()
     return (
         <SidebarProvider defaultOpen={false}>
-            <AppSidebar user={user} defaultChecked={false} />
+            <AppSidebar user={user} />
             <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
                 {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={10}>
                     <div className='flex flex-col w-full h-full rounded-none shadow-none border-r'>

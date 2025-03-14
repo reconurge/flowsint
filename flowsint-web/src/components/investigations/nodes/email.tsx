@@ -101,7 +101,7 @@ function EmailNode({ data }: any) {
 
   // Mémorisation de la poignée
   const handle = useMemo(
-    () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500")} />,
+    () => <Handle type="target" position={Position.Top} className={cn("w-16 bg-teal-500 opacity-0")} />,
     [],
   )
 

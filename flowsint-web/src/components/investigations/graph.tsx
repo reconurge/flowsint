@@ -254,7 +254,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                             proOptions={{ hideAttribution: true }}
                             nodeTypes={nodeTypes}
                             // @ts-ignore
-                            edgeTypes={edgeTypes}
+                            // edgeTypes={edgeTypes}
                             className="!bg-background"
                         >
                             <FlowControls

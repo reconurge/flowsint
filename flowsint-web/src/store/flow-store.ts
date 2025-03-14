@@ -128,7 +128,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
             set({
                 edges: get().edges.map(edge => ({
                     ...edge,
-                    animated: false, // Désactive l'animation
+                    animated: false,
                     style: {
                         ...edge.style,
                         stroke: "#b1b1b750",

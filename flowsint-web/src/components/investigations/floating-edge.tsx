@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from "react"
 import { getEdgeParams } from "@/lib/utils"
-import { EdgeLabelRenderer, getSmoothStepPath, getStraightPath, useInternalNode } from "@xyflow/react"
+import { EdgeLabelRenderer, getBezierPath, getSmoothStepPath, getStraightPath, useInternalNode } from "@xyflow/react"
 import { useInvestigationStore } from "@/store/investigation-store"
 import { Badge } from "@/components/ui/badge"
 
@@ -36,7 +36,7 @@ function FloatingEdge({
     // Mémorisation du calcul du chemin et des coordonnées du label
     const pathData = useMemo(() => {
         const { sx, sy, tx, ty } = edgeParameters
-        return getStraightPath({
+        return getBezierPath({
             sourceX: sx,
             sourceY: sy,
             targetX: tx,
@@ -51,8 +51,9 @@ function FloatingEdge({
             transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
             pointerEvents: "all" as const,
             opacity: style?.opacity || 1,
+            stroke: style?.stroke || "#b1b1b750",
         }),
-        [pathData, style?.opacity],
+        [pathData, style?.opacity, style?.stroke],
     )
 
     // Mémorisation du contenu du badge

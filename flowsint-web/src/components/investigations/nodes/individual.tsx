@@ -134,12 +134,12 @@ function Custom(props: any) {
                 <Handle
                     type="target"
                     position={Position.Top}
-                    // className={cn("w-16 bg-teal-500", showContent ? "group-hover:opacity-100 opacity-0" : "opacity-0")}
+                    className={cn("w-16 bg-teal-500 opacity-0")}
                 />
                 <Handle
                     type="source"
                     position={Position.Bottom}
-                    // className={cn("w-16 bg-teal-500", showContent ? "group-hover:opacity-100 opacity-0" : "opacity-0")}
+                    className={cn("w-16 bg-teal-500 opacity-0")}
                 />
             </>
         ),

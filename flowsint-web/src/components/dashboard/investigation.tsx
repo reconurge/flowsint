@@ -94,9 +94,9 @@ export default function Investigation({ investigation }: { investigation: any })
         description = "No description provided.",
         status = "active",
         progress = 35,
-        lastUpdated = new Date().toISOString(),
+        lastUpdated = investigation.created_at ?? new Date().toISOString(),
         tags = ["investigation", "osint", "pedo"],
-        team = ["E", "J"],
+        team = ["E"],
         priority = "medium",
         entities = investigation?.["individuals_counts"]?.[0]?.count || 0,
         connections = investigation?.["relations_counts"]?.[0]?.count || 0,
@@ -124,17 +124,6 @@ export default function Investigation({ investigation }: { investigation: any })
                     <div className="flex items-center justify-between text-sm">
                         <StatusBadge status={status} />
                     </div>
-                    {/* <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Progression</span>
-                            <span className="font-medium">{progress}%</span>
-                        </div>
-                        <ProgressBar value={progress} />
-                    </div> */}
-                    {/* <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
-                        <span>{location}</span>
-                    </div> */}
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Network className="h-3.5 w-3.5" />
                         <span>

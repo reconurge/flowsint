@@ -34,8 +34,7 @@ const InvestigationLayout = ({
             <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal">
                 {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={10}>
                     <div className='flex flex-col w-full h-full rounded-none shadow-none border-r'>
-                        <div className='w-full rounded-none shadow-none h-12 border-b flex items-center gap-1 flex-row justify-between p-2'>
-                            <Logo />
+                        <div className='w-full rounded-none shadow-none h-12 border-b flex items-center gap-1 flex-row justify-end p-2'>
                             <div className='flex gap-1'>
                                 <SearchModal investigation_id={investigation_id} />
                                 <NewCase>

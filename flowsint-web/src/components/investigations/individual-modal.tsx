@@ -332,7 +332,7 @@ const IndividualModal = () => {
                                                         <CardContent className="flex items-center gap-3 p-0">
                                                             <Avatar className="h-8 w-8">
                                                                 <AvatarImage src={relation?.image_url} alt={relation.full_name} />
-                                                                <AvatarFallback>{relation.full_name[0]}</AvatarFallback>
+                                                                <AvatarFallback>{relation.full_name?.[0] || "?"}</AvatarFallback>
                                                             </Avatar>
                                                             <div>
                                                                 <p className="text-sm font-semibold">{relation.full_name}</p>

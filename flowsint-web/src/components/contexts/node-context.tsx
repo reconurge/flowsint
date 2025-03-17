@@ -16,6 +16,8 @@ import { useConfirm } from "@/components/use-confirm-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { NodeNotesEditor } from "../node-notes-editor";
+import { useFlowStore } from "@/store/flow-store";
+import { toast } from "sonner";
 
 interface NodeContextType {
     setOpenAddNodeModal: any,
@@ -55,6 +57,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
     const [loading, setLoading] = useState(false)
     const [nodeType, setnodeType] = useState<any | null>(null)
     const nodeId = useNodeId();
+    const { setCurrentNode } = useFlowStore()
     const { confirm } = useConfirm();
 
     const returnError = (message: string) => {
@@ -79,52 +82,112 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
         await handleAddNode(data);
     };
 
-    const handleAddNode = async (data: any) => {
-        setLoading(true)
-        if (!nodeId) return returnError("No node detected.")
-        const dataToInsert = { ...data, investigation_id }
-        if (nodeType.table !== "individuals")
-            dataToInsert["individual_id"] = nodeId
-        const node = await supabase.from(nodeType.table).insert(dataToInsert).select("*")
-            .single()
-            .then(({ data, error }) => {
-                if (error)
-                    returnError(error.details)
-                return data
-            })
-        if (!node) return
-        if (nodeType.table === "individuals") {
-            // create relation to investigation
-            await supabase.from("investigation_individuals").insert({
-                individual_id: node.id,
-                investigation_id: investigation_id
-            }).then(({ error }) => console.log(error))
+    const handleAddNode = async (
+        data: any,
+    ) => {
+        try {
+            setLoading(true)
 
-            await supabase.from("relationships").upsert({
-                individual_a: nodeId,
-                individual_b: node.id,
-                relation_type: "relation"
-            }).then(({ error }) => { if (error) returnError(error.details) }
-            )
+            // Validate required data
+            if (!nodeId) {
+                toast.error("No node detected.")
+                setLoading(false)
+                return
+            }
+
+            // Prepare data for insertion
+            const dataToInsert = { ...data, investigation_id }
+            if (nodeType.table !== "individuals") {
+                dataToInsert["individual_id"] = nodeId
+            }
+
+            // Insert the node
+            const { data: nodeData, error: insertError } = await supabase
+                .from(nodeType.table)
+                .insert(dataToInsert)
+                .select("*")
+                .single()
+
+            if (insertError) {
+                toast.error(insertError.details)
+                setLoading(false)
+                return
+            }
+
+            if (!nodeData) {
+                toast.error("Failed to create node.")
+                setLoading(false)
+                return
+            }
+
+            // Handle individuals table specific logic
+            if (nodeType.table === "individuals") {
+                // Create relation to investigation
+                const { error: relationError } = await supabase.from("investigation_individuals").insert({
+                    individual_id: nodeData.id,
+                    investigation_id: investigation_id,
+                })
+
+                if (relationError) {
+                    toast.error("Error creating investigation relation:" + JSON.stringify(relationError))
+                }
+
+                // Create relationship between individuals
+                const { error: relationshipError } = await supabase.from("relationships").upsert({
+                    individual_a: nodeId,
+                    individual_b: nodeData.id,
+                    relation_type: "relation",
+                })
+
+                if (relationshipError) {
+                    toast.error(relationshipError.details)
+                }
+            }
+
+            // Add node to graph
+            const newNode = {
+                id: nodeData.id,
+                type: nodeType.type,
+                data: { ...nodeData, label: data[nodeType.fields[0]] },
+                position: { x: 0, y: 0 },
+            }
+
+            addNodes(newNode)
+
+            // Add edge if needed
+            if (nodeId) {
+                const newEdge = {
+                    source: nodeId,
+                    target: nodeData.id,
+                    type: "custom",
+                    id: `${nodeId}-${nodeData.id}`.toString(),
+                    label: nodeType.type === "individual" ? "relation" : nodeType.type,
+                }
+
+                addEdges(newEdge)
+            }
+
+            // Use a callback function with setState to ensure we're working with the latest state
+            // This is the fix for the setCurrentNode issue
+            const newNodeId = nodeData.id
+
+            // Close modal and update state in a specific order
+            setOpenNodeModal(false)
+            setError(null)
+
+            // Use setTimeout to ensure this happens after the current execution context
+            // This helps with React's batching of state updates
+            setTimeout(() => {
+                setCurrentNode(newNodeId)
+                setLoading(false)
+            }, 0)
+        } catch (error) {
+            toast.error("An unexpected error occurred")
+            setLoading(false)
         }
-        addNodes({
-            id: node.id,
-            type: nodeType.type,
-            data: { ...node, label: data[nodeType.fields[0]] },
-            position: { x: 0, y: 0 }
-        });
-        if (nodeId)
-            addEdges({
-                source: nodeId,
-                target: node.id,
-                type: 'custom',
-                id: `${nodeId}-${node.id}`.toString(),
-                label: nodeType.type === "individual" ? "relation" : nodeType.type,
-            });
-        setLoading(false)
-        setError(null)
-        setOpenNodeModal(false)
     }
+
+
 
     const handleDuplicateNode = async () => {
         await supabase.from("individuals")
@@ -137,7 +200,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                     .insert({ full_name: data.full_name })
                     .select("*")
                     .single()
-                if (insertError) returnError(insertError.details)
+                if (insertError) toast.error(insertError.details)
                 addNodes({
                     id: node.id,
                     type: "individual",
@@ -154,7 +217,7 @@ export const NodeProvider: React.FC<NodeProviderProps> = (props: any) => {
                 .delete()
                 .eq("id", nodeId)
                 .then(({ error }) => {
-                    if (error) returnError(error.details)
+                    if (error) toast.error(error.details)
                 })
             setNodes((nodes: any[]) => nodes.filter((node: { id: any; }) => node.id !== nodeId.toString()));
             setEdges((edges: any[]) => edges.filter((edge: { source: any; }) => edge.source !== nodeId.toString()));

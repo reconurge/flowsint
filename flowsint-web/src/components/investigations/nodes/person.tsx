@@ -4,8 +4,6 @@ import { CopyButton } from '@/components/copy';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { AtSignIcon, PhoneIcon } from 'lucide-react';
 
 export default memo(({ data }: any) => {
     return (
@@ -18,16 +16,17 @@ export default memo(({ data }: any) => {
 
             <Card
                 className={cn(
-                    "border hover:border-primary rounded-full p-0 shadow-none backdrop-blur bg-background/40",
+                    "p-1 border border-border hover:border-primary duration-100 rounded-lg shadow-none backdrop-blur bg-background/40",
                 )}
             >
-                <div className="flex items-center gap-2 p-1">
-                    <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
-                        <PhoneIcon className="h-4 w-4" />
-                    </Badge>
+                <div className="flex gap-2 items-center rounded-full">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={data?.image_url} alt={data.full_name} />
+                        <AvatarFallback>{data.full_name[0]}</AvatarFallback>
+                    </Avatar>
                     <div className="flex items-center gap-1">
-                        <span className="text-sm">{data.label}</span>
-                        <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />
+                        <span className="text-sm">{data.full_name}</span>
+                        <CopyButton className="rounded-full" content={data.full_name} />
                     </div>
                 </div>
             </Card>

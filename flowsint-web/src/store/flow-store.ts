@@ -8,6 +8,7 @@ import {
     type OnNodesChange,
     type OnEdgesChange,
 } from '@xyflow/react';
+import getLayoutedElements from '@/lib/utils';
 
 export type AppNode = Node;
 
@@ -28,29 +29,6 @@ export type AppState = {
     setCurrentNode: (nodeId: string | null) => void;
     updateNode: (nodeId: string, nodeData: Partial<Node>) => void;
     resetNodeStyles: () => void;
-};
-const getLayoutedElements = (nodes: any[], edges: any[], options: { direction: any; }) => {
-    const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-    g.setGraph({ rankdir: options.direction });
-
-    edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-    nodes.forEach((node) =>
-        g.setNode(node.id, {
-            ...node,
-            width: node.measured?.width ?? 0,
-            height: node.measured?.height ?? 0,
-        }),
-    );
-    Dagre.layout(g);
-    return {
-        nodes: nodes.map((node) => {
-            const position = g.node(node.id);
-            const x = position.x - (node.measured?.width ?? 0) / 2;
-            const y = position.y - (node.measured?.height ?? 0) / 2;
-            return { ...node, position: { x, y } };
-        }),
-        edges,
-    };
 };
 const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) => {
     return create<AppState>((set, get) => ({
@@ -149,6 +127,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
         onLayout: (direction = 'TB', fitView: () => void) => {
             const { nodes, edges } = getLayoutedElements(get().nodes, get().edges, { direction });
             set({ nodes });
+            //@ts-ignore
             set({ edges });
             fitView();
         },

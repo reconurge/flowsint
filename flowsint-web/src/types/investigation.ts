@@ -2,6 +2,13 @@ export interface Investigation {
     id: string
     title: string
     description: string
+    status?: string
+    priority?: string
+    created_at: string
+    last_updated_at: string
+    owner: any
+    relations?: any[]
+    individuals?: any[]
 }
 export interface Individual {
     id: string

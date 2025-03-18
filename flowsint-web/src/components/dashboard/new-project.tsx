@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createNewCase } from "@/lib/actions/investigations"
+import { createNewProject } from "@/lib/actions/projects"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useFormStatus } from "react-dom"
+import { toast } from "sonner"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -30,18 +31,18 @@ function SubmitButton() {
     )
 }
 
-export default function NewCase({ children }: { children: React.ReactNode }) {
+export default function NewProject({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
-    async function handleNewCase(formData: FormData) {
-        const result = await createNewCase(formData)
+    async function handleNewProject(formData: FormData) {
+        const result = await createNewProject(formData)
         if (result.success) {
-            router.push(`/investigations/${result.id}`)
+            toast.success("New project created.")
+            router.push(`/dashboard/projects/${result.id}`)
             setOpen(false)
         } else {
-            console.error(result.error)
-            // You might want to show an error message to the user here
+            toast.error("Could not create new project.")
         }
     }
 
@@ -51,29 +52,22 @@ export default function NewCase({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuItem onSelect={() => setOpen(true)}>
-                        New case
+                        New project
                         <span className="ml-auto text-xs text-muted-foreground">⌘ E</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem disabled>
-                        New organization
-                        <Badge variant="outline" className="ml-2">
-                            Soon
-                        </Badge>
-                        <span className="ml-auto text-xs text-muted-foreground">⌘ D</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>New case</DialogTitle>
-                        <DialogDescription>Create a new blank case.</DialogDescription>
+                        <DialogTitle>New project</DialogTitle>
+                        <DialogDescription>Create a new blank project.</DialogDescription>
                     </DialogHeader>
-                    <form action={handleNewCase}>
+                    <form action={handleNewProject}>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="title">Investigation name</Label>
-                                <Input id="title" name="title" placeholder="Suspicion de fraude" required />
+                                <Label htmlFor="name">Project name</Label>
+                                <Input id="name" name="name" placeholder="Suspicion de fraude" required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Description</Label>

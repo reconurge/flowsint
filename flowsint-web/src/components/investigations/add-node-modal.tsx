@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import type React from "react" // Added import for React
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog"
+import { toast } from "sonner"
 
 export default function AddNodeModal({ addNodes }: { addNodes: any }) {
     const { investigation_id } = useParams()
@@ -29,8 +30,11 @@ export default function AddNodeModal({ addNodes }: { addNodes: any }) {
                 data: { ...node, label: data.full_name },
                 position: { x: -100, y: -100 },
             })
+            toast.success("New node created.")
+
         } catch (error) {
-            console.error("Error adding individual:", error)
+            toast.error("Could not create new node:" + JSON.stringify(error))
+
         }
     }
 

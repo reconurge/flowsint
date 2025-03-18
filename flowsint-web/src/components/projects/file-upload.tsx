@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { Upload, X, FileText, CheckCircle, AlertCircle } from "lucide-react"
+import { sanitize } from '@/lib/utils'
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -88,7 +89,8 @@ export default function FileUploadDialog() {
             setFiles((prev) => prev.map((file, idx) => (idx === i ? { ...file, status: "uploading" } : file)))
             try {
                 const file = files[i].file
-                const filePath = `${project_id}/${file.name}`
+                const safeName = sanitize(file.name)
+                const filePath = `${project_id}/${safeName}`
                 // Upload file to Supabase
                 const { error } = await supabase.storage.from("documents").upload(filePath, file)
                 // Simulate progress tracking (if needed)

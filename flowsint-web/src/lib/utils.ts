@@ -206,3 +206,13 @@ export const getLayoutedElements = (
 
 export default getLayoutedElements
 
+
+export const sanitize = (name: string) => {
+  return name
+    .normalize("NFKD") // Decompose special characters (e.g., accents)
+    .replace(/[\u0300-\u036f]/g, "") // Remove accent marks
+    .replace(/[^a-zA-Z0-9.\-_]/g, "_") // Replace invalid characters with underscores
+    .replace(/_{2,}/g, "_") // Replace multiple underscores with a single one
+    .replace(/^_|_$/g, "") // Trim leading or trailing underscores
+    .toLowerCase(); // Convert to lowercase for consistency
+};

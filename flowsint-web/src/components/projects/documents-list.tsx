@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { JSX, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
-import { FileIcon, MoreHorizontal } from "lucide-react"
+import { FileIcon, ImageIcon, MoreHorizontal } from "lucide-react"
 import { useParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,11 @@ interface Document {
         first_name: string
         last_name: string
     }
+}
+
+const icons: Record<string, JSX.Element> = {
+    "png": <ImageIcon className="h-5 w-5 text-primary" />,
+    "other": <FileIcon className="h-5 w-5 text-primary" />,
 }
 
 export function DocumentList() {
@@ -83,7 +88,6 @@ export function DocumentList() {
             console.error("Error downloading file:", error)
         }
     }
-
     if (isLoading) return (
         <>
             {Array.from({ length: 3 }).map((_, index) => (
@@ -115,9 +119,9 @@ export function DocumentList() {
                     <TableCell>
                         <button
                             onClick={() => isPreviewable(doc.type) && previewFile(doc.url, doc.type)}
-                            className="flex items-center gap-2 hover:underline"
+                            className="flex cursor-pointer truncate text-ellipsis items-center gap-2 hover:underline"
                         >
-                            <FileIcon className="h-5 w-5 text-primary" />
+                            {icons[doc.type.split("/")[1]] || <FileIcon className="h-5 w-5 text-primary" />}
                             <span>{doc.name}</span>
                         </button>
                     </TableCell>
@@ -156,7 +160,7 @@ export function DocumentList() {
                 </TableRow>
             ))}
             <Dialog open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)}>
-                <DialogContent className="max-w-8xl w-[90vw]">
+                <DialogContent className="max-w-4xl w-[90vw]">
                     <DialogHeader>
                         <DialogTitle>File Preview</DialogTitle>
                         <DialogDescription>Preview of your document</DialogDescription>

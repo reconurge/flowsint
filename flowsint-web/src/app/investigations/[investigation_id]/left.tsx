@@ -47,10 +47,10 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
 
     // Composant réutilisable pour le skeleton loader
     const LoadingSkeleton = () => (
-        <div className="flex flex-col gap-1">
-            <Skeleton className="w-full h-[20px] bg-foreground/10 rounded-none" />
-            <Skeleton className="w-full h-[20px] bg-foreground/10 rounded-none" />
-            <Skeleton className="w-full h-[20px] bg-foreground/10 rounded-none" />
+        <div className="flex flex-col gap-1 px-2">
+            <Skeleton className="w-[90%] h-[14px] bg-foreground/5 rounded-xl" />
+            <Skeleton className="w-[80%] h-[14px] bg-foreground/5 rounded-xl" />
+            <Skeleton className="w-[70%] h-[14px] bg-foreground/5 rounded-xl" />
         </div>
     )
     return (

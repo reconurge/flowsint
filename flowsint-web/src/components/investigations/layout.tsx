@@ -2,7 +2,7 @@
 import React from 'react'
 import MoreMenu from './more-menu';
 import CaseSelector from './case-selector';
-import NewCase from '@/components/dashboard/new-case';
+import NewCase from '@/components/dashboard/new-sketch';
 import SearchModal from '@/components/dashboard/search-palette';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { PanelRightIcon, PlusIcon, RotateCwIcon } from 'lucide-react';

@@ -16,7 +16,7 @@ export default function TokensPage() {
   ])
 
   return (
-    <>
+    <div className="space-y-12">
       <div>
         <div className="flex justify-between items-start mb-4">
           <div>
@@ -87,7 +87,7 @@ export default function TokensPage() {
       <div>
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-3xl font-bold">Vos clés de services tiers</h1>
+            <h1 className="text-2xl font-bold">Vos clés de services tiers</h1>
             <p className="text-muted-foreground mt-1">
               Gérez vos clés de services tiers pour votre espace de travail actuel
             </p>
@@ -144,7 +144,7 @@ export default function TokensPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </div>
   )
 }
 

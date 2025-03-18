@@ -329,11 +329,12 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
 
     // Handle node context menu
     const handleNodeContextMenu: NodeMouseHandler = useCallback((event, node) => {
+        console.log(node, event)
         // Prevent default context menu
         event.preventDefault()
         setNodeContextMenu({
-            x: event.clientX - 300,
-            y: event.clientY - 40,
+            x: event.screenX - 200,
+            y: event.screenY - 150,
             nodeId: node.id,
             nodeType: node.type || "default",
         })

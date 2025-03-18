@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TeamSwitcher } from "./team-switcher"
 // Define navigation item type
@@ -102,11 +103,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   }
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} >
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>
-      <SidebarContent className="p-0 overflow-hidden">
+      <SidebarContent className="p-0">
         <SidebarGroup className="group-data-[collapsible=icon]:p-auto">
           <SidebarGroupLabel>NAVIGATION</SidebarGroupLabel>
           <SidebarMenu>

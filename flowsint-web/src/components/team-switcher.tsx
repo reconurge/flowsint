@@ -24,14 +24,8 @@ import Link from "next/link"
 export function TeamSwitcher() {
 
   return (
-    <Link href="/dashboard">
-      <div
-        className="data-[state=open]:text-sidebar-accent-foreground"
-      >
-        <div className="bg-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-          <Logo />
-        </div>
-      </div>
+    <Link className="w-full rounded-full overflow-hidden" href="/dashboard">
+      <Logo />
     </Link>
   )
 }

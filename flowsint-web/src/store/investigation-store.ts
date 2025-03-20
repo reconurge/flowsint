@@ -57,7 +57,7 @@ interface InvestigationState {
     setHandleDeleteInvestigation: (handler: () => Promise<void>) => void
 
     // Query Hooks
-    useInvestigationData: (investigationId: string) => InvestigationData & {
+    useInvestigationData: (projectId: string, investigationId: string) => InvestigationData & {
         refetchAll: () => Promise<void>
     }
 }
@@ -94,15 +94,15 @@ export const useInvestigationStore = create(
             setHandleOpenIndividualModal: (handler) => set({ handleOpenIndividualModal: handler }),
             handleDeleteInvestigation: async () => { },
             setHandleDeleteInvestigation: (handler) => set({ handleDeleteInvestigation: handler }),
-            useInvestigationData: (investigationId: string) => {
+            useInvestigationData: (projectId: string, investigationId: string) => {
                 const wrapRefetch = async (refetch: () => Promise<QueryObserverResult>) => {
                     await refetch()
                 }
 
                 const investigationQuery = useQuery<Investigation>({
-                    queryKey: ["investigation", investigationId, 'investigation'],
+                    queryKey: ["projects", projectId, "investigation", investigationId, 'investigation'],
                     queryFn: async () => {
-                        const res = await fetch(`/api/investigations/${investigationId}`)
+                        const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}`)
                         if (!res.ok) throw new Error("Failed to fetch investigation")
                         const data = await res.json()
                         return data.investigation as Investigation
@@ -110,9 +110,9 @@ export const useInvestigationStore = create(
                 })
 
                 const individualsQuery = useQuery<Individual[]>({
-                    queryKey: ["investigation", investigationId, "individuals"],
+                    queryKey: ["projects", projectId, "investigation", investigationId, "individuals"],
                     queryFn: async () => {
-                        const res = await fetch(`/api/investigations/${investigationId}/individuals`)
+                        const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/individuals`)
                         if (!res.ok) throw new Error("Failed to fetch individuals")
                         const data = await res.json()
                         return data.individuals
@@ -120,9 +120,9 @@ export const useInvestigationStore = create(
                 })
 
                 const emailsQuery = useQuery<Email[]>({
-                    queryKey: ["investigation", investigationId, "emails"],
+                    queryKey: ["projects", projectId, "investigation", investigationId, "emails"],
                     queryFn: async () => {
-                        const res = await fetch(`/api/investigations/${investigationId}/emails`)
+                        const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/emails`)
                         if (!res.ok) throw new Error("Failed to fetch emails")
                         const data = await res.json()
                         return data.emails
@@ -130,9 +130,9 @@ export const useInvestigationStore = create(
                 })
 
                 const phonesQuery = useQuery<Phone[]>({
-                    queryKey: ["investigation", investigationId, "phones"],
+                    queryKey: ["projects", projectId, "investigation", investigationId, "phones"],
                     queryFn: async () => {
-                        const res = await fetch(`/api/investigations/${investigationId}/phones`)
+                        const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/phones`)
                         if (!res.ok) throw new Error("Failed to fetch phones")
                         const data = await res.json()
                         return data.phones
@@ -142,7 +142,7 @@ export const useInvestigationStore = create(
                 const socialsQuery = useQuery<Social[]>({
                     queryKey: ["investigation", investigationId, "socials"],
                     queryFn: async () => {
-                        const res = await fetch(`/api/investigations/${investigationId}/socials`)
+                        const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/socials`)
                         if (!res.ok) throw new Error("Failed to fetch socials")
                         const data = await res.json()
                         return data.socials

@@ -1,3 +1,5 @@
+import { Project } from "./project"
+
 export interface Investigation {
     id: string
     title: string
@@ -9,6 +11,8 @@ export interface Investigation {
     owner: any
     relations?: any[]
     individuals?: any[]
+    project?: Project
+    project_id: string
 }
 export interface Individual {
     id: string

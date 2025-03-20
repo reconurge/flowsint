@@ -15,6 +15,7 @@ import Link from "next/link"
 import { Project } from "@/types/project"
 import RecentSketches from "@/components/dashboard/recent-sketches"
 import NewProject from "@/components/dashboard/new-project"
+import { AvatarList } from "@/components/avatar-list"
 
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
@@ -36,7 +37,7 @@ const DashboardPage = () => {
     )
 
     return (
-        <div className="w-full space-y-8">
+        <div className="w-full space-y-8 container mx-auto py-12 px-8">
             <div>
                 <h1 className="text-3xl font-bold">Welcome back, Eliott</h1>
             </div>
@@ -89,6 +90,7 @@ const DashboardPage = () => {
                                 <TableHead>Owner</TableHead>
                                 <TableHead className="hidden md:table-cell">Size</TableHead>
                                 <TableHead className="hidden sm:table-cell">Last modified</TableHead>
+                                <TableHead className="hidden sm:table-cell">Members</TableHead>
                                 <TableHead className="hidden sm:table-cell">Creation</TableHead>
                                 <TableHead className="w-[50px]"></TableHead>
                             </TableRow>
@@ -115,6 +117,9 @@ const DashboardPage = () => {
                                         </TableCell>
                                         <TableCell className="hidden sm:table-cell text-muted-foreground">
                                             {formatDistanceToNow(new Date(project.last_updated_at), { addSuffix: true })}
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell text-muted-foreground">
+                                            <AvatarList users={[{ id: "1", name: "Jean" }, { id: "2", name: "Eliott" }, { id: "4", name: "Marc" }, { id: "2", name: "Frank" }]} size="sm" />
                                         </TableCell>
                                         <TableCell className="hidden sm:table-cell text-muted-foreground">
                                             {format(new Date(project.created_at), "dd.MM.yyyy")}

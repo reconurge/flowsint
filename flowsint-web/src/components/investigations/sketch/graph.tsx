@@ -29,13 +29,9 @@ import {
     PlusIcon,
     GroupIcon,
     WorkflowIcon,
-    Trash2Icon,
-    CopyIcon,
-    EditIcon,
-    LinkIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import NewActions from "./new-actions"
+import NewActions from "../new-actions"
 import FloatingConnectionLine from "./floating-connection"
 import { useParams } from "next/navigation"
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip"
@@ -43,18 +39,19 @@ import { Button } from "@/components/ui/button"
 import { TooltipTrigger } from "@radix-ui/react-tooltip"
 import { cn } from "@/lib/utils"
 import { useInvestigationStore } from "@/store/investigation-store"
-import { useFlowStore } from "../../store/flow-store"
-import Loader from "../loader"
+import { useFlowStore } from "../../../store/flow-store"
+import Loader from "../../loader"
 import { useQueryState } from "nuqs"
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../ui/context-menu"
-import AddNodeModal from "./add-node-modal"
-import { Dialog, DialogTrigger } from "../ui/dialog"
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../ui/context-menu"
+import AddNodeModal from "../add-node-modal"
+import { Dialog, DialogTrigger } from "../../ui/dialog"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import FloatingEdge from "./simple-floating-edge"
 import { TooltipProvider } from "@/components/ui/tooltip"
-
-// Define constants outside component to prevent recreation
+import NodeContextMenu from "./nodes/node-context-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import ProfilePanel from "./profile-panel"
 const edgeTypes = {
     custom: FloatingEdge,
 }
@@ -90,85 +87,13 @@ const actionsSelector = (store: {
     onLayout: store.onLayout,
 })
 
-const stateSelector = (store: { currentNode: any; resetNodeStyles: any; reloading: any }) => ({
+const stateSelector = (store: { currentNode: any; setCurrentNode: any, resetNodeStyles: any; reloading: any }) => ({
     currentNode: store.currentNode,
     resetNodeStyles: store.resetNodeStyles,
     reloading: store.reloading,
+    setCurrentNode: store.setCurrentNode,
 })
 
-// Node Context Menu component
-interface NodeContextMenuProps {
-    x: number
-    y: number
-    nodeId: string | null
-    nodeType: string | null
-    onClose: () => void
-}
-
-const NodeContextMenu = memo(({ x, y, nodeId, nodeType, onClose }: NodeContextMenuProps) => {
-    if (!nodeId) return null
-
-    const handleEditNode = () => {
-        console.log(`Edit node ${nodeId} of type ${nodeType}`)
-        onClose()
-    }
-
-    const handleDeleteNode = () => {
-        console.log(`Delete node ${nodeId}`)
-        onClose()
-    }
-
-    const handleDuplicateNode = () => {
-        console.log(`Duplicate node ${nodeId}`)
-        onClose()
-    }
-
-    const handleCreateConnection = () => {
-        console.log(`Create connection from node ${nodeId}`)
-        onClose()
-    }
-
-    return (
-        <div
-            className="absolute z-50 min-w-[80px] bg-popover text-popover-foreground rounded-md border shadow-md py-1 overflow-hidden"
-            style={{ top: y, left: x }}
-        >
-            <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-b">
-                {nodeType?.toUpperCase()} NODE: {nodeId.slice(0, 8)}
-            </div>
-            <div className="py-1">
-                <button
-                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={handleEditNode}
-                >
-                    <EditIcon className="h-4 w-4" />
-                    Edit Node
-                </button>
-                <button
-                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={handleDeleteNode}
-                >
-                    <Trash2Icon className="h-4 w-4" />
-                    Delete Node
-                </button>
-                <button
-                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={handleDuplicateNode}
-                >
-                    <CopyIcon className="h-4 w-4" />
-                    Duplicate Node
-                </button>
-                <button
-                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    onClick={handleCreateConnection}
-                >
-                    <LinkIcon className="h-4 w-4" />
-                    Create Connection
-                </button>
-            </div>
-        </div>
-    )
-})
 
 interface FlowControlsProps {
     onLayout: (direction: string, fitView: () => void) => void
@@ -179,13 +104,20 @@ interface FlowControlsProps {
     zoomIn: () => void
     zoomOut: () => void
     addNodes: (payload: Node | Node[]) => void
+    currentNode: any | null | undefined
 }
 
 const FlowControls = memo(
-    ({ onLayout, fitView, handleRefetch, reloading, setView, zoomIn, zoomOut, addNodes }: FlowControlsProps) => {
+    ({ onLayout, fitView, handleRefetch, reloading, setView, zoomIn, zoomOut, addNodes, currentNode }: FlowControlsProps) => {
         return (
             <>
-                <Panel position="top-left" className="flex items-center gap-1 w-53">
+                <Panel position="top-left" className="flex flex-col items-center gap-1">
+                    <NewActions addNodes={addNodes} />
+                    <Button size="icon" disabled={reloading} variant="outline" onClick={handleRefetch}>
+                        <RotateCwIcon className={cn("h-4 w-4", reloading && "animate-spin")} />
+                    </Button>
+                </Panel>
+                <Panel position="bottom-left" className="flex flex-col items-center gap-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -211,18 +143,6 @@ const FlowControls = memo(
                         </TooltipTrigger>
                         <TooltipContent>View 2D Graph</TooltipContent>
                     </Tooltip>
-                </Panel>
-                <Panel position="top-right" className="flex items-center gap-1">
-                    <div className="flex flex-col items-end gap-2">
-                        <div className="flex gap-1 items-center">
-                            <Button size="icon" disabled={reloading} variant="outline" onClick={handleRefetch}>
-                                <RotateCwIcon className={cn("h-4 w-4", reloading && "animate-spin")} />
-                            </Button>
-                            <NewActions addNodes={addNodes} />
-                        </div>
-                    </div>
-                </Panel>
-                <Panel position="bottom-left" className="flex flex-col items-center gap-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button size="icon" variant="outline" onClick={() => fitView()}>
@@ -248,6 +168,19 @@ const FlowControls = memo(
                         <TooltipContent>Zoom out</TooltipContent>
                     </Tooltip>
                 </Panel>
+                <Panel position="top-center" className="text-center">
+                    <Tabs defaultValue="sketch">
+                        <TabsList>
+                            <TabsTrigger value="sketch">Sketch</TabsTrigger>
+                            <TabsTrigger value="map" disabled>Map</TabsTrigger>
+                            <TabsTrigger value="timeline" disabled>Timeline</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </Panel>
+                {currentNode && (
+                    <Panel position="top-right">
+                        <ProfilePanel type={currentNode.type} data={currentNode.data} />
+                    </Panel>)}
             </>
         )
     },
@@ -270,6 +203,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         y: number
         nodeId: string | null
         nodeType: string | null
+        data: any
     } | null>(null)
 
     // Split store access to minimize re-renders
@@ -278,7 +212,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         actionsSelector,
         shallow,
     )
-    const { currentNode, resetNodeStyles, reloading } = useFlowStore(stateSelector, shallow)
+    const { currentNode, setCurrentNode, resetNodeStyles, reloading } = useFlowStore(stateSelector, shallow)
 
     // Initial layout
     useEffect(() => {
@@ -303,7 +237,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         resetNodeStyles()
         if (!currentNode) return
 
-        const internalNode = getNode(currentNode)
+        const internalNode = getNode(currentNode.id)
         if (!internalNode) return
 
         useFlowStore.getState().updateNode(internalNode.id, {
@@ -329,13 +263,14 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
 
     // Handle node context menu
     const handleNodeContextMenu: NodeMouseHandler = useCallback((event, node) => {
-        console.log(node, event)
+        setCurrentNode(node)
         // Prevent default context menu
         event.preventDefault()
         setNodeContextMenu({
             x: event.screenX - 200,
             y: event.screenY - 150,
             nodeId: node.id,
+            data: node.data,
             nodeType: node.type || "default",
         })
     }, [])
@@ -390,9 +325,10 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                                     zoomOut={zoomOut}
                                     // @ts-ignore
                                     addNodes={addNodes}
+                                    currentNode={currentNode}
                                 />
                                 <Background />
-                                {settings.showMiniMap && <MiniMap pannable />}
+                                {settings.showMiniMap && <MiniMap className="!z-40" pannable />}
                             </ReactFlow>
                         </ContextMenuTrigger>
                         <ContextMenuContent className="w-32">
@@ -410,17 +346,11 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                     </ContextMenu>
                     <AddNodeModal addNodes={addNodes} />
                 </Dialog>
-
-                {/* Node-specific context menu */}
-                {nodeContextMenu && (
-                    <NodeContextMenu
-                        x={nodeContextMenu.x}
-                        y={nodeContextMenu.y}
-                        nodeId={nodeContextMenu.nodeId}
-                        nodeType={nodeContextMenu.nodeType}
-                        onClose={closeNodeContextMenu}
-                    />
-                )}
+                <NodeContextMenu
+                    x={nodeContextMenu?.x}
+                    y={nodeContextMenu?.y}
+                    onClose={closeNodeContextMenu}
+                />
             </TooltipProvider>
         </div>
     )

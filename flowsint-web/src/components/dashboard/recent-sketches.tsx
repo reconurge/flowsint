@@ -17,7 +17,7 @@ const RecentSketches = () => {
     } = useQuery({
         queryKey: ["dashboard", "investigations"],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations`)
+            const res = await fetch(`/api/latest-investigations`)
             return res.json()
         },
         refetchOnWindowFocus: true,
@@ -62,14 +62,14 @@ const RecentSketches = () => {
                 const randomIcon = placeholderIcons[Math.floor(Math.random() * placeholderIcons.length)]
 
                 return (
-                    <Link href={`/investigations/${investigation.id}`} key={investigation.id} className="group">
+                    <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} key={investigation.id} className="group">
                         <Card className="bg-transparent shadow-none h-full transition-all duration-200 border-none">
                             <div className={`flex items-center justify-center bg-foreground/5 h-40 border group-hover:border-primary/80 group-hover:border-2 rounded-md`}>
                                 <div className="transform transition-transform group-hover:scale-105">{randomIcon}</div>
                             </div>
                             <CardContent className="p-4 relative">
                                 <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                                    {investigation.title}
+                                    {investigation?.project?.name}/{investigation.title}
                                 </h3>
                                 <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
                             </CardContent>

@@ -111,7 +111,7 @@ const IndividualModal = () => {
                             </div>
                             <div className="flex-grow w-full">
                                 <Tabs defaultValue="overview" className="w-full">
-                                    <TabsList className="overflow-x-auto w-full justify-start">
+                                    <TabsList className="overflow-hidden w-full justify-start">
                                         <TabsTrigger value="overview">Overview</TabsTrigger>
                                         <TabsTrigger value="social_account">
                                             Social accounts

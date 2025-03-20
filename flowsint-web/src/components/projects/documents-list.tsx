@@ -3,7 +3,7 @@
 import { JSX, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
-import { FileIcon, ImageIcon, MoreHorizontal } from "lucide-react"
+import { FileIcon, FileJson, FileTextIcon, ImageIcon, MoreHorizontal } from "lucide-react"
 import { useParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,8 @@ import { TableCell, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "../ui/skeleton"
+import { useConfirm } from "../use-confirm-dialog"
+import { toast } from "sonner"
 
 interface Document {
     id: string
@@ -27,7 +29,9 @@ interface Document {
 }
 
 const icons: Record<string, JSX.Element> = {
-    "png": <ImageIcon className="h-5 w-5 text-primary" />,
+    "png": <ImageIcon className="h-5 w-5 text-foreground/30" />,
+    "json": <FileJson className="h-5 w-5 text-yellow-500" />,
+    "pdf": <FileTextIcon className="h-5 w-5 text-red-500" />,
     "other": <FileIcon className="h-5 w-5 text-primary" />,
 }
 
@@ -36,6 +40,7 @@ export function DocumentList() {
     const [searchQuery, setSearchQuery] = useState("")
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [previewType, setPreviewType] = useState<string | null>(null)
+    const { confirm } = useConfirm()
 
     const {
         data: documents,
@@ -55,12 +60,6 @@ export function DocumentList() {
     })
 
     const filteredDocuments = documents?.filter((doc) => doc.name.toLowerCase().includes(searchQuery.toLowerCase())) || []
-
-    const formatFileSize = (bytes: number) => {
-        if (bytes < 1024) return bytes + " B"
-        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB"
-        else return (bytes / 1048576).toFixed(1) + " MB"
-    }
 
     const isPreviewable = (mimeType: string) => {
         return (
@@ -88,6 +87,23 @@ export function DocumentList() {
             console.error("Error downloading file:", error)
         }
     }
+
+    const deleteFile = async (fileName: string) => {
+        if (!await confirm({ title: `Are you sure you want to delete ${fileName}?`, message: "This action is irreversible." })) return
+        try {
+            const res = await fetch(`/api/projects/${project_id}/documents?fileName=${encodeURIComponent(fileName)}`, {
+                method: "DELETE",
+            })
+            if (!res.ok) {
+                toast.error("An error occurred while deleting the file.")
+            }
+            toast.success("File deleted successfully.")
+            refetch()
+        } catch (error) {
+            toast.error("An error occurred while deleting the file.")
+        }
+    }
+
     if (isLoading) return (
         <>
             {Array.from({ length: 3 }).map((_, index) => (
@@ -130,7 +146,7 @@ export function DocumentList() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{`${doc.owner.first_name} ${doc.owner.last_name}`}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {formatFileSize(doc.size)}
+                        {doc.size}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">
                         {formatDistanceToNow(new Date(doc.last_updated_at), { addSuffix: true })}
@@ -151,7 +167,7 @@ export function DocumentList() {
                                     <DropdownMenuItem onClick={() => previewFile(doc.url, doc.type)}>Preview</DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem onClick={() => downloadFile(doc.url, doc.name)}>Download</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive" disabled>
+                                <DropdownMenuItem className="text-destructive" onClick={() => deleteFile(doc.name)}>
                                     Delete
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

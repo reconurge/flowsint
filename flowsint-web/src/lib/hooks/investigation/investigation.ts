@@ -1,12 +1,13 @@
 import { supabase } from "@/lib/supabase/client";
 import { useQuery } from "@supabase-cache-helpers/postgrest-swr";
-import { notFound } from "next/navigation";
 
-export function useInvestigations() {
+export function useInvestigations(project_id: string) {
     const { data: investigations, count, mutate, isLoading, error } = useQuery(
         supabase
             .from('investigations')
-            .select('id, title, description'),
+            .select('id, title, description')
+            .eq("project_id", project_id)
+            .order("last_updated_at", { ascending: false }),
         {
             revalidateOnFocus: false,
             revalidateOnReconnect: false,

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useState, useMemo } from "react"
 
-const Left = ({ investigation_id }: { investigation_id: string }) => {
+const Left = ({ project_id, investigation_id }: { project_id: string, investigation_id: string }) => {
     const platformsIcons = usePlatformIcons()
     const { currentNode, setCurrentNode } = useFlowStore()
     const [filterValue, setFilterValue] = useState("")
@@ -22,7 +22,7 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
         phones,
         socials,
         refetchAll
-    } = useInvestigationStore((state) => state.useInvestigationData(investigation_id))
+    } = useInvestigationStore((state) => state.useInvestigationData(project_id, investigation_id))
     const { isRefetching } = useInvestigationStore()
 
     // Filtrer les données
@@ -85,12 +85,12 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm truncate",
-                                            currentNode === individual.id && "bg-sidebar-accent text-sidebar-accent-foreground",
+                                            currentNode?.id === individual.id && "bg-sidebar-accent text-sidebar-accent-foreground",
                                         )}
                                         key={individual.id}
                                     >
                                         <button
-                                            onClick={() => setCurrentNode(individual.id)}
+                                            onClick={() => setCurrentNode(individual)}
                                             className="flex items-center p-1 px-4 w-full gap-2 truncate"
                                         >
                                             <UserIcon className="h-3 w-3 opacity-60" />
@@ -118,11 +118,11 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
-                                            currentNode === email.id && "bg-sidebar-accent text-sidebar-accent-foreground",
+                                            currentNode?.id === email.id && "bg-sidebar-accent text-sidebar-accent-foreground",
                                         )}
                                         key={email.id}
                                     >
-                                        <button onClick={() => setCurrentNode(email.id)} className="flex items-center p-1 px-4 w-full gap-2">
+                                        <button onClick={() => setCurrentNode(email)} className="flex items-center p-1 px-4 w-full gap-2">
                                             <AtSignIcon className="h-3 w-3 opacity-60" />
                                             {email.email}
                                         </button>
@@ -147,11 +147,11 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
-                                            currentNode === phone.id && "bg-sidebar-accent text-sidebar-accent-foreground",
+                                            currentNode?.id === phone.id && "bg-sidebar-accent text-sidebar-accent-foreground",
                                         )}
                                         key={phone.id}
                                     >
-                                        <button onClick={() => setCurrentNode(phone.id)} className="flex items-center p-1 px-4 w-full gap-2">
+                                        <button onClick={() => setCurrentNode(phone)} className="flex items-center p-1 px-4 w-full gap-2">
                                             <PhoneIcon className="h-3 w-3 opacity-60" />
                                             {phone.phone_number}
                                         </button>
@@ -177,11 +177,11 @@ const Left = ({ investigation_id }: { investigation_id: string }) => {
                                     <li
                                         className={cn(
                                             "hover:bg-sidebar-accent text-sidebar-accent-foreground/90 hover:text-sidebar-accent-foreground text-sm",
-                                            currentNode === social.id && "bg-sidebar-accent text-sidebar-accent-foreground",
+                                            currentNode?.id === social.id && "bg-sidebar-accent text-sidebar-accent-foreground",
                                         )}
                                         key={social.id}
                                     >
-                                        <button onClick={() => setCurrentNode(social.id)} className="flex items-center p-1 px-4 w-full gap-2">
+                                        <button onClick={() => setCurrentNode(social)} className="flex items-center p-1 px-4 w-full gap-2">
                                             <span className="opacity-60">
                                                 {/* @ts-ignore */}
                                                 {platformsIcons?.[social.platform]?.icon}

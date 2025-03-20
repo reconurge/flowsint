@@ -15,18 +15,18 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { useNodeContext } from "./contexts/node-context"
 import { useQuery } from "@tanstack/react-query"
 import { useParams } from "next/navigation"
 import { Individual } from "@/types/investigation"
-import Loader from "./loader"
+import Loader from "../../../loader"
 
 interface NoteEditorModalProps {
+    openNote: boolean
     individualId: string | null
+    setOpenNote: (open: boolean) => void
 }
 
-export function NodeNotesEditor({ individualId }: NoteEditorModalProps) {
-    const { openNote, setOpenNote } = useNodeContext()
+export function NodeNotesEditor({ openNote, setOpenNote, individualId }: NoteEditorModalProps) {
     const { investigation_id } = useParams()
     const [isSaving, setIsSaving] = useState(false)
     const { data: individual = null, isLoading } = useQuery({
@@ -79,6 +79,14 @@ export function NodeNotesEditor({ individualId }: NoteEditorModalProps) {
 
     return (
         <Dialog open={openNote} onOpenChange={setOpenNote}>
+            {!isLoading && !individual && (
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-auto">
+                    <DialogHeader>
+                        <DialogTitle>Error</DialogTitle>
+                        <DialogDescription>Could not find individual.</DialogDescription>
+                    </DialogHeader>
+                </DialogContent>
+            )}
             {isLoading ?
                 <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-auto">
                     <DialogHeader>
@@ -88,7 +96,7 @@ export function NodeNotesEditor({ individualId }: NoteEditorModalProps) {
                     <div className="h-[200px] flex items-center justify-center">
                         <Loader /> Loading individual...
                     </div>
-                </DialogContent> :
+                </DialogContent> : individual &&
                 <DialogContent onContextMenu={(e) => e.stopPropagation()} className="sm:max-w-[600px] max-h-[80vh] overflow-auto">
                     <DialogHeader>
                         <DialogTitle>Add Note for {individual?.full_name}</DialogTitle>

@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(_: Request, { params }: { params: Promise<{ investigation_id: string }> }) {
-    const { investigation_id } = await params
+export async function GET() {
     try {
         const supabase = await createClient()
         const {
@@ -12,18 +11,14 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         if (!user || userError) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
-        const { data: investigation, error } = await supabase
-            .from("investigations")
-            .select("id, title, description")
-            .eq("id", investigation_id)
-            .single()
+        const { data: investigations, error } = await supabase.from("investigations")
+            .select("id, title, description, status, project_id, last_updated_at, project:projects(id, name)")
+            .order("last_updated_at", { ascending: false })
+            .limit(4)
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })
         }
-        if (!investigation) {
-            return NextResponse.json({ error: "Investigation not found" }, { status: 404 })
-        }
-        return NextResponse.json({ investigation })
+        return NextResponse.json(investigations)
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }

@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { AlignCenterVertical, PencilRulerIcon, RotateCwIcon, ZoomInIcon, ZoomOutIcon } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useFlowStore } from "../../store/flow-store"
-import Loader from "../loader"
+import { useFlowStore } from "../../../store/flow-store"
+import Loader from "../../loader"
 import { useQueryState } from "nuqs"
 // @ts-ignore
 import * as d3 from 'd3'

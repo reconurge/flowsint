@@ -10,19 +10,19 @@ const DashboardLayout = async ({
     params,
 }: {
     children: React.ReactNode;
-    params: Promise<{ investigation_id: string }>
+    params: Promise<{ project_id: string, investigation_id: string }>
 }) => {
     const supabase = await createClient()
     const { data, error: userError } = await supabase.auth.getUser()
     if (userError || !data?.user) {
         redirect('/login')
     }
-    const { investigation_id } = await (params)
+    const { project_id, investigation_id } = await (params)
     return (
         <InvestigationProvider>
             <SearchProvider>
                 <ChatProvider>
-                    <InvestigationLayout user={data.user} investigation_id={investigation_id} left={<Left investigation_id={investigation_id} />}>
+                    <InvestigationLayout user={data.user} investigation_id={investigation_id} left={<Left project_id={project_id} investigation_id={investigation_id} />}>
                         {children}
                     </InvestigationLayout>
                 </ChatProvider>

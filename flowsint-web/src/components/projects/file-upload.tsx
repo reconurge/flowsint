@@ -16,7 +16,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { useProjectStore } from "@/store/project-store"
@@ -130,7 +129,7 @@ export default function FileUploadDialog() {
     }
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-[900px] overflow-y-auto max-h-[80vh]">
+            <DialogContent className="sm:max-w-[700px] overflow-y-auto max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>Upload Files</DialogTitle>
                     <DialogDescription>Drag and drop files to upload to the documents bucket.</DialogDescription>

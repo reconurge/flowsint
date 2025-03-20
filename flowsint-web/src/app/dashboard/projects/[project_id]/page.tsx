@@ -40,7 +40,7 @@ const DashboardPage = () => {
     })
 
     return (
-        <div className="w-full space-y-8">
+        <div className="w-full space-y-8 container mx-auto py-12 px-8">
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -116,7 +116,7 @@ const DashboardPage = () => {
                                 project?.investigations?.map((investigation: Investigation) => (
                                     <TableRow key={investigation.id}>
                                         <TableCell>
-                                            <Link href={`/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
+                                            <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
                                                 <Waypoints className="h-5 w-5 text-primary" />
                                                 <span>{investigation.title}</span>
                                             </Link>

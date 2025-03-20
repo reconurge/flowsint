@@ -1,0 +1,359 @@
+"use client"
+import { Badge } from "@/components/ui/badge"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    AtSign,
+    Camera,
+    Facebook,
+    GithubIcon,
+    Instagram,
+    Locate,
+    MapPin,
+    MessageCircleDashed,
+    Phone,
+    Send,
+    SquarePenIcon,
+    User,
+} from "lucide-react"
+import { useQueryState } from "nuqs"
+import { memo, useCallback, useState } from "react"
+import { useParams } from "next/navigation"
+import { supabase } from "@/lib/supabase/client"
+import { useReactFlow } from "@xyflow/react"
+import { useConfirm } from "@/components/use-confirm-dialog"
+import { toast } from "sonner"
+import { useFlowStore } from "@/store/flow-store"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { NodeNotesEditor } from "./node-notes-editor"
+
+// Node types definition
+const nodesTypes = {
+    emails: { table: "emails", type: "email", fields: ["email"] },
+    individuals: { table: "individuals", type: "individual", fields: ["full_name"] },
+    phone_numbers: { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
+    ip_addresses: { table: "ip_addresses", type: "ip", fields: ["ip_address"] },
+    social_accounts_facebook: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:facebook"],
+    },
+    social_accounts_instagram: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:instagram"],
+    },
+    social_accounts_telegram: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:telegram"],
+    },
+    social_accounts_snapchat: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:snapchat"],
+    },
+    social_accounts_signal: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:signal"],
+    },
+    social_accounts_github: {
+        table: "social_accounts",
+        type: "social",
+        fields: ["profile_url", "username", "platform:github"],
+    },
+    physical_addresses: { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
+}
+
+// Node Context Menu component
+interface NodeContextMenuProps {
+    x: number | undefined
+    y: number | undefined
+    onClose: () => void | null | undefined
+}
+
+const NodeContextMenu = memo(
+    ({ x, y, onClose }: NodeContextMenuProps) => {
+        const { currentNode, setCurrentNode } = useFlowStore()
+        const { addNodes, addEdges, setNodes, setEdges } = useReactFlow()
+        const { investigation_id } = useParams()
+        const [openAddNodeModal, setOpenNodeModal] = useState(false)
+        const [error, setError] = useState<null | string>(null)
+        const [openNote, setOpenNote] = useState(false)
+        const [loading, setLoading] = useState(false)
+        const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
+        const { confirm } = useConfirm()
+        const [_, setIndividualId] = useQueryState("individual_id")
+        const handleDuplicateNode = async () => {
+            if (!currentNode) return
+            await supabase
+                .from("individuals")
+                .select("*")
+                .eq("id", currentNode.id)
+                .single()
+                .then(async ({ data, error }) => {
+                    if (error) throw error
+                    const { data: node, error: insertError } = await supabase
+                        .from("individuals")
+                        .insert({ full_name: data.full_name })
+                        .select("*")
+                        .single()
+                    if (insertError) toast.error(insertError.details)
+                    addNodes({
+                        id: node.id,
+                        type: "individual",
+                        data: node,
+                        position: { x: 0, y: -100 },
+                    })
+                })
+        }
+        const _handleDeleteNode = async (type: string) => {
+            if (!currentNode) return
+            if (await confirm({ title: "Node deletion", message: "Are you sure you want to delete this node?" })) {
+                await supabase
+                    .from("individuals")
+                    .delete()
+                    .eq("id", currentNode.id)
+                    .then(({ error }) => {
+                        if (error) toast.error(error.details)
+                    })
+                setNodes((nodes: any[]) => nodes.filter((node: { id: any }) => node.id !== currentNode?.id?.toString()))
+                setEdges((edges: any[]) => edges.filter((edge: { source: any }) => edge.source !== currentNode?.id?.toString()))
+                onClose()
+                toast.success("Node deleted.")
+            }
+        }
+        const handleDeleteNode = useCallback(_handleDeleteNode, [currentNode?.id, setNodes, setEdges, confirm, onClose])
+        const setOpenAddNodeModal = (e: { stopPropagation: () => void }, tableName: string, individualId?: string) => {
+            e.stopPropagation()
+            if (!currentNode) return
+            if (!nodesTypes[tableName as keyof typeof nodesTypes]) {
+                toast.error("Invalid node type.")
+                return
+            }
+            setCurrentNodeType(nodesTypes[tableName as keyof typeof nodesTypes])
+            setError(null)
+            setOpenNodeModal(true)
+        }
+        const onSubmitNewNodeModal = async (e: {
+            preventDefault: () => void
+            currentTarget: HTMLFormElement | undefined
+        }) => {
+            e.preventDefault()
+            const data = Object.fromEntries(new FormData(e.currentTarget))
+            await handleAddNode(data)
+        }
+        const handleAddNode = async (data: any) => {
+            try {
+                setLoading(true)
+                if (!currentNode) {
+                    toast.error("No node detected.")
+                    setLoading(false)
+                    return
+                }
+                const dataToInsert = { ...data, investigation_id }
+                if (currentNodeType.table !== "individuals") {
+                    dataToInsert["individual_id"] = currentNode.id
+                }
+                const { data: nodeData, error: insertError } = await supabase
+                    .from(currentNodeType.table)
+                    .insert(dataToInsert)
+                    .select("*")
+                    .single()
+                if (insertError) {
+                    toast.error(insertError.details)
+                    setLoading(false)
+                    return
+                }
+                if (!nodeData) {
+                    toast.error("Failed to create node.")
+                    setLoading(false)
+                    return
+                }
+                if (currentNodeType.table === "individuals") {
+                    // Create relation to investigation
+                    const { error: relationError } = await supabase.from("investigation_individuals").insert({
+                        individual_id: nodeData.id,
+                        investigation_id: investigation_id,
+                    })
+                    if (relationError) {
+                        toast.error("Error creating investigation relation:" + JSON.stringify(relationError))
+                    }
+                    const { error: relationshipError } = await supabase.from("relationships").upsert({
+                        individual_a: currentNode.id,
+                        individual_b: nodeData.id,
+                        relation_type: "relation",
+                    })
+                    if (relationshipError) {
+                        toast.error(relationshipError.details)
+                    }
+                }
+                const newNode = {
+                    id: nodeData.id,
+                    type: currentNodeType.type,
+                    data: { ...nodeData, label: data[currentNodeType.fields[0]] },
+                    position: { x: 0, y: 0 },
+                }
+                addNodes(newNode)
+                if (currentNode.id) {
+                    const newEdge = {
+                        source: currentNode.id as string,
+                        target: nodeData.id,
+                        type: "custom",
+                        id: `${currentNode.id}-${nodeData.id}`.toString(),
+                        label: currentNodeType.type === "individual" ? "relation" : currentNodeType.type,
+                    }
+                    addEdges(newEdge)
+                }
+                setOpenNodeModal(false)
+                setError(null)
+                setTimeout(() => {
+                    setCurrentNode(nodeData)
+                    setLoading(false)
+                }, 0)
+            } catch (error) {
+                toast.error("An unexpected error occurred")
+                setLoading(false)
+            }
+        }
+        const handleEditClick = useCallback(() => setIndividualId(currentNode?.id as string), [currentNode?.id, setIndividualId])
+        const handleDuplicateClick = useCallback(() => handleDuplicateNode(), [])
+        const handleDeleteClick = useCallback(() => handleDeleteNode(currentNode?.type as string), [currentNode?.type, handleDeleteNode])
+        const handleNoteClick = useCallback(() => setOpenNote(true), [setOpenNote])
+        if (!currentNode) return null
+        return (
+            <>
+                <DropdownMenu open={Boolean(currentNode) && Boolean(x) && Boolean(y)} onOpenChange={onClose}>
+                    <DropdownMenuContent
+                        className="absolute z-50 min-w-40 max-w-48 bg-popover text-popover-foreground rounded-md border shadow-md py-1 overflow-hidden"
+                        style={{ top: y, left: x }}
+                    >
+                        <DropdownMenuItem onClick={handleNoteClick}>
+                            New note
+                            <SquarePenIcon className="!h-4 !w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "individuals")}>
+                                    <User className="mr-2 h-4 w-4 opacity-70" /> New relation
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "phone_numbers", currentNode.id)}>
+                                    <Phone className="mr-2 h-4 w-4 opacity-70" />
+                                    Phone number
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "physical_addresses", currentNode.id)}>
+                                    <MapPin className="mr-2 h-4 w-4 opacity-70" />
+                                    Physical address
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "emails", currentNode.id)}>
+                                    <AtSign className="mr-2 h-4 w-4 opacity-70" />
+                                    Email address
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "ip_addresses", currentNode.id)}>
+                                    <Locate className="mr-2 h-4 w-4 opacity-70" />
+                                    IP address
+                                </DropdownMenuItem>
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>Social account</DropdownMenuSubTrigger>
+                                    <DropdownMenuSubContent>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_facebook", currentNode.id)}>
+                                            <Facebook className="mr-2 h-4 w-4 opacity-70" />
+                                            Facebook
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_instagram", currentNode.id)}>
+                                            <Instagram className="mr-2 h-4 w-4 opacity-70" />
+                                            Instagram
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_telegram", currentNode.id)}>
+                                            <Send className="mr-2 h-4 w-4 opacity-70" />
+                                            Telegram
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_signal", currentNode.id)}>
+                                            <MessageCircleDashed className="mr-2 h-4 w-4 opacity-70" />
+                                            Signal
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_snapchat", currentNode.id)}>
+                                            <Camera className="mr-2 h-4 w-4 opacity-70" />
+                                            Snapchat
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => setOpenAddNodeModal(e, "social_accounts_github", currentNode.id)}>
+                                            <GithubIcon className="mr-2 h-4 w-4 opacity-70" />
+                                            Github
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem disabled onClick={(e) => setOpenAddNodeModal(e, "social_accounts_coco", currentNode.id)}>
+                                            Coco{" "}
+                                            <Badge variant="outline" className="ml-2">
+                                                soon
+                                            </Badge>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem onClick={handleEditClick}>View and edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDuplicateClick}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">
+                            Delete
+                            <span className="ml-auto text-xs text-muted-foreground">⌘ ⌫</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Dialog open={openAddNodeModal && currentNodeType} onOpenChange={setOpenNodeModal}>
+                    <DialogContent>
+                        <DialogTitle>New {currentNodeType?.type}</DialogTitle>
+                        <DialogDescription>Add a new related {currentNodeType?.type}.</DialogDescription>
+                        <form onSubmit={onSubmitNewNodeModal}>
+                            <div className="flex flex-col ga-3">
+                                {currentNodeType?.fields.map((field: any, i: number) => {
+                                    const [key, value] = field.split(":")
+                                    return (
+                                        <label key={i}>
+                                            <p className="my-2">{key}</p>
+                                            <Input defaultValue={value || ""} name={key} placeholder={`Your value here (${key})`} />
+                                        </label>
+                                    )
+                                })}
+                            </div>
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="flex items-center gap-2 justify-end mt-4">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline">
+                                        Cancel
+                                    </Button>
+                                </DialogClose>
+                                <Button disabled={loading} type="submit">
+                                    Save
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+                {currentNode.id && <NodeNotesEditor openNote={openNote} setOpenNote={setOpenNote} individualId={currentNode.id} />}
+            </>
+        )
+    },
+)
+
+export default NodeContextMenu
+

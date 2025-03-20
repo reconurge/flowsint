@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { addEdge, applyNodeChanges, applyEdgeChanges, getIncomers, getOutgoers } from '@xyflow/react';
-import Dagre from '@dagrejs/dagre';
 import { supabase } from '@/lib/supabase/client';
 import {
     type Edge,
@@ -12,11 +11,12 @@ import getLayoutedElements from '@/lib/utils';
 
 export type AppNode = Node;
 
+
 export type AppState = {
     nodes: AppNode[];
     edges: Edge[];
     reloading: boolean;
-    currentNode: string | null;
+    currentNode: Partial<Node> | null;
     onNodesChange: OnNodesChange<AppNode>;
     onEdgesChange: OnEdgesChange;
     setNodes: (nodes: AppNode[]) => void;
@@ -26,7 +26,7 @@ export type AppState = {
     onConnect: (params: any, investigation_id?: string) => Promise<void>;
     onNodeClick: (_: React.MouseEvent, node: Node) => void;
     onPaneClick: (_: React.MouseEvent) => void,
-    setCurrentNode: (nodeId: string | null) => void;
+    setCurrentNode: (node: object | null) => void;
     updateNode: (nodeId: string, nodeData: Partial<Node>) => void;
     resetNodeStyles: () => void;
 };
@@ -46,8 +46,8 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                 edges: applyEdgeChanges(changes, get().edges),
             });
         },
-        setCurrentNode: (nodeId: string | null) => {
-            set({ currentNode: nodeId });
+        setCurrentNode: (node: Partial<Node> | null) => {
+            set({ currentNode: node });
         },
         onConnect: async (params: any, investigation_id?: string) => {
             console.log(investigation_id)
@@ -110,13 +110,13 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                     style: {
                         ...edge.style,
                         stroke: "#b1b1b750",
-                        opacity: 1,
+                        opacity: 0.7,
                     },
                 })),
             });
         },
-        onNodeClick: (_event: any, node: { id: string; }) => {
-            set({ currentNode: node.id });
+        onNodeClick: (_event: any, node: Partial<Node>) => {
+            set({ currentNode: node });
             get().resetNodeStyles();
         },
         onPaneClick: (_envent: any) => {
@@ -141,7 +141,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                     edges: get().edges.map((edge) => ({
                         ...edge,
                         animated: false,
-                        style: { ...edge.style, stroke: "#b1b1b750", opacity: 1 },
+                        style: { ...edge.style, stroke: "#b1b1b750", opacity: 0.7 },
                     }))
                 });
                 return;

@@ -16,7 +16,7 @@ export default function TokensPage() {
   ])
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 container mx-auto py-12 px-8">
       <div>
         <div className="flex justify-between items-start mb-4">
           <div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { formatFileSize } from "@/lib/utils";
 import { NextResponse } from "next/server"
 
 export async function GET(_: Request, { params }: { params: Promise<{ project_id: string }> }) {
@@ -37,7 +38,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ project_id
                     id: file.id,
                     name: file.name,
                     type: file.metadata.mimetype,
-                    size: file.metadata.size,
+                    size: formatFileSize(file.metadata.size),
                     created_at: file.created_at,
                     last_updated_at: file.updated_at || file.created_at,
                     url: urlData?.signedUrl,
@@ -54,3 +55,23 @@ export async function GET(_: Request, { params }: { params: Promise<{ project_id
     }
 }
 
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ project_id: string }> }) {
+    const { project_id: projectId } = await params
+    const { searchParams } = new URL(request.url)
+    const fileName = searchParams.get("fileName")
+    if (!fileName) {
+        return NextResponse.json({ error: "File name is required" }, { status: 400 })
+    }
+    try {
+        const supabase = await createClient()
+        const { error } = await supabase.storage.from("documents").remove([`${projectId}/${fileName}`])
+        if (error) {
+            throw error
+        }
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error("Error deleting document:", error)
+        return NextResponse.json({ error: "Failed to delete document" }, { status: 500 })
+    }
+}

@@ -6,10 +6,10 @@ import { createClient } from "@/lib/supabase/server"
 const DashboardPage = async ({
     params,
 }: {
-    params: Promise<{ investigation_id: string }>
+    params: Promise<{ project_id: string, investigation_id: string }>
 }) => {
     const supabase = await createClient()
-    const { investigation_id } = await (params)
+    const { project_id, investigation_id } = await (params)
     const {
         data: { user },
         error: userError,
@@ -21,7 +21,7 @@ const DashboardPage = async ({
     if (!investigation || error) {
         return notFound()
     }
-    return <DashboardClient investigationId={investigation_id} />
+    return <DashboardClient projectId={project_id} investigationId={investigation_id} />
 }
 
 export default DashboardPage

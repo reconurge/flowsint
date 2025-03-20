@@ -50,7 +50,7 @@ export default function RootLayout({
                 <ConfirmContextProvider>
                   {children}
                 </ConfirmContextProvider>
-                <Toaster />
+                <Toaster richColors/>
               </TooltipProvider>
             </main>
           </Providers>

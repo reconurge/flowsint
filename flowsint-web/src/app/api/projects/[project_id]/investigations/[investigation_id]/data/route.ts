@@ -14,8 +14,15 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         } const { data: individuals, error: indError } = await supabase
             .from("individuals")
-            .select("*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*)")
+            .select("*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*), group_id")
             .eq("investigation_id", investigation_id)
+        const { data: groups, error: groupsError } = await supabase
+            .from("groups")
+            .select("*")
+            .eq("investigation_id", investigation_id)
+        if (groupsError) {
+            return NextResponse.json({ error: groupsError.message }, { status: 500 })
+        }
         if (indError) {
             return NextResponse.json({ error: indError.message }, { status: 500 })
         }
@@ -35,6 +42,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         }
         const nodes: NodeData[] = []
         const edges: EdgeData[] = []
+        groups?.forEach(({ label, id }) => {
+            nodes.push({
+                id: id.toString(),
+                position: { x: 200, y: 200 },
+                data: { label: label.toString() },
+                type: "group",
+                width: 380,
+                height: 200,
+            })
+        })
         // Construire les nœuds et les arêtes
         individuals.forEach((ind: any) => {
             const individualId = ind.id.toString()
@@ -43,6 +60,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
                 type: "individual",
                 data: { ...ind, label: ind.full_name },
                 position: { x: 0, y: 100 },
+                parentId: ind.group_id?.toString(),
+                extent: "parent",
             })
             // Ajouter les emails
             ind.emails?.forEach((email: any) => {

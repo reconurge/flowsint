@@ -23,6 +23,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../ReconOps/src/lib/utils.ts", "src/components/investigations/collide.js", "src/lib/utils/flow.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../ReconOps/src/lib/utils.ts", "src/components/investigations/collide.js", "src/lib/utils/flow.js", "src/app/dashboard/entities/page.tss"],
   "exclude": ["node_modules"]
 }

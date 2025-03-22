@@ -204,8 +204,6 @@ export const getLayoutedElements = (
   }
 }
 
-export default getLayoutedElements
-
 
 export const sanitize = (name: string) => {
   return name

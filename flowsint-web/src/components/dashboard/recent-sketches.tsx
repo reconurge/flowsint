@@ -51,21 +51,14 @@ const RecentSketches = () => {
         )
     }
 
-    // SVG placeholder icons to use randomly
-    const placeholderIcons = [
-        <Waypoints key="folder" strokeWidth={.60} className="h-18 w-18 opacity-40 group-hover:opacity-100 group-hover:text-primary" />,
-    ]
-
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {investigations?.map((investigation: Investigation) => {
-                const randomIcon = placeholderIcons[Math.floor(Math.random() * placeholderIcons.length)]
-
                 return (
                     <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} key={investigation.id} className="group">
                         <Card className="bg-transparent shadow-none h-full transition-all duration-200 border-none">
-                            <div className={`flex items-center justify-center bg-foreground/5 h-40 border group-hover:border-primary/80 group-hover:border-2 rounded-md`}>
-                                <div className="transform transition-transform group-hover:scale-105">{randomIcon}</div>
+                            <div className={`flex items-center justify-center overflow-hidden bg-foreground/5 h-40 border group-hover:border-primary/80 group-hover:border-2 rounded-md`}>
+                                <FlowchartDiagram />
                             </div>
                             <CardContent className="p-4 relative">
                                 <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">
@@ -82,4 +75,195 @@ const RecentSketches = () => {
 }
 
 export default RecentSketches
+
+interface FlowchartDiagramProps {
+    width?: number | string
+    height?: number | string
+    backgroundColor?: string
+    lineColor?: string
+    solidBoxColor?: string
+    solidBoxBorderColor?: string
+    dottedBoxColor?: string
+    dottedBoxBorderColor?: string
+    plusIconColor?: string
+    circleColor?: string
+    dotColor?: string
+}
+
+function FlowchartDiagram({
+    backgroundColor = "var(--sidebar)",
+    lineColor = "var(--border)",
+    solidBoxColor = "var(--background)",
+    solidBoxBorderColor = "var(--border)",
+    dottedBoxColor = "var(--background)",
+    dottedBoxBorderColor = "var(--primary)",
+    plusIconColor = "var(--primary)",
+    circleColor = "var(--border)",
+    dotColor = "#cccccc",
+}: FlowchartDiagramProps) {
+    const patternId = "dotPattern"
+    return (
+        <div className={`w-full h-full`} style={{ position: "relative" }}>
+            <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 800 500"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                    backgroundColor,
+                    // display: "block", // Important pour éviter l'espace blanc en dessous
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                preserveAspectRatio="xMidYMid meet"
+            >
+                {/* <defs>
+                    <pattern id={patternId} width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1" fill={dotColor} />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill={`url(#${patternId})`} /> */}
+                {/* Top dotted box */}
+                <rect
+                    x="400"
+                    y="70"
+                    width="180"
+                    height="60"
+                    rx="10"
+                    ry="10"
+                    fill={dottedBoxColor}
+                    stroke={dottedBoxBorderColor}
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                    transform="translate(-90, 0)"
+                />
+
+                {/* Middle solid boxes */}
+                <g>
+                    <rect
+                        x="100"
+                        y="260"
+                        width="170"
+                        height="60"
+                        rx="10"
+                        ry="10"
+                        fill={solidBoxColor}
+                        stroke={solidBoxBorderColor}
+                        strokeWidth="2"
+                    />
+
+                    <rect
+                        x="315"
+                        y="260"
+                        width="170"
+                        height="60"
+                        rx="10"
+                        ry="10"
+                        fill={solidBoxColor}
+                        stroke={solidBoxBorderColor}
+                        strokeWidth="2"
+                    />
+
+                    <rect
+                        x="530"
+                        y="260"
+                        width="170"
+                        height="60"
+                        rx="10"
+                        ry="10"
+                        fill={solidBoxColor}
+                        stroke={solidBoxBorderColor}
+                        strokeWidth="2"
+                    />
+                </g>
+
+                {/* Bottom dotted boxes */}
+                <rect
+                    x="100"
+                    y="390"
+                    width="170"
+                    height="60"
+                    rx="10"
+                    ry="10"
+                    fill={dottedBoxColor}
+                    stroke={dottedBoxBorderColor}
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                />
+
+                <rect
+                    x="315"
+                    y="390"
+                    width="170"
+                    height="60"
+                    rx="10"
+                    ry="10"
+                    fill={dottedBoxColor}
+                    stroke={dottedBoxBorderColor}
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                />
+
+                <rect
+                    x="530"
+                    y="390"
+                    width="170"
+                    height="60"
+                    rx="10"
+                    ry="10"
+                    fill={dottedBoxColor}
+                    stroke={dottedBoxBorderColor}
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                />
+
+                {/* Connecting lines */}
+                <line x1="400" y1="130" x2="400" y2="225" stroke={lineColor} strokeWidth="2" />
+                <line x1="185" y1="225" x2="615" y2="225" stroke={lineColor} strokeWidth="2" />
+                <line x1="185" y1="225" x2="185" y2="260" stroke={lineColor} strokeWidth="2" />
+                <line x1="400" y1="225" x2="400" y2="260" stroke={lineColor} strokeWidth="2" />
+                <line x1="615" y1="225" x2="615" y2="260" stroke={lineColor} strokeWidth="2" />
+
+                <line x1="185" y1="320" x2="185" y2="390" stroke={lineColor} strokeWidth="2" />
+                <line x1="400" y1="320" x2="400" y2="390" stroke={lineColor} strokeWidth="2" />
+                <line x1="615" y1="320" x2="615" y2="390" stroke={lineColor} strokeWidth="2" />
+
+                {/* Plus icons */}
+                <circle cx="400" cy="225" r="12" fill="var(--foreground)" stroke={lineColor} strokeWidth="2" />
+                <line x1="394" y1="225" x2="406" y2="225" stroke={lineColor} strokeWidth="2" />
+                <line x1="400" y1="219" x2="400" y2="231" stroke={lineColor} strokeWidth="2" />
+
+                <circle cx="185" cy="225" r="12" fill="var(--foreground)" stroke={lineColor} strokeWidth="2" />
+                <line x1="179" y1="225" x2="191" y2="225" stroke={lineColor} strokeWidth="2" />
+                <line x1="185" y1="219" x2="185" y2="231" stroke={lineColor} strokeWidth="2" />
+
+                <circle cx="615" cy="225" r="12" fill="var(--foreground)" stroke={lineColor} strokeWidth="2" />
+                <line x1="609" y1="225" x2="621" y2="225" stroke={lineColor} strokeWidth="2" />
+                <line x1="615" y1="219" x2="615" y2="231" stroke={lineColor} strokeWidth="2" />
+
+                {/* Bottom plus icons */}
+                <circle cx="185" cy="420" r="15" fill={plusIconColor} />
+                <line x1="177" y1="420" x2="193" y2="420" stroke={circleColor} strokeWidth="2" />
+                <line x1="185" y1="412" x2="185" y2="428" stroke={circleColor} strokeWidth="2" />
+
+                <circle cx="400" cy="420" r="15" fill={plusIconColor} />
+                <line x1="392" y1="420" x2="408" y2="420" stroke={circleColor} strokeWidth="2" />
+                <line x1="400" y1="412" x2="400" y2="428" stroke={circleColor} strokeWidth="2" />
+
+                <circle cx="615" cy="420" r="15" fill={plusIconColor} />
+                <line x1="607" y1="420" x2="623" y2="420" stroke={circleColor} strokeWidth="2" />
+                <line x1="615" y1="412" x2="615" y2="428" stroke={circleColor} strokeWidth="2" />
+
+                {/* Connecting circles */}
+                <circle cx="400" cy="190" r="6" fill="var(--foreground)" stroke={circleColor} strokeWidth="2" />
+                <circle cx="185" cy="320" r="6" fill="var(--foreground)" stroke={circleColor} strokeWidth="2" />
+                <circle cx="400" cy="320" r="6" fill="var(--foreground)" stroke={circleColor} strokeWidth="2" />
+                <circle cx="615" cy="320" r="6" fill="var(--foreground)" stroke={circleColor} strokeWidth="2" />
+            </svg>
+        </div>
+    )
+}
 

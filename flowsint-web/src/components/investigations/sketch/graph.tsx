@@ -50,8 +50,9 @@ import { shallow } from "zustand/shallow"
 import FloatingEdge from "./simple-floating-edge"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProfilePanel from "./profile-panel"
+import GroupNode from "./nodes/group"
 const edgeTypes = {
     custom: FloatingEdge,
 }
@@ -63,6 +64,7 @@ const nodeTypes = {
     email: EmailNode,
     social: SocialNode,
     address: AddressNode,
+    group: GroupNode,
 }
 
 // Split selectors to minimize re-renders
@@ -232,31 +234,31 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         return () => clearTimeout(timer)
     }, [refetch, onLayout, fitView])
 
-    // Node highlighting effect
-    useEffect(() => {
-        resetNodeStyles()
-        if (!currentNode) return
+    // // Node highlighting effect
+    // useEffect(() => {
+    //     resetNodeStyles()
+    //     if (!currentNode) return
 
-        const internalNode = getNode(currentNode.id)
-        if (!internalNode) return
+    //     const internalNode = getNode(currentNode.id)
+    //     if (!internalNode) return
 
-        useFlowStore.getState().updateNode(internalNode.id, {
-            ...internalNode,
-            zIndex: 5000,
-            data: { ...internalNode.data, forceToolbarVisible: true },
-            style: { ...internalNode.style, opacity: 1 },
-        })
+    //     useFlowStore.getState().updateNode(internalNode.id, {
+    //         ...internalNode,
+    //         zIndex: 5000,
+    //         data: { ...internalNode.data, forceToolbarVisible: true },
+    //         style: { ...internalNode.style, opacity: 1 },
+    //     })
 
-        const nodeWidth = internalNode.measured?.width ?? 0
-        const nodeHeight = internalNode.measured?.height ?? 0
+    //     const nodeWidth = internalNode.measured?.width ?? 0
+    //     const nodeHeight = internalNode.measured?.height ?? 0
 
-        setCenter(internalNode.position.x + nodeWidth / 2, internalNode.position.y + nodeHeight / 2 + 20, {
-            duration: 1000,
-            zoom: 1.5,
-        })
+    //     setCenter(internalNode.position.x + nodeWidth / 2, internalNode.position.y + nodeHeight / 2 + 20, {
+    //         duration: 1000,
+    //         zoom: 1.5,
+    //     })
 
-        useFlowStore.getState().highlightPath(internalNode)
-    }, [currentNode, getNode, setCenter, resetNodeStyles])
+    //     useFlowStore.getState().highlightPath(internalNode)
+    // }, [currentNode, getNode, setCenter, resetNodeStyles])
 
     // Memoize connection handler to prevent recreation
     const handleConnect = useCallback((params: any) => onConnect(params, investigation_id), [onConnect, investigation_id])

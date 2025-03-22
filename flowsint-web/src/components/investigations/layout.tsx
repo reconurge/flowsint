@@ -54,12 +54,9 @@ const InvestigationLayout = ({
                 <PanelResizeHandle /> */}
                 {/* <Panel id="right" order={2} defaultSize={90} minSize={50} className='grow flex flex-col'> */}
                     <div>
-                        <div className='w-full rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center'>
+                        <div className='w-full bg-sidebar rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center'>
                             <div className='grow flex items-center justify-between p-2'>
                                 <div className='flex gap-1 items-center p-2'>
-                                    {/* <Button onClick={() => setPanelOpen(!panelOpen)} size="icon" variant="outline">
-                                        <PanelRightIcon className='h-4 w-4' />
-                                    </Button> */}
                                     <ProjectSelector /><span className='opacity-60'>/</span><CaseSelector />
                                 </div>
                                 <MoreMenu />

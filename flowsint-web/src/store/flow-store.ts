@@ -7,7 +7,7 @@ import {
     type OnNodesChange,
     type OnEdgesChange,
 } from '@xyflow/react';
-import getLayoutedElements from '@/lib/utils';
+import { getLayoutedElements } from '@/lib/utils';
 
 export type AppNode = Node;
 

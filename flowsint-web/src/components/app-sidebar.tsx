@@ -44,22 +44,22 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     },
     {
       title: "Networks",
-      href: "/networks",
+      href: "/dashboard/networks",
       icon: Network,
     },
     {
       title: "Entities",
-      href: "/entities",
+      href: "/dashboard/entities",
       icon: Users,
     },
     {
       title: "OSINT sources",
-      href: "/sources",
+      href: "/dashboard/sources",
       icon: Globe,
     },
     {
       title: "Map",
-      href: "/map",
+      href: "/dashboard/map",
       icon: MapPin,
     },
   ]

@@ -14,19 +14,6 @@ import { Skeleton } from "../ui/skeleton"
 import { useConfirm } from "../use-confirm-dialog"
 import { toast } from "sonner"
 
-interface Document {
-    id: string
-    name: string
-    type: string
-    size: number
-    created_at: string
-    last_updated_at: string
-    url: string
-    owner: {
-        first_name: string
-        last_name: string
-    }
-}
 
 const icons: Record<string, JSX.Element> = {
     "png": <ImageIcon className="h-5 w-5 text-foreground/30" />,
@@ -35,29 +22,13 @@ const icons: Record<string, JSX.Element> = {
     "other": <FileIcon className="h-5 w-5 text-primary" />,
 }
 
-export function DocumentList() {
+export function DocumentList({ documents, isLoading, refetch }: { documents: any[] | undefined, isLoading: boolean, refetch: () => void }) {
     const { project_id } = useParams<{ project_id: string }>()
     const [searchQuery, setSearchQuery] = useState("")
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [previewType, setPreviewType] = useState<string | null>(null)
+    const [previewName, setPreviewName] = useState<string | null>(null)
     const { confirm } = useConfirm()
-
-    const {
-        data: documents,
-        isLoading,
-        refetch,
-    } = useQuery({
-        queryKey: ["project", project_id, "documents"],
-        queryFn: async () => {
-            const res = await fetch(`/api/projects/${project_id}/documents`)
-            if (!res.ok) {
-                throw new Error("Failed to fetch documents")
-            }
-            return res.json() as Promise<Document[]>
-        },
-        refetchOnWindowFocus: true,
-        enabled: !!project_id,
-    })
 
     const filteredDocuments = documents?.filter((doc) => doc.name.toLowerCase().includes(searchQuery.toLowerCase())) || []
 
@@ -70,9 +41,10 @@ export function DocumentList() {
         )
     }
 
-    const previewFile = (url: string, type: string) => {
+    const previewFile = (url: string, type: string, name: string) => {
         setPreviewUrl(url)
         setPreviewType(type)
+        setPreviewName(name)
     }
 
     const downloadFile = async (url: string, fileName: string) => {
@@ -134,11 +106,11 @@ export function DocumentList() {
                 <TableRow key={doc.id}>
                     <TableCell>
                         <button
-                            onClick={() => isPreviewable(doc.type) && previewFile(doc.url, doc.type)}
-                            className="flex cursor-pointer truncate text-ellipsis items-center gap-2 hover:underline"
+                            onClick={() => isPreviewable(doc.type) && previewFile(doc.url, doc.type, doc.name)}
+                            className="flex cursor-pointer max-w-[400px] items-center gap-2 hover:underline"
                         >
-                            {icons[doc.type.split("/")[1]] || <FileIcon className="h-5 w-5 text-primary" />}
-                            <span>{doc.name}</span>
+                            <div>{icons[doc.type.split("/")[1]] || <FileIcon className="h-5 w-5 text-primary" />}</div>
+                            <span className="truncate text-ellipsis">{doc.name}</span>
                         </button>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
@@ -164,7 +136,7 @@ export function DocumentList() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {isPreviewable(doc.type) && (
-                                    <DropdownMenuItem onClick={() => previewFile(doc.url, doc.type)}>Preview</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => previewFile(doc.url, doc.type, doc.name)}>Preview</DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem onClick={() => downloadFile(doc.url, doc.name)}>Download</DropdownMenuItem>
                                 <DropdownMenuItem className="text-destructive" onClick={() => deleteFile(doc.name)}>
@@ -173,15 +145,16 @@ export function DocumentList() {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </TableCell>
-                </TableRow>
-            ))}
+                </TableRow >
+            ))
+            }
             <Dialog open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)}>
-                <DialogContent className="max-w-4xl w-[90vw]">
+                <DialogContent className="!max-w-none w-[95vw] !h-[95vh]">
                     <DialogHeader>
-                        <DialogTitle>File Preview</DialogTitle>
+                        <DialogTitle>{previewName}</DialogTitle>
                         <DialogDescription>Preview of your document</DialogDescription>
                     </DialogHeader>
-                    <div className="mt-4 max-h-[70vh] overflow-auto">
+                    <div className="mt-4 h-full flex flex-col overflow-auto">
                         {previewUrl && previewType?.startsWith("image/") && (
                             <img
                                 src={previewUrl || "/placeholder.svg"}
@@ -190,13 +163,13 @@ export function DocumentList() {
                             />
                         )}
                         {previewUrl && previewType === "application/pdf" && (
-                            <iframe src={`${previewUrl}#view=FitH`} className="w-full h-[60vh] rounded-md border" />
+                            <iframe src={`${previewUrl}#view=FitH`} className="w-full h-full grow rounded-md border" />
                         )}
                         {previewUrl && previewType?.startsWith("text/") && (
-                            <iframe src={previewUrl} className="w-full h-[60vh] rounded-md border" />
+                            <iframe src={previewUrl} className="w-full h-full grow rounded-md border" />
                         )}
                         {previewUrl && previewType?.startsWith("video/") && (
-                            <video src={previewUrl} controls className="max-w-full h-auto mx-auto rounded-md" />
+                            <video src={previewUrl} controls className="h-full h-auto mx-auto rounded-md" />
                         )}
                     </div>
                 </DialogContent>

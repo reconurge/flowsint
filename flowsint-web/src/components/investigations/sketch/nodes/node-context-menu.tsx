@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { NodeNotesEditor } from "./node-notes-editor"
+import { checkEmail } from "@/lib/actions/search"
 
 // Node types definition
 const nodesTypes = {
@@ -97,6 +98,28 @@ const NodeContextMenu = memo(
         const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
         const { confirm } = useConfirm()
         const [_, setIndividualId] = useQueryState("individual_id")
+
+        const handleCheckEmail = useCallback(() => {
+            // @ts-ignore
+            if (!currentNode && currentNode?.data && !currentNode?.data?.email) return
+            // @ts-ignore
+            toast.promise(checkEmail(currentNode?.data?.email, investigation_id), {
+                loading: "Loading...",
+                success: () => {
+                    return `Scan on ${currentNode?.data?.email} has been launched.`
+                },
+                error: (error: any) => {
+                    return (
+                        <div className="overflow-hidden">
+                            <p className="font-bold">An error occured.</p>
+                            <pre className="overflow-auto">
+                                <code>{JSON.stringify(error, null, 2)}</code>
+                            </pre>
+                        </div>
+                    )
+                },
+            })
+        }, [currentNode, investigation_id])
         const handleDuplicateNode = async () => {
             if (!currentNode) return
             await supabase
@@ -241,6 +264,10 @@ const NodeContextMenu = memo(
                         className="absolute z-50 min-w-40 max-w-48 bg-popover text-popover-foreground rounded-md border shadow-md py-1 overflow-hidden"
                         style={{ top: y, left: x }}
                     >
+                        {Boolean(currentNode?.data?.email) &&
+                            (<DropdownMenuItem onClick={handleCheckEmail}>
+                                Search {currentNodeType}
+                            </DropdownMenuItem>)}
                         <DropdownMenuItem onClick={handleNoteClick}>
                             New note
                             <SquarePenIcon className="!h-4 !w-4" />

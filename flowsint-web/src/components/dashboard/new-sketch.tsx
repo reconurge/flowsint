@@ -45,7 +45,7 @@ export default function NewCase({ children }: { children: React.ReactNode }) {
         const result = await createNewCase(formData, project_id as string)
         if (result.success) {
             toast.success("New sketch created.")
-            router.push(`/investigations/${result.id}`)
+            router.push(`/dashboard/projects/${project_id}/investigations/${result.id}`)
             setOpen(false)
         } else {
             toast.error("Could not create new sketch.")

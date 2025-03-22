@@ -7,9 +7,12 @@ import { User, MapPin, Globe, Info, AtSign, Phone, Calendar, Link2, Mail, Shield
 import { Separator } from "@/components/ui/separator"
 import { useFlowStore } from "@/store/flow-store"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import SearchEmail from "./search-email"
 
 export default function ProfilePanel({ data, type }: { data: any, type: "individual" | "email" }) {
-
+    const { project_id, investigation_id } = useParams()
     const { setCurrentNode } = useFlowStore()
 
     const closePanel = () => {
@@ -32,6 +35,7 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                                     <h2 className="text-xl w-full font-bold break-all">{data.email}</h2>
                                     <p className="text-sm text-muted-foreground">Email Address</p>
                                 </div>
+                                <SearchEmail investigation_id={investigation_id as string} email={data.email} />
                             </div>
                             <Separator />
                             <div className="space-y-4">
@@ -88,8 +92,8 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                 <div className="p-6 md:p-8">
                     <div className="grid grid-cols-1 gap-2">
                         {/* Left column with avatar */}
-                        <div className="flex flex-col items-center md:items-start gap-6">
-                            <div className="relative">
+                        <div className="flex flex-col items-center gap-6">
+                            <div className="relative flex flex-col items-center gap-4">
                                 <Avatar className="w-40 h-40 border-4 border-primary/20">
                                     <AvatarImage src={data.image_url} alt={data.full_name} />
                                     <AvatarFallback className="text-2xl">
@@ -99,8 +103,10 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                                             .join("")}
                                     </AvatarFallback>
                                 </Avatar>
+                                <Link href={`/dashboard/projects/${project_id}/individuals/${data.id}`}>
+                                    <Button variant={"outline"}>View</Button>
+                                </Link>
                             </div>
-
                             <div className="space-y-1 text-center md:text-left">
                                 <div className="flex items-center gap-2 text-primary">
                                     <User className="h-4 w-4" />

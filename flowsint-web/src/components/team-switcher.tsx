@@ -24,8 +24,8 @@ import Link from "next/link"
 export function TeamSwitcher() {
 
   return (
-    <Link className="w-full rounded-full overflow-hidden" href="/dashboard">
-      <Logo />
+    <Link className="w-full overflow-hidden flex items-center gap-2" href="/dashboard">
+      <Logo /> <span className="text-md font-bold">FLOWSINT</span>
     </Link>
   )
 }

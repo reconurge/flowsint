@@ -20,7 +20,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { useProjectStore } from "@/store/project-store"
 import { toast } from "sonner"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
@@ -34,6 +34,7 @@ interface FileWithStatus {
 export default function FileUploadDialog() {
     const { project_id } = useParams()
     const { openUploadModal: open, setOpenUploadModal: setOpen } = useProjectStore()
+    const router = useRouter()
     const [files, setFiles] = useState<FileWithStatus[]>([])
     const [isDragging, setIsDragging] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -97,6 +98,8 @@ export default function FileUploadDialog() {
                 if (error) throw toast.error("Error uploading file: " + error.message)
                 // Update status to success
                 setFiles((prev) => prev.map((file, idx) => (idx === i ? { ...file, status: "success", progress: 100 } : file)))
+                toast.success("File uploaded successfully")
+                router.refresh()
             } catch (error) {
                 toast.error("Error uploading file: " + JSON.stringify(error))
                 setFiles((prev) =>
@@ -154,12 +157,12 @@ export default function FileUploadDialog() {
                             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} multiple />
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-4 w-full">
                             {files.map((fileItem, index) => (
-                                <div key={index} className="flex items-start gap-3 bg-muted/50 p-3 rounded-md">
+                                <div key={index} className="flex items-start gap-3 bg-muted/50 p-3 rounded-md w-full">
                                     <FileText className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{fileItem.file.name}</p>
+                                    <div className="flex-1 min-w-0 w-full truncate">
+                                        <p className="text-sm font-medium w-full truncate">{fileItem.file.name}</p>
                                         <p className="text-xs text-muted-foreground">{(fileItem.file.size / 1024).toFixed(1)} KB</p>
 
                                         {fileItem.status === "uploading" && <Progress value={fileItem.progress} className="h-1 mt-2" />}

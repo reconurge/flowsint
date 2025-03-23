@@ -104,7 +104,14 @@ const DashboardPage = () => {
                                 {filteredProjects.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            No projects found
+                                            {searchQuery !== "" ? "No projects found" :
+                                                <div className="flex items-center flex-col gap-3">No projects yet
+                                                    <NewProject noDropDown>
+                                                        <Button size="sm" className="gap-2">
+                                                            <PlusIcon className="h-4 w-4" />  Create a new project
+                                                        </Button>
+                                                    </NewProject>
+                                                </div>}
                                         </TableCell>
                                     </TableRow>
                                 ) : (

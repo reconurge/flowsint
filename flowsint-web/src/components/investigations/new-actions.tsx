@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import type React from "react" // Added import for React
+import { toast } from "sonner"
 
 export default function NewActions({ addNodes }: { addNodes: any }) {
     const { investigation_id } = useParams()
@@ -24,27 +25,28 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 .insert({ ...data, investigation_id: investigation_id?.toString() })
                 .select("*")
                 .single()
-            if (error) throw error
+            if (error) return toast.error("Could not create new individual:" + JSON.stringify(error))
             addNodes({
                 id: node.id,
                 type: "individual",
                 data: { ...node, label: data.full_name },
                 position: { x: -100, y: -100 },
             })
+            toast.success("New individual created.")
             setOpen(false)
         } catch (error) {
-            console.error("Error adding individual:", error)
+            toast.error("Could not create new individual:" + JSON.stringify(error))
         }
     }
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-               { <Button variant="outline" size={"icon"} className="gap-2">
+                {<Button variant="default" size={"icon"} className="gap-2">
                     <Plus className="h-4 w-4" />
                 </Button>}
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent align="start" className="w-80">
                 <form onSubmit={onSubmit} className="flex items-start space-x-3">
                     <Avatar>
                         <AvatarFallback>A</AvatarFallback>

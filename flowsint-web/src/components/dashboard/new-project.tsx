@@ -31,7 +31,7 @@ function SubmitButton() {
     )
 }
 
-export default function NewProject({ children }: { children: React.ReactNode }) {
+export default function NewProject({ children, noDropDown }: { children: React.ReactNode, noDropDown?: boolean }) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
@@ -46,6 +46,41 @@ export default function NewProject({ children }: { children: React.ReactNode }) 
         }
     }
 
+    if (noDropDown) return (
+        <>
+            <Button asChild onClick={() => setOpen(true)}>{children}</Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>New project</DialogTitle>
+                        <DialogDescription>Create a new blank project.</DialogDescription>
+                    </DialogHeader>
+                    <form action={handleNewProject}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Project name</Label>
+                                <Input id="name" name="name" placeholder="Suspicion de fraude" required />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Input
+                                    id="description"
+                                    name="description"
+                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                                Cancel
+                            </Button>
+                            <SubmitButton />
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    )
     return (
         <>
             <DropdownMenu>

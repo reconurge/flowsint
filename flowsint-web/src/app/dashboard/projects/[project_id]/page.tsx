@@ -122,7 +122,7 @@ const DashboardPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {project.investigations.length === 0 ? (
+                                {project.investigations.length === 0 && searchQuery !== "" ? (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center w-full py-2 text-muted-foreground">
                                             No sketch yet.

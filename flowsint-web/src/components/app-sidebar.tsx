@@ -68,12 +68,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const teamNavItems: NavItem[] = [
     {
       title: "My account",
-      href: "/profile",
+      href: "/dashboard/settings/account",
       icon: UserIcon,
     },
     {
       title: "Team members",
-      href: "/team",
+      href: "/dashboard/settings/team",
       icon: Users,
     },
   ]

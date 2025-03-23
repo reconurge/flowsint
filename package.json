@@ -8,5 +8,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "docker compose up -d"
+  },
+  "devDependencies": {
+    "supabase": "^2.19.7"
   }
 }

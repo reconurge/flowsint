@@ -13,6 +13,8 @@ import {
     Twitter,
     Youtube,
     Building2,
+    Waypoints,
+    UserIcon,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -178,7 +180,9 @@ export default async function IndividualPage({ params }: { params: Promise<{ ind
     const individual = await getIndividual(individual_id)
 
     return (
-        <DashboardLayout items={[{ name: "Projects", href: "/dashboard" }, { name: individual?.investigation?.project?.name, href: `/dashboard/projects/${individual?.investigation?.project?.id}` }, { name: individual?.investigation?.title, href: `/dashboard/projects/${individual?.investigation?.project?.id}/investigations//${individual?.investigation?.id}` }, { name: individual?.full_name }]}>
+        <DashboardLayout items={[{ name: "Projects", href: "/dashboard" }, {
+            name: individual?.investigation?.project?.name, href: `/dashboard/projects/${individual?.investigation?.project?.id}`,
+        }, { name: individual?.investigation?.title, href: `/dashboard/projects/${individual?.investigation?.project?.id}/investigations//${individual?.investigation?.id}`, icon: <Waypoints className="h-4 w-4 text-primary" /> }, { name: individual?.full_name, icon: <UserIcon className="h-4 w-4 text-primary" /> }]}>
             <div className="min-h-screen p-6">
                 <div className="max-w-7xl mx-auto my-12 space-y-6">
                     {/* Header with profile info */}

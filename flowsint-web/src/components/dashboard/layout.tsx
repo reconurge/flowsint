@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react'
 import {
     Breadcrumb,
-    BreadcrumbEllipsis,
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,

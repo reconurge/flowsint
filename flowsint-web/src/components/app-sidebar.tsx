@@ -140,7 +140,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup className="group-data-[collapsible=icon]:p-auto">
-          <SidebarGroupLabel>Preferences</SidebarGroupLabel>
+          <SidebarGroupLabel>PREFERENCES</SidebarGroupLabel>
           <SidebarMenu>
             {preferencesNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>

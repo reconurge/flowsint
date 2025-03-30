@@ -32,7 +32,7 @@ const InvestigationLayout = ({
     return (
         <>
             {/* <PanelGroup autoSaveId="conditional" className='h-screen w-screen flex' direction="horizontal"> */}
-                {/* {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={10}>
+            {/* {panelOpen && <Panel id="left" order={1} className='h-screen' defaultSize={20} minSize={10}>
                     <div className='flex flex-col w-full h-full rounded-none shadow-none border-r'>
                         <div className='w-full rounded-none shadow-none h-12 border-b flex items-center gap-1 flex-row justify-end p-2'>
                             <div className='flex gap-1'>
@@ -52,24 +52,25 @@ const InvestigationLayout = ({
                     </div>
                 </Panel>}
                 <PanelResizeHandle /> */}
-                {/* <Panel id="right" order={2} defaultSize={90} minSize={50} className='grow flex flex-col'> */}
-                    <div>
-                        <div className='w-full bg-sidebar rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center'>
-                            <div className='grow flex items-center justify-between p-2'>
-                                <div className='flex gap-1 items-center p-2'>
-                                    <ProjectSelector /><span className='opacity-60'>/</span><CaseSelector />
-                                </div>
-                                <MoreMenu />
-                            </div>
-                            <div className='border-l h-full flex items-center'>
-                                <ScanButton />
-                            </div>
+            {/* <Panel id="right" order={2} defaultSize={90} minSize={50} className='grow flex flex-col'> */}
+            <div>
+                <div className='w-full bg-sidebar rounded-none shadow-none h-12 justify-between border-b flex flex-row items-center'>
+                    <div className='grow flex items-center justify-between p-2'>
+                        <div className='flex gap-1 items-center p-2'>
+                            <ProjectSelector /><span className='opacity-60'>/</span><CaseSelector />
                         </div>
-                        {children}
+                        <MoreMenu />
                     </div>
-                {/* </Panel>
+                    <div className='border-l h-full flex items-center'>
+                        <ScanButton />
+                    </div>
+                </div>
+                {children}
+            </div>
+            {/* </Panel>
             </PanelGroup >
-            <ScanDrawer /> */}
+            */}
+            <ScanDrawer />
         </>
     )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import createWithEqualityFn from "zustand"
+import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { useQuery, type QueryObserverResult } from "@tanstack/react-query"
 import type { Investigation, Individual, Email, Phone, Social, IP, Relation, Address } from "@/types/investigation"
@@ -64,7 +64,7 @@ interface InvestigationState {
 
 const isServer = typeof window === "undefined"
 
-export const useInvestigationStore = createWithEqualityFn(
+export const useInvestigationStore = create(
     persist<InvestigationState>(
         (set, get) => ({
             // UI State

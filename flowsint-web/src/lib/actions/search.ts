@@ -2,7 +2,7 @@
 import { createClient } from "../supabase/server";
 
 export async function checkEmail(email: string, investigation_id: string) {
-    const url = `http://localhost:5000/scan/`;
+    const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan/`;
     const response = await fetch(url, {
         method: 'POST',
         headers: {

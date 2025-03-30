@@ -39,45 +39,8 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { NodeNotesEditor } from "./node-notes-editor"
 import { checkEmail } from "@/lib/actions/search"
-
+import { nodesTypes } from "@/lib/utils"
 // Node types definition
-const nodesTypes = {
-    emails: { table: "emails", type: "email", fields: ["email"] },
-    individuals: { table: "individuals", type: "individual", fields: ["full_name"] },
-    phone_numbers: { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
-    ip_addresses: { table: "ip_addresses", type: "ip", fields: ["ip_address"] },
-    social_accounts_facebook: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:facebook"],
-    },
-    social_accounts_instagram: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:instagram"],
-    },
-    social_accounts_telegram: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:telegram"],
-    },
-    social_accounts_snapchat: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:snapchat"],
-    },
-    social_accounts_signal: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:signal"],
-    },
-    social_accounts_github: {
-        table: "social_accounts",
-        type: "social",
-        fields: ["profile_url", "username", "platform:github"],
-    },
-    physical_addresses: { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
-}
 
 // Node Context Menu component
 interface NodeContextMenuProps {
@@ -207,21 +170,13 @@ const NodeContextMenu = memo(
                     return
                 }
                 if (currentNodeType.table === "individuals") {
-                    // Create relation to investigation
-                    const { error: relationError } = await supabase.from("investigation_individuals").insert({
-                        individual_id: nodeData.id,
-                        investigation_id: investigation_id,
-                    })
-                    if (relationError) {
-                        toast.error("Error creating investigation relation:" + JSON.stringify(relationError))
-                    }
                     const { error: relationshipError } = await supabase.from("relationships").upsert({
                         individual_a: currentNode.id,
                         individual_b: nodeData.id,
                         relation_type: "relation",
                     })
                     if (relationshipError) {
-                        toast.error(relationshipError.details)
+                        toast.error("Error creating new relation: " + relationshipError.message)
                     }
                 }
                 const newNode = {

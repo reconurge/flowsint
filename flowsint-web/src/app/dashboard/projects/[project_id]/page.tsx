@@ -64,9 +64,9 @@ const DashboardPage = () => {
     const isRefetching = isRefetchingDocs || isRefetchingSketches
 
     return (
-        <DashboardLayout items={[{ name: "Projects", href: "/dashboard" }, { name: project?.name }]}>
+        <DashboardLayout items={[{ name: "Projects", href: "/dashboard" }, { name: project?.name || "..." }]}>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -122,10 +122,17 @@ const DashboardPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {project.investigations.length === 0 && searchQuery !== "" ? (
+                                {project.investigations.length === 0 && documents?.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center w-full py-2 text-muted-foreground">
-                                            No sketch yet.
+                                        <TableCell colSpan={7} className="text-center w-full py-2 text-muted-foreground">
+                                            <div className="flex flex-col justify-center items-center p-3 gap-2">
+                                                No sketch yet or document yet.
+                                                <NewCase noDropDown>
+                                                    <Button size="sm" className="gap-2">
+                                                        <PlusIcon className="h-4 w-4" />  Create a new sketch
+                                                    </Button>
+                                                </NewCase>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ) : (

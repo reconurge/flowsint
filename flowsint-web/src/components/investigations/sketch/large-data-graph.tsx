@@ -229,7 +229,7 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
     }, [])
 
     return (
-        <div className="relative h-[calc(100vh_-_48px)]">
+        <div className="relative w-full h-[calc(100vh_-_48px)]">
             <div className="absolute top-3.5 left-3.5 z-10 flex items-center gap-1">
                 <TooltipProvider>
                     <Tooltip>
@@ -266,7 +266,6 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
                     </Tooltip>
                 </TooltipProvider>
             </div>
-
             <div className="absolute top-4 right-4 z-10 flex items-center gap-1">
                 <Button size="icon" disabled={reloading} variant="outline" onClick={refetch}>
                     <RotateCwIcon className={`h-4 w-4 ${reloading ? "animate-spin" : ""}`} />

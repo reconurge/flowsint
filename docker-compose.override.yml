@@ -1,0 +1,91 @@
+name: flowsint
+
+services:
+  # Traefik reverse proxy
+  reverse-proxy:
+    image: traefik:v3.1
+    container_name: traefik-reverse-proxy
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.ws.address=:80"
+      - "--providers.file.watch=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
+
+  # Next.js application
+  flowsint-web:
+    build:
+      context: flowsint-web
+      dockerfile: Dockerfile
+    container_name: flowsint-web
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextjs.rule=Host(`app.flowsint.localhost`)"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+
+  # Flask-like application with Celery
+  flowsint-api:
+    build:
+      context: flowsint-api
+      dockerfile: Dockerfile
+    container_name: flowsint-api
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - ENV=prod
+    command: ["/app/entrypoint.sh", "app"]
+    restart: always
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`api.flowsint.localhost`)"
+      - "traefik.http.services.app.loadbalancer.server.port=5000"
+
+  celery:
+    build:
+      context: flowsint-api
+      dockerfile: Dockerfile
+    container_name: celery-worker
+    depends_on:
+      - redis
+      - flowsint-api
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - ENV=prod
+    command: ["/app/entrypoint.sh", "celery"]
+    restart: always
+    networks:
+      - traefik
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    name: traefik
+    driver: bridge
+
+volumes:
+  db-config:

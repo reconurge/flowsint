@@ -11,19 +11,11 @@ import Loader from "@/components/loader"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Investigation } from "@/types/investigation"
 import NewCase from "@/components/dashboard/new-sketch"
 import { DocumentList } from "@/components/projects/documents-list"
 import { cn } from "@/lib/utils"
-import DashboardLayout from "@/components/dashboard/layout"
+import { ProjectNavigation } from "@/components/investigations/project-navigation"
 
 const DashboardPage = () => {
     const { project_id } = useParams()
@@ -64,7 +56,10 @@ const DashboardPage = () => {
     const isRefetching = isRefetchingDocs || isRefetchingSketches
 
     return (
-        <DashboardLayout items={[{ name: "Projects", href: "/dashboard" }, { name: project?.name || "..." }]}>
+        <>
+            <div className="sticky z-40 bg-background top-[56px] border-b">
+                <ProjectNavigation project_id={project_id as string} />
+            </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
@@ -180,7 +175,7 @@ const DashboardPage = () => {
                     </div>
                 )}
             </div>
-        </DashboardLayout>
+        </>
     )
 }
 

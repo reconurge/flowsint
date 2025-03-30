@@ -1,3 +1,4 @@
+"use client"
 import { useInvestigations } from "@/lib/hooks/investigation/investigation";
 import { useInvestigationStore } from '@/store/investigation-store';
 import { useParams, useRouter } from "next/navigation";

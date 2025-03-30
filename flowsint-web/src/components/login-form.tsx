@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 
 export function LoginForm() {
     return (
-        <Card className="mx-auto w-full max-w-md">
+        <Card className="mx-auto bg-background w-full max-w-md">
             <CardHeader className="space-y-1">
                 <h2 className="text-2xl font-semibold tracking-tight">Login</h2>
                 <p className="text-sm text-muted-foreground">Login into your account or create a new one.</p>

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createNewProject } from "@/lib/actions/projects"
+import { createNewProject } from "@/lib/actions/project"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -17,7 +17,6 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 

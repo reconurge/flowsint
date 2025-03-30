@@ -27,12 +27,12 @@ interface NoteEditorModalProps {
 }
 
 export function NodeNotesEditor({ openNote, setOpenNote, individualId }: NoteEditorModalProps) {
-    const { investigation_id } = useParams()
+    const { investigation_id, project_id } = useParams()
     const [isSaving, setIsSaving] = useState(false)
-    const { data: individual = null, isLoading } = useQuery({
+    const { data: individual = null, isLoading, error } = useQuery({
         queryKey: ["investigations", investigation_id, "individuals", individualId],
         queryFn: async (): Promise<Individual | null> => {
-            const res = await fetch(`/api/investigations/${investigation_id}/individuals/${individualId}`)
+            const res = await fetch(`/api/projects/${project_id}/investigations/${investigation_id}/individuals/${individualId}`)
             if (!res.ok) {
                 return null
             }
@@ -83,7 +83,11 @@ export function NodeNotesEditor({ openNote, setOpenNote, individualId }: NoteEdi
                 <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-auto">
                     <DialogHeader>
                         <DialogTitle>Error</DialogTitle>
-                        <DialogDescription>Could not find individual.</DialogDescription>
+                        <DialogDescription>
+                            <span>
+                                {error ? <>An error occurred while fetching the individual:{JSON.stringify(error)}</> : <>Could not find individual.
+                                </>}
+                            </span></DialogDescription>
                     </DialogHeader>
                 </DialogContent>
             )}
@@ -94,7 +98,7 @@ export function NodeNotesEditor({ openNote, setOpenNote, individualId }: NoteEdi
                         <DialogDescription></DialogDescription>
                     </DialogHeader>
                     <div className="h-[200px] flex items-center justify-center">
-                        <Loader /> Loading individual...
+                        <Loader /> Loading...
                     </div>
                 </DialogContent> : individual &&
                 <DialogContent onContextMenu={(e) => e.stopPropagation()} className="sm:max-w-[600px] max-h-[80vh] overflow-auto">

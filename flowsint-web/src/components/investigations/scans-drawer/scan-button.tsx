@@ -19,12 +19,7 @@ import {
 } from "@/components/ui/sheet"
 import { ScanTable } from "./scan-table"
 import { toast } from "sonner"
-
-// Create Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-const supabase = createClient(supabaseUrl, supabaseKey)
-
+import { supabase } from "@/lib/supabase/client"
 export type Scan = {
   id: string
   value: string

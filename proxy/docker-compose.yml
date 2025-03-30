@@ -1,0 +1,26 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.ws.address=:80"
+      # - "--entryPoints.websecure.address=:443"
+      # - "--entrypoints.websecure.http.tls.certresolver=myresolver"
+      # - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--providers.file.watch=true"
+    ports:
+      # The HTTP port
+      - "80:80"
+      # - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+    #  - ./certs:/etc/traefik/certs
+    #  - ./dynamic.yml:/etc/traefik/dynamic.yml
+     - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  default:
+    name: traefik
+    driver: bridge

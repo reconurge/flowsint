@@ -46,7 +46,7 @@ const DashboardPage = () => {
                 <div>
                     <RecentSketches />
                 </div>
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input

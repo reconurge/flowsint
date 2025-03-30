@@ -6,7 +6,7 @@ export async function createClient() {
     const supabaseToken = cookieStore.get('sb-token')?.value
 
     return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_DOCKER_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             auth: {

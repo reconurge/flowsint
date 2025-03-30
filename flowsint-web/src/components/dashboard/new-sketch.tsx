@@ -33,7 +33,7 @@ function SubmitButton() {
     )
 }
 
-export default function NewCase({ children }: { children: React.ReactNode }) {
+export default function NewCase({ children, noDropDown = false }: { children: React.ReactNode, noDropDown?: boolean }) {
     const [open, setOpen] = useState(false)
     const { setOpenUploadModal } = useProjectStore()
 
@@ -52,6 +52,41 @@ export default function NewCase({ children }: { children: React.ReactNode }) {
         }
     }
 
+    if (noDropDown) return (
+        <>
+            <Button asChild onClick={() => setOpen(true)}>{children}</Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>New sketch</DialogTitle>
+                        <DialogDescription>Create a new blank sketch.</DialogDescription>
+                    </DialogHeader>
+                    <form action={handleNewCase}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">Investigation name</Label>
+                                <Input id="title" name="title" placeholder="Suspicion de fraude" required />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Input
+                                    id="description"
+                                    name="description"
+                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                                Cancel
+                            </Button>
+                            <SubmitButton />
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    )
     return (
         <>
             <DropdownMenu>

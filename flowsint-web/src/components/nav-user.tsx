@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { logout } from "@/lib/actions/auth"
 import { ThemeSwitch } from "./theme-switch"
+import EnvIndicator from "./env-indicator"
 
 export function NavUser({
   user,
@@ -105,6 +106,11 @@ export function NavUser({
                 <ThemeSwitch />
               </div>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <div className="flex text-sm items-center justify-between px-3 py-2">
+              Environment
+              <EnvIndicator />
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <LogOut />

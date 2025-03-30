@@ -179,10 +179,10 @@ const FlowControls = memo(
                         </TabsList>
                     </Tabs>
                 </Panel>
-                {currentNode && (
+                {/* {currentNode && (
                     <Panel position="top-right">
                         <ProfilePanel type={currentNode.type} data={currentNode.data} />
-                    </Panel>)}
+                    </Panel>)} */}
             </>
         )
     },

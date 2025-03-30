@@ -220,3 +220,41 @@ export const formatFileSize = (bytes: number) => {
   else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB"
   else return (bytes / 1048576).toFixed(1) + " MB"
 }
+
+export const nodesTypes = {
+  emails: { table: "emails", type: "email", fields: ["email"] },
+  individuals: { table: "individuals", type: "individual", fields: ["full_name"] },
+  phone_numbers: { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
+  ip_addresses: { table: "ip_addresses", type: "ip", fields: ["ip_address"] },
+  social_accounts_facebook: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:facebook"],
+  },
+  social_accounts_instagram: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:instagram"],
+  },
+  social_accounts_telegram: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:telegram"],
+  },
+  social_accounts_snapchat: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:snapchat"],
+  },
+  social_accounts_signal: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:signal"],
+  },
+  social_accounts_github: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:github"],
+  },
+  physical_addresses: { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
+}

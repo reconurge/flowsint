@@ -7,7 +7,8 @@
   "author": "Eliott Morcillo <eliott.morcillo@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "docker compose up -d"
+    "dev": "docker compose up -d",
+    "compose:start": "docker compose -f docker-compose.override.yml up -d"
   },
   "devDependencies": {
     "supabase": "^2.19.7"

@@ -5,6 +5,7 @@ import LargeInvestigationGraph from '@/components/investigations/sketch/large-da
 import IndividualModal from "@/components/investigations/individual-modal"
 import { notFound } from "next/navigation"
 import { useQueryState } from "nuqs"
+import { InvestigationtNavigation } from "@/components/investigations/investigation-navigation"
 interface DashboardClientProps {
     projectId: string
     investigationId: string
@@ -24,14 +25,17 @@ export default function DashboardClient({ projectId, investigationId }: Dashboar
         refetchOnWindowFocus: true,
     })
     return (
-        <div>
+        <>
+            <div className="sticky z-40 bg-background top-[56px] border-b">
+                <InvestigationtNavigation project_id={projectId} investigation_id={investigationId} />
+            </div>
             {view === "flow-graph" ?
                 <InvestigationGraph graphQuery={graphQuery} />
                 :
                 <LargeInvestigationGraph graphQuery={graphQuery} />
             }
             <IndividualModal />
-        </div>
+        </>
     )
 }
 

@@ -18,7 +18,6 @@ export default function TokensPage() {
   ])
 
   return (
-    <DashboardLayout items={[{ name: "Dashboard", href: "/dashboard" }, { name: "Keys and tokens" }]}>
       <div className="space-y-12 container mx-auto py-12 px-8">
         <div>
           <div className="flex justify-between items-start mb-4">
@@ -146,7 +145,6 @@ export default function TokensPage() {
           </Tabs>
         </div>
       </div>
-    </DashboardLayout>
   )
 }
 

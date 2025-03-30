@@ -17,6 +17,7 @@ import NewProject from "@/components/dashboard/new-project"
 import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/dashboard/layout"
+import { SubNav } from "@/components/dashboard/sub-nav"
 
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
@@ -38,7 +39,10 @@ const DashboardPage = () => {
     )
 
     return (
-        <DashboardLayout items={[{ name: "Dashboard" }, { name: "Projects" }]}>
+        <>
+            <div className="sticky z-40 bg-background w-full hidden md:flex top-[56px] border-b">
+                <SubNav />
+            </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
                 <div>
                     <h1 className="text-3xl font-bold">Welcome back, Eliott</h1>
@@ -160,7 +164,7 @@ const DashboardPage = () => {
                     </div>
                 )}
             </div>
-        </DashboardLayout>
+        </>
     )
 }
 

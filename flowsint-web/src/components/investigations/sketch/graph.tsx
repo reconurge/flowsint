@@ -170,19 +170,6 @@ const FlowControls = memo(
                         <TooltipContent>Zoom out</TooltipContent>
                     </Tooltip>
                 </Panel>
-                <Panel position="top-center" className="text-center">
-                    <Tabs defaultValue="sketch">
-                        <TabsList>
-                            <TabsTrigger value="sketch">Sketch</TabsTrigger>
-                            <TabsTrigger value="map" disabled>Map</TabsTrigger>
-                            <TabsTrigger value="timeline" disabled>Timeline</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </Panel>
-                {/* {currentNode && (
-                    <Panel position="top-right">
-                        <ProfilePanel type={currentNode.type} data={currentNode.data} />
-                    </Panel>)} */}
             </>
         )
     },
@@ -292,7 +279,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     )
 
     return (
-        <div className="h-[calc(100vh_-_48px)] relative">
+        <div className="w-full grow relative">
             <TooltipProvider>
                 <Dialog>
                     <ContextMenu>
@@ -379,7 +366,7 @@ function Graph({ graphQuery }: { graphQuery: any }) {
 
     if (!mounted || isLoading) {
         return (
-            <div className="h-[calc(100vh_-_48px)] w-full flex items-center justify-center">
+            <div className="grow w-full flex items-center justify-center">
                 <Loader /> Loading...
             </div>
         )

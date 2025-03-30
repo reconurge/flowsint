@@ -89,9 +89,9 @@ const IndividualModal = () => {
 
     return (
         <Dialog open={Boolean(individualId)} onOpenChange={handleCloseModal}>
-            <DialogContent className="sm:max-w-[90vw] max-h-[90vh] p-0 bg-black text-white border-zinc-800 overflow-hidden">
+            <DialogContent className="sm:max-w-[90vw] max-h-[90vh] p-0 bg-background overflow-y-auto">
                 <div className="h-full flex flex-col">
-                    <div className="flex justify-between items-center p-4 border-b border-zinc-800">
+                    <div className="flex justify-between sticky top-0 items-center p-4 border-b">
                         <DialogTitle className="text-xl font-bold">{individual?.full_name || "User Profile"}</DialogTitle>
                         <div className="flex items-center gap-2 mr-12">
                             <Button
@@ -119,10 +119,10 @@ const IndividualModal = () => {
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Left column - Profile image and basic info */}
                                 <div className="flex flex-col gap-4 md:w-1/3">
-                                    <div className="flex flex-col items-center gap-4 bg-zinc-900 rounded-xl p-6">
-                                        <Avatar className="h-32 w-32 border-2 border-zinc-700">
+                                    <div className="flex flex-col items-center gap-4 rounded-xl p-6">
+                                        <Avatar className="h-32 w-32 border-2">
                                             <AvatarImage src={image || undefined} alt={individual?.full_name} />
-                                            <AvatarFallback className="bg-zinc-800 text-zinc-300 text-2xl">
+                                            <AvatarFallback className="bg-zinc-800  text-2xl">
                                                 {individual?.full_name?.[0] || "?"}
                                             </AvatarFallback>
                                         </Avatar>
@@ -134,35 +134,35 @@ const IndividualModal = () => {
                                         <div className="w-full space-y-4 mt-2">
                                             {individual?.email && (
                                                 <div className="flex items-center gap-3 text-sm">
-                                                    <Mail className="h-4 w-4 text-zinc-500" />
-                                                    <span className="text-zinc-300">{individual.email}</span>
+                                                    <Mail className="h-4 w-4" />
+                                                    <span className="">{individual.email}</span>
                                                 </div>
                                             )}
 
                                             {phones[0] && (
                                                 <div className="flex items-center gap-3 text-sm">
-                                                    <Phone className="h-4 w-4 text-zinc-500" />
-                                                    <span className="text-zinc-300">{phones[0]}</span>
+                                                    <Phone className="h-4 w-4" />
+                                                    <span className="">{phones[0]}</span>
                                                 </div>
                                             )}
 
                                             {individual?.location && (
                                                 <div className="flex items-center gap-3 text-sm">
-                                                    <MapPin className="h-4 w-4 text-zinc-500" />
-                                                    <span className="text-zinc-300">{individual.location}</span>
+                                                    <MapPin className="h-4 w-4" />
+                                                    <span className="">{individual.location}</span>
                                                 </div>
                                             )}
 
                                             {individual?.company && (
                                                 <div className="flex items-center gap-3 text-sm">
-                                                    <Building2 className="h-4 w-4 text-zinc-500" />
-                                                    <span className="text-zinc-300">{individual.company}</span>
+                                                    <Building2 className="h-4 w-4" />
+                                                    <span className="">{individual.company}</span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="bg-zinc-900 rounded-xl p-6">
+                                    <div className="bg-background rounded-xl p-6">
                                         <h3 className="text-lg font-semibold mb-4">Profile</h3>
                                         <div className="space-y-3">
                                             {individual?.birth_date && (
@@ -203,7 +203,7 @@ const IndividualModal = () => {
                                     </div>
 
                                     {/* Score card */}
-                                    <div className="bg-zinc-900 rounded-xl p-6">
+                                    <div className="bg-background rounded-xl p-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-lg font-semibold">Overall score</h3>
                                             <div className="relative h-16 w-16">
@@ -265,7 +265,7 @@ const IndividualModal = () => {
                                 {/* Right column - Tabs content */}
                                 <div className="flex-1">
                                     <Tabs defaultValue="overview" className="w-full">
-                                        <TabsList className="w-full justify-start bg-zinc-900 p-1 rounded-lg mb-4">
+                                        <TabsList className="w-full justify-start p-1 rounded-lg mb-4">
                                             <TabsTrigger
                                                 value="overview"
                                                 className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
@@ -319,7 +319,7 @@ const IndividualModal = () => {
                                             </TabsTrigger>
                                         </TabsList>
 
-                                        <div className="bg-zinc-900 rounded-xl p-6">
+                                        <div className="bg-background rounded-xl p-6">
                                             <TabsContent value="overview">
                                                 {editMode ? (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -335,7 +335,7 @@ const IndividualModal = () => {
                                                                             placeholder={key}
                                                                             name={key}
                                                                             disabled={key === "id" || key === "investigation_id" || !editMode}
-                                                                            className="bg-zinc-800 border-zinc-700 text-white"
+                                                                            className="bg-zinc-800 text-white"
                                                                         />
                                                                     </div>
                                                                 ))}
@@ -405,12 +405,12 @@ const IndividualModal = () => {
                                                     )}
 
                                                     {accounts.map((account: any, index) => (
-                                                        <Card key={index} className="bg-zinc-800 border-zinc-700 p-4">
+                                                        <Card key={index} className="bg-zinc-800 p-4">
                                                             <CardContent className="flex items-center gap-3 p-0">
                                                                 <Avatar className="h-10 w-10 bg-zinc-700">
                                                                     {/* @ts-ignore */}
                                                                     <AvatarImage src={platformsIcons[account?.platform]?.icon} />
-                                                                    <AvatarFallback className="bg-zinc-700 text-zinc-300">
+                                                                    <AvatarFallback className="bg-zinc-700 ">
                                                                         {account?.platform?.[0] || "?"}
                                                                     </AvatarFallback>
                                                                 </Avatar>
@@ -446,7 +446,7 @@ const IndividualModal = () => {
                                                         <Button
                                                             onClick={() => handleAddField(setAccounts)}
                                                             variant="outline"
-                                                            className="border-dashed border-zinc-700 hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                                            className="border-dashed hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
                                                         >
                                                             <Plus className="mr-2 h-4 w-4" /> Add account
                                                         </Button>
@@ -469,7 +469,7 @@ const IndividualModal = () => {
                                                                 className={
                                                                     email.breaches.length > 0
                                                                         ? "bg-red-950/50 border-red-900 text-red-200"
-                                                                        : "bg-zinc-800 border-zinc-700"
+                                                                        : "bg-zinc-800"
                                                                 }
                                                             >
                                                                 <AlertDescription className="flex items-center gap-2">
@@ -496,7 +496,7 @@ const IndividualModal = () => {
 
                                                     {phones.map((phone, index) => (
                                                         <div key={index} className="flex items-center gap-2">
-                                                            <div className="bg-zinc-800 border border-zinc-700 rounded-md p-3 flex items-center gap-3 flex-1">
+                                                            <div className="bg-zinc-800 border rounded-md p-3 flex items-center gap-3 flex-1">
                                                                 <Phone className="h-4 w-4 text-zinc-400" />
                                                                 {editMode ? (
                                                                     <Input
@@ -528,7 +528,7 @@ const IndividualModal = () => {
                                                         <Button
                                                             onClick={() => handleAddField(setPhones)}
                                                             variant="outline"
-                                                            className="border-dashed border-zinc-700 hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                                            className="border-dashed hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
                                                         >
                                                             <Plus className="mr-2 h-4 w-4" /> Add Phone
                                                         </Button>
@@ -546,7 +546,7 @@ const IndividualModal = () => {
 
                                                     {ips.map((ip, index) => (
                                                         <div key={index} className="flex items-center gap-2">
-                                                            <div className="bg-zinc-800 border border-zinc-700 rounded-md p-3 flex items-center gap-3 flex-1">
+                                                            <div className="bg-zinc-800 border rounded-md p-3 flex items-center gap-3 flex-1">
                                                                 <svg
                                                                     className="h-4 w-4 text-zinc-400"
                                                                     viewBox="0 0 24 24"
@@ -605,7 +605,7 @@ const IndividualModal = () => {
                                                         <Button
                                                             onClick={() => handleAddField(setIps)}
                                                             variant="outline"
-                                                            className="border-dashed border-zinc-700 hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                                            className="border-dashed hover:border-zinc-500 bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800"
                                                         >
                                                             <Plus className="mr-2 h-4 w-4" /> Add IP address
                                                         </Button>
@@ -624,13 +624,13 @@ const IndividualModal = () => {
                                                     {relations.map((relation) => (
                                                         <Card
                                                             key={relation.id}
-                                                            className="bg-zinc-800 border-zinc-700 p-4 hover:bg-zinc-750 transition-colors cursor-pointer"
+                                                            className="bg-zinc-800 p-4 hover:bg-zinc-750 transition-colors cursor-pointer"
                                                             onClick={() => setIndividualId(relation.id)}
                                                         >
                                                             <CardContent className="flex items-center gap-3 p-0">
-                                                                <Avatar className="h-10 w-10 border border-zinc-700">
+                                                                <Avatar className="h-10 w-10 border">
                                                                     <AvatarImage src={relation?.image_url} alt={relation.full_name} />
-                                                                    <AvatarFallback className="bg-zinc-700 text-zinc-300">
+                                                                    <AvatarFallback className="bg-zinc-700 ">
                                                                         {relation.full_name?.[0] || "?"}
                                                                     </AvatarFallback>
                                                                 </Avatar>
@@ -652,7 +652,7 @@ const IndividualModal = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() => setEditMode(false)}
-                                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                                        className="bg-transparent  hover:bg-zinc-800 hover:text-white"
                                     >
                                         Cancel
                                     </Button>

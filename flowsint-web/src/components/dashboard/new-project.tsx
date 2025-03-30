@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createNewProject } from "@/lib/actions/project"
+import { createNewProject } from "@/lib/actions/projects"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,

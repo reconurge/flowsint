@@ -33,10 +33,10 @@ export default function ProjectSelector() {
     };
     return (
         <div className="flex items-center">
-            {isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
+            {isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
                 // @ts-ignore
                 <Select onValueChange={handleSelectionChange} defaultValue={project_id}>
-                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent shadow-none border-none text-ellipsis truncate gap-1">
+                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
                         <SelectValue placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>

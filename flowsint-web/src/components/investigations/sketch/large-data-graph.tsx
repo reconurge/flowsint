@@ -202,12 +202,12 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
                 .d3Force("link")
                 .distance(() => 2100) // Increase from 150 to 200
                 .strength(0.1) // Decrease from 0.2 to 0.1 for more flexibility
-                
+
             graphRef.current
                 .d3Force("charge")
                 .strength(-400) // Double the repulsion from -200 to -400
                 .distanceMax(5100) // Increase from 250 to 500
-                
+
             // Add this to improve initial positioning
             graphRef.current.d3Force("x", d3.forceX().strength(0.05))
             graphRef.current.d3Force("y", d3.forceY().strength(0.05))
@@ -229,7 +229,7 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
     }, [])
 
     return (
-        <div className="relative w-full h-[calc(100vh_-_48px)]">
+        <div className="w-full grow overflow-hidden relative">
             <div className="absolute top-3.5 left-3.5 z-10 flex items-center gap-1">
                 <TooltipProvider>
                     <Tooltip>
@@ -271,8 +271,8 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
                     <RotateCwIcon className={`h-4 w-4 ${reloading ? "animate-spin" : ""}`} />
                 </Button>
             </div>
-
             <ForceGraph2D
+            
                 ref={graphRef}
                 graphData={graphData}
                 nodeRelSize={NODE_R}
@@ -334,7 +334,7 @@ export default function LargeInvestigationGraph({ graphQuery }: LargeInvestigati
 
     if (!mounted || isLoading) {
         return (
-            <div className="h-[calc(100vh_-_48px)] w-full flex items-center justify-center">
+            <div className="grow w-full flex items-center justify-center">
                 <Loader /> Loading...
             </div>
         )

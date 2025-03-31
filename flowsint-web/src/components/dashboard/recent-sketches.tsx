@@ -3,11 +3,12 @@
 import type { Investigation } from "@/types/investigation"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { FileText, Folder, Layers, Search, Waypoints } from "lucide-react"
+import { FileSearch, FileText, Folder, Layers, Search, Users, Waypoints } from "lucide-react"
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
+import { number, string } from "zod"
 
 const RecentSketches = () => {
     const {
@@ -51,6 +52,44 @@ const RecentSketches = () => {
         )
     }
 
+    // return (
+    //     <div className="space-y-4">
+    //         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
+    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                     <h3 className="tracking-tight text-sm font-medium">Investigations Actives</h3>
+    //                     <FileSearch className="h-4 w-4 text-muted-foreground" />
+    //                 </div>
+    //                 <div className="text-2xl font-bold">24</div>
+    //                 <p className="text-xs text-muted-foreground">+2 depuis le mois dernier</p>
+    //             </div>
+    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
+    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                     <h3 className="tracking-tight text-sm font-medium">Sujets Suivis</h3>
+    //                     <Users className="h-4 w-4 text-muted-foreground" />
+    //                 </div>
+    //                 <div className="text-2xl font-bold">145</div>
+    //                 <p className="text-xs text-muted-foreground">+12 depuis le mois dernier</p>
+    //             </div>
+    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
+    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                     <h3 className="tracking-tight text-sm font-medium">Documents Collectés</h3>
+    //                     <FileText className="h-4 w-4 text-muted-foreground" />
+    //                 </div>
+    //                 <div className="text-2xl font-bold">532</div>
+    //                 <p className="text-xs text-muted-foreground">+86 depuis le mois dernier</p>
+    //             </div>
+    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
+    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                     <h3 className="tracking-tight text-sm font-medium">Alertes</h3>
+    //                     <FileSearch className="h-4 w-4 text-muted-foreground" />
+    //                 </div>
+    //                 <div className="text-2xl font-bold">9</div>
+    //                 <p className="text-xs text-muted-foreground">-2 depuis le mois dernier</p>
+    //             </div>
+    //         </div>
+    //     </div>
+    // )
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {investigations?.map((investigation: Investigation) => {

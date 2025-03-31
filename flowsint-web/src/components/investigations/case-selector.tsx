@@ -10,6 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton";
+import { Waypoints } from "lucide-react";
 
 export default function CaseSelector() {
     const router = useRouter()
@@ -25,10 +26,10 @@ export default function CaseSelector() {
     };
     return (
         <div className="flex items-center">
-            {isLoading || investigation.isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
+            {isLoading || investigation.isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={investigation?.data.id}>
-                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent shadow-none border-none text-ellipsis truncate gap-1">
-                        <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
+                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                        <Waypoints className="mr-1"/> <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
                         {investigations?.map((investigation) => (

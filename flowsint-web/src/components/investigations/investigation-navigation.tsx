@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 import { Users, TimerIcon, MapIcon, WaypointsIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import MoreMenu from "./more-menu"
+import { ScanButton } from "./scans-drawer/scan-button"
 
 
 export function InvestigationtNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
@@ -20,7 +22,6 @@ export function InvestigationtNavigation({ project_id, investigation_id }: { pro
             name: "Individuals",
             href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/individuals`,
             icon: Users,
-            count: 24,
         },
         {
             id: "timeline",
@@ -37,25 +38,31 @@ export function InvestigationtNavigation({ project_id, investigation_id }: { pro
     ]
 
     return (
-        <div className="flex overflow-auto">
-            {sections.map((section) => (
-                <Link
-                    key={section.id}
-                    href={section?.href || ""}
-                    className={cn(
-                        "flex items-center text-xs gap-2 px-4 py-2 transition-colors",
-                        section?.href == pathname
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
-                    )}
-                >
-                    <section.icon className="h-4 w-4" />
-                    <span>{section.name}</span>
-                    {section.count && (
+        <div className="flex items-center justify-between">
+            <div className="flex overflow-auto">
+                {sections.map((section) => (
+                    <Link
+                        key={section.id}
+                        href={section?.href || ""}
+                        className={cn(
+                            "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
+                            section?.href == pathname
+                                ? "bg-accent text-accent-foreground"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                        )}
+                    >
+                        <section.icon className="h-4 w-4" />
+                        <span>{section.name}</span>
+                        {/* {section?.count && (
                         <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs">{section.count}</span>
-                    )}
-                </Link>
-            ))}
+                    )} */}
+                    </Link>
+                ))}
+            </div>
+            <div className="flex items-center">
+                <MoreMenu />
+                <ScanButton />
+            </div>
         </div>
     )
 }

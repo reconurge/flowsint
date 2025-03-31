@@ -13,7 +13,7 @@ export default function MoreMenu() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="rounded-none border-none">
                     <Ellipsis className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>

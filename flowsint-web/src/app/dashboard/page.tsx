@@ -40,14 +40,16 @@ const DashboardPage = () => {
 
     return (
         <>
-            <div className="sticky z-40 bg-background w-full hidden md:flex top-[56px] border-b">
+            <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
                 <SubNav />
             </div>
-            <div className="w-full space-y-8 container mx-auto py-12 px-8">
-                <div>
-                    <h1 className="text-3xl font-bold">Welcome back, Eliott</h1>
+            <div className="w-full space-y-8 mx-auto py-12 px-8">
+                <div className="flex items-center gap-2 justify-between">
+                    <h1 className="text-2xl font-bold">Overview</h1>
+                    <Button>New investigation</Button>
                 </div>
                 <div>
+
                     <RecentSketches />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">

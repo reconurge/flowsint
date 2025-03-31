@@ -26,7 +26,7 @@ export default function DashboardClient({ projectId, investigationId }: Dashboar
     })
     return (
         <>
-            <div className="sticky z-40 bg-background top-[56px] border-b">
+            <div className="sticky z-40 bg-background top-[48px] border-b">
                 <InvestigationtNavigation project_id={projectId} investigation_id={investigationId} />
             </div>
             {view === "flow-graph" ?

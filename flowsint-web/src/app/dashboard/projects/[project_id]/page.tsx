@@ -57,7 +57,7 @@ const DashboardPage = () => {
 
     return (
         <>
-            <div className="sticky z-40 bg-background top-[56px] border-b">
+            <div className="sticky z-40 bg-background top-[48px] border-b">
                 <ProjectNavigation project_id={project_id as string} />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">

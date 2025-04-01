@@ -34,7 +34,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         // Récupérer les relations
         const { data: relations, error: relError } = await supabase
             .from("relationships")
-            .select("individual_a, individual_b, relation_type, confidence_level")
+            .select("id, individual_a, individual_b, relation_type, confidence_level")
             .in("individual_a", individualIds)
             .in("individual_b", individualIds)
         if (relError) {
@@ -145,12 +145,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             })
         })
         // Ajouter les relations entre individus
-        relations?.forEach(({ individual_a, individual_b, relation_type, confidence_level }) => {
+        relations?.forEach(({ id, individual_a, individual_b, relation_type, confidence_level }) => {
             edges.push({
                 source: individual_a.toString(),
                 target: individual_b.toString(),
                 type: "custom",
-                id: `${individual_a}-${individual_b}`.toString(),
+                id: id.toString(),
                 label: relation_type,
                 confidence_level,
             })

@@ -53,8 +53,9 @@ import NodeContextMenu from "./nodes/node-context-menu"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProfilePanel from "./profile-panel"
 import GroupNode from "./nodes/group"
+import CustomEdge from "./nodes/custom-edge"
 const edgeTypes = {
-    custom: FloatingEdge,
+    custom: CustomEdge,
 }
 
 const nodeTypes = {

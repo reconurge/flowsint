@@ -20,7 +20,7 @@ services:
       - traefik
 
   # Next.js application
-  flowsint-web:
+  web:
     build:
       context: flowsint-web
       dockerfile: Dockerfile
@@ -37,7 +37,7 @@ services:
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
   # Flask-like application with Celery
-  flowsint-api:
+  api:
     build:
       context: flowsint-api
       dockerfile: Dockerfile
@@ -65,7 +65,7 @@ services:
     container_name: celery-worker
     depends_on:
       - redis
-      - flowsint-api
+      - api
     environment:
       - REDIS_URL=redis://redis:6379/0
       - ENV=prod

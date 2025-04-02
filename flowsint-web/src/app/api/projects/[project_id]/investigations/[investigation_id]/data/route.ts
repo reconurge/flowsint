@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         } const { data: individuals, error: indError } = await supabase
             .from("individuals")
-            .select("*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*), group_id")
+            .select("*, ip_addresses(*), phone_numbers(*), social_accounts(*), emails(*), physical_addresses(*), vehicles(*), group_id")
             .eq("investigation_id", investigation_id)
         const { data: groups, error: groupsError } = await supabase
             .from("groups")
@@ -34,7 +34,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         // Récupérer les relations
         const { data: relations, error: relError } = await supabase
             .from("relationships")
-            .select("individual_a, individual_b, relation_type, confidence_level")
+            .select("id, individual_a, individual_b, relation_type, confidence_level")
             .in("individual_a", individualIds)
             .in("individual_b", individualIds)
         if (relError) {
@@ -127,6 +127,22 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
                     label: "IP",
                 })
             })
+            // Ajouter les adresses IP
+            ind.vehicles?.forEach((vehicle: any) => {
+                nodes.push({
+                    id: vehicle.id.toString(),
+                    type: "vehicle",
+                    data: { label: `${vehicle.plate}-${vehicle.model}` },
+                    position: { x: -100, y: -100 },
+                })
+                edges.push({
+                    source: individualId,
+                    target: vehicle.id.toString(),
+                    type: "custom",
+                    id: `${individualId}-${vehicle.id}`.toString(),
+                    label: vehicle.type,
+                })
+            })
             // Ajouter les adresses physiques
             ind.physical_addresses?.forEach((address: any) => {
                 nodes.push({
@@ -145,12 +161,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             })
         })
         // Ajouter les relations entre individus
-        relations?.forEach(({ individual_a, individual_b, relation_type, confidence_level }) => {
+        relations?.forEach(({ id, individual_a, individual_b, relation_type, confidence_level }) => {
             edges.push({
                 source: individual_a.toString(),
                 target: individual_b.toString(),
                 type: "custom",
-                id: `${individual_a}-${individual_b}`.toString(),
+                id: id.toString(),
                 label: relation_type,
                 confidence_level,
             })

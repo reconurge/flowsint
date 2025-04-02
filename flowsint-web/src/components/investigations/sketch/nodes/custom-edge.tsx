@@ -72,13 +72,13 @@ const EditableEdge = memo((props: EdgeProps) => {
                             value={editValue}
                             onChange={handleInputChange}
                             onBlur={handleInputBlur}
-                            className="h-7 w-24"
+                            className="h-5 text-xs rounded-sm"
                         />
                         <Button
                             ref={submitButtonRef}
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7"
+                            className="h-5 w-5"
                             type="submit"
                             disabled={isLoading}
                         >

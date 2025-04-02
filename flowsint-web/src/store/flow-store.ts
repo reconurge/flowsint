@@ -176,7 +176,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                         animated,
                         style: {
                             ...edge.style,
-                            stroke: animated ? "var(--primary)" : "#b1b1b750",
+                            // stroke: animated ? "var(--primary)" : "#b1b1b750",
                             opacity: animated ? 1 : 0.25,
                         },
                     };

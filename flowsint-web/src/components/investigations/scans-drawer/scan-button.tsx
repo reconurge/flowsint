@@ -105,20 +105,14 @@ export function ScanButton() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size={"icon"} className="h-full relative w-12 rounded-none">
+        <Button variant="ghost" size={"icon"} className="rounded-none">
           {pendingCount > 0 ? (
             <>
-              <ZapIcon className="mr-2 !h-4 !w-4" />
-              <Badge variant="default" className="text-xs px-0 h-5 w-5 absolute top-1 right-1 border-none rounded-full">
-                {pendingCount}
-              </Badge>
+              <ZapIcon fill="var(--primary)" stroke="var(--primary)" className="!h-4 !w-4 animate-pulse" />
             </>
           ) : (
             <>
-              <ZapIcon className="mr-2 !h-4 !w-4" />
-              <Badge variant="outline" className="text-xs px-0 h-5 w-5 absolute top-1 right-1 border-none rounded-full">
-                0
-              </Badge>
+              <ZapIcon className="!h-4 !w-4" />
             </>
           )}
         </Button>

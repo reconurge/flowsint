@@ -17,12 +17,11 @@ const DashboardLayout = async ({
     if (userError || !data?.user) {
         redirect('/login')
     }
-    const { project_id, investigation_id } = await (params)
     return (
         <InvestigationProvider>
             <SearchProvider>
                 <ChatProvider>
-                    <InvestigationLayout user={data.user} investigation_id={investigation_id} left={<Left project_id={project_id} investigation_id={investigation_id} />}>
+                    <InvestigationLayout>
                         {children}
                     </InvestigationLayout>
                 </ChatProvider>

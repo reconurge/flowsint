@@ -127,9 +127,6 @@ const FlowControls = memo(
                                 variant="outline"
                                 onClick={() => {
                                     onLayout("TB", fitView)
-                                    setTimeout(() => {
-                                        fitView()
-                                    }, 100)
                                 }}
                             >
                                 <AlignCenterVertical className="h-4 w-4" />
@@ -215,10 +212,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     const handleRefetch = useCallback(() => {
         refetch()
         onLayout("TB", fitView)
-        const timer = setTimeout(() => {
-            fitView()
-        }, 100)
-        return () => clearTimeout(timer)
+        fitView()
     }, [refetch, onLayout, fitView])
 
     // // Node highlighting effect

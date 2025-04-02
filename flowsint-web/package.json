@@ -58,7 +58,7 @@
         "@tiptap/pm": "^2.11.5",
         "@tiptap/react": "^2.11.5",
         "@tiptap/starter-kit": "^2.11.5",
-        "@xyflow/react": "^12.4.2",
+        "@xyflow/react": "^12.5.4",
         "ai": "^4.1.34",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

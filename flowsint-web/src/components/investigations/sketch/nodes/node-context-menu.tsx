@@ -221,7 +221,9 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                         <Icon className="mr-3 h-4 w-4 opacity-50" />
                         {item.label}
                     </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>{item.children.map((childItem) => renderMenuItem(childItem))}</DropdownMenuSubContent>
+                    <DropdownMenuSubContent>
+                        {item.children.map((childItem) => renderMenuItem(childItem))}
+                    </DropdownMenuSubContent>
                 </DropdownMenuSub>
             )
         }
@@ -231,9 +233,10 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 key={item.id}
                 disabled={item.disabled}
                 onClick={(e) => handleOpenAddNodeModal(e, item.key)}
+                className="flex items-center"
             >
-                <Icon className="mr-3 h-4 w-4 opacity-70" />
-                {item.label}
+                <Icon className="mr-2 h-4 w-4 opacity-70" />
+                <span className="truncate">{item.label}</span>
                 {item.comingSoon && (
                     <Badge variant="outline" className="ml-2">
                         soon
@@ -261,7 +264,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     </DropdownMenuItem>
                     <DropdownMenuSub>
                         <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="w-48">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
+                        <DropdownMenuSubContent className="grid grid-cols-1 md:grid-cols-2 gap-2">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuItem onClick={handleEditClick}>View and edit</DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDuplicateClick}>Duplicate</DropdownMenuItem>

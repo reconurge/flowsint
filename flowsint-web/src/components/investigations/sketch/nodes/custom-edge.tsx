@@ -72,7 +72,7 @@ const EditableEdge = memo((props: EdgeProps) => {
                             value={editValue}
                             onChange={handleInputChange}
                             onBlur={handleInputBlur}
-                            className="h-5 text-xs rounded-sm"
+                            className="h-5 text-xs max-w-28 rounded-sm"
                         />
                         <Button
                             ref={submitButtonRef}

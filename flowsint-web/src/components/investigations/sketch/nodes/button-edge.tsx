@@ -5,6 +5,7 @@ import {
     EdgeLabelRenderer,
     EdgeProps,
     getBezierPath,
+    getStraightPath,
 } from "@xyflow/react";
 
 export const ButtonEdge = ({
@@ -12,19 +13,15 @@ export const ButtonEdge = ({
     sourceY,
     targetX,
     targetY,
-    sourcePosition,
-    targetPosition,
     style = {},
     markerEnd,
     children,
 }: EdgeProps & { children: ReactNode }) => {
-    const [edgePath, labelX, labelY] = getBezierPath({
+    const [edgePath, labelX, labelY] = getStraightPath({
         sourceX,
         sourceY,
-        sourcePosition,
         targetX,
         targetY,
-        targetPosition,
     });
 
     return (

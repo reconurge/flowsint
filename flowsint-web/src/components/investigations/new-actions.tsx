@@ -100,7 +100,9 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
                         <DropdownMenuSubContent>
-                            {item.children.map((childItem) => renderMenuItem(childItem))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                                {item.children.map((childItem) => renderMenuItem(childItem))}
+                            </div>
                         </DropdownMenuSubContent>
                     </DropdownMenuPortal>
                 </DropdownMenuSub>
@@ -111,9 +113,10 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 key={item.id}
                 disabled={item.disabled}
                 onClick={(e) => handleOpenAddNodeModal(e, item.key)}
+                className="flex items-center"
             >
                 <Icon className="mr-2 h-4 w-4 opacity-70" />
-                {item.label}
+                <span className="truncate">{item.label}</span>
                 {item.comingSoon && (
                     <Badge variant="outline" className="ml-2">
                         soon
@@ -123,6 +126,24 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         )
     }
 
+    // Divide items into two columns
+    const splitIntoColumns = (items: ActionItem[]) => {
+        const middleIndex = Math.ceil(items.length / 2);
+        const column1 = items.slice(0, middleIndex);
+        const column2 = items.slice(middleIndex);
+        
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 min-w-[400px]">
+                <div className="space-y-1">
+                    {column1.map((item) => renderMenuItem(item))}
+                </div>
+                <div className="space-y-1 md:border-l md:pl-4">
+                    {column2.map((item) => renderMenuItem(item))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
             <DropdownMenu>
@@ -131,7 +152,9 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                         <PlusIcon />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48" align="start">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuContent>
+                <DropdownMenuContent className="p-2" align="start">
+                    {splitIntoColumns(actionItems)}
+                </DropdownMenuContent>
             </DropdownMenu>
             <Dialog open={openAddNodeModal && currentNodeType} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
@@ -172,4 +195,3 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         </>
     )
 }
-

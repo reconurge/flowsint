@@ -51,6 +51,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
 import GroupNode from "./nodes/group"
 import CustomEdge from "./nodes/custom-edge"
+import { BaseNode } from "@/components/ui/base-node"
 const edgeTypes = {
     custom: CustomEdge,
 }
@@ -63,6 +64,7 @@ const nodeTypes = {
     social: SocialNode,
     address: AddressNode,
     group: GroupNode,
+    default: BaseNode
 }
 
 // Split selectors to minimize re-renders

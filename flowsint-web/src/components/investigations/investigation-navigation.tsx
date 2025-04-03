@@ -1,16 +1,18 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Users, TimerIcon, MapIcon, WaypointsIcon } from "lucide-react"
+import { Users, TimerIcon, MapIcon, WaypointsIcon } from 'lucide-react'
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { memo, useMemo } from "react"
 import MoreMenu from "./more-menu"
 import { ScanButton } from "./scans-drawer/scan-button"
 
-
-export function InvestigationtNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
+function InvestigationNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
     const pathname = usePathname()
-    const sections = [
+
+    // Memoize the sections array so it doesn't get recreated on every render
+    const sections = useMemo(() => [
         {
             id: "sketch",
             name: "Sketch",
@@ -35,10 +37,10 @@ export function InvestigationtNavigation({ project_id, investigation_id }: { pro
             href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/map`,
             icon: MapIcon,
         },
-    ]
+    ], [project_id, investigation_id]);
 
     return (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between w-full">
             <div className="flex overflow-auto">
                 {sections.map((section) => (
                     <Link
@@ -53,9 +55,6 @@ export function InvestigationtNavigation({ project_id, investigation_id }: { pro
                     >
                         <section.icon className="h-4 w-4" />
                         <span>{section.name}</span>
-                        {/* {section?.count && (
-                        <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs">{section.count}</span>
-                    )} */}
                     </Link>
                 ))}
             </div>
@@ -67,3 +66,8 @@ export function InvestigationtNavigation({ project_id, investigation_id }: { pro
     )
 }
 
+// Memoize the entire component
+export const MemoizedInvestigationNavigation = memo(InvestigationNavigation);
+
+// For backward compatibility, you can also export the original name
+export { MemoizedInvestigationNavigation as InvestigationtNavigation };

@@ -1,8 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function GET(_: Request, { params }: { params: Promise<{ investigation_id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ investigation_id: string }> }) {
     const { investigation_id } = await params
+    let size = request.nextUrl.searchParams.get("size") || 10
+    let page = request.nextUrl.searchParams.get("page") || 1
+    let includeEmails = request.nextUrl.searchParams.get("includeEmails") || false
+    let includePhones = request.nextUrl.searchParams.get("includePhones") || false
+
     try {
         const supabase = await createClient()
         const {
@@ -14,10 +19,13 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         }
         const { data: individuals, error } = await supabase
             .from('individuals')
-            .select(`
-                        *
-                    `)
+            .select([`*`,
+                includeEmails && "emails(email)",
+                includePhones && "phone_numbers(phone_number)",
+            ].filter(Boolean).join(', '), { count: "exact" })
+            .order("created_at", { ascending: false })
             .eq("investigation_id", investigation_id)
+        // .range()
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })

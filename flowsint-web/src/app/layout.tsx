@@ -35,7 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning lang="en">
-      <head />
+      <head><script
+        crossOrigin="anonymous"
+        src="//unpkg.com/react-scan/dist/auto.global.js"
+      /></head>
       <body
         className={clsx(
           "min-h-screen bg-background font-sans antialiased",
@@ -50,7 +53,7 @@ export default function RootLayout({
                 <ConfirmContextProvider>
                   {children}
                 </ConfirmContextProvider>
-                <Toaster richColors/>
+                <Toaster richColors />
               </TooltipProvider>
             </main>
           </Providers>

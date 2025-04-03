@@ -1,14 +1,15 @@
-import { ReactNode } from "react";
 
+// ButtonEdge.tsx
+import { ReactNode, memo } from "react";
 import {
     BaseEdge,
     EdgeLabelRenderer,
     EdgeProps,
-    getBezierPath,
     getStraightPath,
 } from "@xyflow/react";
 
-export const ButtonEdge = ({
+// Mémorisation du composant ButtonEdge
+export const ButtonEdge = memo(({
     sourceX,
     sourceY,
     targetX,
@@ -40,4 +41,6 @@ export const ButtonEdge = ({
             </EdgeLabelRenderer>
         </>
     );
-};
+});
+
+ButtonEdge.displayName = "ButtonEdge";

@@ -48,6 +48,7 @@ import {
     LoaderIcon,
     MoreVerticalIcon,
     PlusIcon,
+    RotateCwIcon,
     TrendingUpIcon,
 } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
@@ -106,6 +107,9 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { formatDistanceToNow } from "date-fns"
+import { cn } from "@/lib/utils"
 
 export const schema = z.object({
     id: z.number(),
@@ -170,123 +174,85 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "header",
-        header: "Header",
+        accessorKey: "full_name",
+        header: "Full Name",
         cell: ({ row }: any) => {
-            return <TableCellViewer item={row.original} />
+            return (
+                <TableCellViewer item={row.original}>
+                    <div className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7">
+                            <AvatarImage src={row.original.image_url} alt={row.original.full_name} />
+                            <AvatarFallback>{row.original.full_name[0]}</AvatarFallback>
+                        </Avatar>{row.original.full_name}
+                    </div>
+                </TableCellViewer>)
         },
         enableHiding: false,
     },
     {
-        accessorKey: "type",
-        header: "Section Type",
+        accessorKey: "email",
+        header: "Email(s)",
+        cell: ({ row }: any) => {
+            return <Badge variant="outline" className="px-1.5 text-muted-foreground flex items-center gap-2 max-w-[290px]">
+                <span className="truncate text-ellipsis">{row.original?.emails?.map(({ email }: any) => email).join(", ") || <span className="italic opacity-60">No email yet.</span>}</span>
+            </Badge>
+        },
+        enableHiding: false,
+    },
+    {
+        accessorKey: "phone_numbers",
+        header: "Phone(s)",
+        cell: ({ row }: any) => {
+            return <Badge variant="outline" className="px-1.5 text-muted-foreground flex items-center gap-2 max-w-[290px]">
+                <span className="truncate text-ellipsis">{row.original?.phone_numbers?.map(({ phone_number }: any) => phone_number).join(", ") || <span className="italic opacity-60">No phone number yet.</span>}</span>
+            </Badge>
+        },
+        enableHiding: false,
+    },
+    {
+        accessorKey: "created_at",
+        header: "Discovered",
         cell: ({ row }: any) => (
-            <div className="w-32">
+            <div>
                 <Badge variant="outline" className="px-1.5 text-muted-foreground">
-                    {row.original.type}
+                    {formatDistanceToNow(row.original.created_at, { addSuffix: true }) || "N/A"}
                 </Badge>
             </div>
         ),
     },
     {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: "nationality",
+        header: "Nationality",
+        cell: ({ row }: any) => (
+            <div>
+                <Badge variant="outline" className="px-1.5 text-muted-foreground">
+                    {row.original.nationality || "N/A"}
+                </Badge>
+            </div>
+        ),
+    },
+    {
+        accessorKey: "birth_date",
+        header: "Born on",
         cell: ({ row }: any) => (
             <Badge
                 variant="outline"
                 className="flex gap-1 px-1.5 text-muted-foreground [&_svg]:size-3"
             >
-                {row.original.status === "Done" ? (
-                    <CheckCircle2Icon className="text-green-500 dark:text-green-400" />
-                ) : (
-                    <LoaderIcon className="animate-spin"/>
-                )}
-                {row.original.status}
+                <span>{row.originalbirth_date || "N/A"}</span>
             </Badge>
         ),
     },
     {
-        accessorKey: "target",
-        header: () => <div className="w-full text-right">Target</div>,
+        accessorKey: "gender",
+        header: "Gender",
         cell: ({ row }: any) => (
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault()
-                    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-                        loading: `Saving ${row.original.header}`,
-                        success: "Done",
-                        error: "Error",
-                    })
-                }}
-            >
-                <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-                    Target
-                </Label>
-                <Input
-                    className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    defaultValue={row.original.target}
-                    id={`${row.original.id}-target`}
-                />
-            </form>
+            <div>
+                <Badge variant="outline" className="px-1.5 text-muted-foreground">
+                    {row.original.gender || "N/A"}
+                </Badge>
+            </div>
         ),
-    },
-    {
-        accessorKey: "limit",
-        header: () => <div className="w-full text-right">Limit</div>,
-        cell: ({ row }: any) => (
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault()
-                    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-                        loading: `Saving ${row.original.header}`,
-                        success: "Done",
-                        error: "Error",
-                    })
-                }}
-            >
-                <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-                    Limit
-                </Label>
-                <Input
-                    className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    defaultValue={row.original.limit}
-                    id={`${row.original.id}-limit`}
-                />
-            </form>
-        ),
-    },
-    {
-        accessorKey: "reviewer",
-        header: "Reviewer",
-        cell: ({ row }: any) => {
-            const isAssigned = row.original.reviewer !== "Assign reviewer"
-
-            if (isAssigned) {
-                return row.original.reviewer
-            }
-
-            return (
-                <>
-                    <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-                        Reviewer
-                    </Label>
-                    <Select>
-                        <SelectTrigger
-                            className="h-8 w-40"
-                            id={`${row.original.id}-reviewer`}
-                        >
-                            <SelectValue placeholder="Assign reviewer" />
-                        </SelectTrigger>
-                        <SelectContent align="end">
-                            <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                            <SelectItem value="Jamik Tashpulatov">
-                                Jamik Tashpulatov
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </>
-            )
-        },
     },
     {
         id: "actions",
@@ -302,7 +268,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
                         <span className="sr-only">Open menu</span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuContent align="end">
                     <DropdownMenuItem>Edit</DropdownMenuItem>
                     <DropdownMenuItem>Make a copy</DropdownMenuItem>
                     <DropdownMenuItem>Favorite</DropdownMenuItem>
@@ -341,8 +307,18 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
 
 export function DataTable({
     data: initialData,
+    pageCount,
+    pagination,
+    setPagination,
+    refetch,
+    isRefetching
 }: {
-    data: z.infer<typeof schema>[]
+    data: z.infer<typeof schema>[],
+    pageCount: number
+    pagination: any
+    setPagination: any
+    refetch: () => void
+    isRefetching: boolean
 }) {
     const [data, setData] = React.useState(() => initialData)
     const [rowSelection, setRowSelection] = React.useState({})
@@ -352,10 +328,6 @@ export function DataTable({
         []
     )
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [pagination, setPagination] = React.useState({
-        pageIndex: 0,
-        pageSize: 10,
-    })
     const sortableId = React.useId()
     const sensors = useSensors(
         useSensor(MouseSensor, {}),
@@ -450,6 +422,9 @@ export function DataTable({
                     <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
                 </TabsList>
                 <div className="flex items-center gap-2">
+                    <Button disabled={isRefetching} onClick={refetch} variant="outline" size="sm">
+                        <RotateCwIcon className={cn(isRefetching && "animate-spin")} /> Reload
+                    </Button>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -485,7 +460,7 @@ export function DataTable({
                     </DropdownMenu>
                     <Button variant="outline" size="sm">
                         <PlusIcon />
-                        <span className="hidden lg:inline">Add Section</span>
+                        <span className="hidden lg:inline">Add individual</span>
                     </Button>
                 </div>
             </div>
@@ -536,7 +511,7 @@ export function DataTable({
                                             colSpan={columns.length}
                                             className="h-24 text-center"
                                         >
-                                            No results.
+                                            No individual.
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -661,14 +636,14 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+function TableCellViewer({ item, children }: { item: z.infer<typeof schema>, children: React.ReactNode }) {
     const isMobile = useIsMobile()
 
     return (
         <Sheet>
             <SheetTrigger asChild>
                 <Button variant="link" className="w-fit px-0 text-left text-foreground">
-                    {item.header}
+                    {children}
                 </Button>
             </SheetTrigger>
             <SheetContent side="right" className="flex flex-">

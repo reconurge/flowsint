@@ -4,6 +4,7 @@ import { useFlowStore } from '@/store/flow-store'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { TypeBadge } from '@/components/type-badge'
 const NodesPanel = ({ nodes }: { nodes: Node[] }) => {
     const { setCurrentNode } = useFlowStore()
     return (
@@ -15,7 +16,7 @@ const NodesPanel = ({ nodes }: { nodes: Node[] }) => {
                         <AvatarFallback>{node?.data?.full_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className='grow truncate text-ellipsis'>{node?.data?.full_name || node?.data?.label}</div>
-                    <Badge variant={"outline"}>{node?.type}</Badge>
+                    <TypeBadge type={node?.type}></TypeBadge>
                 </Button>
             ))}
         </div>

@@ -24,7 +24,7 @@ const IndividualModal = () => {
     const [individualId, setIndividualId] = useQueryState("individual_id")
     const { individual, isLoading } = useIndividual(individualId)
     const { emails, isLoading: isLoadingEmails } = useEmailsAndBreaches(individualId)
-    const platformsIcons = usePlatformIcons("medium")
+    const platformsIcons = usePlatformIcons()
     const { relations, isLoading: isLoadingRelations } = useRelations(individualId)
     const [editMode, setEditMode] = useState(false)
     const [image, setImage] = useState<string | null>("")

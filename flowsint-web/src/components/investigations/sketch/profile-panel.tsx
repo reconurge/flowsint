@@ -1,6 +1,4 @@
 "use client"
-
-import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { User, MapPin, Globe, Info, AtSign, Phone, Calendar, Link2, Mail, Shield, XIcon } from "lucide-react"
@@ -21,7 +19,7 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
 
     if (type === "email") {
         return (
-            <Card className="w-full bg-background max-w-[400px] relative">
+            <div className="overflow-auto h-full flex flex-col w-full !p-0 !m-0">
                 <Button className="absolute top-2 right-2" size={"icon"} variant={"ghost"} onClick={closePanel}><XIcon className="h-5 w-5" /></Button>
                 <div className="p-6 md:p-8">
                     <div className="grid grid-cols-1 gap-6">
@@ -83,18 +81,18 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                         </div>
                     </div>
                 </div>
-            </Card>)
+            </div>)
     }
     if (type === "individual")
         return (
-            <Card className="w-full bg-background relative">
+            <div className="overflow-auto h-full flex flex-col w-full !p-0 !m-0">
                 <Button className="absolute top-2 right-2" size={"icon"} variant={"ghost"} onClick={closePanel}><XIcon className="h-5 w-5" /></Button>
                 <div className="p-6 md:p-8">
                     <div className="grid grid-cols-1 gap-2">
                         {/* Left column with avatar */}
                         <div className="flex flex-col items-center gap-6">
                             <div className="relative flex flex-col items-center gap-4">
-                                <Avatar className="w-40 h-40 border-4 border-primary/20">
+                                <Avatar className="w-28 h-28 border-4 border-primary/20">
                                     <AvatarImage src={data.image_url} alt={data.full_name} />
                                     <AvatarFallback className="text-2xl">
                                         {data.full_name
@@ -213,7 +211,7 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                         </div>
                     </div>
                 </div>
-            </Card>
+            </div>
         )
 }
 

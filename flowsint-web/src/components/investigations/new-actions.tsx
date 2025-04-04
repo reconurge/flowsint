@@ -17,7 +17,7 @@ import {
     DropdownMenuContent,
     DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import { nodesTypes } from "@/lib/utils"
+import { cn, nodesTypes } from "@/lib/utils"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import { Badge } from "../ui/badge"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"
@@ -95,7 +95,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
             return (
                 <DropdownMenuSub key={item.id}>
                     <DropdownMenuSubTrigger>
-                        <Icon className="mr-3 h-4 w-4 opacity-50" />
+                        <Icon style={{ color: item.color }} className={cn("mr-3 h-4 w-4 opacity-50", item.color)} />
                         {item.label}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
@@ -115,7 +115,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 onClick={(e) => handleOpenAddNodeModal(e, item.key)}
                 className="flex items-center"
             >
-                <Icon className="mr-2 h-4 w-4 opacity-70" />
+                <Icon style={{ color: item.color }} className="h-4 w-4 opacity-70" />
                 <span className="truncate">{item.label}</span>
                 {item.comingSoon && (
                     <Badge variant="outline" className="ml-2">

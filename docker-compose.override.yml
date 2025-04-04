@@ -10,11 +10,17 @@ services:
       - "--providers.docker"
       - "--entrypoints.ws.address=:80"
       - "--providers.file.watch=true"
+      - "--entryPoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls.certresolver=myresolver"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     restart: unless-stopped
     volumes:
+      - ./certs:/etc/traefik/certs
+      - ./dynamic.yml:/etc/traefik/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik
@@ -35,6 +41,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.nextjs.rule=Host(`app.flowsint.localhost`)"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
 
   # Flask-like application with Celery
   api:
@@ -57,6 +64,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`api.flowsint.localhost`)"
       - "traefik.http.services.app.loadbalancer.server.port=5000"
+      - "traefik.http.routers.app.entrypoints=websecure"
 
   celery:
     build:

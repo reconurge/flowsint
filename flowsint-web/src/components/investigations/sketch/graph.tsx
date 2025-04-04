@@ -57,6 +57,7 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import NodesPanel from "./nodes-panel"
+import ProfilePanel from "./profile-panel"
 
 const edgeTypes = {
     custom: CustomEdge,
@@ -305,7 +306,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     const processedNodes = useMemo(() => nodes.map(({ id, data, type }: any) => ({ id, data, type })).sort((a: { type: string }, b: { type: any }) => b.type.localeCompare(a.type))
         , [nodes.length]);
     return (
-        <ResizablePanelGroup direction="horizontal" className="w-screen grow relative overflow-hidden">
+        <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-screen grow relative overflow-hidden">
             <ResizablePanel defaultSize={80}>
                 <TooltipProvider>
                     <Dialog>
@@ -351,13 +352,13 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={20} className="h-full">
-                <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={80}>
-                        <NodesPanel nodes={processedNodes} />
-                    </ResizablePanel>
+                <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
+                    {currentNode && <ResizablePanel order={1} id="top" defaultSize={50}>
+                        <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                    </ResizablePanel>}
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={20}>
-                        two
+                    <ResizablePanel order={2} id="bottom" defaultSize={50}>
+                        <NodesPanel nodes={processedNodes} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </ResizablePanel>

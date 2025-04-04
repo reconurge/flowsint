@@ -133,80 +133,80 @@ interface LayoutOptions {
   iterations?: number
 }
 
-// export const getLayoutedElements = (
-//   nodes: AppNode[],
-//   edges: Edge[],
-//   options: LayoutOptions = {
-//     direction: "LR",
-//     strength: -300,
-//     distance: 100,
-//     iterations: 300,
-//   },
-// ) => {
-//   // Create a map of node IDs to indices for the simulation
-//   const nodeMap = new Map(nodes.map((node, i) => [node.id, i]))
+export const getForceLayoutedElements = (
+  nodes: AppNode[],
+  edges: Edge[],
+  options: LayoutOptions = {
+    direction: "LR",
+    strength: -300,
+    distance: 100,
+    iterations: 300,
+  },
+) => {
+  // Create a map of node IDs to indices for the simulation
+  const nodeMap = new Map(nodes.map((node, i) => [node.id, i]))
 
-//   // Create a copy of nodes with positions for the simulation
-//   const nodesCopy = nodes.map((node) => ({
-//     ...node,
-//     x: node.position?.x || Math.random() * 500,
-//     y: node.position?.y || Math.random() * 500,
-//     width: node.measured?.width || 0,
-//     height: node.measured?.height || 0,
-//   }))
+  // Create a copy of nodes with positions for the simulation
+  const nodesCopy = nodes.map((node) => ({
+    ...node,
+    x: node.position?.x || Math.random() * 500,
+    y: node.position?.y || Math.random() * 500,
+    width: node.measured?.width || 0,
+    height: node.measured?.height || 0,
+  }))
 
-//   // Create links for the simulation using indices
-//   const links = edges.map((edge) => ({
-//     source: nodeMap.get(edge.source),
-//     target: nodeMap.get(edge.target),
-//     original: edge,
-//   }))
+  // Create links for the simulation using indices
+  const links = edges.map((edge) => ({
+    source: nodeMap.get(edge.source),
+    target: nodeMap.get(edge.target),
+    original: edge,
+  }))
 
-//   // Create the simulation
-//   const simulation = d3
-//     .forceSimulation(nodesCopy)
-//     .force(
-//       "link",
-//       d3.forceLink(links).id((d: any) => nodeMap.get(d.id)),
-//     )
-//     .force("charge", d3.forceManyBody().strength(options.strength || -300))
-//     .force("center", d3.forceCenter(250, 250))
-//     .force(
-//       "collision",
-//       d3.forceCollide().radius((d: any) => Math.max(d.width, d.height) / 2 + 10),
-//     )
+  // Create the simulation
+  const simulation = d3
+    .forceSimulation(nodesCopy)
+    .force(
+      "link",
+      d3.forceLink(links).id((d: any) => nodeMap.get(d.id)),
+    )
+    .force("charge", d3.forceManyBody().strength(options.strength || -300))
+    .force("center", d3.forceCenter(250, 250))
+    .force(
+      "collision",
+      d3.forceCollide().radius((d: any) => Math.max(d.width, d.height) / 2 + 10),
+    )
 
-//   // If direction is horizontal, adjust forces
-//   if (options.direction === "LR") {
-//     simulation.force("x", d3.forceX(250).strength(0.1))
-//     simulation.force("y", d3.forceY(250).strength(0.05))
-//   } else {
-//     simulation.force("x", d3.forceX(250).strength(0.05))
-//     simulation.force("y", d3.forceY(250).strength(0.1))
-//   }
+  // If direction is horizontal, adjust forces
+  if (options.direction === "LR") {
+    simulation.force("x", d3.forceX(250).strength(0.1))
+    simulation.force("y", d3.forceY(250).strength(0.05))
+  } else {
+    simulation.force("x", d3.forceX(250).strength(0.05))
+    simulation.force("y", d3.forceY(250).strength(0.1))
+  }
 
-//   // Run the simulation synchronously
-//   simulation.stop()
-//   for (let i = 0; i < (options.iterations || 300); i++) {
-//     simulation.tick()
-//   }
+  // Run the simulation synchronously
+  simulation.stop()
+  for (let i = 0; i < (options.iterations || 300); i++) {
+    simulation.tick()
+  }
 
-//   // Update node positions based on simulation results
-//   const updatedNodes = nodesCopy.map((node) => ({
-//     ...node,
-//     position: {
-//       x: node.x - node.width / 2,
-//       y: node.y - node.height / 2,
-//     },
-//   }))
+  // Update node positions based on simulation results
+  const updatedNodes = nodesCopy.map((node) => ({
+    ...node,
+    position: {
+      x: node.x - node.width / 2,
+      y: node.y - node.height / 2,
+    },
+  }))
 
-//   return {
-//     nodes: updatedNodes,
-//     edges,
-//   }
-// }
+  return {
+    nodes: updatedNodes,
+    edges,
+  }
+}
 
-export const getLayoutedElements = (nodes: AppNode[],
+export const getDagreLayoutedElements = (nodes: AppNode[],
   edges: Edge[],
   options: LayoutOptions = {
     direction: "TB",

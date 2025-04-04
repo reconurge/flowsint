@@ -29,54 +29,49 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                                 <div className="bg-primary/10 p-3 rounded-full">
                                     <Mail className="h-8 w-8 text-primary" />
                                 </div>
-                                <div className="w-full">
+                                <div className="w-full text-center">
                                     <h2 className="text-xl w-full font-bold break-all">{data.email}</h2>
                                     <p className="text-sm text-muted-foreground">Email Address</p>
                                 </div>
                                 <SearchEmail investigation_id={investigation_id as string} email={data.email} />
                             </div>
                             <Separator />
-                            <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-primary">
+                            <div className="space-y-4 text-center">
+                                <div className="space-y-1 text-center">
+                                    <div className="flex items-center justify-center gap-2 text-primary">
                                         <Shield className="h-4 w-4" />
                                         <span className="text-sm">Security Status</span>
                                     </div>
-                                    <div className="flex gap-2 mt-1">
+                                    <div className="flex gap-2 mt-1 items-center justify-center">
                                         <Badge variant={data.breach_found ? "destructive" : "outline"} className="px-3 py-1">
                                             {data.breach_found ? "Breach Found" : "No Breach Detected"}
                                         </Badge>
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-primary">
+                                    <div className="flex items-center justify-center gap-2 text-primary">
                                         <Info className="h-4 w-4" />
                                         <span className="text-sm">Email ID</span>
                                     </div>
-                                    <p className="text-xs font-mono text-muted-foreground">{data.id}</p>
+                                    <p className="text-xs font-mono text-center text-muted-foreground">{data.id}</p>
                                 </div>
                             </div>
                         </div>
                         {/* Right column with related info */}
                         <div className="space-y-6">
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Link2 className="h-4 w-4" />
                                     <span className="text-sm">Associated Individual</span>
                                 </div>
-                                <p className="text-xs font-mono text-muted-foreground">{data.individual_id}</p>
+                                <p className="text-xs font-mono text-center text-muted-foreground">{data.individual_id}</p>
                             </div>
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Info className="h-4 w-4" />
                                     <span className="text-sm">Investigation ID</span>
                                 </div>
-                                <p className="text-xs font-mono text-muted-foreground">{data.investigation_id}</p>
-                            </div>
-                            <div className="mt-auto pt-4">
-                                <Badge variant="outline" className="px-2 py-1">
-                                    Email Record
-                                </Badge>
+                                <p className="text-xs font-mono text-center text-muted-foreground">{data.investigation_id}</p>
                             </div>
                         </div>
                     </div>

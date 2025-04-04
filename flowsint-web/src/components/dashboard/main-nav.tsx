@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import ProjectSelector from "../investigations/project-selector"
 import CaseSelector from "../investigations/case-selector"
 import { useParams } from "next/navigation"
+import { Separator } from "../ui/separator"
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
     const { investigation_id, project_id } = useParams()

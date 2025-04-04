@@ -27,7 +27,7 @@ export const ButtonEdge = memo(({
 
     return (
         <>
-            <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+            <BaseEdge className="opacity-30" path={edgePath} markerEnd={markerEnd} style={style} />
             <EdgeLabelRenderer>
                 <div
                     className="nodrag nopan pointer-events-auto absolute"

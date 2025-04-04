@@ -21,7 +21,6 @@ import EmailNode from "./nodes/email"
 import SocialNode from "./nodes/social"
 import AddressNode from "./nodes/physical_address"
 import {
-    AlignCenterVertical,
     MaximizeIcon,
     ZoomInIcon,
     ZoomOutIcon,
@@ -29,6 +28,8 @@ import {
     PlusIcon,
     GroupIcon,
     WorkflowIcon,
+    NetworkIcon,
+    WaypointsIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import NewActions from "../new-actions"
@@ -134,13 +135,27 @@ const FlowControls = memo(
                                 size="icon"
                                 variant="outline"
                                 onClick={() => {
-                                    onLayout("TB", fitView)
+                                    onLayout("dagre", fitView)
                                 }}
                             >
-                                <AlignCenterVertical className="h-4 w-4" />
+                                <NetworkIcon className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Auto layout</TooltipContent>
+                        <TooltipContent>Dagre layout</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => {
+                                    onLayout("force", fitView)
+                                }}
+                            >
+                                <WaypointsIcon className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Force layout</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -353,10 +368,12 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
             <ResizableHandle />
             <ResizablePanel defaultSize={20} className="h-full">
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
-                    {currentNode && <ResizablePanel order={1} id="top" defaultSize={50}>
-                        <ProfilePanel data={currentNode.data} type={currentNode.type} />
-                    </ResizablePanel>}
-                    <ResizableHandle />
+                    {currentNode && <>
+                        <ResizablePanel order={1} id="top" defaultSize={50}>
+                            <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                        </ResizablePanel>
+                        <ResizableHandle />
+                    </>}
                     <ResizablePanel order={2} id="bottom" defaultSize={50}>
                         <NodesPanel nodes={processedNodes} />
                     </ResizablePanel>

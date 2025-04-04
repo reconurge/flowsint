@@ -3,12 +3,11 @@
 import type { Investigation } from "@/types/investigation"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { FileSearch, FileText, Folder, Layers, Search, Users, Waypoints } from "lucide-react"
+import { Search } from "lucide-react"
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
-import { number, string } from "zod"
 
 const RecentSketches = () => {
     const {
@@ -95,15 +94,12 @@ const RecentSketches = () => {
             {investigations?.map((investigation: Investigation) => {
                 return (
                     <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} key={investigation.id} className="group">
-                        <Card className="bg-transparent shadow-none h-full transition-all duration-200 border-none">
-                            <div className={`flex items-center justify-center overflow-hidden bg-foreground/5 h-40 border group-hover:border-primary/80 group-hover:border-2 rounded-md`}>
-                                <FlowchartDiagram />
-                            </div>
+                        <Card className="bg-background shadow-none h-full transition-all duration-200 hover:border-primary rounded-md">
                             <CardContent className="p-4 relative">
                                 <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">
                                     {investigation?.project?.name}/{investigation.title}
                                 </h3>
-                                <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
+                                <span className="text-xs opacity-60 group-hover:text-primary">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
                             </CardContent>
                         </Card>
                     </Link>

@@ -11,6 +11,7 @@ import { NavUser } from "@/components/nav-user";
 import { SubNav } from "@/components/dashboard/sub-nav";
 import Feedback from "@/components/dashboard/feedback";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
 const DashboardLayout = async ({
     children,
@@ -35,6 +36,7 @@ const DashboardLayout = async ({
                                 <Radar className="mr-2 h-6 w-6" />
                                 <h2 className="text-lg font-semibold mr-6">flowsint</h2>
                             </Link>
+                            {/* <Separator orientation="vertical" className="h-6" /> */}
                             <MainNav className="mx-6" />
                             <div className="ml-auto flex items-center space-x-2">
                                 <div className="lg:flex hidden items-center space-x-2">

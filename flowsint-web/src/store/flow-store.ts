@@ -8,7 +8,7 @@ import {
     type OnNodesChange,
     type OnEdgesChange,
 } from '@xyflow/react';
-import { getLayoutedElements } from '@/lib/utils';
+import { getForceLayoutedElements, getDagreLayoutedElements } from '@/lib/utils';
 
 export type AppNode = Node;
 
@@ -36,7 +36,7 @@ export type AppState = {
     setNodes: (nodes: AppNode[]) => void;
     setEdges: (edges: Edge[]) => void;
     highlightPath: (selectedNode: Node | null) => void;
-    onLayout: (direct: string, fitView: () => void) => void,
+    onLayout: (layout: string, fitView: () => void) => void,
     onConnect: (params: any, investigation_id?: string) => Promise<void>;
     onNodeClick: (_: React.MouseEvent, node: Node) => void;
     onPaneClick: (_: React.MouseEvent) => void,
@@ -139,10 +139,16 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
             set({ currentNode: null });
             // get().resetNodeStyles();
         },
-        onLayout: (direction = 'TB', fitView: () => void) => {
-            const { nodes, edges } = getLayoutedElements(get().nodes, get().edges, { direction });
-            // @ts-ignore
-            set({ nodes, edges }); // Fixed the edges type issue
+        onLayout: (layout = "dagre", fitView: () => void) => {
+            if (layout === "force") {
+                const { nodes, edges } = getForceLayoutedElements(get().nodes, get().edges);
+                // @ts-ignore
+                set({ nodes, edges });
+            } else {
+                const { nodes, edges } = getDagreLayoutedElements(get().nodes, get().edges);
+                // @ts-ignore
+                set({ nodes, edges });
+            }
             window.requestAnimationFrame(() => {
                 fitView();
             });

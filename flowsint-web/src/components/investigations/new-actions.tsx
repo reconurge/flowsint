@@ -60,7 +60,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 .insert(dataToInsert)
                 .select("*")
                 .single()
-                console.log(insertError)
+            console.log(insertError)
             if (insertError) {
                 toast.error("Failed to create node.")
                 setLoading(false)
@@ -131,7 +131,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         const middleIndex = Math.ceil(items.length / 2);
         const column1 = items.slice(0, middleIndex);
         const column2 = items.slice(middleIndex);
-        
+
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 min-w-[400px]">
                 <div className="space-y-1">

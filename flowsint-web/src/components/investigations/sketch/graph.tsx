@@ -58,12 +58,9 @@ import {
 } from "@/components/ui/resizable"
 import NodesPanel from "./nodes-panel"
 
-// Définir les types de nodes et edges à l'extérieur du composant
-// pour éviter leur recréation à chaque rendu
 const edgeTypes = {
     custom: CustomEdge,
 }
-
 const nodeTypes = {
     individual: IndividualNode,
     phone: PhoneNode,
@@ -74,13 +71,10 @@ const nodeTypes = {
     group: GroupNode,
     default: BaseNode
 }
-
-// Séparation claire des sélecteurs pour un contrôle fin des re-rendus
 const nodeEdgeSelector = (store: { nodes: any; edges: any }) => ({
     nodes: store.nodes,
     edges: store.edges,
 })
-
 const actionsSelector = (store: {
     onNodesChange: any
     onEdgesChange: any
@@ -96,7 +90,6 @@ const actionsSelector = (store: {
     onPaneClick: store.onPaneClick,
     onLayout: store.onLayout,
 })
-
 const stateSelector = (store: {
     currentNode: any;
     setCurrentNode: any,
@@ -112,8 +105,6 @@ const stateSelector = (store: {
     updateNode: store.updateNode,
     highlightPath: store.highlightPath
 })
-
-// Définition de l'interface pour FlowControls
 interface FlowControlsProps {
     onLayout: (direction: string, fitView: () => void) => void
     fitView: () => void
@@ -125,8 +116,6 @@ interface FlowControlsProps {
     addNodes: (payload: any) => void
     currentNode: any | null | undefined
 }
-
-// Mémorisation du composant FlowControls
 const FlowControls = memo(
     ({ onLayout, fitView, handleRefetch, reloading, setView, zoomIn, zoomOut, addNodes, currentNode }: FlowControlsProps) => {
         return (
@@ -196,19 +185,15 @@ const FlowControls = memo(
         )
     }
 )
-
 interface LayoutFlowProps {
     refetch: () => void
     theme: string
 }
-
 const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter, getNodes } = useReactFlow()
     const { investigation_id } = useParams()
     const { settings } = useInvestigationStore()
     const [_, setView] = useQueryState("view", { defaultValue: "flow-graph" })
-
-    // État pour le menu contextuel des nœuds
     const [nodeContextMenu, setNodeContextMenu] = useState<{
         x: number
         y: number
@@ -216,8 +201,6 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         nodeType: string | null
         data: any
     } | null>(null)
-
-    // Séparation des selectors pour optimiser les re-rendus
     const { nodes, edges } = useFlowStore(nodeEdgeSelector, shallow)
     const { onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, onLayout } = useFlowStore(
         actionsSelector,
@@ -231,8 +214,6 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         updateNode,
         highlightPath
     } = useFlowStore(stateSelector, shallow)
-
-    // Initial layout avec useCallback pour éviter les recréations
     const initialLayout = useCallback(() => {
         const timer = setTimeout(() => {
             onLayout("TB", fitView)
@@ -240,53 +221,35 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         }, 500)
         return () => clearTimeout(timer)
     }, [onLayout, fitView])
-
-    // Utiliser l'effet initial avec la fonction mémorisée
     useEffect(() => {
         return initialLayout()
     }, [initialLayout])
-
-    // Mémorisation du callback de refetch
     const handleRefetch = useCallback(() => {
         refetch()
         onLayout("TB", fitView)
         fitView()
     }, [refetch, onLayout, fitView])
-
-    // Effet pour gérer la mise en évidence du nœud courant
     useEffect(() => {
         if (!currentNode) return
-
         const internalNode = getNode(currentNode.id)
         if (!internalNode) return
-
-        // Utiliser les fonctions du store récupérées via le sélecteur
         updateNode(internalNode.id, {
             ...internalNode,
             zIndex: 5000,
             data: { ...internalNode.data, forceToolbarVisible: true },
             style: { ...internalNode.style, opacity: 1 },
         })
-
         const nodeWidth = internalNode.measured?.width ?? 0
         const nodeHeight = internalNode.measured?.height ?? 0
-
         setCenter(internalNode.position.x + nodeWidth / 2, internalNode.position.y + nodeHeight / 2 + 20, {
             duration: 1000,
             zoom: 1.5,
         })
-
-        // Utiliser highlightPath depuis le sélecteur
-        // highlightPath(internalNode)
     }, [currentNode, getNode, setCenter, updateNode, highlightPath])
-
-    // Mémorisation du gestionnaire de connexion
     const handleConnect = useCallback(
         (params: any) => onConnect(params, investigation_id),
         [onConnect, investigation_id]
     )
-
-    // Gestionnaire optimisé pour le menu contextuel des nœuds
     const handleNodeContextMenu = useCallback<NodeMouseHandler>(
         (event, node) => {
             event.preventDefault()
@@ -302,13 +265,9 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         },
         [setCurrentNode]
     )
-
-    // Fermeture du menu contextuel
     const closeNodeContextMenu = useCallback(() => {
         setNodeContextMenu(null)
     }, [])
-
-    // Gestion des clics sur le panneau
     const handlePaneClick = useCallback(
         (event: React.MouseEvent) => {
             closeNodeContextMenu()
@@ -316,8 +275,6 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         },
         [onPaneClick, closeNodeContextMenu]
     )
-
-    // Mémorisation de ReactFlow props pour éviter les recréations
     const reactFlowProps = useMemo(() => ({
         colorMode: theme as ColorMode,
         nodes,
@@ -345,7 +302,8 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         handlePaneClick,
         handleNodeContextMenu
     ])
-
+    const processedNodes = useMemo(() => nodes.map(({ id, data, type }: any) => ({ id, data, type })).sort((a: { type: string }, b: { type: any }) => b.type.localeCompare(a.type))
+        , [nodes.length]);
     return (
         <ResizablePanelGroup direction="horizontal" className="w-screen grow relative overflow-hidden">
             <ResizablePanel defaultSize={80}>
@@ -395,7 +353,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
             <ResizablePanel defaultSize={20} className="h-full">
                 <ResizablePanelGroup direction="vertical">
                     <ResizablePanel defaultSize={80}>
-                        <NodesPanel nodes={nodes} />
+                        <NodesPanel nodes={processedNodes} />
                     </ResizablePanel>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={20}>
@@ -406,32 +364,22 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         </ResizablePanelGroup>
     )
 }
-
-// Mémorisation de LayoutFlow avec un comparateur personnalisé
 const MemoizedLayoutFlow = memo(LayoutFlow, (prevProps, nextProps) => {
     return prevProps.theme === nextProps.theme && prevProps.refetch === nextProps.refetch
 })
-
-// Composant Graph principal
 function Graph({ graphQuery }: { graphQuery: any }) {
     const [mounted, setMounted] = useState(false)
     const { refetch, isLoading, data } = graphQuery
     const { resolvedTheme } = useTheme()
-
-    // Effet pour initialiser l'état monté
     useEffect(() => {
         setMounted(true)
     }, [])
-
-    // Effet pour mettre à jour le store avec de nouvelles données
     useEffect(() => {
         if (data) {
             useFlowStore.setState({ nodes: data?.nodes, edges: data?.edges })
             setMounted(true)
         }
     }, [data])
-
-    // Rendu conditionnel basé sur l'état de chargement
     if (!mounted || isLoading) {
         return (
             <div className="grow w-full flex items-center justify-center">
@@ -439,13 +387,10 @@ function Graph({ graphQuery }: { graphQuery: any }) {
             </div>
         )
     }
-
     return (
         <ReactFlowProvider>
             <MemoizedLayoutFlow refetch={refetch} theme={resolvedTheme || "light"} />
         </ReactFlowProvider>
     )
 }
-
-// Export du composant Graph mémorisé
 export default memo(Graph)

@@ -8,7 +8,7 @@ import { cn, typeColorMap } from '@/lib/utils';
 
 export default memo(({ data, selected }: any) => {
   return (
-    <BaseNode className={cn('p-.5 rounded-full', typeColorMap["email"])} selected={selected}>
+    <BaseNode className={cn('p-.5 rounded-full', "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-800 dark:shadow-emerald-900/30")} selected={selected}>
       <div className="flex items-center gap-2 p-1">
         <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full dark:bg-emerald-900 bg-emerald-200">
           <AtSignIcon className="h-4 w-4" />

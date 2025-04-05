@@ -227,14 +227,13 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     const {
         currentNode,
         setCurrentNode,
-        resetNodeStyles,
         reloading,
         updateNode,
         highlightPath
     } = useFlowStore(stateSelector, shallow)
     const initialLayout = useCallback(() => {
         const timer = setTimeout(() => {
-            onLayout("TB", fitView)
+            onLayout("force", fitView)
             fitView()
         }, 500)
         return () => clearTimeout(timer)
@@ -244,7 +243,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     }, [initialLayout])
     const handleRefetch = useCallback(() => {
         refetch()
-        onLayout("TB", fitView)
+        onLayout("force", fitView)
         fitView()
     }, [refetch, onLayout, fitView])
     useEffect(() => {
@@ -303,7 +302,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         onNodeClick,
         onPaneClick: handlePaneClick,
         onNodeContextMenu: handleNodeContextMenu,
-        minZoom: 0.1,
+        minZoom: 0.4,
         fitView: true,
         proOptions: { hideAttribution: true },
         edgeTypes,
@@ -372,7 +371,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
                     {currentNode && <>
                         <ResizablePanel order={1} id="top" defaultSize={50}>
-                            <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                            <ProfilePanel data={currentNode.data} />
                         </ResizablePanel>
                         <ResizableHandle />
                     </>}

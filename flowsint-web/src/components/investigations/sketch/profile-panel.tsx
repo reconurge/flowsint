@@ -11,7 +11,7 @@ import SearchEmail from "./search-email"
 import { memo } from "react"
 import { cn } from "@/lib/utils"
 
-export default function ProfilePanel({ data, type }: { data: any, type: "individual" | "email" }) {
+export default function ProfilePanel({ data, }: { data: any }) {
     const { project_id, investigation_id } = useParams()
     const { setCurrentNode } = useFlowStore()
 

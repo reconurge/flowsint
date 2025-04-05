@@ -258,16 +258,18 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     {Boolean(currentNode?.data?.email) && (
                         <DropdownMenuItem onClick={handleCheckEmail}>Search {currentNodeType}</DropdownMenuItem>
                     )}
+                    {currentNode?.type === "individual" && (
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="grid grid-cols-1 md:grid-cols-2 gap-2">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
+                        </DropdownMenuSub>)}
+                    <DropdownMenuItem onClick={handleEditClick}>View and edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDuplicateClick}>Duplicate</DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleNoteClick}>
                         New note
                         <SquarePenIcon className="ml-2 h-4 w-4" />
                     </DropdownMenuItem>
-                    <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="grid grid-cols-1 md:grid-cols-2 gap-2">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem onClick={handleEditClick}>View and edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDuplicateClick}>Duplicate</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">
                         Delete

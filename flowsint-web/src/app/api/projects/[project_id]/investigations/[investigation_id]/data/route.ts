@@ -132,7 +132,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
                 nodes.push({
                     id: vehicle.id.toString(),
                     type: "vehicle",
-                    data: { label: `${vehicle.plate}-${vehicle.model}` },
+                    data: { label: `${vehicle.plate}-${vehicle.model || "Unknown"}`, ...vehicle },
                     position: { x: -100, y: -100 },
                 })
                 edges.push({

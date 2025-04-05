@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import SearchEmail from "./search-email"
+import { memo } from "react"
+import { cn } from "@/lib/utils"
 
 export default function ProfilePanel({ data, type }: { data: any, type: "individual" | "email" }) {
     const { project_id, investigation_id } = useParams()
@@ -87,7 +89,7 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                         {/* Left column with avatar */}
                         <div className="flex flex-col items-center gap-6">
                             <div className="relative flex flex-col items-center gap-4">
-                                <Avatar className="w-28 h-28 border-4 border-primary/20">
+                                <Avatar className="w-28 h-28 border-4">
                                     <AvatarImage src={data.image_url} alt={data.full_name} />
                                     <AvatarFallback className="text-2xl">
                                         {data.full_name
@@ -100,16 +102,16 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                                     <Button variant={"outline"}>View</Button>
                                 </Link>
                             </div>
-                            <div className="space-y-1 text-center md:text-left">
-                                <div className="flex items-center gap-2 text-primary">
+                            <div className="space-y-1 text-center">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <User className="h-4 w-4" />
                                     <span className="text-sm">Full Name</span>
                                 </div>
                                 <h1 className="text-2xl font-bold tracking-tight">{data.full_name}</h1>
                             </div>
 
-                            <div className="space-y-1 text-center md:text-left">
-                                <div className="flex items-center gap-2 text-primary">
+                            <div className="space-y-1 text-center">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Info className="h-4 w-4" />
                                     <span className="text-sm">Investigation ID</span>
                                 </div>
@@ -120,40 +122,40 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                         {/* Middle column */}
                         <div className="space-y-6">
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <AtSign className="h-4 w-4" />
-                                    <span className="text-sm">Email</span>
+                                    <span className="text-sm text-center">Email</span>
                                 </div>
                                 {data?.emails?.length > 0 ? (
-                                    <p className="font-medium">{data?.emails?.[0].email}</p>
+                                    <p className="font-medium text-center">{data?.emails?.[0].email}</p>
                                 ) : (
-                                    <p className="text-gray-500">No email available</p>
+                                    <p className="text-gray-500 text-center">No email available</p>
                                 )}
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Globe className="h-4 w-4" />
-                                    <span className="text-sm">Nationality</span>
+                                    <span className="text-sm text-center">Nationality</span>
                                 </div>
-                                <p className="font-medium">{data.nationality || "Unknown"}</p>
+                                <p className="font-medium text-center">{data.nationality || "Unknown"}</p>
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <User className="h-4 w-4" />
-                                    <span className="text-sm">Gender</span>
+                                    <span className="text-sm text-center">Gender</span>
                                 </div>
-                                <p className="font-medium">{data.gender || "Unknown"}</p>
+                                <p className="font-medium text-center">{data.gender || "Unknown"}</p>
                             </div>
 
                             {data?.phone_numbers?.length > 0 && (
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-primary">
+                                    <div className="flex items-center justify-center gap-2 text-primary">
                                         <Phone className="h-4 w-4" />
-                                        <span className="text-sm">Phone Number</span>
+                                        <span className="text-sm text-center">Phone Number</span>
                                     </div>
-                                    <p className="font-medium">{data?.phone_numbers?.[0]}</p>
+                                    <p className="font-medium text-center">{data?.phone_numbers?.[0]}</p>
                                 </div>
                             )}
                         </div>
@@ -162,20 +164,20 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
                         <div className="space-y-6">
                             {data.birth_date && (
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-primary">
+                                    <div className="flex items-center justify-center gap-2 text-primary">
                                         <Calendar className="h-4 w-4" />
-                                        <span className="text-sm">Birth Date</span>
+                                        <span className="text-sm text-center">Birth Date</span>
                                     </div>
-                                    <p className="font-medium">{data.birth_date}</p>
+                                    <p className="font-medium text-center">{data.birth_date}</p>
                                 </div>
                             )}
 
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Info className="h-4 w-4" />
-                                    <span className="text-sm">Email Security</span>
+                                    <span className="text-sm text-center">Email Security</span>
                                 </div>
-                                <div className="flex gap-2 mt-1">
+                                <div className="flex gap-2 mt-1 justify-center">
                                     {data?.emails?.length > 0 && (
                                         <Badge
                                             variant={data.emails?.[0].breach_found ? "destructive" : "outline"}
@@ -188,25 +190,48 @@ export default function ProfilePanel({ data, type }: { data: any, type: "individ
 
                             {data.physical_addresses?.length > 0 && (
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-primary">
+                                    <div className="flex items-center justify-center gap-2 text-primary">
                                         <MapPin className="h-4 w-4" />
-                                        <span className="text-sm">Location</span>
+                                        <span className="text-sm text-center">Location</span>
                                     </div>
-                                    <p className="font-medium">{data.physical_addresses?.[0]}</p>
+                                    <p className="font-medium text-center">{data.physical_addresses?.[0]}</p>
                                 </div>
                             )}
 
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-primary">
+                                <div className="flex items-center justify-center gap-2 text-primary">
                                     <Info className="h-4 w-4" />
                                     <span className="text-sm">Individual ID</span>
                                 </div>
-                                <p className="text-xs font-mono text-gray-400">{data.id}</p>
+                                <p className="text-xs font-mono text-gray-400 text-center">{data.id}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         )
+
+    return (
+        <KeyValueDisplay data={data} />
+    )
 }
 
+interface KeyValueDisplayProps {
+    data: Record<string, any>
+    className?: string
+}
+
+function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
+    return (
+        <div className={cn("w-full overflow-y-auto h-full border-collapse ", className)}>
+            {Object.entries(data).map(([key, value], index) => (
+                <div key={index} className="flex w-full border-b border-border divide-x divide-border">
+                    <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium text-muted-foreground">{key}</div>
+                    <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium">{value?.toString() || ""}</div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+export const MemoizedKeyValueDisplay = memo(KeyValueDisplay)

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSignIcon, Mail, User, UserIcon, Users } from "lucide-react"
+import { AtSignIcon, CarIcon, Mail, User, UserIcon, Users } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 
 interface NodeProps {
@@ -52,7 +52,16 @@ export function NodeRenderer({ node, setCurrentNode }: NodeProps) {
                     <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
                         <AtSignIcon className="h-4 w-4 opacity-60" />
                     </Badge>
-                    <div className='grow truncate text-ellipsis'>{node?.data?.full_name || node?.data?.label}</div>
+                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
+                    <TypeBadge type={node?.type}></TypeBadge>
+                </Button>
+            )}
+            {node.type === "vehicle" && (
+                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
+                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+                        <CarIcon className="h-4 w-4 opacity-60" />
+                    </Badge>
+                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
                     <TypeBadge type={node?.type}></TypeBadge>
                 </Button>
             )}

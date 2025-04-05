@@ -8,7 +8,7 @@ import { cn, typeColorMap } from '@/lib/utils';
 
 export default memo(({ data, selected }: any) => {
     return (
-        <BaseNode className={cn('p-.5 rounded-full', typeColorMap["vehicle"])} selected={selected}>
+        <BaseNode className={cn('p-.5 rounded-full', "bg-orange-100 text-orange-800 hover:bg-orange-100/80 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/40")} selected={selected}>
             <div className="flex items-center gap-2 p-1">
                 <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full">
                     <CarIcon className="h-4 w-4" />

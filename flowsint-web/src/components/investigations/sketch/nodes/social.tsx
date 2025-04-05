@@ -15,7 +15,7 @@ export default memo(({ data, selected }: any) => {
         }
     }, [platformsIcons, data?.platform])
     return (
-        <BaseNode className={cn('p-.5 rounded-full', typeColorMap["social"])} selected={selected}>
+        <BaseNode className={cn('p-.5 rounded-full', "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm dark:from-purple-950 dark:to-purple-900 dark:border-purple-800 dark:shadow-purple-900/30")} selected={selected}>
             <div className="flex items-center gap-2 p-1">
                 <Badge variant="secondary" className="h-6 w-6 p-0 rounded-full dark:bg-purple-900 bg-purple-200">
                     {platformIcon}

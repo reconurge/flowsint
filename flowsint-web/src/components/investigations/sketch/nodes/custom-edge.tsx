@@ -95,7 +95,6 @@ const EditableEdge = memo((props: EdgeProps) => {
                 </div>
             );
         }
-
         return (
             <Button
                 onClick={handleEditClick}

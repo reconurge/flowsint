@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/resizable"
 import NodesPanel from "./nodes-panel"
 import ProfilePanel from "./profile-panel"
+import Vehicle from "./nodes/vehicle"
 
 const edgeTypes = {
     custom: CustomEdge,
@@ -71,7 +72,8 @@ const nodeTypes = {
     social: SocialNode,
     address: AddressNode,
     group: GroupNode,
-    default: BaseNode
+    default: BaseNode,
+    vehicle: Vehicle
 }
 const nodeEdgeSelector = (store: { nodes: any; edges: any }) => ({
     nodes: store.nodes,

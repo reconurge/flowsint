@@ -94,6 +94,7 @@ import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 import { TypeBadge } from "@/components/type-badge"
 import { DialogTitle } from "@radix-ui/react-dialog"
+import { MemoizedKeyValueDisplay } from "@/components/investigations/sketch/profile-panel"
 
 function DragHandle({ id }: { id: number }) {
     const { attributes, listeners } = useSortable({
@@ -608,14 +609,10 @@ function TableCellViewer({ item, children }: { item: any, children: React.ReactN
                 </Button>
             </SheetTrigger>
             <SheetContent side="right" className="flex flex-col">
-                <DialogTitle>
+                <DialogTitle className="text-2xl p-4 font-bold">
                     {item.full_name}
                 </DialogTitle>
-                <div className="mt-12 p-4">
-                    <pre className="overflow-auto rounded-md border bg-muted p-4 text-sm">
-                        <code className="language-json">{JSON.stringify(item, null, 2)}</code>
-                    </pre>
-                </div>
+                <MemoizedKeyValueDisplay data={item} />
                 <SheetFooter className="mt-auto flex gap-2 sm:flex-col sm:space-x-0">
                     <SheetClose asChild>
                         <Button variant="outline" className="w-full">

@@ -367,11 +367,11 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                 </TooltipProvider>
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel defaultSize={20} className="h-full">
+            <ResizablePanel defaultSize={20} minSize={15} className="h-full">
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
                     {currentNode && <>
                         <ResizablePanel order={1} id="top" defaultSize={50}>
-                            <ProfilePanel data={currentNode.data} />
+                            <ProfilePanel data={currentNode.data} type={currentNode.type} />
                         </ResizablePanel>
                         <ResizableHandle />
                     </>}

@@ -8,7 +8,7 @@ from app.workers.email_scanner import perform_holehe_research
 
 @celery_app.task(name="email_scan", bind=True)
 def email_scan(self, email: str):
-    db = get_db()  # 🔥 On récupère le client ici
+    db = get_db()
     try:
         # Run the Holehe research
         results = asyncio.run(perform_holehe_research(email))

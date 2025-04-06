@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils"
 import { Users, TimerIcon, MapIcon, WaypointsIcon } from 'lucide-react'
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { memo, useMemo } from "react"
+import { Fragment, memo, useMemo } from "react"
 import MoreMenu from "./more-menu"
 import { ScanButton } from "./scans-drawer/scan-button"
+import { Badge } from "../ui/badge"
 
 function InvestigationNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
     const pathname = usePathname()
@@ -30,12 +31,14 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
             name: "Timeline",
             href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/timeline`,
             icon: TimerIcon,
+            "disabled": true,
         },
         {
             id: "map",
             name: "Map",
             href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/map`,
             icon: MapIcon,
+            "disabled": true,
         },
     ], [project_id, investigation_id]);
 
@@ -43,26 +46,34 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
         <div className="flex items-center justify-between w-full">
             <div className="flex overflow-auto">
                 {sections.map((section) => (
-                    <Link
-                        key={section.id}
-                        href={section?.href || ""}
-                        className={cn(
-                            "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
-                            section?.href == pathname
-                                ? "bg-accent text-accent-foreground"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
-                        )}
-                    >
-                        <section.icon className="h-4 w-4" />
-                        <span>{section.name}</span>
-                    </Link>
+                    <Fragment key={section.id}>
+                        {section.disabled ?
+                            <span
+                                className="text-muted-foreground opacity-40 text-sm px-4 py-2 flex items-center gap-2">
+                                <section.icon className="h-4 w-4" />
+                                <span>{section.name}</span>
+                                <Badge variant={"outline"}>Soon</Badge>
+                            </span> :
+                            <Link
+                                href={section?.href || ""}
+                                className={cn(
+                                    "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
+                                    section?.href == pathname
+                                        ? "bg-accent text-accent-foreground"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                                )}
+                            >
+                                <section.icon className="h-4 w-4" />
+                                <span>{section.name}</span>
+                            </Link>}
+                    </Fragment>
                 ))}
             </div>
             <div className="flex items-center">
                 <MoreMenu />
                 <ScanButton />
             </div>
-        </div>
+        </div >
     )
 }
 

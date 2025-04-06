@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Eye, Users, Camera, Settings } from "lucide-react"
+import { Eye, Users, Camera, Settings, Waypoints } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -20,7 +20,7 @@ export function ProjectNavigation({ project_id }: { project_id: string }) {
             id: "sketches",
             name: "Sketches",
             href: `/dashboard/projects/${project_id}?filter=sketch`,
-            icon: Users,
+            icon: Waypoints,
             count: 24,
         },
         {

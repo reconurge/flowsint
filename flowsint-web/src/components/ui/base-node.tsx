@@ -8,10 +8,10 @@ export const BaseNode = forwardRef<
     <div
         ref={ref}
         className={cn(
-            "relative rounded-md border bg-background p-2 flex items-center justify-between text-card-foreground",
+            "relative rounded-md ring ring-transparent bg-background p-2 flex items-center justify-between text-card-foreground truncate",
             className,
-            selected ? "border-primary shadow-lg" : "",
-            "hover:border-primary",
+            selected ? "ring-primary shadow-lg" : "",
+            "hover:ring-primary",
         )}
         tabIndex={0}
         {...props}

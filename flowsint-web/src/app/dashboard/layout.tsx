@@ -4,7 +4,7 @@ import {
     SidebarProvider,
 } from "@/components/ui/sidebar"
 import { redirect } from "next/navigation";
-import { Radar, Settings } from "lucide-react";
+import { FingerprintIcon, Radar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MainNav } from "@/components/dashboard/main-nav";
 import { NavUser } from "@/components/nav-user";
@@ -33,7 +33,7 @@ const DashboardLayout = async ({
                     <header className="sticky top-0 z-50 bg-background border-b">
                         <div className="flex h-12 items-center px-4">
                             <Link href="/dashboard" className="flex items-center gap-1">
-                                <Radar className="mr-2 h-6 w-6" />
+                                <FingerprintIcon className="mr-2 h-6 w-6 text-primary" />
                                 <h2 className="text-lg font-semibold mr-6">flowsint</h2>
                             </Link>
                             {/* <Separator orientation="vertical" className="h-6" /> */}

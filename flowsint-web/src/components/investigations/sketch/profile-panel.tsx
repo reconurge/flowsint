@@ -228,7 +228,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
             {data && Object.entries(data)
                 .filter(([key]) => !["id", "individual_id", "investigation_id", "group_id", "forceToolbarVisible"].includes(key))
                 .map(([key, value], index) => {
-                    const val = Array.isArray(value) ? value.join(", ") : value?.toString() || null
+                    const val = Array.isArray(value) ? `${value.length} items` : value?.toString() || null
                     return (
                         <div key={index} className="flex w-full items-center border-b border-border divide-x divide-border">
                             <div className="w-1/2 bg-background px-4 p-2 text-sm text-muted-foreground font-normal">{key}</div>

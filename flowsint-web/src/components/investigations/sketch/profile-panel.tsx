@@ -10,6 +10,7 @@ import { useParams } from "next/navigation"
 import SearchEmail from "./search-email"
 import { memo } from "react"
 import { cn } from "@/lib/utils"
+import { CopyButton } from "@/components/copy"
 
 export default function ProfilePanel({ data, }: { data: any }) {
     const { project_id, investigation_id } = useParams()
@@ -223,13 +224,18 @@ interface KeyValueDisplayProps {
 
 function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
     return (
-        <div className={cn("w-full overflow-y-auto h-full border-collapse ", className)}>
-            {data && Object.entries(data).map(([key, value], index) => (
-                <div key={index} className="flex w-full border-b border-border divide-x divide-border">
-                    <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium text-muted-foreground">{key}</div>
-                    <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium">{value?.toString() || ""}</div>
-                </div>
-            ))}
+        <div className={cn("w-full overflow-y-auto overflow-x-hidden h-full border-collapse", className)}>
+            {data && Object.entries(data)
+                .filter(([key]) => !["id", "individual_id", "investigation_id", "group_id", "forceToolbarVisible"].includes(key))
+                .map(([key, value], index) => {
+                    const val = Array.isArray(value) ? value.join(", ") : value?.toString() || null
+                    return (
+                        <div key={index} className="flex w-full items-center border-b border-border divide-x divide-border">
+                            <div className="w-1/2 bg-background px-4 p-2 text-sm text-muted-foreground font-normal">{key}</div>
+                            <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium flex items-center justify-between"><div className="truncate font-semibold">{val || <span className="italic text-muted-foreground">N/A</span>}</div> <div>{val && <CopyButton className="h-6 w-6" content={val} />}</div></div>
+                        </div>
+                    )
+                })}
         </div>
     )
 }

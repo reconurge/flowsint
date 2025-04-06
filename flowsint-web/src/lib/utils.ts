@@ -476,10 +476,10 @@ export const nodesTypes = {
 
 export const typeColorMap: Record<string, string> = {
   individual: "rounded-full bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow-md dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:shadow-slate-900/30",
-  phone_number: "bg-sky-100 text-sky-800 hover:bg-sky-100/80 dark:bg-sky-900/30 dark:text-sky-300 dark:hover:bg-sky-900/40",
+  phone: "bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 shadow-md dark:from-sky-800 dark:to-sky-900 dark:border-sky-700 dark:shadow-sky-900/30",
   address: "bg-amber-100 text-amber-800 hover:bg-amber-100/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40",
   email: "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-800 dark:shadow-emerald-900/30",
-  ip_address: "bg-slate-100 text-slate-800 hover:bg-slate-100/80 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800/60",
+  ip: "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 shadow-md dark:from-pink-800 dark:to-pink-900 dark:border-pink-700 dark:shadow-pink-900/30",
   social: "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm dark:from-purple-950 dark:to-purple-900 dark:border-purple-800 dark:shadow-purple-900/30",
   organization: "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 shadow-sm dark:from-orange-950 dark:to-orange-900 dark:border-orange-800 dark:shadow-orange-900/30",
   vehicle: "bg-orange-100 text-orange-800 hover:bg-orange-100/80 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/40",

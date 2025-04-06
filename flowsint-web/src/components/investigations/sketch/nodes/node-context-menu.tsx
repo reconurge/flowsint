@@ -151,7 +151,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 .select("*")
                 .single()
             if (insertError) {
-                toast.error("An error occured during the creation.")
+                toast.error("An error occured during the creation." + insertError.message)
                 setLoading(false)
                 return
             }

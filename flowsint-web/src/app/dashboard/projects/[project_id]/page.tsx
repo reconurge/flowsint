@@ -75,7 +75,7 @@ const DashboardPage = () => {
                     <div className="flex items-center gap-2">
                         <NewCase>
                             <Button size="sm" className="gap-2">
-                                <PlusIcon className="h-4 w-4" />  Add
+                                <PlusIcon className="h-4 w-4" />  New
                             </Button>
                         </NewCase>
                         <DropdownMenu>
@@ -105,7 +105,7 @@ const DashboardPage = () => {
                 ) : (
                     <div className="border rounded-md">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className="bg-accent">
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Type</TableHead>

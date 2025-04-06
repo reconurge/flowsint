@@ -302,7 +302,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         onNodeClick,
         onPaneClick: handlePaneClick,
         onNodeContextMenu: handleNodeContextMenu,
-        minZoom: 0.4,
+        minZoom: 0.7,
         fitView: true,
         proOptions: { hideAttribution: true },
         edgeTypes,

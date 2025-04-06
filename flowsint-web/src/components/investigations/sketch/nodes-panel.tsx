@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSignIcon, CarIcon, Mail, Search, User, UserIcon, Users } from "lucide-react"
+import { AtSignIcon, CarIcon, LocateIcon, Mail, PhoneIcon, Search, User, UserIcon, Users } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 
@@ -66,6 +66,24 @@ export function NodeRenderer({ node, setCurrentNode }: NodeProps) {
                     <TypeBadge type={node?.type}></TypeBadge>
                 </Button>
             )}
+            {node.type === "phone" && (
+                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
+                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+                        <PhoneIcon className="h-4 w-4 opacity-60" />
+                    </Badge>
+                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
+                    <TypeBadge type={node?.type}></TypeBadge>
+                </Button>
+            )}
+            {node.type === "ip" && (
+                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
+                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+                        <LocateIcon className="h-4 w-4 opacity-60" />
+                    </Badge>
+                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
+                    <TypeBadge type={node?.type}></TypeBadge>
+                </Button>
+            )}
         </>
     )
 }
@@ -91,7 +109,7 @@ const NodesPanel = ({ nodes }: { nodes: Node[] }) => {
             <div className="sticky top-0 p-2 bg-background z-10">
                 <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Nodes</h3>
-                    <Badge>{nodes?.length || 0}</Badge>
+                    <Badge variant={"outline"}>{nodes?.length || 0}</Badge>
                     <div className="relative grow">
                         <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
                         <Input

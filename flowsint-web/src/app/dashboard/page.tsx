@@ -49,7 +49,6 @@ const DashboardPage = () => {
                     <Button>New investigation</Button>
                 </div>
                 <div>
-
                     <RecentSketches />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
@@ -95,7 +94,7 @@ const DashboardPage = () => {
                 ) : (
                     <div className="border rounded-md">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className="bg-accent">
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Owner</TableHead>

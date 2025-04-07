@@ -252,7 +252,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
         <>
             <DropdownMenu open={Boolean(currentNode) && Boolean(x) && Boolean(y)} onOpenChange={onClose}>
                 <DropdownMenuContent
-                    className="absolute z-50 min-w-40 max-w-48 bg-popover text-popover-foreground rounded-md border shadow-md py-1 overflow-hidden"
+                    className="absolute z-50 min-w-40 max-w-48 bg-popover text-popover-foreground rounded-md border shadow py-1 overflow-hidden"
                     style={{ top: y, left: x }}
                 >
                     {Boolean(currentNode?.data?.email) && (

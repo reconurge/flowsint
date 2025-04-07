@@ -1,4 +1,3 @@
-from supabase import create_client
 from app.core.db import get_db
 from app.core.celery import celery_app
 import traceback
@@ -12,7 +11,6 @@ def email_scan(self, email: str):
     try:
         # Run the Holehe research
         results = asyncio.run(perform_holehe_research(email))
-
         # Update database with results
         status = "finished" if "error" not in results else "error"
         db.table("scans").update({
@@ -39,4 +37,4 @@ def email_scan(self, email: str):
             },
         )
         
-        raise ex  # Laisser Celery gérer l'erreur
+        raise ex

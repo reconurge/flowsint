@@ -307,7 +307,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         proOptions: { hideAttribution: true },
         edgeTypes,
         nodeTypes,
-        className: "!bg-background"
+        className: "!bg-accent"
     }), [
         theme,
         nodes,
@@ -366,16 +366,16 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                     />
                 </TooltipProvider>
             </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel defaultSize={20} minSize={15} className="h-full">
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={20} minSize={15} className="h-full bg-background">
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
                     {currentNode && <>
-                        <ResizablePanel order={1} id="top" defaultSize={50}>
+                        <ResizablePanel order={1} id="top" defaultSize={40}>
                             <ProfilePanel data={currentNode.data} type={currentNode.type} />
                         </ResizablePanel>
-                        <ResizableHandle />
+                        <ResizableHandle withHandle />
                     </>}
-                    <ResizablePanel order={2} id="bottom" defaultSize={50}>
+                    <ResizablePanel order={2} id="bottom" defaultSize={60}>
                         <NodesPanel nodes={processedNodes} />
                     </ResizablePanel>
                 </ResizablePanelGroup>

@@ -91,7 +91,7 @@ export default function NewCase({ children, noDropDown = false }: { children: Re
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => setOpen(true)}>
                         New sketch
                         <span className="ml-auto text-xs text-muted-foreground">⌘ E</span>

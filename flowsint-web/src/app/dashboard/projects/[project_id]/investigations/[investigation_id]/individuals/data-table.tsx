@@ -95,6 +95,7 @@ import { cn } from "@/lib/utils"
 import { TypeBadge } from "@/components/type-badge"
 import { DialogTitle } from "@radix-ui/react-dialog"
 import { MemoizedKeyValueDisplay } from "@/components/investigations/sketch/profile-panel"
+import { Card } from "@/components/ui/card"
 
 function DragHandle({ id }: { id: number }) {
     const { attributes, listeners } = useSortable({
@@ -371,7 +372,7 @@ export function DataTable({
                 </Label>
                 <Select defaultValue="outline">
                     <SelectTrigger
-                        className="@4xl/main:hidden flex w-fit"
+                        className="@4xl/main:hidden bg-background flex w-fit"
                         id="view-selector"
                     >
                         <SelectValue placeholder="Select a view" />
@@ -452,7 +453,7 @@ export function DataTable({
                 value="outline"
                 className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
             >
-                <div className="overflow-hidden rounded-lg border">
+                <Card className="overflow-hidden rounded-lg bg-background border shadow-xs">
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToVerticalAxis]}
@@ -461,7 +462,7 @@ export function DataTable({
                         id={sortableId}
                     >
                         <Table>
-                            <TableHeader className="sticky top-0 z-10 bg-muted">
+                            <TableHeader className="sticky top-0 z-10">
                                 {table.getHeaderGroups().map((headerGroup: { id: React.Key | null | undefined; headers: any[] }) => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => {
@@ -502,7 +503,7 @@ export function DataTable({
                             </TableBody>
                         </Table>
                     </DndContext>
-                </div>
+                </Card>
                 <div className="flex items-center justify-between px-4">
                     <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
                         {table.getFilteredSelectedRowModel().rows.length} of{" "}

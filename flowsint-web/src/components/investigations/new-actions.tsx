@@ -23,10 +23,12 @@ import { Badge } from "../ui/badge"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"
 import { actionItems, type ActionItem } from "@/lib/action-items"
 import { PlusIcon } from "lucide-react"
+import { useInvestigationStore } from "@/store/investigation-store"
 
 export default function NewActions({ addNodes }: { addNodes: any }) {
     const { investigation_id } = useParams()
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
+    const { setCurrentNode } = useInvestigationStore((state) => state)
     const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -78,6 +80,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 position: { x: 0, y: 0 },
             }
             addNodes(newNode)
+            setCurrentNode(newNode)
             setOpenNodeModal(false)
             setError(null)
         } catch (error) {

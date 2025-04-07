@@ -27,19 +27,18 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
             icon: Users,
         },
         {
+            id: "map",
+            name: "Map",
+            href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/map`,
+            icon: MapIcon,
+        },
+        {
             id: "timeline",
             name: "Timeline",
             href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/timeline`,
             icon: TimerIcon,
             "disabled": true,
-        },
-        {
-            id: "map",
-            name: "Map",
-            href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/map`,
-            icon: MapIcon,
-            "disabled": true,
-        },
+        }
     ], [project_id, investigation_id]);
 
     return (

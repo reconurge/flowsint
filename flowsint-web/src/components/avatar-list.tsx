@@ -66,13 +66,13 @@ export function AvatarList({
                 key={user.id}
                 className={cn(
                     sizeClasses[size].avatar,
-                    "border-2 border-background",
+                    "border-2 border-background bg-background",
                     "transition-transform hover:translate-y-[-4px]",
                     "ring-0 ring-offset-0",
                 )}
             >
                 <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
             </Avatar>
         )
 

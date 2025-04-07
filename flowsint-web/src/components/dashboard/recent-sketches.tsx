@@ -3,11 +3,12 @@
 import type { Investigation } from "@/types/investigation"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { Search } from "lucide-react"
+import { Fingerprint, Search } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
+import { AvatarList } from "../avatar-list"
 
 const RecentSketches = () => {
     const {
@@ -94,12 +95,22 @@ const RecentSketches = () => {
             {investigations?.map((investigation: Investigation) => {
                 return (
                     <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} key={investigation.id} className="group">
-                        <Card className="bg-accent shadow-none h-full transition-all duration-200 hover:border-primary rounded-md">
-                            <CardContent className="p-4 relative">
-                                <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                                    {investigation?.project?.name}/{investigation.title}
-                                </h3>
-                                <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
+                        <Card className="bg-background shadow-xs h-full min-h-32 transition-all duration-200 hover:border-primary rounded-md">
+                            <CardContent className="p-4 relative h-full flex flex-col justify-between">
+                                <div className="flex flex items-center gap-2 w-full">
+                                    <div>
+                                        <Fingerprint className="h-8 w-8 text-muted-foreground opacity-60" />
+                                    </div>
+                                    <div className="w-full truncate">
+                                        <h3 className="font-medium w-full truncate text-ellispsis transition-colors">
+                                            {investigation?.project?.name}/{investigation.title}
+                                        </h3>
+                                        <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-end">
+                                    <AvatarList users={[{ id: "1", name: "Jean" }, { id: "2", name: "Eliott" }, { id: "4", name: "Marc" }, { id: "2", name: "Frank" }]} size="sm" />
+                                </div>
                             </CardContent>
                         </Card>
                     </Link>

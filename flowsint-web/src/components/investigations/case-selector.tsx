@@ -22,16 +22,18 @@ export default function CaseSelector() {
     const { investigation } = useInvestigationData(project_id as string, investigation_id as string);
 
     const handleSelectionChange = (value: string) => {
-        router.push(`/dashboard/projects/${project_id}/investigations/${value}`);
+        value === "overview" ? router.push(`/dashboard/projects/${project_id}`) :
+            router.push(`/dashboard/projects/${project_id}/investigations/${value}`);
     };
     return (
         <div className="flex items-center">
             {isLoading || investigation.isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={investigation?.data.id}>
-                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
-                        <Waypoints className="mr-1"/> <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
+                    <SelectTrigger className="min-w-none h-7 rounded-sm w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                        <Waypoints className="mr-1" /> <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem className="text-ellipsis truncate" value={"overview"}>{"Overview"}</SelectItem>
                         {investigations?.map((investigation) => (
                             <SelectItem className="text-ellipsis truncate" key={investigation.id} value={investigation.id}>{investigation.title}</SelectItem>
                         ))}

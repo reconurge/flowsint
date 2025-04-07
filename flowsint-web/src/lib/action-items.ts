@@ -66,7 +66,7 @@ export const actionItems: ActionItem[] = [
         table: "individuals",
         key: "individuals",
         icon: User,
-        label: "New relation",
+        label: "New individual",
         fields: ["full_name"],
     },
     {

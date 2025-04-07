@@ -1,5 +1,5 @@
 "use client"
-import { Sparkles } from "lucide-react"
+import { MoreHorizontalIcon, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
 import { memo, useCallback } from "react"
@@ -7,7 +7,14 @@ import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { toast } from "sonner"
 import { checkEmail } from "@/lib/actions/search"
-
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 export default function ProfilePanel({ data, type }: { data: any, type: string }) {
     const { investigation_id } = useParams()
 
@@ -34,20 +41,30 @@ export default function ProfilePanel({ data, type }: { data: any, type: string }
     }, [data, investigation_id])
 
     return (
-        <div>
-            <div className="flex items-center border-b justify-between p-4 gap-2">
+        <div className=" overflow-y-auto overflow-x-hidden h-full">
+            <div className="flex items-center sticky bg-background top-0 border-b justify-between px-4 py-2 gap-2 z-50">
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
-                <Button
-                    onClick={handleCheckEmail}
-                    disabled={type !== "email"}
-                    className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                >
-                    <span className="flex items-center gap-2">
-                        <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                        <span>Search</span>
-                    </span>
-                    <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        onClick={handleCheckEmail}
+                        disabled={type !== "email"}
+                        className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                    >
+                        <span className="flex items-center gap-2">
+                            <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                            <span>Search</span>
+                        </span>
+                        <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem>Hide</DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
             <KeyValueDisplay data={data} />
         </div>
@@ -61,7 +78,7 @@ interface KeyValueDisplayProps {
 
 function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
     return (
-        <div className={cn("w-full overflow-y-auto overflow-x-hidden h-full border-collapse", className)}>
+        <div className={cn("w-full border-collapse", className)}>
             {data && Object.entries(data)
                 .filter(([key]) => !["id", "individual_id", "investigation_id", "group_id", "forceToolbarVisible"].includes(key))
                 .map(([key, value], index) => {

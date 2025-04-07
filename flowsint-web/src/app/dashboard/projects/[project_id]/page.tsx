@@ -16,6 +16,7 @@ import NewCase from "@/components/dashboard/new-sketch"
 import { DocumentList } from "@/components/projects/documents-list"
 import { cn } from "@/lib/utils"
 import { ProjectNavigation } from "@/components/investigations/project-navigation"
+import { Card } from "@/components/ui/card"
 
 const DashboardPage = () => {
     const { project_id } = useParams()
@@ -63,11 +64,11 @@ const DashboardPage = () => {
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 bg-background text-muted-foreground" />
                         <Input
                             type="search"
                             placeholder="Search items..."
-                            className="pl-8 w-full"
+                            className="pl-8 w-full bg-background"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -103,78 +104,78 @@ const DashboardPage = () => {
                         <Loader />
                     </div>
                 ) : (
-                    <div className="border rounded-md">
+                    <Card className="border rounded-md bg-background shadow-xs">
                         <Table>
-                            <TableHeader className="bg-accent">
+                            <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Owner</TableHead>
+                                <TableHead className="hidden md:table-cell">Size</TableHead>
+                                <TableHead className="hidden sm:table-cell">Last modified</TableHead>
+                                <TableHead className="hidden sm:table-cell">Creation</TableHead>
+                                <TableHead className="w-[50px]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {project.investigations.length === 0 && documents?.length === 0 ? (
                                 <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Owner</TableHead>
-                                    <TableHead className="hidden md:table-cell">Size</TableHead>
-                                    <TableHead className="hidden sm:table-cell">Last modified</TableHead>
-                                    <TableHead className="hidden sm:table-cell">Creation</TableHead>
-                                    <TableHead className="w-[50px]"></TableHead>
+                                    <TableCell colSpan={7} className="text-center w-full py-2 text-muted-foreground">
+                                        <div className="flex flex-col justify-center items-center p-3 gap-2">
+                                            No sketch yet or document yet.
+                                            <NewCase noDropDown>
+                                                <Button size="sm" className="gap-2">
+                                                    <PlusIcon className="h-4 w-4" />  Create a new sketch
+                                                </Button>
+                                            </NewCase>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {project.investigations.length === 0 && documents?.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="text-center w-full py-2 text-muted-foreground">
-                                            <div className="flex flex-col justify-center items-center p-3 gap-2">
-                                                No sketch yet or document yet.
-                                                <NewCase noDropDown>
-                                                    <Button size="sm" className="gap-2">
-                                                        <PlusIcon className="h-4 w-4" />  Create a new sketch
+                            ) : (
+                                project?.investigations?.map((investigation: Investigation) => (
+                                    <TableRow key={investigation.id}>
+                                        <TableCell>
+                                            <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
+                                                <Waypoints className="h-5 w-5 text-primary" />
+                                                <span>{investigation.title}</span>
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">{"Sketch"}</TableCell>
+                                        <TableCell className="text-muted-foreground">{`${investigation?.owner?.first_name} ${project?.owner?.last_name}` || "You"}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-muted-foreground">
+                                            {(investigation?.individuals?.length || 0) > 0 ? `${investigation?.individuals?.length} items` : "Empty"}
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell text-muted-foreground">
+                                            {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell text-muted-foreground">
+                                            {format(new Date(project.created_at), "dd/MM/yyyy")}
+                                        </TableCell>
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Actions</span>
                                                     </Button>
-                                                </NewCase>
-                                            </div>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem>Open</DropdownMenuItem>
+                                                    <DropdownMenuItem>Rename</DropdownMenuItem>
+                                                    <DropdownMenuItem>Share</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
-                                ) : (
-                                    project?.investigations?.map((investigation: Investigation) => (
-                                        <TableRow key={investigation.id}>
-                                            <TableCell>
-                                                <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
-                                                    <Waypoints className="h-5 w-5 text-primary" />
-                                                    <span>{investigation.title}</span>
-                                                </Link>
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground">{"Sketch"}</TableCell>
-                                            <TableCell className="text-muted-foreground">{`${investigation?.owner?.first_name} ${project?.owner?.last_name}` || "You"}</TableCell>
-                                            <TableCell className="hidden md:table-cell text-muted-foreground">
-                                                {(investigation?.individuals?.length || 0) > 0 ? `${investigation?.individuals?.length} items` : "Empty"}
-                                            </TableCell>
-                                            <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
-                                            </TableCell>
-                                            <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {format(new Date(project.created_at), "dd/MM/yyyy")}
-                                            </TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">Actions</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem>Open</DropdownMenuItem>
-                                                        <DropdownMenuItem>Rename</DropdownMenuItem>
-                                                        <DropdownMenuItem>Share</DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                                <DocumentList refetch={refetchDocs} isLoading={isLoadingDocs} documents={documents} />
-                            </TableBody>
-                        </Table>
-                    </div>
+                                ))
+                            )}
+                            <DocumentList refetch={refetchDocs} isLoading={isLoadingDocs} documents={documents} />
+                        </TableBody>
+                    </Table>
+                    </Card>
                 )}
-            </div>
+        </div >
         </>
     )
 }

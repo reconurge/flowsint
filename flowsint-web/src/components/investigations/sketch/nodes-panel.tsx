@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AtSignIcon, CarIcon, LocateIcon, Mail, PhoneIcon, Search, User, UserIcon, Users } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
+import { actionItems } from '@/lib/action-items'
+import { QuestionMarkIcon } from '@radix-ui/react-icons'
 
 interface NodeProps {
     node: any,
@@ -17,7 +19,6 @@ interface NodeProps {
 
 const SocialNode = ({ node, setCurrentNode }: NodeProps) => {
     const platformsIcons = usePlatformIcons()
-    console.log(platformsIcons)
     const platformIcon = useMemo(() => {
         // @ts-ignore
         return platformsIcons?.[node?.data?.platform]?.icon
@@ -33,57 +34,20 @@ const SocialNode = ({ node, setCurrentNode }: NodeProps) => {
     )
 }
 export function NodeRenderer({ node, setCurrentNode }: NodeProps) {
+    const item = useMemo(() => (actionItems as any).find((a: any) => a.type === node.type), [node?.type])
+    const Icon = item?.icon || QuestionMarkIcon
     return (
         <>
-            {node.type === "individual" && (
-                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
-                    <Avatar className="h-7 w-7">
-                        <AvatarImage src={node?.data?.image_url} alt={node?.data?.full_name} />
-                        <AvatarFallback><UserIcon className="h-4 w-4 opacity-60" /></AvatarFallback>
-                    </Avatar>
-                    <div className='grow truncate text-ellipsis'>{node?.data?.full_name || node?.data?.label}</div>
-                    <TypeBadge type={node?.type}></TypeBadge>
-                </Button>
-            )}
-            {node.type === "social" && (
-                <SocialNode setCurrentNode={setCurrentNode} node={node} />
-            )}
-            {node.type === "email" && (
+            {node.type === "social" ?
+                <SocialNode setCurrentNode={setCurrentNode} node={node} /> :
                 <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
                     <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                        <AtSignIcon className="h-4 w-4 opacity-60" />
+                        <Icon className="h-4 w-4 opacity-60" />
                     </Badge>
                     <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
                     <TypeBadge type={node?.type}></TypeBadge>
                 </Button>
-            )}
-            {node.type === "vehicle" && (
-                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
-                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                        <CarIcon className="h-4 w-4 opacity-60" />
-                    </Badge>
-                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
-                    <TypeBadge type={node?.type}></TypeBadge>
-                </Button>
-            )}
-            {node.type === "phone" && (
-                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
-                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                        <PhoneIcon className="h-4 w-4 opacity-60" />
-                    </Badge>
-                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
-                    <TypeBadge type={node?.type}></TypeBadge>
-                </Button>
-            )}
-            {node.type === "ip" && (
-                <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
-                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                        <LocateIcon className="h-4 w-4 opacity-60" />
-                    </Badge>
-                    <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
-                    <TypeBadge type={node?.type}></TypeBadge>
-                </Button>
-            )}
+            }
         </>
     )
 }
@@ -92,7 +56,6 @@ export function NodeRenderer({ node, setCurrentNode }: NodeProps) {
 const NodesPanel = ({ nodes }: { nodes: Node[] }) => {
     const { setCurrentNode } = useFlowStore()
     const [searchQuery, setSearchQuery] = useState("")
-
     // Filter nodes based on search query
     const filteredNodes = nodes?.filter((node) => {
         const searchText = searchQuery.toLowerCase()
@@ -122,8 +85,8 @@ const NodesPanel = ({ nodes }: { nodes: Node[] }) => {
                     </div>
                 </div>
             </div>
-
-            {filteredNodes?.length === 0 ? (
+            {filteredNodes?.length === 0 && searchQuery === "" && <div className='text-sm p-4 text-center'><p className='border rounded-md border-dashed p-4 text-center'>Right click on the panel to add your first investigation item.</p></div>}
+            {filteredNodes?.length === 0 && searchQuery ? (
                 <div className="p-4 text-center text-muted-foreground">No nodes match your search</div>
             ) : (
                 filteredNodes?.map((node: any) => <NodeRenderer node={node} setCurrentNode={setCurrentNode} key={node.id} />)

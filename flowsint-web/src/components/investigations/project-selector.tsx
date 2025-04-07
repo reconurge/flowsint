@@ -11,6 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@/types/project";
+import { FolderIcon, FolderLockIcon } from 'lucide-react';
 
 export default function ProjectSelector() {
     const router = useRouter()
@@ -36,8 +37,8 @@ export default function ProjectSelector() {
             {isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
                 // @ts-ignore
                 <Select onValueChange={handleSelectionChange} defaultValue={project_id}>
-                    <SelectTrigger className="min-w-none w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
-                        <SelectValue placeholder="Select an investigation" />
+                    <SelectTrigger className="min-w-none h-7 w-full hover:bg-sidebar-accent rounded-sm font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                        <FolderIcon className="mr-1" /><SelectValue placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
                         {projects?.map((project: Project) => (

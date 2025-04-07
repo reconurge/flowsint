@@ -61,9 +61,9 @@ export function SubNav() {
                 >
                     <section.icon className="h-4 w-4" />
                     <span>{section.name}</span>
-                    {section.count !== null && (
+                    {/* {section.count !== null && (
                         <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs">{section.count}</span>
-                    )}
+                    )} */}
                 </Link>
             ))}
         </div>

@@ -15,3 +15,4 @@ export const usePlatformIcons = () => {
         }, {} as Record<string, { icon: JSX.Element, color: string }>);
     }, []);
 };
+

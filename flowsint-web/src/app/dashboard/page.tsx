@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { FolderLockIcon, MoreHorizontal, PlusIcon, RotateCwIcon, Search, SlidersHorizontal } from "lucide-react"
+import { ChevronDown, FolderLockIcon, Grid, List, MoreHorizontal, PlusIcon, RotateCwIcon, Search, SlidersHorizontal } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { notFound } from "next/navigation"
 import Loader from "@/components/loader"
@@ -18,9 +18,11 @@ import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import DashboardLayout from "@/components/dashboard/layout"
 import { SubNav } from "@/components/dashboard/sub-nav"
+import { Card } from "@/components/ui/card"
 
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
     const { data, isLoading, refetch, isRefetching } = useQuery({
         queryKey: ["dashboard", "projects"],
@@ -43,31 +45,81 @@ const DashboardPage = () => {
             <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
                 <SubNav />
             </div>
-            <div className="w-full space-y-8 mx-auto py-12 px-8">
-                <div className="flex items-center gap-2 justify-between">
-                    <h1 className="text-2xl font-bold">Overview</h1>
-                    <Button>New investigation</Button>
+            <div className="w-full space-y-8 container mx-auto py-12 px-8">
+                <div className="flex items-center justify-between w-full gap-4">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="h-4 w-4 " />
+                        </div>
+                        <Input
+                            type="text"
+                            placeholder="Search investigations and projects..."
+                            className="pl-10 pr-16 py-2 h-10 text-sm bg-background"
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <div className="flex items-center gap-1 text-xs">
+                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">⌘</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">K</kbd>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="flex items-center gap-2 h-10">
+                                    <span>Sort by activity</span>
+                                    <ChevronDown className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Sort by name</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by date created</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by last updated</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by activity</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <div className="flex items-center border rounded-md overflow-hidden">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-10 w-10 rounded-none ${viewMode === "grid" ? "bg-accent" : ""}`}
+                                onClick={() => setViewMode("grid")}
+                            >
+                                <Grid className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-10 w-10 rounded-none ${viewMode === "list" ? "bg-accent" : ""}`}
+                                onClick={() => setViewMode("list")}
+                            >
+                                <List className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <NewProject>
+                            <Button className="gap-2 h-10">
+                                <PlusIcon className="h-4 w-4" />  New
+                            </Button>
+                        </NewProject>
+                    </div>
                 </div>
                 <div>
                     <RecentSketches />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
-                    <div className="relative w-full max-w-md">
+                    {/* <div className="relative w-full max-w-md">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="search"
                             placeholder="Search projects..."
-                            className="pl-8 w-full"
+                            className="pl-8 w-full bg-background"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-2">
-                        <NewProject>
-                            <Button size="sm" className="gap-2">
-                                <PlusIcon className="h-4 w-4" />  Add
-                            </Button>
-                        </NewProject>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="gap-2">
@@ -92,9 +144,9 @@ const DashboardPage = () => {
                         <Loader />
                     </div>
                 ) : (
-                    <div className="border rounded-md">
+                    <Card className="border rounded-md bg-background shadow-xs">
                         <Table>
-                            <TableHeader className="bg-accent">
+                            <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Owner</TableHead>
@@ -144,7 +196,7 @@ const DashboardPage = () => {
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Button variant="ghost" size="icon" className="h-10 w-8">
                                                             <MoreHorizontal className="h-4 w-4" />
                                                             <span className="sr-only">Actions</span>
                                                         </Button>
@@ -162,7 +214,7 @@ const DashboardPage = () => {
                                 )}
                             </TableBody>
                         </Table>
-                    </div>
+                    </Card>
                 )}
             </div>
         </>

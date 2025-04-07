@@ -48,7 +48,7 @@ export default function NewProject({ children, noDropDown }: { children: React.R
     if (noDropDown) return (
         <>
             <Button asChild onClick={() => setOpen(true)}>{children}</Button>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog  open={open} onOpenChange={setOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>New project</DialogTitle>
@@ -84,7 +84,7 @@ export default function NewProject({ children, noDropDown }: { children: React.R
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => setOpen(true)}>
                         New project
                         <span className="ml-auto text-xs text-muted-foreground">⌘ E</span>

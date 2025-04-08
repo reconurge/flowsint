@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
         }
         const { data: investigation, error } = await supabase
             .from("investigations")
-            .select("id, title, description, last_updated_at, project_id, project:projects(id, name)")
+            .select("id, title, description, last_updated_at, project_id, project:projects(id, name), members:investigations_profiles(profile:profiles(id, first_name, last_name), role)")
             .eq("id", investigation_id)
             .eq("project_id", project_id)
             .single()

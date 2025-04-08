@@ -1,13 +1,12 @@
 "use client";
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 import { Button } from "@/components/ui/button";
 import React, {
@@ -118,25 +117,23 @@ const ConfirmDialog = ({
     message: string;
 }) => {
     return (
-        <AlertDialog open={open} onOpenChange={onCancel}>
-            <AlertDialogContent>
-                <AlertDialogTitle>{title}</AlertDialogTitle>
-                <AlertDialogDescription>
+        <Dialog open={open} onOpenChange={onCancel}>
+            <DialogContent>
+                <DialogTitle>{title}</DialogTitle>
+                <DialogDescription>
                     {message}
-                </AlertDialogDescription>
+                </DialogDescription>
                 <div className="flex items-center gap-3 mt-4 justify-end">
-                    <AlertDialogCancel asChild>
-                        <Button onClick={onCancel} variant="destructive">
+                    <DialogClose asChild>
+                        <Button onClick={onCancel} variant="secondary">
                             Cancel
                         </Button>
-                    </AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                        <Button onClick={onConfirm} variant={"destructive"}>
-                            Continue
-                        </Button>
-                    </AlertDialogAction>
+                    </DialogClose>
+                    <Button onClick={onConfirm}>
+                        Continue
+                    </Button>
                 </div>
-            </AlertDialogContent>
-        </AlertDialog>
+            </DialogContent>
+        </Dialog>
     );
 };

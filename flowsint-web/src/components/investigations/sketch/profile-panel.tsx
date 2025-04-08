@@ -15,12 +15,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useConfirm } from "@/components/use-confirm-dialog"
 export default function ProfilePanel({ data, type }: { data: any, type: string }) {
     const { investigation_id } = useParams()
+    const { confirm } = useConfirm()
 
-    const handleCheckEmail = useCallback(() => {
+    const handleCheckEmail = useCallback(async () => {
         // @ts-ignore
-        if (!data && data?.email) return
+        if (!data && data?.email) return toast.error("No email found.")
+        if (!await confirm({ title: "Email scan", message: "This scan will look for some socials that the email might be associated with. The list is not exhaustive and might return false positives." })) return
         // @ts-ignore
         toast.promise(checkEmail(data?.email, investigation_id), {
             loading: "Loading...",

@@ -61,7 +61,7 @@ export function ScanDrawer() {
     const [viewMode, setViewMode] = useState<"grid" | "table">("table")
 
     const { data: currentScan = null, isLoading } = useQuery({
-        queryKey: ["investigations", investigation_id, "scans", scanId],
+        queryKey: ["projects", project_id, "investigations", investigation_id, "scans", scanId],
         queryFn: async (): Promise<Scan | null> => {
             const res = await fetch(`/api/projects/${project_id}/investigations/${investigation_id}/scans/${scanId}`)
             if (!res.ok) {

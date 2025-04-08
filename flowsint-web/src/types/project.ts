@@ -8,4 +8,5 @@ export interface Project {
     created_at: string
     last_updated_at: string
     owner: any
+    members?: any[]
 }

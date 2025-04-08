@@ -5,42 +5,36 @@ import { useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, ArrowLeft, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
-import {
-    DropdownMenu,
-    DropdownMenuItem,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuPortal,
-    DropdownMenuContent,
-    DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu"
 import { cn, nodesTypes } from "@/lib/utils"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import { Badge } from "../ui/badge"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"
 import { actionItems, type ActionItem } from "@/lib/action-items"
-import { PlusIcon } from "lucide-react"
 import { useInvestigationStore } from "@/store/investigation-store"
+import { Card, CardContent } from "@/components/ui/card"
+import { AnimatePresence, motion } from "framer-motion"
 
-export default function NewActions({ addNodes }: { addNodes: any }) {
+export default function NewActions({ addNodes, children }: { addNodes: any, children: React.ReactNode }) {
     const { investigation_id } = useParams()
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
+    const [openActionDialog, setOpenActionDialog] = useState(false)
     const { setCurrentNode } = useInvestigationStore((state) => state)
     const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
+    const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
+    const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
-    const handleOpenAddNodeModal = (e: { stopPropagation: () => void }, key: string) => {
-        e.stopPropagation()
+    const handleOpenAddNodeModal = (key: string) => {
         if (!nodesTypes[key as keyof typeof nodesTypes]) {
             toast.error("Invalid node type.")
             return
         }
         setCurrentNodeType(nodesTypes[key as keyof typeof nodesTypes])
         setError(null)
+        setOpenActionDialog(false)
         setOpenNodeModal(true)
     }
 
@@ -62,7 +56,7 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 .insert(dataToInsert)
                 .select("*")
                 .single()
-            console.log(insertError)
+
             if (insertError) {
                 toast.error("Failed to create node.")
                 setLoading(false)
@@ -75,8 +69,10 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
             }
             const newNode = {
                 id: nodeData.id,
-                type: currentNodeType.type,
-                data: { ...nodeData, label: data[currentNodeType.fields[0]] },
+                type: "custom",
+                data: {
+                    ...nodeData, label: data[currentNodeType.fields[0]], type: currentNodeType.type,
+                },
                 position: { x: 0, y: 0 },
             }
             addNodes(newNode)
@@ -90,75 +86,71 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
         }
     }
 
-    // Render a dropdown menu item
-    const renderMenuItem = (item: ActionItem) => {
-        const Icon = item.icon
+    const navigateToSubItems = (item: ActionItem) => {
+        setNavigationHistory([...navigationHistory, item])
+        setCurrentParent(item)
+    }
 
-        if (item.children) {
-            return (
-                <DropdownMenuSub key={item.id}>
-                    <DropdownMenuSubTrigger>
-                        <Icon style={{ color: item.color }} className={cn("mr-3 h-4 w-4 opacity-50", item.color)} />
-                        {item.label}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                                {item.children.map((childItem) => renderMenuItem(childItem))}
-                            </div>
-                        </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                </DropdownMenuSub>
-            )
-        }
+    const navigateBack = () => {
+        const newHistory = [...navigationHistory]
+        newHistory.pop()
+        setNavigationHistory(newHistory)
+        setCurrentParent(newHistory.length > 0 ? newHistory[newHistory.length - 1] : null)
+    }
+
+    const renderActionCards = () => {
+        const items = currentParent ? currentParent.children || [] : actionItems
+
         return (
-            <DropdownMenuItem
-                key={item.id}
-                disabled={item.disabled}
-                onClick={(e) => handleOpenAddNodeModal(e, item.key)}
-                className="flex items-center"
-            >
-                <Icon style={{ color: item.color }} className="h-4 w-4 opacity-70" />
-                <span className="truncate">{item.label}</span>
-                {item.comingSoon && (
-                    <Badge variant="outline" className="ml-2">
-                        soon
-                    </Badge>
-                )}
-            </DropdownMenuItem>
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={currentParent?.id || "root"}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-1 pb-2"
+                >
+                    {items.map((item) => (
+                        <ActionCard
+                            key={item.id}
+                            item={item}
+                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenAddNodeModal(item.key)}
+                        />
+                    ))}
+                </motion.div>
+            </AnimatePresence>
         )
     }
 
-    // Divide items into two columns
-    const splitIntoColumns = (items: ActionItem[]) => {
-        const middleIndex = Math.ceil(items.length / 2);
-        const column1 = items.slice(0, middleIndex);
-        const column2 = items.slice(middleIndex);
-
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 min-w-[400px]">
-                <div className="space-y-1">
-                    {column1.map((item) => renderMenuItem(item))}
-                </div>
-                <div className="space-y-1 md:border-l md:pl-4">
-                    {column2.map((item) => renderMenuItem(item))}
-                </div>
-            </div>
-        );
-    };
-
     return (
         <>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button size={"icon"}>
-                        <PlusIcon />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-2" align="start">
-                    {splitIntoColumns(actionItems)}
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <Button asChild onClick={() => setOpenActionDialog(true)}>
+                {children}
+            </Button>
+
+            {/* Action Selection Dialog */}
+            <Dialog open={openActionDialog} onOpenChange={setOpenActionDialog}>
+                <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
+                    <DialogTitle className="flex items-center">
+                        {currentParent && (
+                            <Button variant="ghost" size="icon" className="mr-2" onClick={navigateBack}>
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                        )}
+                        {currentParent ? currentParent.label : "Select action"}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {currentParent
+                            ? `Select a ${currentParent.label} type to add`
+                            : "Choose an action to add to your investigation"}
+                    </DialogDescription>
+
+                    <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Node Creation Dialog */}
             <Dialog open={openAddNodeModal && currentNodeType} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
                     <DialogTitle>New {currentNodeType?.type}</DialogTitle>
@@ -196,5 +188,41 @@ export default function NewActions({ addNodes }: { addNodes: any }) {
                 </DialogContent>
             </Dialog>
         </>
+    )
+}
+
+interface ActionCardProps {
+    item: ActionItem
+    onSelect: () => void
+}
+
+function ActionCard({ item, onSelect }: ActionCardProps) {
+    const Icon = item.icon
+
+    return (
+        <Card
+            className={cn(
+                "cursor-pointer transition-all hover:scale-105 hover:shadow-md",
+                item.disabled && "opacity-50 cursor-not-allowed",
+                "h-full",
+            )}
+            onClick={item.disabled ? undefined : onSelect}
+        >
+            <CardContent className="p-4 relative flex flex-col items-center text-center h-full">
+                <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2"
+                    style={{ backgroundColor: `${item.color}20` }} // Light background based on item color
+                >
+                    <Icon style={{ color: item.color }} className="h-6 w-6 opacity-60" />
+                </div>
+                <div className="font-medium text-sm">{item.label}</div>
+                {item.comingSoon && (
+                    <Badge variant="outline" className="mt-2 absolute top-2 right-2">
+                        soon
+                    </Badge>
+                )}
+                {item.children && <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>}
+            </CardContent>
+        </Card>
     )
 }

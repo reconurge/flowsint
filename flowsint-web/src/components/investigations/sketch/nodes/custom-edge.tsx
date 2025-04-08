@@ -13,7 +13,7 @@ import { ButtonEdge } from "./button-edge"
 import { toast } from "sonner"
 
 const EditableEdge = memo((props: EdgeProps) => {
-    const { id, label } = props
+    const { id, label, data } = props
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [editValue, setEditValue] = useState((label as string) || "")
@@ -44,8 +44,12 @@ const EditableEdge = memo((props: EdgeProps) => {
                     .from("relationships")
                     .update({ relation_type: editValue })
                     .eq("id", id.toString())
-                if (error) {
-                    toast.error("An error occurred: " + error.message)
+                const { error: error2 } = await supabase
+                    .from("organizations_individuals")
+                    .update({ relation_type: editValue })
+                    .eq("id", id.toString())
+                if (error || error2) {
+                    toast.error("An error occurred: ")
                 } else {
                     toast.success("Relation updated.")
                 }
@@ -63,14 +67,11 @@ const EditableEdge = memo((props: EdgeProps) => {
         setEditValue(e.target.value)
     }, [])
 
-    // Mémorisation des props pour ButtonEdge pour éviter les re-rendus inutiles
     const buttonEdgeProps = useMemo(() => {
-        // Filtrer les props que nous voulons passer à ButtonEdge
         const { label: _, ...restProps } = props;
         return restProps;
     }, [props.sourceX, props.sourceY, props.targetX, props.targetY, props.style, props.markerEnd]);
 
-    // Mémorisation du contenu de formulaire pour éviter les re-rendus inutiles
     const formContent = useMemo(() => {
         if (isEditing) {
             return (

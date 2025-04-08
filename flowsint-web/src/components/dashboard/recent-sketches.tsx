@@ -40,56 +40,21 @@ const RecentSketches = () => {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <Card key={i} className="overflow-hidden shadow-none bg-transparent border-none">
-                        <Skeleton className="h-40 w-full bg-foreground/5" />
-                        <CardContent className="p-4">
-                            <Skeleton className="h-4 w-3/4 mb-2 bg-foreground/5" />
-                            <Skeleton className="h-3 w-1/2 bg-foreground/5" />
-                        </CardContent>
+                    <Card key={i} className="overflow-hidden rounded-md shadow-none border-none p-0">
+                        <Skeleton className="h-32 w-full bg-foreground/10 p-4">
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="h-12 w-12 rounded-full bg-foreground/5" />
+                                <div className="p-4 grow">
+                                    <Skeleton className="h-4 w-3/4 mb-2 bg-foreground/5" />
+                                    <Skeleton className="h-3 w-1/2 bg-foreground/5" />
+                                </div>
+                            </div>
+                        </Skeleton>
                     </Card>
                 ))}
             </div>
         )
     }
-
-    // return (
-    //     <div className="space-y-4">
-    //         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
-    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-    //                     <h3 className="tracking-tight text-sm font-medium">Investigations Actives</h3>
-    //                     <FileSearch className="h-4 w-4 text-muted-foreground" />
-    //                 </div>
-    //                 <div className="text-2xl font-bold">24</div>
-    //                 <p className="text-xs text-muted-foreground">+2 depuis le mois dernier</p>
-    //             </div>
-    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
-    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-    //                     <h3 className="tracking-tight text-sm font-medium">Sujets Suivis</h3>
-    //                     <Users className="h-4 w-4 text-muted-foreground" />
-    //                 </div>
-    //                 <div className="text-2xl font-bold">145</div>
-    //                 <p className="text-xs text-muted-foreground">+12 depuis le mois dernier</p>
-    //             </div>
-    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
-    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-    //                     <h3 className="tracking-tight text-sm font-medium">Documents Collectés</h3>
-    //                     <FileText className="h-4 w-4 text-muted-foreground" />
-    //                 </div>
-    //                 <div className="text-2xl font-bold">532</div>
-    //                 <p className="text-xs text-muted-foreground">+86 depuis le mois dernier</p>
-    //             </div>
-    //             <div className="rounded-lg border bg-card text-card-foreground p-6">
-    //                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-    //                     <h3 className="tracking-tight text-sm font-medium">Alertes</h3>
-    //                     <FileSearch className="h-4 w-4 text-muted-foreground" />
-    //                 </div>
-    //                 <div className="text-2xl font-bold">9</div>
-    //                 <p className="text-xs text-muted-foreground">-2 depuis le mois dernier</p>
-    //             </div>
-    //         </div>
-    //     </div>
-    // )
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {investigations?.map((investigation: Investigation) => {
@@ -103,13 +68,13 @@ const RecentSketches = () => {
                                     </div>
                                     <div className="w-full truncate">
                                         <h3 className="font-medium w-full truncate text-ellispsis transition-colors">
-                                            {investigation?.project?.name}/{investigation.title}
+                                            {investigation?.project?.name}<span className="mx-1 opacity-40 text-sm">/</span>{investigation.title}
                                         </h3>
                                         <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-end">
-                                    <AvatarList users={[{ id: "1", name: "Jean" }, { id: "2", name: "Eliott" }, { id: "4", name: "Marc" }, { id: "2", name: "Frank" }]} size="sm" />
+                                    <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
                                 </div>
                             </CardContent>
                         </Card>

@@ -13,6 +13,7 @@ export interface Investigation {
     individuals?: any[]
     project?: Project
     project_id: string
+    members?: any[]
 }
 export interface Individual {
     id: string

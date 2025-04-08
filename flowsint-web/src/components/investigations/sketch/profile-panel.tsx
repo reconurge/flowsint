@@ -50,8 +50,8 @@ export default function ProfilePanel({ data, type }: { data: any, type: string }
                 <div className="flex items-center gap-2">
                     <Button
                         onClick={handleCheckEmail}
-                        disabled={type !== "email"}
-                        className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                        disabled={data?.type !== "email"}
+                        className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
                     >
                         <span className="flex items-center gap-2">
                             <Sparkles className={'h-4 w-4 transition-transform duration-300'} />

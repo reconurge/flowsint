@@ -5,7 +5,7 @@ import LargeInvestigationGraph from '@/components/investigations/sketch/large-da
 import IndividualModal from "@/components/investigations/individual-modal"
 import { notFound } from "next/navigation"
 import { useQueryState } from "nuqs"
-import { InvestigationtNavigation } from "@/components/investigations/investigation-navigation"
+import { supabase } from "@/lib/supabase/client"
 interface DashboardClientProps {
     projectId: string
     investigationId: string
@@ -24,6 +24,20 @@ export default function DashboardClient({ projectId, investigationId }: Dashboar
         },
         refetchOnWindowFocus: true,
     })
+    // supabase
+    //     .channel("investigation-channel")
+    //     .on(
+    //         "postgres_changes",
+    //         {
+    //             event: "*",
+    //             schema: "public",
+    //             table: "scans",
+    //         },
+    //         (_: any) => {
+    //             graphQuery.refetch()
+    //         }
+    //     )
+    //     .subscribe()
     return (
         <>
             {view === "flow-graph" ?

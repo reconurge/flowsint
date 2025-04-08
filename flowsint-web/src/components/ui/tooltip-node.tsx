@@ -18,16 +18,12 @@ const TooltipContext = createContext(false);
 
 export type TooltipNodeProps = Partial<NodeProps> & {
     children?: ReactNode;
-    className: string
+    className: string;
+    selected?: boolean;
 };
-
-/**
- * A component that wraps a node and provides tooltip visibility context.
- */
 export const TooltipNode = forwardRef<HTMLDivElement, TooltipNodeProps>(
     ({ selected, children, className }, ref) => {
         const [isTooltipVisible, setTooltipVisible] = useState(false);
-
         const showTooltip = useCallback(() => setTooltipVisible(true), []);
         const hideTooltip = useCallback(() => setTooltipVisible(false), []);
 
@@ -59,14 +55,14 @@ export type TooltipContentProps = NodeToolbarProps;
 /**
  * A component that displays the tooltip content based on visibility context.
  */
-export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>(
-    ({ position, children }, ref) => {
+export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps & { selected: boolean }>(
+    ({ position, children, selected }, ref) => {
         const isTooltipVisible = useContext(TooltipContext);
 
         return (
             <div ref={ref}>
                 <NodeToolbar
-                    isVisible={isTooltipVisible}
+                    isVisible={isTooltipVisible || selected}
                     className="rounded-sm bg-background p-2 shadow-md"
                     tabIndex={1}
                     position={position}

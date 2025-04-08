@@ -17,7 +17,6 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { useProjectStore } from "@/store/project-store"

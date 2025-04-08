@@ -109,16 +109,6 @@ const DashboardPage = () => {
                     <RecentSketches />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
-                    {/* <div className="relative w-full max-w-md">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Search projects..."
-                            className="pl-8 w-full bg-background"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div> */}
                     <div className="flex items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -188,7 +178,7 @@ const DashboardPage = () => {
                                                 {formatDistanceToNow(new Date(project.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={[{ id: "1", name: "Jean" }, { id: "2", name: "Eliott" }, { id: "4", name: "Marc" }, { id: "2", name: "Frank" }]} size="sm" />
+                                                <AvatarList users={project?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
                                                 {format(new Date(project.created_at), "dd.MM.yyyy")}

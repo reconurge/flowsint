@@ -29,23 +29,23 @@ const SocialNode = ({ node, setCurrentNode }: NodeProps) => {
                 {platformIcon}
             </Badge>
             <div className='grow truncate text-ellipsis'>{node?.data?.username || <span className='italic opacity-60'>Unknwon</span>}</div>
-            <TypeBadge type={node?.type as string}></TypeBadge>
+            <TypeBadge type={node?.data?.type as string}></TypeBadge>
         </Button>
     )
 }
 export function NodeRenderer({ node, setCurrentNode }: NodeProps) {
-    const item = useMemo(() => (actionItems as any).find((a: any) => a.type === node.type), [node?.type])
+    const item = useMemo(() => (actionItems as any).find((a: any) => a.type === node.data?.type), [node?.type])
     const Icon = item?.icon || QuestionMarkIcon
     return (
         <>
-            {node.type === "social" ?
+            {node.data?.type === "social" ?
                 <SocialNode setCurrentNode={setCurrentNode} node={node} /> :
                 <Button variant={"ghost"} className='flex items-center justify-start p-4 !py-5 rounded-none text-left border-b' onClick={() => setCurrentNode(node)}>
                     <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
                         <Icon className="h-4 w-4 opacity-60" />
                     </Badge>
                     <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
-                    <TypeBadge type={node?.type}></TypeBadge>
+                    <TypeBadge type={node?.data?.type}></TypeBadge>
                 </Button>
             }
         </>

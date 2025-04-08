@@ -261,7 +261,6 @@ export const formatFileSize = (bytes: number) => {
 }
 
 export const nodesTypes = {
-  // Types existants
   emails: { table: "emails", type: "email", fields: ["email"] },
   individuals: { table: "individuals", type: "individual", fields: ["full_name"] },
   phone_numbers: { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
@@ -312,8 +311,6 @@ export const nodesTypes = {
     type: "vehicle",
     fields: ["plate", "model", "year", "brand", "type:boat"],
   },
-
-  // Nouveaux réseaux sociaux
   social_accounts_linkedin: {
     table: "social_accounts",
     type: "social",
@@ -339,36 +336,31 @@ export const nodesTypes = {
     type: "social",
     fields: ["profile_url", "username", "platform:discord"],
   },
-
-  // Nouveaux types de véhicules
+  social_accounts_twitch: {
+    table: "social_accounts",
+    type: "social",
+    fields: ["profile_url", "username", "platform:twitch"],
+  },
   vehicles_aircraft: {
     table: "vehicles",
     type: "vehicle",
     fields: ["registration", "model", "year", "manufacturer", "type:aircraft"],
   },
-
-  // Organisation
   organizations: {
     table: "organizations",
     type: "organization",
     fields: ["name", "registration_number", "founding_date"],
   },
-
-  // Site web
   websites: {
     table: "websites",
     type: "website",
     fields: ["url", "registration_date", "registrar", "ip_address"],
   },
-
-  // Document
   documents: {
     table: "documents",
     type: "document",
     fields: ["title", "author", "creation_date", "file_hash", "file_type"],
   },
-
-  // Finances
   crypto_wallets: {
     table: "crypto_wallets",
     type: "financial",
@@ -384,15 +376,11 @@ export const nodesTypes = {
     type: "financial",
     fields: ["amount", "date", "sender", "recipient", "currency"],
   },
-
-  // Événements
   events: {
     table: "events",
     type: "event",
     fields: ["name", "date", "location", "description", "participants"],
   },
-
-  // Appareils
   devices_phone: {
     table: "devices",
     type: "device",
@@ -413,22 +401,16 @@ export const nodesTypes = {
     type: "device",
     fields: ["mac_address", "model", "manufacturer", "serial_number", "type:iot"],
   },
-
-  // Médias
   media: {
     table: "media",
     type: "media",
     fields: ["filename", "hash", "creation_date", "location", "exif_data"],
   },
-
-  // Éducation
   education: {
     table: "education",
     type: "education",
     fields: ["institution", "degree", "field", "start_date", "end_date"],
   },
-
-  // Activités en ligne
   forum_posts: {
     table: "forum_posts",
     type: "online_activity",
@@ -444,22 +426,16 @@ export const nodesTypes = {
     type: "online_activity",
     fields: ["platform", "username", "purchase_date", "item", "price", "type:purchase"],
   },
-
-  // Empreinte numérique
   digital_footprints: {
     table: "digital_footprints",
     type: "digital_footprint",
     fields: ["platform", "username", "date_discovered", "data_type", "source_url"],
   },
-
-  // Données biométriques
   biometric_data: {
     table: "biometric_data",
     type: "biometric",
     fields: ["type", "identifier", "date_collected", "source"],
   },
-
-  // Identifiants
   credentials: {
     table: "credentials",
     type: "credential",
@@ -468,13 +444,13 @@ export const nodesTypes = {
 }
 
 export const typeColorMap: Record<string, string> = {
-  individual: "rounded-full bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:shadow-slate-900/30",
+  individual: "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:shadow-slate-900/30",
   phone: "bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 shadow dark:from-sky-800 dark:to-sky-900 dark:border-sky-700 dark:shadow-sky-900/30",
-  address: "bg-amber-100 text-amber-800 hover:bg-amber-100/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40",
+  address: "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm dark:from-amber-950 dark:to-amber-900 dark:border-amber-800 dark:shadow-amber-900/30",
   email: "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-800 dark:shadow-emerald-900/30",
   ip: "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 shadow dark:from-pink-800 dark:to-pink-900 dark:border-pink-700 dark:shadow-pink-900/30",
   social: "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm dark:from-purple-950 dark:to-purple-900 dark:border-purple-800 dark:shadow-purple-900/30",
-  organization: "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 shadow-sm dark:from-orange-950 dark:to-orange-900 dark:border-orange-800 dark:shadow-orange-900/30",
+  organization: "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow dark:from-blue-800 dark:to-blue-900 dark:border-blue-700 dark:shadow-blue-900/30",
   vehicle: "bg-orange-100 text-orange-800 hover:bg-orange-100/80 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/40",
   website: "bg-purple-100 text-purple-800 hover:bg-purple-100/80 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40",
   document: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/40",

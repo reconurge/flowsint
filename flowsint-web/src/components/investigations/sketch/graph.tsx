@@ -14,12 +14,6 @@ import {
     type NodeMouseHandler,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import IndividualNode from "./nodes/person"
-import PhoneNode from "./nodes/phone"
-import IpNode from "./nodes/ip_address"
-import EmailNode from "./nodes/email"
-import SocialNode from "./nodes/social"
-import AddressNode from "./nodes/physical_address"
 import {
     MaximizeIcon,
     ZoomInIcon,
@@ -49,9 +43,7 @@ import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
-import GroupNode from "./nodes/group"
 import CustomEdge from "./nodes/custom-edge"
-import { BaseNode } from "@/components/ui/base-node"
 import {
     ResizableHandle,
     ResizablePanel,
@@ -59,21 +51,21 @@ import {
 } from "@/components/ui/resizable"
 import NodesPanel from "./nodes-panel"
 import ProfilePanel from "./profile-panel"
-import Vehicle from "./nodes/vehicle"
+import CustomNode from "./nodes/custom-node"
 
 const edgeTypes = {
     custom: CustomEdge,
 }
 const nodeTypes = {
-    individual: IndividualNode,
-    phone: PhoneNode,
-    ip: IpNode,
-    email: EmailNode,
-    social: SocialNode,
-    address: AddressNode,
-    group: GroupNode,
-    default: BaseNode,
-    vehicle: Vehicle
+    // individual: IndividualNode,
+    // phone: PhoneNode,
+    // ip: IpNode,
+    // email: EmailNode,
+    // social: SocialNode,
+    // address: AddressNode,
+    // group: GroupNode,
+    custom: CustomNode,
+    // vehicle: Vehicle
 }
 const nodeEdgeSelector = (store: { nodes: any; edges: any }) => ({
     nodes: store.nodes,
@@ -125,11 +117,15 @@ const FlowControls = memo(
         return (
             <>
                 <Panel position="top-left" className="flex flex-col items-center gap-1">
-                    <NewActions addNodes={addNodes} />
+                    <NewActions addNodes={addNodes}>
+                        <Button size="icon">
+                            <PlusIcon />
+                        </Button>
+                    </NewActions>
                     <Button size="icon" disabled={reloading} variant="outline" onClick={handleRefetch}>
                         <RotateCwIcon className={cn("h-4 w-4", reloading && "animate-spin")} />
                     </Button>
-                </Panel>
+                </Panel >
                 <Panel position="bottom-left" className="flex flex-col items-center gap-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -233,7 +229,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     } = useFlowStore(stateSelector, shallow)
     const initialLayout = useCallback(() => {
         const timer = setTimeout(() => {
-            onLayout("force", fitView)
+            onLayout("dagre", fitView)
             fitView()
         }, 500)
         return () => clearTimeout(timer)
@@ -243,7 +239,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
     }, [initialLayout])
     const handleRefetch = useCallback(() => {
         refetch()
-        onLayout("force", fitView)
+        onLayout("dagre", fitView)
         fitView()
     }, [refetch, onLayout, fitView])
     useEffect(() => {
@@ -302,12 +298,12 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
         onNodeClick,
         onPaneClick: handlePaneClick,
         onNodeContextMenu: handleNodeContextMenu,
-        minZoom: 0.7,
+        minZoom: 0.5,
         fitView: true,
         proOptions: { hideAttribution: true },
         edgeTypes,
         nodeTypes,
-        className: "!bg-accent"
+        className: "!bg-accent dark:!bg-background"
     }), [
         theme,
         nodes,
@@ -340,7 +336,7 @@ const LayoutFlow = ({ refetch, theme }: LayoutFlowProps) => {
                                         addNodes={addNodes}
                                         currentNode={currentNode}
                                     />
-                                    <Background />
+                                    <Background className="dark:bg-background bg-accent" />
                                     {settings.showMiniMap && <MiniMap className="!z-40" pannable />}
                                 </ReactFlow>
                             </ContextMenuTrigger>

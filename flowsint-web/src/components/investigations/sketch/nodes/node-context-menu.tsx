@@ -43,13 +43,14 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
     const [error, setError] = useState<null | string>(null)
     const [openNote, setOpenNote] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
+    const [nodeToInsert, setNodeToInsert] = useState<any | null>(null)
     const { confirm } = useConfirm()
     const [_, setIndividualId] = useQueryState("individual_id")
 
-    const handleCheckEmail = useCallback(() => {
+    const handleCheckEmail = useCallback(async () => {
         // @ts-ignore
-        if (!currentNode && currentNode?.data && !currentNode?.data?.email) return
+        if (!currentNode && currentNode?.data && !currentNode?.data?.email) return toast.error("No email found.")
+        if (!await confirm({ title: "Email scan", message: "This scan will look for some socials that the email might be associated with. The list is not exhaustive and might return false positives." })) return
         // @ts-ignore
         toast.promise(checkEmail(currentNode?.data?.email, investigation_id), {
             loading: "Loading...",
@@ -86,7 +87,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 if (insertError) toast.error(insertError.details)
                 addNodes({
                     id: node.id,
-                    type: "individual",
+                    type: "custom",
                     data: node,
                     position: { x: 0, y: -100 },
                 })
@@ -94,19 +95,23 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
     }
 
     const _handleDeleteNode = async (type: string) => {
-        if (!currentNode) return
-        if (await confirm({ title: "Node deletion", message: "Are you sure you want to delete this node?" })) {
-            await supabase
-                .from("individuals")
-                .delete()
-                .eq("id", currentNode.id)
-                .then(({ error }) => {
-                    if (error) toast.error(error.details)
-                })
-            setNodes((nodes: any[]) => nodes.filter((node: { id: any }) => node.id !== currentNode?.id?.toString()))
-            setEdges((edges: any[]) => edges.filter((edge: { source: any }) => edge.source !== currentNode?.id?.toString()))
-            onClose()
-            toast.success("Node deleted.")
+        try {
+            if (!currentNode) return
+            if (await confirm({ title: "Node deletion", message: "Are you sure you want to delete this node?" })) {
+                await supabase
+                    .from(`${currentNode?.data?.type}s`)
+                    .delete()
+                    .eq("id", currentNode.id)
+                    .then(({ error }) => {
+                        if (error) toast.error(error.details)
+                    })
+                setNodes((nodes: any[]) => nodes.filter((node: { id: any }) => node.id !== currentNode?.id?.toString()))
+                setEdges((edges: any[]) => edges.filter((edge: { source: any }) => edge.source !== currentNode?.id?.toString()))
+                onClose()
+            }
+        }
+        catch (e) {
+            toast.error("An error occured.")
         }
     }
 
@@ -119,7 +124,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
             toast.error("Invalid node type.")
             return
         }
-        setCurrentNodeType(nodesTypes[key as keyof typeof nodesTypes])
+        setNodeToInsert(nodesTypes[key as keyof typeof nodesTypes])
         setError(null)
         setOpenNodeModal(true)
     }
@@ -141,30 +146,52 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 setLoading(false)
                 return
             }
-            const dataToInsert = { ...data, investigation_id }
-            if (currentNodeType.table !== "individuals") {
-                dataToInsert["individual_id"] = currentNode.id
+            const dataToInsert = { ...data, investigation_id: investigation_id }
+            if (!["individual", "organization"].includes(nodeToInsert.type)) {
+                const tp = currentNode?.data?.type === "individual" ? "individual_id" : "organization_id"
+                dataToInsert[tp] = currentNode.id
             }
             const { data: nodeData, error: insertError } = await supabase
-                .from(currentNodeType.table)
+                .from(nodeToInsert.table)
                 .insert(dataToInsert)
                 .select("*")
                 .single()
-            if (insertError) {
-                toast.error("An error occured during the creation." + insertError.message)
+            if (insertError || !nodeData) {
+                toast.error("An error occured during the creation." + JSON.stringify(insertError))
                 setLoading(false)
                 return
             }
-            if (!nodeData) {
-                toast.error("An error occured during the creation.")
-                setLoading(false)
-                return
-            }
-            if (currentNodeType.table === "individuals") {
+            // add individual to individual
+            if (nodeToInsert.type === "individual" && currentNode?.data?.type === "individual") {
                 const { error: relationshipError } = await supabase.from("relationships").upsert({
                     individual_a: currentNode.id,
                     individual_b: nodeData.id,
+                    investigation_id: investigation_id,
                     relation_type: "relation",
+                })
+                if (relationshipError) {
+                    toast.error("Error creating new relation.")
+                }
+            }
+            // add organization to individual
+            else if ((nodeToInsert.type === "individual" && currentNode?.data?.type === "organization")) {
+                const { error: relationshipError } = await supabase.from("organizations_individuals").upsert({
+                    individual_id: nodeData.id,
+                    organization_id: currentNode.id,
+                    investigation_id: investigation_id,
+                    relation_type: "employee",
+                })
+                if (relationshipError) {
+                    toast.error("Error creating new relation.")
+                }
+            }
+            // add individual to organization
+            else if ((nodeToInsert.type === "organization" && currentNode?.data?.type === "individual")) {
+                const { error: relationshipError } = await supabase.from("organizations_individuals").upsert({
+                    individual_id: currentNode.id,
+                    organization_id: nodeData.id,
+                    investigation_id: investigation_id,
+                    relation_type: "employee",
                 })
                 if (relationshipError) {
                     toast.error("Error creating new relation.")
@@ -172,8 +199,8 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
             }
             const newNode = {
                 id: nodeData.id,
-                type: currentNodeType.type,
-                data: { ...nodeData, label: data[currentNodeType.fields[0]] },
+                type: "custom",
+                data: { ...nodeData, label: data[nodeToInsert.fields[0]], type: nodeToInsert.type },
                 position: { x: 0, y: 0 },
             }
             addNodes(newNode)
@@ -182,8 +209,8 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     source: currentNode.id as string,
                     target: nodeData.id,
                     type: "custom",
-                    id: `${currentNode.id}-${nodeData.id}`.toString(),
-                    label: currentNodeType.type === "individual" ? "relation" : currentNodeType.type,
+                    id: `${currentNode.id} - ${nodeData.id}`.toString(),
+                    label: nodeToInsert.type === "individual" ? "relation" : nodeToInsert.type,
                 }
                 addEdges(newEdge)
             }
@@ -193,6 +220,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 setCurrentNode(nodeData)
                 setLoading(false)
             }, 0)
+            toast.success(`New ${nodeToInsert.type || "node"} created.`)
         } catch (error) {
             toast.error("An unexpected error occurred.")
             setLoading(false)
@@ -256,9 +284,9 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     style={{ top: y, left: x }}
                 >
                     {Boolean(currentNode?.data?.email) && (
-                        <DropdownMenuItem onClick={handleCheckEmail}>Search {currentNodeType}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleCheckEmail}>Search {nodeToInsert}</DropdownMenuItem>
                     )}
-                    {currentNode?.type === "individual" && (
+                    {["individual", "organization"].includes(currentNode?.data?.type as string) && (
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>
                             <DropdownMenuSubContent className="grid grid-cols-1 md:grid-cols-2 gap-2">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
@@ -277,18 +305,18 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <Dialog open={openAddNodeModal && currentNodeType} onOpenChange={setOpenNodeModal}>
+            <Dialog open={openAddNodeModal && nodeToInsert} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
-                    <DialogTitle>New {currentNodeType?.type}</DialogTitle>
-                    <DialogDescription>Add a new related {currentNodeType?.type}.</DialogDescription>
+                    <DialogTitle>New {nodeToInsert?.type}</DialogTitle>
+                    <DialogDescription>Add a new related {nodeToInsert?.type}.</DialogDescription>
                     <form onSubmit={onSubmitNewNodeModal}>
                         <div className="flex flex-col gap-3">
-                            {currentNodeType?.fields.map((field: any, i: number) => {
+                            {nodeToInsert?.fields.map((field: any, i: number) => {
                                 const [key, value] = field.split(":")
                                 return (
                                     <label key={i}>
                                         <p className="my-2">{key}</p>
-                                        <Input defaultValue={value || ""} name={key} placeholder={`Your value here (${key})`} />
+                                        <Input defaultValue={value || ""} name={key} placeholder={`Your value here(${key})`} />
                                     </label>
                                 )
                             })}

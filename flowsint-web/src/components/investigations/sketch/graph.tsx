@@ -8,10 +8,8 @@ import {
     useReactFlow,
     // @ts-ignore
     Background,
-    type ColorMode,
     // @ts-ignore
     MiniMap,
-    type NodeMouseHandler,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import {
@@ -24,6 +22,7 @@ import {
     WorkflowIcon,
     NetworkIcon,
     WaypointsIcon,
+    ExpandIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import NewActions from "../new-actions"
@@ -37,7 +36,7 @@ import { useFlowStore } from "@/store/flow-store"
 import Loader from "@/components/loader"
 import { useQueryState } from "nuqs"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import AddNodeModal from "../add-node-modal"
+import PanelContextMenu from "../panel-context-menu"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -52,6 +51,7 @@ import NodesPanel from "./nodes-panel"
 import ProfilePanel from "./profile-panel"
 import CustomNode from "./nodes/custom-node"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
+import FullscreenButton from "@/components/full-screen-button"
 
 // Move these outside of component scope
 const edgeTypes = {
@@ -99,6 +99,9 @@ const FlowControls = memo(({
 }: any) => {
     return (
         <>
+            <Panel position="top-right" className="flex flex-col items-center gap-1">
+                <FullscreenButton />
+            </Panel>
             <Panel position="top-left" className="flex flex-col items-center gap-1">
                 <NewActions addNodes={addNodes}>
                     <Button className="bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300" size="icon">
@@ -351,7 +354,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                                 </ContextMenuItem>
                             </ContextMenuContent>
                         </ContextMenu>
-                        <AddNodeModal addNodes={addNodes} />
+                        <PanelContextMenu addNodes={addNodes} />
                     </Dialog>
                     <NodeContextMenu
                         x={nodeContextMenu?.x}

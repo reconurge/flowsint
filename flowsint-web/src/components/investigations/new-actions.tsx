@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { AlertCircle, ArrowLeft, PlusIcon } from "lucide-react"
+import { AlertCircle, ArrowLeft, ArrowRight, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { cn, nodesTypes } from "@/lib/utils"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
@@ -213,14 +213,15 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                     className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2"
                     style={{ backgroundColor: `${item.color}20` }} // Light background based on item color
                 >
-                    <Icon style={{ color: item.color }} className="h-6 w-6 opacity-60" />
+                    <Icon style={{ color: item.color }} className="h-6 w-6 opacity-60 text-primary" />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
                 {item.comingSoon && (
-                    <Badge variant="outline" className="mt-2 absolute top-2 right-2">
+                    <Badge variant="outline" className="mt-2 absolute top-2 left-2">
                         soon
                     </Badge>
                 )}
+                {item.children && <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1"><ArrowRight className="h-4 w-4"/></div>}
                 {item.children && <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>}
             </CardContent>
         </Card>

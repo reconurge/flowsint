@@ -29,12 +29,12 @@ export const ButtonEdge = memo(({
     });
 
     const showContent = useStore(zoomSelector);
-    const { settings } = useInvestigationStore(state => state)
+    const showNodeLabel = useInvestigationStore(state => state.settings.showNodeLabel);
     return (
         <>
             <BaseEdge className="opacity-30" path={edgePath} markerEnd={markerEnd} style={style} />
             <EdgeLabelRenderer>
-                {settings.showEdgeLabel && showContent &&
+                {showNodeLabel && showContent &&
                     <div
                         className="nodrag nopan pointer-events-auto absolute"
                         style={{

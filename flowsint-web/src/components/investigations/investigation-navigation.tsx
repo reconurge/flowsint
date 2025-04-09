@@ -8,6 +8,7 @@ import { Fragment, memo, useMemo } from "react"
 import MoreMenu from "./more-menu"
 import { ScanButton } from "./scans-drawer/scan-button"
 import { Badge } from "../ui/badge"
+import { DownloadButton } from "../download-button"
 
 function InvestigationNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
     const pathname = usePathname()
@@ -69,6 +70,7 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
                 ))}
             </div>
             <div className="flex items-center">
+                <DownloadButton endpoint={`/api/projects/${project_id}/investigations/${investigation_id}/table`} name={project_id} />
                 <MoreMenu />
                 <ScanButton />
             </div>

@@ -153,7 +153,7 @@ const columns: ColumnDef<any>[] = [
     },
     {
         accessorKey: "full_name",
-        header: "Full Name",
+        header: "Label",
         cell: ({ row }: any) => {
             return (
                 <TableCellViewer item={row.original.data}>

@@ -4,11 +4,12 @@ import { useFlowStore } from '@/store/flow-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
-import { Search, HelpCircle } from "lucide-react"
+import { Search, HelpCircle, FilterIcon, XIcon } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
 import { cn } from '@/lib/utils'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 // Mémoiser le composant SocialNode
 const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
@@ -93,21 +94,42 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
     const setCurrentNode = useFlowStore(state => state.setCurrentNode)
     const currentNodeId = useFlowStore(state => state.currentNode?.id)
     const [searchQuery, setSearchQuery] = useState("")
+    const [filters, setFilters] = useState<null | string[]>(null) // 'individual', 'email', etc.
 
-    // Mémoiser la fonction de filtrage pour éviter de recalculer à chaque rendu
     const filteredNodes = useMemo(() => {
         const searchText = searchQuery.toLowerCase()
         return nodes?.filter((node) => {
-            return (
+            const matchesSearch =
                 //@ts-ignore
                 node?.data?.label?.toLowerCase().includes(searchText) ||
                 node.id.toLowerCase().includes(searchText)
-            )
+
+            const matchesFilter = !filters || filters.includes(node?.data?.type as string)
+
+            return matchesSearch && matchesFilter
         })
-    }, [nodes, searchQuery])
+    }, [nodes, searchQuery, filters])
+
+    const toggleFilter = useCallback((filter: string | null) => {
+        if (filter === null) {
+            setFilters(null)
+        } else {
+            setFilters(prev => {
+                if (prev === null) return [filter]
+                const next = prev.includes(filter)
+                    ? prev.filter(f => f !== filter)
+                    : [...prev, filter]
+                return next.length === 0 ? null : next
+            })
+        }
+    }, [])
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value)
+    }, [])
+
+    const clearFilters = useCallback(() => {
+        setFilters(null)
     }, [])
 
     return (
@@ -126,6 +148,22 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
                             onChange={handleSearchChange}
                         />
                     </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant={"outline"} className="h-7 w-8 relative" size={"icon"}>
+                                <FilterIcon className={cn("opacity-60 h-3 w-3", filters && 'opacity-100')} />
+                                {filters && <Badge className='absolute -top-2 -right-1 text-xs rounded-full h-4 w-4' variant={"default"}>{filters.length}</Badge>}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-48 max-h-[50vh] space-y-1 overflow-y-auto">
+                            <DropdownMenuLabel>{filters ? <Badge variant={"outline"} className='flex items-center gap-1 pr-1'>{filters?.length} filter(s)<Button size={"icon"} variant={"ghost"} className='h-5 w-5 rounded-full' onClick={clearFilters}><XIcon className='h-3 w-3' /></Button></Badge> : "filters"}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>All</DropdownMenuItem>
+                            {actionItems.map((item) => (
+                                <DropdownMenuItem className={cn(filters?.includes(item.type) && "bg-primary/30")} key={item.id} onClick={() => toggleFilter(item.type)}>{item.type}</DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             {filteredNodes?.length === 0 && searchQuery === "" && (

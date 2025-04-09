@@ -16,7 +16,7 @@ export default function DashboardClient({ projectId, investigationId }: Dashboar
     const graphQuery = useQuery({
         queryKey: ["investigation", investigationId, "data"],
         queryFn: async () => {
-            const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/data`)
+            const res = await fetch(`/api/projects/${projectId}/investigations/${investigationId}/sketch`)
             if (!res.ok) {
                 notFound()
             }

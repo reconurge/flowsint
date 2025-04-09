@@ -15,8 +15,9 @@ export const createNewProject = async (formData: FormData) => {
     try {
         const { data: project, error } = await supabase.from("projects").insert({ ...data, owner_id: session?.user?.id }).select("id").single()
         if (error) throw error
-        revalidatePath("/")
-        return { success: true, id: project.id }
+        const { data: folder, error: bucketError } = await supabase.storage.from('documents').upload(`${project.id}/placeholder`, '')
+        if (bucketError) throw bucketError
+        return { success: true, id: project.id, path: folder.path }
     } catch (error) {
         console.error("Error creating new project:", error)
         return { success: false, error: "Failed to create new project." }

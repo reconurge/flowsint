@@ -43,6 +43,7 @@ import {
     ChevronsRightIcon,
     ColumnsIcon,
     GripVerticalIcon,
+    HelpCircle,
     MoreVerticalIcon,
     PlusIcon,
     RotateCwIcon,
@@ -96,6 +97,8 @@ import { TypeBadge } from "@/components/type-badge"
 import { DialogTitle } from "@radix-ui/react-dialog"
 import { MemoizedKeyValueDisplay } from "@/components/investigations/sketch/profile-panel"
 import { Card } from "@/components/ui/card"
+import { actionItems } from "@/lib/action-items"
+import { usePlatformIcons } from "@/lib/hooks/use-platform-icons"
 
 function DragHandle({ id }: { id: number }) {
     const { attributes, listeners } = useSortable({
@@ -120,7 +123,7 @@ const columns: ColumnDef<any>[] = [
     {
         id: "drag",
         header: () => null,
-        cell: ({ row }: any) => <DragHandle id={row.original.id} />,
+        cell: ({ row }: any) => <DragHandle id={row.original.data.id} />,
     },
     {
         id: "select",
@@ -153,14 +156,9 @@ const columns: ColumnDef<any>[] = [
         header: "Full Name",
         cell: ({ row }: any) => {
             return (
-                <TableCellViewer item={row.original}>
+                <TableCellViewer item={row.original.data}>
                     <div className="flex items-center gap-2">
-                        <Avatar className="h-7 w-7">
-                            <AvatarImage src={row.original.image_url} alt={row.original.full_name} />
-                            <AvatarFallback>
-                                <UserIcon className="h-4 w-4 opacity-60" />
-                            </AvatarFallback>
-                        </Avatar>{row.original.full_name}
+                        {row.original.data.label}
                     </div>
                 </TableCellViewer>)
         },
@@ -170,7 +168,7 @@ const columns: ColumnDef<any>[] = [
         accessorKey: "type",
         header: "Type",
         cell: ({ row }: any) => {
-            return <TypeBadge type={"individual"} />
+            return <TypeBadge type={row?.original?.data?.type} />
         },
         enableHiding: false,
     },
@@ -179,7 +177,7 @@ const columns: ColumnDef<any>[] = [
         header: "Email(s)",
         cell: ({ row }: any) => {
             return <Badge variant="outline" className="px-1.5 text-muted-foreground flex items-center gap-2 max-w-[290px]">
-                <span className="truncate text-ellipsis">{row.original?.emails?.map(({ email }: any) => email).join(", ") || <span className="italic opacity-60">No email yet.</span>}</span>
+                <span className="truncate text-ellipsis">{row.original.data?.emails?.map(({ email }: any) => email).join(", ") || <span className="italic opacity-60">No email yet.</span>}</span>
             </Badge>
         },
         enableHiding: false,
@@ -189,7 +187,7 @@ const columns: ColumnDef<any>[] = [
         header: "Phone(s)",
         cell: ({ row }: any) => {
             return <Badge variant="outline" className="px-1.5 text-muted-foreground flex items-center gap-2 max-w-[290px]">
-                <span className="truncate text-ellipsis">{row.original?.phone_numbers?.map(({ phone_number }: any) => phone_number).join(", ") || <span className="italic opacity-60">No phone number yet.</span>}</span>
+                <span className="truncate text-ellipsis">{row.original.data?.phone_numbers?.map(({ phone_number }: any) => phone_number).join(", ") || <span className="italic opacity-60">No phone number yet.</span>}</span>
             </Badge>
         },
         enableHiding: false,
@@ -200,7 +198,7 @@ const columns: ColumnDef<any>[] = [
         cell: ({ row }: any) => (
             <div>
                 <Badge variant="outline" className="px-1.5 text-muted-foreground">
-                    {formatDistanceToNow(row.original.created_at, { addSuffix: true }) || "N/A"}
+                    {formatDistanceToNow(row.original.data.created_at, { addSuffix: true }) || "N/A"}
                 </Badge>
             </div>
         ),
@@ -211,7 +209,7 @@ const columns: ColumnDef<any>[] = [
         cell: ({ row }: any) => (
             <div>
                 <Badge variant="outline" className="px-1.5 text-muted-foreground">
-                    {row.original.nationality || "N/A"}
+                    {row.original.data.nationality || "N/A"}
                 </Badge>
             </div>
         ),
@@ -224,7 +222,7 @@ const columns: ColumnDef<any>[] = [
                 variant="outline"
                 className="flex gap-1 px-1.5 text-muted-foreground [&_svg]:size-3"
             >
-                <span>{row.originalbirth_date || "N/A"}</span>
+                <span>{row.original.databirth_date || "N/A"}</span>
             </Badge>
         ),
     },
@@ -234,7 +232,7 @@ const columns: ColumnDef<any>[] = [
         cell: ({ row }: any) => (
             <div>
                 <Badge variant="outline" className="px-1.5 text-muted-foreground">
-                    {row.original.gender || "N/A"}
+                    {row.original.data.gender || "N/A"}
                 </Badge>
             </div>
         ),
@@ -267,7 +265,7 @@ const columns: ColumnDef<any>[] = [
 
 function DraggableRow({ row }: { row: Row<any> }) {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
-        id: row.original.id,
+        id: row.original.data.id,
     })
 
     return (
@@ -602,16 +600,28 @@ export function DataTable({
 }
 
 function TableCellViewer({ item, children }: { item: any, children: React.ReactNode }) {
+
+    const i = React.useMemo(() =>
+        (actionItems as any).find((a: any) => a.type === item?.type),
+        [item?.original?.data?.type]
+    )
+    const Icon = i?.icon || HelpCircle
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="link" className="w-fit px-0 text-left text-foreground">
-                    {children}
-                </Button>
+                {item.type === "social" ?
+
+                    <SocialButton item={item} /> :
+                    <Button variant="link" className="w-fit px-0 text-left text-foreground">
+                        <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+                            <Icon className="h-5 w-5" />
+                        </Badge>
+                        {children}
+                    </Button>}
             </SheetTrigger>
             <SheetContent side="right" className="flex flex-col">
                 <DialogTitle className="text-2xl p-4 font-bold">
-                    {item.full_name}
+                    {item.label}
                 </DialogTitle>
                 <MemoizedKeyValueDisplay data={item} />
                 <SheetFooter className="mt-auto flex gap-2 sm:flex-col sm:space-x-0">
@@ -623,5 +633,22 @@ function TableCellViewer({ item, children }: { item: any, children: React.ReactN
                 </SheetFooter>
             </SheetContent>
         </Sheet>
+    )
+}
+
+const SocialButton = ({ item }: { item: any }) => {
+    const platformsIcons = usePlatformIcons()
+    const platformIcon = React.useMemo(() => {
+        // @ts-ignore
+        return platformsIcons?.[item.platform]?.icon
+    }, [platformsIcons, item.platform])
+
+    return (
+        <Button variant="link" className="w-fit px-0 text-left text-foreground">
+            <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+                {platformIcon}
+            </Badge>
+            {item.label}
+        </Button>
     )
 }

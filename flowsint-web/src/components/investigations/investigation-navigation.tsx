@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Users, TimerIcon, MapIcon, WaypointsIcon } from 'lucide-react'
+import { Users, TimerIcon, MapIcon, WaypointsIcon, TablePropertiesIcon } from 'lucide-react'
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Fragment, memo, useMemo } from "react"
@@ -21,10 +21,10 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
             icon: WaypointsIcon
         },
         {
-            id: "individuals",
-            name: "Individuals",
-            href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/individuals`,
-            icon: Users,
+            id: "table",
+            name: "Table",
+            href: `/dashboard/projects/${project_id}/investigations/${investigation_id}/table`,
+            icon: TablePropertiesIcon,
         },
         {
             id: "map",
@@ -48,7 +48,7 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
                     <Fragment key={section.id}>
                         {section.disabled ?
                             <span
-                                className="text-muted-foreground opacity-40 text-sm px-4 py-2 flex items-center gap-2">
+                                className="text-muted-foreground border-b-2 border-transparent opacity-40 text-sm px-4 py-2 flex items-center gap-2">
                                 <section.icon className="h-4 w-4" />
                                 <span>{section.name}</span>
                                 <Badge variant={"outline"}>Soon</Badge>
@@ -56,9 +56,9 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
                             <Link
                                 href={section?.href || ""}
                                 className={cn(
-                                    "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
+                                    "flex items-center text-sm gap-2 border-b-2  border-transparent px-4 py-2 transition-colors",
                                     section?.href == pathname
-                                        ? "bg-accent text-accent-foreground"
+                                        ? "bg-accent text-accent-foreground border-b-primary"
                                         : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                                 )}
                             >

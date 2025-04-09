@@ -36,7 +36,7 @@ export default memo(({ data, selected }: any) => {
                 </div>
             </TooltipTrigger>
             {!showNodeLabel &&
-                <TooltipContent selected={active} position={Position.Top}>{data.label}</TooltipContent>
+                <TooltipContent selected={active} position={Position.Top}>{data.label}<CopyButton className="h-6 w-6" content={data.label} /></TooltipContent>
             }
             <Handle
                 type="target"

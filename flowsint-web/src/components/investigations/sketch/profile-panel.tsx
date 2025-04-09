@@ -86,10 +86,11 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
                 .filter(([key]) => !["id", "individual_id", "investigation_id", "group_id", "forceToolbarVisible"].includes(key))
                 .map(([key, value], index) => {
                     const val = Array.isArray(value) ? `${value.length} items` : value?.toString() || null
+                    const display = (typeof val === "string" && val.startsWith("https://")) ? <a href={val} className="underline text-primary" target="_blank">{val}</a> : val
                     return (
                         <div key={index} className="flex w-full items-center border-b border-border divide-x divide-border">
                             <div className="w-1/2 bg-background px-4 p-2 text-sm text-muted-foreground font-normal">{key}</div>
-                            <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium flex items-center justify-between"><div className="truncate font-semibold">{val || <span className="italic text-muted-foreground">N/A</span>}</div> <div>{val && <CopyButton className="h-6 w-6" content={val} />}</div></div>
+                            <div className="w-1/2 bg-background px-4 p-2 text-sm font-medium flex items-center justify-between"><div className="truncate font-semibold">{display || <span className="italic text-muted-foreground">N/A</span>}</div> <div>{display && <CopyButton className="h-6 w-6" content={val} />}</div></div>
                         </div>
                     )
                 })}

@@ -226,25 +226,21 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
     // Handle current node changes
     useEffect(() => {
         if (!currentNode) return;
-
         const internalNode = getNode(currentNode.id);
         if (!internalNode) return;
-
         updateNode(internalNode.id, {
             ...internalNode,
             zIndex: 5000,
             data: { ...internalNode.data, forceToolbarVisible: true },
             style: { ...internalNode.style, opacity: 1 },
         });
-
         const nodeWidth = internalNode.measured?.width ?? 0;
         const nodeHeight = internalNode.measured?.height ?? 0;
-
         setCenter(
             internalNode.position.x + nodeWidth / 2,
             internalNode.position.y + nodeHeight / 2 + 20,
             {
-                duration: 1000,
+                duration: 500,
                 zoom: 1.5,
             }
         );
@@ -364,7 +360,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                 </TooltipProvider>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={15} className="h-full bg-background">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="h-full bg-background">
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
                     {currentNode && (
                         <>

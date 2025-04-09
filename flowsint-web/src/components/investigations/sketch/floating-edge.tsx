@@ -36,7 +36,7 @@ function FloatingEdge({
     // Mémorisation du calcul du chemin et des coordonnées du label
     const pathData = useMemo(() => {
         const { sx, sy, tx, ty } = edgeParameters
-        return getBezierPath({
+        return getStraightPath({
             sourceX: sx,
             sourceY: sy,
             targetX: tx,

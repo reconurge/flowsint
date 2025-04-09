@@ -47,7 +47,7 @@ export default function NewCase({ children, noDropDown = false }: { children: Re
             router.push(`/dashboard/projects/${project_id}/investigations/${result.id}`)
             setOpen(false)
         } else {
-            toast.error("Could not create new sketch.")
+            toast.error("Could not create new sketch." + JSON.stringify(result))
         }
     }
 

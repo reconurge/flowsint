@@ -11,7 +11,7 @@ const IndividualsPage = () => {
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
     const fetchIndividuals = async () => {
-        const response = await fetch(`/api/projects/${project_id}/investigations/${investigation_id}/individuals?page=${pagination.pageIndex + 1}&size=${pagination.pageSize}&includeEmails=true&includePhones=true`)
+        const response = await fetch(`/api/projects/${project_id}/investigations/${investigation_id}/table?page=${pagination.pageIndex + 1}&size=${pagination.pageSize}&includeEmails=true&includePhones=true`)
         return response.json()
     }
 
@@ -24,8 +24,8 @@ const IndividualsPage = () => {
     return (
         <div className="w-full space-y-8 mx-auto py-12 px-8">
             {isLoading ? <TableSkeleton /> :
-                <DataTable data={data.individuals}
-                    pageCount={data?.individuals?.length}
+                <DataTable data={data}
+                    pageCount={data?.length}
                     pagination={pagination}
                     refetch={refetch}
                     setPagination={setPagination}

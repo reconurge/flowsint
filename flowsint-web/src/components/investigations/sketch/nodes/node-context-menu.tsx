@@ -109,9 +109,10 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 setEdges((edges: any[]) => edges.filter((edge: { source: any }) => edge.source !== currentNode?.id?.toString()))
                 onClose()
             }
+            toast.success("Node deleted.")
         }
         catch (e) {
-            toast.error("An error occured.")
+            toast.error("An error occured deleting the node.")
         }
     }
 
@@ -192,6 +193,17 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     organization_id: nodeData.id,
                     investigation_id: investigation_id,
                     relation_type: "employee",
+                })
+                if (relationshipError) {
+                    toast.error("Error creating new relation.")
+                }
+            }
+            // add organization to organization
+            else if ((nodeToInsert.type === "organization" && currentNode?.data?.type === "organization")) {
+                const { error: relationshipError } = await supabase.from("organizations_organizations").upsert({
+                    organization_a: currentNode.id,
+                    organization_b: nodeData.id,
+                    investigation_id: investigation_id,
                 })
                 if (relationshipError) {
                     toast.error("Error creating new relation.")

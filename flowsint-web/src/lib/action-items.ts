@@ -89,7 +89,7 @@ export const actionItems: ActionItem[] = [
         icon: Phone,
         label: "Phone number",
         fields: ["phone_number"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 3,
@@ -99,7 +99,7 @@ export const actionItems: ActionItem[] = [
         icon: MapPin,
         label: "Physical address",
         fields: ["address", "city", "country", "zip"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 4,
@@ -109,7 +109,7 @@ export const actionItems: ActionItem[] = [
         icon: AtSign,
         label: "Email address",
         fields: ["email"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 5,
@@ -119,6 +119,7 @@ export const actionItems: ActionItem[] = [
         icon: Locate,
         label: "IP address",
         fields: ["ip_address"],
+        size: "h-5 w-5"
     },
     {
         id: 6,
@@ -139,7 +140,7 @@ export const actionItems: ActionItem[] = [
                 color: "#1d4ed8",
                 label: "Facebook",
                 fields: ["profile_url", "username", "platform:facebook"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 8,
@@ -150,7 +151,7 @@ export const actionItems: ActionItem[] = [
                 color: "#db2777",
                 label: "Instagram",
                 fields: ["profile_url", "username", "platform:instagram"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 9,
@@ -161,7 +162,7 @@ export const actionItems: ActionItem[] = [
                 color: "#0369a1",
                 label: "Telegram",
                 fields: ["profile_url", "username", "platform:telegram"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 10,
@@ -172,7 +173,7 @@ export const actionItems: ActionItem[] = [
                 color: "#3B45FC",
                 label: "Signal",
                 fields: ["profile_url", "username", "platform:signal"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 11,
@@ -183,7 +184,7 @@ export const actionItems: ActionItem[] = [
                 icon: Ghost,
                 label: "Snapchat",
                 fields: ["profile_url", "username", "platform:snapchat"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 12,
@@ -193,7 +194,7 @@ export const actionItems: ActionItem[] = [
                 icon: Github,
                 label: "Github",
                 fields: ["profile_url", "username", "platform:github"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 13,
@@ -205,7 +206,7 @@ export const actionItems: ActionItem[] = [
                 fields: ["profile_url", "username", "platform:coco"],
                 disabled: true,
                 comingSoon: true,
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 18,
@@ -216,7 +217,7 @@ export const actionItems: ActionItem[] = [
                 icon: Linkedin,
                 label: "LinkedIn",
                 fields: ["profile_url", "username", "platform:linkedin"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 19,
@@ -226,7 +227,7 @@ export const actionItems: ActionItem[] = [
                 icon: Twitter,
                 label: "Twitter",
                 fields: ["profile_url", "username", "platform:twitter"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 20,
@@ -236,7 +237,7 @@ export const actionItems: ActionItem[] = [
                 icon: Video,
                 label: "TikTok",
                 fields: ["profile_url", "username", "platform:tiktok"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 21,
@@ -247,7 +248,7 @@ export const actionItems: ActionItem[] = [
                 color: "#FF4B13",
                 label: "Reddit",
                 fields: ["profile_url", "username", "platform:reddit"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 22,
@@ -258,7 +259,7 @@ export const actionItems: ActionItem[] = [
                 color: "#525FEE",
                 label: "Discord",
                 fields: ["profile_url", "username", "platform:discord"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 2343,
@@ -269,7 +270,7 @@ export const actionItems: ActionItem[] = [
                 color: "#A96FFF",
                 label: "Twitch",
                 fields: ["profile_url", "username", "platform:twitch"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
         ],
     },
@@ -290,7 +291,7 @@ export const actionItems: ActionItem[] = [
                 icon: Car,
                 label: "Car",
                 fields: ["plate", "model", "brand", "year", "type:car"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 16,
@@ -300,7 +301,7 @@ export const actionItems: ActionItem[] = [
                 icon: Bike,
                 label: "Motorcycle",
                 fields: ["plate", "model", "brand", "year", "type:motorcycle"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 17,
@@ -310,7 +311,7 @@ export const actionItems: ActionItem[] = [
                 icon: Sailboat,
                 label: "Boat",
                 fields: ["plate", "model", "brand", "year", "type:boat"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 23,
@@ -320,7 +321,7 @@ export const actionItems: ActionItem[] = [
                 icon: Plane,
                 label: "Aircraft",
                 fields: ["registration", "model", "manufacturer", "year", "type:aircraft"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
         ],
     },
@@ -332,7 +333,7 @@ export const actionItems: ActionItem[] = [
         icon: Globe,
         label: "Website",
         fields: ["url", "registration_date", "registrar", "ip_address"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 26,
@@ -342,7 +343,7 @@ export const actionItems: ActionItem[] = [
         icon: FileIcon,
         label: "Document",
         fields: ["title", "author", "creation_date", "file_hash", "file_type"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 27,
@@ -361,7 +362,7 @@ export const actionItems: ActionItem[] = [
                 icon: Bitcoin,
                 label: "Crypto Wallet",
                 fields: ["address", "currency", "platform"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 29,
@@ -371,7 +372,7 @@ export const actionItems: ActionItem[] = [
                 icon: CreditCard,
                 label: "Bank Account",
                 fields: ["account_number", "bank_name", "iban", "bic"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 30,
@@ -381,7 +382,7 @@ export const actionItems: ActionItem[] = [
                 icon: ArrowRightLeft,
                 label: "Transaction",
                 fields: ["amount", "date", "sender", "recipient", "currency"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
         ],
     },
@@ -393,7 +394,7 @@ export const actionItems: ActionItem[] = [
         icon: Calendar,
         label: "Event",
         fields: ["name", "date", "location", "description", "participants"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
 
     },
     {
@@ -413,7 +414,7 @@ export const actionItems: ActionItem[] = [
                 icon: Smartphone,
                 label: "Phone",
                 fields: ["imei", "model", "manufacturer", "serial_number", "type:phone"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 34,
@@ -423,7 +424,7 @@ export const actionItems: ActionItem[] = [
                 icon: Laptop,
                 label: "Computer",
                 fields: ["mac_address", "model", "manufacturer", "serial_number", "type:computer"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 35,
@@ -433,7 +434,7 @@ export const actionItems: ActionItem[] = [
                 icon: Tablet,
                 label: "Tablet",
                 fields: ["imei", "model", "manufacturer", "serial_number", "type:tablet"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 36,
@@ -443,7 +444,7 @@ export const actionItems: ActionItem[] = [
                 icon: Wifi,
                 label: "IoT Device",
                 fields: ["mac_address", "model", "manufacturer", "serial_number", "type:iot"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
         ],
     },
@@ -455,7 +456,7 @@ export const actionItems: ActionItem[] = [
         icon: ImageIcon,
         label: "Media",
         fields: ["filename", "hash", "creation_date", "location", "exif_data"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 38,
@@ -465,7 +466,7 @@ export const actionItems: ActionItem[] = [
         icon: GraduationCap,
         label: "Education",
         fields: ["institution", "degree", "field", "start_date", "end_date"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 39,
@@ -475,7 +476,7 @@ export const actionItems: ActionItem[] = [
         icon: Users,
         label: "Relationship",
         fields: ["type", "entity_a", "entity_b", "start_date", "end_date", "description"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 40,
@@ -494,7 +495,7 @@ export const actionItems: ActionItem[] = [
                 icon: MessageSquare,
                 label: "Forum Post",
                 fields: ["forum", "username", "post_date", "post_content", "post_url", "type:forum_post"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 42,
@@ -504,7 +505,7 @@ export const actionItems: ActionItem[] = [
                 icon: MessageCircle,
                 label: "Comment",
                 fields: ["platform", "username", "comment_date", "comment_content", "comment_url", "type:comment"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
             {
                 id: 43,
@@ -514,7 +515,7 @@ export const actionItems: ActionItem[] = [
                 icon: ShoppingCart,
                 label: "Online Purchase",
                 fields: ["platform", "username", "purchase_date", "item", "price", "type:purchase"],
-                size: "h-6 w-6"
+                size: "h-5 w-5"
             },
         ],
     },
@@ -526,7 +527,7 @@ export const actionItems: ActionItem[] = [
         icon: Footprints,
         label: "Digital Footprint",
         fields: ["platform", "username", "date_discovered", "data_type", "source_url"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 45,
@@ -536,7 +537,7 @@ export const actionItems: ActionItem[] = [
         icon: Fingerprint,
         label: "Biometric Data",
         fields: ["type", "identifier", "date_collected", "source"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
     {
         id: 46,
@@ -546,6 +547,6 @@ export const actionItems: ActionItem[] = [
         icon: Key,
         label: "Credential",
         fields: ["service", "username", "hash", "breach_date", "breach_source"],
-        size: "h-6 w-6"
+        size: "h-5 w-5"
     },
 ]

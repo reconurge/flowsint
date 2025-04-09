@@ -38,6 +38,8 @@ export default function NewProject({ children, noDropDown }: { children: React.R
         const result = await createNewProject(formData)
         if (result.success) {
             toast.success("New project created.")
+            if (result.path)
+                toast.success("New storage bucket created.")
             router.push(`/dashboard/projects/${result.id}`)
             setOpen(false)
         } else {
@@ -48,7 +50,7 @@ export default function NewProject({ children, noDropDown }: { children: React.R
     if (noDropDown) return (
         <>
             <Button asChild onClick={() => setOpen(true)}>{children}</Button>
-            <Dialog  open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>New project</DialogTitle>

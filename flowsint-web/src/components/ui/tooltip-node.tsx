@@ -63,7 +63,7 @@ export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps & {
             <div ref={ref}>
                 <NodeToolbar
                     isVisible={isTooltipVisible || selected}
-                    className="rounded-sm bg-background p-2 shadow-md"
+                    className="rounded-sm bg-background p-2 shadow-md flex items-center gap-1"
                     tabIndex={1}
                     position={position}
                 >

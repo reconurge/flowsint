@@ -28,7 +28,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ project_id
             return NextResponse.json({ error: error.message }, { status: 500 })
         }
         // Filtrer le fichier .emptyFolderPlaceholder
-        const filteredData = data?.filter((file) => file.name !== ".emptyFolderPlaceholder") || []
+        const filteredData = data?.filter((file) => !["placeholder", ".emptyFolderPlaceholder"].includes(file.name)) || []
 
         // Récupérer les URLs publiques pour chaque fichier
         const filesWithUrls = await Promise.all(

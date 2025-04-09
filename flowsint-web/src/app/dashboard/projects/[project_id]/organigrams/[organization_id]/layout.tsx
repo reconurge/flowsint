@@ -1,6 +1,8 @@
 import { InvestigationProvider } from '@/components/contexts/investigation-provider';
+import { SearchProvider } from '@/components/contexts/search-context';
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ChatProvider } from '@/components/contexts/chatbot-context';
 import { InvestigationtNavigation } from '@/components/investigations/investigation-navigation';
 import { ScanDrawer } from '@/components/investigations/scan-drawer';
 const DashboardLayout = async ({
@@ -17,13 +19,7 @@ const DashboardLayout = async ({
         redirect('/login')
     }
     return (
-        <InvestigationProvider>
-            <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
-                <InvestigationtNavigation project_id={project_id} investigation_id={investigation_id} />
-            </div>
-            {children}
-            <ScanDrawer />
-        </InvestigationProvider>
+        children
     )
 }
 

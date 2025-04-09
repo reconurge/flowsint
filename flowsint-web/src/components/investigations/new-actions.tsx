@@ -202,7 +202,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all bg-accent hover:scale-105 hover:shadow-md",
+                "cursor-pointer transition-all bg-accent hover:border-primary border border-transparent hover:shadow-md",
                 item.disabled && "opacity-50 cursor-not-allowed",
                 "h-full",
             )}
@@ -216,12 +216,12 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                     <Icon style={{ color: item.color }} className="h-6 w-6 opacity-60 text-primary" />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
-                {item.comingSoon && (
+                {item.disabled && (
                     <Badge variant="outline" className="mt-2 absolute top-2 left-2">
                         soon
                     </Badge>
                 )}
-                {item.children && <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1"><ArrowRight className="h-4 w-4"/></div>}
+                {item.children && <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1"><ArrowRight className="h-4 w-4" /></div>}
                 {item.children && <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>}
             </CardContent>
         </Card>

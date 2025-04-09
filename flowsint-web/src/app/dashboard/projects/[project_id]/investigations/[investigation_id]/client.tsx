@@ -11,7 +11,6 @@ interface DashboardClientProps {
     investigationId: string
 }
 export default function DashboardClient({ projectId, investigationId }: DashboardClientProps) {
-    // Use the initial data from the server, but enable background updates
     const [view, _] = useQueryState("view", { defaultValue: "flow-graph" })
     const graphQuery = useQuery({
         queryKey: ["investigation", investigationId, "data"],
@@ -24,20 +23,6 @@ export default function DashboardClient({ projectId, investigationId }: Dashboar
         },
         refetchOnWindowFocus: true,
     })
-    // supabase
-    //     .channel("investigation-channel")
-    //     .on(
-    //         "postgres_changes",
-    //         {
-    //             event: "*",
-    //             schema: "public",
-    //             table: "scans",
-    //         },
-    //         (_: any) => {
-    //             graphQuery.refetch()
-    //         }
-    //     )
-    //     .subscribe()
     return (
         <>
             {view === "flow-graph" ?

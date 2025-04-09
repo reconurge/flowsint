@@ -16,8 +16,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/use-confirm-dialog"
+import Link from "next/link"
 export default function ProfilePanel({ data, type }: { data: any, type: string }) {
-    const { investigation_id } = useParams()
+    const { investigation_id, project_id } = useParams()
     const { confirm } = useConfirm()
 
     const handleCheckEmail = useCallback(async () => {
@@ -48,17 +49,30 @@ export default function ProfilePanel({ data, type }: { data: any, type: string }
             <div className="flex items-center sticky bg-background top-0 border-b justify-between px-4 py-2 gap-2 z-50">
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
                 <div className="flex items-center gap-2">
-                    <Button
-                        onClick={handleCheckEmail}
-                        disabled={data?.type !== "email"}
-                        className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                    >
-                        <span className="flex items-center gap-2">
-                            <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                            <span>Search</span>
-                        </span>
-                        <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                    </Button>
+                    {data?.type === "organization" ?
+                        <Link href={`/dashboard/projects/${project_id}/organigrams/${data.id}`}>
+                            <Button
+                                className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                                    <span>View organigram</span>
+                                </span>
+                                <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                            </Button>
+                        </Link>
+                        :
+                        <Button
+                            onClick={handleCheckEmail}
+                            disabled={data?.type !== "email"}
+                            className="relative min-w-[80px] h-8 overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                        >
+                            <span className="flex items-center gap-2">
+                                <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                                <span>Search</span>
+                            </span>
+                            <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                        </Button>}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent>

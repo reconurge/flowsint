@@ -2,8 +2,7 @@ import { notFound, redirect, unauthorized } from "next/navigation"
 import DashboardClient from "./client"
 import { createClient } from "@/lib/supabase/server"
 
-// Server Component for initial data fetch
-const DashboardPage = async ({
+const InvestigationPage = async ({
     params,
 }: {
     params: Promise<{ project_id: string, investigation_id: string }>
@@ -24,5 +23,5 @@ const DashboardPage = async ({
     return <DashboardClient projectId={project_id} investigationId={investigation_id} />
 }
 
-export default DashboardPage
+export default InvestigationPage
 

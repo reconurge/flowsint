@@ -343,7 +343,8 @@ export const actionItems: ActionItem[] = [
         icon: FileIcon,
         label: "Document",
         fields: ["title", "author", "creation_date", "file_hash", "file_type"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 27,
@@ -353,6 +354,7 @@ export const actionItems: ActionItem[] = [
         icon: DollarSign,
         label: "Financial",
         fields: [],
+        disabled: true,
         children: [
             {
                 id: 28,
@@ -362,7 +364,8 @@ export const actionItems: ActionItem[] = [
                 icon: Bitcoin,
                 label: "Crypto Wallet",
                 fields: ["address", "currency", "platform"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 29,
@@ -372,7 +375,8 @@ export const actionItems: ActionItem[] = [
                 icon: CreditCard,
                 label: "Bank Account",
                 fields: ["account_number", "bank_name", "iban", "bic"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 30,
@@ -382,7 +386,8 @@ export const actionItems: ActionItem[] = [
                 icon: ArrowRightLeft,
                 label: "Transaction",
                 fields: ["amount", "date", "sender", "recipient", "currency"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
         ],
     },
@@ -394,8 +399,8 @@ export const actionItems: ActionItem[] = [
         icon: Calendar,
         label: "Event",
         fields: ["name", "date", "location", "description", "participants"],
-        size: "h-5 w-5"
-
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 32,
@@ -405,6 +410,7 @@ export const actionItems: ActionItem[] = [
         icon: Smartphone,
         label: "Device",
         fields: [],
+        disabled: true,
         children: [
             {
                 id: 33,
@@ -414,7 +420,8 @@ export const actionItems: ActionItem[] = [
                 icon: Smartphone,
                 label: "Phone",
                 fields: ["imei", "model", "manufacturer", "serial_number", "type:phone"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 34,
@@ -424,7 +431,8 @@ export const actionItems: ActionItem[] = [
                 icon: Laptop,
                 label: "Computer",
                 fields: ["mac_address", "model", "manufacturer", "serial_number", "type:computer"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 35,
@@ -434,7 +442,8 @@ export const actionItems: ActionItem[] = [
                 icon: Tablet,
                 label: "Tablet",
                 fields: ["imei", "model", "manufacturer", "serial_number", "type:tablet"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 36,
@@ -444,7 +453,8 @@ export const actionItems: ActionItem[] = [
                 icon: Wifi,
                 label: "IoT Device",
                 fields: ["mac_address", "model", "manufacturer", "serial_number", "type:iot"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
         ],
     },
@@ -456,7 +466,8 @@ export const actionItems: ActionItem[] = [
         icon: ImageIcon,
         label: "Media",
         fields: ["filename", "hash", "creation_date", "location", "exif_data"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 38,
@@ -466,17 +477,8 @@ export const actionItems: ActionItem[] = [
         icon: GraduationCap,
         label: "Education",
         fields: ["institution", "degree", "field", "start_date", "end_date"],
-        size: "h-5 w-5"
-    },
-    {
-        id: 39,
-        type: "relationship",
-        table: "relationships",
-        key: "relationships",
-        icon: Users,
-        label: "Relationship",
-        fields: ["type", "entity_a", "entity_b", "start_date", "end_date", "description"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 40,
@@ -486,6 +488,7 @@ export const actionItems: ActionItem[] = [
         icon: Activity,
         label: "Online Activity",
         fields: [],
+        disabled: true,
         children: [
             {
                 id: 41,
@@ -495,7 +498,8 @@ export const actionItems: ActionItem[] = [
                 icon: MessageSquare,
                 label: "Forum Post",
                 fields: ["forum", "username", "post_date", "post_content", "post_url", "type:forum_post"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 42,
@@ -505,7 +509,8 @@ export const actionItems: ActionItem[] = [
                 icon: MessageCircle,
                 label: "Comment",
                 fields: ["platform", "username", "comment_date", "comment_content", "comment_url", "type:comment"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
             {
                 id: 43,
@@ -515,7 +520,8 @@ export const actionItems: ActionItem[] = [
                 icon: ShoppingCart,
                 label: "Online Purchase",
                 fields: ["platform", "username", "purchase_date", "item", "price", "type:purchase"],
-                size: "h-5 w-5"
+                size: "h-5 w-5",
+                disabled: true,
             },
         ],
     },
@@ -527,7 +533,8 @@ export const actionItems: ActionItem[] = [
         icon: Footprints,
         label: "Digital Footprint",
         fields: ["platform", "username", "date_discovered", "data_type", "source_url"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 45,
@@ -537,7 +544,8 @@ export const actionItems: ActionItem[] = [
         icon: Fingerprint,
         label: "Biometric Data",
         fields: ["type", "identifier", "date_collected", "source"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
     {
         id: 46,
@@ -547,6 +555,7 @@ export const actionItems: ActionItem[] = [
         icon: Key,
         label: "Credential",
         fields: ["service", "username", "hash", "breach_date", "breach_source"],
-        size: "h-5 w-5"
+        size: "h-5 w-5",
+        disabled: true,
     },
 ]

@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(_: Request, { params }: { params: Promise<{ project_id: string }> }) {
     try {
+        const { project_id } = await params
         const supabase = await createClient()
         const {
             data: { user },
@@ -14,7 +15,7 @@ export async function GET() {
         const { data: investigations, error } = await supabase.from("investigations")
             .select("id, title, description, status, project_id, last_updated_at, project:projects(id, name), members:investigations_profiles(profile:profiles(id, first_name, last_name), role)")
             .order("last_updated_at", { ascending: false })
-            .limit(4)
+            .eq("project_id", project_id)
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })
         }

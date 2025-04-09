@@ -9,7 +9,7 @@ import { Check, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { ButtonEdge } from "./button-edge"
+import { ButtonEdge } from "../ui/button-edge"
 import { toast } from "sonner"
 
 const EditableEdge = memo((props: EdgeProps) => {
@@ -19,15 +19,12 @@ const EditableEdge = memo((props: EdgeProps) => {
     const [editValue, setEditValue] = useState((label as string) || "")
     const submitButtonRef = useRef<HTMLButtonElement>(null)
 
-    // Utilisation de useCallback pour toutes les fonctions gestionnaires
     const handleEditClick = useCallback(() => {
         setIsEditing(true)
     }, [])
 
     const handleInputBlur = useCallback((e: React.FocusEvent) => {
-        // Check if the related target (where focus is going) is the submit button
         if (submitButtonRef.current && submitButtonRef.current.contains(e.relatedTarget as Node)) {
-            // Don't close the edit mode if clicking on the submit button
             return
         }
         setIsEditing(false)
@@ -48,8 +45,12 @@ const EditableEdge = memo((props: EdgeProps) => {
                     .from("organizations_individuals")
                     .update({ relation_type: editValue })
                     .eq("id", id.toString())
+                const { error: error3 } = await supabase
+                    .from("organizations_organizations")
+                    .update({ relation_type: editValue })
+                    .eq("id", id.toString())
                 if (error || error2) {
-                    toast.error("An error occurred: ")
+                    toast.error("An error occurred: " + JSON.stringify(error3))
                 } else {
                     toast.success("Relation updated.")
                 }
@@ -117,6 +118,6 @@ const EditableEdge = memo((props: EdgeProps) => {
     )
 });
 
-EditableEdge.displayName = "EditableEdge"
+EditableEdge.displayName = "OrganigramEdge"
 
 export default EditableEdge

@@ -150,7 +150,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                 set({ nodes, edges });
             }
             window.requestAnimationFrame(() => {
-                // fitView();
+                fitView();
             });
         },
         highlightPath: (selectedNode: Node | null) => {

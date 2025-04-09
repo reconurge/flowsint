@@ -41,7 +41,7 @@ import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
-import CustomEdge from "./nodes/custom-edge"
+import CustomEdge from "../../ui/custom-edge"
 import {
     ResizableHandle,
     ResizablePanel,
@@ -52,9 +52,10 @@ import ProfilePanel from "./profile-panel"
 import CustomNode from "./nodes/custom-node"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import FullscreenButton from "@/components/full-screen-button"
+import FloatingEdge from "./simple-floating-edge"
 
 const edgeTypes = {
-    custom: CustomEdge,
+    custom: FloatingEdge,
 }
 const nodeTypes = {
     custom: CustomNode,

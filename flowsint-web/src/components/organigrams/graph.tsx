@@ -49,10 +49,14 @@ import FullscreenButton from "@/components/full-screen-button"
 import ProfilePanel from "../investigations/sketch/profile-panel"
 import NodesPanel from "../investigations/sketch/nodes-panel"
 import OrganigramNode from "./organigram-node"
+import OrganigramEdge from './organigram-edge'
 const nodeTypes = {
-    custodm: OrganigramNode,
+    custom: OrganigramNode,
 }
 
+const edgeTypes = {
+    custom: OrganigramEdge,
+}
 // Better selectors with more specific equality comparisons
 const nodeEdgeSelector = (state: { nodes: any; edges: any }) => ({
     nodes: state.nodes,
@@ -284,6 +288,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         minZoom: 0.5,
         fitView: true,
         nodeTypes,
+        edgeTypes,
         proOptions: { hideAttribution: true },
         className: "!bg-accent dark:!bg-background"
     }), [

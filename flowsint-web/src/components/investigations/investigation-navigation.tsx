@@ -9,8 +9,10 @@ import MoreMenu from "./more-menu"
 import { ScanButton } from "./scans-drawer/scan-button"
 import { Badge } from "../ui/badge"
 import { DownloadButton } from "../download-button"
+import { AvatarList } from "../avatar-list"
+import { Investigation } from "@/types/investigation"
 
-function InvestigationNavigation({ project_id, investigation_id }: { project_id: string, investigation_id: string }) {
+function InvestigationNavigation({ project_id, investigation_id, investigation }: { project_id: string, investigation_id: string, investigation: Investigation }) {
     const pathname = usePathname()
 
     // Memoize the sections array so it doesn't get recreated on every render
@@ -49,7 +51,7 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
                     <Fragment key={section.id}>
                         {section.disabled ?
                             <span
-                                className="text-muted-foreground border-b-2 border-transparent opacity-40 text-sm px-4 py-2 flex items-center gap-2">
+                                className="text-muted-foreground border-b-2 border-transparent opacity-40 text-sm px-4 py-2.5 flex items-center gap-2">
                                 <section.icon className="h-4 w-4" />
                                 <span>{section.name}</span>
                                 <Badge variant={"outline"}>Soon</Badge>
@@ -69,7 +71,10 @@ function InvestigationNavigation({ project_id, investigation_id }: { project_id:
                     </Fragment>
                 ))}
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center ">
+                <div className="px-2">
+                    <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} />
+                </div>
                 <DownloadButton endpoint={`/api/projects/${project_id}/investigations/${investigation_id}/table`} name={project_id} />
                 <MoreMenu />
                 <ScanButton />

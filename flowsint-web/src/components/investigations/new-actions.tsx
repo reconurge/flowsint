@@ -56,7 +56,6 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
                 .insert(dataToInsert)
                 .select("*")
                 .single()
-
             if (insertError) {
                 toast.error("Failed to create node.")
                 setLoading(false)

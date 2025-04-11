@@ -16,10 +16,6 @@ const InvestigationPage = async ({
     if (!user || userError) {
         return redirect("/login")
     }
-    const { data: investigation, error } = await supabase.from("investigations").select("id").eq("id", investigation_id).single()
-    if (!investigation || error) {
-        return notFound()
-    }
     return <DashboardClient projectId={project_id} investigationId={investigation_id} />
 }
 

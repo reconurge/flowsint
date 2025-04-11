@@ -3,7 +3,7 @@
 import type * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
+import { cn, getAvatarColor } from "@/lib/utils"
 
 export interface User {
     id: string
@@ -36,17 +36,17 @@ export function AvatarList({
     const sizeClasses = {
         sm: {
             avatar: "h-6 w-6",
-            container: "space-x-[-8px]",
+            container: "space-x-[-7px]",
             more: "h-6 w-6 text-xs",
         },
         md: {
             avatar: "h-8 w-8",
-            container: "space-x-[-12px]",
+            container: "space-x-[-11px]",
             more: "h-8 w-8 text-sm",
         },
         lg: {
             avatar: "h-10 w-10",
-            container: "space-x-[-16px]",
+            container: "space-x-[-15px]",
             more: "h-10 w-10 text-base",
         },
     }
@@ -60,19 +60,20 @@ export function AvatarList({
             .substring(0, 2)
     }
 
-    const renderAvatar = (user: User, index: number) => {
+    const renderAvatar = (user: User) => {
+        const avatarColor = getAvatarColor(user.name)
         const avatar = (
             <Avatar
                 key={user.id}
                 className={cn(
                     sizeClasses[size].avatar,
                     "border-2 border-background bg-background",
-                    "transition-transform hover:translate-y-[-4px]",
+                    "transition-transform",
                     "ring-0 ring-offset-0",
                 )}
             >
                 <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
-                <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(user.name)}</AvatarFallback>
             </Avatar>
         )
 
@@ -81,7 +82,7 @@ export function AvatarList({
                 <TooltipProvider key={user.id} delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>{avatar}</TooltipTrigger>
-                        <TooltipContent side="bottom" align="center">
+                        <TooltipContent side="bottom" align="center" className="shadow">
                             {user.name}
                         </TooltipContent>
                     </Tooltip>

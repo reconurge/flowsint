@@ -5,39 +5,38 @@ import { cn } from "@/lib/utils"
 import ProjectSelector from "../investigations/project-selector"
 import CaseSelector from "../investigations/case-selector"
 import { useParams } from "next/navigation"
-import { Separator } from "../ui/separator"
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
     const { investigation_id, project_id } = useParams()
 
     if (project_id) return (
         <div className='flex gap-1 items-center p-2'>
-            <ProjectSelector />{investigation_id && <><span className='opacity-60'>/</span><CaseSelector /></>}
+            <ProjectSelector />{investigation_id && <><span className='opacity-60 text-sm'>/</span><CaseSelector /></>}
         </div >
     )
 
     return (
         <nav className={cn("md:flex hidden w-full items-center space-x-4 lg:space-x-6", className)} {...props}>
             <Link
-                href="/"
+                href="/dashboard"
                 className="text-sm font-medium transition-colors hover:text-primary bg-muted/50 px-3 py-1.5 rounded-md"
             >
                 Dashboard
             </Link>
             <Link
-                href="/sources"
+                href="/dashboard/sources"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
             >
                 Sources
             </Link>
             <Link
-                href="/analyses"
+                href="/dashboard/analysis"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
             >
                 Analyses
             </Link>
             <Link
-                href="/templates"
+                href="/dashboard/templates"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
             >
                 Templates

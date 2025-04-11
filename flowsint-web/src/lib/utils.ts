@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import Dagre from '@dagrejs/dagre';
+import { redirect } from "next/navigation";
 //@ts-ignore
 
 import * as d3 from "d3-force"
@@ -464,4 +465,40 @@ export const typeColorMap: Record<string, string> = {
   digital_footprint: "bg-lime-100 text-lime-800 hover:bg-lime-100/80 dark:bg-lime-900/30 dark:text-lime-300 dark:hover:bg-lime-900/40",
   biometric: "bg-amber-100 text-amber-800 hover:bg-amber-100/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40",
   credential: "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60",
+}
+
+export function getAvatarColor(name: string): string {
+  const colors = [
+    "bg-red-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500",
+    "bg-teal-500",
+    "bg-orange-500",
+    "bg-cyan-500",
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % colors.length
+  return colors[index]
+}
+
+/**
+ * Redirects to a specified path with an encoded message as a query parameter.
+ * @param {('error' | 'success')} type - The type of message, either 'error' or 'success'.
+ * @param {string} path - The path to redirect to.
+ * @param {string} message - The message to be encoded and added as a query parameter.
+ * @returns {never} This function doesn't return as it triggers a redirect.
+ */
+export function encodedRedirect(
+  type: "error" | "success",
+  path: string,
+  message: string,
+) {
+  return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
 }

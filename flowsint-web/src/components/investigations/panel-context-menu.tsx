@@ -26,7 +26,6 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
     const [loading, setLoading] = useState(false)
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
-
     const handleOpenAddNodeModal = (key: string) => {
         if (!nodesTypes[key as keyof typeof nodesTypes]) {
             toast.error("Invalid node type.")
@@ -37,7 +36,6 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
         setOpenActionDialog(false)
         setOpenNodeModal(true)
     }
-
     const onSubmitNewNodeModal = async (e: {
         preventDefault: () => void
         currentTarget: HTMLFormElement | undefined
@@ -46,7 +44,6 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
         const data = Object.fromEntries(new FormData(e.currentTarget))
         await handleAddNode(data)
     }
-
     const handleAddNode = async (data: any) => {
         try {
             setLoading(true)
@@ -56,7 +53,6 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
                 .insert(dataToInsert)
                 .select("*")
                 .single()
-
             if (insertError) {
                 toast.error("Failed to create node.")
                 setLoading(false)
@@ -69,8 +65,10 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
             }
             const newNode = {
                 id: nodeData.id,
-                type: currentNodeType.type,
-                data: { ...nodeData, label: data[currentNodeType.fields[0]] },
+                type: "custom",
+                data: {
+                    ...nodeData, label: data[currentNodeType.fields[0]], type: currentNodeType.type,
+                },
                 position: { x: 0, y: 0 },
             }
             addNodes(newNode)
@@ -83,12 +81,10 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
             setLoading(false)
         }
     }
-
     const navigateToSubItems = (item: ActionItem) => {
         setNavigationHistory([...navigationHistory, item])
         setCurrentParent(item)
     }
-
     const navigateBack = () => {
         const newHistory = [...navigationHistory]
         newHistory.pop()

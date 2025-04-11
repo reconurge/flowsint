@@ -34,7 +34,7 @@ const DashboardLayout = async ({
                         <div className="flex h-12 items-center px-4">
                             <Link href="/dashboard" className="flex items-center gap-1">
                                 <FingerprintIcon className="mr-2 h-6 w-6 text-primary" />
-                                <h2 className="text-lg font-semibold mr-6">flowsint</h2>
+                                <span className='opacity-60 text-sm'>/</span>
                             </Link>
                             {/* <Separator orientation="vertical" className="h-6" /> */}
                             <MainNav className="mx-6" />

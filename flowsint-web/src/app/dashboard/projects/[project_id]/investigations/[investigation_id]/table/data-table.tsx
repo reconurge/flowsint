@@ -610,7 +610,6 @@ function TableCellViewer({ item, children }: { item: any, children: React.ReactN
         <Sheet>
             <SheetTrigger asChild>
                 {item.type === "social" ?
-
                     <SocialButton item={item} /> :
                     <Button variant="link" className="w-fit px-0 text-left text-foreground">
                         <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">

@@ -1,5 +1,4 @@
 "use client"
-import { useInvestigationStore } from '@/store/investigation-store';
 import { useParams, useRouter } from "next/navigation";
 import {
     Select,
@@ -11,7 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@/types/project";
-import { FolderIcon, FolderLockIcon } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 export default function ProjectSelector() {
     const router = useRouter()
@@ -24,9 +23,6 @@ export default function ProjectSelector() {
         },
         refetchOnWindowFocus: true,
     })
-    const useInvestigationData = useInvestigationStore(
-        (state) => state.useInvestigationData
-    );
     const projects = data?.projects || []
 
     const handleSelectionChange = (value: string) => {
@@ -34,11 +30,11 @@ export default function ProjectSelector() {
     };
     return (
         <div className="flex items-center">
-            {isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
+            {isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
                 // @ts-ignore
                 <Select onValueChange={handleSelectionChange} defaultValue={project_id}>
-                    <SelectTrigger className="min-w-none h-7 w-full hover:bg-sidebar-accent rounded-sm font-medium shadow-none border-none text-ellipsis truncate gap-1">
-                        <FolderIcon className="mr-1" /><SelectValue placeholder="Select an investigation" />
+                    <SelectTrigger className="min-w-none h-8 w-full hover:bg-sidebar-accent rounded-sm font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                        <SelectValue placeholder="Select an investigation" /><Badge variant="outline" className="ml-1 rounded-full shadow-none">Case</Badge>
                     </SelectTrigger>
                     <SelectContent>
                         {projects?.map((project: Project) => (

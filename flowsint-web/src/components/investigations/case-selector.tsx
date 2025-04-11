@@ -10,7 +10,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton";
-import { Waypoints } from "lucide-react";
+import { WaypointsIcon } from "lucide-react";
+import { Badge } from "../ui/badge";
 
 export default function CaseSelector() {
     const router = useRouter()
@@ -27,18 +28,18 @@ export default function CaseSelector() {
     };
     return (
         <div className="flex items-center">
-            {isLoading || investigation.isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
+            {isLoading || investigation.isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={investigation?.data.id}>
-                    <SelectTrigger className="min-w-none h-7 rounded-sm w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
-                        <Waypoints className="mr-1" /> <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
+                    <SelectTrigger className="min-w-none h-8 rounded-sm w-full hover:bg-sidebar-accent font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                        <SelectValue defaultValue={investigation?.data?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem className="text-ellipsis truncate" value={"overview"}>{"Overview"}</SelectItem>
                         {investigations?.map((investigation) => (
-                            <SelectItem className="text-ellipsis truncate" key={investigation.id} value={investigation.id}>{investigation.title}</SelectItem>
+                            <SelectItem className="text-ellipsis truncate items-center" key={investigation.id} value={investigation.id}>{investigation.title} <Badge variant={"outline"} className="ml-1 rounded-full shadow-none !flex items-center gap-1"><WaypointsIcon className="!h-3 !w-3" />Sketch</Badge></SelectItem>
                         ))}
                     </SelectContent>
                 </Select >}
-        </div>
+        </div >
     );
 }

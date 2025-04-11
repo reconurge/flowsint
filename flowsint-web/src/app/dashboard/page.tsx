@@ -16,7 +16,6 @@ import RecentSketches from "@/components/dashboard/recent-sketches"
 import NewProject from "@/components/dashboard/new-project"
 import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
-import DashboardLayout from "@/components/dashboard/layout"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
 

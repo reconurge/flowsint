@@ -5,7 +5,7 @@ interface ProjectState {
     setOpenUploadModal: (isOpen: boolean) => void;
 }
 
-export const useProjectStore = create<ProjectState>((set) => ({
+export const useInvestigationStore = create<ProjectState>((set) => ({
     openUploadModal: false,
     setOpenUploadModal: (isOpen) => set({ openUploadModal: isOpen }),
 }));

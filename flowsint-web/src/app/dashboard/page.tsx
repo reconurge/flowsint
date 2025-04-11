@@ -11,9 +11,9 @@ import Loader from "@/components/loader"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Project } from "@/types/project"
+import { Investigation } from "@/types/investigation"
 import RecentSketches from "@/components/dashboard/recent-sketches"
-import NewProject from "@/components/dashboard/new-project"
+import NewInvestigation from "@/components/dashboard/new-investigation"
 import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
@@ -24,9 +24,9 @@ const DashboardPage = () => {
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
     const { data, isLoading, refetch, isRefetching } = useQuery({
-        queryKey: ["dashboard", "projects"],
+        queryKey: ["dashboard", "investigations"],
         queryFn: async () => {
-            const res = await fetch(`/api/projects`)
+            const res = await fetch(`/api/investigations`)
             if (!res.ok || res.status === 404) {
                 notFound()
             }
@@ -34,9 +34,9 @@ const DashboardPage = () => {
         },
         refetchOnWindowFocus: true,
     })
-    const projects = data?.projects || []
-    const filteredProjects = projects.filter(
-        (project: Project) => searchQuery === "" || project.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+    const investigations = data?.investigations || []
+    const filteredInvestigations = investigations.filter(
+        (investigation: Investigation) => searchQuery === "" || investigation.name?.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 
     return (
@@ -52,7 +52,7 @@ const DashboardPage = () => {
                         </div>
                         <Input
                             type="text"
-                            placeholder="Search investigations and projects..."
+                            placeholder="Search investigations and investigations..."
                             className="pl-10 pr-16 py-2 h-10 text-sm bg-background"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -97,11 +97,11 @@ const DashboardPage = () => {
                                 <List className="h-4 w-4" />
                             </Button>
                         </div>
-                        <NewProject>
+                        <NewInvestigation>
                             <Button className="gap-2 h-10">
                                 <PlusIcon className="h-4 w-4" />  New
                             </Button>
-                        </NewProject>
+                        </NewInvestigation>
                     </div>
                 </div>
                 <div>
@@ -147,40 +147,40 @@ const DashboardPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredProjects.length === 0 ? (
+                                {filteredInvestigations.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            {searchQuery !== "" ? "No projects found" :
-                                                <div className="flex items-center flex-col gap-3">No projects yet
-                                                    <NewProject noDropDown>
+                                            {searchQuery !== "" ? "No investigations found" :
+                                                <div className="flex items-center flex-col gap-3">No investigations yet
+                                                    <NewInvestigation noDropDown>
                                                         <Button size="sm" className="gap-2">
-                                                            <PlusIcon className="h-4 w-4" />  Create a new project
+                                                            <PlusIcon className="h-4 w-4" />  Create a new investigation
                                                         </Button>
-                                                    </NewProject>
+                                                    </NewInvestigation>
                                                 </div>}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredProjects.map((project: Project) => (
-                                        <TableRow key={project.id}>
+                                    filteredInvestigations.map((investigation: Investigation) => (
+                                        <TableRow key={investigation.id}>
                                             <TableCell>
-                                                <Link href={`dashboard/projects/${project.id}`} className="flex items-center gap-2 hover:underline">
+                                                <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
                                                     <FolderLockIcon className="h-5 w-5 text-primary" />
-                                                    <span>{project.name}</span>
+                                                    <span>{investigation.name}</span>
                                                 </Link>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">{`${project?.owner?.first_name} ${project?.owner?.last_name}` || "You"}</TableCell>
+                                            <TableCell className="text-muted-foreground">{`${investigation?.owner?.first_name} ${investigation?.owner?.last_name}` || "You"}</TableCell>
                                             <TableCell className="hidden md:table-cell text-muted-foreground">
-                                                {(project.investigations?.length || 0) > 0 ? `${project.investigations.length} items` : "Empty"}
+                                                {(investigation.sketches?.length || 0) > 0 ? `${investigation.sketches.length} items` : "Empty"}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {formatDistanceToNow(new Date(project.last_updated_at), { addSuffix: true })}
+                                                {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={project?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
+                                                <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {format(new Date(project.created_at), "dd.MM.yyyy")}
+                                                {format(new Date(investigation.created_at), "dd.MM.yyyy")}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu>

@@ -37,7 +37,7 @@ export type AppState = {
     setEdges: (edges: Edge[]) => void;
     highlightPath: (selectedNode: Node | null) => void;
     onLayout: (layout: string, fitView: () => void) => void,
-    onConnect: (params: any, investigation_id?: string) => Promise<void>;
+    onConnect: (params: any, sketch_id?: string) => Promise<void>;
     onNodeClick: (_: React.MouseEvent, node: Node) => void;
     onPaneClick: (_: React.MouseEvent) => void,
     setCurrentNode: (node: object | null) => void;
@@ -65,8 +65,8 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
         setCurrentNode: (node: Partial<Node> | null) => {
             set({ currentNode: node });
         },
-        onConnect: async (params: any, investigation_id?: string) => {
-            if (!investigation_id) return;
+        onConnect: async (params: any, sketch_id?: string) => {
+            if (!sketch_id) return;
             try {
                 // Batch database operations with the UI update
                 const { error } = await supabase
@@ -74,7 +74,7 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
                     .upsert({
                         individual_a: params.source,
                         individual_b: params.target,
-                        investigation_id: investigation_id,
+                        sketch_id: sketch_id,
                         relation_type: "relation"
                     });
 

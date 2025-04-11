@@ -2,16 +2,18 @@
 import type React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import ProjectSelector from "../investigations/project-selector"
-import CaseSelector from "../investigations/case-selector"
+import InvestigationSelector from "../investigations/investigation-selector"
+import CaseSelector from "../sketches/case-selector"
 import { useParams } from "next/navigation"
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-    const { investigation_id, project_id } = useParams()
+    const { sketch_id, investigation_id } = useParams()
 
-    if (project_id) return (
+    if (investigation_id) return (
         <div className='flex gap-1 items-center p-2'>
-            <ProjectSelector />{investigation_id && <><span className='opacity-60 text-sm'>/</span><CaseSelector /></>}
+            <InvestigationSelector />{sketch_id && <><span className='opacity-60 text-sm'>
+                /</span><CaseSelector /></>
+            }
         </div >
     )
 

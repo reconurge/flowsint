@@ -22,9 +22,10 @@ import {
     WorkflowIcon,
     NetworkIcon,
     WaypointsIcon,
+    ExpandIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import NewActions from "../sketches/new-actions"
+import NewActions from "../new-actions"
 import { useParams } from "next/navigation"
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
@@ -35,29 +36,31 @@ import { useFlowStore } from "@/store/flow-store"
 import Loader from "@/components/loader"
 import { useQueryState } from "nuqs"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import PanelContextMenu from "../sketches/panel-context-menu"
+import PanelContextMenu from "../panel-context-menu"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import NodeContextMenu from "./nodes/node-context-menu"
+import CustomEdge from "../../ui/custom-edge"
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import NodesPanel from "./nodes-panel"
+import ProfilePanel from "./profile-panel"
+import CustomNode from "./nodes/custom-node"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import FullscreenButton from "@/components/full-screen-button"
-import ProfilePanel from "../sketches/sketch/profile-panel"
-import NodesPanel from "../sketches/sketch/nodes-panel"
-import OrganigramNode from "./organigram-node"
-import OrganigramEdge from './organigram-edge'
-const nodeTypes = {
-    custom: OrganigramNode,
-}
+import FloatingEdge from "./simple-floating-edge"
 
 const edgeTypes = {
-    custom: OrganigramEdge,
+    custom: FloatingEdge,
 }
-// Better selectors with more specific equality comparisons
+const nodeTypes = {
+    custom: CustomNode,
+}
+
 const nodeEdgeSelector = (state: { nodes: any; edges: any }) => ({
     nodes: state.nodes,
     edges: state.edges,
@@ -287,9 +290,9 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         onNodeContextMenu: handleNodeContextMenu,
         minZoom: 0.5,
         fitView: true,
-        nodeTypes,
-        edgeTypes,
         proOptions: { hideAttribution: true },
+        edgeTypes,
+        nodeTypes,
         className: "!bg-accent dark:!bg-background"
     }), [
         theme,
@@ -347,6 +350,11 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                         </ContextMenu>
                         <PanelContextMenu addNodes={addNodes} />
                     </Dialog>
+                    <NodeContextMenu
+                        x={nodeContextMenu?.x}
+                        y={nodeContextMenu?.y}
+                        onClose={closeNodeContextMenu}
+                    />
                 </TooltipProvider>
             </ResizablePanel>
             <ResizableHandle withHandle />

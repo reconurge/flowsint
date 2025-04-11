@@ -1,6 +1,6 @@
 "use client"
 
-import type { Investigation } from "@/types/investigation"
+import type { Sketch } from "@/types/sketch"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { Fingerprint, Search } from "lucide-react"
@@ -12,13 +12,13 @@ import { AvatarList } from "../avatar-list"
 
 const RecentSketches = () => {
     const {
-        data: investigations,
+        data: sketches,
         isLoading,
         error,
     } = useQuery({
-        queryKey: ["dashboard", "investigations"],
+        queryKey: ["dashboard", "sketches"],
         queryFn: async () => {
-            const res = await fetch(`/api/latest-investigations`)
+            const res = await fetch(`/api/latest-sketches`)
             return res.json()
         },
         refetchOnWindowFocus: true,
@@ -28,9 +28,9 @@ const RecentSketches = () => {
         return (
             <div className="flex flex-col items-center justify-center p-8 text-center rounded-lg border border-dashed">
                 <Search className="h-10 w-10 text-muted-foreground mb-2" />
-                <h3 className="text-lg font-semibold">Error loading investigations</h3>
+                <h3 className="text-lg font-semibold">Error loading sketches.</h3>
                 <p className="text-sm text-muted-foreground">
-                    There was a problem loading your investigations. Please try again.
+                    There was a problem loading your sketches. Please try again.
                 </p>
             </div>
         )
@@ -57,9 +57,9 @@ const RecentSketches = () => {
     }
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {investigations?.map((investigation: Investigation) => {
+            {sketches?.map((sketch: Sketch) => {
                 return (
-                    <Link href={`/dashboard/projects/${investigation.project_id}/investigations/${investigation.id}`} key={investigation.id} className="group">
+                    <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} key={sketch.id} className="group">
                         <Card className="bg-background shadow-xs h-full min-h-32 transition-all duration-200 hover:border-primary rounded-md">
                             <CardContent className="p-4 relative h-full flex flex-col justify-between">
                                 <div className="flex flex items-center gap-2 w-full">
@@ -68,13 +68,13 @@ const RecentSketches = () => {
                                     </div>
                                     <div className="w-full truncate">
                                         <h3 className="font-medium w-full truncate text-ellispsis transition-colors">
-                                            {investigation?.project?.name}<span className="mx-1 opacity-40 text-sm">/</span>{investigation.title}
+                                            {sketch?.investigation?.name}<span className="mx-1 opacity-40 text-sm">/</span>{sketch.title}
                                         </h3>
-                                        <span className="text-xs opacity-60">Last updated {formatDistanceToNow(investigation.last_updated_at, { addSuffix: true })}</span>
+                                        <span className="text-xs opacity-60">Last updated {formatDistanceToNow(sketch.last_updated_at, { addSuffix: true })}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-end">
-                                    <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
+                                    <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
                                 </div>
                             </CardContent>
                         </Card>

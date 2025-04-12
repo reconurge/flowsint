@@ -41,7 +41,7 @@ const EditableEdge = memo((props: EdgeProps) => {
             setIsLoading(true)
             try {
                 const { error } = await supabase
-                    .from("relationships")
+                    .from("individuals_individuals")
                     .update({ relation_type: editValue })
                     .eq("id", id.toString())
                 const { error: error2 } = await supabase
@@ -53,7 +53,7 @@ const EditableEdge = memo((props: EdgeProps) => {
                     .update({ relation_type: editValue })
                     .eq("id", id.toString())
                 if (error || error2 || error3) {
-                    toast.error("An error occurred: ")
+                    toast.error("An error occurred.")
                 } else {
                     toast.success("Relation updated.")
                 }

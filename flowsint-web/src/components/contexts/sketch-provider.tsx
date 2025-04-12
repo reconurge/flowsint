@@ -9,13 +9,14 @@ import { Dialog, DialogContent, DialogDescription, DialogClose, DialogTitle } fr
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface SketchProviderProps {
     children: ReactNode
 }
 
 export const SketchProvider: React.FC<SketchProviderProps> = ({ children }) => {
-    const { sketch_id } = useParams()
+    const { sketch_id, investigation_id } = useParams()
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -27,7 +28,6 @@ export const SketchProvider: React.FC<SketchProviderProps> = ({ children }) => {
         setOpenSettingsModal,
         setHandleOpenIndividualModal,
         setHandleDeleteSketch,
-        openNewNode, setOpenNewNode
     } = useSketchStore()
 
     useEffect(() => {
@@ -36,27 +36,29 @@ export const SketchProvider: React.FC<SketchProviderProps> = ({ children }) => {
                 title: "Delete sketch",
                 message: "Are you really sure you want to delete this sketch ?",
             })
-
             if (!confirmDelete) return
-
             const confirmFinal = await confirm({
                 title: "Just making sure",
                 message: "You will definitely delete all nodes, edges and relationships.",
             })
             if (!confirmFinal) return
             try {
-                const { error } = await supabase
-                    .from("Sketchs")
-                    .update({ status: "archived" })
+                const { data, error } = await supabase
+                    .from("sketches")
+                    .delete()
                     .eq("id", sketch_id)
-
-                if (error) throw error
-
-                router.push("/dashboard")
+                    .select("id")
+                if (!data || !data.length)
+                    return toast.error("The sketch could not be deleted. Are you sure you are the owner ?")
+                if (error)
+                    return toast.error("An error occured. Try again later.")
+                router.push(`/dashboard/investigations/${investigation_id}`)
+                toast.success("The sketch was successfully deleted.")
             } catch (error) {
-                console.error("Error deleting sketch:", error)
+                toast.error("An error occured.")
             }
         }
+        // @ts-ignore
         setHandleDeleteSketch(handleDeleteSketch)
     }, [
         sketch_id,

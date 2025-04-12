@@ -70,14 +70,13 @@ const createStore = (initialNodes: AppNode[] = [], initialEdges: Edge[] = []) =>
             try {
                 // Batch database operations with the UI update
                 const { error } = await supabase
-                    .from("relationships")
+                    .from("individuals_individuals")
                     .upsert({
                         individual_a: params.source,
                         individual_b: params.target,
                         sketch_id: sketch_id,
                         relation_type: "relation"
                     });
-
                 if (!error) {
                     set({
                         edges: addEdge(

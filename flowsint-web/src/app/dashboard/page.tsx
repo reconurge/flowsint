@@ -79,11 +79,11 @@ const DashboardPage = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <div className="flex items-center border rounded-md overflow-hidden">
+                        <div className="flex items-center border bg-background rounded-md overflow-hidden">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`h-10 w-10 rounded-none ${viewMode === "grid" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "grid" ? "bg-accent" : ""}`}
                                 onClick={() => setViewMode("grid")}
                             >
                                 <Grid className="h-4 w-4" />
@@ -91,14 +91,14 @@ const DashboardPage = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`h-10 w-10 rounded-none ${viewMode === "list" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "list" ? "bg-accent" : ""}`}
                                 onClick={() => setViewMode("list")}
                             >
                                 <List className="h-4 w-4" />
                             </Button>
                         </div>
                         <NewInvestigation>
-                            <Button className="gap-2 h-10">
+                            <Button className="gap-2">
                                 <PlusIcon className="h-4 w-4" />  New
                             </Button>
                         </NewInvestigation>
@@ -138,7 +138,6 @@ const DashboardPage = () => {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Owner</TableHead>
                                     <TableHead className="hidden md:table-cell">Size</TableHead>
                                     <TableHead className="hidden sm:table-cell">Last modified</TableHead>
                                     <TableHead className="hidden sm:table-cell">Members</TableHead>
@@ -169,7 +168,6 @@ const DashboardPage = () => {
                                                     <span>{investigation.name}</span>
                                                 </Link>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">{`${investigation?.owner?.first_name} ${investigation?.owner?.last_name}` || "You"}</TableCell>
                                             <TableCell className="hidden md:table-cell text-muted-foreground">
                                                 {(investigation.sketches?.length || 0) > 0 ? `${investigation.sketches.length} items` : "Empty"}
                                             </TableCell>
@@ -177,7 +175,7 @@ const DashboardPage = () => {
                                                 {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
+                                                <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === investigation.owner_id })) || []} size="sm" />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
                                                 {format(new Date(investigation.created_at), "dd.MM.yyyy")}

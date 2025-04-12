@@ -40,7 +40,7 @@ interface SketchState {
     // Modal Handlers
     handleOpenIndividualModal: (id: string) => void
     setHandleOpenIndividualModal: (handler: (id: string) => void) => void
-    HandleDeleteSketch: () => Promise<void>
+    handleDeleteSketch: () => Promise<void>
     setHandleDeleteSketch: (handler: () => Promise<void>) => void
 
     // Query Hooks
@@ -79,8 +79,8 @@ export const useSketchStore = create(
             setSketch: (sketch) => set({ sketch }),
             handleOpenIndividualModal: () => { },
             setHandleOpenIndividualModal: (handler) => set({ handleOpenIndividualModal: handler }),
-            HandleDeleteSketch: async () => { },
-            setHandleDeleteSketch: (handler) => set({ HandleDeleteSketch: handler }),
+            handleDeleteSketch: async () => { },
+            setHandleDeleteSketch: (handler) => set({ handleDeleteSketch: handler }),
             useSketchData: (investigationId: string, sketchId: string) => {
                 const wrapRefetch = async (refetch: () => Promise<QueryObserverResult>) => {
                     await refetch()

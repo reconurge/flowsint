@@ -43,7 +43,7 @@ export default function NewInvestigation({ children, noDropDown }: { children: R
             router.push(`/dashboard/investigations/${result.id}`)
             setOpen(false)
         } else {
-            toast.error("Could not create new investigation.")
+            toast.error(result.error)
         }
     }
 

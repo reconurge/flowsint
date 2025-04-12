@@ -17,6 +17,7 @@ import { DocumentList } from "@/components/investigations/documents-list"
 import { cn } from "@/lib/utils"
 import { InvestigationNavigation } from "@/components/investigations/investigation-navigation"
 import { Card } from "@/components/ui/card"
+import { AvatarList } from "@/components/avatar-list"
 
 const DashboardPage = () => {
     const { investigation_id } = useParams()
@@ -81,7 +82,7 @@ const DashboardPage = () => {
                         </NewSketch>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button variant="outline" className="gap-2">
                                     <SlidersHorizontal className="h-4 w-4" />
                                     <span className="hidden sm:inline">Sort by</span>
                                 </Button>
@@ -94,7 +95,7 @@ const DashboardPage = () => {
                                 <DropdownMenuItem>Size</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleRefetch} disabled={isLoading || isRefetching} variant={"outline"} size="sm" className="gap-2">
+                        <Button onClick={handleRefetch} disabled={isLoading || isRefetching} variant={"outline"} className="gap-2">
                             <RotateCwIcon className={cn("h-4 w-4", isLoading || isRefetching && "animate-spin")} />  Refresh
                         </Button>
                     </div>
@@ -110,8 +111,8 @@ const DashboardPage = () => {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Type</TableHead>
-                                    <TableHead>Owner</TableHead>
                                     <TableHead className="hidden md:table-cell">Size</TableHead>
+                                    <TableHead className="hidden sm:table-cell">Members</TableHead>
                                     <TableHead className="hidden sm:table-cell">Last modified</TableHead>
                                     <TableHead className="hidden sm:table-cell">Creation</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
@@ -141,15 +142,17 @@ const DashboardPage = () => {
                                                 </Link>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">{"Sketch"}</TableCell>
-                                            <TableCell className="text-muted-foreground">{`${sketch?.owner?.first_name} ${investigation?.owner?.last_name}` || "You"}</TableCell>
                                             <TableCell className="hidden md:table-cell text-muted-foreground">
                                                 {(sketch?.individuals?.length || 0) > 0 ? `${sketch?.individuals?.length} items` : "Empty"}
+                                            </TableCell>
+                                            <TableCell className="hidden sm:table-cell text-muted-foreground">
+                                                <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} size="sm" />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
                                                 {formatDistanceToNow(new Date(sketch.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {format(new Date(investigation.created_at), "dd/MM/yyyy")}
+                                                {format(new Date(sketch.created_at), "dd/MM/yyyy")}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu>

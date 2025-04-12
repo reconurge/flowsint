@@ -4,12 +4,14 @@ import type * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn, getAvatarColor } from "@/lib/utils"
-
+import { CrownIcon } from "lucide-react"
+import { getInitials } from "@/lib/utils"
 export interface User {
     id: string
     name: string
     email?: string
     image?: string
+    owner?: boolean
 }
 
 interface AvatarListProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -40,7 +42,7 @@ export function AvatarList({
             more: "h-6 w-6 text-xs",
         },
         md: {
-            avatar: "h-8 w-8",
+            avatar: "h-7 w-7",
             container: "space-x-[-11px]",
             more: "h-8 w-8 text-sm",
         },
@@ -50,40 +52,32 @@ export function AvatarList({
             more: "h-10 w-10 text-base",
         },
     }
-
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2)
-    }
-
     const renderAvatar = (user: User) => {
         const avatarColor = getAvatarColor(user.name)
         const avatar = (
-            <Avatar
-                key={user.id}
-                className={cn(
-                    sizeClasses[size].avatar,
-                    "border-2 border-background bg-background",
-                    "transition-transform",
-                    "ring-0 ring-offset-0",
-                )}
-            >
-                <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
-                <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(user.name)}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+                <Avatar
+                    key={user.id}
+                    className={cn(
+                        sizeClasses[size].avatar,
+                        "border-2 border-background bg-background relative",
+                        "transition-transform",
+                        "ring-0 ring-offset-0",
+                    )}
+                >
+                    <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
+                    <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(user.name)}</AvatarFallback>
+                </Avatar>
+                {user?.owner && <span className="block z-50 absolute -top-1.5 left-1.5"><CrownIcon fill="yellow" className="h-3 w-3 text-yellow-500 opacity-70" /></span>}
+            </div>
         )
-
         if (showTooltips) {
             return (
                 <TooltipProvider key={user.id} delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>{avatar}</TooltipTrigger>
                         <TooltipContent side="bottom" align="center" className="shadow">
-                            {user.name}
+                            {user.name} {user.owner && `(owner)`}
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

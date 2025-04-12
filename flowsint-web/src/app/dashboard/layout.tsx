@@ -4,14 +4,12 @@ import {
     SidebarProvider,
 } from "@/components/ui/sidebar"
 import { redirect } from "next/navigation";
-import { FingerprintIcon, Radar, Settings } from "lucide-react";
+import { FingerprintIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MainNav } from "@/components/dashboard/main-nav";
 import { NavUser } from "@/components/nav-user";
-import { SubNav } from "@/components/dashboard/sub-nav";
 import Feedback from "@/components/dashboard/feedback";
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 const DashboardLayout = async ({
     children,
@@ -44,7 +42,7 @@ const DashboardLayout = async ({
                                     <Button size={"sm"} variant={"ghost"}>Changelog</Button>
                                     <Button size={"sm"} variant={"ghost"}>Docs</Button>
                                 </div>
-                                <NavUser user={data?.user} />
+                                <NavUser profile_id={data?.user.id} />
                             </div>
                         </div>
                     </header>

@@ -35,10 +35,8 @@ function SubmitButton() {
 export default function NewSketch({ children, noDropDown = false }: { children: React.ReactNode, noDropDown?: boolean }) {
     const [open, setOpen] = useState(false)
     const { setOpenUploadModal } = useInvestigationStore()
-
     const router = useRouter()
     const { investigation_id } = useParams()
-
 
     async function handleNewSketch(formData: FormData) {
         const result = await createNewSketch(formData, investigation_id as string)
@@ -47,7 +45,7 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
             router.push(`/dashboard/investigations/${investigation_id}/sketches/${result.id}`)
             setOpen(false)
         } else {
-            toast.error("Could not create new sketch." + JSON.stringify(result))
+            toast.error(result.error)
         }
     }
 

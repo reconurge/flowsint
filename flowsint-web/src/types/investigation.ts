@@ -8,5 +8,6 @@ export interface Investigation {
     created_at: string
     last_updated_at: string
     owner: any
+    owner_id: string,
     members?: any[]
 }

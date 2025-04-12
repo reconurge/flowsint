@@ -68,7 +68,7 @@ export function AvatarList({
                     <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
                     <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
-                {user?.owner && <span className="block z-50 absolute -top-1.5 left-1.5"><CrownIcon fill="yellow" className="h-3 w-3 text-yellow-500 opacity-70" /></span>}
+                {/* {user?.owner && <span className="block z-50 absolute -top-2 left-1/2 -translate-x-1/2"><CrownIcon fill="yellow" className="h-3 w-3 text-yellow-500 opacity-70" /></span>} */}
             </div>
         )
         if (showTooltips) {

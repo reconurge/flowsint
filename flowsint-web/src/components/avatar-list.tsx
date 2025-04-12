@@ -47,8 +47,8 @@ export function AvatarList({
             more: "h-8 w-8 text-sm",
         },
         lg: {
-            avatar: "h-10 w-10",
-            container: "space-x-[-15px]",
+            avatar: "h-8 w-8",
+            container: "space-x-[-10px]",
             more: "h-10 w-10 text-base",
         },
     }

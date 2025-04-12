@@ -18,6 +18,7 @@ import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
+import StatusBadge from "@/components/investigations/status-badge"
 
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
@@ -138,6 +139,7 @@ const DashboardPage = () => {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
+                                    <TableHead className="hidden md:table-cell">Status</TableHead>
                                     <TableHead className="hidden md:table-cell">Size</TableHead>
                                     <TableHead className="hidden sm:table-cell">Last modified</TableHead>
                                     <TableHead className="hidden sm:table-cell">Members</TableHead>
@@ -164,9 +166,12 @@ const DashboardPage = () => {
                                         <TableRow key={investigation.id}>
                                             <TableCell>
                                                 <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
-                                                    <FolderLockIcon className="h-5 w-5 text-primary" />
+                                                    <FolderLockIcon className="h-5 w-5 text-muted-foreground opacity-60" />
                                                     <span>{investigation.name}</span>
                                                 </Link>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell text-muted-foreground">
+                                                <StatusBadge status={investigation.status as string} />
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell text-muted-foreground">
                                                 {(investigation.sketches?.length || 0) > 0 ? `${investigation.sketches.length} items` : "Empty"}

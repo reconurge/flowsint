@@ -73,12 +73,13 @@ export default function PanelContextMenu({ addNodes }: { addNodes: any }) {
             }
             addNodes(newNode)
             setCurrentNode(newNode)
-            setOpenNodeModal(false)
             setError(null)
+            toast.success("Node successfully created.")
         } catch (error) {
-            toast.error("An unexpected error occurred")
+            toast.error("An unexpected error occurred.")
         } finally {
             setLoading(false)
+            setOpenNodeModal(false)
         }
     }
     const navigateToSubItems = (item: ActionItem) => {

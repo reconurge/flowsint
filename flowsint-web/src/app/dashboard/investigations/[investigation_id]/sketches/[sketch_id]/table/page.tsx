@@ -15,12 +15,12 @@ const IndividualsPage = () => {
         return response.json()
     }
 
-    const { data, isLoading, isError, refetch, isRefetching } = useQuery({
+    const { data, isLoading, error, refetch, isRefetching } = useQuery({
         queryKey: ['individuals', 'table', sketch_id, pagination.pageIndex, pagination.pageSize],
         queryFn: fetchIndividuals,
     })
 
-    if (isError) return <div>Error fetching deliveries</div>
+    if (error) return <div>Error fetching data.</div>
     return (
         <div className="w-full space-y-8 mx-auto py-12 px-8">
             {isLoading ? <TableSkeleton /> :

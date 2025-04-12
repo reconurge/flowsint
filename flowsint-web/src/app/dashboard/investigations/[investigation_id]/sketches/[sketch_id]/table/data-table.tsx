@@ -296,7 +296,7 @@ export function DataTable({
     refetch,
     isRefetching
 }: {
-    data: any[],
+    data: any,
     pageCount: number
     pagination: any
     setPagination: any
@@ -319,7 +319,7 @@ export function DataTable({
     )
 
     const dataIds = React.useMemo<UniqueIdentifier[]>(
-        () => data?.map(({ id }) => id) || [],
+        () => !data?.error && data?.map(({ id }: any) => id) || [],
         [data]
     )
 
@@ -351,7 +351,7 @@ export function DataTable({
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
         if (active && over && active.id !== over.id) {
-            setData((data) => {
+            setData((data: any) => {
                 const oldIndex = dataIds.indexOf(active.id)
                 const newIndex = dataIds.indexOf(over.id)
                 return arrayMove(data, oldIndex, newIndex)
@@ -494,7 +494,7 @@ export function DataTable({
                                             colSpan={columns.length}
                                             className="h-24 text-center"
                                         >
-                                            No individual.
+                                            No data yet.
                                         </TableCell>
                                     </TableRow>
                                 )}

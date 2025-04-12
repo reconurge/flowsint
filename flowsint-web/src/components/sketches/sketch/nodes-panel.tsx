@@ -149,12 +149,14 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
                         />
                     </div>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={"outline"} className="h-7 w-8 relative" size={"icon"}>
-                                <FilterIcon className={cn("opacity-60 h-3 w-3", filters && 'opacity-100')} />
-                                {filters && <Badge className='absolute -top-2 -right-1 text-xs rounded-full h-4 w-4' variant={"default"}>{filters.length}</Badge>}
-                            </Button>
-                        </DropdownMenuTrigger>
+                        <div>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant={"outline"} className="h-7 w-8 relative" size={"icon"}>
+                                    <FilterIcon className={cn("opacity-60 h-3 w-3", filters && 'opacity-100')} />
+                                    {filters && <Badge className='absolute -top-2 -right-1 text-xs rounded-full h-4 w-4' variant={"default"}>{filters.length}</Badge>}
+                                </Button>
+                            </DropdownMenuTrigger>
+                        </div>
                         <DropdownMenuContent className="w-48 max-h-[50vh] space-y-1 overflow-y-auto">
                             <DropdownMenuLabel>{filters ? <Badge variant={"outline"} className='flex items-center gap-1 pr-1'>{filters?.length} filter(s)<Button size={"icon"} variant={"ghost"} className='h-5 w-5 rounded-full' onClick={clearFilters}><XIcon className='h-3 w-3' /></Button></Badge> : "filters"}</DropdownMenuLabel>
                             <DropdownMenuSeparator />

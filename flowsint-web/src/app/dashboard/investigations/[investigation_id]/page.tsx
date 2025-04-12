@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { InvestigationNavigation } from "@/components/investigations/investigation-navigation"
 import { Card } from "@/components/ui/card"
 import { AvatarList } from "@/components/avatar-list"
+import { SectionCards } from "@/components/investigations/section-cards"
 
 const DashboardPage = () => {
     const { investigation_id } = useParams()
@@ -63,6 +64,7 @@ const DashboardPage = () => {
                 <InvestigationNavigation investigation_id={investigation_id as string} />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
+                <SectionCards />
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 bg-background text-muted-foreground" />
@@ -75,11 +77,6 @@ const DashboardPage = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <NewSketch>
-                            <Button size="sm" className="gap-2">
-                                <PlusIcon className="h-4 w-4" />  New
-                            </Button>
-                        </NewSketch>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="gap-2">
@@ -98,6 +95,11 @@ const DashboardPage = () => {
                         <Button onClick={handleRefetch} disabled={isLoading || isRefetching} variant={"outline"} className="gap-2">
                             <RotateCwIcon className={cn("h-4 w-4", isLoading || isRefetching && "animate-spin")} />  Refresh
                         </Button>
+                        <NewSketch>
+                            <Button size="sm" className="gap-2">
+                                <PlusIcon className="h-4 w-4" />  New
+                            </Button>
+                        </NewSketch>
                     </div>
                 </div>
                 {isLoadingInvestigations ? (

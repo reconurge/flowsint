@@ -36,5 +36,4 @@ def email_scan(self, email: str):
                 "exc_message": error_logs,
             },
         )
-        
         raise ex

@@ -1,7 +1,7 @@
 'use server'
 import { createClient } from "../supabase/server";
 
-export async function checkEmail(email: string, investigation_id: string) {
+export async function checkEmail(email: string, sketch_id: string) {
     const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan/`;
     const response = await fetch(url, {
         method: 'POST',
@@ -10,7 +10,7 @@ export async function checkEmail(email: string, investigation_id: string) {
         },
         body: JSON.stringify({
             "email": email,
-            "investigation_id": investigation_id
+            "sketch_id": sketch_id
         })
     },
     );

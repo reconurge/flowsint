@@ -64,6 +64,15 @@ const DashboardPage = () => {
                 <InvestigationNavigation investigation_id={investigation_id as string} />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="font-semibold text-2xl">{investigation?.name}</h1>
+                        <p>{investigation?.description}</p>
+                    </div>
+                    <div>
+                        <AvatarList size="lg" users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === investigation.owner_id })) || []} />
+                    </div>
+                </div>
                 <SectionCards />
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
@@ -139,7 +148,7 @@ const DashboardPage = () => {
                                         <TableRow key={sketch.id}>
                                             <TableCell>
                                                 <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} className="flex items-center gap-2 hover:underline">
-                                                    <Waypoints className="h-5 w-5 text-primary" />
+                                                    <Waypoints className="h-5 w-5 text-muted-foreground opacity-60" />
                                                     <span>{sketch.title}</span>
                                                 </Link>
                                             </TableCell>

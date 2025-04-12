@@ -80,8 +80,10 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
             setError(null)
         } catch (error) {
             toast.error("An unexpected error occurred")
+            setOpenActionDialog(false)
         } finally {
             setLoading(false)
+            setOpenActionDialog(false)
         }
     }
 

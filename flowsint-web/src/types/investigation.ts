@@ -10,4 +10,5 @@ export interface Investigation {
     owner: any
     owner_id: string,
     members?: any[]
+    status: string
 }

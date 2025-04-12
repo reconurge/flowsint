@@ -22,7 +22,6 @@ export default function MapPage() {
         if (width < 1024) return 60 // Medium screens
         return 80 // Large screens
     }
-
     return (
         <div className="flex flex-col grow w-full">
             <div id="map-container" className="grow w-full relative overflow-hidden">

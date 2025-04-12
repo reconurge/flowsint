@@ -3,7 +3,7 @@
 import type { Sketch } from "@/types/sketch"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { Fingerprint, Search } from "lucide-react"
+import { Fingerprint, Search, Waypoints } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns"
 import { AvatarList } from "../avatar-list"
 
 const RecentSketches = () => {
+
     const {
         data: sketches,
         isLoading,
@@ -57,14 +58,15 @@ const RecentSketches = () => {
     }
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {sketches?.length === 0 && <div className="italic opacity-60">No sketch yet.</div>}
             {sketches?.map((sketch: Sketch) => {
                 return (
                     <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} key={sketch.id} className="group">
                         <Card className="bg-background shadow-xs h-full min-h-32 transition-all duration-200 hover:border-primary rounded-md">
                             <CardContent className="p-4 relative h-full flex flex-col justify-between">
-                                <div className="flex flex items-center gap-2 w-full">
+                                <div className="flex flex items-center gap-3 w-full">
                                     <div>
-                                        <Fingerprint className="h-8 w-8 text-muted-foreground opacity-60" />
+                                        <Waypoints className="h-8 w-8 text-muted-foreground opacity-60" />
                                     </div>
                                     <div className="w-full truncate">
                                         <h3 className="font-medium w-full truncate text-ellispsis transition-colors">
@@ -74,7 +76,7 @@ const RecentSketches = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-end">
-                                    <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
+                                    <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} size="sm" />
                                 </div>
                             </CardContent>
                         </Card>

@@ -164,7 +164,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
             }
             // add individual to individual
             if (nodeToInsert.type === "individual" && currentNode?.data?.type === "individual") {
-                const { error: relationshipError } = await supabase.from("relationships").upsert({
+                const { error: relationshipError } = await supabase.from("individuals_individuals").upsert({
                     individual_a: currentNode.id,
                     individual_b: nodeData.id,
                     sketch_id: sketch_id,

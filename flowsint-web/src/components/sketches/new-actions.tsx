@@ -57,7 +57,7 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
                 .select("*")
                 .single()
             if (insertError) {
-                toast.error("Failed to create node.")
+                toast.error("Failed to create node." + JSON.stringify(insertError))
                 setLoading(false)
                 return
             }

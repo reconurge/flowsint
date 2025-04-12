@@ -12,7 +12,7 @@ import { DownloadButton } from "../download-button"
 import { AvatarList } from "../avatar-list"
 import { Sketch } from "@/types/sketch"
 
-function InvestigationNavigation({ investigation_id, sketch_id, sketch }: { investigation_id: string, sketch_id: string, sketch: Sketch }) {
+function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { investigation_id: string, sketch_id: string, sketch: Sketch, user_id: string }) {
     const pathname = usePathname()
 
     // Memoize the sections array so it doesn't get recreated on every render
@@ -73,18 +73,16 @@ function InvestigationNavigation({ investigation_id, sketch_id, sketch }: { inve
             </div>
             <div className="flex items-center ">
                 <div className="px-2">
-                    <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} />
+                    <AvatarList size="md" users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} />
                 </div>
                 <DownloadButton endpoint={`/api/investigations/${investigation_id}/sketches/${sketch_id}/table`} name={investigation_id} />
-                <MoreMenu />
+                <MoreMenu sketch={sketch} user_id={user_id} />
                 <ScanButton />
             </div>
         </div >
     )
 }
 
-// Memoize the entire component
-export const MemoizedInvestigationNavigation = memo(InvestigationNavigation);
+export const MemoizedInvestigationNavigation = memo(SketchNavigation);
 
-// For backward compatibility, you can also export the original name
 export { MemoizedInvestigationNavigation as SketchNavigation };

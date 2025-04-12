@@ -467,6 +467,16 @@ export const typeColorMap: Record<string, string> = {
   credential: "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60",
 }
 
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2)
+}
+
+
 export function getAvatarColor(name: string): string {
   const colors = [
     "bg-red-500",

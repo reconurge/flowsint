@@ -12,7 +12,7 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
         const { data: investigations, error } = await supabase.from("investigations")
-            .select("*, sketches(*), owner:owner_id(first_name, last_name), members:investigations_profiles(profile:profiles(id, first_name, last_name), role)")
+            .select("*, sketches(*), owner_id, members:investigations_profiles(profile:profiles(id, first_name, last_name), role)")
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })
         }

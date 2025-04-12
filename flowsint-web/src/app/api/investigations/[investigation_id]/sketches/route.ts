@@ -13,7 +13,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ investigat
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
         const { data: sketches, error } = await supabase.from("sketches")
-            .select("id, title, description, status, investigation_id, last_updated_at, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name), role)")
+            .select("id, title, description, status, owner_id, investigation_id, last_updated_at, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name), role)")
             .order("last_updated_at", { ascending: false })
             .eq("investigation_id", investigation_id)
         if (error) {

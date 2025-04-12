@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trash2 } from "lucide-react"
-import DashboardLayout from "@/components/dashboard/layout"
 import { Separator } from "@/components/ui/separator"
 
 export default function TokensPage() {

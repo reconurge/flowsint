@@ -9,6 +9,7 @@ export interface Sketch {
     created_at: string
     last_updated_at: string
     owner: any
+    owner_id: string,
     relations?: any[]
     individuals?: any[]
     investigation?: Investigation

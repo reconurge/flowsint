@@ -1,7 +1,7 @@
 "use server"
 import { createClient } from "../supabase/server"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
+
 export const createNewInvestigation = async (formData: FormData) => {
     const supabase = await createClient()
     const { data: session, error: userError } = await supabase.auth.getUser()
@@ -19,7 +19,8 @@ export const createNewInvestigation = async (formData: FormData) => {
         if (bucketError) throw bucketError
         return { success: true, id: investigation.id, path: folder.path }
     } catch (error) {
-        console.error("Error creating new investigation:", error)
+        if ((error as { code?: string })?.code === "42501")
+            return { success: false, error: "Missing permission to create a new investigation." }
         return { success: false, error: "Failed to create new investigation." }
     }
 }

@@ -131,7 +131,7 @@ export function ScanDrawer() {
                             {/* Stats Cards */}
 
                             <div className="grid grid-cols-3 gap-4 mb-4">
-                                <Card className="bg-accent shadow-none">
+                                <Card className="bg-background shadow-none">
                                     <CardContent className="p-4 flex items-center gap-2">
                                         <Shield className="h-4 w-4 text-green-500" />
                                         <div>
@@ -140,7 +140,7 @@ export function ScanDrawer() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Card className="bg-accent shadow-none">
+                                <Card className="bg-background shadow-none">
                                     <CardContent className="p-4 flex items-center gap-2">
                                         <Clock className="h-4 w-4 text-yellow-500" />
                                         <div>
@@ -149,7 +149,7 @@ export function ScanDrawer() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Card className="bg-accent shadow-none">
+                                <Card className="bg-background shadow-none">
                                     <CardContent className="p-4 flex items-center gap-2">
                                         <ShieldAlert className="h-4 w-4 text-destructive" />
                                         <div>
@@ -250,7 +250,7 @@ export function ScanDrawer() {
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-auto">
                                     {filteredResults?.map((result: any, index: number) => (
-                                        <Card key={index} className="overflow-hidden bg-accent">
+                                        <Card key={index} className="overflow-hidden bg-background">
                                             <CardContent className="p-4">
                                                 {isErrorResult(result) ? (
                                                     <div className="flex items-start gap-2 text-destructive">

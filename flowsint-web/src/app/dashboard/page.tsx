@@ -42,7 +42,7 @@ const DashboardPage = () => {
 
     return (
         <>
-            <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
+            <div className="sticky z-40 bg-card w-full hidden md:flex top-[48px] border-b">
                 <SubNav />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
@@ -54,12 +54,12 @@ const DashboardPage = () => {
                         <Input
                             type="text"
                             placeholder="Search investigations and investigations..."
-                            className="pl-10 pr-16 py-2 h-10 text-sm bg-background"
+                            className="pl-10 pr-16 py-2 h-10 text-sm bg-card"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <div className="flex items-center gap-1 text-xs">
-                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">⌘</kbd>
-                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">K</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">⌘</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">K</kbd>
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ const DashboardPage = () => {
                     <div className="flex items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="flex items-center gap-2 h-10">
+                                <Button variant="outline" className="flex items-center bg-card gap-2 h-10">
                                     <span>Sort by activity</span>
                                     <ChevronDown className="h-4 w-4" />
                                 </Button>
@@ -80,11 +80,11 @@ const DashboardPage = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <div className="flex items-center border bg-background rounded-md overflow-hidden">
+                        <div className="flex items-center border bg-card rounded-md overflow-hidden">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`rounded-none ${viewMode === "grid" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "grid" ? "bg-background" : ""}`}
                                 onClick={() => setViewMode("grid")}
                             >
                                 <Grid className="h-4 w-4" />
@@ -92,7 +92,7 @@ const DashboardPage = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`rounded-none ${viewMode === "list" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "list" ? "bg-background" : ""}`}
                                 onClick={() => setViewMode("list")}
                             >
                                 <List className="h-4 w-4" />
@@ -134,7 +134,7 @@ const DashboardPage = () => {
                         <Loader />
                     </div>
                 ) : (
-                    <Card className="border rounded-md bg-background shadow-xs">
+                    <Card className="border rounded-md bg-card shadow-xs">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -153,11 +153,13 @@ const DashboardPage = () => {
                                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             {searchQuery !== "" ? "No investigations found" :
                                                 <div className="flex items-center flex-col gap-3">No investigations yet
-                                                    <NewInvestigation noDropDown>
-                                                        <Button size="sm" className="gap-2">
-                                                            <PlusIcon className="h-4 w-4" />  Create a new investigation
-                                                        </Button>
-                                                    </NewInvestigation>
+                                                    <div className="mt-4">
+                                                        <NewInvestigation noDropDown>
+                                                            <Button size="sm" className="gap-2">
+                                                                <PlusIcon className="h-4 w-4" />  Create a new investigation
+                                                            </Button>
+                                                        </NewInvestigation>
+                                                    </div>
                                                 </div>}
                                         </TableCell>
                                     </TableRow>

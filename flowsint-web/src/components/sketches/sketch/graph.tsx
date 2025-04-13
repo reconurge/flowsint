@@ -102,7 +102,7 @@ const FlowControls = memo(({
             </Panel>
             <Panel position="top-left" className="flex flex-col items-center gap-1">
                 <NewActions addNodes={addNodes}>
-                    <Button className="bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300" size="icon">
+                    <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none" size="icon">
                         <PlusIcon />
                     </Button>
                 </NewActions>
@@ -293,7 +293,6 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         proOptions: { hideAttribution: true },
         edgeTypes,
         nodeTypes,
-        className: "!bg-accent dark:!bg-background"
     }), [
         theme,
         nodes,
@@ -331,7 +330,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                                         zoomOut={zoomOut}
                                         addNodes={addNodes}
                                     />
-                                    <Background className="dark:bg-background bg-accent" />
+                                    <Background bgColor="var(--background)" />
                                     {showMiniMap && <MiniMap className="!z-40" pannable />}
                                 </ReactFlow>
                             </ContextMenuTrigger>
@@ -358,7 +357,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                 </TooltipProvider>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="h-full bg-background">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="h-full bg-card">
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
                     {currentNode && (
                         <>

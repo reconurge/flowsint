@@ -61,8 +61,8 @@ function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { in
                                 className={cn(
                                     "flex items-center text-sm gap-2 border-b-2  border-transparent px-4 py-2 transition-colors",
                                     section?.href == pathname
-                                        ? "bg-accent text-accent-foreground border-b-primary"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                                        ? "bg-background text-accent-foreground border-b-primary"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-background/50",
                                 )}
                             >
                                 <section.icon className="h-4 w-4" />

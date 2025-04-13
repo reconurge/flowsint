@@ -23,7 +23,7 @@ const DashboardLayout = async ({
     }
     return (
         <SketchProvider>
-            <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
+            <div className="sticky z-40 bg-card w-full hidden md:flex top-[48px] border-b">
                 <SketchNavigation user_id={data?.user?.id} investigation_id={investigation_id} sketch_id={sketch_id} sketch={sketch as Sketch} />
             </div>
             {children}

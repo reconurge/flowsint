@@ -18,7 +18,7 @@ export default function MoreMenu({ sketch, user_id }: { sketch: Sketch, user_id:
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-none border-none">
+                    <Button variant="ghost" size="icon" className="rounded-none border-none">
                         <Ellipsis className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>

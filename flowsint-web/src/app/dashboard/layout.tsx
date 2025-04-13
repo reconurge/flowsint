@@ -27,8 +27,8 @@ const DashboardLayout = async ({
     return (
         <SidebarProvider>
             <SidebarInset>
-                <div className="flex flex-col flex-1 min-h-screen flex-col bg-accent">
-                    <header className="sticky top-0 z-50 bg-background border-b">
+                <div className="flex flex-col flex-1 min-h-screen flex-col bg-background">
+                    <header className="sticky top-0 z-50 bg-card border-b">
                         <div className="flex h-12 items-center px-4">
                             <Link href="/dashboard" className="flex items-center gap-1">
                                 <FingerprintIcon className="mr-2 h-6 w-6 text-primary" />

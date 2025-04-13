@@ -12,7 +12,7 @@ import {
 export function SectionCards() {
     return (
         <div className="*:data-[slot=card]:shadow-xs grid-cols-2 xl:grid-cols-4 grid grid-cols-1 gap-4">
-            <Card className="bg-background">
+            <Card className="bg-card">
                 <CardHeader className="relative">
                     <CardDescription>Total sketches</CardDescription>
                     <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
@@ -34,7 +34,7 @@ export function SectionCards() {
                     </div>
                 </CardFooter>
             </Card>
-            <Card className="bg-background">
+            <Card className="bg-card">
                 <CardHeader className="relative">
                     <CardDescription>New entities</CardDescription>
                     <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
@@ -56,7 +56,7 @@ export function SectionCards() {
                     </div>
                 </CardFooter>
             </Card>
-            <Card className="bg-background">
+            <Card className="bg-card">
                 <CardHeader className="relative">
                     <CardDescription>Verified accounts</CardDescription>
                     <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
@@ -76,7 +76,7 @@ export function SectionCards() {
                     <div className="text-muted-foreground">Amount of verified social accounts</div>
                 </CardFooter>
             </Card>
-            <Card className="bg-background">
+            <Card className="bg-card">
                 <CardHeader className="relative">
                     <CardDescription>Collaborators</CardDescription>
                     <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">

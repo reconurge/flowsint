@@ -188,7 +188,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all bg-accent hover:scale-105 hover:shadow-md",
+                "cursor-pointer transition-all bg-background hover:scale-105 hover:shadow-md",
                 item.disabled && "opacity-50 cursor-not-allowed",
                 "h-full",
             )}

@@ -98,8 +98,8 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Ajouter un profil à l'investigation</DialogTitle>
-                    <DialogDescription>Sélectionnez un profil à associer à cette esquisse d'investigation.</DialogDescription>
+                    <DialogTitle>Add a collaborator to the investigation</DialogTitle>
+                    <DialogDescription>Select a profile to associate with this investigation's sketcH.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -115,7 +115,7 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
                                 {isLoading ? (
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Chargement des profils...</span>
+                                        <span>Loading profiles...</span>
                                     </div>
                                 ) : selectedProfile ? (
                                     <div className="flex items-center gap-2">
@@ -135,14 +135,14 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
                                         </span>
                                     </div>
                                 ) : (
-                                    "Sélectionner un profil"
+                                    "Select a profile"
                                 )}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] p-0">
                             <Command>
-                                <CommandInput placeholder="Rechercher un profil..." />
+                                <CommandInput placeholder="Search for a profile..." />
                                 <CommandList>
                                     <CommandEmpty>Could not find any profile.</CommandEmpty>
                                     <CommandGroup className="max-h-[300px] overflow-y-auto">

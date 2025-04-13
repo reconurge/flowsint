@@ -62,7 +62,7 @@ const RecentSketches = () => {
             {sketches?.map((sketch: Sketch) => {
                 return (
                     <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} key={sketch.id} className="group">
-                        <Card className="bg-background shadow-xs h-full min-h-32 transition-all duration-200 hover:border-primary rounded-md">
+                        <Card className="bg-card shadow-xs h-full min-h-32 transition-all duration-200 hover:border-primary rounded-md">
                             <CardContent className="p-4 relative h-full flex flex-col justify-between">
                                 <div className="flex flex items-center gap-3 w-full">
                                     <div>

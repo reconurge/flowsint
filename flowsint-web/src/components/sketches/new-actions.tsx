@@ -203,7 +203,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all bg-accent hover:border-primary border border-transparent hover:shadow-md",
+                "cursor-pointer transition-all bg-background hover:border-primary border border-transparent hover:shadow-md",
                 item.disabled && "opacity-50 cursor-not-allowed",
                 "h-full",
             )}

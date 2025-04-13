@@ -60,7 +60,7 @@ const DashboardPage = () => {
 
     return (
         <>
-            <div className="sticky z-40 bg-background top-[48px] border-b">
+            <div className="sticky z-40 bg-card top-[48px] border-b">
                 <InvestigationNavigation investigation_id={investigation_id as string} />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
@@ -116,7 +116,7 @@ const DashboardPage = () => {
                         <Loader />
                     </div>
                 ) : (
-                    <Card className="border rounded-md bg-background shadow-xs">
+                    <Card className="border rounded-md bg-card shadow-xs">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -135,11 +135,13 @@ const DashboardPage = () => {
                                         <TableCell colSpan={7} className="text-center w-full py-2 text-muted-foreground">
                                             <div className="flex flex-col justify-center items-center p-3 gap-2">
                                                 No sketch yet or document yet.
-                                                <NewSketch noDropDown>
-                                                    <Button size="sm" className="gap-2">
-                                                        <PlusIcon className="h-4 w-4" />  Create a new sketch
-                                                    </Button>
-                                                </NewSketch>
+                                                <div className="mt-4">
+                                                    <NewSketch noDropDown>
+                                                        <Button size="sm" className="gap-2">
+                                                            <PlusIcon className="h-4 w-4" />Create a new sketch
+                                                        </Button>
+                                                    </NewSketch>
+                                                </div>
                                             </div>
                                         </TableCell>
                                     </TableRow>

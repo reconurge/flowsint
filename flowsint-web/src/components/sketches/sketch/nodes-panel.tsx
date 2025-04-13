@@ -30,7 +30,7 @@ const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
             variant={"ghost"}
             className={cn(
                 'flex items-center justify-start p-4 !py-5 rounded-none text-left border-b border-l-2 border-l-transparent',
-                node.id === currentNodeId && 'border-l-primary bg-accent'
+                node.id === currentNodeId && 'border-l-primary bg-background'
             )}
             onClick={handleClick}
         >
@@ -75,12 +75,12 @@ const NodeRenderer = memo(({
         <Button
             variant={"ghost"}
             className={cn(
-                'flex items-center justify-start p-4 !py-5 rounded-none text-left border-b border-l-2 border-l-transparent',
-                node.id === currentNodeId && 'border-l-primary bg-accent'
+                'flex items-center justify-start p-4 !py-5 hover:bg-muted rounded-none text-left border-b border-l-2 border-l-transparent',
+                node.id === currentNodeId && 'border-l-primary bg-muted'
             )}
             onClick={handleClick}
         >
-            <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
+            <Badge variant="outline" className="h-7 w-7 p-0 rounded-full">
                 <Icon className="h-4 w-4 opacity-60" />
             </Badge>
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
@@ -133,8 +133,8 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
     }, [])
 
     return (
-        <div className="overflow-auto h-full flex flex-col w-full !p-0 !m-0">
-            <div className="sticky border-b top-0 p-2 bg-background z-10">
+        <div className="overflow-auto bg-card h-full flex flex-col w-full !p-0 !m-0">
+            <div className="sticky border-b top-0 p-2 bg-card z-10">
                 <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">Nodes</h3>
                     <Badge variant={"outline"}>{nodes?.length || 0}</Badge>

@@ -4,18 +4,10 @@ import type * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn, getAvatarColor } from "@/lib/utils"
-import { CrownIcon } from "lucide-react"
 import { getInitials } from "@/lib/utils"
-export interface User {
-    id: string
-    name: string
-    email?: string
-    image?: string
-    owner?: boolean
-}
-
+import { Profile } from '@/types/index'
 interface AvatarListProps extends React.HTMLAttributes<HTMLDivElement> {
-    users: User[]
+    users: (Profile & { owner: boolean })[]
     /** Maximum number of avatars to display before showing the count */
     maxCount?: number
     /** Size of the avatars in pixels */
@@ -32,6 +24,7 @@ export function AvatarList({
     className,
     ...props
 }: AvatarListProps) {
+
     const visibleUsers = users.slice(0, maxCount)
     const remainingCount = Math.max(0, users.length - maxCount)
 
@@ -44,40 +37,40 @@ export function AvatarList({
         md: {
             avatar: "h-7 w-7",
             container: "space-x-[-11px]",
-            more: "h-8 w-8 text-sm",
+            more: "h-7 w-7 text-sm",
         },
         lg: {
             avatar: "h-8 w-8",
             container: "space-x-[-10px]",
-            more: "h-10 w-10 text-base",
+            more: "h-8 w-8 text-base",
         },
     }
-    const renderAvatar = (user: User) => {
-        const avatarColor = getAvatarColor(user.name)
+    const renderAvatar = (profile: Profile & { owner: boolean }) => {
+        const name = `${profile.first_name ?? "J"} ${profile.last_name ?? "J"}`
+        const avatarColor = getAvatarColor(name)
         const avatar = (
             <div className="relative">
                 <Avatar
-                    key={user.id}
+                    key={profile.id}
                     className={cn(
                         sizeClasses[size].avatar,
-                        "border-2 border-background bg-background relative",
+                        "border-2 border-card bg-background relative",
                         "transition-transform",
                         "ring-0 ring-offset-0",
                     )}
                 >
-                    <AvatarImage src={user.image} alt={`${user.name}'s avatar`} />
-                    <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarImage src={profile.avatar_url} alt={`${name}'s avatar`} />
+                    <AvatarFallback className={cn("text-xs", "bg-muted")}>{getInitials(name)}</AvatarFallback>
                 </Avatar>
-                {/* {user?.owner && <span className="block z-50 absolute -top-2 left-1/2 -translate-x-1/2"><CrownIcon fill="yellow" className="h-3 w-3 text-yellow-500 opacity-70" /></span>} */}
             </div>
         )
         if (showTooltips) {
             return (
-                <TooltipProvider key={user.id} delayDuration={300}>
+                <TooltipProvider key={profile.id} delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>{avatar}</TooltipTrigger>
                         <TooltipContent side="bottom" align="center" className="shadow">
-                            {user.name} {user.owner && `(owner)`}
+                            {name} {profile.owner && `(owner)`}
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -90,7 +83,6 @@ export function AvatarList({
     return (
         <div className={cn("flex items-center", sizeClasses[size].container, className)} {...props}>
             {visibleUsers.map(renderAvatar)}
-
             {remainingCount > 0 && (
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>

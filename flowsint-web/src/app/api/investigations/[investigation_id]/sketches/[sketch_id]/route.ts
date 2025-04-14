@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ sketch_id:
         }
         const { data: sketch, error } = await supabase
             .from("sketches")
-            .select("id, title, description, last_updated_at, investigation_id, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name), role)")
+            .select("id, title, description, last_updated_at, investigation_id, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name, avatar_url), role)")
             .eq("id", sketch_id)
             .eq("investigation_id", investigation_id)
             .single()

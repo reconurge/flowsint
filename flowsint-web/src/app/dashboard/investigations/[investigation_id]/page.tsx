@@ -19,6 +19,8 @@ import { InvestigationNavigation } from "@/components/investigations/investigati
 import { Card } from "@/components/ui/card"
 import { AvatarList } from "@/components/avatar-list"
 import { SectionCards } from "@/components/investigations/section-cards"
+import { Profile } from "@/types"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const DashboardPage = () => {
     const { investigation_id } = useParams()
@@ -66,21 +68,36 @@ const DashboardPage = () => {
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="font-semibold text-2xl">{investigation?.name}</h1>
-                        <p>{investigation?.description}</p>
+                        {isLoading ?
+                            <>
+                                <Skeleton className="font-semibold h-8 w-full w-72 rounded-lg" />
+                                <Skeleton className="font-semibold mt-3 h-4 w-full w-102 rounded-lg" />
+                            </> :
+                            <>  <h1 className="font-semibold text-2xl">{investigation?.name}</h1>
+                                <p className="opacity-60 mt-3">{investigation?.description ?? <span className="italic">No description provided.</span>}</p>
+                            </>
+                        }
                     </div>
                     <div>
-                        <AvatarList size="lg" users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === investigation.owner_id })) || []} />
+                        <AvatarList
+                            size="lg"
+                            users={
+                                investigation?.members?.map((member: { profile: Profile }) => ({
+                                    ...member.profile,
+                                    owner: member.profile.id === investigation.owner_id,
+                                })) || []
+                            }
+                        />
                     </div>
                 </div>
                 <SectionCards />
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 bg-background text-muted-foreground" />
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 bg-card text-muted-foreground" />
                         <Input
                             type="search"
                             placeholder="Search items..."
-                            className="pl-8 w-full bg-background"
+                            className="pl-8 w-full bg-card"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -149,7 +166,7 @@ const DashboardPage = () => {
                                     investigation?.sketches?.map((sketch: Sketch) => (
                                         <TableRow key={sketch.id}>
                                             <TableCell>
-                                                <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} className="flex items-center gap-2 hover:underline">
+                                                <Link href={`/dashboard/investigations/${sketch.investigation_id}/sketches/${sketch.id}`} className="flex items-center gap-2 hover:underline font-medium">
                                                     <Waypoints className="h-5 w-5 text-muted-foreground opacity-60" />
                                                     <span>{sketch.title}</span>
                                                 </Link>
@@ -159,8 +176,15 @@ const DashboardPage = () => {
                                                 {(sketch?.individuals?.length || 0) > 0 ? `${sketch?.individuals?.length} items` : "Empty"}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} size="sm" />
-                                            </TableCell>
+                                                <AvatarList
+                                                    size="md"
+                                                    users={
+                                                        sketch?.members?.map(member => ({
+                                                            ...member.profile,
+                                                            owner: member.profile.id === investigation.owner_id,
+                                                        })) || []
+                                                    }
+                                                />                                            </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
                                                 {formatDistanceToNow(new Date(sketch.last_updated_at), { addSuffix: true })}
                                             </TableCell>

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
 import StatusBadge from "@/components/investigations/status-badge"
-
+import { Profile } from "@/types"
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -106,7 +106,7 @@ const DashboardPage = () => {
                     </div>
                 </div>
                 <div>
-                    <RecentSketches />
+                    <RecentSketches limit={4} />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ const DashboardPage = () => {
                                     filteredInvestigations.map((investigation: Investigation) => (
                                         <TableRow key={investigation.id}>
                                             <TableCell>
-                                                <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline">
+                                                <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline font-medium">
                                                     <FolderLockIcon className="h-5 w-5 text-muted-foreground opacity-60" />
                                                     <span>{investigation.name}</span>
                                                 </Link>
@@ -182,7 +182,15 @@ const DashboardPage = () => {
                                                 {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={investigation?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === investigation.owner_id })) || []} size="sm" />
+                                                <AvatarList
+                                                    size="md"
+                                                    users={
+                                                        investigation?.members?.map(member => ({
+                                                            ...member.profile,
+                                                            owner: member.profile.id === investigation.owner_id,
+                                                        })) || []
+                                                    }
+                                                />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
                                                 {format(new Date(investigation.created_at), "dd.MM.yyyy")}

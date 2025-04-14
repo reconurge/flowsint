@@ -17,7 +17,7 @@ const DashboardLayout = async ({
     if (userError || !data?.user) {
         redirect('/login')
     }
-    const { data: sketch, error } = await supabase.from("sketches").select("id, owner_id, members:sketches_profiles(profile:profiles(id, first_name, last_name), role)").eq("id", sketch_id).single()
+    const { data: sketch, error } = await supabase.from("sketches").select("*, members:sketches_profiles(profile:profiles(id, first_name, last_name, avatar_url), role)").eq("id", sketch_id).single()
     if (!sketch || error) {
         return notFound()
     }

@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { NodeNotesEditor } from "./node-notes-editor"
-import { checkEmail } from "@/lib/actions/search"
+import { performSearch } from "@/lib/actions/search"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
 
@@ -52,7 +52,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
         if (!currentNode && currentNode?.data && !currentNode?.data?.email) return toast.error("No email found.")
         if (!await confirm({ title: "Email scan", message: "This scan will look for some socials that the email might be associated with. The list is not exhaustive and might return false positives." })) return
         // @ts-ignore
-        toast.promise(checkEmail(currentNode?.data?.email, sketch_id), {
+        toast.promise(performSearch(currentNode?.data?.email, 'email', sketch_id), {
             loading: "Loading...",
             success: () => {
                 return `Scan on ${currentNode?.data?.email} has been launched.`

@@ -20,10 +20,12 @@ import {
 import { ScanTable } from "./scan-table"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase/client"
+import { useParams } from "next/navigation"
 export type Scan = {
   id: string
   value: string
   status: "pending" | "finished" | "failed"
+  scan_name: string
   results: { results: any[] }
 }
 
@@ -32,11 +34,12 @@ export function ScanButton() {
   const [pendingCount, setPendingCount] = useState(0)
   const [scanId, setScanId] = useQueryState("scan_id")
   const [open, setOpen] = useState(false)
+  const { sketch_id } = useParams()
 
   useEffect(() => {
     // Initial fetch of scans
     const fetchScans = async () => {
-      const { data, error } = await supabase.from("scans").select("*").order("created_at", { ascending: false })
+      const { data, error } = await supabase.from("scans").select("*").eq("sketch_id", sketch_id).order("created_at", { ascending: false })
       if (error) {
         console.error("Error fetching scans:", error)
         return

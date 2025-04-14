@@ -13,7 +13,7 @@ import {
 import { useSketchStore } from '@/store/sketch-store';
 import { useFlowStore } from '@/store/flow-store';
 
-export default memo(({ data, selected }: any) => {
+export default memo(({ data }: any) => {
     const item = useMemo(() => (actionItems as any).find((a: any) => a.type === data.type), [data?.type]);
     const Icon = item?.icon || QuestionMarkIcon;
     const showNodeLabel = useSketchStore(state => state.settings.showNodeLabel);
@@ -26,7 +26,7 @@ export default memo(({ data, selected }: any) => {
         <TooltipNode className={cn('p-.5 rounded-full', typeColorMap[data.type])} selected={active}>
             <TooltipTrigger>
                 <div className="inline-flex items-center gap-2 p-1 w-auto">
-                    <Badge variant="outline" className={cn("p-0 rounded-full", item?.size || "h-5 w-5")}>
+                    <Badge variant="secondary" className={cn("p-0 rounded-full", item?.size || "h-5 w-5")}>
                         <Icon className="h-4 w-4" />
                     </Badge>
                     {showNodeLabel && <div className="flex items-center gap-1">

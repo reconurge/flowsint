@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useCallback } from 'react'
 import { toast } from 'sonner'
-import { checkEmail } from '@/lib/actions/search'
+import { performSearch } from '@/lib/actions/search'
 const SearchEmail = ({ sketch_id, email }: { sketch_id: string, email: string }) => {
 
     const [disabled, setDisabled] = React.useState(false)
@@ -10,7 +10,7 @@ const SearchEmail = ({ sketch_id, email }: { sketch_id: string, email: string })
         setDisabled(true)
         if (!sketch_id && !email) return
         // @ts-ignore
-        toast.promise(checkEmail(email, sketch_id), {
+        toast.promise(performSearch(email, 'email', sketch_id), {
             loading: "Loading...",
             success: () => {
                 setDisabled(false)

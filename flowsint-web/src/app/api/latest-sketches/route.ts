@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const supabase = await createClient()
+        let limit = request.nextUrl.searchParams.get("limit") || "4"
         const {
             data: { user },
             error: userError,
@@ -12,9 +13,9 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
         const { data: sketches, error } = await supabase.from("sketches")
-            .select("id, title, owner_id, description, last_updated_at, investigation_id, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name), role)")
+            .select("id, title, owner_id, description, last_updated_at, investigation_id, investigation:investigations(id, name), members:sketches_profiles(profile:profiles(id, first_name, last_name, avatar_url), role)")
             .order("last_updated_at", { ascending: false })
-            .limit(4)
+            .limit(parseInt(limit))
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 })
         }

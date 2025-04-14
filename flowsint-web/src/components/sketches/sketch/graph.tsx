@@ -209,7 +209,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
     // Initialize layout once
     useEffect(() => {
         const timer = setTimeout(() => {
-            onLayout("dagre", fitView);
+            onLayout("force", fitView);
             fitView();
         }, 500);
         return () => clearTimeout(timer);
@@ -217,7 +217,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
 
     const handleRefetch = useCallback(() => {
         refetch();
-        onLayout("dagre", fitView);
+        onLayout("force", fitView);
         fitView();
     }, [refetch, onLayout, fitView]);
 
@@ -331,7 +331,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                                         addNodes={addNodes}
                                     />
                                     <Background bgColor="var(--background)" />
-                                    {showMiniMap && <MiniMap className="!z-40" pannable />}
+                                    {showMiniMap && <MiniMap className="!z-40 !bg-card" pannable />}
                                 </ReactFlow>
                             </ContextMenuTrigger>
                             <ContextMenuContent className="w-32">
@@ -362,7 +362,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                     {currentNode && (
                         <>
                             <ResizablePanel order={1} id="top" defaultSize={40}>
-                                <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                                <ProfilePanel data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>

@@ -370,7 +370,7 @@ export function DataTable({
                 </Label>
                 <Select defaultValue="outline">
                     <SelectTrigger
-                        className="@4xl/main:hidden bg-background flex w-fit"
+                        className="@4xl/main:hidden bg-card flex w-fit"
                         id="view-selector"
                     >
                         <SelectValue placeholder="Select a view" />
@@ -451,7 +451,7 @@ export function DataTable({
                 value="outline"
                 className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
             >
-                <Card className="overflow-hidden rounded-lg bg-background border shadow-xs">
+                <Card className="overflow-hidden rounded-lg bg-card border shadow-xs">
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToVerticalAxis]}

@@ -14,28 +14,24 @@ export function InvestigationNavigation({ investigation_id }: { investigation_id
             name: "Overview",
             href: `/dashboard/investigations/${investigation_id}`,
             icon: Eye,
-            count: 18,
         },
         {
             id: "sketches",
             name: "Sketches",
             href: `/dashboard/investigations/${investigation_id}?filter=sketch`,
             icon: Waypoints,
-            count: 24,
         },
         {
             id: "documents",
             name: "Documents",
             href: `/dashboard/investigations/${investigation_id}?filter=document`,
             icon: Camera,
-            count: 6,
         },
         {
             id: "configurations",
             name: "Configurations",
             href: `/dashboard/investigations/${investigation_id}/settings`,
             icon: Settings,
-            count: null,
         },
     ]
 
@@ -54,9 +50,9 @@ export function InvestigationNavigation({ investigation_id }: { investigation_id
                 >
                     <section.icon className="h-4 w-4" />
                     <span>{section.name}</span>
-                    {section.count !== null && (
+                    {/* {section.count !== null && (
                         <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs">{section.count}</span>
-                    )}
+                    )} */}
                 </Link>
             ))}
         </div>

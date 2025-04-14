@@ -11,11 +11,11 @@ import {
 
 export function SectionCards() {
     return (
-        <div className="*:data-[slot=card]:shadow-xs grid-cols-2 xl:grid-cols-4 grid grid-cols-1 gap-4">
+        <div className="shadow-xs grid-cols-2 xl:grid-cols-4 grid grid-cols-1 gap-4">
             <Card className="bg-card">
                 <CardHeader className="relative">
-                    <CardDescription>Total sketches</CardDescription>
-                    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                    <CardDescription>Active investigations</CardDescription>
+                    <CardTitle className="md:text-4xl text-2xl font-semibold tabular-nums">
                         23
                     </CardTitle>
                     <div className="absolute right-4 top-4">
@@ -30,14 +30,14 @@ export function SectionCards() {
                         Trending up this month <TrendingUpIcon className="size-4" />
                     </div>
                     <div className="text-muted-foreground">
-                        New sketches created
+                        New investigations created
                     </div>
                 </CardFooter>
             </Card>
             <Card className="bg-card">
                 <CardHeader className="relative">
-                    <CardDescription>New entities</CardDescription>
-                    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+                    <CardDescription>Total investigations</CardDescription>
+                    <CardTitle className="md:text-4xl text-2xl font-semibold tabular-nums">
                         237
                     </CardTitle>
                     <div className="absolute right-4 top-4">
@@ -52,15 +52,15 @@ export function SectionCards() {
                         Down 20% this period <TrendingDownIcon className="size-4" />
                     </div>
                     <div className="text-muted-foreground">
-                        Entities found
+                        Investigations created
                     </div>
                 </CardFooter>
             </Card>
             <Card className="bg-card">
                 <CardHeader className="relative">
-                    <CardDescription>Verified accounts</CardDescription>
-                    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-                        45
+                    <CardDescription>Nodes created</CardDescription>
+                    <CardTitle className="md:text-4xl text-2xl font-semibold tabular-nums">
+                        4 532
                     </CardTitle>
                     <div className="absolute right-4 top-4">
                         <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
@@ -71,16 +71,16 @@ export function SectionCards() {
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium">
-                        Social accounts discovered <TrendingUpIcon className="size-4" />
+                        Nodes created <TrendingUpIcon className="size-4" />
                     </div>
-                    <div className="text-muted-foreground">Amount of verified social accounts</div>
+                    <div className="text-muted-foreground">Amount of nodes created this period</div>
                 </CardFooter>
             </Card>
             <Card className="bg-card">
                 <CardHeader className="relative">
                     <CardDescription>Collaborators</CardDescription>
-                    <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-                        3
+                    <CardTitle className="md:text-4xl text-2xl font-semibold tabular-nums">
+                        8
                     </CardTitle>
                     <div className="absolute right-4 top-4">
                         <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">

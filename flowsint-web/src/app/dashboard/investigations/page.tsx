@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, FolderLockIcon, Grid, List, MoreHorizontal, PlusIcon, RotateCwIcon, Search, SlidersHorizontal, TrendingDownIcon, TrendingUpIcon } from "lucide-react"
+import { ChevronDown, FolderLockIcon, Grid, List, MoreHorizontal, PlusIcon, RotateCwIcon, Search, SlidersHorizontal } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { notFound } from "next/navigation"
 import Loader from "@/components/loader"
@@ -17,11 +17,9 @@ import NewInvestigation from "@/components/dashboard/new-investigation"
 import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import StatusBadge from "@/components/investigations/status-badge"
-import { InvestigationGraph } from "@/components/dashboard/charts/investigation-chart"
-import { Badge } from "@/components/ui/badge"
-import { MetricsChart } from "@/components/dashboard/charts/metrics-chart"
+import { Profile } from "@/types"
 import { SectionCards } from "@/components/investigations/section-cards"
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
@@ -48,29 +46,67 @@ const DashboardPage = () => {
             <div className="sticky z-40 bg-card w-full hidden md:flex top-[48px] border-b">
                 <SubNav />
             </div>
-            <div className="w-full space-y-4 container mx-auto py-12 px-8">
-                <div className="flex grow items-center justify-between w-full gap-4">
-                    <h1 className="font-bold text-2xl">Overview</h1>
-                    <NewInvestigation>
-                        <Button className="gap-2">
-                            <PlusIcon className="h-4 w-4" />  New
-                        </Button>
-                    </NewInvestigation>
-                </div>
-                <SectionCards />
-                <div className="grid lg:grid-cols-5 gap-4 w-full">
-                    <div className="lg:col-span-2 col-span-1 h-full">
-                        <MetricsChart />
+            <div className="w-full space-y-8 container mx-auto py-12 px-8">
+                <div className="flex items-center justify-between w-full gap-4">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="h-4 w-4 " />
+                        </div>
+                        <Input
+                            type="text"
+                            placeholder="Search investigations and investigations..."
+                            className="pl-10 pr-16 py-2 h-10 text-sm bg-card"
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <div className="flex items-center gap-1 text-xs">
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">⌘</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">K</kbd>
+                            </div>
+                        </div>
                     </div>
-                    {/* <div className="col-span-1 h-full">
-                        <MetricsChart />
-                    </div> */}
-                    <div className="lg:col-span-3 col-span-1 h-full">
-                        <InvestigationGraph />
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="flex items-center bg-card gap-2 h-10">
+                                    <span>Sort by activity</span>
+                                    <ChevronDown className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Sort by name</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by date created</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by last updated</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by activity</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <div className="flex items-center border bg-card rounded-md overflow-hidden">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`rounded-none ${viewMode === "grid" ? "bg-background" : ""}`}
+                                onClick={() => setViewMode("grid")}
+                            >
+                                <Grid className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`rounded-none ${viewMode === "list" ? "bg-background" : ""}`}
+                                onClick={() => setViewMode("list")}
+                            >
+                                <List className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <NewInvestigation>
+                            <Button className="gap-2">
+                                <PlusIcon className="h-4 w-4" />  New
+                            </Button>
+                        </NewInvestigation>
                     </div>
                 </div>
-                <h2 className="font-bold text-2xl mt-8">Recent sketches</h2>
-                <RecentSketches limit={4} />
+                <div>
+                    <RecentSketches limit={8} />
+                </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="flex items-center gap-2">
                         <DropdownMenu>

@@ -1,33 +1,29 @@
-from app.core.db import get_db
 from app.core.celery import celery_app
-import asyncio
+from app.core.db import get_db
+from app.scanners.registry import ScannerRegistry
 import traceback
 from celery import states
-from app.workers.username_scanner import perform_sherlock_research
 
-@celery_app.task(name="username_scan", bind=True)
-def username_scan(self, username: str):
+@celery_app.task(name="run_scan", bind=True)
+def run_scan(self, scanner_name: str, value: str):
     db = get_db()
     try:
-        results = asyncio.run(perform_sherlock_research(username))
-
+        scanner = ScannerRegistry.get_scanner(scanner_name, self.request.id)
+        results = scanner.execute(value)
         status = "finished" if "error" not in results else "error"
         db.table("scans").update({
             "status": status,
             "results": results
         }).eq("id", self.request.id).execute()
-
         return {"result": results}
-
+        
     except Exception as ex:
         error_logs = traceback.format_exc().split("\n")
         print(f"Error in task: {error_logs}")
-
         db.table("scans").update({
             "status": "error",
             "results": {"error": error_logs}
         }).eq("id", self.request.id).execute()
-
         self.update_state(
             state=states.FAILURE,
             meta={

@@ -38,7 +38,7 @@ const EditableEdge = memo((props: EdgeProps) => {
             setIsLoading(true)
             try {
                 const { error } = await supabase
-                    .from("relationships")
+                    .from("individuals_individuals")
                     .update({ relation_type: editValue })
                     .eq("id", id.toString())
                 const { error: error2 } = await supabase

@@ -36,16 +36,16 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="en">
       <head>
-        {process.env.NODE_ENV === "development" && (
+        {/* {process.env.NODE_ENV === "development" && (
           <script
             crossOrigin="anonymous"
             src="//unpkg.com/react-scan/dist/auto.global.js"
           />
-        )}
+        )} */}
       </head>
       <body
         className={clsx(
-          "min-h-screen !bg-accent font-sans antialiased",
+          "min-h-screen !bg-background font-sans antialiased",
           fontSans.variable,
         )}
       >

@@ -11,22 +11,23 @@ import Loader from "@/components/loader"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Project } from "@/types/project"
+import { Investigation } from "@/types/investigation"
 import RecentSketches from "@/components/dashboard/recent-sketches"
-import NewProject from "@/components/dashboard/new-project"
+import NewInvestigation from "@/components/dashboard/new-investigation"
 import { AvatarList } from "@/components/avatar-list"
 import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
-
+import StatusBadge from "@/components/investigations/status-badge"
+import { Profile } from "@/types"
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
     const { data, isLoading, refetch, isRefetching } = useQuery({
-        queryKey: ["dashboard", "projects"],
+        queryKey: ["dashboard", "investigations"],
         queryFn: async () => {
-            const res = await fetch(`/api/projects`)
+            const res = await fetch(`/api/investigations`)
             if (!res.ok || res.status === 404) {
                 notFound()
             }
@@ -34,14 +35,14 @@ const DashboardPage = () => {
         },
         refetchOnWindowFocus: true,
     })
-    const projects = data?.projects || []
-    const filteredProjects = projects.filter(
-        (project: Project) => searchQuery === "" || project.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+    const investigations = data?.investigations || []
+    const filteredInvestigations = investigations.filter(
+        (investigation: Investigation) => searchQuery === "" || investigation.name?.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 
     return (
         <>
-            <div className="sticky z-40 bg-background w-full hidden md:flex top-[48px] border-b">
+            <div className="sticky z-40 bg-card w-full hidden md:flex top-[48px] border-b">
                 <SubNav />
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
@@ -52,13 +53,13 @@ const DashboardPage = () => {
                         </div>
                         <Input
                             type="text"
-                            placeholder="Search investigations and projects..."
-                            className="pl-10 pr-16 py-2 h-10 text-sm bg-background"
+                            placeholder="Search investigations and investigations..."
+                            className="pl-10 pr-16 py-2 h-10 text-sm bg-card"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <div className="flex items-center gap-1 text-xs">
-                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">⌘</kbd>
-                                <kbd className="px-1.5 py-0.5 bg-accent border rounded">K</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">⌘</kbd>
+                                <kbd className="px-1.5 py-0.5 bg-background border rounded">K</kbd>
                             </div>
                         </div>
                     </div>
@@ -66,7 +67,7 @@ const DashboardPage = () => {
                     <div className="flex items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="flex items-center gap-2 h-10">
+                                <Button variant="outline" className="flex items-center bg-card gap-2 h-10">
                                     <span>Sort by activity</span>
                                     <ChevronDown className="h-4 w-4" />
                                 </Button>
@@ -79,11 +80,11 @@ const DashboardPage = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <div className="flex items-center border rounded-md overflow-hidden">
+                        <div className="flex items-center border bg-card rounded-md overflow-hidden">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`h-10 w-10 rounded-none ${viewMode === "grid" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "grid" ? "bg-background" : ""}`}
                                 onClick={() => setViewMode("grid")}
                             >
                                 <Grid className="h-4 w-4" />
@@ -91,21 +92,21 @@ const DashboardPage = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`h-10 w-10 rounded-none ${viewMode === "list" ? "bg-accent" : ""}`}
+                                className={`rounded-none ${viewMode === "list" ? "bg-background" : ""}`}
                                 onClick={() => setViewMode("list")}
                             >
                                 <List className="h-4 w-4" />
                             </Button>
                         </div>
-                        <NewProject>
-                            <Button className="gap-2 h-10">
+                        <NewInvestigation>
+                            <Button className="gap-2">
                                 <PlusIcon className="h-4 w-4" />  New
                             </Button>
-                        </NewProject>
+                        </NewInvestigation>
                     </div>
                 </div>
                 <div>
-                    <RecentSketches />
+                    <RecentSketches limit={4} />
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -133,12 +134,12 @@ const DashboardPage = () => {
                         <Loader />
                     </div>
                 ) : (
-                    <Card className="border rounded-md bg-background shadow-xs">
+                    <Card className="border rounded-md bg-card shadow-xs">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Owner</TableHead>
+                                    <TableHead className="hidden md:table-cell">Status</TableHead>
                                     <TableHead className="hidden md:table-cell">Size</TableHead>
                                     <TableHead className="hidden sm:table-cell">Last modified</TableHead>
                                     <TableHead className="hidden sm:table-cell">Members</TableHead>
@@ -147,40 +148,52 @@ const DashboardPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredProjects.length === 0 ? (
+                                {filteredInvestigations.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            {searchQuery !== "" ? "No projects found" :
-                                                <div className="flex items-center flex-col gap-3">No projects yet
-                                                    <NewProject noDropDown>
-                                                        <Button size="sm" className="gap-2">
-                                                            <PlusIcon className="h-4 w-4" />  Create a new project
-                                                        </Button>
-                                                    </NewProject>
+                                            {searchQuery !== "" ? "No investigations found" :
+                                                <div className="flex items-center flex-col gap-3">No investigations yet
+                                                    <div className="mt-4">
+                                                        <NewInvestigation noDropDown>
+                                                            <Button size="sm" className="gap-2">
+                                                                <PlusIcon className="h-4 w-4" />  Create a new investigation
+                                                            </Button>
+                                                        </NewInvestigation>
+                                                    </div>
                                                 </div>}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredProjects.map((project: Project) => (
-                                        <TableRow key={project.id}>
+                                    filteredInvestigations.map((investigation: Investigation) => (
+                                        <TableRow key={investigation.id}>
                                             <TableCell>
-                                                <Link href={`dashboard/projects/${project.id}`} className="flex items-center gap-2 hover:underline">
-                                                    <FolderLockIcon className="h-5 w-5 text-primary" />
-                                                    <span>{project.name}</span>
+                                                <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline font-medium">
+                                                    <FolderLockIcon className="h-5 w-5 text-muted-foreground opacity-60" />
+                                                    <span>{investigation.name}</span>
                                                 </Link>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">{`${project?.owner?.first_name} ${project?.owner?.last_name}` || "You"}</TableCell>
                                             <TableCell className="hidden md:table-cell text-muted-foreground">
-                                                {(project.investigations?.length || 0) > 0 ? `${project.investigations.length} items` : "Empty"}
+                                                <StatusBadge status={investigation.status as string} />
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell text-muted-foreground">
+                                                {(investigation.sketches?.length || 0) > 0 ? `${investigation.sketches.length} items` : "Empty"}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {formatDistanceToNow(new Date(project.last_updated_at), { addSuffix: true })}
+                                                {formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                <AvatarList users={project?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}` })) || []} size="sm" />
+                                                <AvatarList
+                                                    size="md"
+                                                    users={
+                                                        investigation?.members?.map(member => ({
+                                                            ...member.profile,
+                                                            owner: member.profile.id === investigation.owner_id,
+                                                        })) || []
+                                                    }
+                                                />
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                                {format(new Date(project.created_at), "dd.MM.yyyy")}
+                                                {format(new Date(investigation.created_at), "dd.MM.yyyy")}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu>

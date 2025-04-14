@@ -3,8 +3,8 @@
 import {
   BadgeCheck,
   Bell,
-  ChevronsUpDown,
   CreditCard,
+  CrownIcon,
   LogOut,
   Sparkles,
 } from "lucide-react"
@@ -32,13 +32,53 @@ import {
 import { logout } from "@/lib/actions/auth"
 import { ThemeSwitch } from "./theme-switch"
 import EnvIndicator from "./env-indicator"
-
+import { cn, getAvatarColor } from "@/lib/utils"
+import { getInitials } from "@/lib/utils"
+import { useQuery } from "@tanstack/react-query"
 export function NavUser({
-  user,
+  profile_id,
 }: {
-  user: any
+  profile_id: any
 }) {
   const { isMobile } = useSidebar()
+
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["profiles", profile_id],
+    queryFn: async () => {
+      const res = await fetch(`/api/profiles/${profile_id}`)
+      return res.json()
+    },
+    refetchOnWindowFocus: true,
+  })
+
+  if (isLoading) return
+
+  const renderAvatar = () => {
+    const name = `${profile?.first_name || "fd"} ${profile?.last_name || "fd"}`
+    const avatarColor = getAvatarColor(name)
+    const avatar = (
+      <div className="relative">
+        {isLoading ? "" :
+          <Avatar
+            key={profile.id}
+            className={cn(
+              'h-8 w-8',
+              "border-2 border-background bg-background relative",
+              "transition-transform",
+              "ring-0 ring-offset-0",
+            )}
+          >
+            <AvatarImage src={profile.image} alt={``} />
+            <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(name)}</AvatarFallback>
+          </Avatar>}
+      </div>
+    )
+    return avatar
+  }
 
   return (
     <SidebarMenu>
@@ -47,12 +87,9 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="p-0 h-auto"
+              className="p-0 h-auto rounded-full cursor-pointer p-1"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg uppercase">{user.email[0]}</AvatarFallback>
-              </Avatar>
+              {renderAvatar()}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -63,13 +100,10 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{user.email[0]}</AvatarFallback>
-                </Avatar>
+                {renderAvatar()}
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">{profile.name}</span>
+                  <span className="truncate text-xs">{profile.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

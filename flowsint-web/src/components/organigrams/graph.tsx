@@ -24,18 +24,18 @@ import {
     WaypointsIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import NewActions from "../investigations/new-actions"
+import NewActions from "../sketches/new-actions"
 import { useParams } from "next/navigation"
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 import { TooltipTrigger } from "@radix-ui/react-tooltip"
 import { cn } from "@/lib/utils"
-import { useInvestigationStore } from "@/store/investigation-store"
+import { useSketchStore } from "@/store/sketch-store"
 import { useFlowStore } from "@/store/flow-store"
 import Loader from "@/components/loader"
 import { useQueryState } from "nuqs"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import PanelContextMenu from "../investigations/panel-context-menu"
+import PanelContextMenu from "../sketches/panel-context-menu"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -46,8 +46,8 @@ import {
 } from "@/components/ui/resizable"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import FullscreenButton from "@/components/full-screen-button"
-import ProfilePanel from "../investigations/sketch/profile-panel"
-import NodesPanel from "../investigations/sketch/nodes-panel"
+import ProfilePanel from "../sketches/sketch/profile-panel"
+import NodesPanel from "../sketches/sketch/nodes-panel"
 import OrganigramNode from "./organigram-node"
 import OrganigramEdge from './organigram-edge'
 const nodeTypes = {
@@ -99,7 +99,7 @@ const FlowControls = memo(({
             </Panel>
             <Panel position="top-left" className="flex flex-col items-center gap-1">
                 <NewActions addNodes={addNodes}>
-                    <Button className="bg-gradient-to-r from-purple-600 to-indigo-400 hover:from-purple-700 hover:to-indigo-500 transition-all duration-300" size="icon">
+                    <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none" size="icon">
                         <PlusIcon />
                     </Button>
                 </NewActions>
@@ -171,8 +171,8 @@ const FlowControls = memo(({
 
 const LayoutFlow = memo(({ refetch, theme }: any) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter, getNodes } = useReactFlow();
-    const { investigation_id } = useParams();
-    const showMiniMap = useInvestigationStore(state => state.settings.showMiniMap);
+    const { sketch_id } = useParams();
+    const showMiniMap = useSketchStore(state => state.settings.showMiniMap);
     const [_, setView] = useQueryState("view", { defaultValue: "flow-graph" });
 
     // Use a ref for context menu state to avoid re-renders on position changes
@@ -242,8 +242,8 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
     }, [currentNode?.id]); // Only depend on currentNode.id, not the whole object
 
     const handleConnect = useCallback(
-        (params: any) => onConnect(params, investigation_id),
-        [onConnect, investigation_id]
+        (params: any) => onConnect(params, sketch_id),
+        [onConnect, sketch_id]
     );
 
     const handleNodeContextMenu = useCallback(
@@ -290,7 +290,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         nodeTypes,
         edgeTypes,
         proOptions: { hideAttribution: true },
-        className: "!bg-accent dark:!bg-background"
+        className: "!bg-background dark:!bg-background"
     }), [
         theme,
         nodes,
@@ -328,7 +328,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                                         zoomOut={zoomOut}
                                         addNodes={addNodes}
                                     />
-                                    <Background className="dark:bg-background bg-accent" />
+                                    <Background className="dark:bg-background bg-background" />
                                     {showMiniMap && <MiniMap className="!z-40" pannable />}
                                 </ReactFlow>
                             </ContextMenuTrigger>
@@ -355,7 +355,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                     {currentNode && (
                         <>
                             <ResizablePanel order={1} id="top" defaultSize={40}>
-                                <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                                <ProfilePanel data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>

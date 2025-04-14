@@ -6,27 +6,25 @@ from supabase import Client
 
 app = FastAPI()
 
-class EmailScanItem(BaseModel):
-    email: str
-    investigation_id:str
+class ScanRequest(BaseModel):
+    value: str
+    sketch_id: str
+    scanner: str
 
-@app.post("/scan/")
-async def scan(item: EmailScanItem, db: Client = Depends(get_db)):
-    task_name = "email_scan"
-    task = celery_app.send_task(task_name, args=[item.email])
-    assert item.email is not None
-    assert item.investigation_id is not None
+@app.post("/scan")
+async def scan(item: ScanRequest, db: Client = Depends(get_db)):
     try:
-        response = db.table("scans").insert({
-            "id": task.id,
-            "status": "pending",
-            "scan_name": task_name,
-            "value":item.email,
-            "investigation_id": item.investigation_id
-        }).execute()
-        return {"id": task.id, "response": response}
+        assert item.value is not None
+        assert item.sketch_id is not None
+        assert item.scanner is not None
+        
+        task = celery_app.send_task("run_scan", args=[item.scanner, item.value])
+     
+        return {"id": task.id }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
 
 @app.get("/health")
 async def health():

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { createNewCase } from "@/lib/actions/investigations"
+import { createNewSketch } from "@/lib/actions/sketches"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
-import { useProjectStore } from "@/store/project-store"
+import { useInvestigationStore } from "@/store/project-store"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -32,22 +32,20 @@ function SubmitButton() {
     )
 }
 
-export default function NewCase({ children, noDropDown = false }: { children: React.ReactNode, noDropDown?: boolean }) {
+export default function NewSketch({ children, noDropDown = false }: { children: React.ReactNode, noDropDown?: boolean }) {
     const [open, setOpen] = useState(false)
-    const { setOpenUploadModal } = useProjectStore()
-
+    const { setOpenUploadModal } = useInvestigationStore()
     const router = useRouter()
-    const { project_id } = useParams()
+    const { investigation_id } = useParams()
 
-
-    async function handleNewCase(formData: FormData) {
-        const result = await createNewCase(formData, project_id as string)
+    async function handleNewSketch(formData: FormData) {
+        const result = await createNewSketch(formData, investigation_id as string)
         if (result.success) {
             toast.success("New sketch created.")
-            router.push(`/dashboard/projects/${project_id}/investigations/${result.id}`)
+            router.push(`/dashboard/investigations/${investigation_id}/sketches/${result.id}`)
             setOpen(false)
         } else {
-            toast.error("Could not create new sketch." + JSON.stringify(result))
+            toast.error(result.error)
         }
     }
 
@@ -60,7 +58,7 @@ export default function NewCase({ children, noDropDown = false }: { children: Re
                         <DialogTitle>New sketch</DialogTitle>
                         <DialogDescription>Create a new blank sketch.</DialogDescription>
                     </DialogHeader>
-                    <form action={handleNewCase}>
+                    <form action={handleNewSketch}>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Investigation name</Label>
@@ -107,7 +105,7 @@ export default function NewCase({ children, noDropDown = false }: { children: Re
                         <DialogTitle>New sketch</DialogTitle>
                         <DialogDescription>Create a new blank sketch.</DialogDescription>
                     </DialogHeader>
-                    <form action={handleNewCase}>
+                    <form action={handleNewSketch}>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Investigation name</Label>

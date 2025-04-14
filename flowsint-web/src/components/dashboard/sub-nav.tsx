@@ -55,8 +55,8 @@ export function SubNav() {
                     className={cn(
                         "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
                         section?.href == pathname
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                            ? "bg-card text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card/50",
                     )}
                 >
                     <section.icon className="h-4 w-4" />

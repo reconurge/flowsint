@@ -1,21 +1,24 @@
 'use server'
-import { createClient } from "../supabase/server";
-
-export async function checkEmail(email: string, investigation_id: string) {
-    const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan/`;
+import { createClient } from "@/lib/supabase/server";
+import { task_names } from "@/lib/utils";
+export async function performSearch(value: string, task_name: string, sketch_id: string) {
+    if (!task_names.includes(task_name))
+        return { error: `Task name "${task_name}" not found.` }
+    const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan/${task_name}`;
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            "email": email,
-            "investigation_id": investigation_id
+            [task_name]: value,
+            "sketch_id": sketch_id
         })
     },
     );
     return response.json();
 }
+
 
 async function checkBreachedAccount(account: string | number | boolean, apiKey: string, appName: string) {
     const url = `https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(account)}?truncateResponse=false`;

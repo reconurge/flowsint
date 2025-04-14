@@ -34,7 +34,7 @@ export const DownloadButton = ({ endpoint, name = "sketch" }: { endpoint: string
     };
     return (
         <Button variant={"ghost"} disabled={loading} onClick={handleDownload} className="flex gap-2 h-full text-sm rounded-none">
-            <Download />  {loading ? <>Loading...</> : <>Download</>}
+            {loading ? <Download /> : <Download />}
         </Button>
     );
 };

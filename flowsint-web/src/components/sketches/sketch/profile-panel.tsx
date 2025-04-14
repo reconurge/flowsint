@@ -6,30 +6,31 @@ import { memo, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { toast } from "sonner"
-import { checkEmail } from "@/lib/actions/search"
+import { performSearch } from "@/lib/actions/search"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import Link from "next/link"
-export default function ProfilePanel({ data, type }: { data: any, type: string }) {
+import { task_names } from "@/lib/utils";
+
+export default function ProfilePanel({ data }: { data: any }) {
     const { sketch_id, investigation_id } = useParams()
     const { confirm } = useConfirm()
 
-    const handleCheckEmail = useCallback(async () => {
+    const handlePerformCheck = useCallback(async (scan_name: string, item: string) => {
         // @ts-ignore
-        if (!data && data?.email) return toast.error("No email found.")
-        if (!await confirm({ title: "Email scan", message: "This scan will look for some socials that the email might be associated with. The list is not exhaustive and might return false positives." })) return
+        if (!data && item) return toast.error(`No ${item} found.`)
+        if (!task_names.includes(scan_name)) return toast.error(`Scan "${scan_name}" doesn't exist.`)
+        if (!await confirm({ title: `Scanning "${item}"`, message: "This scan will look for some socials that this item might be associated with. The list is not exhaustive and might return false positives." })) return
         // @ts-ignore
-        toast.promise(checkEmail(data?.email, sketch_id), {
+        toast.promise(performSearch(item, scan_name, sketch_id), {
             loading: "Loading...",
             success: () => {
-                return `Scan on ${data?.email} has been launched.`
+                return `Scan on ${item} has been launched.`
             },
             error: (error: any) => {
                 return (
@@ -61,18 +62,30 @@ export default function ProfilePanel({ data, type }: { data: any, type: string }
                                 <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
                             </Button>
                         </Link>
-                        :
-                        <Button
-                            onClick={handleCheckEmail}
-                            disabled={data?.type !== "email"}
-                            className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                        : data?.type === "email" ?
+                            <Button
+                                onClick={() => handlePerformCheck("email", data?.email)}
+                                disabled={data?.type !== "email"}
+                                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
                             >
-                            <span className="flex items-center gap-2">
-                                <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                                <span>Search</span>
-                            </span>
-                            <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                        </Button>}
+                                <span className="flex items-center gap-2">
+                                    <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                                    <span>Search</span>
+                                </span>
+                                <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                            </Button>
+                            : data?.type === "social" ?
+                                <Button
+                                    onClick={() => handlePerformCheck("username", data?.username)}
+                                    disabled={!data?.username}
+                                    className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                                        <span>Search</span>
+                                    </span>
+                                    <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                                </Button> : null}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent>

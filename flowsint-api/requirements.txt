@@ -6,3 +6,4 @@ redis==5.0.1
 holehe
 dotenv
 uvicorn
+sherlock_project

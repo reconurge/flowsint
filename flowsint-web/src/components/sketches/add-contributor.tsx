@@ -16,22 +16,13 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { toast } from "sonner"
 import { cn, getAvatarColor } from "@/lib/utils"
 import { supabase } from "@/lib/supabase/client"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
-import { User } from "../avatar-list"
-
-interface Profile {
-    id: string
-    first_name: string
-    last_name: string
-    email: string
-    avatar_url: string | null
-}
+import { Profile } from "@/types"
 
 interface AddInvestigationModalProps {
     sketchId: string

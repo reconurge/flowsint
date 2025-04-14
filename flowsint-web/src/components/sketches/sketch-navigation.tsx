@@ -11,6 +11,7 @@ import { Badge } from "../ui/badge"
 import { DownloadButton } from "../download-button"
 import { AvatarList } from "../avatar-list"
 import { Sketch } from "@/types/sketch"
+import { Profile } from "@/types"
 
 function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { investigation_id: string, sketch_id: string, sketch: Sketch, user_id: string }) {
     const pathname = usePathname()
@@ -73,7 +74,7 @@ function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { in
             </div>
             <div className="flex items-center ">
                 <div className="px-2">
-                    <AvatarList size="md" users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} />
+                    <AvatarList size="md" users={sketch?.members?.map(({ profile }: { profile: Profile }) => ({ ...profile, owner: profile.id === sketch.owner_id })) || []} />
                 </div>
                 <DownloadButton endpoint={`/api/investigations/${investigation_id}/sketches/${sketch_id}/table`} name={investigation_id} />
                 <MoreMenu sketch={sketch} user_id={user_id} />

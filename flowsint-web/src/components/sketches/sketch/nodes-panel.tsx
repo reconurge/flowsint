@@ -75,12 +75,12 @@ const NodeRenderer = memo(({
         <Button
             variant={"ghost"}
             className={cn(
-                'flex items-center justify-start p-4 !py-5 hover:bg-muted rounded-none text-left border-b border-l-2 border-l-transparent',
-                node.id === currentNodeId && 'border-l-primary bg-muted'
+                'flex items-center justify-start p-4 !py-5 hover:bg-background rounded-none text-left border-b border-l-2 border-l-transparent',
+                node.id === currentNodeId && 'border-l-primary bg-background'
             )}
             onClick={handleClick}
         >
-            <Badge variant="outline" className="h-7 w-7 p-0 rounded-full">
+            <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
                 <Icon className="h-4 w-4 opacity-60" />
             </Badge>
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>

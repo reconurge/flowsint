@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
 import { AvatarList } from "../avatar-list"
 
-const RecentSketches = () => {
+const RecentSketches = ({ limit = 4 }: { limit: string | number }) => {
 
     const {
         data: sketches,
@@ -19,7 +19,7 @@ const RecentSketches = () => {
     } = useQuery({
         queryKey: ["dashboard", "sketches"],
         queryFn: async () => {
-            const res = await fetch(`/api/latest-sketches`)
+            const res = await fetch(`/api/latest-sketches?limit=${limit}`)
             return res.json()
         },
         refetchOnWindowFocus: true,
@@ -79,8 +79,15 @@ const RecentSketches = () => {
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-xs block truncate text-ellipsis opacity-60">Last updated {formatDistanceToNow(sketch.last_updated_at, { addSuffix: true })}</span>
-                                    <AvatarList users={sketch?.members?.map(({ profile }: { profile: { first_name: string, last_name: string, id: string } }) => ({ id: profile.id, name: `${profile.first_name} ${profile.last_name}`, owner: profile.id === sketch.owner_id })) || []} size="sm" />
-                                </div>
+                                    <AvatarList
+                                        size="md"
+                                        users={
+                                            sketch?.members?.map(member => ({
+                                                ...member.profile,
+                                                owner: member.profile.id === sketch.owner_id,
+                                            })) || []
+                                        }
+                                    />                                </div>
                             </CardContent>
                         </Card>
                     </Link>

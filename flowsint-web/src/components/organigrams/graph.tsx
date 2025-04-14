@@ -355,7 +355,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                     {currentNode && (
                         <>
                             <ResizablePanel order={1} id="top" defaultSize={40}>
-                                <ProfilePanel data={currentNode.data} type={currentNode.type} />
+                                <ProfilePanel data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>

@@ -116,10 +116,11 @@ export function DocumentList({ documents, isLoading, refetch }: { documents: any
                     <TableCell className="text-muted-foreground">
                         {doc.type.split("/")[1]?.toUpperCase() || doc.type}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{`${doc.owner.first_name} ${doc.owner.last_name}`}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
                         {doc.size}
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{`${doc.owner.first_name} ${doc.owner.last_name}`}</TableCell>
+
                     <TableCell className="hidden sm:table-cell text-muted-foreground">
                         {formatDistanceToNow(new Date(doc.last_updated_at), { addSuffix: true })}
                     </TableCell>

@@ -4,5 +4,5 @@ celery_app = Celery(
     "flowsint",
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/0",
-    include=["app.tasks.email_scanner"]
+    include=["app.tasks.email_scanner", "app.tasks.username_scanner"]
 )

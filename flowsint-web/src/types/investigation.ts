@@ -1,3 +1,4 @@
+import { Profile } from "."
 import { Sketch } from "./sketch"
 
 export interface Investigation {
@@ -9,6 +10,6 @@ export interface Investigation {
     last_updated_at: string
     owner: any
     owner_id: string,
-    members?: any[]
+    members?: { profile: Profile }[]
     status: string
 }

@@ -512,3 +512,5 @@ export function encodedRedirect(
 ) {
   return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
 }
+
+export const task_names = ["email", "username"]

@@ -19,8 +19,7 @@ import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
 import StatusBadge from "@/components/investigations/status-badge"
-import { Profile } from "@/types"
-import { SectionCards } from "@/components/investigations/section-cards"
+
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -48,14 +47,16 @@ const DashboardPage = () => {
             </div>
             <div className="w-full space-y-8 container mx-auto py-12 px-8">
                 <div className="flex items-center justify-between w-full gap-4">
-                    <div className="relative flex-1">
+                    <Card className="relative flex-1 rounded-md max-w-xl">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <Search className="h-4 w-4 " />
                         </div>
                         <Input
                             type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search investigations and investigations..."
-                            className="pl-10 pr-16 py-2 h-10 text-sm bg-card"
+                            className="pl-10 pr-16 py-2 h-10 text-sm shadow-none border-none"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <div className="flex items-center gap-1 text-xs">
@@ -63,22 +64,8 @@ const DashboardPage = () => {
                                 <kbd className="px-1.5 py-0.5 bg-background border rounded">K</kbd>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                     <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="flex items-center bg-card gap-2 h-10">
-                                    <span>Sort by activity</span>
-                                    <ChevronDown className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Sort by name</DropdownMenuItem>
-                                <DropdownMenuItem>Sort by date created</DropdownMenuItem>
-                                <DropdownMenuItem>Sort by last updated</DropdownMenuItem>
-                                <DropdownMenuItem>Sort by activity</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                         <div className="flex items-center border bg-card rounded-md overflow-hidden">
                             <Button
                                 variant="ghost"

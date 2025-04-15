@@ -36,12 +36,10 @@ import { useFlowStore } from "@/store/flow-store"
 import Loader from "@/components/loader"
 import { useQueryState } from "nuqs"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import PanelContextMenu from "../panel-context-menu"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
-import CustomEdge from "../../ui/custom-edge"
 import {
     ResizableHandle,
     ResizablePanel,
@@ -50,7 +48,6 @@ import {
 import NodesPanel from "./nodes-panel"
 import ProfilePanel from "./profile-panel"
 import CustomNode from "./nodes/custom-node"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import FullscreenButton from "@/components/full-screen-button"
 import FloatingEdge from "./simple-floating-edge"
 
@@ -173,9 +170,10 @@ const FlowControls = memo(({
 });
 
 const LayoutFlow = memo(({ refetch, theme }: any) => {
-    const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter, getNodes } = useReactFlow();
+    const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { sketch_id } = useParams();
     const showMiniMap = useSketchStore(state => state.settings.showMiniMap);
+    const setOpenActionDialog = useSketchStore(state => state.setOpenActionDialog);
     const [_, setView] = useQueryState("view", { defaultValue: "flow-graph" });
 
     // Use a ref for context menu state to avoid re-renders on position changes
@@ -221,17 +219,10 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         fitView();
     }, [refetch, onLayout, fitView]);
 
-    // Handle current node changes
     useEffect(() => {
         if (!currentNode) return;
         const internalNode = getNode(currentNode.id);
         if (!internalNode) return;
-        updateNode(internalNode.id, {
-            ...internalNode,
-            zIndex: 5000,
-            data: { ...internalNode.data, forceToolbarVisible: true },
-            style: { ...internalNode.style, opacity: 1 },
-        });
         const nodeWidth = internalNode.measured?.width ?? 0;
         const nodeHeight = internalNode.measured?.height ?? 0;
         setCenter(
@@ -242,7 +233,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
                 zoom: 1.5,
             }
         );
-    }, [currentNode?.id]); // Only depend on currentNode.id, not the whole object
+    }, [currentNode?.id]);
 
     const handleConnect = useCallback(
         (params: any) => onConnect(params, sketch_id),
@@ -316,39 +307,34 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-screen grow relative overflow-hidden">
             <ResizablePanel defaultSize={80}>
                 <TooltipProvider>
-                    <Dialog>
-                        <ContextMenu>
-                            <ContextMenuTrigger className="h-full w-full">
-                                <ReactFlow {...reactFlowProps}>
-                                    <FlowControls
-                                        onLayout={onLayout}
-                                        fitView={fitView}
-                                        handleRefetch={handleRefetch}
-                                        reloading={reloading}
-                                        setView={setView}
-                                        zoomIn={zoomIn}
-                                        zoomOut={zoomOut}
-                                        addNodes={addNodes}
-                                    />
-                                    <Background bgColor="var(--background)" />
-                                    {showMiniMap && <MiniMap className="!z-40 !bg-card" pannable />}
-                                </ReactFlow>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent className="w-32">
-                                <DialogTrigger asChild>
-                                    <ContextMenuItem>
-                                        <PlusIcon className="h-4 w-4 opacity-60" />
-                                        <span>New node</span>
-                                    </ContextMenuItem>
-                                </DialogTrigger>
-                                <ContextMenuItem disabled>
-                                    <GroupIcon className="h-4 w-4 opacity-60" />
-                                    <span>New group</span>
-                                </ContextMenuItem>
-                            </ContextMenuContent>
-                        </ContextMenu>
-                        <PanelContextMenu addNodes={addNodes} />
-                    </Dialog>
+                    <ContextMenu>
+                        <ContextMenuTrigger className="h-full w-full">
+                            <ReactFlow {...reactFlowProps}>
+                                <FlowControls
+                                    onLayout={onLayout}
+                                    fitView={fitView}
+                                    handleRefetch={handleRefetch}
+                                    reloading={reloading}
+                                    setView={setView}
+                                    zoomIn={zoomIn}
+                                    zoomOut={zoomOut}
+                                    addNodes={addNodes}
+                                />
+                                <Background bgColor="var(--background)" />
+                                {showMiniMap && <MiniMap className="!z-40 !bg-card" pannable />}
+                            </ReactFlow>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-32">
+                            <ContextMenuItem onClick={() => setOpenActionDialog(true)}>
+                                <PlusIcon className="h-4 w-4 opacity-60" />
+                                <span>New node</span>
+                            </ContextMenuItem>
+                            <ContextMenuItem disabled>
+                                <GroupIcon className="h-4 w-4 opacity-60" />
+                                <span>New group</span>
+                            </ContextMenuItem>
+                        </ContextMenuContent>
+                    </ContextMenu>
                     <NodeContextMenu
                         x={nodeContextMenu?.x}
                         y={nodeContextMenu?.y}

@@ -23,6 +23,7 @@ import { InvestigationGraph } from "@/components/dashboard/charts/investigation-
 import { Badge } from "@/components/ui/badge"
 import { MetricsChart } from "@/components/dashboard/charts/metrics-chart"
 import { SectionCards } from "@/components/investigations/section-cards"
+import { DateRangePicker } from "@/components/date-range-picker"
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -51,11 +52,14 @@ const DashboardPage = () => {
             <div className="w-full space-y-4 container mx-auto py-12 px-8">
                 <div className="flex grow items-center justify-between w-full gap-4">
                     <h1 className="font-bold text-2xl">Overview</h1>
-                    <NewInvestigation>
-                        <Button className="gap-2">
-                            <PlusIcon className="h-4 w-4" />  New
-                        </Button>
-                    </NewInvestigation>
+                    <div className="flex items-center gap-2">
+                        <DateRangePicker />
+                        <NewInvestigation>
+                            <Button className="gap-2">
+                                <PlusIcon className="h-4 w-4" />  New
+                            </Button>
+                        </NewInvestigation>
+                    </div>
                 </div>
                 <SectionCards />
                 <div className="grid lg:grid-cols-5 gap-4 w-full">

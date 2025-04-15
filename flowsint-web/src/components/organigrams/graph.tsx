@@ -35,7 +35,6 @@ import { useFlowStore } from "@/store/flow-store"
 import Loader from "@/components/loader"
 import { useQueryState } from "nuqs"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import PanelContextMenu from "../sketches/panel-context-menu"
 import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -314,39 +313,36 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-screen grow relative overflow-hidden">
             <ResizablePanel defaultSize={80}>
                 <TooltipProvider>
-                    <Dialog>
-                        <ContextMenu>
-                            <ContextMenuTrigger className="h-full w-full">
-                                <ReactFlow {...reactFlowProps}>
-                                    <FlowControls
-                                        onLayout={onLayout}
-                                        fitView={fitView}
-                                        handleRefetch={handleRefetch}
-                                        reloading={reloading}
-                                        setView={setView}
-                                        zoomIn={zoomIn}
-                                        zoomOut={zoomOut}
-                                        addNodes={addNodes}
-                                    />
-                                    <Background className="dark:bg-background bg-background" />
-                                    {showMiniMap && <MiniMap className="!z-40" pannable />}
-                                </ReactFlow>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent className="w-32">
-                                <DialogTrigger asChild>
-                                    <ContextMenuItem>
-                                        <PlusIcon className="h-4 w-4 opacity-60" />
-                                        <span>New node</span>
-                                    </ContextMenuItem>
-                                </DialogTrigger>
-                                <ContextMenuItem disabled>
-                                    <GroupIcon className="h-4 w-4 opacity-60" />
-                                    <span>New group</span>
+                    <ContextMenu>
+                        <ContextMenuTrigger className="h-full w-full">
+                            <ReactFlow {...reactFlowProps}>
+                                <FlowControls
+                                    onLayout={onLayout}
+                                    fitView={fitView}
+                                    handleRefetch={handleRefetch}
+                                    reloading={reloading}
+                                    setView={setView}
+                                    zoomIn={zoomIn}
+                                    zoomOut={zoomOut}
+                                    addNodes={addNodes}
+                                />
+                                <Background className="dark:bg-background bg-background" />
+                                {showMiniMap && <MiniMap className="!z-40" pannable />}
+                            </ReactFlow>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-32">
+                            <DialogTrigger asChild>
+                                <ContextMenuItem>
+                                    <PlusIcon className="h-4 w-4 opacity-60" />
+                                    <span>New node</span>
                                 </ContextMenuItem>
-                            </ContextMenuContent>
-                        </ContextMenu>
-                        <PanelContextMenu addNodes={addNodes} />
-                    </Dialog>
+                            </DialogTrigger>
+                            <ContextMenuItem disabled>
+                                <GroupIcon className="h-4 w-4 opacity-60" />
+                                <span>New group</span>
+                            </ContextMenuItem>
+                        </ContextMenuContent>
+                    </ContextMenu>
                 </TooltipProvider>
             </ResizablePanel>
             <ResizableHandle withHandle />

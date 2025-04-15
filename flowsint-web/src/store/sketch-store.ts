@@ -26,9 +26,9 @@ interface SketchState {
     currentNode: any
     panelOpen: boolean
     openNewNode: boolean,
+    openActionDialog: boolean,
     sketch: Sketch | null
     isRefetching: boolean
-
     setFilters: (filters: any) => void
     setSettings: (settings: any) => void
     setOpenSettingsModal: (open: boolean) => void
@@ -36,14 +36,11 @@ interface SketchState {
     setCurrentNode: (node: any) => void
     setPanelOpen: (open: boolean) => void
     setSketch: (sketch: Sketch | null) => void
-
-    // Modal Handlers
     handleOpenIndividualModal: (id: string) => void
     setHandleOpenIndividualModal: (handler: (id: string) => void) => void
     handleDeleteSketch: () => Promise<void>
     setHandleDeleteSketch: (handler: () => Promise<void>) => void
-
-    // Query Hooks
+    setOpenActionDialog: (open: boolean) => void
     useSketchData: (investigationId: string, sketchId: string) => SketchResults & {
         refetchAll: () => Promise<void>
     }
@@ -69,7 +66,7 @@ export const useSketchStore = create(
             panelOpen: false,
             sketch: null,
             isRefetching: false,
-            // UI Actions
+            openActionDialog: false,
             setFilters: (filters) => set({ filters }),
             setSettings: (settings) => set({ settings }),
             setOpenSettingsModal: (open) => set({ openSettingsModal: open }),
@@ -77,6 +74,7 @@ export const useSketchStore = create(
             setCurrentNode: (node) => set({ currentNode: node }),
             setPanelOpen: (open) => set({ panelOpen: open }),
             setSketch: (sketch) => set({ sketch }),
+            setOpenActionDialog: (open) => set({ openActionDialog: open }),
             handleOpenIndividualModal: () => { },
             setHandleOpenIndividualModal: (handler) => set({ handleOpenIndividualModal: handler }),
             handleDeleteSketch: async () => { },

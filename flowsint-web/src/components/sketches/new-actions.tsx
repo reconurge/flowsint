@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { AlertCircle, ArrowLeft, ArrowRight, PlusIcon } from "lucide-react"
+import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 import { cn, nodesTypes } from "@/lib/utils"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
@@ -19,8 +19,7 @@ import { AnimatePresence, motion } from "framer-motion"
 export default function NewActions({ addNodes, children }: { addNodes: any, children: React.ReactNode }) {
     const { sketch_id } = useParams()
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
-    const [openActionDialog, setOpenActionDialog] = useState(false)
-    const { setCurrentNode } = useSketchStore((state) => state)
+    const { setCurrentNode, openActionDialog, setOpenActionDialog } = useSketchStore((state) => state)
     const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -203,7 +202,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all bg-background hover:border-primary border border-transparent hover:shadow-md",
+                "cursor-pointer transition-all bg-card hover:border-primary border border-transparent hover:shadow-md",
                 item.disabled && "opacity-50 cursor-not-allowed",
                 "h-full",
             )}

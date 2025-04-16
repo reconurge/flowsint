@@ -27,6 +27,7 @@ import { NodeNotesEditor } from "./node-notes-editor"
 import { performSearch } from "@/lib/actions/search"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
+import { useLaunchSan } from "@/hooks/use-launch-scan"
 
 // Node Context Menu component
 interface NodeContextMenuProps {
@@ -46,29 +47,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
     const [nodeToInsert, setNodeToInsert] = useState<any | null>(null)
     const { confirm } = useConfirm()
     const [_, setIndividualId] = useQueryState("individual_id")
-
-    const handleCheckEmail = useCallback(async () => {
-        // @ts-ignore
-        if (!currentNode && currentNode?.data && !currentNode?.data?.email) return toast.error("No email found.")
-        if (!await confirm({ title: "Email scan", message: "This scan will look for some socials that the email might be associated with. The list is not exhaustive and might return false positives." })) return
-        // @ts-ignore
-        toast.promise(performSearch(currentNode?.data?.email, 'email', sketch_id), {
-            loading: "Loading...",
-            success: () => {
-                return `Scan on ${currentNode?.data?.email} has been launched.`
-            },
-            error: (error: any) => {
-                return (
-                    <div className="overflow-hidden">
-                        <p className="font-bold">An error occured.</p>
-                        <pre className="overflow-auto">
-                            <code>{JSON.stringify(error, null, 2)}</code>
-                        </pre>
-                    </div>
-                )
-            },
-        })
-    }, [currentNode, sketch_id])
+    const { launchScan } = useLaunchSan()
 
     const handleDuplicateNode = async () => {
         if (!currentNode) return
@@ -296,7 +275,10 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     style={{ top: y, left: x }}
                 >
                     {Boolean(currentNode?.data?.email) && (
-                        <DropdownMenuItem onClick={handleCheckEmail}>Search {nodeToInsert}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => launchScan("email", currentNode?.data?.email as string, sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
+                    )}
+                    {Boolean(currentNode?.data?.username) && (
+                        <DropdownMenuItem onClick={() => launchScan("username", currentNode?.data?.username as string, sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
                     )}
                     {["individual", "organization"].includes(currentNode?.data?.type as string) && (
                         <DropdownMenuSub>

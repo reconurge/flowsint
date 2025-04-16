@@ -1,19 +1,28 @@
 'use server'
 import { createClient } from "@/lib/supabase/server";
-import { task_names } from "@/lib/utils";
-export async function performSearch(value: string, task_name: string, sketch_id: string) {
-    if (!task_names.includes(task_name))
-        return { error: `Task name "${task_name}" not found.` }
-    const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan/${task_name}`;
+import { scans } from "@/lib/utils";
+export async function performSearch(value: string, scan_name: string, sketch_id: string) {
+    const supabase = await createClient()
+    await supabase.auth.refreshSession()
+    const { data: { session } } = await supabase.auth.getSession();
+    const jwt = session?.access_token;
+    console.log(jwt)
+    const scan = scans.find((s) => s.name === scan_name)
+    if (!scan)
+        return { error: `Task name "${scan_name}" not found.` }
+    const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan`;
+    const body = JSON.stringify({
+        scanner: scan.scan_name,
+        sketch_id: sketch_id,
+        value: value
+    })
     const response = await fetch(url, {
         method: 'POST',
         headers: {
+            'Authorization': `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-            [task_name]: value,
-            "sketch_id": sketch_id
-        })
+        body
     },
     );
     const resp = await response.json()

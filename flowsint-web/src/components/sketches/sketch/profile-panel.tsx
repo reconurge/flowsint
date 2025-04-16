@@ -2,49 +2,21 @@
 import { MoreHorizontalIcon, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
-import { memo, useCallback } from "react"
+import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
-import { toast } from "sonner"
-import { performSearch } from "@/lib/actions/search"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useConfirm } from "@/components/use-confirm-dialog"
 import Link from "next/link"
-import { task_names } from "@/lib/utils";
+import { useLaunchSan } from "@/hooks/use-launch-scan"
 
 export default function ProfilePanel({ data }: { data: any }) {
     const { sketch_id, investigation_id } = useParams()
-    const { confirm } = useConfirm()
-
-    const handlePerformCheck = useCallback(async (scan_name: string, item: string) => {
-        // @ts-ignore
-        if (!data && item) return toast.error(`No ${item} found.`)
-        if (!task_names.includes(scan_name)) return toast.error(`Scan "${scan_name}" doesn't exist.`)
-        if (!await confirm({ title: `Scanning "${item}"`, message: "This scan will look for some socials that this item might be associated with. The list is not exhaustive and might return false positives." })) return
-        // @ts-ignore
-        toast.promise(performSearch(item, scan_name, sketch_id), {
-            loading: "Loading...",
-            success: () => {
-                return `Scan on ${item} has been launched.`
-            },
-            error: (error: any) => {
-                return (
-                    <div className="overflow-hidden">
-                        <p className="font-bold">An error occured.</p>
-                        <pre className="overflow-auto">
-                            <code>{JSON.stringify(error, null, 2)}</code>
-                        </pre>
-                    </div>
-                )
-            },
-        })
-    }, [data, sketch_id])
-
+    const { launchScan } = useLaunchSan()
     return (
         <div className=" overflow-y-auto overflow-x-hidden h-full">
             <div className="flex items-center sticky bg-card top-0 border-b justify-between px-4 py-2 gap-2 z-50">
@@ -64,7 +36,7 @@ export default function ProfilePanel({ data }: { data: any }) {
                         </Link>
                         : data?.type === "email" ?
                             <Button
-                                onClick={() => handlePerformCheck("email", data?.email)}
+                                onClick={() => launchScan("email", data?.email, sketch_id as string)}
                                 disabled={data?.type !== "email"}
                                 className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
                             >
@@ -76,7 +48,7 @@ export default function ProfilePanel({ data }: { data: any }) {
                             </Button>
                             : data?.type === "social" ?
                                 <Button
-                                    onClick={() => handlePerformCheck("username", data?.username)}
+                                    onClick={() => launchScan("username", data?.username, sketch_id as string)}
                                     disabled={!data?.username}
                                     className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
                                 >

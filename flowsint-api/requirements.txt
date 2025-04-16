@@ -7,3 +7,6 @@ holehe
 dotenv
 uvicorn
 sherlock_project
+python-jose[cryptography]
+python-dotenv
+requests

@@ -15,9 +15,15 @@ class ScannerRegistry:
         cls._scanners[instance.name] = scanner_class
     
     @classmethod
+    def scanner_exists(cls, name: str) -> bool:
+        if name not in cls._scanners:
+            return False
+        return True
+    
+    @classmethod
     def get_scanner(cls, name: str, scan_id: str) -> Scanner:
         if name not in cls._scanners:
-            raise KeyError(f"Scanner '{name}' not found")
+            raise Exception(f"Scanner '{name}' not found")
         return cls._scanners[name](scan_id)
 
 ScannerRegistry.register(SherlockScanner)

@@ -23,18 +23,22 @@ class Scanner(ABC):
         return results
     
     def execute(self, value: str, db: Optional[Client] = None, sketch_id: Optional[str] = None) -> Dict[str, Any]:
+        try:
+            if db and sketch_id:
+                db.table("scans").insert({
+                    "id": self.scan_id,
+                    "status": "pending",
+                    "scan_name": self.name,
+                    "value": value,
+                    "sketch_id": sketch_id,
+                    "results": []
+                }).execute()
+        except Exception as e:
+            raise e
+
         preprocessed = self.preprocess(value)
         results = self.scan(preprocessed)
         results = self.postprocess(results)
 
-        if db and sketch_id:
-            db.table("scans").insert({
-                "id": self.scan_id,
-                "status": "completed" if "error" not in results else "error",
-                "scan_name": self.name,
-                "value": value,
-                "sketch_id": sketch_id,
-                "data": results
-            }).execute()
-
         return results
+

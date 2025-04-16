@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import {
     AlertCircle,
     CheckCircle2,
@@ -51,6 +51,7 @@ export type Scan = {
         results: (ScanResult | ErrorResult)[]
     }
     created_at: string
+    scan_name: string
 }
 
 export function ScanDrawer() {
@@ -84,47 +85,37 @@ export function ScanDrawer() {
     const isErrorResult = (result: ScanResult | ErrorResult): result is ErrorResult => {
         return "error" in result
     }
-
-    const filteredResults = currentScan?.results ? currentScan?.results?.results.filter((result: any) => {
-        if (isErrorResult(result)) {
-            return result.error.toLowerCase().includes(searchQuery.toLowerCase())
-        }
-        return (
-            result.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            result.domain.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    }) : null
-
-    const stats = currentScan?.results ? currentScan?.results.results.reduce(
-        (acc: any, result: any) => {
+    const HoleheDrawer = memo(() => {
+        const filteredResults = currentScan?.results ? currentScan?.results?.results.filter((result: any) => {
             if (isErrorResult(result)) {
-                acc.errors++
-            } else {
-                if (result.exists) acc.exists++
-                if (result.rateLimit) acc.rateLimited++
+                return result.error.toLowerCase().includes(searchQuery.toLowerCase())
             }
-            return acc
-        },
-        { exists: 0, rateLimited: 0, errors: 0 },
-    ) : null
+            return (
+                result.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                result.domain.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        }) : null
 
-    return (
-        <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerContent className="h-[90vh] !max-h-none border">
-                {isLoading &&
-                    <DrawerHeader className="border-b pb-4 p-4">
-                        <DrawerTitle className="flex items-center gap-2 mb-2">
-                            Scan Results
-                            <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
-                        </DrawerTitle>
-                        <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>
-                        <div className="h-[400px] w-full flex items-center justify-center gap-1"><Loader /> Loading results...</div>
-                    </DrawerHeader>}
+        const stats = currentScan?.results ? currentScan?.results.results.reduce(
+            (acc: any, result: any) => {
+                if (isErrorResult(result)) {
+                    acc.errors++
+                } else {
+                    if (result.exists) acc.exists++
+                    if (result.rateLimit) acc.rateLimited++
+                }
+                return acc
+            },
+            { exists: 0, rateLimited: 0, errors: 0 },
+        ) : null
+
+        return (
+            <>
                 {!isLoading && stats && filteredResults ?
                     <>
                         <DrawerHeader className="border-b pb-4 p-4">
                             <DrawerTitle className="flex items-center gap-2 mb-2">
-                                Scan Results  <span className="font-normal">({format(new Date(currentScan?.created_at as string), 'dd MMMM, HH:mm')})</span>
+                                Scan Results ({currentScan?.scan_name})  <span className="font-normal">({format(new Date(currentScan?.created_at as string), 'dd MMMM, HH:mm')})</span>
                                 <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
                             </DrawerTitle>
                             <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>
@@ -309,13 +300,46 @@ export function ScanDrawer() {
                         </div>
                     </> : !isLoading && <div><DrawerHeader className="border-b pb-4 p-4">
                         <DrawerTitle className="flex items-center gap-2 mb-2">
-                            Scan Results
+                            Scan Results ({currentScan?.scan_name})
                             <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
                         </DrawerTitle>
                         <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>
                         <div>Results are not there yet. They should appear soon.</div>
                     </DrawerHeader>
-                    </div>}
+                    </div>
+                }
+            </>
+        )
+    })
+
+    const SherlockDrawer = memo(() => (
+        <><DrawerHeader className="border-b pb-4 p-4">
+            <DrawerTitle className="flex items-center gap-2 mb-2">
+                Scan Results ({currentScan?.scan_name})
+                <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
+            </DrawerTitle>
+            <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>
+            <div>Results are not there yet. They should appear soon.</div>
+        </DrawerHeader>
+            <div className="p-4">
+                <pre className="overflow-auto max-h-[500px] rounded-md p-3 border"><code>{JSON.stringify(currentScan?.results, null, 2)}</code></pre>
+            </div>
+        </>
+    ))
+
+    return (
+        <Drawer open={open} onOpenChange={setOpen}>
+            <DrawerContent className="h-[90vh] !max-h-none border flex flex-col">
+                {isLoading &&
+                    <DrawerHeader className="border-b pb-4 p-4">
+                        <DrawerTitle className="flex items-center gap-2 mb-2">
+                            Scan Results
+                            <Badge variant={currentScan?.status === "error" ? "destructive" : "outline"}>{currentScan?.status}</Badge>
+                        </DrawerTitle>
+                        <p className="opacity-60 mb-2 mt-2">{currentScan?.value}</p>
+                        <div className="h-[400px] w-full flex items-center justify-center gap-1"><Loader /> Loading results...</div>
+                    </DrawerHeader>}
+                {currentScan?.scan_name === "holehe_scanner" ? <HoleheDrawer /> : <SherlockDrawer />}
             </DrawerContent>
         </Drawer>
     )

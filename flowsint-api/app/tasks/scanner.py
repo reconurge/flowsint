@@ -7,8 +7,16 @@ from  app.core.db import get_db
 def run_scan(self, scanner_name: str, value: str, sketch_id: str):
     db=get_db()
     try:
+        db.table("scans").insert({
+                    "id": self.request.id,
+                    "status": "pending",
+                    "scan_name": scanner_name,
+                    "value": value,
+                    "sketch_id": sketch_id,
+                    "results": []
+                }).execute()
         scanner = ScannerRegistry.get_scanner(scanner_name, self.request.id)
-        results = scanner.execute(value, db=db, sketch_id=sketch_id)
+        results = scanner.execute(value)
         # status = "finished" if "error" not in results else "error"
         db.table("scans").update({
             "status": "finished",
@@ -17,7 +25,6 @@ def run_scan(self, scanner_name: str, value: str, sketch_id: str):
         return {"result": results}
         
     except Exception as ex:
-        # error_logs = traceback.format_exc().split("\n")
         error_logs= "an error occured"
         print(f"Error in task: {error_logs}")
         db.table("scans").update({

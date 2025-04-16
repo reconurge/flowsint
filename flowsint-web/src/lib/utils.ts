@@ -513,4 +513,7 @@ export function encodedRedirect(
   return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
 }
 
-export const task_names = ["email", "username"]
+export const scans = [
+  { name: "email", scan_name: "holehe_scanner" },
+  { name: "username", scan_name: "sherlock_scanner" }
+]

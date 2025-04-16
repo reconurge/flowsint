@@ -6,7 +6,7 @@ if [ "$1" = "app" ]; then
     exec uvicorn app.main:app --host 0.0.0.0 --port 5000
 elif [ "$1" = "celery" ]; then
     echo "Démarrage de Celery..."
-    exec celery -A app.core.celery worker --loglevel=debug
+    exec celery -A app.core.celery worker --loglevel=info
 else
     exec "$@"
 fi

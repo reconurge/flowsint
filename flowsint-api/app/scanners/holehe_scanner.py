@@ -153,7 +153,7 @@ class HoleheScanner(Scanner):
                 nike.nike
             ]
             
-            results = {}
+            results = []
             for module in modules:
                 module_result = []
                 try:

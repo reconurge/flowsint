@@ -153,7 +153,7 @@ const DashboardPage = () => {
                                     filteredInvestigations.map((investigation: Investigation) => (
                                         <TableRow key={investigation.id}>
                                             <TableCell>
-                                                <Link href={`dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline font-medium">
+                                                <Link href={`/dashboard/investigations/${investigation.id}`} className="flex items-center gap-2 hover:underline font-medium">
                                                     <FolderLockIcon className="h-5 w-5 text-muted-foreground opacity-60" />
                                                     <span>{investigation.name}</span>
                                                 </Link>

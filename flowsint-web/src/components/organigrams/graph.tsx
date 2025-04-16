@@ -133,7 +133,7 @@ const FlowControls = memo(({
                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button size="icon" variant="outline" onClick={() => setView("large-graph")}>
+                        <Button disabled size="icon" variant="outline" onClick={() => setView("large-graph")}>
                             <WorkflowIcon className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>

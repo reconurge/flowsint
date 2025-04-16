@@ -16,7 +16,9 @@ export async function performSearch(value: string, task_name: string, sketch_id:
         })
     },
     );
-    return response.json();
+    const resp = await response.json()
+    if (response.status !== 200) throw Error(`Error: received status ${response.status}`)
+    return { ...resp, status: response.status };
 }
 
 

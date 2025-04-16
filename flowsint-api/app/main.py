@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from app.core.db import get_db
 from app.core.celery import celery_app
-from supabase import Client
+from app.scanners.registry import ScannerRegistry
 
 app = FastAPI()
 
@@ -12,17 +11,19 @@ class ScanRequest(BaseModel):
     scanner: str
 
 @app.post("/scan")
-async def scan(item: ScanRequest, db: Client = Depends(get_db)):
+async def scan(item: ScanRequest):
     try:
-        assert item.value is not None
-        assert item.sketch_id is not None
-        assert item.scanner is not None
+        if not item.value or not item.sketch_id or not item.scanner:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        if not ScannerRegistry.scanner_exists(name=item.scanner):
+            raise HTTPException(status_code=400, detail="Scanner not found")
+        task = celery_app.send_task("run_scan", args=[item.scanner, item.value, item.sketch_id])
         
-        task = celery_app.send_task("run_scan", args=[item.scanner, item.value])
-     
-        return {"id": task.id }
-        
+        return {"id": task.id}
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 

@@ -3,6 +3,7 @@ from typing import Dict, Type
 from app.scanners.base import Scanner
 from app.scanners.sherlock_scanner import SherlockScanner
 from app.scanners.holehe_scanner import HoleheScanner
+from app.scanners.maigret_scanner import MaigretScanner
 
 class ScannerRegistry:
     
@@ -28,3 +29,4 @@ class ScannerRegistry:
 
 ScannerRegistry.register(SherlockScanner)
 ScannerRegistry.register(HoleheScanner)
+ScannerRegistry.register(MaigretScanner)

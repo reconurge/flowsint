@@ -515,5 +515,5 @@ export function encodedRedirect(
 
 export const scans = [
   { name: "email", scan_name: "holehe_scanner" },
-  { name: "username", scan_name: "sherlock_scanner" }
+  { name: "username", scan_name: "maigret_scanner" }
 ]

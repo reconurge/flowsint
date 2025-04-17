@@ -17,9 +17,9 @@ def run_scan(self, scanner_name: str, value: str, sketch_id: str):
                 }).execute()
         scanner = ScannerRegistry.get_scanner(scanner_name, self.request.id)
         results = scanner.execute(value)
-        # status = "finished" if "error" not in results else "error"
+        status = "finished" if "error" not in results else "error"
         db.table("scans").update({
-            "status": "finished",
+            "status": status,
             "results": results
         }).eq("id", self.request.id).execute()
         return {"result": results}

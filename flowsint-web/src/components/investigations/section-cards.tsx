@@ -37,7 +37,7 @@ export function SectionCards() {
                         {isLoading ? <Skeleton className="h-10 w-12 rounded-lg" /> : data.active_investigations}
                     </CardTitle>
                     <div className="absolute right-4 top-4">
-                        <CustomBadge isLoading={isLoading} value={data?.active_investigations_string} />
+                        <CustomBadge isLoading={isLoading} value={data?.active_investigations_delta_string} />
                     </div>
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">

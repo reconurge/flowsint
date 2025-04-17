@@ -44,7 +44,7 @@ class SherlockScanner(Scanner):
             return {
                 "username": username,
                 "report_id": report_id,
-                "found": found_accounts
+                "results": found_accounts
             }
 
         except subprocess.TimeoutExpired:

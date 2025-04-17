@@ -32,7 +32,8 @@ import { useQuery } from "@tanstack/react-query"
 import { useParams } from "next/navigation"
 import Loader from "../loader"
 import { CopyButton } from "../copy"
-import { Avatar } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { cn, getInitials } from "@/lib/utils"
 
 export type ScanResult = {
     name: string
@@ -390,8 +391,15 @@ export function ScanDrawer() {
             <>
                 <DrawerHeader className="border-b pb-4 p-4">
                     <div className="flex items-center gap-4 mb-4">
-                        <Avatar className="h-16 w-16">
-                            <img src={profileImage || "/placeholder.svg"} alt={userData.username} />
+                        <Avatar
+                            className={cn(
+                                "border-2 h-16 w-16 border-card bg-background relative",
+                                "transition-transform",
+                                "ring-0 ring-offset-0",
+                            )}
+                        >
+                            <AvatarImage src={profileImage} alt={userData.username} />
+                            <AvatarFallback className={cn("text-md", "bg-muted")}>{getInitials(userData.username)}</AvatarFallback>
                         </Avatar>
                         <div>
                             <h3 className="text-xl font-bold">@{userData.username}</h3>

@@ -112,11 +112,11 @@ export function ScanButton() {
           {pendingCount > 0 ? (
             <div className="pr-1">
               <ZapIcon fill="var(--primary)" stroke="var(--primary)" className="!h-5 !w-5 animate-pulse" />
-              <div className="absolute -top-0 z-[50] flex items-center justify-center right-1 text-[10px] bg-background rounded-full h-5 w-5 border">{pendingCount}</div>
+              <Badge className='absolute -top-0 right-2 text-xs rounded-full h-4 w-4' variant={"default"}>{pendingCount}</Badge>
             </div>
           ) : (
             <>
-              <ZapIcon className="!h-4 !w-4 opacity-60" />
+              <ZapIcon className="!h-4.5 !w-4.5 opacity-60" />
             </>
           )}
         </Button>

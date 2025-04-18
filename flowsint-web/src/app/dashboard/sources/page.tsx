@@ -1,56 +1,56 @@
 import React from 'react'
 import { Tool } from "@/types"
 import { ToolCard } from '@/components/tool-card'
-export const tools: Tool[] = [
+const tools: Tool[] = [
     {
         name: "Maigret",
         path: "/tools/maigret",
-        description: "Recherche de profils sur plus de 500 sites à partir d'un username.",
+        description: "Search for profiles across more than 500 sites based on a username.",
     },
     {
         name: "Holehe",
         path: "/tools/holehe",
-        description: "Vérifie si une adresse e-mail est utilisée pour des comptes sur différents sites web.",
+        description: "Check if an email address is associated with accounts on various websites.",
     },
     {
         name: "PhoneInfoga",
         path: "/tools/phoneinfoga",
-        description: "Collecte d'informations à partir de numéros de téléphone.",
+        description: "Gather information from phone numbers.",
     },
     {
         name: "EmailRep",
         path: "/tools/emailrep",
-        description: "Analyse de réputation d'adresse email (scam, social, etc.).",
+        description: "Analyze the reputation of an email address (scam, social, etc.).",
     },
     {
         name: "Sherlock",
         path: "/tools/sherlock",
-        description: "Recherche de comptes utilisateurs sur les réseaux sociaux.",
+        description: "Search for user accounts across social networks.",
     },
     {
         name: "GHunt",
         path: "/tools/ghunt",
-        description: "Analyse des métadonnées Google (Gmail, Docs, Photos, etc.).",
+        description: "Analyze Google metadata (Gmail, Docs, Photos, etc.).",
     },
     {
         name: "theHarvester",
         path: "/tools/theharvester",
-        description: "Collecte d'emails, noms de domaine, IPs depuis des sources publiques.",
+        description: "Collect emails, domain names, IPs from public sources.",
     },
     {
         name: "Sublist3r",
         path: "/tools/sublist3r",
-        description: "Enumération de sous-domaines à partir d'un nom de domaine.",
+        description: "Enumerate subdomains from a domain name.",
     },
     {
         name: "DnsDumpster",
         path: "/tools/dnsdumpster",
-        description: "Reconnaissance DNS et cartographie réseau à partir d'un domaine.",
+        description: "DNS reconnaissance and network mapping from a domain.",
     },
     {
         name: "ExifTool",
         path: "/tools/exiftool",
-        description: "Extraction de métadonnées des fichiers (images, documents, etc.).",
+        description: "Extract metadata from files (images, documents, etc.).",
     }
 ]
 

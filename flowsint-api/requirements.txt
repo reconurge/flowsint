@@ -11,3 +11,5 @@ python-jose[cryptography]
 python-dotenv
 requests
 git+https://github.com/soxoj/maigret
+python-whois
+pydig

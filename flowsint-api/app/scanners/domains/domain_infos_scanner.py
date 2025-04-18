@@ -1,13 +1,12 @@
 import json
-import subprocess
 import uuid
 from typing import Dict, Any, List
-from pathlib import Path
-
 import requests
-
+import whois
+import pydig
 from app.utils import extract_domain
 from app.scanners.base import Scanner
+
 
 class DomainInfosScanner(Scanner):
     """Scan for subdomains via crt.sh and certificate transparency logs."""
@@ -43,51 +42,38 @@ class DomainInfosScanner(Scanner):
         clean_domain = extract_domain(domain)
         result = {"domain": clean_domain, "report_id": report_id}
 
+        # WHOIS info (python-whois)
         try:
-            # WHOIS info
-            whois_output = subprocess.run(
-                ["/usr/bin/whois", clean_domain],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            result["whois_raw"] = whois_output.stdout.strip()
-
-            # DNS lookup (IP)
-            dig_output = subprocess.run(
-                ["/usr/bin/dig", "+short", clean_domain],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            ips = [line.strip() for line in dig_output.stdout.strip().split("\n") if line.strip()]
-            result["ips"] = ips
-
-            # IP Geolocation info via ipinfo.io
-            ipinfo_data = []
-            for ip in ips:
-                ipinfo_output = subprocess.run(
-                    ["curl", f"https://ipinfo.io/{ip}/json"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                try:
-                    ipinfo_data.append(json.loads(ipinfo_output.stdout))
-                except Exception:
-                    ipinfo_data.append({"ip": ip, "error": "Failed to parse ipinfo response"})
-
-            result["ipinfo"] = ipinfo_data
-
-            # crt.sh subdomains
-            result["subdomains"] = self._get_subdomains_from_crtsh(clean_domain)
-
-            return result
-
-        except subprocess.TimeoutExpired:
-            return {"error": "Domain scan timed out."}
+            w = whois.whois(clean_domain)
+            result["whois_raw"] = str(w)
         except Exception as e:
-            return {"error": f"Unexpected error in Domain scan: {str(e)}"}
+            result["whois_raw"] = f"[error] {str(e)}"
+
+        # DNS lookup (IP) via pydig
+        try:
+            ips = pydig.query(clean_domain, 'A')
+            result["ips"] = ips
+        except Exception as e:
+            result["ips"] = []
+            result["ips_error"] = f"[error] {str(e)}"
+
+        # IP Geolocation info via ipinfo.io
+        ipinfo_data = []
+        for ip in result.get("ips", []):
+            try:
+                resp = requests.get(f"https://ipinfo.io/{ip}/json", timeout=10)
+                ipinfo_data.append(resp.json())
+            except Exception:
+                ipinfo_data.append({"ip": ip, "error": "Failed to fetch ipinfo"})
+        result["ipinfo"] = ipinfo_data
+
+        # crt.sh subdomains
+        try:
+            result["subdomains"] = self._get_subdomains_from_crtsh(clean_domain)
+        except Exception as e:
+            result["subdomains"] = [f"[crt.sh] Error: {str(e)}"]
+
+        return result
 
     def postprocess(self, results: Dict[str, Any]) -> Dict[str, Any]:
         results["scanner"] = "domain_infos_scanner"

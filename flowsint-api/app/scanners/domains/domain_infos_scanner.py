@@ -46,7 +46,7 @@ class DomainInfosScanner(Scanner):
         try:
             # WHOIS info
             whois_output = subprocess.run(
-                ["whois", clean_domain],
+                ["/usr/bin/whois", clean_domain],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -55,7 +55,7 @@ class DomainInfosScanner(Scanner):
 
             # DNS lookup (IP)
             dig_output = subprocess.run(
-                ["dig", "+short", clean_domain],
+                ["/usr/bin/dig", "+short", clean_domain],
                 capture_output=True,
                 text=True,
                 timeout=10

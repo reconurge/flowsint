@@ -72,7 +72,7 @@ export function NavUser({
               "ring-0 ring-offset-0",
             )}
           >
-            <AvatarImage src={profile.image} alt={``} />
+            <AvatarImage src={profile.avatar_url} alt={``} />
             <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(name)}</AvatarFallback>
           </Avatar>}
       </div>

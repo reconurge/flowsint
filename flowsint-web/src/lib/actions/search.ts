@@ -6,9 +6,10 @@ export async function performSearch(value: string, scan_name: string, sketch_id:
     await supabase.auth.refreshSession()
     const { data: { session } } = await supabase.auth.getSession();
     const jwt = session?.access_token;
-    const scan = scans.find((s) => s.name === scan_name)
-    if (!scan)
-        return { error: `Task name "${scan_name}" not found.` }
+    const scan = scans.find((s) => s.scan_name === scan_name)
+    if (!scan) {
+        throw Error(`Scanner "${scan_name}" was not found.`)
+    }
     const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/scan`;
     const body = JSON.stringify({
         scanner: scan.scan_name,
@@ -25,6 +26,7 @@ export async function performSearch(value: string, scan_name: string, sketch_id:
     },
     );
     const resp = await response.json()
+    console.log(resp)
     if (response.status !== 200) throw Error(`Error: received status ${response.status}`)
     return { ...resp, status: response.status };
 }

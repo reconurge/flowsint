@@ -514,6 +514,20 @@ export function encodedRedirect(
 }
 
 export const scans = [
-  { name: "email", scan_name: "holehe_scanner" },
-  { name: "username", scan_name: "maigret_scanner" }
+  {
+    name: "email",
+    scan_name: "holehe_scanner",
+    description: "Check if an email address is associated with existing online accounts using Holehe."
+  },
+  {
+    name: "username",
+    scan_name: "maigret_scanner",
+    description: "Search for social media and online platform accounts associated with a given username using Maigret."
+  },
+  {
+    name: "website",
+    scan_name: "domain_infos_scanner",
+    description: "Gather public information about a domain, including IP addresses, WHOIS data, geolocation, and subdomains."
+  }
 ]
+

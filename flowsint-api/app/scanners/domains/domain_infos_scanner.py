@@ -18,7 +18,7 @@ class DomainInfosScanner(Scanner):
     def _get_subdomains_from_crtsh(self, domain: str) -> List[str]:
         url = f"https://crt.sh/?q=%25.{domain}&output=json"
         try:
-            resp = requests.get(url, timeout=10)
+            resp = requests.get(url, timeout=100)
             if resp.status_code != 200:
                 return []
 

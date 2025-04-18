@@ -34,9 +34,6 @@ export interface Tool {
   name: string
   path: string
   description?: string
-  install?: string[]
-  run?: string
-  url?: string
 }
 
 export interface ToolCategory {

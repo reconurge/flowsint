@@ -11,7 +11,7 @@ interface ToolCardProps {
 
 export function ToolCard({ tool }: ToolCardProps) {
     return (
-        <Card className="flex flex-col shadow-none bg-background rounded-md backdrop-blur">
+        <Card className="flex flex-col shadow-none bg-card rounded-md">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Terminal className="h-5 w-5" />
@@ -21,13 +21,13 @@ export function ToolCard({ tool }: ToolCardProps) {
             <CardContent className="flex-1">
                 {tool.description && <p className="text-sm text-muted-foreground">{tool.description}</p>}
             </CardContent>
-            <CardFooter>
+            {/* <CardFooter>
                 <a href={tool?.url || "#"} className="w-full">
                     <Badge variant="secondary" className="w-full justify-center">
                         View Details
                     </Badge>
                 </a>
-            </CardFooter>
+            </CardFooter> */}
         </Card>
     )
 }

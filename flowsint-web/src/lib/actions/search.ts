@@ -6,7 +6,6 @@ export async function performSearch(value: string, scan_name: string, sketch_id:
     await supabase.auth.refreshSession()
     const { data: { session } } = await supabase.auth.getSession();
     const jwt = session?.access_token;
-    console.log(jwt)
     const scan = scans.find((s) => s.name === scan_name)
     if (!scan)
         return { error: `Task name "${scan_name}" not found.` }

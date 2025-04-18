@@ -577,16 +577,16 @@ export function ScanDrawer() {
     })
 
     const RawResults = memo(() => (
-        <>
-            <div className="p-4">
-                <pre className="overflow-auto max-h-[500px] relative rounded-md p-3 border">
+        <div className="p-4">
+            <div className="relative">
+                <pre className="overflow-auto max-h-[500px] rounded-md p-3 border">
                     <code>{JSON.stringify(currentScan?.results, null, 2)}</code>
                     <div className="absolute top-2 right-2">
                         <CopyButton content={JSON.stringify(currentScan?.results)} />
                     </div>
                 </pre>
             </div>
-        </>
+        </div>
     ))
 
     return (

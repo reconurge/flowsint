@@ -1,9 +1,10 @@
 from typing import Dict, Type
 
 from app.scanners.base import Scanner
-from app.scanners.sherlock_scanner import SherlockScanner
-from app.scanners.holehe_scanner import HoleheScanner
-from app.scanners.maigret_scanner import MaigretScanner
+from app.scanners.usernames.sherlock_scanner import SherlockScanner
+from app.scanners.usernames.maigret_scanner import MaigretScanner
+from app.scanners.emails.holehe_scanner import HoleheScanner
+from app.scanners.domains.domain_infos_scanner import DomainInfosScanner
 
 class ScannerRegistry:
     
@@ -30,3 +31,4 @@ class ScannerRegistry:
 ScannerRegistry.register(SherlockScanner)
 ScannerRegistry.register(HoleheScanner)
 ScannerRegistry.register(MaigretScanner)
+ScannerRegistry.register(DomainInfosScanner)

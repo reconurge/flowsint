@@ -32,16 +32,16 @@ import { FlowControls } from "./controls"
 import { getDagreLayoutedElements } from "@/lib/utils"
 import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
 }
 
-const FlowEditor = memo(({ nodesData, theme }: { nodesData: { items: any[] }, theme: any }) => {
+const FlowEditor = memo(({ nodesData, initialEdges, initialNodes, theme }: { nodesData: { items: any[] }, theme: any, initialEdges: Edge[], initialNodes: Node[] }) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
-    const [nodes, setNodes, onNodesChange] = useNodesState<any>([])
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<Record<string, unknown>>>([])
+    const [nodes, setNodes, onNodesChange] = useNodesState<any>(initialNodes)
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<Record<string, unknown>>>(initialEdges)
     const [selectedNode, setSelectedNode] = useState<Node<any> | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
     const [mounted, setMounted] = useState(false)
@@ -49,6 +49,7 @@ const FlowEditor = memo(({ nodesData, theme }: { nodesData: { items: any[] }, th
     const reactFlowWrapper = useRef<HTMLDivElement>(null)
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
     const router = useRouter()
+    const { transform_id } = useParams()
 
     useEffect(() => {
         setMounted(true)
@@ -171,14 +172,15 @@ const FlowEditor = memo(({ nodesData, theme }: { nodesData: { items: any[] }, th
     const handleSaveSimulation = useCallback(async () => {
         setLoading(true)
         try {
-            const { data: newTransfrorm } = await supabase.from("transforms").insert({
+            const { data: newTransfrorm } = await supabase.from("transforms").upsert({
+                id: transform_id,
                 name: "My Simulation",
                 transform_schema: {
                     nodes, edges
                 }
             }).select("id").single()
             toast.success("Simulation saved successfully.")
-            newTransfrorm && router.push(`/transform/${newTransfrorm.id}`)
+            newTransfrorm && !transform_id && router.push(`/dashboard/transforms/${newTransfrorm.id}`)
         } catch (error) {
             toast.error("Error saving simulation")
         } finally {
@@ -294,7 +296,7 @@ const FlowEditor = memo(({ nodesData, theme }: { nodesData: { items: any[] }, th
 
 FlowEditor.displayName = "FlowEditor"
 
-function TransformEditor({ nodesData }: { nodesData: { items: any[] } }) {
+function TransformEditor({ nodesData, initialEdges = [], initialNodes = [] }: { nodesData: { items: any[] }, initialEdges?: Edge[], initialNodes?: Node[] }) {
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
 
@@ -312,7 +314,7 @@ function TransformEditor({ nodesData }: { nodesData: { items: any[] } }) {
 
     return (
         <ReactFlowProvider>
-            <FlowEditor nodesData={nodesData} theme={resolvedTheme || "light"} />
+            <FlowEditor nodesData={nodesData} initialEdges={initialEdges} initialNodes={initialNodes} theme={resolvedTheme || "light"} />
         </ReactFlowProvider>
     );
 }

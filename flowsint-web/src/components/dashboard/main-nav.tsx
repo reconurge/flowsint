@@ -60,13 +60,13 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
                 Analyses
             </Link>
             <Link
-                href="/dashboard/templates"
+                href="/dashboard/transforms"
                 className={cn(
                     "text-sm font-medium transition-colors hover:text-primary px-3 py-1.5 rounded-md",
-                    isActive("/dashboard/templates") ? "bg-muted/50" : "text-muted-foreground",
+                    isActive("/dashboard/transforms") ? "bg-muted/50" : "text-muted-foreground",
                 )}
             >
-                Templates
+                Transforms
             </Link>
         </nav>
     )

@@ -3,7 +3,6 @@ import json
 import uuid
 from typing import Dict, Any
 from pathlib import Path
-from ghunt.modules import email as email_module
 from app.scanners.base import Scanner
 
 
@@ -23,6 +22,7 @@ class GHuntGmailScanner(Scanner):
         report_id = str(uuid.uuid4())
         output_file = Path(f"/tmp/ghunt_{email}_email.json")
         try:
+            from ghunt.modules import email as email_module
             asyncio.run(email_module.hunt(None, email, output_file))
             if not output_file.exists():
                 return {

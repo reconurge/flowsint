@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt git+https://github.com/soxoj/maigret
+RUN pip install --no-cache-dir -r requirements.txt git+https://github.com/soxoj/maigret ghunt
 
 RUN apt-get update && \
     apt-get install -y git whois dnsutils curl && \

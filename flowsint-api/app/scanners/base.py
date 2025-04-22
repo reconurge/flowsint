@@ -5,9 +5,22 @@ class Scanner(ABC):
     def __init__(self, scan_id: str):
         self.scan_id = scan_id
         
-    @property
+    @classmethod
     @abstractmethod
     def name(self) -> str:
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def category(self) -> str:
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def key(self) -> str:
+        ## This is the key used to identify the items' key to search for. Ex:
+        ## Individual -> full_name
+        ## Phone -> phone_number
         pass
     
     @abstractmethod

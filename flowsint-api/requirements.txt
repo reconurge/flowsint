@@ -13,3 +13,6 @@ requests
 git+https://github.com/soxoj/maigret
 python-whois
 pydig
+ghunt
+ignorant
+hibpwned

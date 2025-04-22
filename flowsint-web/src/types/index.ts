@@ -33,7 +33,10 @@ export type InvestigationGraph = {
 export interface Tool {
   name: string
   path: string
-  description?: string
+  description?: string,
+  active: boolean
+  repo?: string
+  avatar?: string
 }
 
 export interface ToolCategory {

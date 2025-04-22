@@ -8,9 +8,15 @@ from app.scanners.base import Scanner
 
 class MaigretScanner(Scanner):
     """Scans the username for associated social accounts using maigret."""
-    @property
+    @classmethod
     def name(self) -> str:
         return "maigret_scanner"
+    @classmethod
+    def category(self) -> str:
+        return "social_account"
+    @classmethod
+    def key(self) -> str:
+        return "username"
     
     def scan(self, username: str) -> Dict[str, Any]:
         report_id = str(uuid.uuid4())

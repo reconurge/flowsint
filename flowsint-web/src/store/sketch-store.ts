@@ -46,8 +46,6 @@ interface SketchState {
     }
 }
 
-const isServer = typeof window === "undefined"
-
 export const useSketchStore = create(
     persist<SketchState>(
         (set, get) => ({

@@ -35,13 +35,14 @@ function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { in
             name: "Map",
             href: `/dashboard/investigations/${investigation_id}/sketches/${sketch_id}/map`,
             icon: MapIcon,
+            disabled: true,
         },
         {
             id: "timeline",
             name: "Timeline",
             href: `/dashboard/investigations/${investigation_id}/sketches/${sketch_id}/timeline`,
             icon: TimerIcon,
-            "disabled": true,
+            disabled: true,
         }
     ], [investigation_id, sketch_id]);
 

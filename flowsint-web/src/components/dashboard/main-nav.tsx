@@ -4,46 +4,70 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import InvestigationSelector from "../investigations/investigation-selector"
 import CaseSelector from "../sketches/case-selector"
-import { useParams } from "next/navigation"
+import { useParams, usePathname } from "next/navigation"
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
     const { sketch_id, investigation_id } = useParams()
+    const pathname = usePathname()
 
-    if (investigation_id) return (
-        <div className='flex gap-1 items-center p-2'>
-            <InvestigationSelector />{sketch_id && <><span className='opacity-60 text-sm'>
-                /</span><CaseSelector /></>
-            }
-        </div >
-    )
+    const isActive = (path: string) => {
+        if (path === "/dashboard") {
+            return pathname === "/dashboard"
+        }
+        return pathname.startsWith(path)
+    }
+
+    if (investigation_id)
+        return (
+            <div className="flex gap-1 items-center p-2">
+                <InvestigationSelector />
+                {sketch_id && (
+                    <>
+                        <span className="opacity-60 text-sm">/</span>
+                        <CaseSelector />
+                    </>
+                )}
+            </div>
+        )
 
     return (
         <nav className={cn("md:flex hidden w-full items-center space-x-4 lg:space-x-6", className)} {...props}>
             <Link
                 href="/dashboard"
-                className="text-sm font-medium transition-colors hover:text-primary bg-muted/50 px-3 py-1.5 rounded-md"
+                className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary px-3 py-1.5 rounded-md",
+                    isActive("/dashboard") ? "bg-muted/50" : "text-muted-foreground",
+                )}
             >
                 Dashboard
             </Link>
             <Link
-                href="/dashboard/sources"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
+                href="/dashboard/tools"
+                className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary px-3 py-1.5 rounded-md",
+                    isActive("/dashboard/tools") ? "bg-muted/50" : "text-muted-foreground",
+                )}
             >
-                Sources
+                Tools
             </Link>
             <Link
                 href="/dashboard/analysis"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
+                className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary px-3 py-1.5 rounded-md",
+                    isActive("/dashboard/analysis") ? "bg-muted/50" : "text-muted-foreground",
+                )}
             >
                 Analyses
             </Link>
             <Link
                 href="/dashboard/templates"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5 rounded-md"
+                className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary px-3 py-1.5 rounded-md",
+                    isActive("/dashboard/templates") ? "bg-muted/50" : "text-muted-foreground",
+                )}
             >
                 Templates
             </Link>
         </nav>
     )
 }
-

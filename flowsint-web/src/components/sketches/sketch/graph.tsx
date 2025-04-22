@@ -82,7 +82,7 @@ const stateSelector = (state: { currentNode: any; setCurrentNode: any; resetNode
 })
 
 // Properly memoized FlowControls component
-const FlowControls = memo(({
+export const FlowControls = memo(({
     onLayout,
     fitView,
     handleRefetch,

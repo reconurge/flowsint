@@ -13,16 +13,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useLaunchSan } from "@/hooks/use-launch-scan"
-
+import { scans } from "@/lib/utils"
 export default function ProfilePanel({ data }: { data: any }) {
     const { sketch_id, investigation_id } = useParams()
     const { launchScan } = useLaunchSan()
+    const scanner = scans.find((scan) => scan.name === data?.type)
     return (
         <div className=" overflow-y-auto overflow-x-hidden h-full">
             <div className="flex items-center sticky bg-card top-0 border-b justify-between px-4 py-2 gap-2 z-50">
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
                 <div className="flex items-center gap-2">
-                    {data?.type === "organization" ?
+                    {data?.type === "organization" &&
                         <Link href={`/dashboard/investigations/${investigation_id}/organigrams/${data.id}`}>
                             <Button
                                 className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
@@ -33,41 +34,19 @@ export default function ProfilePanel({ data }: { data: any }) {
                                 </span>
                                 <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
                             </Button>
-                        </Link>
-                        : data?.type === "email" ?
-                            <Button
-                                onClick={() => launchScan("email", data?.email, sketch_id as string)}
-                                disabled={data?.type !== "email"}
-                                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                            >
-                                <span className="flex items-center gap-2">
-                                    <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                                    <span>Search</span>
-                                </span>
-                                <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                            </Button>
-                            : data?.type === "social" ?
-                                <Button
-                                    onClick={() => launchScan("username", data?.username, sketch_id as string)}
-                                    disabled={!data?.username}
-                                    className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                                        <span>Search</span>
-                                    </span>
-                                    <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                                </Button> : data?.type === "website" ? <Button
-                                    onClick={() => launchScan("website", data?.url, sketch_id as string)}
-                                    disabled={!data?.url}
-                                    className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                                        <span>Search</span>
-                                    </span>
-                                    <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                                </Button> : null}
+                        </Link>}
+                    {scanner &&
+                        <Button
+                            onClick={() => launchScan(scanner.name, data?.[scanner?.key], sketch_id as string)}
+                            disabled={!data?.[scanner?.key]}
+                            className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                        >
+                            <span className="flex items-center gap-2">
+                                <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
+                                <span>Search</span>
+                            </span>
+                            <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
+                        </Button>}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent>

@@ -4,9 +4,15 @@ from typing import Dict, Any
 from app.scanners.base import Scanner
 
 class HoleheScanner(Scanner):    
-    @property
+    @classmethod
     def name(self) -> str:
         return "holehe_scanner"
+    @classmethod
+    def category(self) -> str:
+        return "emails"
+    @classmethod
+    def key(self) -> str:
+        return "email"
     
     def scan(self, email: str) -> Dict[str, Any]:
         try:

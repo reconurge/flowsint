@@ -11,9 +11,15 @@ from app.scanners.base import Scanner
 class DomainInfosScanner(Scanner):
     """Scan for subdomains via crt.sh and certificate transparency logs."""
 
-    @property
+    @classmethod
     def name(self) -> str:
         return "domain_infos_scanner"
+    @classmethod
+    def category(self) -> str:
+        return "websites"
+    @classmethod
+    def key(self) -> str:
+        return "url"
 
     def _get_subdomains_from_crtsh(self, domain: str) -> List[str]:
         url = f"https://crt.sh/?q=%25.{domain}&output=json"
@@ -45,9 +51,9 @@ class DomainInfosScanner(Scanner):
         # WHOIS info (python-whois)
         try:
             w = whois.whois(clean_domain)
-            result["whois_raw"] = str(w)
+            result["whois_raw"] = json.dumps(w, default=str, indent=2)
         except Exception as e:
-            result["whois_raw"] = f"[error] {str(e)}"
+            result["whois_raw"] = json.dumps({"error": str(e)})
 
         # DNS lookup (IP) via pydig
         try:

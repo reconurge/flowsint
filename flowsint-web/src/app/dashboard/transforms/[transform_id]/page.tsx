@@ -14,7 +14,6 @@ async function fetchNodes() {
 export default async function EditorCustom({
     params
 }: {
-    children: React.ReactNode;
     params: Promise<{ transform_id: string }>
 }) {
     const { transform_id } = await (params)

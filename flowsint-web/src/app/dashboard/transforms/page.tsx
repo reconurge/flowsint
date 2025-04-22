@@ -29,7 +29,7 @@ const TransformsPage = async () => {
     )
 }
 
-export const TransformItem = ({ transform }: { transform: any }) => {
+const TransformItem = ({ transform }: { transform: any }) => {
     return (
         <Link href={`/dashboard/transforms/${transform.id}`} className="w-full">
             <div className="bg-card rounded-lg shadow-md p-4">

@@ -1,7 +1,5 @@
 from typing import Dict, Any, List
 from app.scanners.base import Scanner
-from app.models.types import OSINTType
-from app.utils import DataType
 
 class HoleheScanner(Scanner):
     @classmethod
@@ -18,14 +16,11 @@ class HoleheScanner(Scanner):
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        return { "emails": "array" }  # Liste d'emails
+        return ["email"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict",  # A list of results for each username scan
-        }
+       return ["social_profile"]
     
     async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
         """

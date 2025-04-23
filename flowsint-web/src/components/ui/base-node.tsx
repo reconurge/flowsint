@@ -8,7 +8,7 @@ export const BaseNode = forwardRef<
     <div
         ref={ref}
         className={cn(
-            "relative rounded-md ring ring-transparent bg-background p-2 flex items-center justify-between text-card-foreground truncate",
+            "relative rounded-md ring ring-transparent bg-background p-2 flex flex-col items-center justify-between text-card-foreground truncate",
             className,
             selected ? "ring-primary shadow-lg" : "",
             "hover:ring-primary",
@@ -19,3 +19,23 @@ export const BaseNode = forwardRef<
 ));
 
 BaseNode.displayName = "BaseNode";
+
+
+export const BaseNodeSchema = forwardRef<
+    HTMLDivElement,
+    HTMLAttributes<HTMLDivElement> & { selected?: boolean }
+>(({ className, selected, ...props }, ref) => (
+    <div
+        ref={ref}
+        className={cn(
+            "relative rounded-md border bg-card p-5 text-card-foreground",
+            className,
+            selected ? "border-muted-foreground shadow-lg" : "",
+            "hover:ring-1",
+        )}
+        tabIndex={0}
+        {...props}
+    />
+));
+
+BaseNodeSchema.displayName = "BaseNodeSchema";

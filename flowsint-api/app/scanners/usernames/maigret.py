@@ -23,17 +23,11 @@ class MaigretScanner(Scanner):
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        """Defines the expected input schema for the scan."""
-        return {
-            "usernames": "array"  # The schema expects an array of usernames
-        }
+        return ["username"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict",  # A list of results for each username scan
-        }
+       return ["social_profile", "full_name", "text"]
     
     def preprocess(self, usernames: List[str]) -> List[str]:
         """Validates the list of usernames before scanning."""

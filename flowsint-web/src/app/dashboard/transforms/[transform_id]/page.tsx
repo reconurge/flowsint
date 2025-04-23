@@ -1,4 +1,4 @@
-import TransformEditor from "@/components/templates/editor"
+import TransformEditor from "@/components/transforms/editor"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 

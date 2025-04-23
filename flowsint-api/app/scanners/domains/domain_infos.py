@@ -25,17 +25,11 @@ class DomainInfosScanner(Scanner):
 
     @classmethod
     def input_schema(cls) -> Dict[str, str]:
-        """Defines expected input format."""
-        return {
-            "domains": "array"
-        }
+        return ["domain", "url"]
 
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict",  # A list of results for each username scan
-        }
+        return ["ip_address", "url", "whois_raw", "subdomains", "ips", "ipinfo"]
 
     def _get_subdomains_from_crtsh(self, domain: str) -> List[str]:
         url = f"https://crt.sh/?q=%25.{domain}&output=json"

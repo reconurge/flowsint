@@ -62,7 +62,9 @@ async def get_scans_list():
                 "name": scanner["name"],
                 "module": scanner["module"],
                 "doc": scanner["doc"],
-                "key": scanner["key"]
+                "key": scanner["key"],
+                "inputs": scanner["inputs"],
+                "outputs": scanner["outputs"],
             }
             for scanner in scanner_list
         ]

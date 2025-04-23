@@ -18,12 +18,6 @@ def test_category(scanner):
 def test_key(scanner):
     assert scanner.key() == "url"
 
-def test_input_schema(scanner):
-    assert scanner.input_schema() == {"domains": "array"}
-
-def test_output_schema(scanner):
-    assert "output" in scanner.output_schema()
-
 @pytest.mark.skipif(True, reason="Skip long-running test")
 def test_scan_valid_domain(scanner):
     results = scanner.execute([VALID_DOMAIN])

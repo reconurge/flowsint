@@ -23,35 +23,25 @@ class GHuntGmailScanner(Scanner):
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        return { "emails": "array" }  # Liste d'emails
+        return ["email"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "array",  # A list of results for each username scan
-        }
+        return ["full_name", "social_profile", "leak_info", "email", "phone_number", "location", "profile_picture", "metadata"]
 
     async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
-        """
-        Effectue la recherche GHunt pour chaque email de la liste.
-        """
         results = []
         
-        # Création d'un fichier temporaire pour chaque email
         for email in emails:
             report_id = str(uuid.uuid4())
             
-            # Création d'un fichier temporaire pour stocker le résultat de la recherche
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 output_file = temp_file.name
             
             try:
                 from ghunt.modules import email as email_module
-                # Appel à la fonction asynchrone de GHunt
                 await email_module.hunt(None, email, output_file)
                 
-                # Vérification si le fichier de sortie existe et est valide
                 if not Path(output_file).exists():
                     results.append({
                         "email": email,
@@ -59,7 +49,6 @@ class GHuntGmailScanner(Scanner):
                     })
                     continue
 
-                # Lecture des résultats du fichier
                 with open(output_file, "r") as f:
                     scan_results = json.load(f)
                 

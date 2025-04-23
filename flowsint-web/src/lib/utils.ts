@@ -516,7 +516,7 @@ export function encodedRedirect(
 export const scans = [
   {
     name: "email",
-    scan_name: "hibp_scanner",
+    scan_name: "holehe_scanner",
     description: "Check if an email address is associated with existing online accounts using Holehe.",
     key: "email"
   },

@@ -19,17 +19,11 @@ class IgnorantScanner(Scanner):
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        """Defines the expected input schema for the scan."""
-        return {
-            "phone_numbers": "array"  # List of phone numbers to scan
-        }
+        return ["phone_number"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict"
-        }
+        return ["exists"]
 
     async def scan(self, phone_numbers: List[str]) -> List[Dict[str, Any]]:
         """

@@ -57,6 +57,8 @@ class ScannerRegistry:
                 "module": scanner.__module__,
                 "doc": scanner.__doc__,
                 "key": scanner.key(),
+                "inputs": scanner.input_schema(),
+                "outputs": scanner.output_schema(),
             })
         return scanners_by_category
 

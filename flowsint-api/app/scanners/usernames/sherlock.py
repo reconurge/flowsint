@@ -22,17 +22,11 @@ class SherlockScanner(Scanner):
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        """Defines the expected input schema."""
-        return {
-            "usernames": "array"  # The schema expects an array of usernames
-        }
+        return ["username"]
 
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict",  # A list of results for each username scan
-        }
+        return ["social_profile"]
         
     def preprocess(self, usernames: List[str]) -> List[str]:
         """Validates the list of usernames before scanning."""

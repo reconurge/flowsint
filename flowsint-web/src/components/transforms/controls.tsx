@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { MaximizeIcon, ZoomInIcon, ZoomOutIcon, NetworkIcon, PlayIcon, SaveIcon } from "lucide-react";
+import { MaximizeIcon, ZoomInIcon, ZoomOutIcon, NetworkIcon, PlayIcon, SaveIcon, TrashIcon } from "lucide-react";
 import FullscreenButton from "../full-screen-button";
 import { Panel } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -11,6 +11,7 @@ export const FlowControls = memo(({
     fitView,
     zoomIn,
     zoomOut,
+    handleDeleteSimulation
 }: any) => {
     return (
         <>
@@ -34,6 +35,13 @@ export const FlowControls = memo(({
                     onClick={handleSaveSimulation}
                 >
                     Save transform<SaveIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size={"icon"}
+                    onClick={handleDeleteSimulation}
+                >
+                    <TrashIcon className="h-4 w-4" />
                 </Button>
             </Panel>
             <Panel position="bottom-left" className="flex flex-col items-center gap-1">

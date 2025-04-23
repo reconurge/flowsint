@@ -28,23 +28,16 @@ class HibpScanner(Scanner):
 
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        """Defines the parameters expected for the scan."""
-        return {
-            "emails": "array"  # Liste d'emails
-        }
+        return ["email", "phone_number", "full_name", "username"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        """Defines the structure of the data returned by the scan."""
-        return {
-            "output": "dict",  # A list of results for each username scan
-        }
+        return ["email", "breaches", "adobe", "data", "pastes", "password", "hashes"]
 
     def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
         """Performs a search on HaveIBeenPwned for a list of emails."""
         results = []
         for email in emails:
-            report_id = str(uuid.uuid4())
             try:
                 result = hibpwned.Pwned(email, "MyHIBPChecker", HIBP_API_KEY)
 
@@ -62,21 +55,16 @@ class HibpScanner(Scanner):
                     "pastes": pastes if pastes else [],
                     "password": password if password else {},
                     "hashes": hashes if hashes else [],
-                    "report_id": report_id
                 }
                 results.append(email_result)
             except Exception as e:
                 results.append({
                     "email": email,
                     "error": f"Error during scan: {str(e)}",
-                    "report_id": report_id
                 })
         
         return results
 
     def postprocess(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Adds additional metadata to the results."""
-        for result in results:
-            result["scanner"] = "hibp_scanner"
-            result["count"] = len(result.get("breaches", []))  # Count the number of breaches
         return {"output":results}

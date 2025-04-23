@@ -13,6 +13,8 @@ export interface Scanner {
   module: string
   doc: string | null
   key: string
+  inputs: string[],
+  outputs: string[]
 }
 
 interface ScannerItemProps {

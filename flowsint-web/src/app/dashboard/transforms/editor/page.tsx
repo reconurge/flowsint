@@ -1,4 +1,4 @@
-import TransformEditor from "@/components/templates/editor"
+import TransformEditor from "@/components/transforms/editor"
 import { notFound } from "next/navigation"
 
 async function fetchNodes() {

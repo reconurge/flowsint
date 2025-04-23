@@ -18,12 +18,6 @@ def test_category(scanner):
 def test_key(scanner):
     assert scanner.key() == "username"
 
-def test_input_schema(scanner):
-    assert scanner.input_schema() == {"usernames": "array"}
-
-def test_output_schema(scanner):
-    assert "output" in scanner.output_schema()
-
 @pytest.mark.skipif(True, reason="Skip long-running test")
 def test_scan_valid_username(scanner):
     results = scanner.execute([VALID_USERNAME])

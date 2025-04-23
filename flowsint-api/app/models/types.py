@@ -85,6 +85,8 @@ class OSINTTypeUtils:
                 "description": meta["description"],
                 "regex": meta["regex"],
                 "name": t.value,
+                "outputs": [t.value],
+                "inputs": [t.value],
             }
             for t, meta in OSINT_TYPE_METADATA.items()
         ]

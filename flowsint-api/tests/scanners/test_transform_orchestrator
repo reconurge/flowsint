@@ -1,0 +1,37 @@
+import pytest
+from app.scanners.orchestrator import TransformOrchestrator
+
+VALID_USERNAME = "johnsmith"
+INVALID_SCANNER_NAME = "does_not_exist"
+
+def test_transform_orchestrator_valid_execution():
+    orchestrator = TransformOrchestrator(
+        scan_id="test-scan-123",
+        scanner_names=["sherlock_scanner", "maigret_scanner"]
+    )
+    results = orchestrator.execute(VALID_USERNAME)
+
+    assert results["value"] == VALID_USERNAME
+    assert "scanners" in results
+    assert "results" in results
+    assert "sherlock_scanner" in results["results"]
+    assert "maigret_scanner" in results["results"]
+
+def test_transform_orchestrator_with_invalid_scanner_name():
+    with pytest.raises(ValueError) as exc:
+        TransformOrchestrator(
+            scan_id="test-scan-456",
+            scanner_names=["sherlock_scanner", INVALID_SCANNER_NAME]
+        )
+    assert "not found in registry" in str(exc.value)
+
+def test_transform_orchestrator_output_structure():
+    orchestrator = TransformOrchestrator(
+        scan_id="test-scan-789",
+        scanner_names=["sherlock_scanner"]
+    )
+    results = orchestrator.execute(VALID_USERNAME)
+
+    assert isinstance(results, dict)
+    assert isinstance(results["scanners"], list)
+    assert isinstance(results["results"], dict)

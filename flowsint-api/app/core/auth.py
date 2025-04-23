@@ -124,7 +124,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(http_bearer)
 ) -> Dict[str, Any]:
     """
-    Dependency pour obtenir l'utilisateur courant à partir du token d'authentification.
+    Dependencies to get the current user from the JWT token.
     Usage: user = Depends(get_current_user)
     """
     token = credentials.credentials
@@ -132,7 +132,7 @@ def get_current_user(
 
 # Fonction utilitaire pour extraire les informations utilisateur du token JWT
 def get_user_info(token_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Extrait les informations utilisateur du token décodé."""
+    """Extracts user infos from the JWT token data."""
     user_info = {
         "user_id": token_data.get("sub"),
         "email": token_data.get("email"),

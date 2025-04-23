@@ -617,14 +617,15 @@ export function ScanDrawer() {
                         {currentScan?.status === "pending" ? (
                             <div className="p-4">
                                 <div>Results are not there yet. They should appear soon.</div>
-                            </div>
-                        ) : scanFormat === "holehe" ? (
-                            <HoleheDrawer />
-                        ) : scanFormat === "maigret" ? (
-                            <MaigretDrawer />
-                        ) : (
-                            <RawResults />
-                        )}
+                            </div>)
+                            // ) : scanFormat === "holehe" ? (
+                            //     <HoleheDrawer />
+                            // ) : scanFormat === "maigret" ? (
+                            //     <MaigretDrawer />
+                            // ) : (
+                            : (
+                                <RawResults />
+                            )}
                     </>
                 )}
             </DrawerContent>

@@ -1,13 +1,13 @@
 from typing import Dict, Type
 
 from app.scanners.base import Scanner
-from app.scanners.usernames.sherlock_scanner import SherlockScanner
-from app.scanners.usernames.maigret_scanner import MaigretScanner
-from app.scanners.emails.holehe_scanner import HoleheScanner
-from app.scanners.domains.domain_infos_scanner import DomainInfosScanner
-from app.scanners.emails.ghunt_gmail_scanner import GHuntGmailScanner
-from app.scanners.phones.ignorant_scanner import IgnorantScanner
-from app.scanners.leaks.hibp_scanner import HibpScanner
+from app.scanners.usernames.sherlock import SherlockScanner
+from app.scanners.usernames.maigret import MaigretScanner
+from app.scanners.emails.holehe import HoleheScanner
+from app.scanners.domains.domain_infos import DomainInfosScanner
+from app.scanners.emails.ghunt import GHuntGmailScanner
+from app.scanners.phones.ignorant import IgnorantScanner
+from app.scanners.leaks.hibp import HibpScanner
 
 class ScannerRegistry:
     

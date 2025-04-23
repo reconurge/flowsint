@@ -198,8 +198,8 @@ const FlowEditor = memo(({ nodesData, initialEdges, initialNodes, theme }: { nod
 
     return (
         <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-screen grow relative overflow-hidden">
-            <ResizablePanel defaultSize={20} className="h-full bg-card p-4 overflow-y-auto">
-                <div className="h-full">
+            <ResizablePanel defaultSize={20}>
+                <div className="h-[calc(100vh_-_52px)] bg-card p-4 overflow-y-auto">
                     <div className="relative mb-4">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input

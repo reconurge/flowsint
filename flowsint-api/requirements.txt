@@ -1,4 +1,4 @@
-fastapi==0.108.0
+fastapi
 redis==5.0.1
 supabase==2.13.0
 celery==5.3.6
@@ -16,3 +16,4 @@ pydig
 ghunt
 ignorant
 hibpwned
+phonenumbers

@@ -1,7 +1,7 @@
 'use server'
 import { createClient } from "@/lib/supabase/server";
 import { scans } from "@/lib/utils";
-export async function performSearch(value: string, scan_name: string, sketch_id: string) {
+export async function performSearch(values: string[], scan_name: string, sketch_id: string) {
     const supabase = await createClient()
     await supabase.auth.refreshSession()
     const { data: { session } } = await supabase.auth.getSession();
@@ -14,7 +14,7 @@ export async function performSearch(value: string, scan_name: string, sketch_id:
     const body = JSON.stringify({
         scanner: scan.scan_name,
         sketch_id: sketch_id,
-        value: value
+        values: values
     })
     const response = await fetch(url, {
         method: 'POST',

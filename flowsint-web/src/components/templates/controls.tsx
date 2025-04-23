@@ -17,7 +17,7 @@ export const FlowControls = memo(({
             <Panel position="top-left" className="flex flex-col items-center gap-1">
                 <FullscreenButton />
             </Panel>
-            <Panel position="top-right" className="flex items-center gap-1">
+            <Panel position="top-right" className="flex items-center gap-2">
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button

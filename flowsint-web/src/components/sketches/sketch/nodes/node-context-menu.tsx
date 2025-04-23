@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { NodeNotesEditor } from "./node-notes-editor"
-import { performSearch } from "@/lib/actions/search"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
 import { useLaunchSan } from "@/hooks/use-launch-scan"
@@ -275,10 +274,10 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     style={{ top: y, left: x }}
                 >
                     {Boolean(currentNode?.data?.email) && (
-                        <DropdownMenuItem onClick={() => launchScan("email", currentNode?.data?.email as string, sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => launchScan("email", [currentNode?.data?.email as string], sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
                     )}
                     {Boolean(currentNode?.data?.username) && (
-                        <DropdownMenuItem onClick={() => launchScan("username", currentNode?.data?.username as string, sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => launchScan("username", [currentNode?.data?.username as string], sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
                     )}
                     {["individual", "organization"].includes(currentNode?.data?.type as string) && (
                         <DropdownMenuSub>

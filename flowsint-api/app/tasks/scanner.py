@@ -3,20 +3,22 @@ from app.scanners.registry import ScannerRegistry
 import traceback
 from celery import states
 from  app.core.db import get_db
+from typing import List
+
 @celery_app.task(name="run_scan", bind=True)
-def run_scan(self, scanner_name: str, value: str, sketch_id: str):
+def run_scan(self, scanner_name: str, values: List[str], sketch_id: str):
     db=get_db()
     try:
         db.table("scans").insert({
                     "id": self.request.id,
                     "status": "pending",
                     "scan_name": scanner_name,
-                    "value": value,
+                    "values": values,
                     "sketch_id": sketch_id,
                     "results": []
                 }).execute()
         scanner = ScannerRegistry.get_scanner(scanner_name, self.request.id)
-        results = scanner.execute(value)
+        results = scanner.execute(values)
         status = "finished" if "error" not in results else "error"
         db.table("scans").update({
             "status": status,

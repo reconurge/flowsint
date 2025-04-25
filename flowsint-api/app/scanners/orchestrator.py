@@ -6,17 +6,18 @@ class TransformOrchestrator(Scanner):
     def __init__(self, scan_id: str, scanner_names: List[str]):
         super().__init__(scan_id)
         self.scanner_names = scanner_names
-        self.scanners = []
+        self.scanners: List[Scanner] = []
+        self._load_scanners()
 
-    def _load_scanners(self) -> List[Scanner]:
-        scanners = []
-        if (self.scanner_names is None) or (len(self.scanner_names) == 0):
+    def _load_scanners(self) -> None:
+        if not self.scanner_names:
             raise ValueError("No scanners provided")
+
         for name in self.scanner_names:
             if not ScannerRegistry.scanner_exists(name):
                 raise ValueError(f"Scanner '{name}' not found in registry")
-            scanners.append(ScannerRegistry.get_scanner(name, self.scan_id))
-        return scanners
+            scanner = ScannerRegistry.get_scanner(name, self.scan_id)
+            self.scanners.append(scanner)
 
     @classmethod
     def name(cls) -> str:
@@ -36,25 +37,34 @@ class TransformOrchestrator(Scanner):
 
     @classmethod
     def output_schema(cls) -> Dict[str, str]:
-        return {"scanners": "array", "results": "dict"}
-
-    def preprocess(cls) -> Dict[str, Any]:
-        cls.scanners = cls._load_scanners()
-        return True
+        return {
+            "scanners": "array",
+            "results": "dict"
+        }
 
     def scan(self, value: str) -> Dict[str, Any]:
         results = {
-            "value": value,
+            "initial_value": value,
             "scanners": [],
             "results": {}
         }
 
+        current_values = [value] 
+
         for scanner in self.scanners:
             try:
-                res = scanner.execute(value)
+                res = scanner.execute(current_values)
                 results["scanners"].append(scanner.name())
                 results["results"][scanner.name()] = res
+                if isinstance(res, list):
+                    current_values = res
+                elif isinstance(res, dict) and "values" in res:
+                    current_values = res["values"]
+                else:
+                    raise ValueError(f"Unsupported output format from scanner '{scanner.name()}'")
             except Exception as e:
                 results["results"][scanner.name()] = {"error": str(e)}
+                break
 
         return results
+

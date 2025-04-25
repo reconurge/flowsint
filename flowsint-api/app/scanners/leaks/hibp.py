@@ -28,7 +28,7 @@ class HibpScanner(Scanner):
 
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        return ["email", "phone_number", "full_name", "username"]
+        return ["email", "number", "full_name", "username"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:

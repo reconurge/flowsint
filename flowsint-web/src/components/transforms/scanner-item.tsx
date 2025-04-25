@@ -13,6 +13,7 @@ export interface Scanner {
   module: string
   doc: string | null
   key: string
+  type: string
   inputs: string[],
   outputs: string[]
 }
@@ -53,11 +54,12 @@ const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
       <div
         draggable
         onDragStart={onDragStart}
-        className="p-3 rounded-md cursor-grab bg-card border hover:shadow-md transition-shadow"
+        className="p-3 rounded-md relative cursor-grab bg-card border hover:shadow-md transition-shadow"
         style={{ borderLeftWidth: "4px", borderLeftColor: color, cursor: "grab" }}
       >
         <div className="flex justify-between items-start">
-          <div>
+          <div className="space-y-1">
+            {/* <Badge variant={"outline"} className="">{scanner.type}</Badge> */}
             <h3 className="text-sm font-medium">{scanner.class_name}</h3>
             <p className="text-xs text-muted-foreground">{scanner.name}</p>
           </div>

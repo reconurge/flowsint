@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
-from app.models.types import OSINT_TYPE_METADATA, OSINTType
 
 class Scanner(ABC):    
     def __init__(self, scan_id: str):
@@ -18,20 +17,9 @@ class Scanner(ABC):
     
     @classmethod
     @abstractmethod
-    def key(self) -> str:
-        """
-        This is the key used to identify the items' key to search for. Ex:
-        Individual -> full_name
-        Phone -> phone_number
-        """
-        pass
-    
-    @classmethod
-    @abstractmethod
     def input_schema(cls) -> Dict[str, str]:
         """
         Returns the input fields and their types.
-        Example: { "email": "string" }
         """
         pass
 
@@ -40,7 +28,6 @@ class Scanner(ABC):
     def output_schema(cls) -> Dict[str, str]:
         """
         Returns the output fields and their types.
-        Example: { "leaks": "array", "sources": "array" }
         """
         pass
     

@@ -47,7 +47,7 @@ const FlowEditor = memo(
         initialNodes,
         theme,
     }: { nodesData: { items: any[] }; theme: any; initialEdges: Edge[]; initialNodes: Node[] }) => {
-        const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
+        const { fitView, zoomIn, zoomOut, setCenter, getNode } = useReactFlow()
         const [nodes, setNodes, onNodesChange] = useNodesState<any>(initialNodes)
         const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<Record<string, unknown>>>(initialEdges)
         const [selectedNode, setSelectedNode] = useState<Node<any> | null>(null)
@@ -94,6 +94,9 @@ const FlowEditor = memo(
             (params) => {
                 if (params.sourceHandle !== params.targetHandle)
                     return toast.error(`Canot connect ${params.sourceHandle} to ${params.targetHandle}`)
+                const node = getNode(params.source);
+                console.log(node)
+
                 setEdges((eds) =>
                     addEdge(
                         {
@@ -124,7 +127,13 @@ const FlowEditor = memo(
                 event.preventDefault()
                 if (!reactFlowWrapper.current || !reactFlowInstance) return
                 const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-                const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as Scanner & { category: string }
+                const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as ScannerNodeData & { category: string }
+                if (scannerData.type === "input") {
+                    const existsInput = nodes.find((node) => node.data.type === "input")
+                    if (existsInput) {
+                        return toast.error("Only one input node is allowed")
+                    }
+                }
                 const position = reactFlowInstance.screenToFlowPosition({
                     x: event.clientX - reactFlowBounds.left,
                     y: event.clientY - reactFlowBounds.top,

@@ -181,7 +181,7 @@ CREATE OR REPLACE FUNCTION "public"."update_investigation_last_updated"() RETURN
         END IF;
 
     -- Si la mise à jour concerne une table liée, mettre à jour 'investigations' et 'projects' seulement si 10s sont écoulées
-    ELSIF TG_TABLE_NAME IN ('emails', 'individuals', 'relationships', 'physical_addresses', 'social_accounts', 'ip_addresses', 'phone_numbers') THEN
+    ELSIF TG_TABLE_NAME IN ('emails', 'individuals', 'relationships', 'physical_addresses', 'social_accounts', 'ip_addresses', 'phones') THEN
         IF (SELECT last_updated_at FROM sketches WHERE id = NEW.sketch_id) < NOW() - INTERVAL '10 seconds' THEN
             UPDATE sketches
             SET last_updated_at = NOW()
@@ -220,7 +220,7 @@ BEGIN
   ELSIF TG_TABLE_NAME IN (
     'emails', 'individuals', 'relationships', 
     'physical_addresses', 'social_accounts', 
-    'ip_addresses', 'phone_numbers'
+    'ip_addresses', 'phones'
   ) THEN
     IF (SELECT last_updated_at FROM sketches WHERE id = NEW.sketch_id) IS NULL OR 
        (SELECT last_updated_at FROM sketches WHERE id = NEW.sketch_id) < NOW() - INTERVAL '10 seconds' THEN
@@ -587,7 +587,7 @@ ALTER TABLE "public"."organizations_organizations" ALTER COLUMN "id" ADD GENERAT
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."phone_numbers" (
+CREATE TABLE IF NOT EXISTS "public"."phones" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "individual_id" "uuid",
     "sketch_id" "uuid",
@@ -598,7 +598,7 @@ CREATE TABLE IF NOT EXISTS "public"."phone_numbers" (
 );
 
 
-ALTER TABLE "public"."phone_numbers" OWNER TO "postgres";
+ALTER TABLE "public"."phones" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."physical_addresses" (
@@ -736,10 +736,10 @@ CREATE OR REPLACE VIEW "public"."sketch_table" WITH ("security_invoker"='on') AS
             "jsonb_build_object"('id', "emails"."id", 'type', 'email', 'label', "emails"."email", 'email', "emails"."email", 'breach_found', "emails"."breach_found", 'created_at', "emails"."created_at") AS "data"
            FROM "public"."emails"
         UNION ALL
-         SELECT "phone_numbers"."id",
-            "phone_numbers"."sketch_id",
-            "jsonb_build_object"('id', "phone_numbers"."id", 'type', 'phone', 'label', "phone_numbers"."phone_number", 'phone_number', "phone_numbers"."phone_number", 'country', "phone_numbers"."country", 'created_at', "phone_numbers"."created_at") AS "data"
-           FROM "public"."phone_numbers"
+         SELECT "phones"."id",
+            "phones"."sketch_id",
+            "jsonb_build_object"('id', "phones"."id", 'type', 'phone', 'label', "phones"."phone_number", 'phone_number', "phones"."phone_number", 'country', "phones"."country", 'created_at', "phones"."created_at") AS "data"
+           FROM "public"."phones"
         UNION ALL
          SELECT "websites"."id",
             "websites"."sketch_id",
@@ -856,13 +856,13 @@ ALTER TABLE ONLY "public"."organizations"
 
 
 
-ALTER TABLE ONLY "public"."phone_numbers"
-    ADD CONSTRAINT "phone_numbers_phone_number_key" UNIQUE ("phone_number");
+ALTER TABLE ONLY "public"."phones"
+    ADD CONSTRAINT "phones_phone_number_key" UNIQUE ("phone_number");
 
 
 
-ALTER TABLE ONLY "public"."phone_numbers"
-    ADD CONSTRAINT "phone_numbers_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."phones"
+    ADD CONSTRAINT "phones_pkey" PRIMARY KEY ("id");
 
 
 
@@ -975,7 +975,7 @@ CREATE INDEX "idx_organizations_sketch_id" ON "public"."organizations" USING "bt
 
 
 
-CREATE INDEX "idx_phone_numbers_sketch_id" ON "public"."phone_numbers" USING "btree" ("sketch_id");
+CREATE INDEX "idx_phones_sketch_id" ON "public"."phones" USING "btree" ("sketch_id");
 
 
 
@@ -1017,7 +1017,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
             "i"."full_name",
             "i"."sketch_id",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "e_1"."id", 'email', "e_1"."email")) FILTER (WHERE ("e_1"."id" IS NOT NULL)) AS "emails",
-            "json_agg"(DISTINCT "jsonb_build_object"('id', "p"."id", 'phone_number', "p"."phone_number")) FILTER (WHERE ("p"."id" IS NOT NULL)) AS "phone_numbers",
+            "json_agg"(DISTINCT "jsonb_build_object"('id', "p"."id", 'phone_number', "p"."phone_number")) FILTER (WHERE ("p"."id" IS NOT NULL)) AS "phones",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "s"."id", 'platform', "s"."platform", 'username', "s"."username")) FILTER (WHERE ("s"."id" IS NOT NULL)) AS "social_accounts",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "ip"."id", 'ip_address', "ip"."ip_address")) FILTER (WHERE ("ip"."id" IS NOT NULL)) AS "ip_addresses",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "v"."id", 'plate', "v"."plate", 'model', "v"."model", 'brand', "v"."brand", 'type', "v"."type")) FILTER (WHERE ("v"."id" IS NOT NULL)) AS "vehicles",
@@ -1025,7 +1025,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
             "json_agg"(DISTINCT "jsonb_build_object"('id', "pa"."id", 'address', "pa"."address", 'city', "pa"."city", 'country', "pa"."country")) FILTER (WHERE ("pa"."id" IS NOT NULL)) AS "physical_addresses"
            FROM ((((((("public"."individuals" "i"
              LEFT JOIN "public"."emails" "e_1" ON (("i"."id" = "e_1"."individual_id")))
-             LEFT JOIN "public"."phone_numbers" "p" ON (("i"."id" = "p"."individual_id")))
+             LEFT JOIN "public"."phones" "p" ON (("i"."id" = "p"."individual_id")))
              LEFT JOIN "public"."social_accounts" "s" ON (("i"."id" = "s"."individual_id")))
              LEFT JOIN "public"."ip_addresses" "ip" ON (("i"."id" = "ip"."individual_id")))
              LEFT JOIN "public"."vehicles" "v" ON (("i"."id" = "v"."individual_id")))
@@ -1039,7 +1039,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
             "o"."founding_date",
             "o"."sketch_id",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "poa"."id", 'address', "poa"."address", 'city', "poa"."city", 'country', "poa"."country")) FILTER (WHERE ("poa"."id" IS NOT NULL)) AS "addresses",
-            "json_agg"(DISTINCT "jsonb_build_object"('id', "op"."id", 'phone_number', "op"."phone_number")) FILTER (WHERE ("op"."id" IS NOT NULL)) AS "phone_numbers",
+            "json_agg"(DISTINCT "jsonb_build_object"('id', "op"."id", 'phone_number', "op"."phone_number")) FILTER (WHERE ("op"."id" IS NOT NULL)) AS "phones",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "e_1"."id", 'email', "e_1"."email")) FILTER (WHERE ("e_1"."id" IS NOT NULL)) AS "emails",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "s"."id", 'platform', "s"."platform", 'username', "s"."username")) FILTER (WHERE ("s"."id" IS NOT NULL)) AS "social_accounts",
             "json_agg"(DISTINCT "jsonb_build_object"('id', "ip"."id", 'ip_address', "ip"."ip_address")) FILTER (WHERE ("ip"."id" IS NOT NULL)) AS "ip_addresses",
@@ -1047,7 +1047,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
             "json_agg"(DISTINCT "jsonb_build_object"('id', "w"."id", 'url', "w"."url", 'registration_date', "w"."registration_date", 'registrar', "w"."registrar", 'ip_address', "w"."ip_address")) FILTER (WHERE ("w"."id" IS NOT NULL)) AS "websites"
            FROM ((((((("public"."organizations" "o"
              LEFT JOIN "public"."physical_addresses" "poa" ON (("poa"."organization_id" = "o"."id")))
-             LEFT JOIN "public"."phone_numbers" "op" ON (("op"."organization_id" = "o"."id")))
+             LEFT JOIN "public"."phones" "op" ON (("op"."organization_id" = "o"."id")))
              LEFT JOIN "public"."emails" "e_1" ON (("e_1"."organization_id" = "o"."id")))
              LEFT JOIN "public"."social_accounts" "s" ON (("s"."organization_id" = "o"."id")))
              LEFT JOIN "public"."ip_addresses" "ip" ON (("ip"."organization_id" = "o"."id")))
@@ -1068,7 +1068,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
          SELECT "id"."sketch_id",
             "jsonb_build_object"('id', ("p"."value" ->> 'id'::"text"), 'type', 'custom', 'data', "jsonb_build_object"('id', ("p"."value" ->> 'id'::"text"), 'phone_number', ("p"."value" ->> 'phone_number'::"text"), 'label', ("p"."value" ->> 'phone_number'::"text"), 'type', 'phone'), 'position', "jsonb_build_object"('x', '-100'::integer, 'y', 100)) AS "node"
            FROM "individual_data" "id",
-            LATERAL "json_array_elements"("id"."phone_numbers") "p"("value")
+            LATERAL "json_array_elements"("id"."phones") "p"("value")
           WHERE (("p"."value" ->> 'id'::"text") IS NOT NULL)
         UNION ALL
          SELECT "id"."sketch_id",
@@ -1114,7 +1114,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
          SELECT "od"."sketch_id",
             "jsonb_build_object"('id', ("p"."value" ->> 'id'::"text"), 'type', 'custom', 'data', "jsonb_build_object"('id', ("p"."value" ->> 'id'::"text"), 'phone_number', ("p"."value" ->> 'phone_number'::"text"), 'label', ("p"."value" ->> 'phone_number'::"text"), 'type', 'phone'), 'position', "jsonb_build_object"('x', '-100'::integer, 'y', 100)) AS "node"
            FROM "organization_data" "od",
-            LATERAL "json_array_elements"("od"."phone_numbers") "p"("value")
+            LATERAL "json_array_elements"("od"."phones") "p"("value")
           WHERE (("p"."value" ->> 'id'::"text") IS NOT NULL)
         UNION ALL
          SELECT "od"."sketch_id",
@@ -1156,7 +1156,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
          SELECT "id"."sketch_id",
             "jsonb_build_object"('id', "concat"("id"."id", '-', ("p"."value" ->> 'id'::"text")), 'source', ("id"."id")::"text", 'target', ("p"."value" ->> 'id'::"text"), 'type', 'custom', 'label', 'phone') AS "edge"
            FROM "individual_data" "id",
-            LATERAL "json_array_elements"("id"."phone_numbers") "p"("value")
+            LATERAL "json_array_elements"("id"."phones") "p"("value")
           WHERE (("p"."value" ->> 'id'::"text") IS NOT NULL)
         UNION ALL
          SELECT "id"."sketch_id",
@@ -1198,7 +1198,7 @@ CREATE OR REPLACE VIEW "public"."sketch_graph" WITH ("security_invoker"='on') AS
          SELECT "od"."sketch_id",
             "jsonb_build_object"('id', "concat"("od"."id", '-', ("p"."value" ->> 'id'::"text")), 'source', ("od"."id")::"text", 'target', ("p"."value" ->> 'id'::"text"), 'type', 'custom', 'label', 'phone') AS "edge"
            FROM "organization_data" "od",
-            LATERAL "json_array_elements"("od"."phone_numbers") "p"("value")
+            LATERAL "json_array_elements"("od"."phones") "p"("value")
           WHERE (("p"."value" ->> 'id'::"text") IS NOT NULL)
         UNION ALL
          SELECT "od"."sketch_id",
@@ -1320,7 +1320,7 @@ CREATE OR REPLACE TRIGGER "trigger_update_project_last_updated_ip_addresses" AFT
 
 
 
-CREATE OR REPLACE TRIGGER "trigger_update_project_last_updated_phone_numbers" AFTER INSERT OR DELETE OR UPDATE ON "public"."phone_numbers" FOR EACH ROW EXECUTE FUNCTION "public"."update_investigation_last_updated"();
+CREATE OR REPLACE TRIGGER "trigger_update_project_last_updated_phones" AFTER INSERT OR DELETE OR UPDATE ON "public"."phones" FOR EACH ROW EXECUTE FUNCTION "public"."update_investigation_last_updated"();
 
 
 
@@ -1449,18 +1449,18 @@ ALTER TABLE ONLY "public"."organizations"
 
 
 
-ALTER TABLE ONLY "public"."phone_numbers"
-    ADD CONSTRAINT "phone_numbers_individual_id_fkey" FOREIGN KEY ("individual_id") REFERENCES "public"."individuals"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."phones"
+    ADD CONSTRAINT "phones_individual_id_fkey" FOREIGN KEY ("individual_id") REFERENCES "public"."individuals"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."phone_numbers"
-    ADD CONSTRAINT "phone_numbers_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE SET NULL;
+ALTER TABLE ONLY "public"."phones"
+    ADD CONSTRAINT "phones_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE SET NULL;
 
 
 
-ALTER TABLE ONLY "public"."phone_numbers"
-    ADD CONSTRAINT "phone_numbers_sketch_id_fkey" FOREIGN KEY ("sketch_id") REFERENCES "public"."sketches"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."phones"
+    ADD CONSTRAINT "phones_sketch_id_fkey" FOREIGN KEY ("sketch_id") REFERENCES "public"."sketches"("id") ON DELETE CASCADE;
 
 
 
@@ -1617,9 +1617,9 @@ CREATE POLICY "Can delete organizations_organizations if you have access to th" 
 
 
 
-CREATE POLICY "Can delete phone_numbers if you have access to the sketch" ON "public"."phone_numbers" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+CREATE POLICY "Can delete phones if you have access to the sketch" ON "public"."phones" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."sketches_profiles" "sp"
-  WHERE (("sp"."sketch_id" = "phone_numbers"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
+  WHERE (("sp"."sketch_id" = "phones"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
 
 
 
@@ -1689,9 +1689,9 @@ CREATE POLICY "Can insert organizations_organizations if you have access to th" 
 
 
 
-CREATE POLICY "Can insert phone_numbers if you have access to the sketch" ON "public"."phone_numbers" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+CREATE POLICY "Can insert phones if you have access to the sketch" ON "public"."phones" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."sketches_profiles" "sp"
-  WHERE (("sp"."sketch_id" = "phone_numbers"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
+  WHERE (("sp"."sketch_id" = "phones"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
 
 
 
@@ -1771,9 +1771,9 @@ CREATE POLICY "Can read organizations_organizations if you have access to the " 
 
 
 
-CREATE POLICY "Can read phone_numbers if you have access to the sketch" ON "public"."phone_numbers" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+CREATE POLICY "Can read phones if you have access to the sketch" ON "public"."phones" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."sketches_profiles" "sp"
-  WHERE (("sp"."sketch_id" = "phone_numbers"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
+  WHERE (("sp"."sketch_id" = "phones"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
 
 
 
@@ -1847,9 +1847,9 @@ CREATE POLICY "Can update organizations_organizations if you have access to th" 
 
 
 
-CREATE POLICY "Can update phone_numbers if you have access to the sketch" ON "public"."phone_numbers" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+CREATE POLICY "Can update phones if you have access to the sketch" ON "public"."phones" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."sketches_profiles" "sp"
-  WHERE (("sp"."sketch_id" = "phone_numbers"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
+  WHERE (("sp"."sketch_id" = "phones"."sketch_id") AND ("sp"."profile_id" = "auth"."uid"())))));
 
 
 
@@ -2002,7 +2002,7 @@ ALTER TABLE "public"."organizations_individuals" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."organizations_organizations" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."phone_numbers" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."phones" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."physical_addresses" ENABLE ROW LEVEL SECURITY;
@@ -2410,9 +2410,9 @@ GRANT ALL ON SEQUENCE "public"."organizations_organizations_id_seq" TO "service_
 
 
 
-GRANT ALL ON TABLE "public"."phone_numbers" TO "anon";
-GRANT ALL ON TABLE "public"."phone_numbers" TO "authenticated";
-GRANT ALL ON TABLE "public"."phone_numbers" TO "service_role";
+GRANT ALL ON TABLE "public"."phones" TO "anon";
+GRANT ALL ON TABLE "public"."phones" TO "authenticated";
+GRANT ALL ON TABLE "public"."phones" TO "service_role";
 
 
 

@@ -153,7 +153,6 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
             ctx.fillStyle = theme === "dark" ? "#fff" : "#000"
             ctx.fillText(label, node.x, node.y)
 
-            // Ajouter un effet de surbrillance pour les nœuds en survol
             if (highlightNodes.has(node.id)) {
                 ctx.strokeStyle = theme === "dark" ? "#fff" : "#000"
                 ctx.lineWidth = 2
@@ -163,7 +162,6 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
         [highlightNodes, theme],
     )
 
-    // Amélioration des interactions
     const handleNodeHover = useCallback(
         (node: ForceGraphNode | null) => {
             setHoverNode(node)
@@ -175,7 +173,6 @@ function LayoutFlow({ refetch, theme }: LayoutFlowProps) {
                 edges.forEach((edge) => {
                     if (edge.source === node.id || edge.target === node.id) {
                         connectedLinks.add(`${edge.source}-${edge.target}`)
-                        // Ajouter les nœuds connectés à la surbrillance
                         // @ts-ignore
                         setHighlightNodes((prev) => new Set([...prev, edge.source, edge.target]))
                     }

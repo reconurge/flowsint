@@ -183,11 +183,11 @@ const columns: ColumnDef<any>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "phone_numbers",
+        accessorKey: "phones",
         header: "Phone(s)",
         cell: ({ row }: any) => {
             return <Badge variant="outline" className="px-1.5 text-muted-foreground flex items-center gap-2 max-w-[290px]">
-                <span className="truncate text-ellipsis">{row.original.data?.phone_numbers?.map(({ phone_number }: any) => phone_number).join(", ") || <span className="italic opacity-60">No phone number yet.</span>}</span>
+                <span className="truncate text-ellipsis">{row.original.data?.phones?.map(({ number }: any) => number).join(", ") || <span className="italic opacity-60">No phone number yet.</span>}</span>
             </Badge>
         },
         enableHiding: false,

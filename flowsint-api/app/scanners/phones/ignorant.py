@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, Any, List
 from app.scanners.base import Scanner
-from app.utils import is_valid_phone_number
+from app.utils import is_valid_number
 import httpx
 
 class IgnorantScanner(Scanner):    
@@ -15,35 +15,35 @@ class IgnorantScanner(Scanner):
     
     @classmethod
     def key(self) -> str:
-        return "phone_number"
+        return "number"
     
     @classmethod
     def input_schema(self) -> Dict[str, str]:
-        return ["phone_number"]
+        return ["number"]
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
         return ["exists"]
 
-    async def scan(self, phone_numbers: List[str]) -> List[Dict[str, Any]]:
+    async def scan(self, phones: List[str]) -> List[Dict[str, Any]]:
         """
         Performs the Ignorant search for each specified phone number.
         """
         results = []
-        for phone in phone_numbers:
+        for phone in phones:
             try:
-                cleaned_phone = is_valid_phone_number(phone)
+                cleaned_phone = is_valid_number(phone)
                 if cleaned_phone:
                     result = await self._perform_ignorant_research(cleaned_phone)
                     results.append(result)
                 else:
                     results.append({
-                        "phone_number": phone,
+                        "number": phone,
                         "error": "Invalid phone number"
                     })
             except Exception as e:
                 results.append({
-                    "phone_number": phone,
+                    "number": phone,
                     "error": f"Unexpected error in Ignorant scan: {str(e)}"
                 })
         return results
@@ -73,7 +73,7 @@ class IgnorantScanner(Scanner):
             
         except Exception as e:
             return {
-                "phone_number": phone,
+                "number": phone,
                 "error": f"Error in Ignorant research: {str(e)}"
             }
     

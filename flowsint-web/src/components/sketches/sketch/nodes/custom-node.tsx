@@ -29,15 +29,9 @@ export default memo(({ data }: any) => {
                     <Badge variant="secondary" className={cn("p-0 rounded-full", item?.size || "h-5 w-5")}>
                         <Icon className="h-4 w-4" />
                     </Badge>
-                    {showNodeLabel && <div className="flex items-center gap-1">
-                        <span className="text-sm">{data.label}</span>
-                        <CopyButton className="rounded-full h-7 w-7 text-xs" content={data.label} />
-                    </div>}
                 </div>
             </TooltipTrigger>
-            {!showNodeLabel &&
-                <TooltipContent selected={active} position={Position.Top}>{data.label}<CopyButton className="h-6 w-6" content={data.label} /></TooltipContent>
-            }
+            <TooltipContent selected={active} position={Position.Top}>{data.label}<CopyButton className="h-6 w-6" content={data.label} /></TooltipContent>
             <Handle
                 type="target"
                 style={{ visibility: "hidden" }}

@@ -1,25 +1,30 @@
 "use client"
 
+import type React from "react"
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from "sonner"
-import { cn, nodesTypes } from "@/lib/utils"
-import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
-import { Badge } from "../ui/badge"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"
+import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { actionItems, type ActionItem } from "@/lib/action-items"
-import { useSketchStore } from "@/store/sketch-store"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
+import { DynamicForm } from "@/components/sketches/dynamic-form"
+import { Badge } from "@/components/ui/badge"
 
-export default function NewActions({ addNodes, children }: { addNodes: any, children: React.ReactNode }) {
+interface ActionDialogProps {
+    children: React.ReactNode
+    addNodes?: (node: any) => void
+    setCurrentNode?: (node: any) => void
+}
+
+export default function ActionDialog({ children, addNodes, setCurrentNode }: ActionDialogProps) {
     const { sketch_id } = useParams()
+    const [openDialog, setOpenDialog] = useState(false)
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
-    const { setCurrentNode, openActionDialog, setOpenActionDialog } = useSketchStore((state) => state)
     const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -27,41 +32,48 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
     const handleOpenAddNodeModal = (key: string) => {
-        if (!nodesTypes[key as keyof typeof nodesTypes]) {
-            toast.error("Invalid node type.")
+        const selectedItem = actionItems.find(item => item.type === key) ||
+            actionItems
+                .filter(item => item.children)
+                .flatMap(item => item.children || [])
+                .find(item => item.type === key)
+
+        if (!selectedItem) {
+            toast.error("Invalid node type selected.")
             return
         }
-        setCurrentNodeType(nodesTypes[key as keyof typeof nodesTypes])
-        setError(null)
-        setOpenActionDialog(false)
-        setOpenNodeModal(true)
-    }
 
-    const onSubmitNewNodeModal = async (e: {
-        preventDefault: () => void
-        currentTarget: HTMLFormElement | undefined
-    }) => {
-        e.preventDefault()
-        const data = Object.fromEntries(new FormData(e.currentTarget))
-        await handleAddNode(data)
+        setCurrentNodeType(selectedItem)
+        setError(null)
+        setOpenDialog(false)
+        setOpenNodeModal(true)
     }
 
     const handleAddNode = async (data: any) => {
         try {
             setLoading(true)
+            if (!currentNodeType || !sketch_id) {
+                toast.error("Invalid node type or sketch ID.")
+                setLoading(false)
+                return
+            }
+
             const dataToInsert = { ...data, sketch_id }
+
             const { data: nodeData, error: insertError } = await supabase
                 .from(currentNodeType.table)
                 .insert(dataToInsert)
                 .select("*")
                 .single()
+
             if (insertError) {
-                toast.error("Failed to create node." + JSON.stringify(insertError))
+                toast.error("Could not insert new node." + insertError.message)
                 setLoading(false)
                 return
             }
+
             if (!nodeData) {
-                toast.error("Failed to create node.")
+                toast.error("Could not insert new node.")
                 setLoading(false)
                 return
             }
@@ -69,20 +81,27 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
                 id: nodeData.id,
                 type: "custom",
                 data: {
-                    ...nodeData, label: data[currentNodeType.fields[0]], type: currentNodeType.type,
+                    ...nodeData,
+                    label: data[currentNodeType.fields[0].name],
+                    type: currentNodeType.type,
                 },
                 position: { x: 0, y: 0 },
             }
-            addNodes(newNode)
-            setCurrentNode(newNode)
+            if (addNodes) {
+                addNodes(newNode)
+            }
+            if (setCurrentNode) {
+                setCurrentNode(newNode)
+            }
             setOpenNodeModal(false)
             setError(null)
+            toast.success(`${currentNodeType.label} successfully created.`)
         } catch (error) {
-            toast.error("An unexpected error occurred")
-            setOpenActionDialog(false)
+            toast.error("Error submitting form.")
+            setOpenDialog(false)
         } finally {
             setLoading(false)
-            setOpenActionDialog(false)
+            setOpenDialog(false)
         }
     }
 
@@ -115,7 +134,7 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
                         <ActionCard
                             key={item.id}
                             item={item}
-                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenAddNodeModal(item.key)}
+                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenAddNodeModal(item.type)}
                         />
                     ))}
                 </motion.div>
@@ -125,12 +144,8 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
 
     return (
         <>
-            <Button asChild onClick={() => setOpenActionDialog(true)}>
-                {children}
-            </Button>
-
-            {/* Action Selection Dialog */}
-            <Dialog open={openActionDialog} onOpenChange={setOpenActionDialog}>
+            <Button asChild onClick={() => setOpenDialog(true)}>{children}</Button>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (
@@ -138,55 +153,36 @@ export default function NewActions({ addNodes, children }: { addNodes: any, chil
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         )}
-                        {currentParent ? currentParent.label : "Select action"}
+                        {currentParent ? currentParent.label : "Sélectionner une action"}
                     </DialogTitle>
                     <DialogDescription>
                         {currentParent
-                            ? `Select a ${currentParent.label} type to add`
-                            : "Choose an action to add to your investigation"}
+                            ? `Sélectionnez un type de ${currentParent.label.toLowerCase()} à ajouter`
+                            : "Choisissez une action à ajouter"}
                     </DialogDescription>
 
                     <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>
                 </DialogContent>
             </Dialog>
 
-            {/* Node Creation Dialog */}
-            <Dialog open={openAddNodeModal && currentNodeType} onOpenChange={setOpenNodeModal}>
+            <Dialog open={openAddNodeModal} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
-                    <DialogTitle>New {currentNodeType?.type}</DialogTitle>
-                    <DialogDescription>Add a new related {currentNodeType?.type}.</DialogDescription>
-                    <form onSubmit={onSubmitNewNodeModal}>
-                        <div className="flex flex-col gap-3">
-                            {currentNodeType?.fields.map((field: any, i: number) => {
-                                const [key, value] = field.split(":")
-                                return (
-                                    <label key={i}>
-                                        <p className="my-2">{key}</p>
-                                        <Input defaultValue={value || ""} name={key} placeholder={`Your value here (${key})`} />
-                                    </label>
-                                )
-                            })}
-                        </div>
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Error</AlertTitle>
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
+                    <DialogTitle>
+                        {currentNodeType && (
+                            <>Add {currentNodeType.label.toLowerCase()}</>
                         )}
-                        <div className="flex items-center gap-2 justify-end mt-4">
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">
-                                    Cancel
-                                </Button>
-                            </DialogClose>
-                            <Button disabled={loading} type="submit">
-                                Save
-                            </Button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                    </DialogTitle>
+                    <DialogDescription>Feel the required data</DialogDescription>
+                    {currentNodeType && (
+                        <DynamicForm
+                            type={currentNodeType.type}
+                            isForm={true}
+                            loading={loading}
+                            onSubmit={handleAddNode}
+                        />
+                    )}
+                </DialogContent >
+            </Dialog >
         </>
     )
 }
@@ -211,17 +207,21 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
             <CardContent className="p-4 relative flex flex-col items-center text-center h-full">
                 <div
                     className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2"
-                    style={{ backgroundColor: `${item.color}20` }} // Light background based on item color
+                    style={{ backgroundColor: item.color ? `${item.color}20` : "var(--primary-20)" }}
                 >
-                    <Icon style={{ color: item.color }} className="h-6 w-6 opacity-60 text-primary" />
+                    <Icon style={{ color: item.color }} className={cn("h-6 w-6 opacity-60", item.color ? "" : "text-primary")} />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
                 {item.disabled && (
                     <Badge variant="outline" className="mt-2 absolute top-2 left-2">
-                        soon
+                        bientôt
                     </Badge>
                 )}
-                {item.children && <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1"><ArrowRight className="h-4 w-4" /></div>}
+                {item.children && (
+                    <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1">
+                        <ArrowRight className="h-4 w-4" />
+                    </div>
+                )}
                 {item.children && <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>}
             </CardContent>
         </Card>

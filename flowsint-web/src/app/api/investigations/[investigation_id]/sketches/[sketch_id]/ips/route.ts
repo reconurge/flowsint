@@ -13,7 +13,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ sketch_id:
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
         const { data: ips, error } = await supabase
-            .from('ip_addresses')
+            .from('ips')
             .select(`*`)
             .eq("sketch_id", sketch_id)
 

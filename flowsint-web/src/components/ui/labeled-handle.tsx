@@ -16,13 +16,14 @@ export const LabeledHandle = forwardRef<
     HTMLDivElement,
     HandleProps &
     HTMLAttributes<HTMLDivElement> & {
-        title: string | (string & Element);
+        name: string | (string & Element);
+        dataType: string,
         handleClassName?: string;
         labelClassName?: string;
     }
 >(
     (
-        { className, labelClassName, handleClassName, title, position, ...props },
+        { className, labelClassName, handleClassName, name, position, dataType, ...props },
         ref,
     ) => (
         <div
@@ -35,7 +36,7 @@ export const LabeledHandle = forwardRef<
         >
             <BaseHandle position={position} className={handleClassName} {...props} />
             <label className={cn("px-3 text-foreground", labelClassName)}>
-                {title}
+                {name} <Badge variant={"outline"}>{dataType}</Badge>
             </label>
         </div>
     ),

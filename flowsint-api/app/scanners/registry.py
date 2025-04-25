@@ -1,13 +1,10 @@
 from typing import Dict, Type
 
 from app.scanners.base import Scanner
-from app.scanners.usernames.sherlock import SherlockScanner
-from app.scanners.usernames.maigret import MaigretScanner
-from app.scanners.emails.holehe import HoleheScanner
-from app.scanners.domains.domain_infos import DomainInfosScanner
-from app.scanners.emails.ghunt import GHuntGmailScanner
-from app.scanners.phones.ignorant import IgnorantScanner
-from app.scanners.leaks.hibp import HibpScanner
+from app.scanners.domains.subdomains import SubdomainScanner
+from app.scanners.domains.whois import WhoisScanner
+from app.scanners.domains.resolve import ResolveScanner
+from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 
 class ScannerRegistry:
     
@@ -56,16 +53,12 @@ class ScannerRegistry:
                 "name": scanner.name(),
                 "module": scanner.__module__,
                 "doc": scanner.__doc__,
-                "key": scanner.key(),
                 "inputs": scanner.input_schema(),
                 "outputs": scanner.output_schema(),
             })
         return scanners_by_category
-
-ScannerRegistry.register(SherlockScanner)
-ScannerRegistry.register(HoleheScanner)
-ScannerRegistry.register(MaigretScanner)
-ScannerRegistry.register(DomainInfosScanner)
-ScannerRegistry.register(GHuntGmailScanner)
-ScannerRegistry.register(IgnorantScanner)
-ScannerRegistry.register(HibpScanner)
+    
+ScannerRegistry.register(ReverseResolveScanner)
+ScannerRegistry.register(ResolveScanner)
+ScannerRegistry.register(SubdomainScanner)
+ScannerRegistry.register(WhoisScanner)

@@ -1,0 +1,12 @@
+from typing import Optional
+from pydantic import BaseModel
+from app.types.email import Email
+
+class Whois(BaseModel):
+    registrar: Optional[str] = None 
+    org: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    email: Optional[Email] = None
+    creation_date: Optional[str] = None
+    expiration_date: Optional[str] = None

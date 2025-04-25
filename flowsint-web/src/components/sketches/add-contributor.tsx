@@ -175,10 +175,10 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
                         {mutation.isPending ? (
                             <div className="flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                <span>Ajout en cours...</span>
+                                <span>Adding...</span>
                             </div>
                         ) : (
-                            "Ajouter à l'investigation"
+                            "Add contributor"
                         )}
                     </Button>
                 </DialogFooter>

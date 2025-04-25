@@ -2,6 +2,9 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import Dagre from '@dagrejs/dagre';
 import { redirect } from "next/navigation";
+
+import { actionItems } from "./action-items"
+import type { ActionItem, FormField } from "./action-items"
 //@ts-ignore
 
 import * as d3 from "d3-force"
@@ -261,188 +264,43 @@ export const formatFileSize = (bytes: number) => {
   else return (bytes / 1048576).toFixed(1) + " MB"
 }
 
-export const nodesTypes = {
-  emails: { table: "emails", type: "email", fields: ["email"] },
-  individuals: { table: "individuals", type: "individual", fields: ["full_name"] },
-  phone_numbers: { table: "phone_numbers", type: "phone", fields: ["phone_number"] },
-  ip_addresses: { table: "ip_addresses", type: "ip", fields: ["ip_address"] },
-  social_accounts_facebook: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:facebook"],
-  },
-  social_accounts_instagram: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:instagram"],
-  },
-  social_accounts_telegram: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:telegram"],
-  },
-  social_accounts_snapchat: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:snapchat"],
-  },
-  social_accounts_signal: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:signal"],
-  },
-  social_accounts_github: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:github"],
-  },
-  physical_addresses: { table: "physical_addresses", type: "address", fields: ["address", "city", "country", "zip"] },
-  vehicles_car: {
-    table: "vehicles",
-    type: "vehicle",
-    fields: ["plate", "model", "year", "brand", "type:car"],
-  },
-  vehicles_motorcycle: {
-    table: "vehicles",
-    type: "vehicle",
-    fields: ["plate", "model", "year", "brand", "type:motorcycle"],
-  },
-  vehicles_boat: {
-    table: "vehicles",
-    type: "vehicle",
-    fields: ["plate", "model", "year", "brand", "type:boat"],
-  },
-  social_accounts_linkedin: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:linkedin"],
-  },
-  social_accounts_twitter: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:twitter"],
-  },
-  social_accounts_tiktok: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:tiktok"],
-  },
-  social_accounts_reddit: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:reddit"],
-  },
-  social_accounts_discord: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:discord"],
-  },
-  social_accounts_twitch: {
-    table: "social_accounts",
-    type: "social",
-    fields: ["profile_url", "username", "platform:twitch"],
-  },
-  vehicles_aircraft: {
-    table: "vehicles",
-    type: "vehicle",
-    fields: ["registration", "model", "year", "manufacturer", "type:aircraft"],
-  },
-  organizations: {
-    table: "organizations",
-    type: "organization",
-    fields: ["name", "registration_number", "founding_date"],
-  },
-  websites: {
-    table: "websites",
-    type: "website",
-    fields: ["url", "registration_date", "registrar", "ip_address"],
-  },
-  documents: {
-    table: "documents",
-    type: "document",
-    fields: ["title", "author", "creation_date", "file_hash", "file_type"],
-  },
-  crypto_wallets: {
-    table: "crypto_wallets",
-    type: "financial",
-    fields: ["address", "currency", "platform"],
-  },
-  bank_accounts: {
-    table: "bank_accounts",
-    type: "financial",
-    fields: ["account_number", "bank_name", "iban", "bic"],
-  },
-  transactions: {
-    table: "transactions",
-    type: "financial",
-    fields: ["amount", "date", "sender", "recipient", "currency"],
-  },
-  events: {
-    table: "events",
-    type: "event",
-    fields: ["name", "date", "location", "description", "participants"],
-  },
-  devices_phone: {
-    table: "devices",
-    type: "device",
-    fields: ["imei", "model", "manufacturer", "serial_number", "type:phone"],
-  },
-  devices_computer: {
-    table: "devices",
-    type: "device",
-    fields: ["mac_address", "model", "manufacturer", "serial_number", "type:computer"],
-  },
-  devices_tablet: {
-    table: "devices",
-    type: "device",
-    fields: ["imei", "model", "manufacturer", "serial_number", "type:tablet"],
-  },
-  devices_iot: {
-    table: "devices",
-    type: "device",
-    fields: ["mac_address", "model", "manufacturer", "serial_number", "type:iot"],
-  },
-  media: {
-    table: "media",
-    type: "media",
-    fields: ["filename", "hash", "creation_date", "location", "exif_data"],
-  },
-  education: {
-    table: "education",
-    type: "education",
-    fields: ["institution", "degree", "field", "start_date", "end_date"],
-  },
-  forum_posts: {
-    table: "forum_posts",
-    type: "online_activity",
-    fields: ["forum", "username", "post_date", "post_content", "post_url", "type:forum_post"],
-  },
-  comments: {
-    table: "comments",
-    type: "online_activity",
-    fields: ["platform", "username", "comment_date", "comment_content", "comment_url", "type:comment"],
-  },
-  online_purchases: {
-    table: "online_purchases",
-    type: "online_activity",
-    fields: ["platform", "username", "purchase_date", "item", "price", "type:purchase"],
-  },
-  digital_footprints: {
-    table: "digital_footprints",
-    type: "digital_footprint",
-    fields: ["platform", "username", "date_discovered", "data_type", "source_url"],
-  },
-  biometric_data: {
-    table: "biometric_data",
-    type: "biometric",
-    fields: ["type", "identifier", "date_collected", "source"],
-  },
-  credentials: {
-    table: "credentials",
-    type: "credential",
-    fields: ["service", "username", "hash", "breach_date", "breach_source"],
-  },
+
+function convertFieldToSimpleFormat(field: FormField): string {
+  if ((field.type === "hidden" && field.name === "platform") || field.name === "type") {
+    const defaultValue = field.options?.[0]?.value || ""
+    if (defaultValue) {
+      return `${field.name}:${defaultValue}`
+    }
+  }
+  return field.name
 }
+
+export function generateNodeTypes() {
+  const nodeTypes: Record<string, { table: string; type: string; fields: string[] }> = {}
+
+  function processItems(items: ActionItem[]) {
+    items.forEach((item) => {
+      if (item.table && !item.disabled) {
+        nodeTypes[item.key] = {
+          table: item.table,
+          type: item.type,
+          fields: item.fields.map(convertFieldToSimpleFormat),
+        }
+      }
+
+      // Traiter les enfants récursivement
+      if (item.children && item.children.length > 0) {
+        processItems(item.children)
+      }
+    })
+  }
+
+  processItems(actionItems)
+  return nodeTypes
+}
+
+export const nodesTypes = generateNodeTypes()
+
 
 export const typeColorMap: Record<string, string> = {
   individual: "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:shadow-slate-900/30",
@@ -509,7 +367,7 @@ export function encodedRedirect(
   type: "error" | "success",
   path: string,
   message: string,
-) {
+): never {
   return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
 }
 
@@ -542,7 +400,7 @@ export const scans = [
     name: "phone",
     scan_name: "ignorant_scanner",
     description: "",
-    key: "phone_number"
+    key: "number"
   }
 ]
 

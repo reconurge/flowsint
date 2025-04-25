@@ -1,10 +1,18 @@
+from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
 from app.core.celery import celery_app
+from app.core.db import get_db
 from app.scanners.registry import ScannerRegistry
 from app.scanners.orchestrator import TransformOrchestrator
-from app.core.auth import get_current_user 
-from app.models.types import OSINTTypeUtils
+from app.core.auth import get_current_user
+from app.utils import extract_input_schema 
+# Import types
+from app.types.domain import MinimalDomain, Domain
+from app.types.ip import MinimalIp, Ip
+from app.types.whois import Whois
+
+
 from typing import List
 
 app = FastAPI()
@@ -50,11 +58,12 @@ async def scan(
     except Exception as e:
         return {"valid": False, "reason": str(e)}
 
+
 @app.get("/transforms/nodes")
 async def get_scans_list():
     scanners = ScannerRegistry.list_by_category()
-    
-    # Aplatir les scanners par catégorie en une liste
+
+    # Flatten scanner nodes
     flattened_scanners = {
         category: [
             {
@@ -62,19 +71,38 @@ async def get_scans_list():
                 "name": scanner["name"],
                 "module": scanner["module"],
                 "doc": scanner["doc"],
-                "key": scanner["key"],
                 "inputs": scanner["inputs"],
                 "outputs": scanner["outputs"],
+                "type": "scanner"
             }
             for scanner in scanner_list
         ]
         for category, scanner_list in scanners.items()
     }
-    
-    # Ajouter la clé "types" avec les types OSINT
-    flattened_scanners["types"] = OSINTTypeUtils.get_osint_type_nodes()
+
+    # Add your object types under a dedicated category (e.g., "types")
+    object_inputs = [
+        extract_input_schema("MinimalDomain", MinimalDomain),
+        extract_input_schema("MinimalIp", MinimalIp),
+    ]
+
+    flattened_scanners["inputs"] = object_inputs
 
     return {"items": flattened_scanners}
+
+@app.get("/transforms/{transform_id}")
+async def get_transform(transform_id: UUID):
+    db=get_db()
+
+    try:
+        response = db.table("transforms").select("*").eq("id", str(transform_id)).single().execute()
+        if response.data is None:
+            raise HTTPException(status_code=404, detail="Transform not found")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Transform not found")
+
+    return response.data
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

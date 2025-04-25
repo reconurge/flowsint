@@ -3,9 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 
 async function fetchNodes() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/transforms/nodes`, {
-        next: { revalidate: 3600 }
-    })
+    const res = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/transforms/nodes`)
     if (!res.ok) {
         notFound()
     }

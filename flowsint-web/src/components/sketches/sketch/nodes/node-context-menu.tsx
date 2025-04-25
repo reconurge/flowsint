@@ -27,6 +27,7 @@ import { NodeNotesEditor } from "./node-notes-editor"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
 import { useLaunchSan } from "@/hooks/use-launch-scan"
+import { DynamicForm } from "../../dynamic-form"
 
 // Node Context Menu component
 interface NodeContextMenuProps {
@@ -107,16 +108,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
         setError(null)
         setOpenNodeModal(true)
     }
-
-    const onSubmitNewNodeModal = async (e: {
-        preventDefault: () => void
-        currentTarget: HTMLFormElement | undefined
-    }) => {
-        e.preventDefault()
-        const data = Object.fromEntries(new FormData(e.currentTarget))
-        await handleAddNode(data)
-    }
-
+    
     const handleAddNode = async (data: any) => {
         try {
             setLoading(true)
@@ -302,36 +294,12 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                 <DialogContent>
                     <DialogTitle>New {nodeToInsert?.type}</DialogTitle>
                     <DialogDescription>Add a new related {nodeToInsert?.type}.</DialogDescription>
-                    <form onSubmit={onSubmitNewNodeModal}>
-                        <div className="flex flex-col gap-3">
-                            {nodeToInsert?.fields.map((field: any, i: number) => {
-                                const [key, value] = field.split(":")
-                                return (
-                                    <label key={i}>
-                                        <p className="my-2">{key}</p>
-                                        <Input defaultValue={value || ""} name={key} placeholder={`Your value here(${key})`} />
-                                    </label>
-                                )
-                            })}
-                        </div>
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Error</AlertTitle>
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                        )}
-                        <div className="flex items-center gap-2 justify-end mt-4">
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">
-                                    Cancel
-                                </Button>
-                            </DialogClose>
-                            <Button disabled={loading} type="submit">
-                                Save
-                            </Button>
-                        </div>
-                    </form>
+                    <DynamicForm
+                        type={nodeToInsert?.type}
+                        isForm={true}
+                        loading={loading}
+                        onSubmit={handleAddNode}
+                    />
                 </DialogContent>
             </Dialog>
             {currentNode.id && (

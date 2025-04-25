@@ -1,27 +1,13 @@
 import {
-    Activity,
-    ArrowRightLeft,
     AtSign,
     Bike,
-    Bitcoin,
     Building2,
-    Calendar,
-    Camera,
     Car,
-    CreditCard,
-    DollarSign,
     Facebook,
-    FileIcon,
-    Fingerprint,
-    Footprints,
     Ghost,
     Github,
     Globe,
-    GraduationCap,
-    ImageIcon,
     Instagram,
-    Key,
-    Laptop,
     Linkedin,
     Locate,
     MapPin,
@@ -32,34 +18,54 @@ import {
     Plane,
     Sailboat,
     Send,
-    ShoppingCart,
-    Smartphone,
-    Tablet,
     Twitch,
     Twitter,
     User,
-    Users,
     Video,
-    Wifi,
     type LucideIcon,
 } from "lucide-react"
 
-// Enhanced ActionItem type that includes fields from nodesTypes
-export type ActionItem = {
+
+export type FieldType = "text" | "date" | "email" | "number" | "select" | "textarea" | "hidden" | "tel" | "url" | "metadata"
+
+export interface SelectOption {
+    label: string
+    value: string
+}
+
+export interface FormField {
+    name: string
+    label: string
+    type: FieldType
+    required: boolean
+    options?: SelectOption[]
+    placeholder?: string
+    description?: string
+}
+export interface ActionItem {
     id: number
     type: string
     table: string
+    key: string
     icon: LucideIcon
-    color?: string
     label: string
-    key: string,
-    fields: string[]
+    color?: string
+    fields: FormField[]
+    size?: string
     disabled?: boolean
     comingSoon?: boolean
     children?: ActionItem[]
-    size?: string
 }
 
+const countries = [
+    { label: "France", value: "france" },
+    { label: "United States", value: "usa" },
+    { label: "United Kingdom", value: "uk" },
+    { label: "Germany", value: "germany" },
+    { label: "Japan", value: "japan" },
+    { label: "Canada", value: "canada" },
+    { label: "Australia", value: "australia" },
+]
 export const actionItems: ActionItem[] = [
     {
         id: 24,
@@ -68,8 +74,25 @@ export const actionItems: ActionItem[] = [
         key: "organizations",
         icon: Building2,
         label: "Organization",
-        fields: ["name", "registration_number", "founding_date"],
-        size: "h-8 w-8"
+        fields: [
+            { name: "name", label: "Name", type: "text", required: true },
+            { name: "founding_date", label: "Founding date", type: "date", required: false },
+            {
+                name: "country",
+                label: "Country",
+                type: "select",
+                required: false,
+                options: countries,
+            },
+            {
+                name: "metadata",
+                label: "Metadata",
+                type: "metadata",
+                required: false,
+                description: "Add additional information under the format key:value"
+            }
+        ],
+        size: "h-8 w-8",
     },
     {
         id: 1,
@@ -78,28 +101,59 @@ export const actionItems: ActionItem[] = [
         key: "individuals",
         icon: User,
         label: "New individual",
-        fields: ["full_name"],
-        size: "h-7 w-7"
+        fields: [{ name: "first_name", label: "Firstname", type: "text", required: true },
+        { name: "last_name", label: "Lastname", type: "text", required: true },
+        { name: "birth_date", label: "Birth date", type: "date", required: false },
+        {
+            name: "gender",
+            label: "Gender",
+            type: "select",
+            required: false,
+            options: [
+                { label: "Male", value: "male" },
+                { label: "Female", value: "female" },
+                { label: "Non-binary", value: "non-binary" },
+                { label: "Prefer not to say", value: "not_specified" },
+            ],
+        },
+        ],
+        size: "h-7 w-7",
     },
     {
         id: 2,
         type: "phone",
-        table: "phone_numbers",
-        key: "phone_numbers",
+        table: "phones",
+        key: "phones",
         icon: Phone,
         label: "Phone number",
-        fields: ["phone_number"],
-        size: "h-5 w-5"
+        fields: [{ name: "number", label: "Phone number", type: "tel", required: true },
+        {
+            name: "country",
+            label: "Country",
+            type: "select",
+            required: false,
+            options: countries,
+        },
+        { name: "carrier", label: "Carrier", type: "text", required: false }
+        ],
+        size: "h-5 w-5",
     },
     {
         id: 3,
         type: "address",
-        table: "physical_addresses",
-        key: "physical_addresses",
+        table: "addresses",
+        key: "addresses",
         icon: MapPin,
         label: "Physical address",
-        fields: ["address", "city", "country", "zip"],
-        size: "h-5 w-5"
+        fields: [
+            { name: "address", label: "Address", type: "text", required: true },
+            { name: "city", label: "City", type: "text", required: true },
+            { name: "country", label: "Country", type: "text", required: true },
+            { name: "zip", label: "ZIP/Postal code", type: "text", required: false },
+            { name: "latitude", label: "Latitude", type: "text", required: false },
+            { name: "longitude", label: "Longitude", type: "text", required: false },
+        ],
+        size: "h-5 w-5",
     },
     {
         id: 4,
@@ -108,18 +162,18 @@ export const actionItems: ActionItem[] = [
         key: "emails",
         icon: AtSign,
         label: "Email address",
-        fields: ["email"],
-        size: "h-5 w-5"
+        fields: [{ name: "email", label: "Email", type: "email", required: true }],
+        size: "h-5 w-5",
     },
     {
         id: 5,
         type: "ip",
-        table: "ip_addresses",
-        key: "ip_addresses",
+        table: "ips",
+        key: "ips",
         icon: Locate,
         label: "IP address",
-        fields: ["ip_address"],
-        size: "h-5 w-5"
+        fields: [{ name: "address", label: "IP address", type: "text", required: true }],
+        size: "h-5 w-5",
     },
     {
         id: 6,
@@ -139,8 +193,12 @@ export const actionItems: ActionItem[] = [
                 icon: Facebook,
                 color: "#1d4ed8",
                 label: "Facebook",
-                fields: ["profile_url", "username", "platform:facebook"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 8,
@@ -150,8 +208,12 @@ export const actionItems: ActionItem[] = [
                 icon: Instagram,
                 color: "#db2777",
                 label: "Instagram",
-                fields: ["profile_url", "username", "platform:instagram"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 9,
@@ -161,8 +223,12 @@ export const actionItems: ActionItem[] = [
                 icon: Send,
                 color: "#0369a1",
                 label: "Telegram",
-                fields: ["profile_url", "username", "platform:telegram"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 10,
@@ -172,8 +238,12 @@ export const actionItems: ActionItem[] = [
                 icon: MessageCircleDashed,
                 color: "#3B45FC",
                 label: "Signal",
-                fields: ["profile_url", "username", "platform:signal"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 11,
@@ -183,8 +253,12 @@ export const actionItems: ActionItem[] = [
                 color: "#FEFC00",
                 icon: Ghost,
                 label: "Snapchat",
-                fields: ["profile_url", "username", "platform:snapchat"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 12,
@@ -193,8 +267,12 @@ export const actionItems: ActionItem[] = [
                 key: "social_accounts_github",
                 icon: Github,
                 label: "Github",
-                fields: ["profile_url", "username", "platform:github"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 13,
@@ -203,10 +281,14 @@ export const actionItems: ActionItem[] = [
                 key: "social_accounts_coco",
                 icon: Send,
                 label: "Coco",
-                fields: ["profile_url", "username", "platform:coco"],
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
                 disabled: true,
                 comingSoon: true,
-                size: "h-5 w-5"
+                size: "h-5 w-5",
             },
             {
                 id: 18,
@@ -216,8 +298,12 @@ export const actionItems: ActionItem[] = [
                 color: "#116AC9",
                 icon: Linkedin,
                 label: "LinkedIn",
-                fields: ["profile_url", "username", "platform:linkedin"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 19,
@@ -226,8 +312,12 @@ export const actionItems: ActionItem[] = [
                 key: "social_accounts_twitter",
                 icon: Twitter,
                 label: "Twitter",
-                fields: ["profile_url", "username", "platform:twitter"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 20,
@@ -236,8 +326,12 @@ export const actionItems: ActionItem[] = [
                 key: "social_accounts_tiktok",
                 icon: Video,
                 label: "TikTok",
-                fields: ["profile_url", "username", "platform:tiktok"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 21,
@@ -247,8 +341,12 @@ export const actionItems: ActionItem[] = [
                 icon: MessageSquare,
                 color: "#FF4B13",
                 label: "Reddit",
-                fields: ["profile_url", "username", "platform:reddit"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 22,
@@ -258,8 +356,12 @@ export const actionItems: ActionItem[] = [
                 icon: MessageCircle,
                 color: "#525FEE",
                 label: "Discord",
-                fields: ["profile_url", "username", "platform:discord"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 2343,
@@ -269,8 +371,12 @@ export const actionItems: ActionItem[] = [
                 icon: Twitch,
                 color: "#A96FFF",
                 label: "Twitch",
-                fields: ["profile_url", "username", "platform:twitch"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "profile_url", label: "Profile URL", type: "url", required: true },
+                    { name: "username", label: "Username", type: "text", required: false },
+                    { name: "platform", label: "Platform", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
         ],
     },
@@ -290,8 +396,14 @@ export const actionItems: ActionItem[] = [
                 key: "vehicles_car",
                 icon: Car,
                 label: "Car",
-                fields: ["plate", "model", "brand", "year", "type:car"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "plate", label: "License plate", type: "text", required: true },
+                    { name: "model", label: "Model", type: "text", required: false },
+                    { name: "brand", label: "Brand", type: "text", required: false },
+                    { name: "year", label: "Year", type: "number", required: false },
+                    { name: "type", label: "Type", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 16,
@@ -300,8 +412,14 @@ export const actionItems: ActionItem[] = [
                 key: "vehicles_motorcycle",
                 icon: Bike,
                 label: "Motorcycle",
-                fields: ["plate", "model", "brand", "year", "type:motorcycle"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "plate", label: "License plate", type: "text", required: true },
+                    { name: "model", label: "Model", type: "text", required: false },
+                    { name: "brand", label: "Brand", type: "text", required: false },
+                    { name: "year", label: "Year", type: "number", required: false },
+                    { name: "type", label: "Type", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 17,
@@ -310,8 +428,14 @@ export const actionItems: ActionItem[] = [
                 key: "vehicles_boat",
                 icon: Sailboat,
                 label: "Boat",
-                fields: ["plate", "model", "brand", "year", "type:boat"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "plate", label: "Registration number", type: "text", required: true },
+                    { name: "model", label: "Model", type: "text", required: false },
+                    { name: "brand", label: "Brand", type: "text", required: false },
+                    { name: "year", label: "Year", type: "number", required: false },
+                    { name: "type", label: "Type", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
             {
                 id: 23,
@@ -320,8 +444,14 @@ export const actionItems: ActionItem[] = [
                 key: "vehicles_aircraft",
                 icon: Plane,
                 label: "Aircraft",
-                fields: ["registration", "model", "manufacturer", "year", "type:aircraft"],
-                size: "h-5 w-5"
+                fields: [
+                    { name: "registration", label: "Registration", type: "text", required: true },
+                    { name: "model", label: "Model", type: "text", required: false },
+                    { name: "manufacturer", label: "Manufacturer", type: "text", required: false },
+                    { name: "year", label: "Year", type: "number", required: false },
+                    { name: "type", label: "Type", type: "hidden", required: true },
+                ],
+                size: "h-5 w-5",
             },
         ],
     },
@@ -332,230 +462,14 @@ export const actionItems: ActionItem[] = [
         key: "websites",
         icon: Globe,
         label: "Website",
-        fields: ["url", "registration_date", "registrar", "ip_address"],
-        size: "h-5 w-5"
-    },
-    {
-        id: 26,
-        type: "document",
-        table: "documents",
-        key: "documents",
-        icon: FileIcon,
-        label: "Document",
-        fields: ["title", "author", "creation_date", "file_hash", "file_type"],
-        size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 27,
-        type: "financial",
-        table: "",
-        key: "financial",
-        icon: DollarSign,
-        label: "Financial",
-        fields: [],
-        disabled: true,
-        children: [
-            {
-                id: 28,
-                type: "financial",
-                table: "crypto_wallets",
-                key: "crypto_wallets",
-                icon: Bitcoin,
-                label: "Crypto Wallet",
-                fields: ["address", "currency", "platform"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 29,
-                type: "financial",
-                table: "bank_accounts",
-                key: "bank_accounts",
-                icon: CreditCard,
-                label: "Bank Account",
-                fields: ["account_number", "bank_name", "iban", "bic"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 30,
-                type: "financial",
-                table: "transactions",
-                key: "transactions",
-                icon: ArrowRightLeft,
-                label: "Transaction",
-                fields: ["amount", "date", "sender", "recipient", "currency"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
+        fields: [
+            { name: "url", label: "URL", type: "url", required: true },
+            { name: "registration_date", label: "Registration date", type: "date", required: false },
+            { name: "registrar", label: "Registrar", type: "text", required: false },
+            { name: "address", label: "IP address", type: "text", required: false },
         ],
-    },
-    {
-        id: 31,
-        type: "event",
-        table: "events",
-        key: "events",
-        icon: Calendar,
-        label: "Event",
-        fields: ["name", "date", "location", "description", "participants"],
         size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 32,
-        type: "device",
-        table: "",
-        key: "device",
-        icon: Smartphone,
-        label: "Device",
-        fields: [],
-        disabled: true,
-        children: [
-            {
-                id: 33,
-                type: "device",
-                table: "devices",
-                key: "devices_phone",
-                icon: Smartphone,
-                label: "Phone",
-                fields: ["imei", "model", "manufacturer", "serial_number", "type:phone"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 34,
-                type: "device",
-                table: "devices",
-                key: "devices_computer",
-                icon: Laptop,
-                label: "Computer",
-                fields: ["mac_address", "model", "manufacturer", "serial_number", "type:computer"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 35,
-                type: "device",
-                table: "devices",
-                key: "devices_tablet",
-                icon: Tablet,
-                label: "Tablet",
-                fields: ["imei", "model", "manufacturer", "serial_number", "type:tablet"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 36,
-                type: "device",
-                table: "devices",
-                key: "devices_iot",
-                icon: Wifi,
-                label: "IoT Device",
-                fields: ["mac_address", "model", "manufacturer", "serial_number", "type:iot"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-        ],
-    },
-    {
-        id: 37,
-        type: "media",
-        table: "media",
-        key: "media",
-        icon: ImageIcon,
-        label: "Media",
-        fields: ["filename", "hash", "creation_date", "location", "exif_data"],
-        size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 38,
-        type: "education",
-        table: "education",
-        key: "education",
-        icon: GraduationCap,
-        label: "Education",
-        fields: ["institution", "degree", "field", "start_date", "end_date"],
-        size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 40,
-        type: "online_activity",
-        table: "",
-        key: "online_activity",
-        icon: Activity,
-        label: "Online Activity",
-        fields: [],
-        disabled: true,
-        children: [
-            {
-                id: 41,
-                type: "online_activity",
-                table: "forum_posts",
-                key: "forum_posts",
-                icon: MessageSquare,
-                label: "Forum Post",
-                fields: ["forum", "username", "post_date", "post_content", "post_url", "type:forum_post"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 42,
-                type: "online_activity",
-                table: "comments",
-                key: "comments",
-                icon: MessageCircle,
-                label: "Comment",
-                fields: ["platform", "username", "comment_date", "comment_content", "comment_url", "type:comment"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-            {
-                id: 43,
-                type: "online_activity",
-                table: "online_purchases",
-                key: "online_purchases",
-                icon: ShoppingCart,
-                label: "Online Purchase",
-                fields: ["platform", "username", "purchase_date", "item", "price", "type:purchase"],
-                size: "h-5 w-5",
-                disabled: true,
-            },
-        ],
-    },
-    {
-        id: 44,
-        type: "digital_footprint",
-        table: "digital_footprints",
-        key: "digital_footprints",
-        icon: Footprints,
-        label: "Digital Footprint",
-        fields: ["platform", "username", "date_discovered", "data_type", "source_url"],
-        size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 45,
-        type: "biometric",
-        table: "biometric_data",
-        key: "biometric_data",
-        icon: Fingerprint,
-        label: "Biometric Data",
-        fields: ["type", "identifier", "date_collected", "source"],
-        size: "h-5 w-5",
-        disabled: true,
-    },
-    {
-        id: 46,
-        type: "credential",
-        table: "credentials",
-        key: "credentials",
-        icon: Key,
-        label: "Credential",
-        fields: ["service", "username", "hash", "breach_date", "breach_source"],
-        size: "h-5 w-5",
-        disabled: true,
     },
 ]
+
+

@@ -30,7 +30,7 @@ export default function CaseSelector() {
         <div className="flex items-center">
             {isLoading || sketch.isLoading ? <Skeleton className="h-8 w-40 bg-foreground/10" /> :
                 <Select onValueChange={handleSelectionChange} defaultValue={sketch?.data?.id}>
-                    <SelectTrigger className="min-w-none h-8 rounded-sm w-full hover:bg-foreground/10 font-medium shadow-none border-none text-ellipsis truncate gap-1">
+                    <SelectTrigger className="min-w-none h-8 rounded-sm w-full hover:bg-foreground/10 font-medium shadow-none border-none text-ellipsis truncate gap-1 inset-shadow-none">
                         <SelectValue defaultValue={sketch?.data?.title || ""} placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>

@@ -3,7 +3,7 @@ import type React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import InvestigationSelector from "../investigations/investigation-selector"
-import CaseSelector from "../sketches/case-selector"
+import CaseSelector from "../sketches/sketch-selector"
 import { useParams, usePathname } from "next/navigation"
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {

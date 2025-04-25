@@ -29,7 +29,7 @@ export interface Email {
 
 export interface Phone {
     id: string,
-    phone_number: string
+    number: string
 }
 
 export interface Social {
@@ -41,7 +41,7 @@ export interface Social {
 
 export interface IP {
     id: string
-    ip_address: string
+    address: string
 }
 
 export interface Address {

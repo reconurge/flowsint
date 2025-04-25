@@ -16,8 +16,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ individual
             .from('individuals')
             .select(`
                         *,
-                        ip_addresses(*),
-                        phone_numbers(*),
+                        ips(*),
+                        phones(*),
                         social_accounts(*),
                         emails(*)
                     `)

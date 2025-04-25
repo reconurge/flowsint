@@ -1,11 +1,8 @@
-import asyncio
 import json
 import uuid
 from typing import Dict, Any, List
 from pathlib import Path
 from app.scanners.base import Scanner
-from app.models.types import OSINTType
-from app.utils import DataType
 import tempfile
 
 class GHuntGmailScanner(Scanner):
@@ -27,7 +24,7 @@ class GHuntGmailScanner(Scanner):
     
     @classmethod
     def output_schema(self) -> Dict[str, str]:
-        return ["full_name", "social_profile", "leak_info", "email", "phone_number", "location", "profile_picture", "metadata"]
+        return ["full_name", "social_profile", "leak_info", "email", "number", "location", "profile_picture", "metadata"]
 
     async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
         results = []

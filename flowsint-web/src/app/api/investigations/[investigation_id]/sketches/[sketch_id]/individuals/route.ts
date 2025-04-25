@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .from('individuals')
             .select([`*`,
                 includeEmails && "emails(email)",
-                includePhones && "phone_numbers(phone_number)",
+                includePhones && "phones(number)",
             ].filter(Boolean).join(', '), { count: "exact" })
             .order("created_at", { ascending: false })
             .eq("sketch_id", sketch_id)

@@ -5,7 +5,7 @@ from app.scanners.domains.subdomains import SubdomainScanner
 from app.scanners.domains.whois import WhoisScanner
 from app.scanners.domains.resolve import ResolveScanner
 from app.scanners.ips.reverse_resolve import ReverseResolveScanner
-
+from app.scanners.ips.geolocation import GeolocationScanner
 class ScannerRegistry:
     
     _scanners: Dict[str, Type[Scanner]] = {}
@@ -62,3 +62,4 @@ ScannerRegistry.register(ReverseResolveScanner)
 ScannerRegistry.register(ResolveScanner)
 ScannerRegistry.register(SubdomainScanner)
 ScannerRegistry.register(WhoisScanner)
+ScannerRegistry.register(GeolocationScanner)

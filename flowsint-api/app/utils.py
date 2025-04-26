@@ -1,10 +1,21 @@
 from urllib.parse import urlparse
 import phonenumbers
+import ipaddress
 from phonenumbers import NumberParseException
 from pydantic import TypeAdapter, BaseModel
 from urllib.parse import urlparse
 import re
+import ssl
+import socket
+from typing import Dict, Any
 
+
+def is_valid_ip(address: str) -> bool:
+    try:
+        ipaddress.ip_address(address)
+        return True
+    except ValueError:
+        return False
 
 def is_valid_username(username: str) -> bool:
     if not re.match(r"^[a-zA-Z0-9_-]{3,30}$", username):
@@ -76,4 +87,60 @@ def extract_input_schema(name: str, model: BaseModel) -> dict:
         ],
         "inputs": [],
         "type": "input"
+    }
+
+
+def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection((ip, port), timeout=3) as sock:
+            with context.wrap_socket(sock, server_hostname=ip) as ssock:
+                cert = ssock.getpeercert()
+                subject = cert.get('subject', [])
+                for entry in subject:
+                    if entry[0][0] == 'commonName':
+                        return entry[0][1]
+                # Alternative: check subjectAltName
+                san = cert.get('subjectAltName', [])
+                for typ, val in san:
+                    if typ == 'DNS':
+                        return val
+    except Exception as e:
+        print(f"SSL extraction failed for {ip}: {e}")
+    return None
+
+
+def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
+    nodes = transform["nodes"]
+    edges = transform["edges"]
+
+    input_node = next((node for node in nodes if node["data"]["type"] == "input"), None)
+    if not input_node:
+        raise ValueError("No input node found.")
+    input_output = input_node["data"]["outputs"]
+    node_lookup = {node["id"]: node for node in nodes}
+
+    scanners = []
+    for edge in edges:
+        target_id = edge["target"]
+        source_handle = edge["sourceHandle"]
+        target_handle = edge["targetHandle"]
+
+        scanner_node = node_lookup.get(target_id)
+        if scanner_node and scanner_node["data"]["type"] == "scanner":
+            scanners.append({
+                "scanner_name": scanner_node["data"]["name"],
+                "module": scanner_node["data"]["module"],
+                "input": source_handle,
+                "output": target_handle
+            })
+
+    return {
+        "input": {
+            "name": input_node["data"]["name"],
+            "outputs": input_output,
+        },
+        "scanners": scanners,
+    "scanner_names" : [scanner["scanner_name"] for scanner in scanners]
+
     }

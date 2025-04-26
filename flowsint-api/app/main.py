@@ -1,63 +1,22 @@
 from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field
-from app.core.celery import celery_app
+from pydantic import BaseModel
 from app.core.db import get_db
 from app.scanners.registry import ScannerRegistry
-from app.scanners.orchestrator import TransformOrchestrator
 from app.core.auth import get_current_user
-from app.utils import extract_input_schema 
+from app.utils import extract_input_schema
+from app.core.celery import celery_app 
 # Import types
-from app.types.domain import MinimalDomain, Domain
-from app.types.ip import MinimalIp, Ip
-from app.types.whois import Whois
-
-
+from app.types.domain import MinimalDomain
+from app.types.ip import MinimalIp
 from typing import List
+from app.scanners.orchestrator import TransformOrchestrator
 
 app = FastAPI()
-
-class ScanRequest(BaseModel):
-    values: List[str]
-    sketch_id: str
-    scanner: str
-
-class TransformValidateRequest(BaseModel):
-    scanners: List[str] = Field(..., description="Ordered list of scanners to apply")
-
-@app.post("/scan")
-async def scan(
-    item: ScanRequest,
-    user=Depends(get_current_user)
-):
-    try:
-        if not ScannerRegistry.scanner_exists(name=item.scanner):
-            raise HTTPException(status_code=400, detail="Scanner not found")
-        # user_id = user.get("sub")
-        task = celery_app.send_task("run_scan", args=[item.scanner, item.values, item.sketch_id])
-        return {"id": task.id}
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
     
 @app.get("/scanners")
 async def get_scans_list():
     return {"scanners": ScannerRegistry.list()}
-
-@app.post("/transforms/validate")
-async def scan(
-    transform: TransformValidateRequest,
-):
-    try:
-        orchestrator = TransformOrchestrator("",
-        scanner_names=transform.scanners)
-        is_valid = orchestrator.preprocess()
-        return {"valid": is_valid}
-    except Exception as e:
-        return {"valid": False, "reason": str(e)}
-
 
 @app.get("/transforms/nodes")
 async def get_scans_list():
@@ -90,18 +49,31 @@ async def get_scans_list():
 
     return {"items": flattened_scanners}
 
-@app.get("/transforms/{transform_id}")
-async def get_transform(transform_id: UUID):
-    db=get_db()
 
+class LaunchTransformPayload(BaseModel):
+    values: List[str]
+    
+@app.post("/transforms/{transform_id}/launch")
+async def launch_transform(
+    transform_id: UUID,
+    payload: LaunchTransformPayload,
+    user=Depends(get_current_user)
+):
+    db = get_db()
     try:
         response = db.table("transforms").select("*").eq("id", str(transform_id)).single().execute()
         if response.data is None:
             raise HTTPException(status_code=404, detail="Transform not found")
-    except Exception as e:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        
+        task = celery_app.send_task("run_transform", args=[response.data["transform_schema"], payload.values, None])
+        return {"id": task.id}
 
-    return response.data
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=404, detail="Transform not found")
+    return {
+        "results": results,
+    }
 
 @app.get("/health")
 async def health():

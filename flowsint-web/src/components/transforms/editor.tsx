@@ -35,6 +35,8 @@ import { toast } from "sonner"
 import { useParams, useRouter } from "next/navigation"
 import { TransformModal } from "./save-modal"
 import { useConfirm } from "../use-confirm-dialog"
+import TestTransform from "./test-transform"
+import { useLaunchTransform } from "@/hooks/use-launch-transform"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
@@ -52,14 +54,22 @@ const FlowEditor = memo(
         const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<Record<string, unknown>>>(initialEdges)
         const [selectedNode, setSelectedNode] = useState<Node<any> | null>(null)
         const [loading, setLoading] = useState<boolean>(false)
+        const [openTestTransform, setOpenTestTransform] = useState<boolean>(false)
         const [mounted, setMounted] = useState(false)
         const [searchTerm, setSearchTerm] = useState("")
         const [showModal, setShowModal] = useState(false)
         const reactFlowWrapper = useRef<HTMLDivElement>(null)
         const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
+        const { launchTransform } = useLaunchTransform()
+        const [inputType, setInputType] = useState(null)
         const router = useRouter()
         const { confirm } = useConfirm()
         const { transform_id } = useParams()
+
+        useEffect(() => {
+            const existsInput = nodes.find((node) => node.data.type === "input")
+            setInputType(existsInput?.data?.outputs?.[0]?.name || null)
+        }, [nodes, setInputType])
 
         useEffect(() => {
             setMounted(true)
@@ -95,8 +105,6 @@ const FlowEditor = memo(
                 if (params.sourceHandle !== params.targetHandle)
                     return toast.error(`Canot connect ${params.sourceHandle} to ${params.targetHandle}`)
                 const node = getNode(params.source);
-                console.log(node)
-
                 setEdges((eds) =>
                     addEdge(
                         {
@@ -116,6 +124,7 @@ const FlowEditor = memo(
             },
             [setEdges],
         )
+
 
         const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
             event.preventDefault()
@@ -172,7 +181,6 @@ const FlowEditor = memo(
             [setCenter, setSelectedNode],
         )
 
-        // Background click handler (deselection)
         const onPaneClick = useCallback(() => {
             setSelectedNode(null)
         }, [])
@@ -186,7 +194,6 @@ const FlowEditor = memo(
             })
         }, [nodes, edges, setNodes, setEdges, fitView])
 
-        // Node deletion handler
         const handleDeleteNode = useCallback(() => {
             if (selectedNode) {
                 setNodes((nodes) => nodes.filter((node) => node.id !== selectedNode.id))
@@ -202,12 +209,11 @@ const FlowEditor = memo(
                 setLoading(true)
                 try {
                     let newTransform;
-
                     if (transform_id) {
-                        // Cas de mise à jour - utiliser update
                         const { data, error } = await supabase
                             .from("transforms")
                             .update({
+                                category: inputType,
                                 transform_schema: {
                                     nodes,
                                     edges,
@@ -220,12 +226,12 @@ const FlowEditor = memo(
                         if (error) throw error;
                         newTransform = data;
                     } else {
-                        // Cas d'insertion - utiliser insert
                         const { data, error } = await supabase
                             .from("transforms")
                             .insert({
                                 name: name,
                                 description: description,
+                                category: inputType,
                                 transform_schema: {
                                     nodes,
                                     edges,
@@ -251,21 +257,30 @@ const FlowEditor = memo(
             [nodes, edges, transform_id, router],
         );
 
-        const handleSaveSimulation = useCallback(() => {
+        const handleSaveTransform = useCallback(() => {
+            if (!inputType) return toast.error("Make sure your transform contains an input type.")
             if (!transform_id) {
                 setShowModal(true)
             } else {
-                saveTransform("My Simulation", "")
+                saveTransform("", "")
             }
         }, [transform_id, saveTransform])
 
-        const handleDeleteSimulation = useCallback(async () => {
+        const handleTestTransform = useCallback(async (data: any) => {
+            if (!transform_id) {
+                toast.error("Save the transform first.")
+                return
+            }
+            launchTransform([data.domain], transform_id as string)
+        }, [])
+
+        const handleDeleteTransform = useCallback(async () => {
             if (!transform_id) return
             if (await confirm({ title: "Are you sure you want to delete this simulation?", message: "This action is irreversible." })) {
                 setLoading(true)
                 try {
                     await supabase.from("transforms").delete().eq("id", transform_id)
-                    toast.success("Simulation deleted successfully.")
+                    toast.success("transform deleted successfully.")
                     router.push("/dashboard/transforms")
                 } catch (error) {
                     toast.error("Error deleting simulation")
@@ -285,113 +300,117 @@ const FlowEditor = memo(
         }
 
         return (
-            <ResizablePanelGroup
-                autoSaveId="persistence"
-                direction="horizontal"
-                className="w-screen grow relative overflow-hidden"
-            >
-                <ResizablePanel defaultSize={20}>
-                    <div className="h-[calc(100vh_-_52px)] bg-card p-4 overflow-y-auto">
-                        <div className="relative mb-4">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="text"
-                                placeholder="Search scanners..."
-                                className="pl-8"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            {searchTerm && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-1 top-1.5 h-6 w-6"
-                                    onClick={() => setSearchTerm("")}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
-                        <div className="space-y-4">
-                            {Object.entries(filteredScanners).map(([category, scanners]) => (
-                                <div key={category} className="space-y-2">
-                                    <h3 className="text-sm font-medium capitalize pb-1">{category.replace("_", " ")}</h3>
-                                    <div className="space-y-2">
-                                        {scanners.map((scanner: Scanner) => (
-                                            <ScannerItem
-                                                key={scanner.name}
-                                                scanner={scanner}
-                                                category={category}
-                                                color={categoryColors[category] || "#94a3b8"}
-                                            />
-                                        ))}
+            <>
+                <ResizablePanelGroup
+                    autoSaveId="persistence"
+                    direction="horizontal"
+                    className="w-screen grow relative overflow-hidden"
+                >
+                    <ResizablePanel defaultSize={20}>
+                        <div className="h-[calc(100vh_-_52px)] bg-card p-4 overflow-y-auto">
+                            <div className="relative mb-4">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="text"
+                                    placeholder="Search scanners..."
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                {searchTerm && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1.5 h-6 w-6"
+                                        onClick={() => setSearchTerm("")}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="space-y-4">
+                                {Object.entries(filteredScanners).map(([category, scanners]) => (
+                                    <div key={category} className="space-y-2">
+                                        <h3 className="text-sm font-medium capitalize pb-1">{category.replace("_", " ")}</h3>
+                                        <div className="space-y-2">
+                                            {scanners.map((scanner: Scanner) => (
+                                                <ScannerItem
+                                                    key={scanner.name}
+                                                    scanner={scanner}
+                                                    category={category}
+                                                    color={categoryColors[category] || "#94a3b8"}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                            {Object.keys(filteredScanners).length === 0 && (
-                                <div className="text-center py-4 text-muted-foreground">No scanners found matching "{searchTerm}"</div>
-                            )}
+                                ))}
+                                {Object.keys(filteredScanners).length === 0 && (
+                                    <div className="text-center py-4 text-muted-foreground">No scanners found matching "{searchTerm}"</div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel>
-                    <div ref={reactFlowWrapper} className="w-full h-full bg-background">
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            onInit={setReactFlowInstance}
-                            onDrop={onDrop}
-                            onDragOver={onDragOver}
-                            onNodeClick={onNodeClick}
-                            onPaneClick={onPaneClick}
-                            nodeTypes={nodeTypes}
-                            fitView
-                            proOptions={{ hideAttribution: true }}
-                            colorMode={theme}
-                        >
-                            <FlowControls
-                                loading={loading}
-                                handleSaveSimulation={handleSaveSimulation}
-                                handleDeleteSimulation={handleDeleteSimulation}
-                                onLayout={onLayout}
-                                fitView={fitView}
-                                zoomIn={zoomIn}
-                                zoomOut={zoomOut}
-                            />
-                            <Background bgColor="var(--background)" />
-                            {/* Selected node information panel */}
-                            {selectedNode && (
-                                <Panel position="bottom-right" className="bg-card p-3 rounded-md shadow-md border w-72">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="font-medium">{selectedNode.data.class_name}</h3>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDeleteNode}>
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                    <div className="text-sm space-y-2">
-                                        <p>
-                                            <span className="font-medium">Module:</span> {selectedNode.data.module}
-                                        </p>
-                                        <p>
-                                            <span className="font-medium">Key:</span> {selectedNode.data.key}
-                                        </p>
-                                        {selectedNode.data.doc && (
+                    </ResizablePanel>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel>
+                        <div ref={reactFlowWrapper} className="w-full h-full bg-background">
+                            <ReactFlow
+                                nodes={nodes}
+                                edges={edges}
+                                onNodesChange={onNodesChange}
+                                onEdgesChange={onEdgesChange}
+                                onConnect={onConnect}
+                                onInit={setReactFlowInstance}
+                                onDrop={onDrop}
+                                onDragOver={onDragOver}
+                                onNodeClick={onNodeClick}
+                                onPaneClick={onPaneClick}
+                                nodeTypes={nodeTypes}
+                                fitView
+                                proOptions={{ hideAttribution: true }}
+                                colorMode={theme}
+                            >
+                                <FlowControls
+                                    loading={loading}
+                                    handleSaveTransform={handleSaveTransform}
+                                    handleDeleteTransform={handleDeleteTransform}
+                                    setOpenTestTransform={setOpenTestTransform}
+                                    onLayout={onLayout}
+                                    fitView={fitView}
+                                    zoomIn={zoomIn}
+                                    zoomOut={zoomOut}
+                                    isSaved={Boolean(transform_id)}
+                                />
+                                <Background bgColor="var(--background)" />
+                                {selectedNode && (
+                                    <Panel position="bottom-right" className="bg-card p-3 rounded-md shadow-md border w-72">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-medium">{selectedNode.data.class_name}</h3>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDeleteNode}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="text-sm space-y-2">
                                             <p>
-                                                <span className="font-medium">Description:</span> {selectedNode.data.doc}
+                                                <span className="font-medium">Module:</span> {selectedNode.data.module}
                                             </p>
-                                        )}
-                                    </div>
-                                </Panel>
-                            )}
-                        </ReactFlow>
-                    </div>
-                </ResizablePanel>
-                <TransformModal open={showModal} onOpenChange={setShowModal} onSave={saveTransform} isLoading={loading} />
-            </ResizablePanelGroup>
+                                            <p>
+                                                <span className="font-medium">Key:</span> {selectedNode.data.key}
+                                            </p>
+                                            {selectedNode.data.doc && (
+                                                <p>
+                                                    <span className="font-medium">Description:</span> {selectedNode.data.doc}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </Panel>
+                                )}
+                            </ReactFlow>
+                        </div>
+                    </ResizablePanel>
+                    <TransformModal open={showModal} onOpenChange={setShowModal} onSave={saveTransform} isLoading={loading} />
+                </ResizablePanelGroup>
+                {inputType && <TestTransform loading={loading} type={inputType} onSubmit={handleTestTransform} setOpen={setOpenTestTransform} open={openTestTransform} />}
+            </>
         )
     },
 )

@@ -1,8 +1,7 @@
-import pytest
-from app.scanners.domains.subdomains import SubdomainScanner
-from app.types.domain import MinimalDomain, Domain
+from app.scanners.domains.resolve import ResolveScanner
+from app.types.domain import MinimalDomain
 
-scanner = SubdomainScanner("123")
+scanner = ResolveScanner("123")
 
 def test_preprocess_valid_domains():
     domains = [
@@ -54,49 +53,21 @@ def test_preprocess_multiple_formats():
     assert "invalid_domain" not in result_domains
     assert "example.io" not in result_domains
 
+def test_scan_returns_ip(monkeypatch):
+    # on crée une fonction mock qui retourne une IP
+    def mock_gethostbyname(domain):
+        return "12.23.34.45"
 
-def test_scan_extracts_subdomains(monkeypatch):
-    mock_response = [
-        {"name_value": "mail.example.com\nwww.example.com"},
-        {"name_value": "api.example.com"},
-        {"name_value": "invalid_domain"},  # devrait être ignoré
-    ]
-
-    class MockRequestsResponse:
-        def __init__(self, json_data):
-            self._json_data = json_data
-            self.status_code = 200
-
-        def json(self):
-            return self._json_data
-
-        @property
-        def ok(self):
-            return True
-
-    def mock_get(url, timeout):
-        assert "example.com" in url
-        return MockRequestsResponse(mock_response)
-
-    # Patch la requête réseau dans le module scanner
-    monkeypatch.setattr("requests.get", mock_get)
+    monkeypatch.setattr("socket.gethostbyname", mock_gethostbyname)
 
     input_data = [MinimalDomain(domain="example.com")]
-    domains = scanner.execute(input_data)
-    assert isinstance(domains, list)
-    for sub in domains:  
-        print(sub)
-        assert isinstance(sub, Domain)
-    expected = sorted([
-        "mail.example.com",
-        "www.example.com",
-        "api.example.com"
-    ])
-    assert domains[0].subdomains == expected
-
+    output = scanner.execute(input_data)
+    print(output)
+    assert isinstance(output, list)
+    assert output[0].address == "12.23.34.45"
 
 def test_schemas():
     input_schema = scanner.input_schema()
     output_schema = scanner.output_schema()
     assert input_schema == [{'name': 'domain', 'type': 'string'}]
-    assert output_schema == [{'name': 'domain', 'type': 'string'}, {'name': 'subdomains', 'type': 'array | null'}, {'name': 'ips', 'type': 'array | null'}]
+    assert output_schema == [{'name': 'address', 'type': 'string'}]

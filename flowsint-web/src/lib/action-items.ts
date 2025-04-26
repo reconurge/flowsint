@@ -166,6 +166,16 @@ export const actionItems: ActionItem[] = [
         size: "h-5 w-5",
     },
     {
+        id: 25,
+        type: "domain",
+        table: "domains",
+        key: "domain",
+        icon: Locate,
+        label: "Domain",
+        fields: [{ name: "domain", label: "Domain", type: "text", required: true }],
+        size: "h-5 w-5",
+    },
+    {
         id: 5,
         type: "ip",
         table: "ips",

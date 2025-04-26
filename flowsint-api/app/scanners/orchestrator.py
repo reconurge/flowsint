@@ -1,12 +1,16 @@
 from typing import List, Dict, Any
+from uuid import UUID
+from datetime import datetime
+from pydantic import BaseModel
 from app.scanners.base import Scanner
 from app.scanners.registry import ScannerRegistry
+from pydantic import ValidationError
 
 class TransformOrchestrator(Scanner):
     def __init__(self, scan_id: str, scanner_names: List[str]):
         super().__init__(scan_id)
         self.scanner_names = scanner_names
-        self.scanners: List[Scanner] = []
+        self.scanners = []
         self._load_scanners()
 
     def _load_scanners(self) -> None:
@@ -29,11 +33,11 @@ class TransformOrchestrator(Scanner):
 
     @classmethod
     def key(cls) -> str:
-        return "value"
+        return "values"
 
     @classmethod
     def input_schema(cls) -> Dict[str, str]:
-        return {"value": "string"}
+        return {"values": "array<string>"}
 
     @classmethod
     def output_schema(cls) -> Dict[str, str]:
@@ -42,29 +46,48 @@ class TransformOrchestrator(Scanner):
             "results": "dict"
         }
 
-    def scan(self, value: str) -> Dict[str, Any]:
+    def scan(self, values: List[str]) -> Dict[str, Any]:
         results = {
-            "initial_value": value,
+            "initial_values": values,
             "scanners": [],
             "results": {}
         }
-
-        current_values = [value] 
+        current_values = values
 
         for scanner in self.scanners:
+            print("currentValues" + str(current_values))
             try:
                 res = scanner.execute(current_values)
+                if not isinstance(res, (dict, list)):
+                    raise ValueError(f"Scanner '{scanner.name()}' returned unsupported output format")
+                
                 results["scanners"].append(scanner.name())
                 results["results"][scanner.name()] = res
+
                 if isinstance(res, list):
                     current_values = res
                 elif isinstance(res, dict) and "values" in res:
                     current_values = res["values"]
                 else:
-                    raise ValueError(f"Unsupported output format from scanner '{scanner.name()}'")
+                    current_values = []
+
+            except (ValueError, ValidationError) as e:
+                results["results"][scanner.name()] = {"error": f"Validation error: {str(e)}"}
             except Exception as e:
-                results["results"][scanner.name()] = {"error": str(e)}
-                break
+                results["results"][scanner.name()] = {"error": f"Error during scan: {str(e)}"}
 
         return results
-
+    
+    def results_to_json(self, results: Any) -> Any:
+        if isinstance(results, UUID):
+            return str(results)
+        if isinstance(results, datetime):
+            return results.isoformat()
+        if isinstance(results, BaseModel):
+            return results.dict()
+        if isinstance(results, list):
+            return [self.results_to_json(item) for item in results]
+        if isinstance(results, dict):
+            return {key: self.results_to_json(value) for key, value in results.items()}
+        return results
+    

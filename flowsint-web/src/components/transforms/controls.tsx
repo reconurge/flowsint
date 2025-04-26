@@ -7,13 +7,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
 export const FlowControls = memo(({
-    handleSaveSimulation,
+    handleSaveTransform,
     loading,
     onLayout,
     fitView,
     zoomIn,
     zoomOut,
-    handleDeleteSimulation
+    handleDeleteTransform,
+    setOpenTestTransform,
+    isSaved
 }: any) => {
     const [hide, setHide] = useLocalStorage('hide-transform-message', false)
     const handleHide = useCallback(() => {
@@ -25,27 +27,28 @@ export const FlowControls = memo(({
                 <FullscreenButton />
             </Panel>
             <Panel position="top-right" className="flex items-center gap-2">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            disabled
-                        >
-                            Start simulation<PlayIcon className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Start simulation</TooltipContent>
-                </Tooltip>
+                {isSaved &&
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                onClick={setOpenTestTransform}
+                            >
+                                Test simulation<PlayIcon className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Test simulation</TooltipContent>
+                    </Tooltip>}
                 <Button
                     variant="outline"
                     disabled={loading}
-                    onClick={handleSaveSimulation}
+                    onClick={handleSaveTransform}
                 >
                     Save transform<SaveIcon className="h-4 w-4" />
                 </Button>
                 <Button
                     variant="outline"
                     size={"icon"}
-                    onClick={handleDeleteSimulation}
+                    onClick={handleDeleteTransform}
                 >
                     <TrashIcon className="h-4 w-4" />
                 </Button>

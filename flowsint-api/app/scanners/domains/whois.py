@@ -1,9 +1,9 @@
 import json
-from typing import List, Dict, Any, TypeAlias
+from typing import List, Dict, Any, TypeAlias, Union
 import whois
 from app.utils import is_valid_domain, resolve_type
 from app.scanners.base import Scanner
-from app.types.domain import MinimalDomain
+from app.types.domain import Domain, MinimalDomain
 from app.types.whois import Whois
 from app.types.email import Email
 from pydantic import TypeAdapter
@@ -41,19 +41,29 @@ class WhoisScanner(Scanner):
             ]
         return schema
 
-    def preprocess(self, data: InputType) -> InputType:
-        """Filter out invalid domains."""
-        return[d for d in data if is_valid_domain(d.domain) != "invalid"]
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            domain_obj = None
+            if isinstance(item, str):
+                domain_obj = MinimalDomain(domain=item)
+            elif isinstance(item, dict) and "domain" in item:
+                domain_obj = MinimalDomain(domain=item["domain"])
+            elif isinstance(item, MinimalDomain):
+                domain_obj = item
+            if domain_obj and is_valid_domain(domain_obj.domain) != "invalid":
+                cleaned.append(domain_obj)
+        return cleaned
 
     def scan(self, data: InputType) -> OutputType:
         """Extract WHOIS data for each domain."""
         results: OutputType = []
-
         for d in data:
             try:
                 w = whois.whois(d.domain)
                 w_data = json.loads(json.dumps(w, default=str))
                 whois_obj = Whois(
+                    domain=Domain(domain=d.domain),
                     registrar=w_data.get("registrar"),
                     org=w_data.get("org"),
                     city=w_data.get("city"),
@@ -71,5 +81,4 @@ class WhoisScanner(Scanner):
         return results
 
     def postprocess(self, results: OutputType) -> OutputType:
-        print(results)
         return results

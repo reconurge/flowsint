@@ -1,0 +1,94 @@
+import os
+import requests
+from typing import List, Dict, Any, TypeAlias, Union
+from pydantic import TypeAdapter
+from app.scanners.base import Scanner
+from app.types.ip import MinimalIp, Ip
+from app.utils import resolve_type, is_valid_ip
+
+InputType: TypeAlias = List[MinimalIp]
+OutputType: TypeAlias = List[Ip]
+
+class GeolocationScanner(Scanner):
+    """Get geolocation data for IP addresses."""
+
+    @classmethod
+    def name(cls) -> str:
+        return "ip_geolocation_scanner"
+
+    @classmethod
+    def category(cls) -> str:
+        return "ips"
+
+    @classmethod
+    def input_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(InputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["MinimalIp"]["properties"].items()
+        ]
+
+    @classmethod
+    def output_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(OutputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["Ip"]["properties"].items()
+        ]
+
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            ip_obj = None
+            if isinstance(item, str):
+                ip_obj = MinimalIp(address=item)
+            elif isinstance(item, dict) and "address" in item:
+                ip_obj = MinimalIp(address=item["address"])
+            elif isinstance(item, MinimalIp):
+                ip_obj = item
+            if ip_obj and is_valid_ip(ip_obj.address) != "invalid":
+                cleaned.append(ip_obj)
+        return cleaned
+
+    def scan(self, data: InputType) -> OutputType:
+        results: OutputType = []
+        for ip in data:
+            try:
+                geo_data = self.get_location_data(ip.address)
+                enriched_ip = Ip(
+                    address=ip.address,
+                    latitude=geo_data.get("latitude"),
+                    longitude=geo_data.get("longitude"),
+                    country=geo_data.get("country"),
+                    city=geo_data.get("city"),
+                    isp=geo_data.get("isp"),
+                )
+                results.append(enriched_ip)
+            except Exception as e:
+                print(f"Error geolocating {ip.address}: {e}")
+        return results
+
+    def postprocess(self, results: OutputType) -> OutputType:
+        return results
+
+    def get_location_data(self, address: str) -> Dict[str, Any]:
+        """
+        Get geolocation information from a public API like ip-api.com
+        """
+        try:
+            response = requests.get(f"http://ip-api.com/json/{address}", timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            if data.get("status") == "success":
+                return {
+                    "latitude": data.get("lat"),
+                    "longitude": data.get("lon"),
+                    "country": data.get("country"),
+                    "city": data.get("city"),
+                    "isp": data.get("isp"),
+                }
+            else:
+                raise ValueError(f"Geolocation failed for {address}: {data.get('message')}")
+        except Exception as e:
+            print(f"Failed to geolocate {address}: {e}")
+            return {}

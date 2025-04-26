@@ -42,7 +42,6 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             toast.error("Invalid node type selected.")
             return
         }
-
         setCurrentNodeType(selectedItem)
         setError(null)
         setOpenDialog(false)
@@ -153,18 +152,17 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         )}
-                        {currentParent ? currentParent.label : "Sélectionner une action"}
+                        {currentParent ? currentParent.label : "Select an action"}
                     </DialogTitle>
                     <DialogDescription>
                         {currentParent
-                            ? `Sélectionnez un type de ${currentParent.label.toLowerCase()} à ajouter`
-                            : "Choisissez une action à ajouter"}
+                            ? `Select a type of ${currentParent.label.toLowerCase()} to add`
+                            : "Choose an item to add"}
                     </DialogDescription>
 
                     <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>
                 </DialogContent>
             </Dialog>
-
             <Dialog open={openAddNodeModal} onOpenChange={setOpenNodeModal}>
                 <DialogContent>
                     <DialogTitle>
@@ -182,7 +180,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                         />
                     )}
                 </DialogContent >
-            </Dialog >
+            </Dialog>
         </>
     )
 }

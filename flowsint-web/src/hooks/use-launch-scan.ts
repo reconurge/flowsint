@@ -17,7 +17,7 @@ export function useLaunchSan() {
         if (!confirmed) return
         toast.promise(performSearch(values, scan.scan_name, sketch_id), {
             loading: "Loading...",
-            success: () => `Scan on "${values.join(", ")}" has been launched.`,
+            success: () => `Scan on "${values.join(",")}" has been launched.`,
             error: (error: any) => `An error occurred: ${JSON.stringify(error)}`,
         })
     }

@@ -1,5 +1,5 @@
 import socket
-from typing import List, Dict, Any, TypeAlias
+from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
@@ -24,7 +24,7 @@ class ResolveScanner(Scanner):
     def input_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(InputType)
         return [
-            {"name": prop, "type": resolve_type(details)}
+            {"name": prop, "type": resolve_type(details) }
             for prop, details in adapter.json_schema()["$defs"]["MinimalDomain"]["properties"].items()
         ]
 
@@ -36,15 +36,26 @@ class ResolveScanner(Scanner):
             for prop, details in adapter.json_schema()["$defs"]["MinimalIp"]["properties"].items()
         ]
 
-    def preprocess(self, data: InputType) -> InputType:
-        return [d for d in data if is_valid_domain(d.domain) != "invalid"]
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            domain_obj = None
+            if isinstance(item, str):
+                domain_obj = MinimalDomain(domain=item)
+            elif isinstance(item, dict) and "domain" in item:
+                domain_obj = MinimalDomain(domain=item["domain"])
+            elif isinstance(item, MinimalDomain):
+                domain_obj = item
+            if domain_obj and is_valid_domain(domain_obj.domain) != "invalid":
+                cleaned.append(domain_obj)
+        return cleaned
 
     def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for d in data:
             try:
                 ip = socket.gethostbyname(d.domain)
-                results.append(MinimalIp(ip=ip))
+                results.append(MinimalIp(address=ip))
             except Exception as e:
                 print(f"Error resolving {d.domain}: {e}")
         return results

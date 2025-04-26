@@ -58,5 +58,4 @@ class Scanner(ABC):
         preprocessed = self.preprocess(values)
         results = self.scan(preprocessed)
         results = self.postprocess(results)
-
         return results

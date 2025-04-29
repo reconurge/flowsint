@@ -271,7 +271,7 @@ const FlowEditor = memo(
                 toast.error("Save the transform first.")
                 return
             }
-            launchTransform([data.domain], transform_id as string)
+            launchTransform([data.domain], transform_id as string, null)
         }, [])
 
         const handleDeleteTransform = useCallback(async () => {

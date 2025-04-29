@@ -166,7 +166,7 @@ export const actionItems: ActionItem[] = [
         size: "h-5 w-5",
     },
     {
-        id: 25,
+        id: 259,
         type: "domain",
         table: "domains",
         key: "domain",

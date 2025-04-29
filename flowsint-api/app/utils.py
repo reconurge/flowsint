@@ -144,3 +144,45 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
     "scanner_names" : [scanner["scanner_name"] for scanner in scanners]
 
     }
+    
+    
+def neo4j_to_cytoscape(results):
+    elements = []
+    nodes = {}
+    
+    for record in results:
+        a = record["a"]
+        b = record["b"]
+        r = record["r"]
+
+        a_id = a.get("id") or a.get("name")
+        b_id = b.get("id") or b.get("name")
+
+        if a_id and a_id not in nodes:
+            nodes[a_id] = {
+                "data": {
+                    "id": a_id,
+                    "label": a.get("name") or a.get("username") or a_id,
+                    "type": a.get("type")  # <-- ajoute le type
+                }
+            }
+        
+        if b_id and b_id not in nodes:
+            nodes[b_id] = {
+                "data": {
+                    "id": b_id,
+                    "label": b.get("name") or b.get("username") or b_id,
+                    "type": b.get("type")  # <-- ajoute le type
+                }
+            }
+
+        if a_id and b_id:
+            elements.append({
+                "data": {
+                    "source": a_id,
+                    "target": b_id,
+                    "label": r[1]
+                }
+            })
+
+    return list(nodes.values()) + elements

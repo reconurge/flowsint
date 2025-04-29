@@ -102,7 +102,7 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
             const matchesSearch =
                 //@ts-ignore
                 node?.data?.label?.toLowerCase().includes(searchText) ||
-                node.id.toLowerCase().includes(searchText)
+                node?.id?.toLowerCase().includes(searchText)
 
             const matchesFilter = !filters || filters.includes(node?.data?.type as string)
 

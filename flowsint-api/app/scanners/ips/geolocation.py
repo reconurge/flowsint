@@ -46,7 +46,7 @@ class GeolocationScanner(Scanner):
                 ip_obj = MinimalIp(address=item["address"])
             elif isinstance(item, MinimalIp):
                 ip_obj = item
-            if ip_obj and is_valid_ip(ip_obj.address) != "invalid":
+            if ip_obj and is_valid_ip(ip_obj.address):
                 cleaned.append(ip_obj)
         return cleaned
 

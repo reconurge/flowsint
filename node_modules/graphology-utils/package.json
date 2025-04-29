@@ -1,0 +1,56 @@
+{
+  "name": "graphology-utils",
+  "version": "2.5.2",
+  "description": "Miscellaneous utils for graphology.",
+  "main": "index.js",
+  "files": [
+    "*.d.ts",
+    "add-edge.js",
+    "add-node.js",
+    "defaults.js",
+    "getters.js",
+    "index.js",
+    "infer-type.js",
+    "infer-multi.js",
+    "is-graph.js",
+    "is-graph-constructor.js",
+    "merge-clique.js",
+    "merge-cycle.js",
+    "merge-path.js",
+    "merge-star.js",
+    "rename-graph-keys.js",
+    "update-graph-keys.js"
+  ],
+  "types": "./index.d.ts",
+  "scripts": {
+    "prepublishOnly": "npm test",
+    "test": "mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graphology/graphology.git"
+  },
+  "keywords": [
+    "graph",
+    "graphology",
+    "utils"
+  ],
+  "contributors": [
+    {
+      "name": "Guillaume Plique",
+      "url": "http://github.com/Yomguithereal"
+    },
+    {
+      "name": "Jules Farjas",
+      "url": "http://github.com/farjasju"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/graphology/graphology/issues"
+  },
+  "homepage": "https://github.com/graphology/graphology#readme",
+  "peerDependencies": {
+    "graphology-types": ">=0.23.0"
+  }
+}

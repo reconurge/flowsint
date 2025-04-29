@@ -38,7 +38,7 @@ export function LeftPanel({ isCollapsed, setIsCollapsed }: LeftPanelProps) {
             maxSize={25}
             className="h-full bg-card"
             collapsible={true}
-            collapsedSize={4}
+            collapsedSize={2}
             onCollapse={() => setIsCollapsed(true)}
             onExpand={() => setIsCollapsed(false)}
         >

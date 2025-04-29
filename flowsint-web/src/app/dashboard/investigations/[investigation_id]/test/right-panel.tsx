@@ -18,7 +18,7 @@ export function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPa
             maxSize={40}
             className="h-full bg-card"
             collapsible={true}
-            collapsedSize={4}
+            collapsedSize={2}
             onCollapse={() => setIsCollapsed(true)}
             onExpand={() => setIsCollapsed(false)}
         >

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Network, Plus } from 'lucide-react'
+import { Loader, Network, Plus } from 'lucide-react'
 import Graph from './graph'
 import { ConsolePanel } from './console-panel'
 import { useState } from 'react'
@@ -12,19 +12,19 @@ interface GraphPanelProps {
     currentNode: any
     setCurrentNode: (node: any) => void
     setOpenDialog: (open: boolean) => void
-    data: any
+    query: any
 }
 
-export function GraphPanel({ activeTab, setActiveTab, currentNode, setCurrentNode, setOpenDialog, data }: GraphPanelProps) {
+export function GraphPanel({ activeTab, setActiveTab, currentNode, setCurrentNode, setOpenDialog, query }: GraphPanelProps) {
     const [isBottomPanelCollapsed, setIsBottomPanelCollapsed] = useState(false)
-
+    console.log(query.error)
     return (
         <div className="flex flex-col h-full">
             {/* Tabs header */}
-            <div className="border-b bg-card">
-                <div className="flex items-center px-2">
+            <div className="border-b bg-muted">
+                <div className="flex items-center">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="bg-muted h-9">
+                        <TabsList className="bg-background h-8 w-full">
                             <TabsTrigger value="graph1" className="text-xs">Investigation 1</TabsTrigger>
                             <TabsTrigger value="graph2" className="text-xs">OSINT Analysis</TabsTrigger>
                             <TabsTrigger value="graph3" className="text-xs">Network Map</TabsTrigger>
@@ -43,7 +43,10 @@ export function GraphPanel({ activeTab, setActiveTab, currentNode, setCurrentNod
                         {/* Tab content */}
                         <Tabs value={activeTab} className="h-full">
                             <TabsContent value="graph1" className="h-full w-full m-0 p-0">
-                                <Graph currentNode={currentNode} setOpenDialog={setOpenDialog} data={data} setCurrentNode={setCurrentNode} />
+                                {query.isLoading ? <div className='flex items-center justify-center w-full h-full'><Loader className='animate-spin' /></div> :
+                                    !query.error && <Graph currentNode={currentNode} setOpenDialog={setOpenDialog} data={query.data} setCurrentNode={setCurrentNode} />
+                                }
+                                {!query.isLoading && query.error && <div className='flex items-center justify-center w-full h-full'>An error occured fetching graph data.</div>}
                             </TabsContent>
                             <TabsContent value="graph2" className="h-full m-0 p-0 data-[state=active]:block">
                                 <div className="flex h-full items-center justify-center text-muted-foreground">

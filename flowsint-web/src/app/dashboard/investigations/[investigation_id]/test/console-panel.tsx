@@ -15,7 +15,7 @@ export function ConsolePanel() {
     ]
 
     return (
-        <div className="flex h-full flex-col border-t">
+        <div className="flex h-full flex-col">
             <div className="flex h-8 items-center justify-between border-b px-4 bg-card">
                 <h2 className="font-medium text-sm">Console</h2>
                 <div className="flex items-center gap-1">

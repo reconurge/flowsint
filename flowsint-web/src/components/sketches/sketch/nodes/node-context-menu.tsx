@@ -18,11 +18,7 @@ import { useReactFlow } from "@xyflow/react"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { toast } from "sonner"
 import { useFlowStore } from "@/store/flow-store"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { NodeNotesEditor } from "./node-notes-editor"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
@@ -48,30 +44,6 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
     const { confirm } = useConfirm()
     const [_, setIndividualId] = useQueryState("individual_id")
     const { launchScan } = useLaunchSan()
-
-    const handleDuplicateNode = async () => {
-        if (!currentNode) return
-        await supabase
-            .from("individuals")
-            .select("*")
-            .eq("id", currentNode.id)
-            .single()
-            .then(async ({ data, error }) => {
-                if (error) throw error
-                const { data: node, error: insertError } = await supabase
-                    .from("individuals")
-                    .insert({ full_name: data.full_name })
-                    .select("*")
-                    .single()
-                if (insertError) toast.error(insertError.details)
-                addNodes({
-                    id: node.id,
-                    type: "custom",
-                    data: node,
-                    position: { x: 0, y: -100 },
-                })
-            })
-    }
 
     const _handleDeleteNode = async (type: string) => {
         try {
@@ -108,7 +80,7 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
         setError(null)
         setOpenNodeModal(true)
     }
-    
+
     const handleAddNode = async (data: any) => {
         try {
             setLoading(true)
@@ -213,7 +185,6 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
         () => setIndividualId(currentNode?.id as string),
         [currentNode?.id, setIndividualId],
     )
-    const handleDuplicateClick = useCallback(() => handleDuplicateNode(), [])
     const handleDeleteClick = useCallback(
         () => handleDeleteNode(currentNode?.type as string),
         [currentNode?.type, handleDeleteNode],
@@ -277,7 +248,6 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                             <DropdownMenuSubContent className="grid grid-cols-1 md:grid-cols-2 gap-2">{actionItems.map((item) => renderMenuItem(item))}</DropdownMenuSubContent>
                         </DropdownMenuSub>)}
                     <DropdownMenuItem onClick={handleEditClick}>View and edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDuplicateClick}>Duplicate</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleNoteClick}>
                         New note

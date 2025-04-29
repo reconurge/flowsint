@@ -1,0 +1,47 @@
+{
+  "name": "graphology-layout-forceatlas2",
+  "version": "0.10.1",
+  "description": "ForceAtlas 2 layout algorithm for graphology.",
+  "main": "index.js",
+  "files": [
+    "*.d.ts",
+    "defaults.js",
+    "helpers.js",
+    "index.js",
+    "iterate.js",
+    "worker.js",
+    "webworker.js"
+  ],
+  "scripts": {
+    "bench": "node bench.js",
+    "clean": "rimraf webworker.js",
+    "prepublishOnly": "npm run clean && npm test && npm run template",
+    "template": "node ./scripts/template-webworker.js > webworker.js",
+    "test": "mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graphology/graphology.git"
+  },
+  "keywords": [
+    "graph",
+    "graphology",
+    "layout",
+    "force atlas"
+  ],
+  "author": {
+    "name": "Guillaume Plique",
+    "url": "http://github.com/Yomguithereal"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/graphology/graphology/issues"
+  },
+  "homepage": "https://github.com/graphology/graphology#readme",
+  "peerDependencies": {
+    "graphology-types": ">=0.19.0"
+  },
+  "dependencies": {
+    "graphology-utils": "^2.1.0"
+  }
+}

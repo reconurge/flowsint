@@ -204,6 +204,7 @@
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
 }
+
 :root {
     --background: oklch(0.96 0 0);
     --foreground: oklch(0.32 0 0);
@@ -249,9 +250,9 @@
     --shadow-lg: 0px 2px 0px 0px hsl(0 0% 20% / 0.15), 0px 4px 6px -1px hsl(0 0% 20% / 0.15);
     --shadow-xl: 0px 2px 0px 0px hsl(0 0% 20% / 0.15), 0px 8px 10px -1px hsl(0 0% 20% / 0.15);
     --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 20% / 0.38);
-  }
-  
-  .dark {
+}
+
+.dark {
     --background: oklch(0.22 0 0);
     --foreground: oklch(0.89 0 0);
     --card: oklch(0.24 0 0);
@@ -296,9 +297,9 @@
     --shadow-lg: 0px 2px 0px 0px hsl(0 0% 20% / 0.15), 0px 4px 6px -1px hsl(0 0% 20% / 0.15);
     --shadow-xl: 0px 2px 0px 0px hsl(0 0% 20% / 0.15), 0px 8px 10px -1px hsl(0 0% 20% / 0.15);
     --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 20% / 0.38);
-  }
-  
-  @theme inline {
+}
+
+@theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -331,16 +332,16 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
-  
+
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);
     --font-serif: var(--font-serif);
-  
+
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
-  
+
     --shadow-2xs: var(--shadow-2xs);
     --shadow-xs: var(--shadow-xs);
     --shadow-sm: var(--shadow-sm);
@@ -349,4 +350,46 @@
     --shadow-lg: var(--shadow-lg);
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
-  }
+}
+.cytoscape-navigator{
+	position: relative;
+	background: var(--card);
+	width: 100%;
+	height: 100%;
+	bottom: 0;
+	right: 0;
+	overflow: hidden;
+}
+
+.cytoscape-navigator > img{
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.cytoscape-navigator > canvas{
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 101;
+}
+
+.cytoscape-navigatorView{
+	position: absolute;
+	top: 0;
+	left: 0;
+	cursor: move;
+	background: #B7E1ED;
+	-moz-opacity: 0.50;
+	opacity: 0.50;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha"(Opacity=50);
+	z-index: 102;
+}
+
+.cytoscape-navigatorOverlay{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 103;
+}

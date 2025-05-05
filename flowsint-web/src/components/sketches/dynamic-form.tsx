@@ -25,7 +25,7 @@ import { toast } from "sonner"
 interface DynamicFormProps {
     type: string
     initialData?: Record<string, any>
-    onSubmit?: (data: any) => Promise<void>
+    onSubmit?: (data: any) => void
     isForm?: boolean
     loading?: boolean
 }

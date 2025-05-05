@@ -371,36 +371,20 @@ export function encodedRedirect(
   return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
 }
 
-export const scans = [
-  {
-    name: "email",
-    scan_name: "holehe_scanner",
-    description: "Check if an email address is associated with existing online accounts using Holehe.",
-    key: "email"
-  },
-  {
-    name: "username",
-    scan_name: "maigret_scanner",
-    description: "Search for social media and online platform accounts associated with a given username using Maigret.",
-    key: "username"
-  },
-  {
-    name: "website",
-    scan_name: "domain_infos_scanner",
-    description: "Gather public information about a domain, including IP addresses, WHOIS data, geolocation, and subdomains.",
-    key: "url"
-  },
-  {
-    name: "individual",
-    scan_name: "ghunt_people_scanner",
-    description: "",
-    key: "full_name"
-  },
-  {
-    name: "phone",
-    scan_name: "ignorant_scanner",
-    description: "",
-    key: "number"
-  }
-]
 
+export const flattenObj = (ob: Record<string, any>) => {
+
+  let result: Record<string, any> = {};
+  for (const i in ob) {
+    if (ob[i] && typeof ob[i] === 'object' && !Array.isArray(ob[i])) {
+      const temp = flattenObj(ob[i]);
+      for (const j in temp) {
+        result[i + '.' + j] = temp[j];
+      }
+    }
+    else {
+      result[i] = ob[i];
+    }
+  }
+  return result;
+}

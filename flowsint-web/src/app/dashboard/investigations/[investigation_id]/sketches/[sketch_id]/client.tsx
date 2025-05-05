@@ -1,15 +1,37 @@
 "use client"
 import { useQuery } from "@tanstack/react-query"
-import InvestigationGraph from "@/components/sketches/sketch/graph"
-import LargeInvestigationGraph from '@/components/sketches/sketch/large-data-graph'
 import { notFound } from "next/navigation"
-import { useQueryState } from "nuqs"
+import { shallow } from 'zustand/shallow'
+import ActionDialog from './actions'
+import { Toolbar } from './toolbar'
+import { LeftPanel } from './left-panel'
+import { RightPanel } from './right-panel'
+import { ResizablePanelGroup, ResizableHandle, ResizablePanel } from "@/components/ui/resizable"
+import { useState } from "react"
+import { useFlowStore } from "@/store/flow-store"
+import { GraphPanel } from "./graph-panel"
+import { ReactFlowProvider } from "@xyflow/react"
+import { Sketch } from "@/types/sketch"
+
 interface DashboardClientProps {
     investigationId: string
     sketchId: string
+    user_id: string,
+    sketch: Sketch,
 }
-export default function DashboardClient({ investigationId, sketchId }: DashboardClientProps) {
-    const [view, _] = useQueryState("view", { defaultValue: "flow-graph" })
+export default function DashboardClient({ investigationId, sketchId, sketch, user_id }: DashboardClientProps) {
+    const [open, setOpen] = useState(false)
+    const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
+    const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
+    const stateSelector = (state: { currentNode: any; setCurrentNode: any }) => ({
+        currentNode: state.currentNode,
+        setCurrentNode: state.setCurrentNode,
+    })
+
+    const {
+        currentNode,
+        setCurrentNode
+    } = useFlowStore(stateSelector, shallow)
     const graphQuery = useQuery({
         queryKey: ["investigations", investigationId, 'sketches', sketchId, "data"],
         queryFn: async () => {
@@ -22,13 +44,29 @@ export default function DashboardClient({ investigationId, sketchId }: Dashboard
         refetchOnWindowFocus: true,
     })
     return (
-        <>
-            {view === "flow-graph" ?
-                <InvestigationGraph graphQuery={graphQuery} />
-                :
-                <LargeInvestigationGraph graphQuery={graphQuery} />
-            }
-        </>
+        <ReactFlowProvider>
+            <Toolbar investigation_id={investigationId} sketch_id={sketchId} sketch={sketch} user_id={user_id} />
+            <div className="grow w-screen overflow-hidden relative">
+                <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-full h-full relative ">
+                    {/* Left Panel - Entity Palette */}
+                    <LeftPanel
+                        isCollapsed={isLeftPanelCollapsed}
+                        setIsCollapsed={setIsLeftPanelCollapsed}
+                    />
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={65}>
+                        <GraphPanel query={graphQuery} />
+                    </ResizablePanel>
+                    <ResizableHandle withHandle />
+                    <RightPanel
+                        isCollapsed={isRightPanelCollapsed}
+                        setIsCollapsed={setIsRightPanelCollapsed}
+                        currentNode={currentNode}
+                    />
+                </ResizablePanelGroup>
+                <ActionDialog setCurrentNode={setCurrentNode} setOpenDialog={setOpen} openDialog={open} />
+            </div>
+        </ReactFlowProvider>
     )
 }
 

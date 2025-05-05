@@ -1,11 +1,12 @@
 import json
 from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
 from app.core.db import get_db
 from app.scanners.registry import ScannerRegistry
 from app.core.auth import get_current_user
-from app.utils import extract_input_schema, neo4j_to_cytoscape
+from app.utils import extract_input_schema, neo4j_to_xy
 from app.core.celery import celery_app 
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
@@ -14,13 +15,10 @@ from app.neo4j.connector import Neo4jConnection
 from fastapi import Query
 import os
 from dotenv import load_dotenv
-from faker import Faker
-import random
-from uuid import uuid4
-from typing import List, Dict
-from decimal import Decimal
+from typing import List
 from fastapi.middleware.cors import CORSMiddleware
-from app.populate import generate_random_sketch
+from datetime import datetime
+
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -92,7 +90,7 @@ class LaunchTransformPayload(BaseModel):
     
 @app.post("/transforms/{transform_id}/launch")
 async def launch_transform(
-    transform_id: UUID,
+    transform_id: str,
     payload: LaunchTransformPayload,
     user=Depends(get_current_user)
 ):
@@ -110,32 +108,138 @@ async def launch_transform(
         raise HTTPException(status_code=404, detail="Transform not found")
 
     
-@app.get("/sketch/nodes")
-async def get_sketch_nodes(limit: int = Query(10, ge=1), offset: int = Query(0, ge=0)):
-    query = """
-    MATCH (a)-[r]->(b) RETURN a, r, b;
+@app.get("/sketch/{sketch_id}/nodes")
+async def get_sketch_nodes(sketch_id: str):
+    # Récupération des nœuds
+    nodes_query = """
+    MATCH (n)
+    WHERE n.sketch_id = $sketch_id
+    RETURN n, labels(n) as node_types
     """
-    result = neo4j_connection.query(query, parameters={"limit": limit, "offset": offset})
+    nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": sketch_id})
     
-    if not result:
-        raise HTTPException(status_code=404, detail="No nodes found for this sketch")
+    # Récupération des relations
+    edges_query = """
+    MATCH (a)-[r]->(b)
+    WHERE r.sketch_id = $sketch_id
+    RETURN a.id as source, b.id as target, type(r) as type, r as properties
+    """
+    edges_result = neo4j_connection.query(edges_query, parameters={"sketch_id": sketch_id})
     
-    return neo4j_to_cytoscape(result)
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
-
-
-fake = Faker()
-
-def to_serializable(d):
-    """Convertit les valeurs Decimal en float dans les dictionnaires"""
-    return {
-        k: float(v) if isinstance(v, Decimal) else v
-        for k, v in d.items()
-    }
+    # Transformation des résultats au format React Flow
+    nodes = []
+    for record in nodes_result:
+        node_data = record["n"]
+        node_type = record["node_types"][0] if record["node_types"] else "default"
+        
+        # Format standard pour React Flow
+        node = {
+            "id": node_data["id"],
+            "type": node_type,
+            "data": {
+                "label": node_data.get("label", ""),
+                **{k: v for k, v in node_data.items() if k not in ["position_x","sketch_id", "position_y"]}
+            },
+            "position": {
+                "x": float(node_data.get("position_x", 0)),
+                "y": float(node_data.get("position_y", 0))
+            }
+        }
+        nodes.append(node)
     
-@app.get("/investigation/generate")
-async def populate():
-   generate_random_sketch()
+    edges = []
+    for record in edges_result:
+        # Format standard pour React Flow
+        edge = {
+            "id": f"{record['source']}-{record['target']}",
+            "source": record["source"],
+            "target": record["target"],
+            "type": record["type"],
+            "data": {k: v for k, v in record["properties"].items() if k != "sketch_id"}
+        }
+        edges.append(edge)
+    
+    return {"nodes": nodes, "edges": edges}
+
+
+class Node(BaseModel):
+    id: str
+    type: str
+    label: Optional[str] = None
+    data: Dict[str, str] = Field(default_factory=dict)
+
+class Edge(BaseModel):
+    source: str
+    target: str
+    type: str
+    data: Dict[str, str] = Field(default_factory=dict)
+    
+class SketchPayload(BaseModel):
+    nodes: List[Node]
+    edges: List[Edge]
+    
+@app.post("/sketch/{sketch_id}/save")
+async def save_sketch(sketch_id: str, payload: SketchPayload):
+    now = datetime.utcnow().isoformat()
+
+    try:
+        for node in payload.nodes:
+            type = node.data.get('type', "individual")
+            if type == "individual":
+                first_name = node.data.get("first_name", "")
+                last_name = node.data.get("last_name", "")
+                node_label = f"{first_name} {last_name}".strip()
+            elif type == "organization":
+                node_label = node.data.get("name", "")
+            else:
+                node_label = node.label or f"{node.type}_{node.id[:8]}"
+            
+            position_x = 0
+            position_y = 0
+            
+            if "position" in node.data:
+                position = node.data.pop("position", {})  # Retirer position de data
+                position_x = position.get("x", 0)
+                position_y = position.get("y", 0)
+            
+            query = f"""
+            MERGE (n:{node.type} {{id: $id}})
+            SET n += $props,
+                n.id = $id,
+                n.label = $label,
+                n.position_x = $position_x,
+                n.position_y = $position_y,
+                n.sketch_id = $sketch_id,
+                n.updated_at = $now
+            """
+            neo4j_connection.query(query, parameters={
+                "id": node.id,
+                "props": node.data,
+                "label": node_label,
+                "position_x": position_x,
+                "position_y": position_y,
+                "sketch_id": sketch_id,
+                "now": now
+            })
+
+        for edge in payload.edges:
+            query = f"""
+            MATCH (a {{id: $source}}), (b {{id: $target}})
+            MERGE (a)-[r:{edge.type}]->(b)
+            SET r += $props,
+                r.sketch_id = $sketch_id,
+                r.updated_at = $now
+            """
+            neo4j_connection.query(query, parameters={
+                "source": edge.source,
+                "target": edge.target,
+                "props": edge.data,
+                "sketch_id": sketch_id,
+                "now": now
+            })
+
+        return {"saved": True, "last_saved_at": now}
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))

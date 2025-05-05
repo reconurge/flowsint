@@ -22,7 +22,6 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { NodeNotesEditor } from "./node-notes-editor"
 import { nodesTypes } from "@/lib/utils"
 import { actionItems, type ActionItem } from "@/lib/action-items"
-import { useLaunchSan } from "@/hooks/use-launch-scan"
 import { DynamicForm } from "../../dynamic-form"
 
 // Node Context Menu component
@@ -43,7 +42,6 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
     const [nodeToInsert, setNodeToInsert] = useState<any | null>(null)
     const { confirm } = useConfirm()
     const [_, setIndividualId] = useQueryState("individual_id")
-    const { launchScan } = useLaunchSan()
 
     const _handleDeleteNode = async (type: string) => {
         try {
@@ -236,12 +234,6 @@ const NodeContextMenu = memo(({ x, y, onClose }: NodeContextMenuProps) => {
                     className="absolute z-50 min-w-40 max-w-48 bg-popover text-popover-foreground rounded-md border shadow py-1 overflow-hidden"
                     style={{ top: y, left: x }}
                 >
-                    {Boolean(currentNode?.data?.email) && (
-                        <DropdownMenuItem onClick={() => launchScan("email", [currentNode?.data?.email as string], sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
-                    )}
-                    {Boolean(currentNode?.data?.username) && (
-                        <DropdownMenuItem onClick={() => launchScan("username", [currentNode?.data?.username as string], sketch_id as string)}>Search {nodeToInsert}</DropdownMenuItem>
-                    )}
                     {["individual", "organization"].includes(currentNode?.data?.type as string) && (
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>New</DropdownMenuSubTrigger>

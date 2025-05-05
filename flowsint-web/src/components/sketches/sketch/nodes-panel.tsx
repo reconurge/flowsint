@@ -8,7 +8,7 @@ import { Search, HelpCircle, FilterIcon, XIcon } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
-import { cn } from '@/lib/utils'
+import { cn, typeColorMap } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 // Mémoiser le composant SocialNode
@@ -80,9 +80,11 @@ const NodeRenderer = memo(({
             )}
             onClick={handleClick}
         >
-            <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                <Icon className="h-4 w-4 opacity-60" />
-            </Badge>
+            <div className={cn("p-1 flex items-center justify-center rounded-full bg-card h-7 w-7", typeColorMap[item.type])}>
+                <Badge variant="secondary" className={cn("rounded-full h-full w-full bg-card")}>
+                    <Icon className="h-4 w-4" />
+                </Badge>
+            </div>
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
             <TypeBadge type={node?.data?.type} />
         </Button>

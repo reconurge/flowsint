@@ -186,3 +186,43 @@ def neo4j_to_cytoscape(results):
             })
 
     return list(nodes.values()) + elements
+
+
+def neo4j_to_xy(records):
+    nodes_by_id = {}
+    edges = []
+
+    for record in records:
+        a = record["a"]
+        b = record["b"]
+        r = record["r"]
+
+        a_id = str(a.id)
+        b_id = str(b.id)
+
+        if a_id not in nodes_by_id:
+            nodes_by_id[a_id] = {
+                "id": a_id,
+                "data": { "label": a.get("label", a.get("type", a_id)) },
+                "position": { "x": 100, "y": 100 }
+            }
+
+        if b_id not in nodes_by_id:
+            nodes_by_id[b_id] = {
+                "id": b_id,
+                "data": { "label": b.get("label", b.get("type", b_id)) },
+                "position": { "x": 100, "y": 100 }
+            }
+
+        edge_id = f"{a_id}-{b_id}"
+        edges.append({
+            "id": edge_id,
+            "source": a_id,
+            "target": b_id,
+            "label": r.type
+        })
+
+    return {
+        "nodes": list(nodes_by_id.values()),
+        "edges": edges
+    }

@@ -3,13 +3,11 @@ import { useCallback, useEffect, useState, useMemo } from "react"
 import type React from "react"
 import {
     ReactFlow,
-    ReactFlowProvider,
     Panel,
     useReactFlow,
     // @ts-ignore
     Background,
     // @ts-ignore
-    MiniMap,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import {
@@ -22,7 +20,6 @@ import {
     WorkflowIcon,
     NetworkIcon,
     WaypointsIcon,
-    ExpandIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import NewActions from "../new-actions"
@@ -40,13 +37,6 @@ import { memo } from "react"
 import { shallow } from "zustand/shallow"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import NodeContextMenu from "./nodes/node-context-menu"
-import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-} from "@/components/ui/resizable"
-import NodesPanel from "./nodes-panel"
-import ProfilePanel from "./profile-panel"
 import CustomNode from "./nodes/custom-node"
 import FullscreenButton from "@/components/full-screen-button"
 import FloatingEdge from "./simple-floating-edge"
@@ -172,8 +162,6 @@ export const FlowControls = memo(({
 const LayoutFlow = memo(({ refetch, theme }: any) => {
     const { fitView, zoomIn, zoomOut, addNodes, getNode, setCenter } = useReactFlow();
     const { sketch_id } = useParams();
-    const showMiniMap = useSketchStore(state => state.settings.showMiniMap);
-    const setOpenActionDialog = useSketchStore(state => state.setOpenActionDialog);
     const [_, setView] = useQueryState("view", { defaultValue: "flow-graph" });
 
     // Use a ref for context menu state to avoid re-renders on position changes
@@ -200,8 +188,6 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         currentNode,
         setCurrentNode,
         reloading,
-        updateNode,
-        highlightPath
     } = useFlowStore(stateSelector, shallow);
 
     // Initialize layout once
@@ -282,7 +268,7 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
         minZoom: 0.5,
         fitView: true,
         proOptions: { hideAttribution: true },
-        edgeTypes,
+        // edgeTypes,
         nodeTypes,
     }), [
         theme,
@@ -304,61 +290,26 @@ const LayoutFlow = memo(({ refetch, theme }: any) => {
     );
 
     return (
-        <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-screen grow relative overflow-hidden">
-            <ResizablePanel defaultSize={80}>
-                <TooltipProvider>
-                    <ContextMenu>
-                        <ContextMenuTrigger className="h-full w-full">
-                            <ReactFlow {...reactFlowProps}>
-                                <FlowControls
-                                    onLayout={onLayout}
-                                    fitView={fitView}
-                                    handleRefetch={handleRefetch}
-                                    reloading={reloading}
-                                    setView={setView}
-                                    zoomIn={zoomIn}
-                                    zoomOut={zoomOut}
-                                    addNodes={addNodes}
-                                />
-                                <Background bgColor="var(--background)" />
-                                {showMiniMap && <MiniMap className="!z-40 !bg-card" pannable />}
-                            </ReactFlow>
-                        </ContextMenuTrigger>
-                        <ContextMenuContent className="w-32">
-                            <ContextMenuItem onClick={() => setOpenActionDialog(true)}>
-                                <PlusIcon className="h-4 w-4 opacity-60" />
-                                <span>New node</span>
-                            </ContextMenuItem>
-                            <ContextMenuItem disabled>
-                                <GroupIcon className="h-4 w-4 opacity-60" />
-                                <span>New group</span>
-                            </ContextMenuItem>
-                        </ContextMenuContent>
-                    </ContextMenu>
-                    <NodeContextMenu
-                        x={nodeContextMenu?.x}
-                        y={nodeContextMenu?.y}
-                        onClose={closeNodeContextMenu}
-                    />
-                </TooltipProvider>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="h-full bg-card">
-                <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
-                    {currentNode && (
-                        <>
-                            <ResizablePanel order={1} id="top" defaultSize={40}>
-                                <ProfilePanel data={currentNode.data} />
-                            </ResizablePanel>
-                            <ResizableHandle withHandle />
-                        </>
-                    )}
-                    <ResizablePanel order={2} id="bottom" defaultSize={60}>
-                        <NodesPanel nodes={processedNodes} />
-                    </ResizablePanel>
-                </ResizablePanelGroup>
-            </ResizablePanel>
-        </ResizablePanelGroup>
+        <TooltipProvider>
+            <ReactFlow {...reactFlowProps}>
+                <FlowControls
+                    onLayout={onLayout}
+                    fitView={fitView}
+                    handleRefetch={handleRefetch}
+                    reloading={reloading}
+                    setView={setView}
+                    zoomIn={zoomIn}
+                    zoomOut={zoomOut}
+                    addNodes={addNodes}
+                />
+                <Background bgColor="var(--background)" />
+            </ReactFlow>
+            <NodeContextMenu
+                x={nodeContextMenu?.x}
+                y={nodeContextMenu?.y}
+                onClose={closeNodeContextMenu}
+            />
+        </TooltipProvider>
     );
 });
 
@@ -385,16 +336,14 @@ function Graph({ graphQuery }: any) {
 
     if (!mounted || isLoading) {
         return (
-            <div className="grow w-full flex items-center justify-center">
+            <div className="grow w-full h-full flex items-center justify-center">
                 <Loader /> Loading...
             </div>
         );
     }
 
     return (
-        <ReactFlowProvider>
-            <LayoutFlow refetch={refetch} theme={resolvedTheme || "light"} />
-        </ReactFlowProvider>
+        <LayoutFlow refetch={refetch} theme={resolvedTheme || "light"} />
     );
 }
 

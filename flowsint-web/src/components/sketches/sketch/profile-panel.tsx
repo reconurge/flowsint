@@ -1,9 +1,9 @@
 "use client"
-import { MoreHorizontalIcon, Sparkles } from "lucide-react"
+import { HelpCircle, MoreHorizontalIcon, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
-import { memo } from "react"
-import { cn } from "@/lib/utils"
+import { memo, useMemo } from "react"
+import { cn, typeColorMap } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import {
     DropdownMenu,
@@ -12,14 +12,26 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-import LaunchTransform from "./launch-transform"
+import { Badge } from "@/components/ui/badge"
+import { actionItems } from "@/lib/action-items"
 
 export default function ProfilePanel({ data }: { data: any }) {
-    const { sketch_id, investigation_id } = useParams()
+    const { investigation_id } = useParams()
+    const item = useMemo(() =>
+        (actionItems as any).find((a: any) => a.type === data?.type),
+        [data?.type]
+    )
+    const Icon = item?.icon || HelpCircle
     return (
         <div className=" overflow-y-auto overflow-x-hidden h-full">
-            <div className="flex items-center sticky bg-card top-0 border-b justify-between px-4 py-2 gap-2 z-50">
+            <div className="flex items-center sticky bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
+                <div className={cn("p-1 flex items-center justify-center rounded-full bg-card h-10 w-10", typeColorMap[data?.type])}>
+                    <Badge variant="secondary" className={cn("rounded-full h-full w-full bg-card")}>
+                        <Icon className="h- w-7" />
+                    </Badge>
+                </div>
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
+                <div className="grow" />
                 <div className="flex items-center gap-2">
                     {data?.type === "organization" &&
                         <Link href={`/dashboard/investigations/${investigation_id}/organigrams/${data?.id}`}>
@@ -58,7 +70,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
     return (
         <div className={cn("w-full border-collapse", className)}>
             {data && Object.entries(data)
-                .filter(([key]) => !["id", "individual_id", "sketch_id", "group_id", "forceToolbarVisible"].includes(key))
+                .filter(([key]) => !["individual_id", "forceToolbarVisible"].includes(key))
                 .map(([key, value], index) => {
                     const val = Array.isArray(value) ? `${value.length} items` : value?.toString() || null
                     const display = (typeof val === "string" && val.startsWith("https://")) ? <a href={val} className="underline text-primary" target="_blank">{val}</a> : val

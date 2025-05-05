@@ -3,13 +3,14 @@ import { ResizablePanel } from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { ChevronDown, ChevronRight, Globe, Mail, MapPin, Phone, User, Wifi } from 'lucide-react'
+import { memo } from 'react'
 
 interface LeftPanelProps {
     isCollapsed: boolean
     setIsCollapsed: (collapsed: boolean) => void
 }
 
-export function LeftPanel({ isCollapsed, setIsCollapsed }: LeftPanelProps) {
+export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }: LeftPanelProps) {
     // Sample entity categories for the left panel
     const entityCategories = [
         {
@@ -89,4 +90,4 @@ export function LeftPanel({ isCollapsed, setIsCollapsed }: LeftPanelProps) {
             )}
         </ResizablePanel>
     )
-}
+})

@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { cn, flattenObj } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { actionItems, type ActionItem } from "@/lib/action-items"
 import { Card, CardContent } from "@/components/ui/card"
@@ -26,8 +26,6 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
     const [openDialog, setOpenDialog] = useState(false)
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
     const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
@@ -43,67 +41,39 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             return
         }
         setCurrentNodeType(selectedItem)
-        setError(null)
         setOpenDialog(false)
         setOpenNodeModal(true)
     }
 
-    const handleAddNode = async (data: any) => {
+    const handleAddNode = (data: any) => {
         try {
-            setLoading(true)
             if (!currentNodeType || !sketch_id) {
                 toast.error("Invalid node type or sketch ID.")
-                setLoading(false)
                 return
             }
-
-            const dataToInsert = { ...data, sketch_id }
-
-            const { data: nodeData, error: insertError } = await supabase
-                .from(currentNodeType.table)
-                .insert(dataToInsert)
-                .select("*")
-                .single()
-
-            if (insertError) {
-                toast.error("Could not insert new node." + insertError.message)
-                setLoading(false)
-                return
-            }
-
-            if (!nodeData) {
-                toast.error("Could not insert new node.")
-                setLoading(false)
-                return
-            }
+            const id = crypto.randomUUID()
+            const label = data[currentNodeType.fields[0].name]
+            const type = currentNodeType.type
             const newNode = {
-                id: nodeData.id,
+                id,
                 type: "custom",
                 data: {
-                    ...nodeData,
-                    label: data[currentNodeType.fields[0].name],
-                    type: currentNodeType.type,
+                    ...flattenObj(data),
+                    label,
+                    type,
+                    id
                 },
-                position: { x: 0, y: 0 },
+                position: { x: 100, y: 100 },
             }
-            if (addNodes) {
-                addNodes(newNode)
-            }
-            if (setCurrentNode) {
-                setCurrentNode(newNode)
-            }
+            if (addNodes) addNodes(newNode)
+            if (setCurrentNode) setCurrentNode(newNode)
             setOpenNodeModal(false)
-            setError(null)
-            toast.success(`${currentNodeType.label} successfully created.`)
         } catch (error) {
-            toast.error("Error submitting form.")
-            setOpenDialog(false)
+            toast.error("Unexpected error during node creation.")
         } finally {
-            setLoading(false)
             setOpenDialog(false)
         }
     }
-
     const navigateToSubItems = (item: ActionItem) => {
         setNavigationHistory([...navigationHistory, item])
         setCurrentParent(item)
@@ -175,7 +145,6 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                         <DynamicForm
                             type={currentNodeType.type}
                             isForm={true}
-                            loading={loading}
                             onSubmit={handleAddNode}
                         />
                     )}

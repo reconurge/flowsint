@@ -3,14 +3,32 @@ import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from '@/componen
 import { ChevronDown, ChevronLeft } from 'lucide-react'
 import NodesPanel from '@/components/sketches/sketch/nodes-panel'
 import ProfilePanel from '@/components/sketches/sketch/profile-panel'
+import { memo, useMemo } from 'react'
+import { useFlowStore } from '@/store/flow-store'
+import { shallow } from 'zustand/shallow'
+import { MiniMap } from '@xyflow/react'
 
 interface RightPanelProps {
     isCollapsed: boolean
     setIsCollapsed: (collapsed: boolean) => void
-    currentNode: any
+    currentNode: any,
 }
 
-export function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPanelProps) {
+export const RightPanel = memo(function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPanelProps) {
+    const stateSelector = (state: { nodes: any }) => ({
+        nodes: state.nodes,
+    })
+
+    const {
+        nodes,
+    } = useFlowStore(stateSelector, shallow)
+
+    const processedNodes = useMemo(() =>
+        nodes.map(({ id, data, type }: { id: string; data: any; type: string }) => ({ id, data, type }))
+            .sort((a: { type: any }, b: { type: string }) => b.type?.localeCompare(a.type || "")),
+        [nodes.length]
+    );
+
     return (
         <ResizablePanel
             defaultSize={20}
@@ -24,28 +42,29 @@ export function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPa
         >
             {!isCollapsed ? (
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
+                    {/* <ResizablePanel order={1} id="map" defaultSize={30} className='flex items-center justfify-center'>
+                        <div className='relative grow'>
+                            <MiniMap pannable className='mx-auto' />
+                        </div>
+                    </ResizablePanel>
+                    <ResizableHandle withHandle /> */}
+
                     {currentNode && (
                         <>
-                            <ResizablePanel order={1} id="top" defaultSize={40}>
-                                <div className="flex h-8 items-center justify-between border-b px-4 bg-card">
-                                    <h2 className="font-medium text-sm">Properties</h2>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                        <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                            <ResizablePanel order={1} id="infos" defaultSize={30}>
                                 <ProfilePanel data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>
                     )}
-                    <ResizablePanel order={2} id="bottom" defaultSize={60}>
+                    <ResizablePanel order={2} id="nodes" defaultSize={40}>
                         <div className="flex h-8 items-center justify-between border-b px-4 bg-card">
                             <h2 className="font-medium text-sm">Entities</h2>
                             <Button variant="ghost" size="icon" className="h-6 w-6">
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </div>
-                        <NodesPanel nodes={[]} />
+                        <NodesPanel nodes={processedNodes} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             ) : (
@@ -57,4 +76,4 @@ export function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPa
             )}
         </ResizablePanel>
     )
-}
+})

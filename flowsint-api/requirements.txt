@@ -20,3 +20,4 @@ phonenumbers
 pydantic[email]
 fastapi[all]
 neo4j
+faker

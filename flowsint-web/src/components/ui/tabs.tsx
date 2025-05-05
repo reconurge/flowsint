@@ -47,8 +47,8 @@ function TabsTrigger({
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-inset",
         "disabled:pointer-events-none disabled:opacity-50",
         "data-[state=inactive]:bg-muted/30 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50",
-        "data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:border-b-0 data-[state=active]:relative",
-        "data-[state=active]:after:absolute data-[state=active]:after:bottom-[-1px] data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[1px] data-[state=active]:after:bg-card", // Creates the connection to content
+        "data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:border-b-0 data-[state=active]:relative",
+        // "data-[state=active]:after:absolute data-[state=active]:after:bottom-[-1px] data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[1px] data-[state=active]:after:bg-card", // Creates the connection to content
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
         className
       )}

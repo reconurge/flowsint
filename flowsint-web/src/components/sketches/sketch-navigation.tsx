@@ -73,7 +73,7 @@ function SketchNavigation({ investigation_id, sketch_id, sketch, user_id }: { in
                     </Fragment>
                 ))}
             </div>
-            <div className="flex items-center ">
+            <div className="flex items-center">
                 <div className="px-2">
                     <AvatarList size="md" users={sketch?.members?.map(({ profile }: { profile: Profile }) => ({ ...profile, owner: profile.id === sketch.owner_id })) || []} />
                 </div>

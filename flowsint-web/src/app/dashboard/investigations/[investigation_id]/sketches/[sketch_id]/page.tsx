@@ -16,7 +16,11 @@ const InvestigationPage = async ({
     if (!user || userError) {
         return redirect("/login")
     }
-    return <DashboardClient investigationId={investigation_id} sketchId={sketch_id} />
+    const { data: sketch, error } = await supabase.from("sketches").select("*, members:sketches_profiles(profile:profiles(id, first_name, last_name, avatar_url), role)").eq("id", sketch_id).single()
+    if (!sketch || error) {
+        return notFound()
+    }
+    return <DashboardClient investigationId={investigation_id} sketchId={sketch_id} sketch={sketch} user_id={user?.id} />
 }
 
 export default InvestigationPage

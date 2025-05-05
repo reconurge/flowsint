@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useLaunchSan } from "@/hooks/use-launch-scan"
 import { useTransforms } from "@/hooks/use-transforms"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"

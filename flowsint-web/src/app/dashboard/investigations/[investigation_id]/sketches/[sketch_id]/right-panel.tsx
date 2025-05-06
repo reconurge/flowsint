@@ -12,9 +12,11 @@ interface RightPanelProps {
     isCollapsed: boolean
     setIsCollapsed: (collapsed: boolean) => void
     currentNode: any,
+    isLoading: boolean
+    sketchId: string
 }
 
-export const RightPanel = memo(function RightPanel({ isCollapsed, setIsCollapsed, currentNode }: RightPanelProps) {
+export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, setIsCollapsed, currentNode, sketchId }: RightPanelProps) {
     const stateSelector = (state: { nodes: any }) => ({
         nodes: state.nodes,
     })
@@ -52,7 +54,7 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, setIsCollapsed
                     {currentNode && (
                         <>
                             <ResizablePanel order={1} id="infos" defaultSize={30}>
-                                <ProfilePanel data={currentNode.data} />
+                                <ProfilePanel sketch_id={sketchId} data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>
@@ -64,7 +66,7 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, setIsCollapsed
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </div>
-                        <NodesPanel nodes={processedNodes} />
+                        <NodesPanel isLoading={isLoading} nodes={processedNodes} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             ) : (

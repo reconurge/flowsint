@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
@@ -75,8 +76,11 @@ const TransformItem = ({ transform }: { transform: any }) => {
     return (
         <Link href={`/dashboard/transforms/${transform.id}`} className="block h-full transition-all">
             <Card className="h-full border hover:border-primary/50 hover:shadow-md transition-all">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium line-clamp-1">{transform.name}</CardTitle>
+                <CardHeader className="pb-2 relative">
+                    <CardTitle className="text-lg w-full flex items-start justify-between font-medium">
+                        <p className=" line-clamp-2">{transform.name}</p>
+                        <Badge>{transform.category}</Badge>
+                    </CardTitle>
                     <CardDescription className="line-clamp-2">
                         {transform.description || "No description provided"}
                     </CardDescription>

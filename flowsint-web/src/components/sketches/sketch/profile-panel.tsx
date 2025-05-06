@@ -14,8 +14,9 @@ import {
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { actionItems } from "@/lib/action-items"
+import LaunchTransform from "./launch-transform"
 
-export default function ProfilePanel({ data }: { data: any }) {
+export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id: string }) {
     const { investigation_id } = useParams()
     const item = useMemo(() =>
         (actionItems as any).find((a: any) => a.type === data?.type),
@@ -45,7 +46,7 @@ export default function ProfilePanel({ data }: { data: any }) {
                                 <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
                             </Button>
                         </Link>}
-                    {/* <LaunchTransform values={data.label} sketch_id={sketch_id as string} type={data?.type} /> */}
+                    <LaunchTransform values={[data.label]} sketch_id={sketch_id as string} type={data?.type} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent>

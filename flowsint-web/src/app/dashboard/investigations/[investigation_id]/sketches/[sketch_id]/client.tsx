@@ -59,6 +59,8 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <RightPanel
+                        sketchId={sketchId}
+                        isLoading={graphQuery.isLoading}
                         isCollapsed={isRightPanelCollapsed}
                         setIsCollapsed={setIsRightPanelCollapsed}
                         currentNode={currentNode}

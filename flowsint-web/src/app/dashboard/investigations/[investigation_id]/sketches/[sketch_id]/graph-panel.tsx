@@ -1,10 +1,7 @@
-import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader, Network, Plus } from 'lucide-react'
-import InvestigationGraph from "@/components/sketches/sketch/graph"
 import { ConsolePanel } from './console-panel'
 import { memo, useState } from 'react'
+import Neo4jGraph from './graph'
 
 interface GraphPanelProps {
     query: any
@@ -16,7 +13,7 @@ export const GraphPanel = memo(function GraphPanel({ query }: GraphPanelProps) {
             <div className="grow">
                 <ResizablePanelGroup direction="vertical" className="h-full">
                     <ResizablePanel defaultSize={80} className="h-full w-full bg-">
-                        <InvestigationGraph graphQuery={query} />
+                        <Neo4jGraph data={query.data} isLoading={query.isLoading} />
                     </ResizablePanel>
 
                     <ResizableHandle withHandle />

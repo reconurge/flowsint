@@ -82,5 +82,33 @@ class SubdomainScanner(Scanner):
 
         return domains
 
-    def postprocess(self, results: OutputType) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for domain_obj in results:
+            if not self.neo4j_conn:
+                continue
+            query_main = """
+            MERGE (d:domain {domain: $domain})
+            SET d.sketch_id = $sketch_id
+            """
+            self.neo4j_conn.query(query_main, {
+                "domain": domain_obj.domain,
+                "sketch_id": self.sketch_id
+            })
+
+            # Subdomains
+            for sub in domain_obj.subdomains:
+                query_sub = """
+                MERGE (sub:subdomain {domain: $subdomain})
+                SET sub.sketch_id = $sketch_id
+                MERGE (d:domain {domain: $domain})
+                MERGE (d)-[:HAS_SUBDOMAIN {sketch_id: $sketch_id}]->(sub)
+                """
+                self.neo4j_conn.query(query_sub, {
+                    "domain": domain_obj.domain,
+                    "subdomain": sub,
+                    "sketch_id": self.sketch_id
+                })
+
         return results
+
+

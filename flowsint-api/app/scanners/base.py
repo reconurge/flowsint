@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
-
+from app.neo4j.connector import Neo4jConnection
 class Scanner(ABC):    
-    def __init__(self, scan_id: str):
+    def __init__(self, sketch_id:str, scan_id: str, neo4j_conn: Neo4jConnection = None):
         self.scan_id = scan_id
+        self.sketch_id = sketch_id or "system"
+        self.neo4j_conn = neo4j_conn  # disponible dans tous les scanners
         
     @classmethod
     @abstractmethod
@@ -45,7 +47,7 @@ class Scanner(ABC):
         """
         return values
     
-    def postprocess(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def postprocess(self, results: List[Dict[str, Any]], input_data: List[str] = None) -> List[Dict[str, Any]]:
         """
         Post-process the scan results if necessary (e.g., format them).
         """
@@ -54,8 +56,16 @@ class Scanner(ABC):
     def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         """
         Execute the scanning process by first preprocessing, then scanning, and finally postprocessing.
+        Tries to call postprocess with (results, preprocessed). Falls back to (results) if needed.
         """
         preprocessed = self.preprocess(values)
         results = self.scan(preprocessed)
-        results = self.postprocess(results)
-        return results
+
+        try:
+            # Try calling with both results and preprocessed
+            return self.postprocess(results, preprocessed)
+        except TypeError as e:
+            if "positional argument" in str(e) or "unexpected" in str(e):
+                return self.postprocess(results)
+            raise
+

@@ -624,7 +624,6 @@
     --shadow-xl: 0px 5px 10px -2px hsl(0 0% 0% / 0.10), 0px 8px 10px -3px hsl(0 0% 0% / 0.10);
     --shadow-2xl: 0px 5px 10px -2px hsl(0 0% 0% / 0.25);
   }
-  
   .dark {
     --background: oklch(0.23 0.01 264.29);
     --foreground: oklch(0.92 0 0);

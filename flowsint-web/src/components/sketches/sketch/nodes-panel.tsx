@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
 import { cn, typeColorMap } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import Loader from '@/components/loader'
 
 // Mémoiser le composant SocialNode
 const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
@@ -91,7 +92,7 @@ const NodeRenderer = memo(({
     )
 })
 
-const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
+const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading: boolean }) => {
     // Utiliser des sélecteurs précis pour éviter les re-renders inutiles
     const setCurrentNode = useFlowStore(state => state.setCurrentNode)
     const currentNodeId = useFlowStore(state => state.currentNode?.id)
@@ -170,7 +171,12 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
                     </DropdownMenu>
                 </div>
             </div>
-            {filteredNodes?.length === 0 && searchQuery === "" && (
+            {isLoading && <div className='text-sm p-4 text-center'>
+                <p className='border rounded-md border-dashed p-4 text-center'>
+                    <Loader /> Loading...
+                </p>
+            </div>}
+            {!isLoading && filteredNodes?.length === 0 && searchQuery === "" && (
                 <div className='text-sm p-4 text-center'>
                     <p className='border rounded-md border-dashed p-4 text-center'>
                         Right click on the panel to add your first investigation item.

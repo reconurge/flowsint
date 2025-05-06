@@ -37,17 +37,8 @@ export const ConsolePanel = memo(function ConsolePanel() {
             <div className="p-2 font-mono text-xs bg-card grow overflow-auto inset-shadow-sm">
                 {logEntries.map((entry, index) => (
                     <div key={index} className="mb-1 flex">
-                        <span className="mr-2 text-muted-foreground">[{entry.timestamp}]</span>
+                        <span className="mr-2 text-primary font-bold">[{entry.timestamp}]</span>
                         <span
-                            className={
-                                entry.type === "error"
-                                    ? "text-destructive"
-                                    : entry.type === "warning"
-                                        ? "text-amber-500"
-                                        : entry.type === "action"
-                                            ? "text-primary"
-                                            : "text-foreground"
-                            }
                         >
                             {entry.message}
                         </span>

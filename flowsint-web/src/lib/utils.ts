@@ -312,6 +312,7 @@ export const typeColorMap: Record<string, string> = {
   organization: "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow dark:from-blue-800 dark:to-blue-900 dark:border-blue-700 dark:shadow-blue-900/30",
   vehicle: "bg-orange-100 text-orange-800 hover:bg-orange-100/80 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/40",
   website: "bg-purple-100 text-purple-800 hover:bg-purple-100/80 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40",
+  domain: "bg-purple-100 text-purple-800 hover:bg-purple-100/80 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40",
   document: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/40",
   financial: "bg-green-100 text-green-800 hover:bg-green-100/80 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/40",
   event: "bg-red-100 text-red-800 hover:bg-red-100/80 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/40",

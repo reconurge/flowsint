@@ -1,4 +1,5 @@
 import json
+import random
 from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
@@ -12,7 +13,6 @@ from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from typing import List
 from app.neo4j.connector import Neo4jConnection
-from fastapi import Query
 import os
 from dotenv import load_dotenv
 from typing import List
@@ -87,6 +87,7 @@ async def get_scans_list():
 
 class LaunchTransformPayload(BaseModel):
     values: List[str]
+    sketch_id: str
     
 @app.post("/transforms/{transform_id}/launch")
 async def launch_transform(
@@ -100,7 +101,7 @@ async def launch_transform(
         if response.data is None:
             raise HTTPException(status_code=404, detail="Transform not found")
         
-        task = celery_app.send_task("run_transform", args=[response.data["transform_schema"], payload.values, None])
+        task = celery_app.send_task("run_transform", args=[response.data["transform_schema"], payload.values, payload.sketch_id])
         return {"id": task.id}
 
     except Exception as e:
@@ -110,136 +111,149 @@ async def launch_transform(
     
 @app.get("/sketch/{sketch_id}/nodes")
 async def get_sketch_nodes(sketch_id: str):
-    # Récupération des nœuds
+    import random
+
+    # 1. Requête pour les 50 premiers nœuds du sketch
     nodes_query = """
     MATCH (n)
     WHERE n.sketch_id = $sketch_id
-    RETURN n, labels(n) as node_types
+    RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
+    LIMIT 50
     """
     nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": sketch_id})
-    
-    # Récupération des relations
-    edges_query = """
-    MATCH (a)-[r]->(b)
-    WHERE r.sketch_id = $sketch_id
-    RETURN a.id as source, b.id as target, type(r) as type, r as properties
-    """
-    edges_result = neo4j_connection.query(edges_query, parameters={"sketch_id": sketch_id})
-    
-    # Transformation des résultats au format React Flow
-    nodes = []
-    for record in nodes_result:
-        node_data = record["n"]
-        node_type = record["node_types"][0] if record["node_types"] else "default"
-        
-        # Format standard pour React Flow
-        node = {
-            "id": node_data["id"],
-            "type": node_type,
-            "data": {
-                "label": node_data.get("label", ""),
-                **{k: v for k, v in node_data.items() if k not in ["position_x","sketch_id", "position_y"]}
-            },
-            "position": {
-                "x": float(node_data.get("position_x", 0)),
-                "y": float(node_data.get("position_y", 0))
-            }
-        }
-        nodes.append(node)
-    
-    edges = []
-    for record in edges_result:
-        # Format standard pour React Flow
-        edge = {
-            "id": f"{record['source']}-{record['target']}",
-            "source": record["source"],
-            "target": record["target"],
-            "type": record["type"],
-            "data": {k: v for k, v in record["properties"].items() if k != "sketch_id"}
-        }
-        edges.append(edge)
-    
-    return {"nodes": nodes, "edges": edges}
 
+    node_ids = [record["id"] for record in nodes_result]
+
+    # 2. Requête pour les relations uniquement entre ces nœuds
+    rels_query = """
+    UNWIND $node_ids AS nid
+    MATCH (a)-[r]->(b)
+    WHERE elementId(a) = nid AND elementId(b) IN $node_ids
+    RETURN elementId(r) as id, type(r) as type, elementId(a) as source, elementId(b) as target, properties(r) as data
+    """
+    rels_result = neo4j_connection.query(rels_query, parameters={"node_ids": node_ids})
+
+    # 3. Formater les nœuds
+    nodes = [
+        {
+            "id": str(record["id"]),
+            "labels": record["labels"],
+            "data": {
+                "label": record["data"].get("domain", "Node"),
+                "type": record["labels"][0].lower(),
+            },
+            "label": record["data"].get("domain", "Node"),
+            "type": record["labels"][0].lower(),
+            "caption": record["data"].get("domain", "Node"),
+            "size": 40,
+            "color": get_label_color(record["labels"][0] if record["labels"] else "default"),
+            "x": random.random() * 1000,
+            "y": random.random() * 1000
+        }
+        for record in nodes_result
+    ]
+
+    # 4. Formater les relations
+    rels = [
+        {
+            "id": str(record["id"]),
+            "type": record["type"],
+            "from": str(record["source"]),
+            "to": str(record["target"]),
+            "data": record["data"],
+            "caption": record["type"],
+            "width": 1,
+            "color": "#A5ABB6"
+        }
+        for record in rels_result
+    ]
+
+    return {"nodes": nodes, "rels": rels}
+
+# Fonction pour attribuer des couleurs en fonction des labels
+def get_label_color(label: str) -> str:
+    color_map = {
+        'subdomain': '#A5ABB6',
+        'domain': '#68BDF6',
+        'default': '#A5ABB6'
+    }
+    
+    return color_map.get(label, color_map["default"])
+
+
+from pydantic import BaseModel
+from typing import List, Dict, Any
 
 class Node(BaseModel):
     id: str
-    type: str
-    label: Optional[str] = None
-    data: Dict[str, str] = Field(default_factory=dict)
+    data: Dict[str, Any]
+    type: str  # ex: "domain", "email", etc.
+    position: Dict[str, float]  # x, y
 
 class Edge(BaseModel):
-    source: str
-    target: str
+    id: str
+    from_: str  # "from" est un mot réservé, donc on utilise from_ en Python
+    to: str
     type: str
-    data: Dict[str, str] = Field(default_factory=dict)
-    
+    data: Dict[str, Any]
+
 class SketchPayload(BaseModel):
     nodes: List[Node]
     edges: List[Edge]
+
     
 @app.post("/sketch/{sketch_id}/save")
 async def save_sketch(sketch_id: str, payload: SketchPayload):
-    now = datetime.utcnow().isoformat()
-
     try:
+        # 1. Supprimer tous les nœuds et relations du sketch
+        delete_query = """
+        MATCH (n)
+        WHERE n.sketch_id = $sketch_id
+        DETACH DELETE n
+        """
+        neo4j_connection.query(delete_query, parameters={"sketch_id": sketch_id})
+
+        # 2. Créer les nouveaux nœuds
         for node in payload.nodes:
-            type = node.data.get('type', "individual")
-            if type == "individual":
-                first_name = node.data.get("first_name", "")
-                last_name = node.data.get("last_name", "")
-                node_label = f"{first_name} {last_name}".strip()
-            elif type == "organization":
-                node_label = node.data.get("name", "")
-            else:
-                node_label = node.label or f"{node.type}_{node.id[:8]}"
-            
-            position_x = 0
-            position_y = 0
-            
-            if "position" in node.data:
-                position = node.data.pop("position", {})  # Retirer position de data
-                position_x = position.get("x", 0)
-                position_y = position.get("y", 0)
-            
-            query = f"""
-            MERGE (n:{node.type} {{id: $id}})
-            SET n += $props,
-                n.id = $id,
-                n.label = $label,
-                n.position_x = $position_x,
-                n.position_y = $position_y,
-                n.sketch_id = $sketch_id,
-                n.updated_at = $now
+            node_query = """
+            CREATE (n:$label)
+            SET n += $props
+            SET n.sketch_id = $sketch_id
+            SET n.id = $id
             """
-            neo4j_connection.query(query, parameters={
-                "id": node.id,
-                "props": node.data,
-                "label": node_label,
-                "position_x": position_x,
-                "position_y": position_y,
-                "sketch_id": sketch_id,
-                "now": now
-            })
+            neo4j_connection.query(
+                node_query,
+                parameters={
+                    "label": node.type.capitalize(),
+                    "props": node.data,
+                    "id": node.id,
+                    "sketch_id": sketch_id
+                }
+            )
 
+        # 3. Créer les relations
         for edge in payload.edges:
-            query = f"""
-            MATCH (a {{id: $source}}), (b {{id: $target}})
-            MERGE (a)-[r:{edge.type}]->(b)
-            SET r += $props,
-                r.sketch_id = $sketch_id,
-                r.updated_at = $now
+            edge_query = """
+            MATCH (a), (b)
+            WHERE a.id = $from AND b.id = $to AND a.sketch_id = $sketch_id AND b.sketch_id = $sketch_id
+            CREATE (a)-[r:$rel_type]->(b)
+            SET r += $props
+            SET r.sketch_id = $sketch_id
+            SET r.id = $id
             """
-            neo4j_connection.query(query, parameters={
-                "source": edge.source,
-                "target": edge.target,
-                "props": edge.data,
-                "sketch_id": sketch_id,
-                "now": now
-            })
+            neo4j_connection.query(
+                edge_query,
+                parameters={
+                    "from": edge.from_,
+                    "to": edge.to,
+                    "rel_type": edge.type.upper(),
+                    "props": edge.data,
+                    "id": edge.id,
+                    "sketch_id": sketch_id
+                }
+            )
 
-        return {"saved": True, "last_saved_at": now}
+        return {"status": "success", "message": "Sketch saved."}
 
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Neo4j error: {str(e)}")

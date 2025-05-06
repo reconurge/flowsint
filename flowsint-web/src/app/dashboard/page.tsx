@@ -60,7 +60,7 @@ const DashboardPage = () => {
                         </NewInvestigation>
                     </div>
                 </div>
-                <SectionCards />
+                {/* <SectionCards /> */}
                 <div className="grid lg:grid-cols-5 gap-4 w-full">
                     <div className="lg:col-span-2 col-span-1 h-full">
                         <MetricsChart />

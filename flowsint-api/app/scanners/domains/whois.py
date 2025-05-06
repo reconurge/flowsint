@@ -80,5 +80,47 @@ class WhoisScanner(Scanner):
 
         return results
 
-    def postprocess(self, results: OutputType) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for whois_obj in results:
+            if not self.neo4j_conn:
+                continue
+
+            props = {
+                "domain": whois_obj.domain.domain,
+                "registrar": whois_obj.registrar,
+                "org": whois_obj.org,
+                "city": whois_obj.city,
+                "country": whois_obj.country,
+                "creation_date": whois_obj.creation_date,
+                "expiration_date": whois_obj.expiration_date,
+                "email": whois_obj.email.email if whois_obj.email else None,
+                "sketch_id": self.sketch_id
+            }
+
+            query = """
+            MERGE (d:Domain {domain: $domain})
+            SET d.registrar = $registrar,
+                d.org = $org,
+                d.city = $city,
+                d.country = $country,
+                d.creation_date = $creation_date,
+                d.expiration_date = $expiration_date,
+                d.whois_email = $email,
+                d.sketch_id = $sketch_id
+            """
+            self.neo4j_conn.query(query, props)
+
+            if whois_obj.email:
+                email_query = """
+                MERGE (e:email {email: $email})
+                SET e.sketch_id = $sketch_id
+                MERGE (d:domain {domain: $domain})
+                MERGE (d)-[:HAS_WHOIS_EMAIL {sketch_id: $sketch_id}]->(e)
+                """
+                self.neo4j_conn.query(email_query, {
+                    "email": whois_obj.email.email,
+                    "domain": whois_obj.domain.domain,
+                    "sketch_id": self.sketch_id
+                })
+
         return results

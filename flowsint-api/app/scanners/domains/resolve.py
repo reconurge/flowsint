@@ -60,5 +60,27 @@ class ResolveScanner(Scanner):
                 print(f"Error resolving {d.domain}: {e}")
         return results
 
-    def postprocess(self, results: OutputType) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for domain_obj, ip_obj in zip(original_input, results):
+            query = """
+            MERGE (d:domain {domain: $domain})
+            SET d.sketch_id = $sketch_id
+            MERGE (ip:ip {address: $ip})
+            SET ip.sketch_id = $sketch_id
+            SET ip.label = $label
+            SET ip.color = $color
+            SET ip.caption = $caption
+            SET ip.type = $type
+            MERGE (d)-[:RESOLVES_TO {sketch_id: $sketch_id}]->(ip)
+            """
+            if self.neo4j_conn:
+                self.neo4j_conn.query(query, {
+                    "domain": domain_obj.domain,
+                    "ip": ip_obj.address,
+                    "sketch_id": self.sketch_id,
+                    "color": '#5533FF',
+                    "label": ip_obj.address,
+                    "caption": ip_obj.address,
+                    "type": "ip"
+                })
         return results

@@ -1,8 +1,8 @@
 import { memo } from "react"
 import { Position } from "@xyflow/react"
-import { DatabaseSchemaNode, DatabaseSchemaNodeBody, DatabaseSchemaNodeHeader, DatabaseSchemaTableCell, DatabaseSchemaTableRow } from "../ui/schema-node"
 import { LabeledHandle } from "../ui/labeled-handle"
 import { Badge } from "../ui/badge"
+import { BaseNodeSchema } from "../ui/base-node"
 
 // Types for the scanner node
 export interface ScannerNodeData extends Record<string, unknown> {
@@ -40,9 +40,9 @@ function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
 // Memoized scanner node component with custom equality check
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
     return (
-        <DatabaseSchemaNode className="shadow-md !border-l-2 p-0" style={{ borderLeftWidth: "8px", borderLeftColor: data.color, cursor: "grab" }}
+        <BaseNodeSchema className="shadow-md rounded-md !border-l-2 p-0 bg-background !max-w-[340px]" style={{ borderLeftWidth: "8px", borderLeftColor: data.color, cursor: "grab" }}
             selected={selected}>
-            <DatabaseSchemaNodeHeader>
+            <div className="p-3 bg-card rounded-t-md">
                 <div className="flex flex-col items-start gap-1 relative">
                     <div className="absolute top-0 right-0">
                         <Badge variant={"outline"} className="">{data.type}</Badge>
@@ -50,11 +50,11 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                     <div className="font-semibold text-sm">
                         {data.class_name}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mt-2">
                         {data.doc}
                     </p>
                 </div>
-            </DatabaseSchemaNodeHeader>
+            </div>
             <div>
                 <div className="grid grid-cols-2 py-1">
                     <div className="pl-0 pr-6">
@@ -85,7 +85,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                     </div>
                 </div>
             </div>
-        </DatabaseSchemaNode>
+        </BaseNodeSchema>
     )
 }, areEqual)
 

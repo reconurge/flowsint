@@ -77,9 +77,9 @@ def test_schemas():
     assert input_schema == [{'name': 'address', 'type': 'string'}]
     assert output_schema == [
         {'name': 'address', 'type': 'string'},
-        {'name': 'latitude', 'type': 'number'},
-        {'name': 'longitude', 'type': 'number'},
-        {'name': 'country', 'type': 'string'},
-        {'name': 'city', 'type': 'string'},
-        {'name': 'isp', 'type': 'string'},
+        {'name': 'latitude', 'type': 'number | null'},
+        {'name': 'longitude', 'type': 'number | null'},
+        {'name': 'country', 'type': 'string | null'},
+        {'name': 'city', 'type': 'string | null'},
+        {'name': 'isp', 'type': 'string | null'},
     ]

@@ -11,7 +11,6 @@ class ScannerRegistry:
     _scanners: Dict[str, Type[Scanner]] = {}
     
     @classmethod
-    @classmethod
     def register(cls, scanner_class: Type[Scanner]) -> None:
         cls._scanners[scanner_class.name()] = scanner_class
     
@@ -22,10 +21,10 @@ class ScannerRegistry:
         return True
     
     @classmethod
-    def get_scanner(cls, name: str, scan_id: str) -> Scanner:
+    def get_scanner(cls, name: str, sketch_id:str, scan_id: str, **kwargs) -> Scanner:
         if name not in cls._scanners:
             raise Exception(f"Scanner '{name}' not found")
-        return cls._scanners[name](scan_id)
+        return cls._scanners[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
 
     @classmethod
     def list(cls) -> Dict[str, Dict[str, str]]:

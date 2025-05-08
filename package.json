@@ -12,5 +12,9 @@
   },
   "devDependencies": {
     "supabase": "^2.19.7"
+  },
+  "dependencies": {
+    "cytoscape-fcose": "^2.2.0",
+    "graphology-layout-forceatlas2": "^0.10.1"
   }
 }

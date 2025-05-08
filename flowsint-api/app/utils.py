@@ -144,3 +144,33 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
     "scanner_names" : [scanner["scanner_name"] for scanner in scanners]
 
     }
+    
+def get_label_color(label: str) -> str:
+    color_map = {
+        'subdomain': '#A5ABB6',
+        'domain': '#68BDF6',
+        'default': '#A5ABB6'
+    }
+    
+    return color_map.get(label, color_map["default"])
+
+def flatten(data_dict):
+    """
+    Flattens a dictionary to contain only Neo4j-compatible property values.
+    Neo4j supports primitive types (string, number, boolean) and arrays of those types.
+    Args:
+        data_dict (dict): Dictionary to flatten   
+    Returns:
+        dict: Flattened dictionary with only Neo4j-compatible values
+    """
+    flattened = {}
+    if not isinstance(data_dict, dict):
+        return flattened
+    for key, value in data_dict.items():
+        if value is None:
+            continue
+        if isinstance(value, (str, int, float, bool)) or (
+            isinstance(value, list) and all(isinstance(item, (str, int, float, bool)) for item in value)
+        ):
+            flattened[key] = value 
+    return flattened

@@ -5,6 +5,21 @@ from celery import states
 from app.core.db import get_db
 from app.utils import extract_transform
 from typing import List
+import os
+from dotenv import load_dotenv
+from typing import List
+from app.neo4j.connector import Neo4jConnection
+
+load_dotenv()
+
+
+
+URI = os.getenv("NEO4J_URI_BOLT")
+USERNAME = os.getenv("NEO4J_USERNAME")
+PASSWORD = os.getenv("NEO4J_PASSWORD")
+
+neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
+
 
 @celery_app.task(name="run_transform", bind=True)
 def run_scan(self, transform_schema, values: List[str], sketch_id: str | None):
@@ -20,7 +35,8 @@ def run_scan(self, transform_schema, values: List[str], sketch_id: str | None):
                     "sketch_id": sketch_id,
                     "results": []
                 }).execute()
-        scanner = TransformOrchestrator("123", scanner_names = scanner_names)
+        
+        scanner = TransformOrchestrator(sketch_id, "scan_0", scanner_names = scanner_names, neo4j_conn=neo4j_connection)
         results = scanner.execute(values=values)
         status = "finished" if "error" not in results else "error"
         db.table("scans").update({

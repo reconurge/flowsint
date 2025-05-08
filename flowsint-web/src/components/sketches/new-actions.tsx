@@ -14,6 +14,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/sketches/dynamic-form"
 import { Badge } from "@/components/ui/badge"
+import { saveNode } from "@/lib/actions/sketches"
+import { useColorSettings } from "@/store/color-settings"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -23,9 +25,10 @@ interface ActionDialogProps {
 
 export default function ActionDialog({ children, addNodes, setCurrentNode }: ActionDialogProps) {
     const { sketch_id } = useParams()
+    const { colors } = useColorSettings()
     const [openDialog, setOpenDialog] = useState(false)
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
-    const [currentNodeType, setCurrentNodeType] = useState<any | null>(null)
+    const [currentNodeType, setCurrentNodeType] = useState<ActionItem | null>(null)
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
@@ -45,7 +48,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
         setOpenNodeModal(true)
     }
 
-    const handleAddNode = (data: any) => {
+    const handleAddNode = async (data: any) => {
         try {
             if (!currentNodeType || !sketch_id) {
                 toast.error("Invalid node type or sketch ID.")
@@ -54,21 +57,26 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             const id = crypto.randomUUID()
             const label = data[currentNodeType.fields[0].name]
             const type = currentNodeType.type
+            const color = colors[type as keyof typeof colors]
             const newNode = {
                 id,
-                type: "custom",
+                type: type,
+                caption: label,
+                color,
                 data: {
                     ...flattenObj(data),
+                    color,
                     label,
                     type,
                     id
                 },
-                position: { x: 100, y: 100 },
             }
-            if (addNodes) addNodes(newNode)
+            const resp = await saveNode({ node: newNode, sketch_id })
+            if (addNodes) addNodes(resp.data?.node as any)
             if (setCurrentNode) setCurrentNode(newNode)
             setOpenNodeModal(false)
         } catch (error) {
+            toast.error(JSON.stringify(error))
             toast.error("Unexpected error during node creation.")
         } finally {
             setOpenDialog(false)

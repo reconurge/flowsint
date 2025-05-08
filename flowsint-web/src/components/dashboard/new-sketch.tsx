@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
-import { useInvestigationStore } from "@/store/project-store"
+import { useInvestigationStore } from "@/store/investigation-store"
 
 function SubmitButton() {
     const { pending } = useFormStatus()

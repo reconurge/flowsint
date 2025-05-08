@@ -3,8 +3,8 @@ import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from '@/componen
 import { ChevronDown, ChevronLeft } from 'lucide-react'
 import NodesPanel from '@/components/sketches/sketch/nodes-panel'
 import ProfilePanel from '@/components/sketches/sketch/profile-panel'
-import { memo, useMemo } from 'react'
-import { useFlowStore } from '@/store/flow-store'
+import { memo, useMemo, useRef } from 'react'
+import { useSketchStore } from '@/store/sketch-store'
 import { shallow } from 'zustand/shallow'
 import { MiniMap } from '@xyflow/react'
 
@@ -14,20 +14,21 @@ interface RightPanelProps {
     currentNode: any,
     isLoading: boolean
     sketchId: string
+    minimapRef: any
 }
 
-export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, setIsCollapsed, currentNode, sketchId }: RightPanelProps) {
+export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, setIsCollapsed, currentNode, sketchId, minimapRef }: RightPanelProps) {
     const stateSelector = (state: { nodes: any }) => ({
         nodes: state.nodes,
     })
 
     const {
         nodes,
-    } = useFlowStore(stateSelector, shallow)
+    } = useSketchStore(stateSelector, shallow)
 
     const processedNodes = useMemo(() =>
-        nodes.map(({ id, data, type }: { id: string; data: any; type: string }) => ({ id, data, type }))
-            .sort((a: { type: any }, b: { type: string }) => b.type?.localeCompare(a.type || "")),
+        nodes.map(({ id, data, type }: { id: string; data: any; type?: string }) => ({ id, data, type }))
+            .sort((a: { type?: any }, b: { type?: string }) => b?.type?.localeCompare(a?.type || "")),
         [nodes.length]
     );
 
@@ -44,28 +45,19 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
         >
             {!isCollapsed ? (
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
-                    {/* <ResizablePanel order={1} id="map" defaultSize={30} className='flex items-center justfify-center'>
-                        <div className='relative grow'>
-                            <MiniMap pannable className='mx-auto' />
-                        </div>
+                    <ResizablePanel order={1} id="map" defaultSize={30} className='flex items-center justfify-center p-4'>
+                        <div className='w-full h-full' ref={minimapRef} />
                     </ResizablePanel>
-                    <ResizableHandle withHandle /> */}
-
+                    <ResizableHandle withHandle className="z-[400]" />
                     {currentNode && (
                         <>
-                            <ResizablePanel order={1} id="infos" defaultSize={30}>
+                            <ResizablePanel order={2} id="infos" defaultSize={30}>
                                 <ProfilePanel sketch_id={sketchId} data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>
                     )}
-                    <ResizablePanel order={2} id="nodes" defaultSize={40}>
-                        <div className="flex h-8 items-center justify-between border-b px-4 bg-card">
-                            <h2 className="font-medium text-sm">Entities</h2>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <ResizablePanel order={3} id="nodes" defaultSize={40}>
                         <NodesPanel isLoading={isLoading} nodes={processedNodes} />
                     </ResizablePanel>
                 </ResizablePanelGroup>

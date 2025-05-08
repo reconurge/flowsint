@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState, useCallback } from 'react'
 import { type Node } from '@xyflow/react'
-import { useFlowStore } from '@/store/flow-store'
+import { useSketchStore } from '@/store/sketch-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
@@ -8,9 +8,11 @@ import { Search, HelpCircle, FilterIcon, XIcon } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
-import { cn, typeColorMap } from '@/lib/utils'
+import { cn, hexToRgba } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import Loader from '@/components/loader'
+import { useColorSettings } from '@/store/color-settings'
+import { IconContainer } from '@/components/icon-container'
 
 // Mémoiser le composant SocialNode
 const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
@@ -57,7 +59,7 @@ const NodeRenderer = memo(({
     currentNodeId: string | null
 }) => {
     const item = useMemo(() =>
-        (actionItems as any).find((a: any) => a.type === node.data?.type),
+        (actionItems as any).find((a: any) => a?.type === node.data?.type),
         [node.data?.type]
     )
     const Icon = item?.icon || HelpCircle
@@ -71,7 +73,6 @@ const NodeRenderer = memo(({
             currentNodeId={currentNodeId}
         />
     }
-
     return (
         <Button
             variant={"ghost"}
@@ -81,21 +82,21 @@ const NodeRenderer = memo(({
             )}
             onClick={handleClick}
         >
-            <div className={cn("p-1 flex items-center justify-center rounded-full bg-card h-7 w-7", typeColorMap[item.type])}>
-                <Badge variant="secondary" className={cn("rounded-full h-full w-full bg-card")}>
-                    <Icon className="h-4 w-4" />
-                </Badge>
-            </div>
+            <IconContainer
+                type={node?.data?.type}
+                icon={Icon}
+                size={12}
+            />
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
             <TypeBadge type={node?.data?.type} />
         </Button>
     )
 })
 
-const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading: boolean }) => {
+const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading?: boolean }) => {
     // Utiliser des sélecteurs précis pour éviter les re-renders inutiles
-    const setCurrentNode = useFlowStore(state => state.setCurrentNode)
-    const currentNodeId = useFlowStore(state => state.currentNode?.id)
+    const setCurrentNode = useSketchStore(state => state.setCurrentNode)
+    const currentNodeId = useSketchStore(state => state.currentNode?.id)
     const [searchQuery, setSearchQuery] = useState("")
     const [filters, setFilters] = useState<null | string[]>(null) // 'individual', 'email', etc.
 
@@ -144,7 +145,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading: boole
                     <div className="relative grow">
                         <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            type="text"
+                            type="search"
                             placeholder="Search nodes..."
                             className="pl-8 h-7"
                             value={searchQuery}
@@ -165,7 +166,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading: boole
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>All</DropdownMenuItem>
                             {actionItems.map((item) => (
-                                <DropdownMenuItem className={cn(filters?.includes(item.type) && "bg-primary/30")} key={item.id} onClick={() => toggleFilter(item.type)}>{item.type}</DropdownMenuItem>
+                                <DropdownMenuItem className={cn(filters?.includes(item?.type) && "bg-primary/30")} key={item.id} onClick={() => toggleFilter(item?.type)}>{item?.type || "unknown"}</DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>

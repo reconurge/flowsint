@@ -30,5 +30,5 @@ export function useSketch(sketch_id: string | string[] | undefined) {
             revalidateOnReconnect: false,
         }
     );
-    return { sketch: sketch ?? null, isLoading, refetch: mutate, error };
+    return { data: sketch ?? null, isLoading, refetch: mutate, error };
 }

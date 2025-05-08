@@ -2,7 +2,7 @@
 import { createClient } from "../supabase/server"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
-import { Edge, Node } from "@xyflow/react"
+import { Node, Relationship } from "@neo4j-nvl/base"
 import { flattenObj } from "../utils"
 
 export async function createNewSketch(formData: FormData, investigation_id: string) {
@@ -28,14 +28,13 @@ export async function createNewSketch(formData: FormData, investigation_id: stri
 }
 
 type Schema = {
-    nodes: Node[]
-    edges: Edge[]
-    sketch_id: string
+    node: Node
+    sketch_id: string | string[]
 }
 
-export async function saveSchemaToNeo4j(schema: Schema) {
+export async function saveNode(schema: Schema) {
     try {
-        const { nodes, edges, sketch_id } = schema
+        const { node, sketch_id } = schema
         if (!sketch_id) {
             return { success: false, error: "Missing sketch ID" }
         }
@@ -43,23 +42,24 @@ export async function saveSchemaToNeo4j(schema: Schema) {
         await supabase.auth.refreshSession()
         const { data: { session } } = await supabase.auth.getSession();
         const jwt = session?.access_token;
-        const response = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketch/${sketch_id}/save`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketch/${sketch_id}/add`, {
             method: "POST",
-            body: JSON.stringify({ nodes, edges }),
+            body: JSON.stringify(node),
             headers: {
                 'Authorization': `Bearer ${jwt}`,
                 "Content-Type": "application/json",
             },
         })
+        const data = await response.json()
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}))
             return {
                 success: false,
-                error: errorData.message || "Failed to save schema to Neo4j"
+                error: "Failed to create new node"
             }
         }
         return {
             success: true,
+            data: data,
             timestamp: new Date().toISOString()
         }
     } catch (error) {

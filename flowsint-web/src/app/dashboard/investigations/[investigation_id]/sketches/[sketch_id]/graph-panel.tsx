@@ -5,15 +5,16 @@ import Neo4jGraph from './graph'
 
 interface GraphPanelProps {
     query: any
+    minimapRef: any
 }
-export const GraphPanel = memo(function GraphPanel({ query }: GraphPanelProps) {
+export const GraphPanel = memo(function GraphPanel({ query, minimapRef }: GraphPanelProps) {
     const [isBottomPanelCollapsed, setIsBottomPanelCollapsed] = useState(false)
     return (
         <div className="flex flex-col h-full">
             <div className="grow">
                 <ResizablePanelGroup direction="vertical" className="h-full">
                     <ResizablePanel defaultSize={80} className="h-full w-full bg-">
-                        <Neo4jGraph data={query.data} isLoading={query.isLoading} />
+                        <Neo4jGraph minimapRef={minimapRef} data={query.data} isLoading={query.isLoading} />
                     </ResizablePanel>
 
                     <ResizableHandle withHandle />

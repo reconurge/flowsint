@@ -16,7 +16,6 @@ export function cn(...inputs: ClassValue[]) {
 export const zoomSelector = (s: { transform: number[]; }) => s.transform[2] >= 0.6;
 
 import { Position, MarkerType } from '@xyflow/react';
-import { AppNode } from "@/store/flow-store";
 
 // this helper function returns the intersection point
 // of the line between the center of the intersectionNode and the target node
@@ -138,7 +137,7 @@ interface LayoutOptions {
 }
 
 export const getForceLayoutedElements = (
-  nodes: AppNode[],
+  nodes: Node[],
   edges: Edge[],
   options: LayoutOptions = {
     direction: "LR",
@@ -210,7 +209,7 @@ export const getForceLayoutedElements = (
   }
 }
 
-export const getDagreLayoutedElements = (nodes: AppNode[],
+export const getDagreLayoutedElements = (nodes: Node[],
   edges: Edge[],
   options: LayoutOptions = {
     direction: "TB",
@@ -301,31 +300,6 @@ export function generateNodeTypes() {
 
 export const nodesTypes = generateNodeTypes()
 
-
-export const typeColorMap: Record<string, string> = {
-  individual: "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:shadow-slate-900/30",
-  phone: "bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 shadow dark:from-sky-800 dark:to-sky-900 dark:border-sky-700 dark:shadow-sky-900/30",
-  address: "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm dark:from-amber-950 dark:to-amber-900 dark:border-amber-800 dark:shadow-amber-900/30",
-  email: "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-800 dark:shadow-emerald-900/30",
-  ip: "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 shadow dark:from-pink-800 dark:to-pink-900 dark:border-pink-700 dark:shadow-pink-900/30",
-  social: "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm dark:from-purple-950 dark:to-purple-900 dark:border-purple-800 dark:shadow-purple-900/30",
-  organization: "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow dark:from-blue-800 dark:to-blue-900 dark:border-blue-700 dark:shadow-blue-900/30",
-  vehicle: "bg-orange-100 text-orange-800 hover:bg-orange-100/80 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/40",
-  website: "bg-purple-100 text-purple-800 hover:bg-purple-100/80 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40",
-  domain: "bg-purple-100 text-purple-800 hover:bg-purple-100/80 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/40",
-  document: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/40",
-  financial: "bg-green-100 text-green-800 hover:bg-green-100/80 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/40",
-  event: "bg-red-100 text-red-800 hover:bg-red-100/80 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/40",
-  device: "bg-blue-100 text-blue-800 hover:bg-blue-100/80 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/40",
-  media: "bg-fuchsia-100 text-fuchsia-800 hover:bg-fuchsia-100/80 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 dark:hover:bg-fuchsia-900/40",
-  education: "bg-teal-100 text-teal-800 hover:bg-teal-100/80 dark:bg-teal-900/30 dark:text-teal-300 dark:hover:bg-teal-900/40",
-  relationship: "bg-rose-100 text-rose-800 hover:bg-rose-100/80 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/40",
-  online_activity: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100/80 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/40",
-  digital_footprint: "bg-lime-100 text-lime-800 hover:bg-lime-100/80 dark:bg-lime-900/30 dark:text-lime-300 dark:hover:bg-lime-900/40",
-  biometric: "bg-amber-100 text-amber-800 hover:bg-amber-100/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40",
-  credential: "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60",
-}
-
 export const getInitials = (name: string) => {
   return name
     .split(" ")
@@ -388,4 +362,11 @@ export const flattenObj = (ob: Record<string, any>) => {
     }
   }
   return result;
+}
+
+export function hexToRgba(hex: string, alpha: number) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }

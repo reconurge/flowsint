@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
-import { cn, typeColorMap } from "@/lib/utils"
+import { cn, hexToRgba } from "@/lib/utils"
+import { useColorSettings } from "@/store/color-settings"
 import { memo } from "react"
 
 type TypeBadgeProps = {
@@ -8,12 +9,14 @@ type TypeBadgeProps = {
 }
 
 function TypeBadgeComponent({ type, className }: TypeBadgeProps) {
-    const colorClasses = typeColorMap[type] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60"
+    const { colors } = useColorSettings()
+    const color = colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60"
 
     return (
         <Badge
             variant="outline"
-            className={cn(colorClasses, "font-medium border-transparent", className)}
+            style={{ backgroundColor: hexToRgba(color, 0.3) }}
+            className={cn("font-medium border-transparent", className)}
         >
             {type}
         </Badge>

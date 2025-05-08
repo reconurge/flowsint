@@ -40,7 +40,7 @@ function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
 // Memoized scanner node component with custom equality check
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
     return (
-        <BaseNodeSchema className="shadow-md rounded-md !border-l-2 p-0 bg-background" style={{ borderLeftWidth: "8px", borderLeftColor: data.color, cursor: "grab" }}
+        <BaseNodeSchema className="shadow-md rounded-md !border-l-2 p-0 bg-background !max-w-[340px]" style={{ borderLeftWidth: "8px", borderLeftColor: data.color, cursor: "grab" }}
             selected={selected}>
             <div className="p-3 bg-card rounded-t-md">
                 <div className="flex flex-col items-start gap-1 relative">
@@ -50,7 +50,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                     <div className="font-semibold text-sm">
                         {data.class_name}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mt-2">
                         {data.doc}
                     </p>
                 </div>

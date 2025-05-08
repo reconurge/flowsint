@@ -145,84 +145,32 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
 
     }
     
-    
-def neo4j_to_cytoscape(results):
-    elements = []
-    nodes = {}
-    
-    for record in results:
-        a = record["a"]
-        b = record["b"]
-        r = record["r"]
-
-        a_id = a.get("id") or a.get("name")
-        b_id = b.get("id") or b.get("name")
-
-        if a_id and a_id not in nodes:
-            nodes[a_id] = {
-                "data": {
-                    "id": a_id,
-                    "label": a.get("name") or a.get("username") or a_id,
-                    "type": a.get("type")  # <-- ajoute le type
-                }
-            }
-        
-        if b_id and b_id not in nodes:
-            nodes[b_id] = {
-                "data": {
-                    "id": b_id,
-                    "label": b.get("name") or b.get("username") or b_id,
-                    "type": b.get("type")  # <-- ajoute le type
-                }
-            }
-
-        if a_id and b_id:
-            elements.append({
-                "data": {
-                    "source": a_id,
-                    "target": b_id,
-                    "label": r[1]
-                }
-            })
-
-    return list(nodes.values()) + elements
-
-
-def neo4j_to_xy(records):
-    nodes_by_id = {}
-    edges = []
-
-    for record in records:
-        a = record["a"]
-        b = record["b"]
-        r = record["r"]
-
-        a_id = str(a.id)
-        b_id = str(b.id)
-
-        if a_id not in nodes_by_id:
-            nodes_by_id[a_id] = {
-                "id": a_id,
-                "data": { "label": a.get("label", a.get("type", a_id)) },
-                "position": { "x": 100, "y": 100 }
-            }
-
-        if b_id not in nodes_by_id:
-            nodes_by_id[b_id] = {
-                "id": b_id,
-                "data": { "label": b.get("label", b.get("type", b_id)) },
-                "position": { "x": 100, "y": 100 }
-            }
-
-        edge_id = f"{a_id}-{b_id}"
-        edges.append({
-            "id": edge_id,
-            "source": a_id,
-            "target": b_id,
-            "label": r.type
-        })
-
-    return {
-        "nodes": list(nodes_by_id.values()),
-        "edges": edges
+def get_label_color(label: str) -> str:
+    color_map = {
+        'subdomain': '#A5ABB6',
+        'domain': '#68BDF6',
+        'default': '#A5ABB6'
     }
+    
+    return color_map.get(label, color_map["default"])
+
+def flatten(data_dict):
+    """
+    Flattens a dictionary to contain only Neo4j-compatible property values.
+    Neo4j supports primitive types (string, number, boolean) and arrays of those types.
+    Args:
+        data_dict (dict): Dictionary to flatten   
+    Returns:
+        dict: Flattened dictionary with only Neo4j-compatible values
+    """
+    flattened = {}
+    if not isinstance(data_dict, dict):
+        return flattened
+    for key, value in data_dict.items():
+        if value is None:
+            continue
+        if isinstance(value, (str, int, float, bool)) or (
+            isinstance(value, list) and all(isinstance(item, (str, int, float, bool)) for item in value)
+        ):
+            flattened[key] = value 
+    return flattened

@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 import { InvestigationNavigation } from "@/components/investigations/investigation-navigation"
 import { Card } from "@/components/ui/card"
 import { AvatarList } from "@/components/avatar-list"
-import { SectionCards } from "@/components/investigations/section-cards"
+// import { SectionCards } from "@/components/investigations/section-cards"
 import { Profile } from "@/types"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -90,7 +90,7 @@ const DashboardPage = () => {
                         />
                     </div>
                 </div>
-                <SectionCards />
+                {/* <SectionCards /> */}
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="relative w-full max-w-md">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 bg-card text-muted-foreground" />

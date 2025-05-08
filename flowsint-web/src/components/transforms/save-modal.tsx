@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 
 interface TransformModalProps {
     open: boolean
@@ -25,6 +26,14 @@ export function TransformModal({ open, onOpenChange, onSave, isLoading }: Transf
     const [name, setName] = useState("My Transform")
     const [description, setDescription] = useState("")
     const [nameError, setNameError] = useState("")
+
+    useKeyboardShortcut({
+        key: "s",
+        ctrlOrCmd: true,
+        callback: () => {
+            handleSave()
+        },
+    })
 
     const handleSave = () => {
         if (!name.trim()) {

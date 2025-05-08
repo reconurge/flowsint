@@ -92,7 +92,7 @@ const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: 
                                                             {transform.description || "No description available"}
                                                         </CardDescription>
                                                     )}
-                                                    <div className="mt-2 text-xs text-muted-foreground">
+                                                    <div className="mt-2 mb-3 text-xs text-muted-foreground">
                                                         <div>Created: {formatDistanceToNow(transform.created_at, { addSuffix: true })}</div>
                                                         <div>Last updated: {formatDistanceToNow(transform.last_updated_at, { addSuffix: true })}</div>
                                                     </div>

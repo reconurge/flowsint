@@ -7,11 +7,11 @@ import { Toolbar } from './toolbar'
 import { LeftPanel } from './left-panel'
 import { RightPanel } from './right-panel'
 import { ResizablePanelGroup, ResizableHandle, ResizablePanel } from "@/components/ui/resizable"
-import { useState } from "react"
-import { useFlowStore } from "@/store/flow-store"
+import { useRef, useState } from "react"
+import { useSketchStore } from "@/store/sketch-store"
 import { GraphPanel } from "./graph-panel"
-import { ReactFlowProvider } from "@xyflow/react"
 import { Sketch } from "@/types/sketch"
+import SettingsModal from "./settings-modal"
 
 interface DashboardClientProps {
     investigationId: string
@@ -23,6 +23,8 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
     const [open, setOpen] = useState(false)
     const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
     const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
+    const minimapRef = useRef<HTMLDivElement>(null)
+
     const stateSelector = (state: { currentNode: any; setCurrentNode: any }) => ({
         currentNode: state.currentNode,
         setCurrentNode: state.setCurrentNode,
@@ -31,7 +33,8 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
     const {
         currentNode,
         setCurrentNode
-    } = useFlowStore(stateSelector, shallow)
+    } = useSketchStore(stateSelector, shallow)
+
     const graphQuery = useQuery({
         queryKey: ["investigations", investigationId, 'sketches', sketchId, "data"],
         queryFn: async () => {
@@ -44,10 +47,10 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
         refetchOnWindowFocus: true,
     })
     return (
-        <ReactFlowProvider>
+        <>
             <Toolbar investigation_id={investigationId} sketch_id={sketchId} sketch={sketch} user_id={user_id} />
             <div className="grow w-screen overflow-hidden relative">
-                <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-full h-full relative ">
+                <ResizablePanelGroup autoSaveId="persistence" direction="horizontal" className="w-full h-full overflow-hidden relative">
                     {/* Left Panel - Entity Palette */}
                     <LeftPanel
                         isCollapsed={isLeftPanelCollapsed}
@@ -55,10 +58,11 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                     />
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={65}>
-                        <GraphPanel query={graphQuery} />
+                        <GraphPanel minimapRef={minimapRef} query={graphQuery} />
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <RightPanel
+                        minimapRef={minimapRef}
                         sketchId={sketchId}
                         isLoading={graphQuery.isLoading}
                         isCollapsed={isRightPanelCollapsed}
@@ -68,7 +72,8 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                 </ResizablePanelGroup>
                 <ActionDialog setCurrentNode={setCurrentNode} setOpenDialog={setOpen} openDialog={open} />
             </div>
-        </ReactFlowProvider>
+            <SettingsModal />
+        </>
     )
 }
 

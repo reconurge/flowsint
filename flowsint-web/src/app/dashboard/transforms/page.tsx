@@ -2,8 +2,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
+import { hexToRgba } from "@/lib/utils"
+import { useColorSettings } from "@/store/color-settings"
 import { PlusCircle, FileCode2, ArrowRight, Calendar } from "lucide-react"
 import Link from "next/link"
+import { useMemo } from "react"
+import { TransformItem } from "./transform-item"
 
 const TransformsPage = async () => {
     const supabase = await createClient()
@@ -61,53 +65,6 @@ const EmptyState = () => {
     )
 }
 
-const TransformItem = ({ transform }: { transform: any }) => {
-    // Format date if available (assuming created_at exists, adjust as needed)
-    const formattedDate = transform.created_at
-        ? new Date(transform.created_at).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        })
-        : null
 
-    const stepsCount = transform?.transform_schema?.edges?.length || 0
-
-    return (
-        <Link href={`/dashboard/transforms/${transform.id}`} className="block h-full transition-all">
-            <Card className="h-full border hover:border-primary/50 hover:shadow-md transition-all">
-                <CardHeader className="pb-2 relative">
-                    <CardTitle className="text-lg w-full flex items-start justify-between font-medium">
-                        <p className=" line-clamp-2">{transform.name}</p>
-                        <Badge>{transform.category}</Badge>
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2">
-                        {transform.description || "No description provided"}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <FileCode2 className="h-4 w-4 mr-1" />
-                        <span>
-                            {stepsCount} {stepsCount === 1 ? "step" : "steps"}
-                        </span>
-                    </div>
-                </CardContent>
-                <CardFooter className="flex justify-between pt-0">
-                    {formattedDate && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {formattedDate}
-                        </div>
-                    )}
-                    <div className="text-primary text-sm font-medium flex items-center">
-                        View details
-                        <ArrowRight className="ml-1 h-3 w-3" />
-                    </div>
-                </CardFooter>
-            </Card>
-        </Link>
-    )
-}
 
 export default TransformsPage

@@ -3,7 +3,7 @@ import { HelpCircle, MoreHorizontalIcon, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
 import { memo, useMemo } from "react"
-import { cn, typeColorMap } from "@/lib/utils"
+import { cn, hexToRgba } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import {
     DropdownMenu,
@@ -11,13 +11,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import { actionItems } from "@/lib/action-items"
 import LaunchTransform from "./launch-transform"
+import { IconContainer } from "@/components/icon-container"
 
-export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id: string }) {
-    const { investigation_id } = useParams()
+export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id?: string }) {
     const item = useMemo(() =>
         (actionItems as any).find((a: any) => a.type === data?.type),
         [data?.type]
@@ -26,26 +24,14 @@ export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id
     return (
         <div className=" overflow-y-auto overflow-x-hidden h-full">
             <div className="flex items-center sticky bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
-                <div className={cn("p-1 flex items-center justify-center rounded-full bg-card h-10 w-10", typeColorMap[data?.type])}>
-                    <Badge variant="secondary" className={cn("rounded-full h-full w-full bg-card")}>
-                        <Icon className="h- w-7" />
-                    </Badge>
-                </div>
+                <IconContainer
+                    type={data?.type}
+                    icon={Icon}
+                    size={20}
+                />
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
                 <div className="grow" />
                 <div className="flex items-center gap-2">
-                    {data?.type === "organization" &&
-                        <Link href={`/dashboard/investigations/${investigation_id}/organigrams/${data?.id}`}>
-                            <Button
-                                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
-                            >
-                                <span className="flex items-center truncate gap-2">
-                                    <Sparkles className={'h-4 w-4 transition-transform duration-300'} />
-                                    <span className="block truncate">Organigram</span>
-                                </span>
-                                <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
-                            </Button>
-                        </Link>}
                     <LaunchTransform values={[data.label]} sketch_id={sketch_id as string} type={data?.type} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>

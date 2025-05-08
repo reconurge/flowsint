@@ -3,21 +3,20 @@ import random
 from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List
 from app.core.db import get_db
 from app.scanners.registry import ScannerRegistry
 from app.core.auth import get_current_user
-from app.utils import extract_input_schema, neo4j_to_xy
+from app.utils import extract_input_schema, flatten, get_label_color
 from app.core.celery import celery_app 
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
-from typing import List
+from typing import List, Dict, Any
 from app.neo4j.connector import Neo4jConnection
 import os
 from dotenv import load_dotenv
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
 
 load_dotenv()
 
@@ -113,18 +112,16 @@ async def launch_transform(
 async def get_sketch_nodes(sketch_id: str):
     import random
 
-    # 1. Requête pour les 50 premiers nœuds du sketch
     nodes_query = """
     MATCH (n)
     WHERE n.sketch_id = $sketch_id
     RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
-    LIMIT 50
+    LIMIT 500
     """
     nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": sketch_id})
 
     node_ids = [record["id"] for record in nodes_result]
 
-    # 2. Requête pour les relations uniquement entre ces nœuds
     rels_query = """
     UNWIND $node_ids AS nid
     MATCH (a)-[r]->(b)
@@ -133,27 +130,22 @@ async def get_sketch_nodes(sketch_id: str):
     """
     rels_result = neo4j_connection.query(rels_query, parameters={"node_ids": node_ids})
 
-    # 3. Formater les nœuds
     nodes = [
         {
             "id": str(record["id"]),
             "labels": record["labels"],
-            "data": {
-                "label": record["data"].get("domain", "Node"),
-                "type": record["labels"][0].lower(),
-            },
-            "label": record["data"].get("domain", "Node"),
+            "data": record["data"],
+            "label": record["data"].get("label", "Node"),
             "type": record["labels"][0].lower(),
-            "caption": record["data"].get("domain", "Node"),
+            "caption": record["data"].get("label", "Node"),
             "size": 40,
-            "color": get_label_color(record["labels"][0] if record["labels"] else "default"),
+            "color": record["data"].get("color", "#FFFFFF"),
             "x": random.random() * 1000,
             "y": random.random() * 1000
         }
         for record in nodes_result
     ]
 
-    # 4. Formater les relations
     rels = [
         {
             "id": str(record["id"]),
@@ -168,92 +160,60 @@ async def get_sketch_nodes(sketch_id: str):
         for record in rels_result
     ]
 
-    return {"nodes": nodes, "rels": rels}
-
-# Fonction pour attribuer des couleurs en fonction des labels
-def get_label_color(label: str) -> str:
-    color_map = {
-        'subdomain': '#A5ABB6',
-        'domain': '#68BDF6',
-        'default': '#A5ABB6'
-    }
-    
-    return color_map.get(label, color_map["default"])
+    return {"nds": nodes, "rls": rels}
 
 
-from pydantic import BaseModel
-from typing import List, Dict, Any
-
-class Node(BaseModel):
-    id: str
-    data: Dict[str, Any]
-    type: str  # ex: "domain", "email", etc.
-    position: Dict[str, float]  # x, y
-
-class Edge(BaseModel):
-    id: str
-    from_: str  # "from" est un mot réservé, donc on utilise from_ en Python
-    to: str
+class NodeInput(BaseModel):
     type: str
-    data: Dict[str, Any]
+    data: Dict[str, Any] = Field(default_factory=dict)
 
-class SketchPayload(BaseModel):
-    nodes: List[Node]
-    edges: List[Edge]
+def dict_to_cypher_props(props: dict) -> str:
+    return ", ".join(f"{key}: ${key}" for key in props)
 
+@app.post("/sketch/{sketch_id}/add")
+def add_node_to_sketch(sketch_id: str, node: NodeInput):
     
-@app.post("/sketch/{sketch_id}/save")
-async def save_sketch(sketch_id: str, payload: SketchPayload):
+    print(node)
+    node_type = getattr(node, "type", "unknown")
+    node_data = getattr(node, "data", {})
+
+    properties = {
+        "type": node_type,
+        "sketch_id": sketch_id,
+        "caption": node_data.get("label", "Node"),
+        "label": node_data.get("label", "Node"),
+        "color": node_data.get("color", "Node"),
+        "size": 40,
+    }
+
+    if node_data and isinstance(node_data, dict):
+        flattened_data = flatten(node_data)
+        properties.update(flattened_data)
+
+    cypher_props = dict_to_cypher_props(properties)
+
+    create_query = f"""
+        MERGE (d:`{node_type}` {{ {cypher_props} }})
+        RETURN d as node
+    """
+
     try:
-        # 1. Supprimer tous les nœuds et relations du sketch
-        delete_query = """
-        MATCH (n)
-        WHERE n.sketch_id = $sketch_id
-        DETACH DELETE n
-        """
-        neo4j_connection.query(delete_query, parameters={"sketch_id": sketch_id})
-
-        # 2. Créer les nouveaux nœuds
-        for node in payload.nodes:
-            node_query = """
-            CREATE (n:$label)
-            SET n += $props
-            SET n.sketch_id = $sketch_id
-            SET n.id = $id
-            """
-            neo4j_connection.query(
-                node_query,
-                parameters={
-                    "label": node.type.capitalize(),
-                    "props": node.data,
-                    "id": node.id,
-                    "sketch_id": sketch_id
-                }
-            )
-
-        # 3. Créer les relations
-        for edge in payload.edges:
-            edge_query = """
-            MATCH (a), (b)
-            WHERE a.id = $from AND b.id = $to AND a.sketch_id = $sketch_id AND b.sketch_id = $sketch_id
-            CREATE (a)-[r:$rel_type]->(b)
-            SET r += $props
-            SET r.sketch_id = $sketch_id
-            SET r.id = $id
-            """
-            neo4j_connection.query(
-                edge_query,
-                parameters={
-                    "from": edge.from_,
-                    "to": edge.to,
-                    "rel_type": edge.type.upper(),
-                    "props": edge.data,
-                    "id": edge.id,
-                    "sketch_id": sketch_id
-                }
-            )
-
-        return {"status": "success", "message": "Sketch saved."}
-
+        create_result = neo4j_connection.query(create_query, properties)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Neo4j error: {str(e)}")
+        print(f"Query execution error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    if not create_result:
+        raise HTTPException(status_code=400, detail="Node creation failed - no result returned")
+
+    try:
+        new_node = create_result[0]["node"]
+    except (IndexError, KeyError) as e:
+        print(f"Error extracting node_id: {e}, result: {create_result}")
+        new_node = None
+    new_node["data"]=node_data
+
+    return {
+        "status": "node added",
+        "node": new_node,
+    }

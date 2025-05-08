@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState, useCallback } from 'react'
 import { type Node } from '@xyflow/react'
-import { useFlowStore } from '@/store/flow-store'
+import { useSketchStore } from '@/store/sketch-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
@@ -8,8 +8,11 @@ import { Search, HelpCircle, FilterIcon, XIcon } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
-import { cn } from '@/lib/utils'
+import { cn, hexToRgba } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import Loader from '@/components/loader'
+import { useColorSettings } from '@/store/color-settings'
+import { IconContainer } from '@/components/icon-container'
 
 // Mémoiser le composant SocialNode
 const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
@@ -56,7 +59,7 @@ const NodeRenderer = memo(({
     currentNodeId: string | null
 }) => {
     const item = useMemo(() =>
-        (actionItems as any).find((a: any) => a.type === node.data?.type),
+        (actionItems as any).find((a: any) => a?.type === node.data?.type),
         [node.data?.type]
     )
     const Icon = item?.icon || HelpCircle
@@ -70,7 +73,6 @@ const NodeRenderer = memo(({
             currentNodeId={currentNodeId}
         />
     }
-
     return (
         <Button
             variant={"ghost"}
@@ -80,19 +82,21 @@ const NodeRenderer = memo(({
             )}
             onClick={handleClick}
         >
-            <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full">
-                <Icon className="h-4 w-4 opacity-60" />
-            </Badge>
+            <IconContainer
+                type={node?.data?.type}
+                icon={Icon}
+                size={12}
+            />
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
             <TypeBadge type={node?.data?.type} />
         </Button>
     )
 })
 
-const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
+const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading?: boolean }) => {
     // Utiliser des sélecteurs précis pour éviter les re-renders inutiles
-    const setCurrentNode = useFlowStore(state => state.setCurrentNode)
-    const currentNodeId = useFlowStore(state => state.currentNode?.id)
+    const setCurrentNode = useSketchStore(state => state.setCurrentNode)
+    const currentNodeId = useSketchStore(state => state.currentNode?.id)
     const [searchQuery, setSearchQuery] = useState("")
     const [filters, setFilters] = useState<null | string[]>(null) // 'individual', 'email', etc.
 
@@ -102,7 +106,7 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
             const matchesSearch =
                 //@ts-ignore
                 node?.data?.label?.toLowerCase().includes(searchText) ||
-                node.id.toLowerCase().includes(searchText)
+                node?.id?.toLowerCase().includes(searchText)
 
             const matchesFilter = !filters || filters.includes(node?.data?.type as string)
 
@@ -141,7 +145,7 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
                     <div className="relative grow">
                         <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            type="text"
+                            type="search"
                             placeholder="Search nodes..."
                             className="pl-8 h-7"
                             value={searchQuery}
@@ -162,13 +166,18 @@ const NodesPanel = memo(({ nodes }: { nodes: Node[] }) => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>All</DropdownMenuItem>
                             {actionItems.map((item) => (
-                                <DropdownMenuItem className={cn(filters?.includes(item.type) && "bg-primary/30")} key={item.id} onClick={() => toggleFilter(item.type)}>{item.type}</DropdownMenuItem>
+                                <DropdownMenuItem className={cn(filters?.includes(item?.type) && "bg-primary/30")} key={item.id} onClick={() => toggleFilter(item?.type)}>{item?.type || "unknown"}</DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </div>
-            {filteredNodes?.length === 0 && searchQuery === "" && (
+            {isLoading && <div className='text-sm p-4 text-center'>
+                <p className='border rounded-md border-dashed p-4 text-center'>
+                    <Loader /> Loading...
+                </p>
+            </div>}
+            {!isLoading && filteredNodes?.length === 0 && searchQuery === "" && (
                 <div className='text-sm p-4 text-center'>
                     <p className='border rounded-md border-dashed p-4 text-center'>
                         Right click on the panel to add your first investigation item.

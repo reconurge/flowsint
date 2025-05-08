@@ -43,7 +43,7 @@ services:
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
 
-  # Flask-like application with Celery
+  # FastAPI application with Celery
   api:
     build:
       context: flowsint-api
@@ -53,9 +53,9 @@ services:
       - "5000:5000"
     depends_on:
       - redis
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - ENV=prod
+      - neo4j
+    env_file:
+      - .env
     command: ["/app/entrypoint.sh", "app"]
     restart: always
     networks:
@@ -74,9 +74,9 @@ services:
     depends_on:
       - redis
       - api
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - ENV=prod
+      - neo4j
+    env_file:
+      - .env
     command: ["/app/entrypoint.sh", "celery"]
     restart: always
     networks:
@@ -90,6 +90,33 @@ services:
     networks:
       - traefik
 
+  neo4j:
+    image: neo4j:5
+    container_name: flowsint-neo4j
+    ports:
+      - "7474:7474"  # Web UI
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neo4j.rule=Host(`neo4j.flowsint.localhost`)"
+      - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
+      - "traefik.http.routers.neo4j.entrypoints=websecure"
+
+
 networks:
   traefik:
     name: traefik
@@ -97,3 +124,7 @@ networks:
 
 volumes:
   db-config:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:

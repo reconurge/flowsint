@@ -54,13 +54,13 @@ export function AvatarList({
                     key={profile.id}
                     className={cn(
                         sizeClasses[size].avatar,
-                        "border-2 border-card bg-background relative",
+                        "border-2 border-card bg-card relative",
                         "transition-transform",
                         "ring-0 ring-offset-0",
                     )}
                 >
                     <AvatarImage src={profile.avatar_url} alt={`${name}'s avatar`} />
-                    <AvatarFallback className={cn("text-xs", "bg-muted")}>{getInitials(name)}</AvatarFallback>
+                    <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(name)}</AvatarFallback>
                 </Avatar>
             </div>
         )

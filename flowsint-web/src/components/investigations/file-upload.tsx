@@ -18,7 +18,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { useInvestigationStore } from "@/store/project-store"
+import { useInvestigationStore } from "@/store/investigation-store"
 import { toast } from "sonner"
 import { useParams, useRouter } from "next/navigation"
 

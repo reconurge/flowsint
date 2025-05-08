@@ -4,7 +4,7 @@ import { useConfirm } from "@/components/use-confirm-dialog"
 import { performTransform } from "@/lib/actions/transform"
 export function useLaunchTransform(askUser: boolean = false) {
     const { confirm } = useConfirm()
-    const launchTransform = async (values: string[], transform_id: string) => {
+    const launchTransform = async (values: string[], transform_id: string, sketch_id: string | null) => {
         if (askUser) {
             const confirmed = await confirm({
                 title: `${transform_id} scan`,
@@ -12,7 +12,7 @@ export function useLaunchTransform(askUser: boolean = false) {
             })
             if (!confirmed) return
         }
-        toast.promise(performTransform(values, transform_id), {
+        toast.promise(performTransform(values, transform_id, sketch_id), {
             loading: "Loading...",
             success: () => `Scan on "${values.join(",")}" has been launched.`,
             error: (error: any) => `An error occurred: ${JSON.stringify(error)}`,

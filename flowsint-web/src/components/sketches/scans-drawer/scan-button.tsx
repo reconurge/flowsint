@@ -20,7 +20,8 @@ import {
 import { ScanTable } from "./scan-table"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase/client"
-import { useParams } from "next/navigation"
+import { notFound, useParams } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 export type Scan = {
   id: string
   value: string
@@ -34,7 +35,19 @@ export function ScanButton() {
   const [pendingCount, setPendingCount] = useState(0)
   const [scanId, setScanId] = useQueryState("scan_id")
   const [open, setOpen] = useState(false)
-  const { sketch_id } = useParams()
+  const { investigation_id, sketch_id } = useParams()
+
+  const { refetch } = useQuery({
+    queryKey: ["investigations", investigation_id, 'sketches', sketch_id, "data"],
+    queryFn: async () => {
+      const res = await fetch(`/api/investigations/${investigation_id}/sketches/${sketch_id}/sketch`)
+      if (!res.ok) {
+        notFound()
+      }
+      return res.json()
+    },
+    refetchOnWindowFocus: true,
+  })
 
   useEffect(() => {
     // Initial fetch of scans
@@ -70,13 +83,8 @@ export function ScanButton() {
             setScans((current) => {
               const newScans = current.map((scan) => (scan.id === payload.new.id ? (payload.new as Scan) : scan))
               updatePendingCount(newScans)
-              toast(<div>
-                <p className="text-primary font-medium">{payload.new.value}</p>
-                <div className="flex items-center gap-1">
-                  <p> Scan complete on this item.</p> <Button variant="outline" onClick={() => setScanId(payload.new.id)}>Click to see results</Button>
-                </div></div>, {
-                duration: 6000,
-              })
+              toast.success('Scan complete on this item ! Refreshing now.')
+              refetch()
               return newScans
             })
           } else if (payload.eventType === "DELETE") {

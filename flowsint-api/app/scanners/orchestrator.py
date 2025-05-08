@@ -7,9 +7,10 @@ from app.scanners.registry import ScannerRegistry
 from pydantic import ValidationError
 
 class TransformOrchestrator(Scanner):
-    def __init__(self, scan_id: str, scanner_names: List[str]):
-        super().__init__(scan_id)
+    def __init__(self, sketch_id: str, scan_id: str, scanner_names: List[str], neo4j_conn=None):
+        super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn)
         self.scanner_names = scanner_names
+        self.neo4j_conn = neo4j_conn
         self.scanners = []
         self._load_scanners()
 
@@ -20,7 +21,7 @@ class TransformOrchestrator(Scanner):
         for name in self.scanner_names:
             if not ScannerRegistry.scanner_exists(name):
                 raise ValueError(f"Scanner '{name}' not found in registry")
-            scanner = ScannerRegistry.get_scanner(name, self.scan_id)
+            scanner = ScannerRegistry.get_scanner(name, self.sketch_id, self.scan_id, neo4j_conn=self.neo4j_conn)
             self.scanners.append(scanner)
 
     @classmethod

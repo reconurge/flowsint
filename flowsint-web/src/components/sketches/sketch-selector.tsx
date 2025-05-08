@@ -1,6 +1,5 @@
 "use client"
-import { useSketches } from "@/lib/hooks/sketches";
-import { useSketchStore } from '@/store/sketch-store';
+import { useSketch, useSketches } from "@/lib/hooks/sketches";
 import { useParams, useRouter } from "next/navigation";
 import {
     Select,
@@ -16,11 +15,8 @@ import { Badge } from "../ui/badge";
 export default function CaseSelector() {
     const router = useRouter()
     const { sketch_id, investigation_id } = useParams()
-    const useSketchData = useSketchStore(
-        (state) => state.useSketchData
-    );
     const { sketches, isLoading } = useSketches(investigation_id as string)
-    const { sketch } = useSketchData(investigation_id as string, sketch_id as string);
+    const sketch = useSketch(sketch_id as string);
 
     const handleSelectionChange = (value: string) => {
         value === "overview" ? router.push(`/dashboard/investigations/${investigation_id}`) :

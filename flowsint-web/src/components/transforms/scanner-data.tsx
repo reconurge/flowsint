@@ -17,7 +17,7 @@ export interface ScannerData {
 
 // Colors for each category
 export const categoryColors: Record<string, string> = {
-  social_account: "#3b82f6",
+  social_profile: "#3b82f6",
   emails: "#10b981",
   websites: "#f59e0b",
   phones: "#8b5cf6",

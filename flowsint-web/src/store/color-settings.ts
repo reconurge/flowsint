@@ -7,7 +7,7 @@ export type ItemType =
     | "address"
     | "email"
     | "ip"
-    | "social"
+    | "social_profile"
     | "organization"
     | "vehicle"
     | "website"
@@ -24,6 +24,7 @@ export type ItemType =
     | "digital_footprint"
     | "biometric"
     | "credential"
+    | "username"
 
 export const ITEM_TYPES: ItemType[] = [
     "individual",
@@ -31,7 +32,7 @@ export const ITEM_TYPES: ItemType[] = [
     "address",
     "email",
     "ip",
-    "social",
+    "social_profile",
     "organization",
     "vehicle",
     "website",
@@ -48,33 +49,35 @@ export const ITEM_TYPES: ItemType[] = [
     "digital_footprint",
     "biometric",
     "credential",
+    "username"
 ]
 
-// Default colors for each item type
 const DEFAULT_COLORS: Record<ItemType, string> = {
-    individual: "#ff5733",
-    phone: "#33ff57",
-    address: "#3357ff",
-    email: "#f3ff33",
-    ip: "#ff33f3",
-    social: "#33fff3",
-    organization: "#ff8c33",
-    vehicle: "#338cff",
-    website: "#8c33ff",
-    domain: "#ff338c",
-    subdomain: "#8cff33",
-    document: "#33ff8c",
-    financial: "#c733ff",
-    event: "#ffc733",
-    device: "#33c7ff",
-    media: "#ff33c7",
-    education: "#c7ff33",
-    relationship: "#33ffc7",
-    online_activity: "#ff5733",
-    digital_footprint: "#33ff57",
-    biometric: "#3357ff",
-    credential: "#f3ff33",
+    individual: "#D45A3A",          // Bleu moyen
+    phone: "#D45A3A",               // Vert/gris doux
+    address: "#D45A3A",             // Vert forêt
+    email: "#D45A3A",               // Rouge doux
+    ip: "#D45A3A",                  // Orange chaud
+    social_profile: "#D45A3A",      // Mauve gris
+    organization: "#D45A3A",        // Brun/bronze
+    vehicle: "#D45A3A",            // Jaune sable
+    website: "#DAB6C4",             // Rose grisé
+    domain: "#D45A3A",             // Bleu-vert foncé
+    subdomain: "#D45A3A",          // Bleu clair
+    document: "#D45A3A",           // Bleu pâle grisé
+    financial: "#D45A3A",           // Rose saumon
+    event: "#D45A3A",               // Bleu ciel
+    device: "#D45A3A",              // Jaune doux
+    media: "#D45A3A",              // Orange ocre
+    education: "#D45A3A",           // Bleu acier
+    relationship: "#D45A3A",        // Pêche
+    online_activity: "#D45A3A",     // Vert herbe
+    digital_footprint: "#D45A3A",   // Rouge terre
+    username: "#D45A3A",           // Bleu lavande
+    credential: "#D45A3A",        // Gris neutre
+    biometric: "#D45A3A",        // Gris neutre
 }
+
 
 interface ColorSettingsState {
     colors: Record<ItemType, string>

@@ -19,10 +19,15 @@ def is_valid_ip(address: str) -> bool:
 
 def is_valid_username(username: str) -> bool:
     if not re.match(r"^[a-zA-Z0-9_-]{3,30}$", username):
-        raise ValueError(
-            f"Invalid username '{username}': must be 3–30 characters, no spaces, only letters, numbers, - or _."
-        )
-    return username
+        return False
+    return True
+
+def is_valid_email(email: str) -> bool:
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+        return False
+    return True
+
+
 
 def is_valid_domain(url_or_domain: str) -> str:
 

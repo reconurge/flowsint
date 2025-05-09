@@ -19,16 +19,16 @@ interface DashboardClientProps {
     user_id: string,
     sketch: Sketch,
 }
+const stateSelector = (state: { currentNode: any; setCurrentNode: any }) => ({
+    currentNode: state.currentNode,
+    setCurrentNode: state.setCurrentNode,
+})
+
 export default function DashboardClient({ investigationId, sketchId, sketch, user_id }: DashboardClientProps) {
     const [open, setOpen] = useState(false)
     const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
     const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
     const minimapRef = useRef<HTMLDivElement>(null)
-
-    const stateSelector = (state: { currentNode: any; setCurrentNode: any }) => ({
-        currentNode: state.currentNode,
-        setCurrentNode: state.setCurrentNode,
-    })
 
     const {
         currentNode,

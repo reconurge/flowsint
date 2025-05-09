@@ -2,7 +2,7 @@ import pytest
 from app.scanners.ips.geolocation import GeolocationScanner
 from app.types.ip import MinimalIp, Ip
 
-scanner = GeolocationScanner("123")
+scanner = GeolocationScanner("sketch_123", "scan_123")
 
 def test_preprocess_valid_ips():
     ips = [

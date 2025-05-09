@@ -1,5 +1,14 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TypeAlias, Union
 from app.scanners.base import Scanner
+from app.types.email import Email
+from app.types.social import Social
+from pydantic import TypeAdapter
+from app.utils import is_valid_email, resolve_type
+import asyncio
+
+
+InputType: TypeAlias = List[Email]
+OutputType: TypeAlias = List[Social]
 
 class HoleheScanner(Scanner):
     @classmethod
@@ -15,26 +24,35 @@ class HoleheScanner(Scanner):
         return "email"
     
     @classmethod
-    def input_schema(self) -> Dict[str, str]:
-        return ["email"]
-    
+    def input_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(InputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["MinimalSocial"]["properties"].items()
+        ]
+
     @classmethod
-    def output_schema(self) -> Dict[str, str]:
-       return ["social_profile"]
+    def output_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(OutputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["Social"]["properties"].items()
+        ]
     
-    async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
-        """
-        Effectue la recherche Holehe pour chaque email de la liste.
-        """
-        results = []
-        for email in emails:
-            try:
-                result = await self._perform_holehe_research(email)
-                results.append(result)
-            except Exception as e:
-                results.append({"email": email, "error": f"Unexpected error in Holehe scan: {str(e)}"})
-        
-        return results
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            obj = None
+            if isinstance(item, str):
+                obj = Email(email=item)
+            elif isinstance(item, dict) and "email" in item:
+                obj = Email(email=item["email"])
+            elif isinstance(item, Email):
+                obj = item
+
+            if obj and obj.email and is_valid_email(obj.email):
+                cleaned.append(obj)
+        return cleaned
     
     async def _perform_holehe_research(self, email: str) -> Dict[str, Any]:
         """
@@ -50,14 +68,12 @@ class HoleheScanner(Scanner):
         async with httpx.AsyncClient() as client:
             results = []
             
-            # Liste des modules à tester
             modules = [
                 amazon.amazon, google.google, yahoo.yahoo, protonmail.protonmail,
                 instagram.instagram, twitter.twitter, snapchat.snapchat,
                 rocketreach.rocketreach
             ]
             
-            # Exécution des requêtes pour chaque module
             for module in modules:
                 module_result = []
                 try:
@@ -68,30 +84,39 @@ class HoleheScanner(Scanner):
                     results.append({"error": f"Error in {module.__name__}: {str(e)}"})
         
             return {"email": email, "results": results}
-    
-    def postprocess(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Transformation des résultats après le scan.
-        Ajout de la catégorie et des plateformes trouvées.
-        """
-        for result in results:
-            result["scanner"] = "holehe"
-            
-            # Ajoute une liste des plateformes dans le résultat
-            if "found" in result and isinstance(result["found"], dict):
-                result["platforms"] = list(result["found"].keys())
-            
-            categories = {
-                "social_media": ["instagram", "twitter", "snapchat", "facebook"],
-                "email": ["protonmail", "gmail", "yahoo", "outlook"],
-                "products": ["adobe", "amazon", "spotify", "netflix"]
-            }
-            
-            # Classification des plateformes dans les catégories définies
-            result["categories"] = {}
-            for category, platforms in categories.items():
-                result["categories"][category] = [
-                    p for p in result["platforms"] if p in platforms
-                ]
         
-        return {"output":results}
+    async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
+        """
+        Effectue la recherche Holehe pour chaque email de la liste.
+        """
+        results = []
+        for email in emails:
+            found = []
+            try:
+                result = await self._perform_holehe_research(email)
+                for result in result["results"]:
+                    print(result)
+                    if(result["exists"]):
+                        print(result)
+                        found.append(result)                
+            except Exception as e:
+                print(e)
+                continue
+            results.append(found)
+
+        
+        return results
+    
+    def execute(self, values: List[str]) -> List[Dict[str, Any]]:
+        preprocessed = self.preprocess(values)
+        results = asyncio.run(self.scan(preprocessed))
+        try:
+            return self.postprocess(results, preprocessed)
+        except TypeError as e:
+            if "positional argument" in str(e) or "unexpected" in str(e):
+                return self.postprocess(results)
+            raise
+
+        
+    def postprocess(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        return results

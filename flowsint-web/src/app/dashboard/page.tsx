@@ -96,9 +96,7 @@ const DashboardPage = () => {
                     </div>
                 </div>
                 {isLoading ? (
-                    <div className="flex justify-center items-center py-12">
-                        <Loader />
-                    </div>
+                    <Loader label="Loading..." />
                 ) : (
                     <Card className="border rounded-md bg-card shadow-xs">
                         <Table>

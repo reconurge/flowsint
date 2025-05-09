@@ -1,5 +1,4 @@
 import React, { memo, useMemo, useState, useCallback } from 'react'
-import { type Node } from '@xyflow/react'
 import { useSketchStore } from '@/store/sketch-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,16 +7,16 @@ import { Search, HelpCircle, FilterIcon, XIcon } from "lucide-react"
 import { usePlatformIcons } from '@/lib/hooks/use-platform-icons'
 import { Input } from '@/components/ui/input'
 import { actionItems } from '@/lib/action-items'
-import { cn, hexToRgba } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import Loader from '@/components/loader'
-import { useColorSettings } from '@/store/color-settings'
 import { IconContainer } from '@/components/icon-container'
+import { NodeData } from '@/types'
 
 // Mémoiser le composant SocialNode
 const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
     node: any,
-    setCurrentNode: (node: Node) => void,
+    setCurrentNode: (node: NodeData) => void,
     currentNodeId: string | null
 }) => {
     const platformsIcons = usePlatformIcons()
@@ -55,7 +54,7 @@ const NodeRenderer = memo(({
     currentNodeId
 }: {
     node: any,
-    setCurrentNode: (node: Node) => void,
+    setCurrentNode: (node: NodeData) => void,
     currentNodeId: string | null
 }) => {
     const item = useMemo(() =>
@@ -93,7 +92,7 @@ const NodeRenderer = memo(({
     )
 })
 
-const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading?: boolean }) => {
+const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[], isLoading?: boolean }) => {
     // Utiliser des sélecteurs précis pour éviter les re-renders inutiles
     const setCurrentNode = useSketchStore(state => state.setCurrentNode)
     const currentNodeId = useSketchStore(state => state.currentNode?.id)
@@ -173,9 +172,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: Node[], isLoading?: bool
                 </div>
             </div>
             {isLoading && <div className='text-sm p-4 text-center'>
-                <p className='border rounded-md border-dashed p-4 text-center'>
-                    <Loader /> Loading...
-                </p>
+                <Loader label="Loading..." />
             </div>}
             {!isLoading && filteredNodes?.length === 0 && searchQuery === "" && (
                 <div className='text-sm p-4 text-center'>

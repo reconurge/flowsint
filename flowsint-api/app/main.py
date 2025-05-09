@@ -7,10 +7,11 @@ from typing import List
 from app.core.db import get_db
 from app.scanners.registry import ScannerRegistry
 from app.core.auth import get_current_user
-from app.utils import extract_input_schema, flatten, get_label_color
+from app.utils import extract_input_schema, flatten
 from app.core.celery import celery_app 
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
+from app.types.social import MinimalSocial
 from typing import List, Dict, Any
 from app.neo4j.connector import Neo4jConnection
 import os
@@ -55,7 +56,6 @@ async def get_scans_list():
 @app.get("/transforms/nodes")
 async def get_scans_list():
     scanners = ScannerRegistry.list_by_category()
-
     # Flatten scanner nodes
     flattened_scanners = {
         category: [
@@ -77,6 +77,7 @@ async def get_scans_list():
     object_inputs = [
         extract_input_schema("MinimalDomain", MinimalDomain),
         extract_input_schema("MinimalIp", MinimalIp),
+        extract_input_schema("MinimalSocial", MinimalSocial),
     ]
 
     flattened_scanners["inputs"] = object_inputs

@@ -33,7 +33,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
     const handleOpenAddNodeModal = (key: string) => {
-        const selectedItem = actionItems.find(item => item.type === key) ||
+        const selectedItem = actionItems.find(item => item.key === key) ||
             actionItems
                 .filter(item => item.children)
                 .flatMap(item => item.children || [])
@@ -44,6 +44,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             return
         }
         setCurrentNodeType(selectedItem)
+        console.log(selectedItem)
         setOpenDialog(false)
         setOpenNodeModal(true)
     }
@@ -55,7 +56,8 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                 return
             }
             const id = crypto.randomUUID()
-            const label = data[currentNodeType.fields[0].name]
+            const label_key = currentNodeType.fields.find((f) => f.name === currentNodeType.label_key)?.name || currentNodeType.fields[0].name
+            const label = data[label_key as keyof typeof data]
             const type = currentNodeType.type
             const color = colors[type as keyof typeof colors]
             const newNode = {
@@ -76,7 +78,6 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             if (setCurrentNode) setCurrentNode(newNode)
             setOpenNodeModal(false)
         } catch (error) {
-            toast.error(JSON.stringify(error))
             toast.error("Unexpected error during node creation.")
         } finally {
             setOpenDialog(false)
@@ -151,7 +152,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                     <DialogDescription>Feel the required data</DialogDescription>
                     {currentNodeType && (
                         <DynamicForm
-                            type={currentNodeType.type}
+                            currentNodeType={currentNodeType}
                             isForm={true}
                             onSubmit={handleAddNode}
                         />

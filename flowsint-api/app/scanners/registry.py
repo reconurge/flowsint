@@ -6,6 +6,8 @@ from app.scanners.domains.whois import WhoisScanner
 from app.scanners.domains.resolve import ResolveScanner
 from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 from app.scanners.ips.geolocation import GeolocationScanner
+from app.scanners.socials.maigret import MaigretScanner
+
 class ScannerRegistry:
     
     _scanners: Dict[str, Type[Scanner]] = {}
@@ -62,3 +64,4 @@ ScannerRegistry.register(ResolveScanner)
 ScannerRegistry.register(SubdomainScanner)
 ScannerRegistry.register(WhoisScanner)
 ScannerRegistry.register(GeolocationScanner)
+ScannerRegistry.register(MaigretScanner)

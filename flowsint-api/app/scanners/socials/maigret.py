@@ -1,0 +1,170 @@
+import json
+import subprocess
+from pathlib import Path
+from typing import List, Dict, Any, TypeAlias, Union
+
+from app.utils import is_valid_username, resolve_type
+from app.scanners.base import Scanner
+from app.types.social import MinimalSocial, Social
+from pydantic import TypeAdapter
+
+InputType: TypeAlias = List[MinimalSocial]
+OutputType: TypeAlias = List[Social]
+
+class MaigretScanner(Scanner):
+    """Scans usernames for associated social accounts using Maigret."""
+
+    @classmethod
+    def name(cls) -> str:
+        return "maigret_scanner"
+
+    @classmethod
+    def category(cls) -> str:
+        return "social"
+
+    @classmethod
+    def key(cls) -> str:
+        return "username"
+
+    @classmethod
+    def input_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(InputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["MinimalSocial"]["properties"].items()
+        ]
+
+    @classmethod
+    def output_schema(cls) -> List[Dict[str, Any]]:
+        adapter = TypeAdapter(OutputType)
+        return [
+            {"name": prop, "type": resolve_type(details)}
+            for prop, details in adapter.json_schema()["$defs"]["Social"]["properties"].items()
+        ]
+
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            obj = None
+            if isinstance(item, str):
+                obj = MinimalSocial(username=item)
+            elif isinstance(item, dict) and "username" in item:
+                obj = MinimalSocial(username=item["username"])
+            elif isinstance(item, MinimalSocial):
+                obj = item
+
+            if obj and obj.username and is_valid_username(obj.username):
+                cleaned.append(obj)
+        return cleaned
+    
+    def run_maigret(self, username: str) -> Path:
+        output_file = Path(f"/tmp/report_{username}_simple.json")
+        try:
+            subprocess.run(
+                ["maigret", username, "-J", "simple", "-fo", "/tmp"],
+                capture_output=True,
+                text=True,
+                timeout=100
+            )
+        except Exception as e:
+            print(f"[ERROR] Maigret execution failed for {username}: {e}")
+        return output_file
+    
+    def parse_maigret_output(self, username: str, output_file: Path) -> List[Social]:
+        results: List[Social] = []
+        if not output_file.exists():
+            return results
+
+        try:
+            with open(output_file, "r") as f:
+                raw_data = json.load(f)
+        except Exception as e:
+            print(f"[ERROR] Failed to load output file for {username}: {e}")
+            return results
+
+        for platform, profile in raw_data.items():
+            if profile.get("status", {}).get("status") != "Claimed":
+                continue
+
+            status = profile.get("status", {})
+            ids = status.get("ids", {})
+            profile_url = status.get("url") or profile.get("url_user")
+            if not profile_url:
+                continue
+
+            try:
+                followers = int(ids.get("follower_count", 0)) if ids.get("follower_count") else None
+                following = int(ids.get("following_count", 0)) if ids.get("following_count") else None
+                posts = (
+                    int(ids.get("public_repos_count", 0)) +
+                    int(ids.get("public_gists_count", 0))
+                    if "public_repos_count" in ids or "public_gists_count" in ids else None
+                )
+            except ValueError:
+                followers = following = posts = None
+
+            results.append(Social(
+                username=username,
+                profile_url=profile_url,
+                platform=platform,
+                profile_picture_url=ids.get("image"),
+                bio=None,
+                followers_count=followers,
+                following_count=following,
+                posts_count=posts
+            ))
+
+        return results
+
+    def scan(self, data: InputType) -> OutputType:
+        results: OutputType = []
+        for ms in data:
+            if not ms.username:
+                continue
+            output_file = self.run_maigret(ms.username)
+            parsed = self.parse_maigret_output(ms.username, output_file)
+            results.extend(parsed)
+        return results
+
+
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        if not self.neo4j_conn:
+            return results
+
+        for profile in results:
+            self.neo4j_conn.query("""
+                MERGE (p:social_profile {profile_url: $profile_url})
+                SET p.username = $username,
+                    p.platform = $platform,
+                    p.profile_picture_url = $picture,
+                    p.bio = $bio,
+                    p.followers_count = $followers,
+                    p.following_count = $following,
+                    p.posts_count = $posts,
+                    p.label = $label,
+                    p.caption = $caption,
+                    p.color = $color,
+                    p.type = $type,
+                    p.sketch_id = $sketch_id
+
+                MERGE (i:social {username: $username})
+                SET i.sketch_id = $sketch_id
+                MERGE (i)-[:HAS_SOCIAL_ACCOUNT {sketch_id: $sketch_id}]->(p)
+            """, {
+                "profile_url": profile.profile_url,
+                "username": profile.username,
+                "platform": profile.platform,
+                "picture": profile.profile_picture_url,
+                "bio": profile.bio,
+                "followers": profile.followers_count,
+                "following": profile.following_count,
+                "posts": profile.posts_count,
+                "label": f"{profile.platform}:{profile.username}",
+                "caption": f"{profile.platform}:{profile.username}",
+                "color": "#1DA1F2",
+                "type": "social_profile",
+                "sketch_id": self.sketch_id
+            })
+
+
+        return results

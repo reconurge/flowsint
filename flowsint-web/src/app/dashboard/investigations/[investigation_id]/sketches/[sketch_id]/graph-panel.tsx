@@ -13,7 +13,7 @@ export const GraphPanel = memo(function GraphPanel({ query, minimapRef }: GraphP
         <div className="flex flex-col h-full">
             <div className="grow">
                 <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={80} className="h-full w-full bg-">
+                    <ResizablePanel defaultSize={80} className="h-full w-full bg-background">
                         <Neo4jGraph minimapRef={minimapRef} data={query.data} isLoading={query.isLoading} />
                     </ResizablePanel>
 

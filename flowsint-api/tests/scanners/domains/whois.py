@@ -2,7 +2,7 @@ from app.scanners.domains.whois import WhoisScanner
 from app.types.domain import MinimalDomain
 from app.types.whois import Whois
 
-scanner = WhoisScanner("123")
+scanner = WhoisScanner("sketch_123", "scan_123")
 
 def test_preprocess_valid_domains():
     domains = [
@@ -16,7 +16,7 @@ def test_preprocess_valid_domains():
 
     assert result_domains == expected_domains
     
-def test_uneprocess_valid_domains():
+def test_unprocessed_valid_domains():
     domains = [
         "example.com",
         "example2.com",

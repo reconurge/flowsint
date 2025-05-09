@@ -2,16 +2,16 @@
 
 import { create } from "zustand"
 import type { Sketch } from "@/types/sketch"
-import { Node, Relationship } from "@neo4j-nvl/base"
+import { EdgeData, NodeData } from "@/types"
 
 interface SketchState {
-    nodes: Node[]
-    edges: Relationship[]
-    setNodes: (nodes: Node[]) => void
-    addNode: (newNode: Partial<Node>) => void
-    setEdges: (edges: Relationship[]) => void
+    nodes: NodeData[]
+    edges: EdgeData[]
+    setNodes: (nodes: NodeData[]) => void
+    addNode: (newNode: Partial<NodeData>) => void
+    setEdges: (edges: EdgeData[]) => void
     filters: Record<string, unknown>
-    currentNode: Node | null
+    currentNode: NodeData | null
     panelOpen: boolean
     openNewNode: boolean
     openActionDialog: boolean
@@ -19,7 +19,7 @@ interface SketchState {
     isRefetching: boolean
     setFilters: (filters: Record<string, unknown>) => void
     setOpenNewNode: (open: boolean) => void
-    setCurrentNode: (node: Node | null) => void
+    setCurrentNode: (node: NodeData | null) => void
     setPanelOpen: (open: boolean) => void
     setSketch: (sketch: Sketch | null) => void
     setOpenActionDialog: (open: boolean) => void
@@ -39,7 +39,7 @@ export const useSketchStore = create<SketchState>((set, get) => ({
     setNodes: (nodes) => set({ nodes }),
     addNode: (newNode) => {
         const { nodes, setNodes } = get()
-        const newNodes = [...nodes, { ...newNode }] as Node[]
+        const newNodes = [...nodes, { ...newNode }] as NodeData[]
         setNodes(newNodes)
     },
     setEdges: (edges) => set({ edges }),

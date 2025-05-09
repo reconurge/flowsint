@@ -45,18 +45,22 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
         >
             {!isCollapsed ? (
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
-                    <ResizablePanel order={1} id="map" defaultSize={30} className='flex items-center justfify-center p-4'>
-                        <div className='w-full h-full' ref={minimapRef} />
+                    <ResizablePanel order={1} id="map" defaultSize={30} className='flex bg-background items-center justfify-center p-4 overflow-hidden'>
+                        <div className='w-full h-full overflow-hidden z-[50]' ref={minimapRef} />
                     </ResizablePanel>
-                    <ResizableHandle withHandle className="z-[400]" />
-                    {currentNode && (
+
+                    {currentNode ? (
                         <>
+                            <ResizableHandle withHandle className='z-[11]' />
                             <ResizablePanel order={2} id="infos" defaultSize={30}>
                                 <ProfilePanel sketch_id={sketchId} data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>
+                    ) : (
+                        <ResizableHandle withHandle />
                     )}
+
                     <ResizablePanel order={3} id="nodes" defaultSize={40}>
                         <NodesPanel isLoading={isLoading} nodes={processedNodes} />
                     </ResizablePanel>

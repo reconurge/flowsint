@@ -16,38 +16,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-import { actionItems } from "@/lib/action-items"
 import type { FormField } from "@/lib/action-items"
 import { MetadataField } from "@/components/sketches/metadata-field"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 
 interface DynamicFormProps {
-    type: string
+    currentNodeType: any
     initialData?: Record<string, any>
     onSubmit?: (data: any) => void
     isForm?: boolean
     loading?: boolean
 }
 
-export function DynamicForm({ type, initialData = {}, onSubmit, isForm = true, loading = false }: DynamicFormProps) {
+export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isForm = true, loading = false }: DynamicFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const actionItem = useMemo(() => {
-        return (
-            actionItems.find((item) => item.type === type) ||
-            actionItems
-                .filter((item) => item.children)
-                .flatMap((item) => item.children || [])
-                .find((item) => item.type === type)
-        )
-    }, [type])
 
     const dynamicSchema = useMemo(() => {
         const createDynamicSchema = () => {
             const schemaMap: Record<string, z.ZodType<any>> = {}
-            if (!actionItem) return z.object(schemaMap)
-            actionItem.fields.forEach((field) => {
+            if (!currentNodeType) return z.object(schemaMap)
+            currentNodeType.fields.forEach((field: any) => {
                 switch (field.type) {
                     case "email":
                         schemaMap[field.name] = field.required
@@ -82,7 +72,7 @@ export function DynamicForm({ type, initialData = {}, onSubmit, isForm = true, l
                         break
                     case "select":
                         if (field.options && field.options.length > 0) {
-                            const validValues = field.options.map((option) => option.value)
+                            const validValues = field.options.map((option: any) => option.value)
                             schemaMap[field.name] = field.required
                                 ? z
                                     .string()
@@ -131,22 +121,22 @@ export function DynamicForm({ type, initialData = {}, onSubmit, isForm = true, l
             return z.object(schemaMap)
         }
         return createDynamicSchema()
-    }, [actionItem])
+    }, [currentNodeType])
 
     type FormValues = z.infer<typeof dynamicSchema>
     const getDefaultValues = () => {
         const defaults: Record<string, any> = {}
 
-        if (!actionItem) return defaults
+        if (!currentNodeType) return defaults
 
-        actionItem.fields.forEach((field) => {
+        currentNodeType.fields.forEach((field: any) => {
             // Si nous avons des données initiales pour ce champ, les utiliser
             if (initialData && initialData[field.name] !== undefined) {
                 defaults[field.name] = initialData[field.name]
             }
             // Sinon, gérer les différents types de champs
             else if (field.type === "hidden") {
-                const fieldKey = actionItem.key
+                const fieldKey = currentNodeType.key
                 const match = fieldKey.match(/_([^_]+)$/)
                 if ((match && match[1] && field.name === "platform") || field.name === "type") {
                     defaults[field.name] = match?.[1]
@@ -416,15 +406,15 @@ export function DynamicForm({ type, initialData = {}, onSubmit, isForm = true, l
         }
     }
 
-    if (!actionItem) {
+    if (!currentNodeType) {
         return <div className="p-4 text-center text-muted-foreground">Could not find this item.</div>
     }
     if (!isForm) {
-        return <div className="space-y-4">{actionItem.fields.map(renderField)}</div>
+        return <div className="space-y-4">{currentNodeType.fields.map(renderField)}</div>
     }
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-            <div className="space-y-4">{actionItem.fields.map(renderField)}</div>
+            <div className="space-y-4">{currentNodeType.fields.map(renderField)}</div>
 
             <div className="flex justify-end space-x-2 pt-2">
                 <Button type="submit" disabled={isSubmitting || loading}>
@@ -434,7 +424,7 @@ export function DynamicForm({ type, initialData = {}, onSubmit, isForm = true, l
                             Submitting...
                         </>
                     ) : (
-                        `Add ${actionItem.label}`
+                        `Add ${currentNodeType.label}`
                     )}
                 </Button>
             </div>

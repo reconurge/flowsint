@@ -1,40 +1,39 @@
-"use client"
+'use client'
+
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Button } from '@/components/ui/button'
 import Loader from '@/components/loader'
 import NewActions from '@/components/sketches/new-actions'
-import { Button } from '@/components/ui/button'
-import { useSketchStore } from '@/store/sketch-store'
-import type { HitTargets, Node, NVL, Relationship } from '@neo4j-nvl/base'
-import { ZoomInteraction } from '@neo4j-nvl/interaction-handlers'
-import type { MouseEventCallbacks } from '@neo4j-nvl/react'
 import { PlusIcon } from 'lucide-react'
-import React, { memo, useEffect, useRef, useState } from 'react'
+import { useSketchStore } from '@/store/sketch-store'
 import { shallow } from 'zustand/shallow'
-import dynamic from 'next/dynamic'
+import { useColorSettings } from '@/store/color-settings'
+import { NodeData, EdgeData } from '@/types'
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d').then(mod => mod), {
+    ssr: false
+});
+interface GraphProps {
+    isLoading: boolean,
+    minimapRef: any
+    data: { nds: Node[], rls: EdgeData[] }
+}
 
-const InteractiveNvlWrapper = dynamic(
-    () => import('@neo4j-nvl/react').then(mod => mod.InteractiveNvlWrapper),
-    { ssr: false }
-)
-
-const stateSelector = (state: { setCurrentNode: any, nodes: Node[], edges: Relationship[], setNodes: any, setEdges: any, addNode: any }) => ({
+const stateSelector = (state: { setCurrentNode: any, nodes: NodeData[], edges: EdgeData[], setNodes: any, setEdges: any, addNode: any, currentNode: any }) => ({
     setCurrentNode: state.setCurrentNode,
     nodes: state.nodes,
     edges: state.edges,
     setNodes: state.setNodes,
     setEdges: state.setEdges,
-    addNode: state.addNode
+    addNode: state.addNode,
+    currentNode: state.currentNode
 })
 
-interface Neo4jGraphProps {
-    isLoading: boolean,
-    minimapRef: any
-    data: { nds: Node[], rls: Relationship[] }
-}
+const Graph = ({ data, isLoading, minimapRef }: GraphProps) => {
+    const fgRef = useRef<any>(null)
+    const [ready, setReady] = useState(false)
 
-const Neo4jGraph = ({ data, isLoading, minimapRef }: Neo4jGraphProps) => {
-    const nvl = useRef<NVL | null>(null)
-    const [ready, setReady] = useState<boolean>(false)
-
+    const { colors } = useColorSettings()
     const {
         setCurrentNode,
         addNode,
@@ -42,16 +41,13 @@ const Neo4jGraph = ({ data, isLoading, minimapRef }: Neo4jGraphProps) => {
         setEdges,
         nodes,
         edges
-    } = useSketchStore(stateSelector, shallow);
+    } = useSketchStore(stateSelector, shallow)
 
-    // S'assurer que nous sommes côté client
     useEffect(() => {
-        if (minimapRef && minimapRef.current) {
+        if (minimapRef?.current) {
             setReady(true)
         }
     }, [minimapRef])
-
-
 
     useEffect(() => {
         if (isLoading) return
@@ -59,33 +55,22 @@ const Neo4jGraph = ({ data, isLoading, minimapRef }: Neo4jGraphProps) => {
         if (data?.rls) setEdges(data.rls)
     }, [data?.nds, data?.rls, isLoading, setNodes, setEdges])
 
-    const mouseEventCallbacks: MouseEventCallbacks = {
-        onHover: (element: Node | Relationship, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onRelationshipRightClick: (rel: Relationship, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onNodeClick: (node: Node, hitTargets: HitTargets, evt: MouseEvent) =>
-            setCurrentNode(node),
-        onNodeRightClick: (node: Node, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onNodeDoubleClick: (node: Node, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onRelationshipClick: (rel: Relationship, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onRelationshipDoubleClick: (rel: Relationship, hitTargets: HitTargets, evt: MouseEvent) => { },
-        onCanvasClick: (evt: MouseEvent) => setCurrentNode(null),
-        onCanvasDoubleClick: (evt: MouseEvent) => { },
-        onCanvasRightClick: (evt: MouseEvent) => { },
-        onDrag: (nodes: Node[]) => { },
-        onPan: (panning: { x: number; y: number }, evt: MouseEvent) => { },
-        onZoom: (zoomLevel: number) => { },
+    if (isLoading || !ready) {
+        return <Loader label="Loading..." />
     }
 
-    if (isLoading || !ready) return <div className='flex h-full w-full items-center justify-center'>Loading <Loader /></div>
-
-    if (!isLoading && ready && !nodes.length) return <div className='flex relative gap-3 h-full flex-col w-full items-center justify-center'>
-
-        Your nodes will be displayed here.
-        <NewActions addNodes={addNode}>
-            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none">
-                Add your first item <PlusIcon />
-            </Button>
-        </NewActions></div>
+    if (!nodes.length) {
+        return (
+            <div className='flex relative gap-3 h-full flex-col w-full items-center justify-center'>
+                Your nodes will be displayed here.
+                <NewActions addNodes={addNode}>
+                    <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none">
+                        Add your first item <PlusIcon />
+                    </Button>
+                </NewActions>
+            </div>
+        )
+    }
 
     return (
         <div className='relative h-full w-full'>
@@ -96,18 +81,46 @@ const Neo4jGraph = ({ data, isLoading, minimapRef }: Neo4jGraphProps) => {
                     </Button>
                 </NewActions>
             </div>
-            <InteractiveNvlWrapper
-                nvlOptions={{
-                    renderer: "canvas",
-                    minimapContainer: minimapRef?.current
+            <ForceGraph2D
+                ref={fgRef}
+                graphData={{ nodes, links: edges }}
+                nodeId="id"
+                linkSource="from"
+                nodeLabel={"label"}
+                linkTarget="to"
+                nodeAutoColorBy="label"
+                d3VelocityDecay={0.3} // accélère la stabilisation du graphe
+                d3AlphaDecay={0.05}   // (optionnel) pour que le graphe converge plus vite
+                cooldownTicks={50}   // (optionnel) fixe la durée de simulation
+                // onEngineStop={() => fgRef.current.zoomToFit(400)} // auto-fit à la fin du layout
+                onNodeClick={(node) => setCurrentNode(node)}
+                onBackgroundClick={() => setCurrentNode(null)}
+                linkColor={"red"}
+                onNodeDragEnd={(node) => {
+                    node.fx = node.x;
+                    node.fy = node.y;
+                    node.fz = node.z;
                 }}
-                ref={nvl}
-                nodes={nodes}
-                rels={edges}
-                mouseEventCallbacks={mouseEventCallbacks}
+                nodeCanvasObject={(node: any, ctx, globalScale) => {
+                    const radius = node.size / 10
+                    const background = getComputedStyle(document.documentElement).getPropertyValue('--card')?.trim()
+                    const fontSize = globalScale * .2462
+                    ctx.font = `${fontSize}px Sans-Serif`
+                    ctx.fillStyle = background
+                    ctx.strokeText
+                    ctx.beginPath()
+                    ctx.arc(node.x!, node.y!, node.size / 10, 0, 2 * Math.PI, false)
+                    ctx.fill()
+                    // Contour
+                    ctx.beginPath()
+                    ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false)
+                    ctx.strokeStyle = colors[node.type as keyof typeof colors] || 'black'
+                    ctx.lineWidth = .4
+                    ctx.stroke()
+                }}
             />
         </div>
     )
 }
 
-export default memo(Neo4jGraph)
+export default memo(Graph)

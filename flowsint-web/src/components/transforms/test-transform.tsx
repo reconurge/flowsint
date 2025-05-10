@@ -18,7 +18,7 @@ const TestTransform = memo(({ open, setOpen, type, loading, onSubmit }: TestTran
             <DialogContent>
                 <DialogTitle>Test transform</DialogTitle>
                 <DialogDescription>Fill the required data</DialogDescription>
-                <DynamicForm type={type} isForm={true} loading={loading} onSubmit={onSubmit} />
+                <DynamicForm currentNodeType={type} isForm={true} loading={loading} onSubmit={onSubmit} />
             </DialogContent>
         </Dialog>
     )

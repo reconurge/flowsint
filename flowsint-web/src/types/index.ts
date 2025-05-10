@@ -9,10 +9,10 @@ export type NodeData = {
   position: any,
   type: string,
   data: any,
-  parentId?: string,
-  extent?: string
   width?: number,
-  height?: number
+  height?: number,
+  x?: number,
+  y?: number
 };
 
 export type EdgeData = {

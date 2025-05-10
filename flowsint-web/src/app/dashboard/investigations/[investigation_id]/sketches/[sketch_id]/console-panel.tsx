@@ -1,3 +1,4 @@
+import { CopyButton } from '@/components/copy'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChevronDown, Database, FileText, Grid, List } from 'lucide-react'
@@ -20,18 +21,19 @@ export const ConsolePanel = memo(function ConsolePanel() {
             <div className="flex h-8 items-center bg-card py-2 justify-between border-b px-4">
                 <h2 className="font-medium text-sm">Console</h2>
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <Grid className="h-4 w-4" />
+                    {/* <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <Grid className="h-4 w-4 opacity-70" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <List className="h-4 w-4" />
+                        <List className="h-4 w-4 opacity-70" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-4 w-4 opacity-70" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <Database className="h-4 w-4" />
-                    </Button>
+                        <Database className="h-4 w-4 opacity-70" />
+                    </Button> */}
+                    <CopyButton content={JSON.stringify(logEntries)} />
                 </div>
             </div>
             <div className="p-2 font-mono text-xs bg-card grow overflow-auto inset-shadow-sm">

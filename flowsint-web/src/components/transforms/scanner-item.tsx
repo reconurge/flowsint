@@ -54,7 +54,7 @@ const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
       <div
         draggable
         onDragStart={onDragStart}
-        className="p-3 rounded-md relative cursor-grab bg-card border hover:shadow-md transition-shadow"
+        className="p-3 rounded-md relative overflow-hidden cursor-grab bg-card border hover:shadow-md transition-shadow"
         style={{ borderLeftWidth: "4px", borderLeftColor: color, cursor: "grab" }}
       >
         <div className="flex justify-between items-start">

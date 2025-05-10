@@ -28,7 +28,7 @@ class HoleheScanner(Scanner):
         adapter = TypeAdapter(InputType)
         return [
             {"name": prop, "type": resolve_type(details)}
-            for prop, details in adapter.json_schema()["$defs"]["MinimalSocial"]["properties"].items()
+            for prop, details in adapter.json_schema()["$defs"]["Email"]["properties"].items()
         ]
 
     @classmethod
@@ -95,14 +95,16 @@ class HoleheScanner(Scanner):
             try:
                 result = await self._perform_holehe_research(email)
                 for result in result["results"]:
-                    print(result)
-                    if(result["exists"]):
-                        print(result)
-                        found.append(result)                
+                    if("error" not in result and "exists" in result):
+                        found.append(
+                        Social(
+                            username=email.email,
+                            profile_url=f"https://{result['domain']}",
+                            platform=result["name"]))         
             except Exception as e:
                 print(e)
                 continue
-            results.append(found)
+            results.extend(found)
 
         
         return results
@@ -118,5 +120,34 @@ class HoleheScanner(Scanner):
             raise
 
         
-    def postprocess(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        if not self.neo4j_conn:
+            return results
+
+        for profile in results:
+            self.neo4j_conn.query("""
+                MERGE (p:social_profile {profile_url: $profile_url})
+                SET p.platform = $platform,
+                    p.username = $username,
+                    p.label = $label,
+                    p.caption = $caption,
+                    p.type = $type,
+                    p.sketch_id = $sketch_id
+
+                MERGE (i:email {email: $email})
+                SET i.sketch_id = $sketch_id
+                MERGE (i)-[:HAS_SOCIAL_ACCOUNT {sketch_id: $sketch_id}]->(p)
+            """, {
+                "profile_url": profile.profile_url,
+                "username": profile.username,
+                "platform": profile.platform,
+                "label": f"{profile.platform}:{profile.username}",
+                "caption": f"{profile.platform}:{profile.username}",
+                "color": "#1DA1F2",
+                "email": profile.username,
+                "type": "social_profile",
+                "sketch_id": self.sketch_id
+            })
+
+
         return results

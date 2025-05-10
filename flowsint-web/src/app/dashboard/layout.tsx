@@ -31,7 +31,15 @@ const DashboardLayout = async ({
                     <header className="sticky top-0 z-50 bg-card border-b">
                         <div className="flex h-12 items-center px-4">
                             <Link href="/dashboard" className="flex items-center gap-1">
-                                <FingerprintIcon className="mr-2 h-6 w-6 text-primary" />
+                                <div className={"relative w-6 h-6"}>
+                                    <div className="absolute inset-0 rounded-full border-4 border-primary" />
+                                    <div
+                                        className="absolute inset-1 rounded-full border-4 border-secondary"
+                                    />
+                                    <div
+                                        className="absolute inset-2 rounded-full border-2 border-cyan-500"
+                                    />
+                                </div>
                                 <span className='opacity-60 text-sm'>/</span>
                             </Link>
                             {/* <Separator orientation="vertical" className="h-6" /> */}

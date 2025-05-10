@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { notFound } from "next/navigation"
 import { shallow } from 'zustand/shallow'
-import ActionDialog from './actions'
+// import ActionDialog from './actions'
 import { Toolbar } from './toolbar'
 import { LeftPanel } from './left-panel'
 import { RightPanel } from './right-panel'
@@ -70,7 +70,7 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                         currentNode={currentNode}
                     />
                 </ResizablePanelGroup>
-                <ActionDialog setCurrentNode={setCurrentNode} setOpenDialog={setOpen} openDialog={open} />
+                {/* <ActionDialog setCurrentNode={setCurrentNode} setOpenDialog={setOpen} openDialog={open} /> */}
             </div>
             <SettingsModal />
         </>

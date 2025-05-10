@@ -12,6 +12,7 @@ from app.core.celery import celery_app
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.types.social import MinimalSocial
+from app.types.email import Email
 from typing import List, Dict, Any
 from app.neo4j.connector import Neo4jConnection
 import os
@@ -78,6 +79,7 @@ async def get_scans_list():
         extract_input_schema("MinimalDomain", MinimalDomain),
         extract_input_schema("MinimalIp", MinimalIp),
         extract_input_schema("MinimalSocial", MinimalSocial),
+        extract_input_schema("Email", Email),
     ]
 
     flattened_scanners["inputs"] = object_inputs

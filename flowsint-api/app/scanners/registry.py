@@ -7,6 +7,7 @@ from app.scanners.domains.resolve import ResolveScanner
 from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 from app.scanners.ips.geolocation import GeolocationScanner
 from app.scanners.socials.maigret import MaigretScanner
+from app.scanners.emails.holehe import HoleheScanner
 
 class ScannerRegistry:
     
@@ -65,3 +66,4 @@ ScannerRegistry.register(SubdomainScanner)
 ScannerRegistry.register(WhoisScanner)
 ScannerRegistry.register(GeolocationScanner)
 ScannerRegistry.register(MaigretScanner)
+ScannerRegistry.register(HoleheScanner)

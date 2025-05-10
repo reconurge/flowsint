@@ -21,13 +21,11 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
     const stateSelector = (state: { nodes: any }) => ({
         nodes: state.nodes,
     })
-
     const {
         nodes,
     } = useSketchStore(stateSelector, shallow)
-
     const processedNodes = useMemo(() =>
-        nodes.map(({ id, data, type }: { id: string; data: any; type?: string }) => ({ id, data, type }))
+        nodes.map((node: any) => (node))
             .sort((a: { type?: any }, b: { type?: string }) => b?.type?.localeCompare(a?.type || "")),
         [nodes.length]
     );

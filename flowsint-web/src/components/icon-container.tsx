@@ -14,18 +14,19 @@ interface IconContainerProps {
     type: string
     icon: LucideIcon
     size?: number
+    color?: string
 }
 
-export function IconContainer({ type, icon: Icon, size = 12 }: IconContainerProps) {
+export function IconContainer({ type, color, icon: Icon, size = 12 }: IconContainerProps) {
     const containerSize = size + 16 // Make container slightly larger than icon
-    const color = useColorSettings((state) => state.colors[type as keyof typeof state.colors] || "#000000")
-    const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
+    const col = color ? color : useColorSettings((state) => state.colors[type as keyof typeof state.colors] || "#000000")
+    const bgColor = useMemo(() => hexToRgba(col, 0.3), [color])
 
     return (
         <div>
             <div
                 style={{
-                    border: `${size/4}px solid ${bgColor}`,
+                    border: `${size / 4}px solid ${bgColor}`,
                     width: `${containerSize}px`,
                     height: `${containerSize}px`,
                 }}

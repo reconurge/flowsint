@@ -55,13 +55,11 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                 toast.error("Invalid node type or sketch ID.")
                 return
             }
-            const id = crypto.randomUUID()
             const label_key = currentNodeType.fields.find((f) => f.name === currentNodeType.label_key)?.name || currentNodeType.fields[0].name
             const label = data[label_key as keyof typeof data]
             const type = currentNodeType.type
             const color = colors[type as keyof typeof colors]
             const newNode = {
-                id,
                 type: type,
                 caption: label,
                 color,
@@ -70,7 +68,6 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                     color,
                     label,
                     type,
-                    id
                 },
             }
             const resp = await saveNode({ node: newNode, sketch_id })

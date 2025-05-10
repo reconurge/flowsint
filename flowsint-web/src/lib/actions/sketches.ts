@@ -2,8 +2,6 @@
 import { createClient } from "../supabase/server"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
-import { Node, Relationship } from "@neo4j-nvl/base"
-import { flattenObj } from "../utils"
 
 export async function createNewSketch(formData: FormData, investigation_id: string) {
     const supabase = await createClient()
@@ -28,7 +26,7 @@ export async function createNewSketch(formData: FormData, investigation_id: stri
 }
 
 type Schema = {
-    node: Node
+    node: any
     sketch_id: string | string[]
 }
 

@@ -147,7 +147,7 @@ class MaigretScanner(Scanner):
                     p.type = $type,
                     p.sketch_id = $sketch_id
 
-                MERGE (i:social {username: $username})
+                MERGE (i:username {username: $username})
                 SET i.sketch_id = $sketch_id
                 MERGE (i)-[:HAS_SOCIAL_ACCOUNT {sketch_id: $sketch_id}]->(p)
             """, {

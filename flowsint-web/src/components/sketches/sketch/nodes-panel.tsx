@@ -98,7 +98,6 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[], isLoading?: 
     const currentNodeId = useSketchStore(state => state.currentNode?.id)
     const [searchQuery, setSearchQuery] = useState("")
     const [filters, setFilters] = useState<null | string[]>(null) // 'individual', 'email', etc.
-
     const filteredNodes = useMemo(() => {
         const searchText = searchQuery.toLowerCase()
         return nodes?.filter((node) => {

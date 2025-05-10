@@ -32,8 +32,8 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
             {!isCollapsed ? (
                 <div className="overflow-auto bg-card h-full flex flex-col w-full !p-0 !m-0">
                     <div>
-                        <div className="p-2">
-                            <div className="grid grid-cols-1 gap-1">
+                        <div className="p-4">
+                            <div className="grid grid-cols-1 gap-2">
                                 {actionItems.map((item) => {
                                     if (item.children && item.children.length > 0) {
                                         return (
@@ -41,34 +41,32 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                                 <AccordionItem value={item.id.toString()}>
                                                     <AccordionTrigger className="py-1 text-sm">
                                                         <div className="flex items-center gap-2">
-                                                            <IconContainer
-                                                                icon={item.icon}
-                                                                type={item.type}
-                                                            />
                                                             <span>{item.label}</span>
                                                             {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
                                                         </div>
                                                     </AccordionTrigger>
                                                     <AccordionContent>
-                                                        <div className="grid grid-cols-1 gap-1 pl-2">
+                                                        <div className="grid grid-cols-1 gap-2 p-2">
                                                             {item.children.map((childItem) => {
                                                                 return (
                                                                     <div
                                                                         key={childItem.id}
-                                                                        className={`flex cursor-grab items-center gap-2 rounded-md p-2 hover:bg-background ${childItem.disabled ? "opacity-50 cursor-not-allowed" : ""
-                                                                            }`}
-                                                                        draggable={!childItem.disabled}
+                                                                        draggable
+                                                                        className="p-2 rounded-md relative overflow-hidden border-l-primary cursor-grab bg-card border hover:shadow-md transition-shadow"
+                                                                        style={{ borderLeftWidth: "4px", borderLeftColor: childItem.color, cursor: "grab" }}
                                                                     >
-                                                                        <IconContainer
-                                                                            icon={childItem.icon}
-                                                                            type={childItem.type}
-                                                                        />
-                                                                        <span className="text-xs">
-                                                                            {childItem.label}
-                                                                            {childItem.comingSoon && (
-                                                                                <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>
-                                                                            )}
-                                                                        </span>
+                                                                        <div className="flex justify-start items-center gap-2">
+                                                                            <IconContainer
+                                                                                icon={childItem.icon}
+                                                                                color={childItem.color}
+                                                                                type={childItem.type}
+                                                                            />
+                                                                            <div className="space-y-1">
+                                                                                {/* <Badge variant={"outline"} className="">{scanner.type}</Badge> */}
+                                                                                <h3 className="text-sm font-medium">{childItem.label}</h3>
+                                                                                <p className="text-xs text-muted-foreground">{childItem.label}</p>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 );
                                                             })}
@@ -83,18 +81,21 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                     return (
                                         <div
                                             key={item.id}
-                                            className={`flex cursor-grab items-center gap-2 rounded-md p-1 hover:bg-background ${item.disabled ? "opacity-50 cursor-not-allowed" : ""
-                                                }`}
-                                            draggable={!item.disabled}
+                                            draggable
+                                            className="p-2 px-4 rounded-md relative overflow-hidden border-l-primary cursor-grab bg-card border hover:shadow-md transition-shadow"
+                                            style={{ borderLeftWidth: "4px", cursor: "grab" }}
                                         >
-                                            <IconContainer
-                                                icon={item.icon}
-                                                type={item.type}
-                                            />
-                                            <span className="text-xs">
-                                                {item.label}
-                                                {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
-                                            </span>
+                                            <div className="flex justify-start items-center gap-2">
+                                                <IconContainer
+                                                    icon={item.icon}
+                                                    type={item.type}
+                                                />
+                                                <div className="space-y-1">
+                                                    {/* <Badge variant={"outline"} className="">{scanner.type}</Badge> */}
+                                                    <h3 className="text-sm font-medium">{item.label}</h3>
+                                                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     );
                                 })}

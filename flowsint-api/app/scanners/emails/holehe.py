@@ -5,6 +5,7 @@ from app.types.social import Social
 from pydantic import TypeAdapter
 from app.utils import is_valid_email, resolve_type
 import asyncio
+from app.core.logger import logger
 
 
 InputType: TypeAlias = List[Email]
@@ -125,6 +126,7 @@ class HoleheScanner(Scanner):
             return results
 
         for profile in results:
+            logger.info(self.scan_id, self.sketch_id, f"{profile.username} -> account found on {profile.platform}")
             self.neo4j_conn.query("""
                 MERGE (p:social_profile {profile_url: $profile_url})
                 SET p.platform = $platform,

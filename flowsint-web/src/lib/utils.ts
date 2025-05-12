@@ -364,6 +364,20 @@ export const flattenObj = (ob: Record<string, any>) => {
   return result;
 }
 
+export function flattenArray(nodes: any[], key: string): any[] {
+  let result = [];
+
+  for (const node of nodes) {
+    const { [key]: children, ...rest } = node;
+    result.push(rest);
+    if (children) {
+      result = result.concat(flattenArray(children, key));
+    }
+  }
+  return result as any[];
+}
+
+
 export function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)

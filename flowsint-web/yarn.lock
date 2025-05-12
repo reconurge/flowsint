@@ -5815,6 +5815,15 @@ react-force-graph-2d@^1.27.1:
     prop-types "15"
     react-kapsule "^2.5"
 
+react-force-graph-3d@^1.26.1:
+  version "1.26.1"
+  resolved "https://registry.yarnpkg.com/react-force-graph-3d/-/react-force-graph-3d-1.26.1.tgz#b138adc13412da6d0c89ea4e85a59ef85ae5ed49"
+  integrity sha512-Ff520+ngcja441fAyop+oiPPEcXaRhzvTqA+4ve6Kr341g3TIg0+s/i7pafCtYhgpPXcbjiDet0wskzGaNhIlQ==
+  dependencies:
+    "3d-force-graph" "^1.76"
+    prop-types "15"
+    react-kapsule "^2.5"
+
 react-force-graph@^1.47.6:
   version "1.47.6"
   resolved "https://registry.yarnpkg.com/react-force-graph/-/react-force-graph-1.47.6.tgz#f5d72d8fc47b28b4ed1a3a2b5bcf74ee54616f75"
@@ -6524,6 +6533,11 @@ three-render-objects@^1.35:
     float-tooltip "^1.7"
     kapsule "^1.16"
     polished "4"
+
+three-spritetext@^1.9.6:
+  version "1.9.6"
+  resolved "https://registry.yarnpkg.com/three-spritetext/-/three-spritetext-1.9.6.tgz#f6e89dfbc158ad2f04392fc012ef390a7d7f7f99"
+  integrity sha512-+O5hGi6u4nWLefY8+Hlufd0aysWZhS2Ex61LCQVSixbYbykdPUOYYA+V+4xG4mKNDm1AsC0yHINRQS5NQb6mSg==
 
 "three@>=0.118 <1":
   version "0.176.0"

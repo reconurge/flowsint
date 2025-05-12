@@ -14,10 +14,10 @@ import { IconContainer } from '@/components/icon-container'
 import { NodeData } from '@/types'
 
 // Mémoiser le composant SocialNode
-const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
+const SocialNode = memo(({ node, setCurrentNode, isSelected }: {
     node: any,
     setCurrentNode: (node: NodeData) => void,
-    currentNodeId: string | null
+    isSelected: any
 }) => {
     const platformsIcons = usePlatformIcons()
     const platformIcon = useMemo(() => {
@@ -32,7 +32,7 @@ const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
             variant={"ghost"}
             className={cn(
                 'flex items-center justify-start p-4 !py-5 rounded-none text-left border-b border-l-2 border-l-transparent',
-                node.id === currentNodeId && 'border-l-primary bg-background'
+                isSelected(node.id) && 'border-l-primary bg-background'
             )}
             onClick={handleClick}
         >
@@ -51,11 +51,11 @@ const SocialNode = memo(({ node, setCurrentNode, currentNodeId }: {
 const NodeRenderer = memo(({
     node,
     setCurrentNode,
-    currentNodeId
+    isSelected
 }: {
     node: any,
     setCurrentNode: (node: NodeData) => void,
-    currentNodeId: string | null
+    isSelected: any
 }) => {
     const item = useMemo(() =>
         (actionItems as any).find((a: any) => a?.type === node.data?.type),
@@ -69,7 +69,7 @@ const NodeRenderer = memo(({
         return <SocialNode
             setCurrentNode={setCurrentNode}
             node={node}
-            currentNodeId={currentNodeId}
+            isSelected={isSelected}
         />
     }
     return (
@@ -77,7 +77,7 @@ const NodeRenderer = memo(({
             variant={"ghost"}
             className={cn(
                 'flex items-center justify-start p-4 !py-5 hover:bg-background rounded-none text-left border-b border-l-2 border-l-transparent',
-                node.id === currentNodeId && 'border-l-primary bg-background'
+                isSelected(node.id) && 'border-l-primary bg-background'
             )}
             onClick={handleClick}
         >
@@ -93,10 +93,10 @@ const NodeRenderer = memo(({
 })
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[], isLoading?: boolean }) => {
-    // Utiliser des sélecteurs précis pour éviter les re-renders inutiles
+
     const setCurrentNode = useSketchStore(state => state.setCurrentNode)
-    const currentNodeId = useSketchStore(state => state.currentNode?.id)
-    const [searchQuery, setSearchQuery] = useState("")
+    const isSelected = useSketchStore(state => state.isSelected)
+    const [searchQuery, setSearchQuery] = useState<string>("")
     const [filters, setFilters] = useState<null | string[]>(null) // 'individual', 'email', etc.
     const filteredNodes = useMemo(() => {
         const searchText = searchQuery.toLowerCase()
@@ -138,8 +138,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[], isLoading?: 
         <div className="overflow-auto bg-card h-full flex flex-col w-full !p-0 !m-0">
             <div className="sticky border-b top-0 p-2 bg-card z-10">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium">Nodes</h3>
-                    <Badge variant={"outline"}>{nodes?.length || 0}</Badge>
+                    <Badge className='h-7' variant={"outline"}><span className='font-semibold'>{nodes?.length || 0}</span> <span className='font-normal opacity-60'>nodes</span></Badge>
                     <div className="relative grow">
                         <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -188,7 +187,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[], isLoading?: 
                 filteredNodes?.map((node: any) => (
                     <NodeRenderer
                         node={node}
-                        currentNodeId={currentNodeId || null}
+                        isSelected={isSelected}
                         setCurrentNode={setCurrentNode}
                         key={node.id}
                     />

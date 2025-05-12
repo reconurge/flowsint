@@ -41,7 +41,7 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
             maxSize={40}
             className="h-full bg-card"
             collapsible={true}
-            collapsedSize={2}
+            collapsedSize={1}
             onCollapse={() => setIsCollapsed(true)}
             onExpand={() => setIsCollapsed(false)}
         >
@@ -86,9 +86,6 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
                 </ResizablePanelGroup>
             ) : (
                 <div className="flex h-full items-center justify-center">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsCollapsed(false)}>
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
                 </div>
             )}
         </ResizablePanel>

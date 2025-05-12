@@ -429,9 +429,7 @@ function TransformEditor({
 
     if (!mounted) {
         return (
-            <div className="grow w-full flex items-center justify-center">
-                <Loader /> Loading...
-            </div>
+            <Loader label="Loading.." />
         )
     }
     return (

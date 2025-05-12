@@ -3,119 +3,121 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { Sketch } from "@/types/sketch"
-import { EdgeData, NodeData } from "@/types"
+import type { EdgeData, NodeData } from "@/types"
+import { ActionItem, actionItems } from "@/lib/action-items"
 
 interface SketchState {
-    nodes: NodeData[]
-    edges: EdgeData[]
-    setNodes: (nodes: NodeData[]) => void
-    addNode: (newNode: Partial<NodeData>) => void
-    setEdges: (edges: EdgeData[]) => void
-    filters: Record<string, unknown>
+    // Nodes data
+    nodes: NodeData[],
+    edges: EdgeData[],
     currentNode: NodeData | null
     selectedNodes: NodeData[]
-    panelOpen: boolean
-    openNewNode: boolean
-    openActionDialog: boolean
-    sketch: Sketch | null
-    isRefetching: boolean
-    setFilters: (filters: Record<string, unknown>) => void
-    setOpenNewNode: (open: boolean) => void
+    // Nodes states
+    isCurrent: (nodeId: string) => boolean
+    isSelected: (nodeId: string) => boolean
+    // Nodes setters
+    setNodes: (nodes: NodeData[]) => void
+    setEdges: (edges: EdgeData[]) => void
     setCurrentNode: (node: NodeData | null) => void
     setSelectedNodes: (nodes: NodeData[]) => void
-    toggleNodeSelection: (node: NodeData, multiSelect?: boolean) => void
-    setPanelOpen: (open: boolean) => void
-    setSketch: (sketch: Sketch | null) => void
-    setOpenActionDialog: (open: boolean) => void
     clearSelectedNodes: () => void
+    toggleNodeSelection: (node: NodeData, multiSelect?: boolean) => void
+    // Nodes mutators
+    addNode: (newNode: Partial<NodeData>) => void
+    // Main modal, showing different first categ items
+    openMainDialog: boolean,
+    setOpenMainDialog: (open: boolean) => void,
+    // Second modal, open after clicking on an item
+    openFormDialog: boolean,
+    setOpenFormDialog: (open: boolean) => void
+    // Open the form dialog with correct form proposed
+    handleOpenFormModal: (key: string) => void
+    // To know the selected node type for the form
+    currentNodeType: ActionItem | null
+    setCurrentNodeType: (nodeType: ActionItem | null) => void
+    // filters
+    filters: Record<string, unknown>,
+    setFilters: (filters: Record<string, unknown>) => void
+
+
 }
 
-// Ajout d'outils de développement pour faciliter le debug
 export const useSketchStore = create<SketchState>()(
-    devtools(
-        (set, get) => ({
-            nodes: [],
-            edges: [],
-            filters: {},
-            currentNode: null,
-            selectedNodes: [],
-            panelOpen: false,
-            openNewNode: false,
-            openActionDialog: false,
-            sketch: null,
-            isRefetching: false,
 
-            setNodes: (nodes) => set({ nodes }, false, "setNodes"),
-            addNode: (newNode) => {
-                const { nodes } = get()
-                // S'assurer que le nœud a un ID unique s'il n'en a pas déjà un
-                const nodeWithId = {
-                    id: newNode.id || `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                    ...newNode
-                } as NodeData
+    (set, get) => ({
+        nodes: [],
+        edges: [],
+        currentNode: null,
+        selectedNodes: [],
+        openMainDialog: false,
+        openFormDialog: false,
+        currentNodeType: null,
+        isCurrent: (nodeId) => {
+            const { currentNode } = get()
+            return currentNode !== null && currentNode.id === nodeId
+        },
+        isSelected: (nodeId) => {
+            const { selectedNodes, isCurrent } = get()
+            return selectedNodes.some((node) => node.id === nodeId) || isCurrent(nodeId)
+        },
+        setNodes: (nodes) => set({ nodes }),
+        setEdges: (edges) => set({ edges }),
+        setCurrentNode: (node) => {
+            set({ currentNode: node })
+        },
+        setSelectedNodes: (nodes) => {
+            set({ selectedNodes: nodes })
+        },
+        clearSelectedNodes: () => {
+            set({ selectedNodes: [], currentNode: null })
+        },
+        addNode: (newNode) => {
+            const { nodes } = get()
+            const nodeWithId = {
+                id: newNode.id || `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                ...newNode,
+            } as NodeData
 
-                const newNodes = [...nodes, nodeWithId]
-                set({ nodes: newNodes }, false, "addNode")
-                return nodeWithId
-            },
-            setEdges: (edges) => set({ edges }, false, "setEdges"),
-            setFilters: (filters) => set({ filters }, false, "setFilters"),
-            setOpenNewNode: (open) => set({ openNewNode: open }, false, "setOpenNewNode"),
-
-            setCurrentNode: (node) => {
-                console.log("Setting current node:", node)
-                set({ currentNode: node }, false, "setCurrentNode")
-                // Si nous définissons un nœud actuel et que le panneau n'est pas ouvert, ouvrons-le
-                if (node && !get().panelOpen) {
-                    set({ panelOpen: true }, false, "openPanelWithNode")
-                }
-            },
-
-            setSelectedNodes: (nodes) => {
-                console.log("Setting selected nodes:", nodes)
-                set({ selectedNodes: nodes }, false, "setSelectedNodes")
-            },
-
-            toggleNodeSelection: (node, multiSelect = false) => {
-                const { selectedNodes } = get()
-                const isSelected = selectedNodes.some(n => n.id === node.id)
-
-                if (multiSelect) {
-                    // Mode multi-sélection: ajouter ou retirer le nœud
-                    if (isSelected) {
-                        set(
-                            { selectedNodes: selectedNodes.filter(n => n.id !== node.id) },
-                            false,
-                            "removeNodeFromSelection"
-                        )
-                    } else {
-                        set(
-                            { selectedNodes: [...selectedNodes, node] },
-                            false,
-                            "addNodeToSelection"
-                        )
-                    }
+            const newNodes = [...nodes, nodeWithId]
+            set({ nodes: newNodes })
+            return nodeWithId
+        },
+        toggleNodeSelection: (node, multiSelect = false) => {
+            const { selectedNodes } = get()
+            const isSelected = selectedNodes.some((n) => n.id === node.id)
+            if (multiSelect) {
+                if (isSelected) {
+                    set({ selectedNodes: selectedNodes.filter((n) => n.id !== node.id) })
                 } else {
-                    // Mode sélection unique: remplacer ou désélectionner
-                    if (isSelected && selectedNodes.length === 1) {
-                        set({ selectedNodes: [] }, false, "deselectNode")
-                    } else {
-                        set({ selectedNodes: [node] }, false, "selectSingleNode")
-                    }
+                    set({ selectedNodes: [...selectedNodes, node] })
                 }
-
-                // Définir également comme nœud actuel
-                set({ currentNode: isSelected ? null : node }, false, "updateCurrentNodeWithSelection")
-            },
-
-            clearSelectedNodes: () => {
-                set({ selectedNodes: [], currentNode: null }, false, "clearSelectedNodes")
-            },
-
-            setPanelOpen: (open) => set({ panelOpen: open }, false, "setPanelOpen"),
-            setSketch: (sketch) => set({ sketch }, false, "setSketch"),
-            setOpenActionDialog: (open) => set({ openActionDialog: open }, false, "setOpenActionDialog"),
-        }),
-        { name: "sketch-store" }
-    )
-)
+            } else {
+                if (isSelected && selectedNodes.length === 1) {
+                    set({ selectedNodes: [] })
+                } else {
+                    set({ selectedNodes: [node] })
+                }
+            }
+            set({ currentNode: isSelected ? null : node })
+        },
+        setOpenMainDialog: (open) => set({ openMainDialog: open }),
+        setOpenFormDialog: (open) => set({ openFormDialog: open }),
+        setCurrentNodeType: (nodeType) => set({ currentNodeType: nodeType }),
+        handleOpenFormModal: (key) => {
+            const selectedItem = actionItems.find(item => item.key === key) ||
+                actionItems
+                    .filter(item => item.children)
+                    .flatMap(item => item.children || [])
+                    .find(item => item.key === key)
+            if (!selectedItem) {
+                return
+            }
+            set({
+                currentNodeType: selectedItem,
+                openMainDialog: false,
+                openFormDialog: true
+            })
+        },
+        filters: {},
+        setFilters: (filters) => set({ filters }),
+    }))

@@ -66,7 +66,7 @@ const DashboardPage = () => {
                         </div>
                     </Card>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center border bg-card rounded-md overflow-hidden">
+                        {/* <div className="flex items-center border bg-card rounded-md overflow-hidden">
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -83,7 +83,7 @@ const DashboardPage = () => {
                             >
                                 <List className="h-4 w-4" />
                             </Button>
-                        </div>
+                        </div> */}
                         <NewInvestigation>
                             <Button className="gap-2">
                                 <PlusIcon className="h-4 w-4" />  New
@@ -96,20 +96,6 @@ const DashboardPage = () => {
                 </div>
                 <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
-                                    <SlidersHorizontal className="h-4 w-4 opacity-60" />
-                                    <span className="hidden sm:inline">Sort by</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Name</DropdownMenuItem>
-                                <DropdownMenuItem>Date created</DropdownMenuItem>
-                                <DropdownMenuItem>Date modified</DropdownMenuItem>
-                                <DropdownMenuItem>Size</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                         <Button onClick={() => refetch()} disabled={isLoading || isRefetching} variant={"outline"} size="sm" className="gap-2">
                             <RotateCwIcon className={cn("h-4 w-4", isLoading || isRefetching && "animate-spin")} />  Refresh
                         </Button>

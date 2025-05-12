@@ -36,7 +36,7 @@ export function CopyButton({ content, className, delay = 2000 }: CopyButtonProps
         <Tooltip open={isCopied}>
             <TooltipTrigger asChild>
                 <Button className={cn("h-7 w-7", className)} size={"icon"} variant="ghost" onClick={handleCopy} aria-label="Copy content">
-                    {isCopied ? <CheckIcon className="!h-3.5 !w-3.5 text-primary " /> : <CopyIcon className="!h-3.5 !w-3.5 opacity-50" />}
+                    {isCopied ? <CheckIcon className="!h-3.5 !w-3.5 text-primary" /> : <CopyIcon className="!h-3.5 !w-3.5 opacity-50" />}
                 </Button>
             </TooltipTrigger>
             <TooltipContent>

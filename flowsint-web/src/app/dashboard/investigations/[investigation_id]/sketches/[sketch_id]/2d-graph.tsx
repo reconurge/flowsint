@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useEffect, useRef } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import Loader from "@/components/loader"
@@ -12,18 +12,10 @@ import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import type { NodeData, EdgeData } from "@/types"
 import { useGraphControls } from "@/store/graph-controls-store"
 
-const ARROW_COLOR = "rgba(255, 255, 255, 0.37)";
-const LINE_COLOR = "rgba(255, 255, 255, 0.21)";
-const LINE_WIDTH = 1;
-const ARROW_HEAD_LENGTH = 5;
-
-
-const getNodeSize = (type: string) =>
-    ["individual", "username", "domain", "organization"].includes(type) ? 80 : 45;
-
-const getNodeRadius = (type: string, isSelected = false) =>
-    getNodeSize(type) / 10 + (isSelected ? 0.5 : 0);
-
+const ARROW_COLOR = "rgba(136, 136, 136, 0.21)";
+const LINE_COLOR = "rgba(136, 136, 136, 0.21)";
+const LINE_WIDTH = .3;
+const ARROW_HEAD_LENGTH = 3;
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d").then((mod) => mod), {
     ssr: false,
@@ -31,7 +23,7 @@ const ForceGraph2D = dynamic(() => import("react-force-graph-2d").then((mod) => 
 
 interface GraphProps {
     isLoading: boolean
-    data: { nds: Node[]; rls: EdgeData[] }
+    data: { nds: NodeData[]; rls: EdgeData[] }
     width?: number
     height?: number
 }
@@ -48,8 +40,8 @@ const stateSelector = (state: {
     currentNode: NodeData | null,
     selectedNodes: NodeData[],
     setSelectedNodes: any
-    panelOpen: boolean
-    setPanelOpen: any
+    isCurrent: any,
+    isSelected: any
 }) => ({
     setCurrentNode: state.setCurrentNode,
     toggleNodeSelection: state.toggleNodeSelection,
@@ -62,13 +54,16 @@ const stateSelector = (state: {
     currentNode: state.currentNode,
     selectedNodes: state.selectedNodes,
     setSelectedNodes: state.setSelectedNodes,
-    panelOpen: state.panelOpen,
-    setPanelOpen: state.setPanelOpen
+    isSelected: state.isSelected,
+    isCurrent: state.isCurrent
 })
 
 const Graph = ({ data, isLoading, width, height }: GraphProps) => {
     const fgRef = useRef<any>(null)
-    const { colors, getIcon } = useNodesDisplaySettings()
+    const colors = useNodesDisplaySettings(c => c.colors)
+    const getIcon = useNodesDisplaySettings(c => c.getIcon)
+    const getSize = useNodesDisplaySettings(c => c.getSize)
+
     const {
         currentNode,
         selectedNodes,
@@ -79,12 +74,60 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
         setEdges,
         nodes,
         edges,
-        panelOpen,
-        setPanelOpen
+        isSelected,
+        isCurrent,
     } = useSketchStore(
         stateSelector,
         shallow,
     )
+
+    const linkCanvaObject = useMemo(() => (link: any, ctx: any) => {
+        const start = link.target as any;
+        const end = link.source as any;
+        if (
+            !start || !end ||
+            typeof start.x !== "number" || typeof start.y !== "number" ||
+            typeof end.x !== "number" || typeof end.y !== "number"
+        ) return;
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const angle = Math.atan2(dy, dx);
+        const targetRadius = getSize(end.type) / 10;
+        const tx = end.x - Math.cos(angle) * targetRadius;
+        const ty = end.y - Math.sin(angle) * targetRadius;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = LINE_WIDTH;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        ctx.fillStyle = ARROW_COLOR;
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(
+            tx - ARROW_HEAD_LENGTH * Math.cos(angle - Math.PI / 10),
+            ty - ARROW_HEAD_LENGTH * Math.sin(angle - Math.PI / 10)
+        );
+        ctx.lineTo(
+            tx - ARROW_HEAD_LENGTH * Math.cos(angle + Math.PI / 10),
+            ty - ARROW_HEAD_LENGTH * Math.sin(angle + Math.PI / 10)
+        );
+        ctx.closePath();
+        ctx.fill();
+        if (link.caption) {
+            const midX = (start.x + tx) / 2;
+            const midY = (start.y + ty) / 2;
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+            ctx.fillStyle = "#333";
+            ctx.font = "1.5px Sans-Serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(link.caption, 0, -1);
+            ctx.restore();
+        }
+    }, [])
 
     const setActions = useGraphControls((s) => s.setActions);
 
@@ -120,10 +163,7 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
     const onNodeClick = useCallback((node: any, event: any) => {
         const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
         toggleNodeSelection(node, multiSelect)
-        if (!panelOpen) {
-            setPanelOpen(true)
-        }
-    }, [toggleNodeSelection, panelOpen, setPanelOpen])
+    }, [toggleNodeSelection])
 
     const nodeColor = useCallback(
         (node: any) => {
@@ -156,23 +196,9 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
 
     return (
         <div className="relative h-full w-full">
-            {/* Bouton pour ajouter un nouveau nœud */}
-            <div className="top-3 left-3 absolute z-50">
-                <NewActions addNodes={addNode}>
-                    <Button
-                        className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none"
-                        size="icon"
-                    >
-                        <PlusIcon />
-                    </Button>
-                </NewActions>
-            </div>
-
-            {/* Panneau de débogage */}
             <div className="absolute bottom-3 left-3 z-50 bg-card p-2 rounded-lg text-xs opacity-70">
                 Selected: {selectedNodes.length}
             </div>
-
             <ForceGraph2D
                 ref={fgRef}
                 graphData={{ nodes, links: edges }}
@@ -181,59 +207,36 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                 nodeLabel="label"
                 linkTarget="to"
                 nodeAutoColorBy="label"
-                d3VelocityDecay={0.3}
-                d3AlphaDecay={0.05}
-                cooldownTicks={50}
                 width={width}
                 height={height}
                 nodeColor={nodeColor}
-                linkCanvasObject={(link, ctx) => {
-                    const start = link.target as any;
-                    const end = link.source as any;
-                    if (
-                        !start || !end ||
-                        typeof start.x !== "number" || typeof start.y !== "number" ||
-                        typeof end.x !== "number" || typeof end.y !== "number"
-                    ) return;
-                    const dx = end.x - start.x;
-                    const dy = end.y - start.y;
-                    const angle = Math.atan2(dy, dx);
-                    const targetRadius = getNodeRadius(end.type);
-                    const tx = end.x - Math.cos(angle) * targetRadius;
-                    const ty = end.y - Math.sin(angle) * targetRadius;
-                    ctx.strokeStyle = LINE_COLOR;
-                    ctx.lineWidth = LINE_WIDTH;
-                    ctx.beginPath();
-                    ctx.moveTo(start.x, start.y);
-                    ctx.lineTo(tx, ty);
-                    ctx.stroke();
-                    ctx.fillStyle = ARROW_COLOR;
-                    ctx.beginPath();
-                    ctx.moveTo(tx, ty);
-                    ctx.lineTo(
-                        tx - ARROW_HEAD_LENGTH * Math.cos(angle - Math.PI / 10),
-                        ty - ARROW_HEAD_LENGTH * Math.sin(angle - Math.PI / 10)
-                    );
-                    ctx.lineTo(
-                        tx - ARROW_HEAD_LENGTH * Math.cos(angle + Math.PI / 10),
-                        ty - ARROW_HEAD_LENGTH * Math.sin(angle + Math.PI / 10)
-                    );
-                    ctx.closePath();
-                    ctx.fill();
-                    if (link.caption) {
-                        const midX = (start.x + tx) / 2;
-                        const midY = (start.y + ty) / 2;
-                        ctx.save();
-                        ctx.translate(midX, midY);
-                        ctx.rotate(angle);
-                        ctx.fillStyle = "#333";
-                        ctx.font = "3px Sans-Serif";
-                        ctx.textAlign = "center";
-                        ctx.textBaseline = "middle";
-                        ctx.fillText(link.caption, 0, -4);
-                        ctx.restore();
-                    }
-                }}
+                linkCanvasObject={linkCanvaObject}
+                // onRenderFramePre={(ctx, globalScale) => {
+                //     const step = 50;
+                //     const dotSize = 1.5 * globalScale;
+                //     const canvas = ctx.canvas;
+                //     const width = canvas.width;
+                //     const height = canvas.height;
+                //     const graphCoords = fgRef.current?.screen2GraphCoords;
+
+                //     if (!graphCoords) return;
+
+                //     const topLeft = graphCoords(0, 0);
+                //     const bottomRight = graphCoords(width, height);
+
+                //     ctx.save();
+                //     ctx.clearRect(0, 0, width, height);
+                //     ctx.fillStyle = LINE_COLOR;
+                //     for (let x = Math.floor(topLeft.x / step) * step; x < bottomRight.x; x += step) {
+                //         for (let y = Math.floor(topLeft.y / step) * step; y < bottomRight.y; y += step) {
+                //             const screen = fgRef.current.graph2ScreenCoords(x, y);
+                //             ctx.beginPath();
+                //             ctx.arc(screen.x, screen.y, dotSize, 0, 2 * Math.PI);
+                //             ctx.fill();
+                //         }
+                //     }
+                //     ctx.restore();
+                // }}
                 linkWidth={link => link ? 2 : 1}
                 onNodeClick={onNodeClick}
                 onBackgroundClick={handleBackgroundClick}
@@ -243,11 +246,11 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                     node.fz = node.z
                 }}
                 nodeCanvasObject={(node: any, ctx, globalScale) => {
-                    const isSelected = selectedNodes.some(n => n.id === node.id);
-                    const isCurrent = currentNode?.id === node.id;
+                    const isNodeSelected = isSelected(node.id)
+                    const isNodeCurrent = isCurrent(node.id)
                     const color = colors[node.type as keyof typeof colors]
-                    const nodeSize = ["individual", "username", "domain", "organization"].includes(node?.type) ? 80 : 45
-                    const radius = nodeSize / 10 + (isSelected ? 0.5 : 0)
+                    const nodeSize = getSize(node?.type)
+                    const radius = nodeSize / 10 + (isNodeSelected ? 0.5 : 0)
                     const fontSize = globalScale * 0.2462
                     ctx.font = `${fontSize}px Sans-Serif`
                     ctx.fillStyle = color
@@ -257,11 +260,11 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                     ctx.beginPath()
                     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false)
                     ctx.strokeStyle = color || "black"
-                    ctx.lineWidth = isSelected ? 0.5 : 0.2
+                    ctx.lineWidth = isNodeSelected ? 0.5 : 0.2
                     ctx.stroke()
-                    const size = ["individual", "username", "domain", "organization"].includes(node?.type) ? 8 : 4
+                    const size = nodeSize / 10
                     ctx.drawImage(getIcon(node.type), node.x - size / 2, node.y - size / 2, size, size);
-                    if (isSelected) {
+                    if (isNodeSelected) {
                         ctx.beginPath()
                         ctx.arc(node.x!, node.y!, radius + 0.8, 0, 2 * Math.PI, false)
                         ctx.strokeStyle = '#FFCC00'
@@ -269,12 +272,12 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                         ctx.stroke()
                         if (node.label) {
                             ctx.fillStyle = '#FFFFFF'
-                            ctx.font = `bold ${fontSize * 1.2}px Sans-Serif`
+                            ctx.font = `${fontSize} Sans-Serif`
                             ctx.textAlign = 'center'
                             ctx.fillText(node.label, node.x!, node.y! + radius + 4.5)
                         }
                     }
-                    if (isCurrent) {
+                    if (isNodeCurrent) {
                         ctx.beginPath()
                         ctx.arc(node.x!, node.y!, radius + 1.5, 0, 2 * Math.PI, false)
                         ctx.strokeStyle = 'white'

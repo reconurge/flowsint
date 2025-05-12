@@ -5,6 +5,7 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.utils import is_valid_domain, resolve_type
+from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalDomain]
 OutputType: TypeAlias = List[MinimalIp]
@@ -62,6 +63,7 @@ class ResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for domain_obj, ip_obj in zip(original_input, results):
+            logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {ip_obj.address}.")
             query = """
             MERGE (d:domain {domain: $domain})
             SET d.sketch_id = $sketch_id
@@ -83,4 +85,5 @@ class ResolveScanner(Scanner):
                     "caption": ip_obj.address,
                     "type": "ip"
                 })
+
         return results

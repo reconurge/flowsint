@@ -5,6 +5,7 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain, Domain
 from app.utils import is_valid_domain, resolve_type
 from pydantic import TypeAdapter
+from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalDomain]
 OutputType: TypeAlias = List[Domain]
@@ -95,7 +96,6 @@ class SubdomainScanner(Scanner):
                 ["subfinder", "-silent", "-d", domain],
                 capture_output=True, text=True, timeout=60
             )
-            print(result)
             if result.returncode == 0:
                 for sub in result.stdout.strip().splitlines():
                     sub = sub.strip().lower()
@@ -131,5 +131,7 @@ class SubdomainScanner(Scanner):
                     "color": "#865FCD",
                     "type": "subdomain"
                 })
+            logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found.")
+
 
         return results

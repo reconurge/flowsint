@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 from app.neo4j.connector import Neo4jConnection
+from app.core.logger import logger
+
 class Scanner(ABC):    
     def __init__(self, sketch_id:str, scan_id: str, neo4j_conn: Neo4jConnection = None):
         self.scan_id = scan_id
@@ -58,14 +60,17 @@ class Scanner(ABC):
         Execute the scanning process by first preprocessing, then scanning, and finally postprocessing.
         Tries to call postprocess with (results, preprocessed). Falls back to (results) if needed.
         """
+        if self.name() != "transform_orchestrator":
+            logger.info(self.scan_id,self.sketch_id, f"Scanner {self.name()} started.")
         preprocessed = self.preprocess(values)
         results = self.scan(preprocessed)
-
+        processed = self.postprocess(results, preprocessed)
         try:
-            # Try calling with both results and preprocessed
-            return self.postprocess(results, preprocessed)
-        except TypeError as e:
-            if "positional argument" in str(e) or "unexpected" in str(e):
-                return self.postprocess(results)
-            raise
+            if self.name() != "transform_orchestrator":
+                logger.success(self.scan_id,self.sketch_id, f"Scanner {self.name()} finished.")
+            return processed
+        except Exception as e:
+            if self.name() != "transform_orchestrator":
+                logger.error(self.scan_id,self.sketch_id, f"Scanner {self.name()} errored: '{str(e)}'.")
+            return processed
 

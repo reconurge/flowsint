@@ -8,7 +8,7 @@ from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 from app.scanners.ips.geolocation import GeolocationScanner
 from app.scanners.socials.maigret import MaigretScanner
 from app.scanners.emails.holehe import HoleheScanner
-
+from app.scanners.organizations.sirene import SireneScanner
 class ScannerRegistry:
     
     _scanners: Dict[str, Type[Scanner]] = {}
@@ -67,3 +67,4 @@ ScannerRegistry.register(WhoisScanner)
 ScannerRegistry.register(GeolocationScanner)
 ScannerRegistry.register(MaigretScanner)
 ScannerRegistry.register(HoleheScanner)
+ScannerRegistry.register(SireneScanner)

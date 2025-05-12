@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         const { data: transforms, error } = await supabase.from("transforms")
             .select("id, name, description, category, created_at, last_updated_at")
             .order("last_updated_at", { ascending: false })
-            .eq("category", type)
+            .contains('category', [type])
         if (error) {
             console.log(error)
             return NextResponse.json({ error: error.message }, { status: 500 })

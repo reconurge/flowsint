@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { cn, hexToRgba } from "@/lib/utils"
-import { useColorSettings } from "@/store/color-settings"
+import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import { memo } from "react"
 
 type TypeBadgeProps = {
@@ -9,7 +9,7 @@ type TypeBadgeProps = {
 }
 
 function TypeBadgeComponent({ type, className }: TypeBadgeProps) {
-    const { colors } = useColorSettings()
+    const { colors } = useNodesDisplaySettings()
     const color = colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60"
 
     return (

@@ -9,6 +9,7 @@ export type NodeData = {
   position: any,
   type: string,
   data: any,
+  label: string,
   width?: number,
   height?: number,
   x?: number,

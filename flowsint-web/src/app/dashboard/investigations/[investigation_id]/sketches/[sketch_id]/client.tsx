@@ -25,14 +25,11 @@ const stateSelector = (state: { currentNode: any; setCurrentNode: any }) => ({
 })
 
 export default function DashboardClient({ investigationId, sketchId, sketch, user_id }: DashboardClientProps) {
-    const [open, setOpen] = useState(false)
     const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
     const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
-    const minimapRef = useRef<HTMLDivElement>(null)
 
     const {
         currentNode,
-        setCurrentNode
     } = useSketchStore(stateSelector, shallow)
 
     const graphQuery = useQuery({
@@ -58,11 +55,10 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                     />
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={65}>
-                        <GraphPanel minimapRef={minimapRef} query={graphQuery} />
+                        <GraphPanel query={graphQuery} />
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <RightPanel
-                        minimapRef={minimapRef}
                         sketchId={sketchId}
                         isLoading={graphQuery.isLoading}
                         isCollapsed={isRightPanelCollapsed}
@@ -70,7 +66,6 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                         currentNode={currentNode}
                     />
                 </ResizablePanelGroup>
-                {/* <ActionDialog setCurrentNode={setCurrentNode} setOpenDialog={setOpen} openDialog={open} /> */}
             </div>
             <SettingsModal />
         </>

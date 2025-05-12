@@ -7,12 +7,12 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ITEM_TYPES, type ItemType, useColorSettings } from "@/store/color-settings"
+import { ITEM_TYPES, type ItemType, useNodesDisplaySettings } from "@/store/node-display-settings"
 import { useModalStore } from "@/store/store-settings"
 
 export default function SettingsModal() {
     const { isSettingsOpen, closeSettings } = useModalStore()
-    const { colors, setColor, resetColors } = useColorSettings()
+    const { colors, setColor, resetAll } = useNodesDisplaySettings()
     const [localColors, setLocalColors] = useState<Record<ItemType, string>>({ ...colors })
 
     const handleColorChange = (itemType: ItemType, color: string) => {
@@ -37,8 +37,8 @@ export default function SettingsModal() {
     }
 
     const handleReset = () => {
-        resetColors()
-        setLocalColors({ ...useColorSettings.getState().colors })
+        resetAll()
+        setLocalColors({ ...useNodesDisplaySettings.getState().colors })
     }
 
     return (

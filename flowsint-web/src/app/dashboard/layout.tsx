@@ -40,7 +40,7 @@ const DashboardLayout = async ({
                                         className="absolute inset-2 rounded-full border-2 border-cyan-500"
                                     />
                                 </div>
-                                <span className='opacity-60 text-sm'>/</span>
+                                {/* <span className='opacity-60 text-sm'>/</span> */}
                             </Link>
                             {/* <Separator orientation="vertical" className="h-6" /> */}
                             <MainNav className="mx-6" />

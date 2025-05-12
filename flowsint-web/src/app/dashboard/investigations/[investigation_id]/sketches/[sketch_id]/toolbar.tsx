@@ -7,6 +7,7 @@ import { ScanButton } from "@/components/sketches/scans-drawer/scan-button"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { useGraphControls } from "@/store/graph-controls-store"
 import { useSketchStore } from "@/store/sketch-store"
 import { useModalStore } from "@/store/store-settings"
 import type { Profile } from "@/types"
@@ -85,6 +86,10 @@ export const Toolbar = memo(function Toolbar({
     )
     const { toggleSettings } = useModalStore()
 
+    const zoomToFit = useGraphControls((s) => s.zoomToFit);
+    const zoomIn = useGraphControls((s) => s.zoomIn);
+    const zoomOut = useGraphControls((s) => s.zoomOut);
+
     const { refetch, isRefetching } = useQuery({
         queryKey: ["investigations", investigation_id, 'sketches', sketch_id, "data"],
         queryFn: async () => {
@@ -131,21 +136,19 @@ export const Toolbar = memo(function Toolbar({
                     <ToolbarButton
                         icon={<ZoomIn className="h-4 w-4 opacity-70" />}
                         tooltip="Zoom In"
-                        onClick={() => { }}
+                        onClick={zoomIn}
                     />
                     <ToolbarButton
                         icon={<Minus className="h-4 w-4 opacity-70" />}
                         tooltip="Zoom Out"
-                        onClick={() => { }}
+                        onClick={zoomOut}
                     />
                     <ToolbarButton
                         icon={<Maximize className="h-4 w-4 opacity-70" />}
                         tooltip="Fit to View"
-                        onClick={() => { }}
+                        onClick={zoomToFit}
                     />
-
                     <Separator />
-
                     <ToolbarButton icon={<LayoutGrid className="h-4 w-4 opacity-70" />} tooltip="Layout" />
                     <ToolbarButton icon={<Layers className="h-4 w-4 opacity-70" />} tooltip="Layers" />
                     <ToolbarButton onClick={toggleSettings} icon={<GearIcon className="h-4 w-4 opacity-70" />} tooltip="Settings" />

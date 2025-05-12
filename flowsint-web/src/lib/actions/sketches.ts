@@ -40,7 +40,7 @@ export async function saveNode(schema: Schema) {
         await supabase.auth.refreshSession()
         const { data: { session } } = await supabase.auth.getSession();
         const jwt = session?.access_token;
-        const response = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketch/${sketch_id}/add`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketch/${sketch_id}/nodes/add`, {
             method: "POST",
             body: JSON.stringify(node),
             headers: {

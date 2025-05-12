@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { hexToRgba } from "@/lib/utils"
-import { useColorSettings } from "@/store/color-settings"
+import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import { FileCode2, Calendar, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { memo, useMemo } from "react"
@@ -17,7 +17,7 @@ export const TransformItem = memo(({ transform }: { transform: any }) => {
         : null
 
     const stepsCount = transform?.transform_schema?.edges?.length || 0
-    const color = useColorSettings((state) => state.colors[transform.category as keyof typeof state.colors] || "#000000")
+    const color = useNodesDisplaySettings((state) => state.colors[transform.category as keyof typeof state.colors] || "#000000")
     const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
 
     return (
@@ -26,7 +26,7 @@ export const TransformItem = memo(({ transform }: { transform: any }) => {
                 <CardHeader className="pb-2 relative">
                     <CardTitle className="text-lg w-full flex items-start justify-between font-medium">
                         <p className=" line-clamp-2">{transform.name}</p>
-                        <Badge style={{ backgroundColor: bgColor }}>{transform.category}</Badge>
+                        <Badge style={{ backgroundColor: bgColor }}>{transform.category.join(", ")}</Badge>
                     </CardTitle>
                     <CardDescription className="line-clamp-2">
                         {transform.description || "No description provided"}

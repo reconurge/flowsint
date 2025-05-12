@@ -3,10 +3,14 @@
 import { Button } from "@/components/ui/button"
 import { ResizablePanel } from "@/components/ui/resizable"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ChevronRight } from "lucide-react"
-import { memo, useCallback } from "react"
-import { actionItems } from "@/lib/action-items"
+import { PlusIcon, Search } from "lucide-react"
+import { memo, useCallback, useMemo, useState } from "react"
+import { ActionItem, actionItems } from "@/lib/action-items"
 import { DraggableItem } from "./draggable-item"
+import { Input } from "@/components/ui/input"
+import NewActions from "@/components/sketches/new-actions"
+import { useSketchStore } from "@/store/sketch-store"
+import { flattenArray } from "@/lib/utils"
 
 interface LeftPanelProps {
     isCollapsed: boolean
@@ -14,8 +18,23 @@ interface LeftPanelProps {
 }
 
 export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }: LeftPanelProps) {
+    const [searchQuery, setSearchQuery] = useState<string>("")
     const handleExpand = useCallback(() => setIsCollapsed(false), [setIsCollapsed])
     const handleCollapse = useCallback(() => setIsCollapsed(true), [setIsCollapsed])
+    const addNode = useSketchStore((state) => state.addNode)
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value)
+    }, [])
+
+    const filteredActionItems = useMemo(() => {
+        const searchText = searchQuery.toLowerCase()
+        const items = flattenArray(actionItems, "children")
+        return items?.filter((node: ActionItem) => {
+            return node?.key?.toLowerCase().includes(searchText)
+        })
+    }, [actionItems, searchQuery])
+
 
     return (
         <ResizablePanel
@@ -24,15 +43,35 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
             maxSize={25}
             className="h-[calc(100vh_-_92px)] bg-card"
             collapsible={true}
-            collapsedSize={2}
+            collapsedSize={1}
             onCollapse={handleCollapse}
             onExpand={handleExpand}
         >
             {!isCollapsed ? (
                 <div className="overflow-auto bg-card h-full flex flex-col w-full !p-0 !m-0">
                     <div className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="relative grow">
+                                <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Search type..."
+                                    className="pl-8 h-7"
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                />
+                            </div>
+                            <NewActions addNodes={addNode}>
+                                <Button
+                                    className="h-7 w-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 text-white border-none"
+                                    size="icon"
+                                >
+                                    <PlusIcon />
+                                </Button>
+                            </NewActions>
+                        </div>
                         <div className="grid grid-cols-1 gap-2">
-                            {actionItems.map((item) => {
+                            {actionItems.map((item: ActionItem) => {
                                 if (item.children && item.children.length > 0) {
                                     return (
                                         <Accordion key={item.id} type="single" collapsible className="border-b border-border">
@@ -48,6 +87,7 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                                         {item.children.map((childItem) => (
                                                             <DraggableItem
                                                                 key={childItem.id}
+                                                                itemKey={childItem.key}
                                                                 label={childItem.label}
                                                                 icon={childItem.icon}
                                                                 type={childItem.type}
@@ -62,11 +102,11 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                         </Accordion>
                                     )
                                 }
-
                                 return (
                                     <DraggableItem
                                         key={item.id}
                                         label={item.label}
+                                        itemKey={item.key}
                                         icon={item.icon}
                                         type={item.type}
                                         color={item.color}
@@ -80,9 +120,9 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                 </div>
             ) : (
                 <div className="flex h-full items-center justify-center">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleExpand}>
+                    {/* <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleExpand}>
                         <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                 </div>
             )}
         </ResizablePanel>

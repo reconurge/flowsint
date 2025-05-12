@@ -80,7 +80,6 @@ class ReverseResolveScanner(Scanner):
         """
         candidates: List[str] = []
 
-        # 1. PTR lookup
         try:
             answers = dns.resolver.resolve_address(address)
             ptr = answers[0].to_text().rstrip('.')

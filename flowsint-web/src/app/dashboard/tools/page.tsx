@@ -19,19 +19,20 @@ const tools: Tool[] = [
         avatar: "https://media.licdn.com/dms/image/v2/D560BAQEJNEwF0E6QyA/company-logo_200_200/company-logo_200_200/0/1731244005282/osint_industries_logo?e=1750896000&v=beta&t=2-4rC5YaEp5Rmt48ijR46XhB-Y4iPaQ3qBDQbVNAVFU"
     },
     {
-        name: "PhoneInfoga",
-        path: "/tools/phoneinfoga",
-        description: "Gather information from phone numbers.",
-        active: false,
-        repo: "https://github.com/sundowndev/phoneinfoga",
+        name: "API Sirene open data",
+        path: "/tools/api-sirene-open-data",
+        description: "The Sirene API allows you to query the Sirene directory of businesses and establishments, managed by Insee.",
+        active: true,
+        repo: "https://www.data.gouv.fr/fr/dataservices/api-sirene-open-data/",
+        avatar: "https://www.portlarochelle.com/wp-content/uploads/2020/11/logo-Marianne.jpg"
     },
     {
-        name: "EmailRep",
-        path: "/tools/emailrep",
-        description: "Analyze the reputation of an email address (scam, social, etc.).",
-        active: false,
-        repo: "https://github.com/sublime-security/emailrep.io",
-        avatar: "https://user-images.githubusercontent.com/11003450/115128085-5805da00-9fa9-11eb-8c7a-dc8b708053ee.png"
+        name: "Subfinder",
+        path: "/tools/subfinder",
+        description: "Fast passive subdomain enumeration tool.",
+        active: true,
+        repo: "https://github.com/projectdiscovery/subfinder",
+        avatar: "https://avatars.githubusercontent.com/u/50994705?s=280&v=4"
     },
     {
         name: "Sherlock",
@@ -50,19 +51,26 @@ const tools: Tool[] = [
         avatar: "https://media.licdn.com/dms/image/v2/D560BAQEJNEwF0E6QyA/company-logo_200_200/company-logo_200_200/0/1731244005282/osint_industries_logo?e=1750896000&v=beta&t=2-4rC5YaEp5Rmt48ijR46XhB-Y4iPaQ3qBDQbVNAVFU"
     },
     {
+        name: "PhoneInfoga",
+        path: "/tools/phoneinfoga",
+        description: "Gather information from phone numbers.",
+        active: false,
+        repo: "https://github.com/sundowndev/phoneinfoga",
+    },
+    {
+        name: "EmailRep",
+        path: "/tools/emailrep",
+        description: "Analyze the reputation of an email address (scam, social, etc.).",
+        active: false,
+        repo: "https://github.com/sublime-security/emailrep.io",
+        avatar: "https://user-images.githubusercontent.com/11003450/115128085-5805da00-9fa9-11eb-8c7a-dc8b708053ee.png"
+    },
+    {
         name: "theHarvester",
         path: "/tools/theharvester",
         description: "Collect emails, domain names, IPs from public sources.",
         active: false,
         repo: "https://github.com/laramies/theHarvester",
-    },
-    {
-        name: "Subfinder",
-        path: "/tools/subfinder",
-        description: "Fast passive subdomain enumeration tool.",
-        active: false,
-        repo: "https://github.com/projectdiscovery/subfinder",
-        avatar: "https://avatars.githubusercontent.com/u/50994705?s=280&v=4"
     },
     {
         name: "DnsDumpster",
@@ -78,14 +86,6 @@ const tools: Tool[] = [
         active: false,
         repo: "https://github.com/exiftool/exiftool",
         avatar: "https://avatars.githubusercontent.com/u/8656631?s=200&v=4"
-    },
-    {
-        name: "API Sirene open data",
-        path: "/tools/api-sirene-open-data",
-        description: "The Sirene API allows you to query the Sirene directory of businesses and establishments, managed by Insee.",
-        active: false,
-        repo: "https://www.data.gouv.fr/fr/dataservices/api-sirene-open-data/",
-        avatar: "https://www.portlarochelle.com/wp-content/uploads/2020/11/logo-Marianne.jpg"
     }
 ]
 

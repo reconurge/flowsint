@@ -7,8 +7,10 @@ class Identifier(BaseModel):
     country: Optional[str] = None
     issued_by: Optional[str] = None
     
-class Organization(BaseModel):
+class MinimalOrganization(BaseModel):
     name: str
+    
+class Organization(MinimalOrganization):
     founding_date: Optional[str] = None
     country: Optional[str] = None
     description: Optional[str] = None

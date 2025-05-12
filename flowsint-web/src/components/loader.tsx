@@ -14,7 +14,7 @@ function Loader({ className, label }: { className?: string, label?: string }) {
                     style={{ animationDuration: "0.5s" }}
                 />
             </div>
-            {label && <p>{label}</p>}
+            {label && <p className="text-sm">{label}</p>}
         </div>
     )
 }

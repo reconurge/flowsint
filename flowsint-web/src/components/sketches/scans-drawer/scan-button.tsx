@@ -70,6 +70,7 @@ export function ScanButton() {
           event: "*",
           schema: "public",
           table: "scans",
+          filter: `sketch_id=eq.${sketch_id}`,
         },
         (payload) => {
           // Handle different types of changes

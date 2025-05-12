@@ -7,9 +7,12 @@ from app.utils import is_valid_username, resolve_type
 from app.scanners.base import Scanner
 from app.types.social import MinimalSocial, Social
 from pydantic import TypeAdapter
+from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalSocial]
 OutputType: TypeAlias = List[Social]
+
+false_positives = ["LeagueOfLegends"]
 
 class MaigretScanner(Scanner):
     """Scans usernames for associated social accounts using Maigret."""
@@ -85,6 +88,9 @@ class MaigretScanner(Scanner):
         for platform, profile in raw_data.items():
             if profile.get("status", {}).get("status") != "Claimed":
                 continue
+            
+            if any(fp in platform for fp in false_positives):
+                continue
 
             status = profile.get("status", {})
             ids = status.get("ids", {})
@@ -132,6 +138,7 @@ class MaigretScanner(Scanner):
             return results
 
         for profile in results:
+            logger.info(self.scan_id, self.sketch_id, f"{profile.username} -> account found on {profile.platform}")
             self.neo4j_conn.query("""
                 MERGE (p:social_profile {profile_url: $profile_url})
                 SET p.username = $username,

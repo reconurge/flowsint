@@ -16,6 +16,7 @@ import { DynamicForm } from "@/components/sketches/dynamic-form"
 import { Badge } from "@/components/ui/badge"
 import { saveNode } from "@/lib/actions/sketches"
 import { useNodesDisplaySettings } from "@/store/node-display-settings"
+import { useSketchStore } from "@/store/sketch-store"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -26,28 +27,9 @@ interface ActionDialogProps {
 export default function ActionDialog({ children, addNodes, setCurrentNode }: ActionDialogProps) {
     const { sketch_id } = useParams()
     const { colors } = useNodesDisplaySettings()
-    const [openDialog, setOpenDialog] = useState(false)
-    const [openAddNodeModal, setOpenNodeModal] = useState(false)
-    const [currentNodeType, setCurrentNodeType] = useState<ActionItem | null>(null)
+    const { handleOpenFormModal, currentNodeType, openMainDialog, setOpenMainDialog, openFormDialog, setOpenFormDialog } = useSketchStore()
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
-
-    const handleOpenAddNodeModal = (key: string) => {
-        const selectedItem = actionItems.find(item => item.key === key) ||
-            actionItems
-                .filter(item => item.children)
-                .flatMap(item => item.children || [])
-                .find(item => item.type === key)
-
-        if (!selectedItem) {
-            toast.error("Invalid node type selected.")
-            return
-        }
-        setCurrentNodeType(selectedItem)
-        console.log(selectedItem)
-        setOpenDialog(false)
-        setOpenNodeModal(true)
-    }
 
     const handleAddNode = async (data: any) => {
         try {
@@ -73,11 +55,11 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
             const resp = await saveNode({ node: newNode, sketch_id })
             if (addNodes) addNodes(resp.data?.node as any)
             if (setCurrentNode) setCurrentNode(newNode)
-            setOpenNodeModal(false)
+            setOpenFormDialog(false)
         } catch (error) {
             toast.error("Unexpected error during node creation.")
         } finally {
-            setOpenDialog(false)
+            setOpenMainDialog(false)
         }
     }
     const navigateToSubItems = (item: ActionItem) => {
@@ -109,7 +91,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                         <ActionCard
                             key={item.id}
                             item={item}
-                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenAddNodeModal(item.type)}
+                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenFormModal(item.key)}
                         />
                     ))}
                 </motion.div>
@@ -119,8 +101,8 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
 
     return (
         <>
-            <Button asChild onClick={() => setOpenDialog(true)}>{children}</Button>
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <Button asChild onClick={() => setOpenMainDialog(true)}>{children}</Button>
+            <Dialog open={openMainDialog} onOpenChange={setOpenMainDialog}>
                 <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (
@@ -139,7 +121,7 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                     <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>
                 </DialogContent>
             </Dialog>
-            <Dialog open={openAddNodeModal} onOpenChange={setOpenNodeModal}>
+            <Dialog open={openFormDialog} onOpenChange={setOpenFormDialog}>
                 <DialogContent>
                     <DialogTitle>
                         {currentNodeType && (

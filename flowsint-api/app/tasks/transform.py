@@ -27,7 +27,7 @@ def run_scan(self, transform_schema, values: List[str], sketch_id: str | None):
     try:
         extracted = extract_transform(transform_schema)
         scanner_names = extracted["scanner_names"]
-        db.table("scans").insert({
+        res = db.table("scans").insert({
                     "id": self.request.id,
                     "status": "pending",
                     "scanner_names": scanner_names,
@@ -35,8 +35,9 @@ def run_scan(self, transform_schema, values: List[str], sketch_id: str | None):
                     "sketch_id": sketch_id,
                     "results": []
                 }).execute()
-        
-        scanner = TransformOrchestrator(sketch_id, "scan_0", scanner_names = scanner_names, neo4j_conn=neo4j_connection)
+        scan_id = res.data[0]["id"]
+        print(scan_id)
+        scanner = TransformOrchestrator(sketch_id, scan_id, scanner_names = scanner_names, neo4j_conn=neo4j_connection)
         results = scanner.execute(values=values)
         status = "finished" if "error" not in results else "error"
         db.table("scans").update({

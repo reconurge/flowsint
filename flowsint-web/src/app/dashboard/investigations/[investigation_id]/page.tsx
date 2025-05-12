@@ -103,21 +103,6 @@ const DashboardPage = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="gap-2">
-                                    <SlidersHorizontal className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Sort by</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Name</DropdownMenuItem>
-                                <DropdownMenuItem>Type</DropdownMenuItem>
-                                <DropdownMenuItem>Date created</DropdownMenuItem>
-                                <DropdownMenuItem>Date modified</DropdownMenuItem>
-                                <DropdownMenuItem>Size</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                         <Button onClick={handleRefetch} disabled={isLoading || isRefetching} variant={"outline"} className="gap-2">
                             <RotateCwIcon className={cn("h-4 w-4", isLoading || isRefetching && "animate-spin")} />  Refresh
                         </Button>

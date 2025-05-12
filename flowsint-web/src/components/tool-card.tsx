@@ -12,8 +12,8 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
     return (
         <Card className="flex flex-col shadow-none bg-card rounded-md relative">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <CardHeader className="py-3">
+                <CardTitle className="flex items-center gap-2 mt-4">
                     {tool.avatar ?
                         <Avatar
                             className={cn(

@@ -22,7 +22,7 @@ export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id
     )
     const Icon = item?.icon || HelpCircle
     return (
-        <div className=" overflow-y-auto overflow-x-hidden h-full">
+        <div className="overflow-y-auto overflow-x-hidden h-full">
             <div className="flex items-center sticky bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
                 <IconContainer
                     type={data?.type}

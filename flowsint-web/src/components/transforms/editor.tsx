@@ -231,7 +231,7 @@ const FlowEditor = memo(
                             .insert({
                                 name: name,
                                 description: description,
-                                category: inputType,
+                                category: [inputType],
                                 transform_schema: {
                                     nodes,
                                     edges,

@@ -15,7 +15,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/sketches/dynamic-form"
 import { Badge } from "@/components/ui/badge"
 import { saveNode } from "@/lib/actions/sketches"
-import { useColorSettings } from "@/store/color-settings"
+import { useNodesDisplaySettings } from "@/store/node-display-settings"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -25,7 +25,7 @@ interface ActionDialogProps {
 
 export default function ActionDialog({ children, addNodes, setCurrentNode }: ActionDialogProps) {
     const { sketch_id } = useParams()
-    const { colors } = useColorSettings()
+    const { colors } = useNodesDisplaySettings()
     const [openDialog, setOpenDialog] = useState(false)
     const [openAddNodeModal, setOpenNodeModal] = useState(false)
     const [currentNodeType, setCurrentNodeType] = useState<ActionItem | null>(null)

@@ -1,4 +1,4 @@
-import { type ItemType, useColorSettings } from "@/store/color-settings"
+import { type ItemType, useNodesDisplaySettings } from "@/store/node-display-settings"
 
 interface ColorBadgeProps {
     itemType: ItemType
@@ -7,7 +7,7 @@ interface ColorBadgeProps {
 }
 
 export default function ColorBadge({ itemType, label, className = "" }: ColorBadgeProps) {
-    const { colors } = useColorSettings()
+    const { colors } = useNodesDisplaySettings()
 
     return (
         <span

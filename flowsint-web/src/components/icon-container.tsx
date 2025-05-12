@@ -1,4 +1,4 @@
-import { useColorSettings } from "@/store/color-settings"
+import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import type { LucideIcon } from "lucide-react"
 import { useMemo } from "react"
 
@@ -19,7 +19,7 @@ interface IconContainerProps {
 
 export function IconContainer({ type, color, icon: Icon, size = 12 }: IconContainerProps) {
     const containerSize = size + 16 // Make container slightly larger than icon
-    const col = color ? color : useColorSettings((state) => state.colors[type as keyof typeof state.colors] || "#000000")
+    const col = color ? color : useNodesDisplaySettings((state) => state.colors[type as keyof typeof state.colors] || "#000000")
     const bgColor = useMemo(() => hexToRgba(col, 0.3), [color])
 
     return (

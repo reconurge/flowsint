@@ -173,10 +173,9 @@ class NodeInput(BaseModel):
 def dict_to_cypher_props(props: dict) -> str:
     return ", ".join(f"{key}: ${key}" for key in props)
 
-@app.post("/sketch/{sketch_id}/add")
-def add_node_to_sketch(sketch_id: str, node: NodeInput):
+@app.post("/sketch/{sketch_id}/nodes/add")
+def add_node(sketch_id: str, node: NodeInput):
     
-    print(node)
     node_type = getattr(node, "type", "unknown")
     node_data = getattr(node, "data", {})
 
@@ -219,4 +218,44 @@ def add_node_to_sketch(sketch_id: str, node: NodeInput):
     return {
         "status": "node added",
         "node": new_node,
+    }
+
+class EdgeInput(BaseModel):
+    from_node: dict
+    to_node: dict
+    type: str
+
+@app.post("/sketch/{sketch_id}/edges/add")
+def add_edge(sketch_id: str, edge: EdgeInput):
+    from_props = flatten(edge.from_node)
+    to_props = flatten(edge.to_node)
+
+    from_cypher = dict_to_cypher_props(from_props)
+    to_cypher = dict_to_cypher_props(to_props)
+
+    query = f"""
+        MATCH (a {{ {from_cypher} }})
+        MATCH (b {{ {to_cypher} }})
+        MERGE (a)-[r:`{edge.type}` {{sketch_id: $sketch_id}}]->(b)
+        RETURN r
+    """
+
+    params = {
+        **from_props,
+        **to_props,
+        "sketch_id": sketch_id,
+    }
+
+    try:
+        result = neo4j_connection.query(query, params)
+    except Exception as e:
+        print(f"Edge creation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create edge")
+
+    if not result:
+        raise HTTPException(status_code=400, detail="Edge creation failed")
+
+    return {
+        "status": "edge added",
+        "edge": result[0]["r"],
     }

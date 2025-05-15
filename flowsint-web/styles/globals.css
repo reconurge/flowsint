@@ -113,11 +113,11 @@ body {
 }
 
 :root {
-  --background: oklch(1.00 0 0);
+  --background: oklch(1.50 0 0);
   --foreground: oklch(0.27 0 0);
-  --card: oklch(1.00 0 0);
+  --card: oklch(1.40 0 0);
   --card-foreground: oklch(0.27 0 0);
-  --popover: oklch(1.00 0 0);
+  --popover: oklch(21.00 0 0);
   --popover-foreground: oklch(0.27 0 0);
   --primary: oklch(0.77 0.16 70.08);
   --primary-foreground: oklch(0 0 0);

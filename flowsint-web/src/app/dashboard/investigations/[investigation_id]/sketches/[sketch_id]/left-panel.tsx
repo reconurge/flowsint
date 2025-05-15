@@ -74,7 +74,7 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                             {actionItems.map((item: ActionItem) => {
                                 if (item.children && item.children.length > 0) {
                                     return (
-                                        <Accordion key={item.id} type="single" collapsible className="border-b border-border">
+                                        <Accordion key={item.id} type="single" defaultValue={item.id.toString()} collapsible className="border-b border-border">
                                             <AccordionItem value={item.id.toString()}>
                                                 <AccordionTrigger className="py-1 text-sm">
                                                     <div className="flex items-center gap-2">

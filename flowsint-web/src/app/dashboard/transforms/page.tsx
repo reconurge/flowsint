@@ -1,20 +1,16 @@
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
-import { hexToRgba } from "@/lib/utils"
-import { useNodesDisplaySettings } from "@/store/node-display-settings"
-import { PlusCircle, FileCode2, ArrowRight, Calendar } from "lucide-react"
+import { PlusCircle, FileCode2 } from "lucide-react"
 import Link from "next/link"
-import { useMemo } from "react"
-import { TransformItem } from "./transform-item"
+import { TransformItem } from "@/components/transforms/transform-item"
 
 const TransformsPage = async () => {
     const supabase = await createClient()
     const { data: transforms } = await supabase.from("transforms").select("*")
 
     return (
-        <div className="w-full space-y-8 container mx-auto py-12 px-8">
+        <div className="w-full space-y-8 container bg-background grow mx-auto py-12 px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="font-semibold text-2xl">Transforms {transforms?.length ? `(${transforms.length})` : ""}</h1>
@@ -32,7 +28,7 @@ const TransformsPage = async () => {
                 !transforms?.length ? (
                     <EmptyState />
                 ) : (
-                    <div className="w-full grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 xl:grid-cols-4 gap-5">
+                    <div className="w-full grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 xl:grid-cols-3 gap-5">
                         {transforms.map((transform) => (
                             <TransformItem key={transform.id} transform={transform} />
                         ))}

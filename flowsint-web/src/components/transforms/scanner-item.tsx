@@ -6,16 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-// Types for the scanner
+// Types for the scanner based on the new structure
+export interface ScannerProperty {
+  name: string
+  type: string
+}
+
+export interface ScannerIO {
+  type: string
+  properties: ScannerProperty[]
+}
+
 export interface Scanner {
   class_name: string
   name: string
   module: string
   doc: string | null
-  key: string
+  inputs: ScannerIO
+  outputs: ScannerIO
   type: string
-  inputs: string[],
-  outputs: string[]
 }
 
 interface ScannerItemProps {
@@ -31,7 +40,6 @@ function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
     prevProps.scanner.name === nextProps.scanner.name &&
     prevProps.scanner.module === nextProps.scanner.module &&
     prevProps.scanner.doc === nextProps.scanner.doc &&
-    prevProps.scanner.key === nextProps.scanner.key &&
     prevProps.category === nextProps.category &&
     prevProps.color === nextProps.color
   )
@@ -59,9 +67,19 @@ const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
       >
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            {/* <Badge variant={"outline"} className="">{scanner.type}</Badge> */}
             <h3 className="text-sm font-medium">{scanner.class_name}</h3>
             <p className="text-xs text-muted-foreground">{scanner.name}</p>
+            {scanner.type !== "type" &&
+              <div className="mt-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Input:</span>
+                  <span className="text-muted-foreground">{scanner.inputs.type}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Output:</span>
+                  <span className="text-muted-foreground">{scanner.outputs.type}</span>
+                </div>
+              </div>}
           </div>
           {scanner.doc && (
             <Tooltip>

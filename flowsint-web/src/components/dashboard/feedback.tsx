@@ -30,7 +30,7 @@ export default function Feedback() {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button size={"sm"} variant={"outline"}>Feedback</Button>
+                <Button size={"sm"} variant={"ghost"}>Feedback</Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80">
                 <form onSubmit={onSubmit} className="flex items-start space-x-3">

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "branch-0",
+    "name": "Main Flow",
+    "steps": [
+      {
+        "nodeId": "MinimalDomain-1747312962241",
+        "type": "type",
+        "inputs": {},
+        "outputs": {
+          "domain": [
+            "adaltas.com"
+          ]
+        },
+        "status": "pending",
+        "branchId": "branch-0",
+        "depth": 0
+      },
+      {
+        "nodeId": "domain_resolve_scanner-1747312965951",
+        "type": "scanner",
+        "inputs": {
+          "domain": [
+            "adaltas.com"
+          ]
+        },
+        "outputs": {
+          "address": "transformed_address"
+        },
+        "status": "pending",
+        "branchId": "branch-0",
+        "depth": 1
+      }
+    ]
+  }
+]

@@ -15,7 +15,7 @@ export function useLaunchTransform(askUser: boolean = false) {
         toast.promise(performTransform(values, transform_id, sketch_id), {
             loading: "Loading...",
             success: () => `Scan on "${values.join(",")}" has been launched.`,
-            error: (error: any) => `An error occurred: ${JSON.stringify(error)}`,
+            error: () => `An error occurred launching transform.`,
         })
     }
     return {

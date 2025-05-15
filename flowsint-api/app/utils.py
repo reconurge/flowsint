@@ -7,8 +7,10 @@ from urllib.parse import urlparse
 import re
 import ssl
 import socket
-from typing import Dict, Any
+from typing import Dict, Any, Type
 
+from typing import Any, Dict
+from pydantic import BaseModel
 
 def is_valid_ip(address: str) -> bool:
     try:
@@ -73,26 +75,39 @@ def resolve_type(details: dict) -> str:
     
     return "any"
 
-def extract_input_schema(name: str, model: BaseModel) -> dict:
+def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
-    properties = schema.get("properties", {})
+
+    # Vérifie si le schéma utilise $defs (références internes)
+    if "$defs" in schema:
+        type_name, details = list(schema["$defs"].items())[0]
+    else:
+        type_name = name
+        details = schema
 
     return {
         "class_name": name,
         "name": name,
         "module": model.__module__,
-        "doc": model.__doc__,
-        "outputs": [
-            {
-                "name": prop,
-                "type": resolve_type(val)
-            }
-            for prop, val in properties.items()
-        ],
-        "inputs": [],
-        "type": "input"
+        "doc": model.__doc__ or "",
+        "outputs": {
+            "type": type_name,
+            "properties": [
+                {
+                    "name": prop,
+                    "type": resolve_type(info)
+                }
+                for prop, info in details.get("properties", {}).items()
+            ]
+        },
+        "inputs": {
+            "type": "",
+            "properties": []
+        },
+        "type": "type"
     }
+
 
 
 def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
@@ -119,7 +134,7 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
     nodes = transform["nodes"]
     edges = transform["edges"]
 
-    input_node = next((node for node in nodes if node["data"]["type"] == "input"), None)
+    input_node = next((node for node in nodes if node["data"]["type"] == "type"), None)
     if not input_node:
         raise ValueError("No input node found.")
     input_output = input_node["data"]["outputs"]

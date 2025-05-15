@@ -14,7 +14,9 @@
     "supabase": "^2.19.7"
   },
   "dependencies": {
+    "@testing-library/react": "^16.3.0",
     "cytoscape-fcose": "^2.2.0",
-    "graphology-layout-forceatlas2": "^0.10.1"
+    "graphology-layout-forceatlas2": "^0.10.1",
+    "vitest": "^3.1.3"
   }
 }

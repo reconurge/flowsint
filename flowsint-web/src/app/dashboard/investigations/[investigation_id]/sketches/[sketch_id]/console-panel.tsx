@@ -4,7 +4,7 @@ import { CopyButton } from "@/components/copy"
 import { Button } from "@/components/ui/button"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { supabase } from "@/lib/supabase/client"
-import { TrashIcon } from "lucide-react"
+import { Loader2, TrashIcon } from "lucide-react"
 import { useParams } from "next/navigation"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -26,30 +26,41 @@ const typeToClass: Record<string, string> = {
 
 export const ConsolePanel = memo(function ConsolePanel() {
     const [logEntries, setLogEntries] = useState<LogEntry[]>([])
+    const [isLoading, setIsLoading] = useState(true)
     const { sketch_id } = useParams()
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const { confirm } = useConfirm()
 
     const refetch = useCallback(async () => {
-        const { data, error } = await supabase
-            .from("logs")
-            .select("*")
-            .eq("sketch_id", sketch_id)
-            .order("created_at", { ascending: true })
-            .limit(50)
-        if (error) {
-            console.error("Error fetching logs:", error)
-            return
-        }
-        if (data) {
-            const formattedLogs = data.map((log: any) => ({
-                id: log.id,
-                type: log.type || "INFO",
-                timestamp: new Date(log.created_at).toLocaleTimeString(),
-                content: log.content,
-                created_at: log.created_at,
-            }))
-            setLogEntries(formattedLogs)
+        try {
+            setIsLoading(true)
+            const { data, error } = await supabase
+                .from("logs")
+                .select("*")
+                .eq("sketch_id", sketch_id)
+                .order("created_at", { ascending: true })
+                .limit(50)
+
+            if (error) {
+                toast.error("Failed to load logs")
+                return
+            }
+
+            if (data) {
+                const formattedLogs = data.map((log: any) => ({
+                    id: log.id,
+                    type: log.type || "INFO",
+                    timestamp: new Date(log.created_at).toLocaleTimeString(),
+                    content: log.content,
+                    created_at: log.created_at,
+                }))
+                setLogEntries(formattedLogs)
+            }
+        } catch (error) {
+            console.error("Error in refetch:", error)
+            toast.error("An unexpected error occurred while loading logs")
+        } finally {
+            setIsLoading(false)
         }
     }, [sketch_id])
 
@@ -62,6 +73,7 @@ export const ConsolePanel = memo(function ConsolePanel() {
 
             if (!confirmed) return
 
+            setIsLoading(true)
             const { error } = await supabase
                 .from("logs")
                 .delete()
@@ -73,9 +85,11 @@ export const ConsolePanel = memo(function ConsolePanel() {
             }
 
             toast.success("Logs cleared.")
-            refetch()
+            await refetch()
         } catch (e) {
             toast.error("An error occurred deleting the logs.")
+        } finally {
+            setIsLoading(false)
         }
     }, [confirm, sketch_id, refetch])
 
@@ -118,11 +132,16 @@ export const ConsolePanel = memo(function ConsolePanel() {
     return (
         <div className="flex grow flex-col h-full">
             <div className="flex h-8 items-center bg-card py-2 justify-between border-b pl-4 pr-2">
-                <h2 className="font-medium text-sm">Console</h2>
+                <div className="flex items-center gap-2">
+                    <h2 className="font-medium text-sm">Console</h2>
+                    {isLoading && (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    )}
+                </div>
                 <div className="flex items-center gap-1">
                     <CopyButton content={JSON.stringify(logEntries)} />
                     <Button
-                        disabled={!logEntries.length}
+                        disabled={!logEntries.length || isLoading}
                         onClick={handleDeleteLogs}
                         className="h-7 w-7"
                         variant="ghost"
@@ -132,8 +151,13 @@ export const ConsolePanel = memo(function ConsolePanel() {
                     </Button>
                 </div>
             </div>
-            <div className="p-2 font-mono text-xs bg-card grow overflow-auto inset-shadow-sm">
-                {logEntries.length > 0 ? (
+            <div className="p-2 font-mono text-xs bg-card grow overflow-auto relative">
+                {isLoading && logEntries.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading logs...
+                    </div>
+                ) : logEntries.length > 0 ? (
                     <>
                         {logEntries.map((entry, index) => (
                             <div key={entry.id || index} className="mb-1 flex">
@@ -146,7 +170,7 @@ export const ConsolePanel = memo(function ConsolePanel() {
                         <div ref={bottomRef} />
                     </>
                 ) : (
-                    <div className="text-muted-foreground italic">No logs available</div>
+                    <div className="text-muted-foreground italic">No logs available for now.</div>
                 )}
             </div>
         </div>

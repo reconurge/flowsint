@@ -9,6 +9,13 @@ import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from "@/components/ui/sonner"
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -34,15 +41,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning lang="en">
-      <head>
-        {/* {process.env.NODE_ENV === "development" && ( */}
+    <html suppressHydrationWarning lang="en" className={inter.className}>
+      {/* <head>
+        {process.env.NODE_ENV === "development" && (
           <script
             crossOrigin="anonymous"
             src="//unpkg.com/react-scan/dist/auto.global.js"
           />
-        {/* )} */}
-      </head>
+        )}
+      </head> */}
       <body
         className={clsx(
           "min-h-screen !bg-background font-sans antialiased",

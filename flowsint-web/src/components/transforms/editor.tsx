@@ -20,7 +20,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { Input } from "@/components/ui/input"
-import { X, Search } from "lucide-react"
+import { X, Search, TrashIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import Loader from "../loader"
@@ -37,6 +37,7 @@ import { TransformModal } from "./save-modal"
 import { useConfirm } from "../use-confirm-dialog"
 import TestTransform from "./test-transform"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
+import { FlowComputationDrawer } from "./flow-computation-drawer"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
@@ -48,7 +49,8 @@ const FlowEditor = memo(
         initialEdges,
         initialNodes,
         theme,
-    }: { nodesData: { items: any[] }; theme: any; initialEdges: Edge[]; initialNodes: Node[] }) => {
+        transform
+    }: { nodesData: { items: any[] }; theme: any; initialEdges: Edge[]; initialNodes: Node[], transform?: any }) => {
         const { fitView, zoomIn, zoomOut, setCenter, getNode } = useReactFlow()
         const [nodes, setNodes, onNodesChange] = useNodesState<any>(initialNodes)
         const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<Record<string, unknown>>>(initialEdges)
@@ -65,10 +67,11 @@ const FlowEditor = memo(
         const router = useRouter()
         const { confirm } = useConfirm()
         const { transform_id } = useParams()
+        const [showComputationDrawer, setShowComputationDrawer] = useState(false)
 
         useEffect(() => {
-            const existsInput = nodes.find((node) => node.data.type === "input")
-            setInputType(existsInput?.data?.outputs?.[0]?.name || null)
+            const existsInput = nodes.find((node) => node.data.type === "type")
+            setInputType(existsInput?.data?.outputs?.properties?.[0].name || null)
         }, [nodes, setInputType])
 
         useEffect(() => {
@@ -104,7 +107,7 @@ const FlowEditor = memo(
             (params) => {
                 if (params.sourceHandle !== params.targetHandle)
                     return toast.error(`Canot connect ${params.sourceHandle} to ${params.targetHandle}`)
-                const node = getNode(params.source);
+                const node = getNode(params.source)
                 setEdges((eds) =>
                     addEdge(
                         {
@@ -125,7 +128,6 @@ const FlowEditor = memo(
             [setEdges],
         )
 
-
         const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
             event.preventDefault()
             event.dataTransfer.dropEffect = "move"
@@ -136,7 +138,9 @@ const FlowEditor = memo(
                 event.preventDefault()
                 if (!reactFlowWrapper.current || !reactFlowInstance) return
                 const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-                const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as ScannerNodeData & { category: string }
+                const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as ScannerNodeData & {
+                    category: string
+                }
                 if (scannerData.type === "input") {
                     const existsInput = nodes.find((node) => node.data.type === "input")
                     if (existsInput) {
@@ -208,23 +212,23 @@ const FlowEditor = memo(
             async (name: string, description: string) => {
                 setLoading(true)
                 try {
-                    let newTransform;
+                    let newTransform
                     if (transform_id) {
                         const { data, error } = await supabase
                             .from("transforms")
                             .update({
-                                category: inputType,
+                                category: [inputType],
                                 transform_schema: {
                                     nodes,
                                     edges,
                                 },
                             })
-                            .eq('id', transform_id)
+                            .eq("id", transform_id)
                             .select("id")
-                            .single();
+                            .single()
 
-                        if (error) throw error;
-                        newTransform = data;
+                        if (error) throw error
+                        newTransform = data
                     } else {
                         const { data, error } = await supabase
                             .from("transforms")
@@ -238,24 +242,25 @@ const FlowEditor = memo(
                                 },
                             })
                             .select("id")
-                            .single();
+                            .single()
 
-                        if (error) throw error;
-                        newTransform = data;
+                        if (error) throw error
+                        newTransform = data
                     }
 
-                    toast.success("Transform saved successfully.");
-                    newTransform && !transform_id && router.push(`/dashboard/transforms/${newTransform.id}`);
+                    toast.success("Transform saved successfully.")
+                    // Open the computation drawer after saving
+                    setShowComputationDrawer(true)
+                    newTransform && !transform_id && router.push(`/dashboard/transforms/${newTransform.id}`)
                 } catch (error) {
-                    console.error("Error saving transform:", error);
-                    toast.error("Error saving transform");
+                    toast.error("Error saving transform" + JSON.stringify(error))
                 } finally {
-                    setLoading(false);
-                    setShowModal(false);
+                    setLoading(false)
+                    setShowModal(false)
                 }
             },
-            [nodes, edges, transform_id, router],
-        );
+            [nodes, edges, transform_id, router, inputType],
+        )
 
         const handleSaveTransform = useCallback(() => {
             if (!inputType) return toast.error("Make sure your transform contains an input type.")
@@ -264,19 +269,27 @@ const FlowEditor = memo(
             } else {
                 saveTransform("", "")
             }
-        }, [transform_id, saveTransform])
+        }, [transform_id, saveTransform, inputType])
 
-        const handleTestTransform = useCallback(async (data: any) => {
-            if (!transform_id) {
-                toast.error("Save the transform first.")
-                return
-            }
-            launchTransform([data.domain], transform_id as string, null)
-        }, [])
+        const handleTestTransform = useCallback(
+            async (data: any) => {
+                if (!transform_id) {
+                    toast.error("Save the transform first.")
+                    return
+                }
+                launchTransform([data.domain], transform_id as string, null)
+            },
+            [transform_id, launchTransform],
+        )
 
         const handleDeleteTransform = useCallback(async () => {
             if (!transform_id) return
-            if (await confirm({ title: "Are you sure you want to delete this simulation?", message: "This action is irreversible." })) {
+            if (
+                await confirm({
+                    title: "Are you sure you want to delete this simulation?",
+                    message: "This action is irreversible.",
+                })
+            ) {
                 setLoading(true)
                 try {
                     await supabase.from("transforms").delete().eq("id", transform_id)
@@ -289,12 +302,18 @@ const FlowEditor = memo(
                     setLoading(false)
                 }
             }
-        }, [])
+        }, [transform_id, confirm, router])
+
+        const handleComputeFlow = useCallback(() => {
+            if (!transform_id) {
+                toast.error("Save the transform first to compute the flow.")
+                return
+            }
+            setShowComputationDrawer(true)
+        }, [transform_id])
 
         if (!mounted) {
-            return (
-                <Loader label='Loading...' />
-            )
+            return <Loader label="Loading..." />
         }
 
         return (
@@ -336,14 +355,16 @@ const FlowEditor = memo(
                                                     key={scanner.name}
                                                     scanner={scanner}
                                                     category={category}
-                                                    color={categoryColors[category] || "#94a3b8"}
+                                                    color={categoryColors[category] || categoryColors[scanner.type] || "#94a3b8"}
                                                 />
                                             ))}
                                         </div>
                                     </div>
                                 ))}
                                 {Object.keys(filteredScanners).length === 0 && (
-                                    <div className="text-center py-4 text-muted-foreground">No scanners found matching "{searchTerm}"</div>
+                                    <div className="text-center py-4 text-muted-foreground">
+                                        No scanners found matching "{searchTerm}"
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -369,8 +390,10 @@ const FlowEditor = memo(
                             >
                                 <FlowControls
                                     loading={loading}
+                                    transform={transform}
                                     handleSaveTransform={handleSaveTransform}
                                     handleDeleteTransform={handleDeleteTransform}
+                                    handleComputeFlow={handleComputeFlow}
                                     setOpenTestTransform={setOpenTestTransform}
                                     onLayout={onLayout}
                                     fitView={fitView}
@@ -384,7 +407,7 @@ const FlowEditor = memo(
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-medium">{selectedNode.data.class_name}</h3>
                                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDeleteNode}>
-                                                <X className="h-4 w-4" />
+                                                <TrashIcon className="h-4 w-4" />
                                             </Button>
                                         </div>
                                         <div className="text-sm space-y-2">
@@ -407,7 +430,23 @@ const FlowEditor = memo(
                     </ResizablePanel>
                     <TransformModal open={showModal} onOpenChange={setShowModal} onSave={saveTransform} isLoading={loading} />
                 </ResizablePanelGroup>
-                {inputType && <TestTransform loading={loading} type={inputType} onSubmit={handleTestTransform} setOpen={setOpenTestTransform} open={openTestTransform} />}
+                {inputType && (
+                    <TestTransform
+                        loading={loading}
+                        type={inputType}
+                        onSubmit={handleTestTransform}
+                        setOpen={setOpenTestTransform}
+                        open={openTestTransform}
+                    />
+                )}
+                <FlowComputationDrawer
+                    transformId={transform_id as string}
+                    open={showComputationDrawer}
+                    onOpenChange={setShowComputationDrawer}
+                    nodes={nodes}
+                    edges={edges}
+                    inputType={inputType}
+                />
             </>
         )
     },
@@ -419,7 +458,8 @@ function TransformEditor({
     nodesData,
     initialEdges = [],
     initialNodes = [],
-}: { nodesData: { items: any[] }; initialEdges?: Edge[]; initialNodes?: Node[] }) {
+    transform
+}: { nodesData: { items: any[] }; initialEdges?: Edge[]; initialNodes?: Node[], transform?: any }) {
     const [mounted, setMounted] = useState(false)
     const { resolvedTheme } = useTheme()
 
@@ -428,13 +468,12 @@ function TransformEditor({
     }, [])
 
     if (!mounted) {
-        return (
-            <Loader label="Loading.." />
-        )
+        return <Loader label="Loading.." />
     }
     return (
         <ReactFlowProvider>
             <FlowEditor
+                transform={transform}
                 nodesData={nodesData}
                 initialEdges={initialEdges}
                 initialNodes={initialNodes}

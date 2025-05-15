@@ -2,7 +2,7 @@ from app.core.db import get_db  # Supabase client
 from typing import Literal
 from uuid import UUID
 
-LogLevel = Literal["info", "warn", "error", "success"]
+LogLevel = Literal["info", "warn", "error", "success", "debug"]
 
 class Logger:
     def __init__(self, db):
@@ -31,5 +31,8 @@ class Logger:
 
     def success(self, scan_id: UUID, sketch_id: UUID, content: str):
         self.emit(scan_id, sketch_id, content, level="success")
+    
+    def debug(self, scan_id: UUID, sketch_id: UUID, content: str):
+        self.emit(scan_id, sketch_id, content, level="debug")
 
 logger = Logger(get_db())

@@ -5,13 +5,13 @@ import { useTransforms } from "@/hooks/use-transforms"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog"
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+} from "@/components/ui/sheet"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -63,17 +63,16 @@ const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: 
                     <Sparkles className={"h-4 w-4 transition-transform duration-300"} />
                     <span>Search</span>
                 </span>
-                <span className="absolute inset-0 bg-black opacity-0 hover:opacity-10 transition-opacity duration-300" />
             </Button>
 
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="sm:max-w-xl">
-                    <DialogHeader>
-                        <DialogTitle>Select a Transform</DialogTitle>
-                        <DialogDescription>Choose a transform to launch from the list below.</DialogDescription>
-                    </DialogHeader>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetContent className="sm:max-w-xl">
+                    <SheetHeader>
+                        <SheetTitle>Select a Transform</SheetTitle>
+                        <SheetDescription>Choose a transform to launch from the list below.</SheetDescription>
+                    </SheetHeader>
 
-                    <div className="py-4">
+                    <div className="p-4 grow overflow-auto">
                         <RadioGroup value={selectedTransform?.id} className="space-y-3">
                             {transforms?.map((transform: Transform) => (
                                 <Card
@@ -105,7 +104,7 @@ const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: 
                         </RadioGroup>
                     </div>
 
-                    <DialogFooter>
+                    <SheetFooter>
                         <Button variant="outline" onClick={handleCloseModal} className="mr-2">
                             Cancel
                         </Button>
@@ -114,11 +113,11 @@ const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: 
                             disabled={!selectedTransform}
                             className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary"
                         >
-                            Launch Transform
+                            Launch transform
                         </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

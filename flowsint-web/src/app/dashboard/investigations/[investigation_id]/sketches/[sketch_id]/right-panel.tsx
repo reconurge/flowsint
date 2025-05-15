@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from '@/components/ui/resizable'
 import { ChevronDown, ChevronLeft, InfoIcon } from 'lucide-react'
 import NodesPanel from '@/components/sketches/sketch/nodes-panel'
-import ProfilePanel from '@/components/sketches/sketch/profile-panel'
+import DetailsPanel from '@/components/sketches/sketch/details-panel'
 import { memo, useMemo, useRef } from 'react'
 import { useSketchStore } from '@/store/sketch-store'
 import { shallow } from 'zustand/shallow'
@@ -47,7 +47,7 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
         >
             {!isCollapsed ? (
                 <ResizablePanelGroup autoSaveId="conditional" direction="vertical">
-                    {selectedNodes.length > 0 &&
+                    {/* {selectedNodes.length > 0 &&
                         <>
                             <ResizablePanel order={1} id="map" defaultSize={30}>
                                 <div className="overflow-y-auto overflow-x-hidden h-full p-4">
@@ -71,11 +71,11 @@ export const RightPanel = memo(function RightPanel({ isCollapsed, isLoading, set
                             </ResizablePanel>
                             <ResizableHandle withHandle className='z-[100]' />
                         </>
-                    }
+                    } */}
                     {currentNode && (
                         <>
                             <ResizablePanel order={2} id="infos" defaultSize={30}>
-                                <ProfilePanel sketch_id={sketchId} data={currentNode.data} />
+                                <DetailsPanel sketch_id={sketchId} data={currentNode.data} />
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                         </>

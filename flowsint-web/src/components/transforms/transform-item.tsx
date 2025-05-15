@@ -38,20 +38,20 @@ export const TransformItem = memo(({ transform }: { transform: any }) => {
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col items-start gap-2">
-                    <div>
+                    <div className="flex items-center justify-between w-full ">
                         {formattedDate && (
                             <div className="flex items-center text-xs text-muted-foreground">
                                 <Calendar className="h-3 w-3 mr-1" />
                                 {formattedDate}
                             </div>
                         )}
-                    </div>
-                    <div className="flex gap-2 items-center flex-wrap">
-                        {transform.category.map((category: string) => {
-                            const color = useNodesDisplaySettings((state) => state.colors[category as keyof typeof state.colors] || "#000000")
-                            const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
-                            return <Badge key={category} style={{ backgroundColor: bgColor }}>{category}</Badge>
-                        })}
+                        <div className="flex gap-2 items-center flex-wrap">
+                            {transform.category.map((category: string) => {
+                                const color = useNodesDisplaySettings((state) => state.colors[category as keyof typeof state.colors] || "#000000")
+                                const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
+                                return <Badge key={category} style={{ backgroundColor: bgColor }}>{category}</Badge>
+                            })}
+                        </div>
                     </div>
                 </CardFooter>
             </Card>

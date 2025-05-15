@@ -20,20 +20,30 @@ class SireneScanner(Scanner):
         return "organizations"
 
     @classmethod
-    def input_schema(cls) -> List[Dict[str, Any]]:
+    def input_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(InputType)
-        return [
-            {"name": prop, "type": resolve_type(details)}
-            for prop, details in adapter.json_schema()["$defs"]["MinimalOrganization"]["properties"].items()
-        ]
+        schema = adapter.json_schema()
+        type_name, details = list(schema["$defs"].items())[0]
+        return {
+            "type": type_name,
+            "properties": [
+                {"name": prop, "type": resolve_type(info)}
+                for prop, info in details["properties"].items()
+            ]
+        }
 
     @classmethod
-    def output_schema(cls) -> List[Dict[str, Any]]:
+    def output_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(OutputType)
-        return [
-            {"name": prop, "type": resolve_type(details)}
-            for prop, details in adapter.json_schema()["$defs"]["Organization"]["properties"].items()
-        ]
+        schema = adapter.json_schema()
+        type_name, details = list(schema["$defs"].items())[0]
+        return {
+            "type": type_name,
+            "properties": [
+                {"name": prop, "type": resolve_type(info)}
+                for prop, info in details["properties"].items()
+            ]
+        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -117,6 +127,7 @@ class SireneScanner(Scanner):
                     SET i.country = $country,
                         i.issued_by = $issued_by,
                         i.sketch_id = $sketch_id,
+                        i.type = $type,
                         i.label = $label,
                         i.caption = $label
                     WITH i

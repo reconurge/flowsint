@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useEffect, useMemo, useRef } from "react"
+import { memo, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import Loader from "@/components/loader"
@@ -8,14 +8,16 @@ import NewActions from "@/components/sketches/new-actions"
 import { PlusIcon } from "lucide-react"
 import { useSketchStore } from "@/store/sketch-store"
 import { shallow } from "zustand/shallow"
-import { useNodesDisplaySettings } from "@/store/node-display-settings"
+import { ItemType, useNodesDisplaySettings } from "@/store/node-display-settings"
 import type { NodeData, EdgeData } from "@/types"
 import { useGraphControls } from "@/store/graph-controls-store"
+// @ts-ignore
+import { forceCollide } from 'd3'
 
 const ARROW_COLOR = "rgba(136, 136, 136, 0.21)";
 const LINE_COLOR = "rgba(136, 136, 136, 0.21)";
-const LINE_WIDTH = .3;
-const ARROW_HEAD_LENGTH = 3;
+const LINE_WIDTH = 0.4;
+const ARROW_HEAD_LENGTH = 1;
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d").then((mod) => mod), {
     ssr: false,
@@ -59,10 +61,10 @@ const stateSelector = (state: {
 })
 
 const Graph = ({ data, isLoading, width, height }: GraphProps) => {
-    const fgRef = useRef<any>(null)
     const colors = useNodesDisplaySettings(c => c.colors)
     const getIcon = useNodesDisplaySettings(c => c.getIcon)
     const getSize = useNodesDisplaySettings(c => c.getSize)
+    const setActions = useGraphControls((s) => s.setActions)
 
     const {
         currentNode,
@@ -81,7 +83,8 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
         shallow,
     )
 
-    const linkCanvaObject = useMemo(() => (link: any, ctx: any) => {
+    // Link canvas object rendering function
+    const linkCanvaObject = useCallback((link: any, ctx: any) => {
         const start = link.target as any;
         const end = link.source as any;
         if (
@@ -121,66 +124,144 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
             ctx.translate(midX, midY);
             ctx.rotate(angle);
             ctx.fillStyle = "#333";
-            ctx.font = "1.5px Sans-Serif";
+            ctx.font = "1px Sans-Serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(link.caption, 0, -1);
             ctx.restore();
         }
-    }, [])
+    }, [getSize])
 
-    const setActions = useGraphControls((s) => s.setActions);
+    // Setup graph instance when it's available - using callback approach
+    const handleGraphRef = useCallback((graphInstance: any) => {
+        if (!graphInstance) return;
 
-    useEffect(() => {
-        if (!fgRef.current) return;
+        // Configure the D3 forces
+        graphInstance.d3Force('charge').distanceMax(25);
+        graphInstance.d3Force('charge').strength(-15);
+        graphInstance.d3Force('link').distance(30);
+        graphInstance.d3Force('collision', forceCollide((node: any) => 2.5 * node.radius));
+        graphInstance.d3Force('collide', forceCollide(1));
+
+        // Set up the actions API
         setActions({
-            zoomToFit: () => fgRef.current?.zoomToFit(400),
+            zoomToFit: () => graphInstance.zoomToFit(400),
             zoomIn: () => {
-                const zoom = fgRef.current?.zoom() ?? 1;
-                fgRef.current?.zoom(zoom * 1.2);
+                const zoom = graphInstance.zoom() ?? 1;
+                graphInstance.zoom(zoom * 1.2);
             },
             zoomOut: () => {
-                const zoom = fgRef.current?.zoom() ?? 1;
-                fgRef.current?.zoom(zoom / 1.2);
+                const zoom = graphInstance.zoom() ?? 1;
+                graphInstance.zoom(zoom / 1.2);
             },
         });
-    }, [!!fgRef.current]);
+    }, [setActions]);
 
+    // Center on current node when it changes
+    const handleGraphInstance = useCallback((graphInstance: any) => {
+        if (!graphInstance || !currentNode) return;
 
+        graphInstance.centerAt(currentNode.x, currentNode.y, 500);
+        graphInstance.zoom(8, 500);
+    }, [currentNode]);
+
+    // Update nodes and edges when data changes
     useEffect(() => {
-        if (isLoading) return
-        if (data?.nds) setNodes(data.nds)
-        if (data?.rls) setEdges(data.rls)
-    }, [data?.nds, data?.rls, isLoading, setNodes, setEdges])
+        if (isLoading) return;
+        if (data?.nds) setNodes(data.nds);
+        if (data?.rls) setEdges(data.rls);
+    }, [data?.nds, data?.rls, isLoading, setNodes, setEdges]);
 
-    useEffect(() => {
-        if (currentNode && fgRef.current) {
-            fgRef.current.centerAt(currentNode.x, currentNode.y, 500)
-            fgRef.current.zoom(8, 500)
-        }
-    }, [currentNode])
+    // Node click handler
+    const onNodeClick = useCallback((node: NodeData, event: React.MouseEvent) => {
+        const multiSelect = event.ctrlKey || event.shiftKey || event.altKey;
+        toggleNodeSelection(node, multiSelect);
+    }, [toggleNodeSelection]);
 
-    const onNodeClick = useCallback((node: any, event: any) => {
-        const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
-        toggleNodeSelection(node, multiSelect)
-    }, [toggleNodeSelection])
-
+    // Calculate node color based on selection state
     const nodeColor = useCallback(
-        (node: any) => {
-            const typedNode = node as NodeData;
-            return selectedNodes.some(n => n.id === typedNode.id) ? '#FFCC00' : '#888888';
+        (node: NodeData) => {
+            return selectedNodes.some(n => n.id === node.id) ? '#FFCC00' : '#888888';
         },
         [selectedNodes]
-    )
+    );
 
+    // Handle background click to clear selection
     const handleBackgroundClick = useCallback(() => {
-        clearSelectedNodes()
-    }, [clearSelectedNodes])
+        clearSelectedNodes();
+    }, [clearSelectedNodes]);
 
+    // Node canvas object rendering function
+    const nodeCanvasObject = useCallback((node: NodeData, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        const isNodeSelected = isSelected(node.id);
+        const isNodeCurrent = isCurrent(node.id);
+        const color = colors[node.type as keyof typeof colors] || "#9FAAB8";
+        const nodeSize = getSize(node?.type as ItemType) || 25;
+        const radius = nodeSize / 10 + (isNodeSelected ? 0.5 : 0);
+        const fontSize = globalScale * 0.2462;
+
+        // Draw node circle
+        ctx.font = `${fontSize}px Sans-Serif`;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+        ctx.fill();
+
+        // Draw node outline
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+        ctx.strokeStyle = color || "black";
+        ctx.lineWidth = isNodeSelected ? 0.5 : 0.2;
+        ctx.stroke();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 1;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 2;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+        ctx.fill();
+        // Draw node icon
+        const size = nodeSize / 10;
+        ctx.drawImage(getIcon(node.type as ItemType), node.x! - size / 2, node.y! - size / 2, size, size);
+
+        // Draw selection highlight
+        if (isNodeSelected) {
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius + 0.8, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#FFCC00';
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+
+            // Draw node label when selected
+            if (node.label) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `${fontSize}px Sans-Serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(node.label, node.x!, node.y! + radius + 4.5);
+            }
+        }
+
+        // Draw current node indicator
+        if (isNodeCurrent) {
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius + 1.5, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 0.2;
+            ctx.setLineDash([0.5, 0.5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        ctx.save(); // Sauvegarde l'état du contexte
+    }, [colors, getIcon, getSize, isSelected, isCurrent]);
+
+    // Render loading state
     if (isLoading) {
-        return <Loader label="Loading..." />
+        return <Loader label="Loading..." />;
     }
 
+    // Render empty state
     if (!nodes.length) {
         return (
             <div className="flex relative gap-3 h-full flex-col w-full items-center justify-center">
@@ -191,16 +272,21 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                     </Button>
                 </NewActions>
             </div>
-        )
+        );
     }
 
+    // Render graph
     return (
         <div className="relative h-full w-full">
             <div className="absolute bottom-3 left-3 z-50 bg-card p-2 rounded-lg text-xs opacity-70">
                 Selected: {selectedNodes.length}
             </div>
             <ForceGraph2D
-                ref={fgRef}
+                // @ts-ignore
+                ref={(instance: any) => {
+                    handleGraphRef(instance);
+                    if (currentNode) handleGraphInstance(instance);
+                }}
                 graphData={{ nodes, links: edges }}
                 nodeId="id"
                 linkSource="from"
@@ -209,87 +295,23 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                 nodeAutoColorBy="label"
                 width={width}
                 height={height}
+                // @ts-ignore
                 nodeColor={nodeColor}
                 linkCanvasObject={linkCanvaObject}
-                // onRenderFramePre={(ctx, globalScale) => {
-                //     const step = 50;
-                //     const dotSize = 1.5 * globalScale;
-                //     const canvas = ctx.canvas;
-                //     const width = canvas.width;
-                //     const height = canvas.height;
-                //     const graphCoords = fgRef.current?.screen2GraphCoords;
-
-                //     if (!graphCoords) return;
-
-                //     const topLeft = graphCoords(0, 0);
-                //     const bottomRight = graphCoords(width, height);
-
-                //     ctx.save();
-                //     ctx.clearRect(0, 0, width, height);
-                //     ctx.fillStyle = LINE_COLOR;
-                //     for (let x = Math.floor(topLeft.x / step) * step; x < bottomRight.x; x += step) {
-                //         for (let y = Math.floor(topLeft.y / step) * step; y < bottomRight.y; y += step) {
-                //             const screen = fgRef.current.graph2ScreenCoords(x, y);
-                //             ctx.beginPath();
-                //             ctx.arc(screen.x, screen.y, dotSize, 0, 2 * Math.PI);
-                //             ctx.fill();
-                //         }
-                //     }
-                //     ctx.restore();
-                // }}
                 linkWidth={link => link ? 2 : 1}
+                // @ts-ignore
                 onNodeClick={onNodeClick}
                 onBackgroundClick={handleBackgroundClick}
                 onNodeDragEnd={(node) => {
-                    node.fx = node.x
-                    node.fy = node.y
-                    node.fz = node.z
+                    node.fx = node.x;
+                    node.fy = node.y;
+                    node.fz = node.z;
                 }}
-                nodeCanvasObject={(node: any, ctx, globalScale) => {
-                    const isNodeSelected = isSelected(node.id)
-                    const isNodeCurrent = isCurrent(node.id)
-                    const color = colors[node.type as keyof typeof colors]
-                    const nodeSize = getSize(node?.type)
-                    const radius = nodeSize / 10 + (isNodeSelected ? 0.5 : 0)
-                    const fontSize = globalScale * 0.2462
-                    ctx.font = `${fontSize}px Sans-Serif`
-                    ctx.fillStyle = color
-                    ctx.beginPath()
-                    ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false)
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false)
-                    ctx.strokeStyle = color || "black"
-                    ctx.lineWidth = isNodeSelected ? 0.5 : 0.2
-                    ctx.stroke()
-                    const size = nodeSize / 10
-                    ctx.drawImage(getIcon(node.type), node.x - size / 2, node.y - size / 2, size, size);
-                    if (isNodeSelected) {
-                        ctx.beginPath()
-                        ctx.arc(node.x!, node.y!, radius + 0.8, 0, 2 * Math.PI, false)
-                        ctx.strokeStyle = '#FFCC00'
-                        ctx.lineWidth = 0.3
-                        ctx.stroke()
-                        if (node.label) {
-                            ctx.fillStyle = '#FFFFFF'
-                            ctx.font = `${fontSize} Sans-Serif`
-                            ctx.textAlign = 'center'
-                            ctx.fillText(node.label, node.x!, node.y! + radius + 4.5)
-                        }
-                    }
-                    if (isNodeCurrent) {
-                        ctx.beginPath()
-                        ctx.arc(node.x!, node.y!, radius + 1.5, 0, 2 * Math.PI, false)
-                        ctx.strokeStyle = 'white'
-                        ctx.lineWidth = 0.2
-                        ctx.setLineDash([0.5, 0.5])
-                        ctx.stroke()
-                        ctx.setLineDash([])
-                    }
-                }}
+                // @ts-ignore
+                nodeCanvasObject={nodeCanvasObject}
             />
         </div>
-    )
-}
+    );
+};
 
-export default memo(Graph)
+export default memo(Graph);

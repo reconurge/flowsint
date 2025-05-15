@@ -17,6 +17,8 @@ export default async function EditorCustom({
     const { transform_id } = await (params)
     const supabase = await createClient()
     const nodesData = await fetchNodes()
-    const { data: transform } = await supabase.from("transforms").select("*").eq("id", transform_id as string).single()
-    return <TransformEditor nodesData={nodesData} initialNodes={transform?.transform_schema?.nodes} initialEdges={transform?.transform_schema?.edges} />
+    const { data: transform, error } = await supabase.from("transforms").select("*").eq("id", transform_id as string).single()
+    if (error || !transform)
+        return notFound()
+    return <TransformEditor transform={transform} nodesData={nodesData} initialNodes={transform?.transform_schema?.nodes} initialEdges={transform?.transform_schema?.edges} />
 }

@@ -15,7 +15,7 @@ import { actionItems } from "@/lib/action-items"
 import LaunchTransform from "./launch-transform"
 import { IconContainer } from "@/components/icon-container"
 
-export default function ProfilePanel({ data, sketch_id }: { data: any, sketch_id?: string }) {
+export default function DetailsPanel({ data, sketch_id }: { data: any, sketch_id?: string }) {
     const item = useMemo(() =>
         (actionItems as any).find((a: any) => a.type === data?.type),
         [data?.type]
@@ -57,14 +57,14 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
     return (
         <div className={cn("w-full border-collapse", className)}>
             {data && Object.entries(data)
-                .filter(([key]) => !["individual_id", "forceToolbarVisible"].includes(key))
+                .filter(([key]) => !["sketch_id", "caption", "size", "color"].includes(key))
                 .map(([key, value], index) => {
                     const val = Array.isArray(value) ? `${value.length} items` : value?.toString() || null
                     const display = (typeof val === "string" && val.startsWith("https://")) ? <a href={val} className="underline text-primary" target="_blank">{val}</a> : val
                     return (
-                        <div key={index} className="flex w-full items-center border-b border-border divide-x divide-border">
-                            <div className="w-1/2 bg-card px-4 p-2 text-sm text-muted-foreground font-normal">{key}</div>
-                            <div className="w-1/2 bg-card px-4 p-2 text-sm font-medium flex items-center justify-between"><div className="truncate font-semibold">{display || <span className="italic text-muted-foreground">N/A</span>}</div> <div>{display && <CopyButton className="h-6 w-6" content={val} />}</div></div>
+                        <div key={index} className="flex w-full bg-card items-center divide-x divide-border p-0  border-b border-border">
+                            <div className="w-1/2 px-4 p-2 text-sm text-muted-foreground font-normal">{key}</div>
+                            <div className="w-1/2 px-4 p-2 text-sm font-medium flex items-center justify-between"><div className="truncate font-semibold">{display || <span className="italic text-muted-foreground">N/A</span>}</div> <div>{display && <CopyButton className="h-6 w-6" content={val} />}</div></div>
                         </div>
                     )
                 })}

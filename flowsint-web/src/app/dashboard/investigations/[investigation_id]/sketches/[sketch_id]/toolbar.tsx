@@ -171,10 +171,10 @@ export const Toolbar = memo(function Toolbar({
                         users={sketchMembers}
                     />
                 </div>
-                <DownloadButton
+                {/* <DownloadButton
                     endpoint={`/api/investigations/${investigation_id}/sketches/${sketch_id}/table`}
                     name={investigation_id}
-                />
+                /> */}
                 <MoreMenu sketch={sketch} user_id={user_id} />
                 <ScanButton />
             </div>

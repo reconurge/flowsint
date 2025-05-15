@@ -57,34 +57,32 @@ export const ITEM_TYPES: ItemType[] = [
     "siren"
 ]
 
-const primary = "#f59e0b"
-
 const DEFAULT_COLORS: Record<ItemType, string> = {
-    individual: primary, // Bleu moyen
-    phone: primary, // Vert/gris doux
-    address: primary, // Vert forêt
-    email: primary, // Rouge doux
-    ip: primary, // Orange chaud
-    social_profile: primary, // Mauve gris
-    organization: primary, // Brun/bronze
-    vehicle: primary, // Jaune sable
-    website: primary, // Rose grisé
-    domain: primary, // Bleu-vert foncé
-    subdomain: primary, // Bleu clair
-    document: primary, // Bleu pâle grisé
-    financial: primary, // Rose saumon
-    event: primary, // Bleu ciel
-    device: primary, // Jaune doux
-    media: primary, // Orange ocre
-    education: primary, // Bleu acier
-    relationship: primary, // Pêche
-    online_activity: primary, // Vert herbe
-    digital_footprint: primary, // Rouge terre
-    username: primary, // Bleu lavande
-    credential: primary, // Gris neutre
-    biometric: primary, // Gris neutre
-    siret: primary,
-    siren: primary
+    individual: "#A9CCF4",      // Notion medium blue
+    phone: "#A0D7CF",           // Notion soft teal
+    address: "#A4BFD5",         // Notion dusty blue
+    email: "#C4B9ED",           // Notion lavender
+    ip: "#F0C19E",              // Notion pale orange
+    social_profile: "#B8AFE6",  // Notion muted purple
+    organization: "#D1C0AF",    // Notion taupe
+    vehicle: "#E9CD89",         // Notion wheat
+    website: "#E7B8D2",         // Notion dusty rose
+    domain: "#A6D0BF",          // Notion sage
+    subdomain: "#9DCBE4",       // Notion sky blue
+    document: "#C1C6CD",        // Notion cool gray
+    financial: "#EAAFAF",       // Notion salmon
+    event: "#A2D4BF",           // Notion mint
+    device: "#EAC597",          // Notion peach
+    media: "#E4B1AD",           // Notion terracotta
+    education: "#ABC0DA",       // Notion steel blue
+    relationship: "#E2C3BD",    // Notion dusty rose
+    online_activity: "#B5D1A9", // Notion sage
+    digital_footprint: "#D9B0B0", // Notion brick
+    username: "#C7BEE4",        // Notion periwinkle
+    credential: "#BDC4CA",      // Notion medium gray
+    biometric: "#AEB3B9",       // Notion slate gray
+    siret: "#ADB9C6",           // Notion blue-gray
+    siren: "#9FAAB8"            // Notion dark slate
 }
 
 // Définition des icônes par défaut pour chaque type d'élément
@@ -183,6 +181,7 @@ export const useNodesDisplaySettings = create<NodesDisplaySettingsState>()(
                 set({
                     colors: { ...DEFAULT_COLORS },
                     icons: { ...DEFAULT_ICONS },
+                    sizes: { ...DEFAULT_SIZES }
                 }),
             getIcon: (itemType) => {
                 const img = new Image()

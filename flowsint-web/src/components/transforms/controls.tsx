@@ -1,110 +1,162 @@
-import { memo, useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { MaximizeIcon, ZoomInIcon, ZoomOutIcon, NetworkIcon, PlayIcon, SaveIcon, TrashIcon, XIcon } from "lucide-react";
-import FullscreenButton from "../full-screen-button";
-import { Panel } from "@xyflow/react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
-import useLocalStorage from "@/lib/hooks/use-local-storage";
-export const FlowControls = memo(({
-    handleSaveTransform,
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Panel } from "@xyflow/react"
+import { Save, Trash2, Play, ZoomIn, ZoomOut, Maximize, LayoutGrid, Calculator } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState } from "react"
+import { TransformDetailsPanel } from "./transform-name-panel"
+
+interface FlowControlsProps {
+    loading: boolean
+    handleSaveTransform: () => void
+    handleDeleteTransform: () => void
+    handleComputeFlow: () => void
+    setOpenTestTransform: (open: boolean) => void
+    onLayout: () => void
+    fitView: () => void
+    zoomIn: () => void
+    zoomOut: () => void
+    isSaved: boolean,
+    transform?: any
+}
+
+export function FlowControls({
     loading,
+    handleSaveTransform,
+    handleDeleteTransform,
+    handleComputeFlow,
+    setOpenTestTransform,
     onLayout,
     fitView,
     zoomIn,
     zoomOut,
-    handleDeleteTransform,
-    setOpenTestTransform,
-    isSaved
-}: any) => {
-    const [hide, setHide] = useLocalStorage('hide-transform-message', false)
-    const handleHide = useCallback(() => {
-        setHide(true)
-    }, [])
+    isSaved,
+    transform
+}: FlowControlsProps) {
+    const [showComputeTooltip, setShowComputeTooltip] = useState(false)
+
     return (
-        <>
-            <Panel position="top-left" className="flex flex-col items-center gap-1">
-                <FullscreenButton />
-            </Panel>
-            <Panel position="top-right" className="flex items-center gap-2">
-                {isSaved &&
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                onClick={setOpenTestTransform}
-                            >
-                                Test simulation<PlayIcon className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Test simulation</TooltipContent>
-                    </Tooltip>}
-                <Button
-                    variant="outline"
-                    disabled={loading}
-                    onClick={handleSaveTransform}
-                >
-                    Save transform<SaveIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size={"icon"}
-                    onClick={handleDeleteTransform}
-                >
-                    <TrashIcon className="h-4 w-4" />
-                </Button>
-            </Panel>
-            <Panel position="bottom-left" className="flex flex-col items-center gap-1">
+        <TooltipProvider>
+            <TransformDetailsPanel transform={transform} />
+            <Panel position="top-right" className="flex gap-2">
                 <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" className="bg-card" onClick={handleSaveTransform} disabled={loading}>
+                            <Save className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Save Transform</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {isSaved && (
+                    <>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="bg-card"
+                                    onClick={() => setOpenTestTransform(true)}
+                                    disabled={loading}
+                                >
+                                    <Play className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Test Transform</p>
+                            </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="bg-card"
+                                    onClick={handleDeleteTransform}
+                                    disabled={loading}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Delete Transform</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </>
+                )}
+
+                <Tooltip open={showComputeTooltip} onOpenChange={setShowComputeTooltip}>
                     <TooltipTrigger asChild>
                         <Button
-                            size="icon"
                             variant="outline"
-                            onClick={() => onLayout()}
+                            size="icon"
+                            className="bg-card"
+                            onClick={() => {
+                                if (isSaved) {
+                                    handleComputeFlow()
+                                } else {
+                                    setShowComputeTooltip(true)
+                                    setTimeout(() => setShowComputeTooltip(false), 3000)
+                                }
+                            }}
+                            disabled={loading || !isSaved}
                         >
-                            <NetworkIcon className="h-4 w-4" />
+                            <Calculator className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Auto layout</TooltipContent>
+                    <TooltipContent>
+                        {isSaved ? <p>Compute Flow</p> : <p>Save the transform first to compute the flow</p>}
+                    </TooltipContent>
                 </Tooltip>
+
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button size="icon" variant="outline" onClick={fitView}>
-                            <MaximizeIcon className="h-4 w-4" />
+                        <Button variant="outline" size="icon" className="bg-card" onClick={onLayout}>
+                            <LayoutGrid className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Center view</TooltipContent>
+                    <TooltipContent>
+                        <p>Auto Layout</p>
+                    </TooltipContent>
                 </Tooltip>
+
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button size="icon" variant="outline" onClick={zoomIn}>
-                            <ZoomInIcon className="h-4 w-4" />
+                        <Button variant="outline" size="icon" className="bg-card" onClick={fitView}>
+                            <Maximize className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Zoom in</TooltipContent>
+                    <TooltipContent>
+                        <p>Fit View</p>
+                    </TooltipContent>
                 </Tooltip>
+
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button size="icon" variant="outline" onClick={() => zoomOut()}>
-                            <ZoomOutIcon className="h-4 w-4" />
+                        <Button variant="outline" size="icon" className="bg-card" onClick={zoomIn}>
+                            <ZoomIn className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Zoom out</TooltipContent>
+                    <TooltipContent>
+                        <p>Zoom In</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" className="bg-card" onClick={zoomOut}>
+                            <ZoomOut className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Zoom Out</p>
+                    </TooltipContent>
                 </Tooltip>
             </Panel>
-            {!hide && (
-                <Panel position="bottom-right" className="flex flex-col items-center gap-1">
-                    <div className="max-w-lg relative text-sm p-3 border border-orange-500 dark:border-orange-800/70 bg-orange-300 dark:bg-orange-700/30 text-white rounded-md">
-                        <p className="flex items-center gap-1 font-bold mb-1"><InfoCircledIcon className="text-orange-500" /> Note</p>
-                        <p>
-                            Every input and output is under the list format. For example, SubdomainScanner will take a list of MinimalDomain and return a list of MinimalDomain.
-                        </p>
-                        <div className="absolute top-1 right-1">
-                            <Button onClick={handleHide} variant={"ghost"} size="icon" className="h-6 w-6">
-                                <XIcon />
-                            </Button>
-                        </div>
-                    </div>
-                </Panel>)}
-        </>
+        </TooltipProvider>
     )
-});
+}

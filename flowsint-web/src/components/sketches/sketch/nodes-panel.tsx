@@ -81,11 +81,11 @@ const NodeRenderer = memo(({
             )}
             onClick={handleClick}
         >
-            <IconContainer
+            {/* <IconContainer
                 type={node?.data?.type}
                 icon={Icon}
                 size={12}
-            />
+            /> */}
             <div className='grow truncate text-ellipsis'>{node?.data?.label}</div>
             <TypeBadge type={node?.data?.type} />
         </Button>

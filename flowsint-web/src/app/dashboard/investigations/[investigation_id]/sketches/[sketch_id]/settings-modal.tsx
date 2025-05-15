@@ -12,7 +12,10 @@ import { useModalStore } from "@/store/store-settings"
 
 export default function SettingsModal() {
     const { isSettingsOpen, closeSettings } = useModalStore()
-    const { colors, setColor, resetAll } = useNodesDisplaySettings()
+    const colors = useNodesDisplaySettings(s => s.colors)
+    const setColor = useNodesDisplaySettings(s => s.setColor)
+    const resetAll = useNodesDisplaySettings(s => s.resetAll)
+
     const [localColors, setLocalColors] = useState<Record<ItemType, string>>({ ...colors })
 
     const handleColorChange = (itemType: ItemType, color: string) => {

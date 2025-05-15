@@ -23,6 +23,5 @@ export const categoryColors: Record<string, string> = {
   phones: "#8b5cf6",
   ips: "#ef4444",
   domains: "#10b981",
-  inputs: "#f59e0b",
-
+  type: "#f59e0b",
 }

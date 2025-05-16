@@ -12,6 +12,7 @@ import { useSketchStore } from "@/store/sketch-store"
 import { GraphPanel } from "./graph-panel"
 import { Sketch } from "@/types/sketch"
 import SettingsModal from "./settings-modal"
+import { CreateRelationDialog } from "@/components/sketches/sketch/create-relation"
 
 interface DashboardClientProps {
     investigationId: string
@@ -67,6 +68,7 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
                     />
                 </ResizablePanelGroup>
             </div>
+            <CreateRelationDialog sketchId={sketchId} />
             <SettingsModal />
         </>
     )

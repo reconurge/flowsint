@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, Literal
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from app.utils import flatten
@@ -51,8 +51,6 @@ async def get_sketch_nodes(sketch_id: str):
             "label": record["data"].get("label", "Node"),
             "type": record["labels"][0].lower(),
             "caption": record["data"].get("label", "Node"),
-            "size": 40,
-            "color": record["data"].get("color", "#FFFFFF"),
             "x": random.random() * 1000,
             "y": random.random() * 1000
         }
@@ -67,8 +65,6 @@ async def get_sketch_nodes(sketch_id: str):
             "to": str(record["target"]),
             "data": record["data"],
             "caption": record["type"],
-            "width": 1,
-            "color": "#A5ABB6"
         }
         for record in rels_result
     ]
@@ -80,8 +76,8 @@ class NodeInput(BaseModel):
     type: str
     data: Dict[str, Any] = Field(default_factory=dict)
 
-def dict_to_cypher_props(props: dict) -> str:
-    return ", ".join(f"{key}: ${key}" for key in props)
+def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
+    return ", ".join(f"{key}: ${prefix}{key}" for key in props)
 
 # Endpoints
 @router.get("/sketches")
@@ -136,29 +132,25 @@ def add_node(sketch_id: str, node: NodeInput):
         "node": new_node,
     }
 
-class EdgeInput(BaseModel):
-    from_node: dict
-    to_node: dict
-    type: str
+class RelationInput(BaseModel):
+    source: Any
+    target: Any
+    type: Literal["one-way", "two-way"]
+    label: str = "RELATED_TO"  # Optionnel : nom de la relation
 
-@router.post("/sketch/{sketch_id}/edges/add")
-def add_edge(sketch_id: str, edge: EdgeInput):
-    from_props = flatten(edge.from_node)
-    to_props = flatten(edge.to_node)
-
-    from_cypher = dict_to_cypher_props(from_props)
-    to_cypher = dict_to_cypher_props(to_props)
+@router.post("/sketch/{sketch_id}/relations/add")
+def add_edge(sketch_id: str, relation: RelationInput):
 
     query = f"""
-        MATCH (a {{ {from_cypher} }})
-        MATCH (b {{ {to_cypher} }})
-        MERGE (a)-[r:`{edge.type}` {{sketch_id: $sketch_id}}]->(b)
+        MATCH (a) WHERE elementId(a) = $from_id
+        MATCH (b) WHERE elementId(b) = $to_id
+        MERGE (a)-[r:`{relation.label}` {{sketch_id: $sketch_id}}]->(b)
         RETURN r
     """
 
     params = {
-        **from_props,
-        **to_props,
+        "from_id": relation.source["id"],
+        "to_id": relation.target["id"],
         "sketch_id": sketch_id,
     }
 
@@ -167,7 +159,7 @@ def add_edge(sketch_id: str, edge: EdgeInput):
     except Exception as e:
         print(f"Edge creation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create edge")
-
+    print(result)
     if not result:
         raise HTTPException(status_code=400, detail="Edge creation failed")
 
@@ -175,3 +167,4 @@ def add_edge(sketch_id: str, edge: EdgeInput):
         "status": "edge added",
         "edge": result[0]["r"],
     }
+    

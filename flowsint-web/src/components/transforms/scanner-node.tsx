@@ -11,7 +11,7 @@ export interface ScannerNodeData extends Record<string, unknown> {
     name: string
     module: string
     doc: string | null
-    category?: string
+    category: string
     type: string
     color?: string
     inputs: {
@@ -52,11 +52,11 @@ function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
 
 // Memoized scanner node component with custom equality check
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
-    const color = categoryColors[data.type] || "#94a3b8"
+    const color = categoryColors[data?.category] || "#94a3b8"
     return (
         <BaseNodeSchema
             className="shadow-md rounded-md !border-l-2 p-0 bg-background !max-w-[340px]"
-            style={{ borderLeftWidth: "8px", borderLeftColor: color || "#888", cursor: "grab" }}
+            style={{ borderLeftWidth: "8px", borderLeftColor: color, cursor: "grab" }}
             selected={selected}
         >
             <div className="p-3 bg-card rounded-t-md">

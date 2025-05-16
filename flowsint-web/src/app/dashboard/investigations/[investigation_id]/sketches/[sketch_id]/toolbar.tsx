@@ -1,7 +1,6 @@
 "use client"
 
 import { AvatarList } from "@/components/avatar-list"
-import { DownloadButton } from "@/components/download-button"
 import MoreMenu from "@/components/sketches/more-menu"
 import { ScanButton } from "@/components/sketches/scans-drawer/scan-button"
 import { Button } from "@/components/ui/button"
@@ -19,6 +18,7 @@ import {
     ArrowDownUp,
     Copy,
     Filter,
+    GitBranchIcon,
     Layers,
     LayoutGrid,
     Maximize,
@@ -32,7 +32,7 @@ import {
 } from "lucide-react"
 import { notFound } from "next/navigation"
 import { useQueryState } from "nuqs"
-import { memo, useMemo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { shallow } from "zustand/shallow"
 
 
@@ -81,12 +81,9 @@ export const Toolbar = memo(function Toolbar({
     user_id: string;
 }) {
 
-    const { currentNode } = useSketchStore(
-        state => ({
-            currentNode: state.currentNode,
-        }),
-        shallow
-    )
+    const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
+    const openAddRelationDialog = useSketchStore((state) => state.openAddRelationDialog)
+    const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
     const toggleSettings = useModalStore((s) => s.toggleSettings)
     const zoomToFit = useGraphControls((s) => s.zoomToFit);
     const zoomIn = useGraphControls((s) => s.zoomIn);
@@ -106,6 +103,10 @@ export const Toolbar = memo(function Toolbar({
         refetchOnWindowFocus: true,
     })
 
+    const handleOpenRelationshipDialog = useCallback(() => {
+        setOpenAddRelationDialog(true)
+    }, [])
+
 
     // Memoize sketch members to prevent unnecessary rerenders
     const sketchMembers = useMemo(() =>
@@ -115,6 +116,8 @@ export const Toolbar = memo(function Toolbar({
         })) || [],
         [sketch?.members, sketch?.owner_id]
     )
+    const isMoreThanZero = selectedNodes.length > 0
+    const isTwo = selectedNodes.length == 2
 
     return (
         <div className="flex items-center justify-between h-10 border-b px-2 bg-card">
@@ -126,12 +129,18 @@ export const Toolbar = memo(function Toolbar({
                     <ToolbarButton
                         icon={<Copy className="h-4 w-4 opacity-70" />}
                         tooltip="Copy"
-                        disabled={!currentNode}
+                        disabled={!isMoreThanZero}
+                    />
+                    <ToolbarButton
+                        onClick={handleOpenRelationshipDialog}
+                        icon={<GitBranchIcon className="h-4 w-4 opacity-70" />}
+                        tooltip="Create relation"
+                        disabled={!isTwo}
                     />
                     <ToolbarButton
                         icon={<Trash className="h-4 w-4 opacity-70" />}
                         tooltip="Delete"
-                        disabled={!currentNode}
+                        disabled={!isMoreThanZero}
                     />
                     <Separator />
                     <ToolbarButton disabled icon={<ArrowDownUp className="h-4 w-4 opacity-70" />} tooltip="Arrange" />

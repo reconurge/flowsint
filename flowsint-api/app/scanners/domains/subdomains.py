@@ -144,7 +144,6 @@ class SubdomainScanner(Scanner):
                     MERGE (sub:domain {domain: $subdomain})
                     SET sub.sketch_id = $sketch_id,
                         sub.label = $label,
-                        sub.color = $color,
                         sub.caption = $caption,
                         sub.type = $type
                     MERGE (d:domain {domain: $domain})
@@ -155,7 +154,6 @@ class SubdomainScanner(Scanner):
                     "sketch_id": self.sketch_id,
                     "label": subdomain,
                     "caption": subdomain,
-                    "color": "#865FCD",
                     "type": "subdomain"
                 })
             logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found.")

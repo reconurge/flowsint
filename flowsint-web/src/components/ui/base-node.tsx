@@ -24,9 +24,10 @@ BaseNode.displayName = "BaseNode";
 export const BaseNodeSchema = forwardRef<
     HTMLDivElement,
     HTMLAttributes<HTMLDivElement> & { selected?: boolean }
->(({ className, selected, ...props }, ref) => (
+>(({ className, selected, style, ...props }, ref) => (
     <div
         ref={ref}
+        style={style}
         className={cn(
             "relative rounded-md border bg-card p-5 text-card-foreground",
             className,

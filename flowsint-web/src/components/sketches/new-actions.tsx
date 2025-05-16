@@ -3,7 +3,6 @@
 import type React from "react"
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from "sonner"
@@ -17,17 +16,36 @@ import { Badge } from "@/components/ui/badge"
 import { saveNode } from "@/lib/actions/sketches"
 import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import { useSketchStore } from "@/store/sketch-store"
+import { shallow } from 'zustand/shallow'
 
 interface ActionDialogProps {
     children: React.ReactNode
-    addNodes?: (node: any) => void
     setCurrentNode?: (node: any) => void
 }
 
-export default function ActionDialog({ children, addNodes, setCurrentNode }: ActionDialogProps) {
+export default function ActionDialog({ children, setCurrentNode }: ActionDialogProps) {
     const { sketch_id } = useParams()
-    const { colors } = useNodesDisplaySettings()
-    const { handleOpenFormModal, currentNodeType, openMainDialog, setOpenMainDialog, openFormDialog, setOpenFormDialog } = useSketchStore()
+    const colors = useNodesDisplaySettings(s => s.colors)
+    const {
+        handleOpenFormModal,
+        currentNodeType,
+        openMainDialog,
+        setOpenMainDialog,
+        openFormDialog,
+        setOpenFormDialog,
+        addNode,
+    } = useSketchStore(
+        state => ({
+            handleOpenFormModal: state.handleOpenFormModal,
+            currentNodeType: state.currentNodeType,
+            openMainDialog: state.openMainDialog,
+            setOpenMainDialog: state.setOpenMainDialog,
+            openFormDialog: state.openFormDialog,
+            setOpenFormDialog: state.setOpenFormDialog,
+            addNode: state.addNode,
+        }),
+        shallow
+    )
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
@@ -52,10 +70,11 @@ export default function ActionDialog({ children, addNodes, setCurrentNode }: Act
                     type,
                 },
             }
-            const resp = await saveNode({ node: newNode, sketch_id })
-            if (addNodes) addNodes(resp.data?.node as any)
-            if (setCurrentNode) setCurrentNode(newNode)
+            if (addNode) addNode(newNode as any)
             setOpenFormDialog(false)
+            toast.success("New node added.")
+            await saveNode({ node: newNode, sketch_id })
+            if (setCurrentNode) setCurrentNode(newNode)
         } catch (error) {
             toast.error("Unexpected error during node creation.")
         } finally {

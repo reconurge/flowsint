@@ -12,9 +12,11 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { saveEdge } from "@/lib/actions/sketches"
 import { toast } from "sonner"
+import { EdgeData } from "@/types"
 
 export function CreateRelationDialog({ sketchId }: { sketchId: string }) {
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
+    const addEdge = useSketchStore((state) => state.addEdge)
     const openAddRelationDialog = useSketchStore((state) => state.openAddRelationDialog)
     const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
     const [relationType, setRelationType] = useState("")
@@ -23,17 +25,18 @@ export function CreateRelationDialog({ sketchId }: { sketchId: string }) {
     const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault()
         try {
-            const schema = {
+            const newEdge = {
                 source: selectedNodes[0],
                 target: selectedNodes[1],
                 type: direction,
                 label: relationType,
                 sketch_id: sketchId
             }
-            const resp = await saveEdge(schema)
-            // if (addEdges) addEdges(schema)
-            setOpenAddRelationDialog(false)
+            const newEdgeObject = { type: newEdge.type, label: relationType, from: newEdge.source.id, to: newEdge.target.id } as any
+            if (addEdge) addEdge(newEdgeObject)
             toast.success("Relation successfully added.")
+            setOpenAddRelationDialog(false)
+            await saveEdge(newEdge)
         } catch (error) {
             toast.error("Unexpected error during node creation.")
         } finally {

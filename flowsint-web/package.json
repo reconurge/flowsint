@@ -96,6 +96,7 @@
         "tailwind-merge": "^3.0.1",
         "tailwindcss": "^4.0.3",
         "tailwindcss-animate": "^1.0.7",
+        "three": "^0.176.0",
         "three-spritetext": "^1.9.6",
         "usehooks-ts": "^3.1.1",
         "uuid": "^11.1.0",

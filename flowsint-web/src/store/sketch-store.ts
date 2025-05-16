@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import type { EdgeData, NodeData } from "@/types"
-import { ActionItem, actionItems, findActionItemByKey } from "@/lib/action-items"
+import { ActionItem, findActionItemByKey } from "@/lib/action-items"
 
 interface SketchState {
     // === Graph ===
@@ -11,6 +11,7 @@ interface SketchState {
     setNodes: (nodes: NodeData[]) => void
     setEdges: (edges: EdgeData[]) => void
     addNode: (newNode: Partial<NodeData>) => NodeData
+    addEdge: (newEdge: Partial<EdgeData>) => EdgeData
 
     // === Selection & Current ===
     currentNode: NodeData | null
@@ -54,6 +55,15 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
         } as NodeData
         set({ nodes: [...nodes, nodeWithId] })
         return nodeWithId
+    },
+    addEdge: (newEdge) => {
+        const { edges } = get()
+        const edgeWithId: EdgeData = {
+            id: newEdge.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            ...newEdge,
+        } as EdgeData
+        set({ edges: [...edges, edgeWithId] })
+        return edgeWithId
     },
 
     // === Selection & Current ===

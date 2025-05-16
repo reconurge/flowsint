@@ -61,30 +61,6 @@ const Graph: React.FC<GraphProps> = ({ data, isLoading, width, height }) => {
         shallow,
     )
 
-    const nodeColor = useCallback((node: Node) => {
-        switch (node.type) {
-            case "organization":
-                return "#4ade80" // vert
-            case "individual":
-                return "#60a5fa" // bleu
-            case "email":
-                return "#facc15" // jaune
-            case "phone":
-                return "#f472b6" // rose
-            case "social":
-                return "#38bdf8" // cyan
-            default:
-                return "#cbd5e1" // gris clair
-        }
-    }, [])
-
-    const nodeThreeObject = useCallback((node: Node) => {
-        const sprite = new SpriteText(node.label || node.id)
-        sprite.color = nodeColor(node)
-        sprite.textHeight = 8
-        return sprite
-    }, [nodeColor])
-
     useEffect(() => {
         if (isLoading) return
         if (data?.nds) setNodes(data.nds)
@@ -93,12 +69,14 @@ const Graph: React.FC<GraphProps> = ({ data, isLoading, width, height }) => {
     return (
         <div className="relative h-full w-full bg-card">
             <ForceGraph3D
+                backgroundColor={"white"}
+                // cameraPosition={{ x: 0, y: 0, z: 500 }}
                 ref={fgRef}
                 graphData={{ nodes, links: edges }}
                 nodeId="id"
                 nodeLabel="label"
                 nodeAutoColorBy="type"
-                nodeThreeObject={nodeThreeObject}
+                // nodeThreeObject={nodeThreeObject}
                 linkDirectionalArrowLength={4}
                 linkDirectionalArrowRelPos={1}
                 width={width}

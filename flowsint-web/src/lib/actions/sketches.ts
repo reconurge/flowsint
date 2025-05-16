@@ -70,7 +70,7 @@ export async function saveNode(schema: AddNodeSchema) {
 }
 
 
-type AddEdgeSchema = {
+export type AddEdgeSchema = {
     source: NodeData,
     target: NodeData,
     type: string,

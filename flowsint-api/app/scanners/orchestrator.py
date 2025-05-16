@@ -44,7 +44,7 @@ class TransformOrchestrator(Scanner):
             self.scanners[node_id] = scanner
             
         # Log the execution plan for debugging
-        self.log_execution_plan()
+        # self.log_execution_plan()
 
     def log_execution_plan(self):
         """Log the execution plan for debugging purposes"""
@@ -191,7 +191,7 @@ class TransformOrchestrator(Scanner):
                 try:
                     # Prepare inputs for this scanner
                     # scanner_inputs = self.prepare_scanner_inputs(step, results_mapping, values)
-                    logger.debug(self.scan_id, self.sketch_id,f"Current values to be used: {str(scanner_inputs)}")
+                    # logger.debug(self.scan_id, self.sketch_id,f"Current values to be used: {str(scanner_inputs)}")
                     if not scanner_inputs:
                         logger.warn(self.scan_id, self.sketch_id,
                                     f"No inputs available for scanner {scanner_name}, skipping")
@@ -199,14 +199,14 @@ class TransformOrchestrator(Scanner):
                         branch_results["steps"].append(step_result)
                         continue
                     
-                    logger.info(self.scan_id, self.sketch_id, 
-                            f"Running scanner {scanner_name} with inputs: {str(scanner_inputs)}")
+                    # logger.info(self.scan_id, self.sketch_id, 
+                    #         f"Running scanner {scanner_name} with inputs: {str(scanner_inputs)}")
                     
                     # Execute the scanner
                     outputs = scanner.execute(scanner_inputs)
                     if not isinstance(outputs, (dict, list)):
                         raise ValueError(f"Scanner '{scanner_name}' returned unsupported output format")
-                    logger.success(self.scan_id, self.sketch_id, f"{str(outputs)}")
+                    logger.success(self.scan_id, self.sketch_id, f"Found {str(len(outputs))} for scanner {scanner.name()}")
                     # Convert outputs to JSON-serializable format
                     # outputs = self.results_to_json(outputs)
                     

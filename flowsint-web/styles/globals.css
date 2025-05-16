@@ -176,7 +176,7 @@ body {
   --accent-foreground: oklch(0.92 0.12 95.75);
   --destructive: oklch(0.64 0.21 25.33);
   --destructive-foreground: oklch(1.00 0 0);
-  --border: oklch(0.37 0 0);
+  --border: oklch(0.29 0 0);
   --input: oklch(0.37 0 0);
   --ring: oklch(0.77 0.16 70.08);
   --chart-1: oklch(0.84 0.16 84.43);

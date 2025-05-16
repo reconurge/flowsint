@@ -2,6 +2,7 @@
 import { createClient } from "../supabase/server"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
+import { NodeData } from "@/types"
 
 export async function createNewSketch(formData: FormData, investigation_id: string) {
     const supabase = await createClient()
@@ -25,12 +26,12 @@ export async function createNewSketch(formData: FormData, investigation_id: stri
     }
 }
 
-type Schema = {
+type AddNodeSchema = {
     node: any
     sketch_id: string | string[]
 }
 
-export async function saveNode(schema: Schema) {
+export async function saveNode(schema: AddNodeSchema) {
     try {
         const { node, sketch_id } = schema
         if (!sketch_id) {
@@ -67,3 +68,52 @@ export async function saveNode(schema: Schema) {
         }
     }
 }
+
+
+type AddEdgeSchema = {
+    source: NodeData,
+    target: NodeData,
+    type: string,
+    label: string,
+    sketch_id: string | string[]
+}
+
+
+export const saveEdge = async (schema: AddEdgeSchema) => {
+    const body = {
+        source: schema.source,
+        target: schema.target,
+        type: schema.type,
+        label: schema.label,
+    };
+    try {
+        const { sketch_id } = schema
+        if (!sketch_id) {
+            return { success: false, error: "Missing sketch ID" }
+        }
+        const supabase = await createClient()
+        await supabase.auth.refreshSession()
+        const { data: { session } } = await supabase.auth.getSession();
+        const jwt = session?.access_token;
+        console.log(body)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketch/${sketch_id}/relations/add`, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) {
+            throw Error("Failed to create new relation.")
+        }
+        const data = await res.json();
+        return {
+            success: true,
+            data: data,
+            timestamp: new Date().toISOString()
+        }
+    } catch (error) {
+        throw Error("Failed to create new relation.")
+    }
+};

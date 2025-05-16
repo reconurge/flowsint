@@ -169,7 +169,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                 <div className="font-medium text-sm">{item.label}</div>
                 {item.disabled && (
                     <Badge variant="outline" className="mt-2 absolute top-2 left-2">
-                        bientôt
+                        Soon
                     </Badge>
                 )}
                 {item.children && (

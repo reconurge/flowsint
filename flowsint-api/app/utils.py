@@ -174,7 +174,7 @@ def get_label_color(label: str) -> str:
     
     return color_map.get(label, color_map["default"])
 
-def flatten(data_dict):
+def flatten(data_dict, prefix=""):
     """
     Flattens a dictionary to contain only Neo4j-compatible property values.
     Neo4j supports primitive types (string, number, boolean) and arrays of those types.
@@ -192,5 +192,6 @@ def flatten(data_dict):
         if isinstance(value, (str, int, float, bool)) or (
             isinstance(value, list) and all(isinstance(item, (str, int, float, bool)) for item in value)
         ):
+            key = f"{prefix}{key}"
             flattened[key] = value 
     return flattened

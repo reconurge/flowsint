@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WaypointsIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 
+
 export default function CaseSelector() {
     const router = useRouter()
     const { sketch_id, investigation_id } = useParams()

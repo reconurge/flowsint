@@ -533,4 +533,12 @@ export const actionItems: ActionItem[] = [
     },
 ]
 
-
+export function findActionItemByKey(key: string): ActionItem | undefined {
+    for (const item of actionItems) {
+        if (item.key === key) return item
+        if (item.children) {
+            const found = item.children.find(child => child.key === key)
+            if (found) return found
+        }
+    }
+}

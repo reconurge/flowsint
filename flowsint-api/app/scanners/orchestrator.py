@@ -160,7 +160,7 @@ class TransformOrchestrator(Scanner):
         results_mapping = {}
         
         # Process each branch
-        for branch in self.reorder_branches():
+        for branch in self.transform_branches:
             branch_id = branch.id
             branch_name = branch.name
             branch_results = {

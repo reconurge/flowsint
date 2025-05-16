@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { useInvestigationStore } from "@/store/investigation-store"
+import { DialogTrigger } from "@radix-ui/react-dialog"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -51,8 +52,8 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
 
     if (noDropDown) return (
         <>
-            <Button asChild onClick={() => setOpen(true)}>{children}</Button>
             <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild onClick={() => setOpen(true)}>{children}</DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>New sketch</DialogTitle>
@@ -61,7 +62,7 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
                     <form action={handleNewSketch}>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="title">Investigation name</Label>
+                                <Label htmlFor="title">Sketch name</Label>
                                 <Input id="title" name="title" placeholder="Suspicion de fraude" required />
                             </div>
                             <div className="grid gap-2">
@@ -69,7 +70,7 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
                                 <Input
                                     id="description"
                                     name="description"
-                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                    placeholder="Fishing domain external scope"
                                 />
                             </div>
                         </div>

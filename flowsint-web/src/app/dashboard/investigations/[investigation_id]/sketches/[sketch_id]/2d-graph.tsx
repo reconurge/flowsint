@@ -287,6 +287,7 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                     handleGraphRef(instance);
                     if (currentNode) handleGraphInstance(instance);
                 }}
+                cooldownTicks={100}
                 graphData={{ nodes, links: edges }}
                 nodeId="id"
                 linkSource="from"

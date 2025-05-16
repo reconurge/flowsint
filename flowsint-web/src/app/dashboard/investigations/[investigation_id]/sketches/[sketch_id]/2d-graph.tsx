@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useEffect } from "react"
+import { memo, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import Loader from "@/components/loader"
@@ -8,17 +8,16 @@ import NewActions from "@/components/sketches/new-actions"
 import { PlusIcon } from "lucide-react"
 import { useSketchStore } from "@/store/sketch-store"
 import { shallow } from "zustand/shallow"
-import { useNodesDisplaySettings } from "@/store/node-display-settings"
+import { ItemType, useNodesDisplaySettings } from "@/store/node-display-settings"
 import type { NodeData, EdgeData } from "@/types"
 import { useGraphControls } from "@/store/graph-controls-store"
-
 // @ts-ignore
 import { forceCollide } from 'd3'
 
-// const ARROW_COLOR = "rgba(136, 136, 136, 0.21)";
-// const LINE_COLOR = "rgba(136, 136, 136, 0.21)";
-// const LINE_WIDTH = 0.4;
-// const ARROW_HEAD_LENGTH = 1;
+const ARROW_COLOR = "rgba(136, 136, 136, 0.21)";
+const LINE_COLOR = "rgba(136, 136, 136, 0.21)";
+const LINE_WIDTH = 0.4;
+const ARROW_HEAD_LENGTH = 1;
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d").then((mod) => mod), {
     ssr: false,
@@ -63,70 +62,75 @@ const stateSelector = (state: {
 
 const Graph = ({ data, isLoading, width, height }: GraphProps) => {
     const colors = useNodesDisplaySettings(c => c.colors)
+    const getIcon = useNodesDisplaySettings(c => c.getIcon)
+    const getSize = useNodesDisplaySettings(c => c.getSize)
     const setActions = useGraphControls((s) => s.setActions)
+
     const {
         currentNode,
         selectedNodes,
         toggleNodeSelection,
         clearSelectedNodes,
+        addNode,
         setNodes,
         setEdges,
         nodes,
         edges,
         isSelected,
+        isCurrent,
     } = useSketchStore(
         stateSelector,
         shallow,
     )
 
-    // // Link canvas object rendering function
-    // const linkCanvaObject = useCallback((link: any, ctx: any) => {
-    //     const start = link.target as any;
-    //     const end = link.source as any;
-    //     if (
-    //         !start || !end ||
-    //         typeof start.x !== "number" || typeof start.y !== "number" ||
-    //         typeof end.x !== "number" || typeof end.y !== "number"
-    //     ) return;
-    //     const dx = end.x - start.x;
-    //     const dy = end.y - start.y;
-    //     const angle = Math.atan2(dy, dx);
-    //     const targetRadius = getSize(end.type) / 10;
-    //     const tx = end.x - Math.cos(angle) * targetRadius;
-    //     const ty = end.y - Math.sin(angle) * targetRadius;
-    //     ctx.strokeStyle = LINE_COLOR;
-    //     ctx.lineWidth = LINE_WIDTH;
-    //     ctx.beginPath();
-    //     ctx.moveTo(start.x, start.y);
-    //     ctx.lineTo(tx, ty);
-    //     ctx.stroke();
-    //     ctx.fillStyle = ARROW_COLOR;
-    //     ctx.beginPath();
-    //     ctx.moveTo(tx, ty);
-    //     ctx.lineTo(
-    //         tx - ARROW_HEAD_LENGTH * Math.cos(angle - Math.PI / 10),
-    //         ty - ARROW_HEAD_LENGTH * Math.sin(angle - Math.PI / 10)
-    //     );
-    //     ctx.lineTo(
-    //         tx - ARROW_HEAD_LENGTH * Math.cos(angle + Math.PI / 10),
-    //         ty - ARROW_HEAD_LENGTH * Math.sin(angle + Math.PI / 10)
-    //     );
-    //     ctx.closePath();
-    //     ctx.fill();
-    //     if (link.caption) {
-    //         const midX = (start.x + tx) / 2;
-    //         const midY = (start.y + ty) / 2;
-    //         ctx.save();
-    //         ctx.translate(midX, midY);
-    //         ctx.rotate(angle);
-    //         ctx.fillStyle = "#333";
-    //         ctx.font = "1px Sans-Serif";
-    //         ctx.textAlign = "center";
-    //         ctx.textBaseline = "middle";
-    //         ctx.fillText(link.caption, 0, -1);
-    //         ctx.restore();
-    //     }
-    // }, [getSize])
+    // Link canvas object rendering function
+    const linkCanvaObject = useCallback((link: any, ctx: any) => {
+        const start = link.target as any;
+        const end = link.source as any;
+        if (
+            !start || !end ||
+            typeof start.x !== "number" || typeof start.y !== "number" ||
+            typeof end.x !== "number" || typeof end.y !== "number"
+        ) return;
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const angle = Math.atan2(dy, dx);
+        const targetRadius = getSize(end.type) / 10;
+        const tx = end.x - Math.cos(angle) * targetRadius;
+        const ty = end.y - Math.sin(angle) * targetRadius;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = LINE_WIDTH;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        ctx.fillStyle = ARROW_COLOR;
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(
+            tx - ARROW_HEAD_LENGTH * Math.cos(angle - Math.PI / 10),
+            ty - ARROW_HEAD_LENGTH * Math.sin(angle - Math.PI / 10)
+        );
+        ctx.lineTo(
+            tx - ARROW_HEAD_LENGTH * Math.cos(angle + Math.PI / 10),
+            ty - ARROW_HEAD_LENGTH * Math.sin(angle + Math.PI / 10)
+        );
+        ctx.closePath();
+        ctx.fill();
+        if (link.caption) {
+            const midX = (start.x + tx) / 2;
+            const midY = (start.y + ty) / 2;
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+            ctx.fillStyle = "#333";
+            ctx.font = "1px Sans-Serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(link.caption, 0, -1);
+            ctx.restore();
+        }
+    }, [getSize])
 
     // Setup graph instance when it's available - using callback approach
     const handleGraphRef = useCallback((graphInstance: any) => {
@@ -166,7 +170,6 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
         if (isLoading) return;
         if (data?.nds) setNodes(data.nds);
         if (data?.rls) setEdges(data.rls);
-        console.log(data.rls)
     }, [data?.nds, data?.rls, isLoading, setNodes, setEdges]);
 
     // Node click handler
@@ -188,51 +191,70 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
         clearSelectedNodes();
     }, [clearSelectedNodes]);
 
-    const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-        const label = node.label || '';
-        const fontSize = 12 / globalScale;
+    // Node canvas object rendering function
+    const nodeCanvasObject = useCallback((node: NodeData, ctx: CanvasRenderingContext2D, globalScale: number) => {
         const isNodeSelected = isSelected(node.id);
-        const radius = isNodeSelected ? 4 : 4;
+        const isNodeCurrent = isCurrent(node.id);
         const color = colors[node.type as keyof typeof colors] || "#9FAAB8";
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+        const nodeSize = getSize(node?.type as ItemType) || 25;
+        const radius = nodeSize / 10 + (isNodeSelected ? 0.5 : 0);
+        const fontSize = globalScale * 0.2462;
+
+        // Draw node circle
+        ctx.font = `${fontSize}px Sans-Serif`;
         ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
         ctx.fill();
 
-        // Aucune ombre pour meilleures perfs
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
+        // Draw node outline
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+        ctx.strokeStyle = color || "black";
+        ctx.lineWidth = isNodeSelected ? 0.5 : 0.2;
+        ctx.stroke();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 1;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 2;
 
-        // Pas de texte si trop zoomé
-        if (globalScale > 0.3 && isNodeSelected) {
-            ctx.font = `${fontSize}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            ctx.fillStyle = '#fff';
-            ctx.fillText(label, node.x, node.y + radius + 2);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+        ctx.fill();
+        // Draw node icon
+        const size = nodeSize / 10;
+        ctx.drawImage(getIcon(node.type as ItemType), node.x! - size / 2, node.y! - size / 2, size, size);
+
+        // Draw selection highlight
+        if (isNodeSelected) {
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius + 0.8, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#FFCC00';
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+
+            // Draw node label when selected
+            if (node.label) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `${fontSize}px Sans-Serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(node.label, node.x!, node.y! + radius + 4.5);
+            }
         }
-    }, [isSelected, nodeColor]);
 
-    // // ✏️ Dessin des liens (optionnel si peu nombreux)
-    // const linkCanvasObject = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-    //     const start = link.source;
-    //     const end = link.target;
-
-    //     if (!start || !end || !('x' in start) || !('x' in end)) return;
-
-    //     const x1 = start.x;
-    //     const y1 = start.y;
-    //     const x2 = end.x;
-    //     const y2 = end.y;
-
-    //     ctx.beginPath();
-    //     ctx.moveTo(x1, y1);
-    //     ctx.lineTo(x2, y2);
-    //     ctx.strokeStyle = '#999';
-    //     ctx.lineWidth = 1;
-    //     ctx.stroke();
-    // }, []);
-
+        // Draw current node indicator
+        if (isNodeCurrent) {
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius + 1.5, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 0.2;
+            ctx.setLineDash([0.5, 0.5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        ctx.save(); // Sauvegarde l'état du contexte
+    }, [colors, getIcon, getSize, isSelected, isCurrent]);
 
     // Render loading state
     if (isLoading) {
@@ -276,7 +298,7 @@ const Graph = ({ data, isLoading, width, height }: GraphProps) => {
                 height={height}
                 // @ts-ignore
                 nodeColor={nodeColor}
-                // linkCanvasObject={linkCanvaObject}
+                linkCanvasObject={linkCanvaObject}
                 linkWidth={link => link ? 2 : 1}
                 // @ts-ignore
                 onNodeClick={onNodeClick}

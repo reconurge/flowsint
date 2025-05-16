@@ -21,7 +21,6 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
     const [searchQuery, setSearchQuery] = useState<string>("")
     const handleExpand = useCallback(() => setIsCollapsed(false), [setIsCollapsed])
     const handleCollapse = useCallback(() => setIsCollapsed(true), [setIsCollapsed])
-    const addNode = useSketchStore((state) => state.addNode)
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value)
@@ -61,7 +60,7 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                     onChange={handleSearchChange}
                                 />
                             </div>
-                            <NewActions addNodes={addNode}>
+                            <NewActions>
                                 <Button
                                     className="h-7 w-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 text-white border-none"
                                     size="icon"

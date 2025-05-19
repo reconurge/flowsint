@@ -12,6 +12,8 @@ interface SketchState {
     setEdges: (edges: EdgeData[]) => void
     addNode: (newNode: Partial<NodeData>) => NodeData
     addEdge: (newEdge: Partial<EdgeData>) => EdgeData
+    removeNodes: (nodeIds: string[]) => void
+    removeEdges: (edgeIds: string[]) => void
 
     // === Selection & Current ===
     currentNode: NodeData | null
@@ -64,6 +66,19 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
         } as EdgeData
         set({ edges: [...edges, edgeWithId] })
         return edgeWithId
+    },
+    removeNodes: (nodeIds: string[]) => {
+        const { nodes, edges } = get();
+        const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
+        const newEdges = edges.filter(
+            (e) => !nodeIds.includes(e.from) && !nodeIds.includes(e.to)
+        );
+        set({ nodes: newNodes, edges: newEdges });
+    },
+    removeEdges: (edgeIds: string[]) => {
+        const { edges } = get()
+        const newEdges = edges.filter((e) => !edgeIds.includes(e.id))
+        set({ edges: newEdges })
     },
 
     // === Selection & Current ===

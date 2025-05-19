@@ -5,11 +5,10 @@ import type React from "react"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { ConsolePanel } from "./console-panel"
 import { memo, useState, useRef, useEffect } from "react"
-import Graph2d from "./2d-graph"
-import Graph3d from "./3d-graph"
-import { useQueryState } from "nuqs"
+import Graph2d from "./cosmo-graph"
 import { useSketchStore } from "@/store/sketch-store"
 import { cn } from "@/lib/utils"
+import { ArrowDownToLineIcon } from "lucide-react"
 
 interface GraphPanelProps {
     query: any
@@ -17,13 +16,12 @@ interface GraphPanelProps {
 
 export const GraphPanel = memo(function GraphPanel({ query }: GraphPanelProps) {
     const [isBottomPanelCollapsed, setIsBottomPanelCollapsed] = useState(false)
-    const [graphView] = useQueryState("graphView", { defaultValue: "2d" })
     const [panelDimensions, setPanelDimensions] = useState({ width: 0, height: 0 })
     const [isDraggingOver, setIsDraggingOver] = useState(false)
     const handleOpenFormModal = useSketchStore(s => s.handleOpenFormModal)
 
     const graphPanelRef = useRef<HTMLDivElement>(null)
-    
+
     const updatePanelDimensions = () => {
         if (!graphPanelRef.current) return
         const rect = graphPanelRef.current.getBoundingClientRect()
@@ -84,29 +82,25 @@ export const GraphPanel = memo(function GraphPanel({ query }: GraphPanelProps) {
         <div className="flex flex-col h-full">
             <div className="grow">
                 <ResizablePanelGroup direction="vertical" className="h-full" onLayout={updatePanelDimensions}>
-                    <ResizablePanel defaultSize={80} className="h-full w-full bg-background" onResize={updatePanelDimensions}>
+                    <ResizablePanel defaultSize={80} className="h-full w-full" onResize={updatePanelDimensions}>
                         <div
                             ref={graphPanelRef}
-                            className={cn('h-full w-full transition-all duration-200 border-2 border-transparent', isDraggingOver && "bg-primary/10 border-dashed border-primary/40")} onDragOver={handleDragOver}
+                            className={cn('h-full w-full relative outline-2 outline-transparent bg-background')} onDragOver={handleDragOver}
                             onDragEnter={handleDragEnter}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
                         >
-                            {graphView === "3d" ? (
-                                <Graph3d
-                                    data={query.data}
-                                    isLoading={query.isLoading}
-                                    width={panelDimensions.width}
-                                    height={panelDimensions.height}
-                                />
-                            ) : (
-                                <Graph2d
-                                    data={query.data}
-                                    isLoading={query.isLoading}
-                                    width={panelDimensions.width}
-                                    height={panelDimensions.height}
-                                />
-                            )}
+                            <Graph2d
+                                data={query.data}
+                                isLoading={query.isLoading}
+                                width={panelDimensions.width}
+                                height={panelDimensions.height}
+                            />
+                            {isDraggingOver &&
+                                <div className={cn('absolute flex items-center justify-center inset-0 bg-primary/20 backdrop-blur-xs gap-1')}>
+                                    <p className="font-medium">Drop here to add node</p> <ArrowDownToLineIcon className="opacity-60" />
+                                </div>
+                            }
                         </div>
                     </ResizablePanel>
                     <ResizableHandle withHandle />

@@ -9,6 +9,7 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.utils import resolve_type, is_valid_ip
+from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalIp]
 OutputType: TypeAlias = List[MinimalDomain]
@@ -138,3 +139,28 @@ class ReverseResolveScanner(Scanner):
                 unique.append(c)
 
         return unique
+
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for domain_obj, ip_obj in zip(original_input, results):
+            logger.success(self.scan_id, self.sketch_id, f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            query = """
+            MERGE (d:ip {ip: $ip})
+            SET d.sketch_id = $sketch_id
+            MERGE (domain:domain {domain: $domain})
+            SET ip.sketch_id = $sketch_id
+            SET ip.label = $label
+            SET ip.caption = $caption
+            SET ip.type = $type
+            MERGE (ip)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(d)
+            """
+            if self.neo4j_conn:
+                self.neo4j_conn.query(query, {
+                    "domain": domain_obj.domain,
+                    "ip": ip_obj.address,
+                    "sketch_id": self.sketch_id,
+                    "label": ip_obj.address,
+                    "caption": ip_obj.address,
+                    "type": "ip"
+                })
+
+        return results

@@ -7,7 +7,7 @@ import { Toolbar } from './toolbar'
 import { LeftPanel } from './left-panel'
 import { RightPanel } from './right-panel'
 import { ResizablePanelGroup, ResizableHandle, ResizablePanel } from "@/components/ui/resizable"
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useSketchStore } from "@/store/sketch-store"
 import { GraphPanel } from "./graph-panel"
 import { Sketch } from "@/types/sketch"

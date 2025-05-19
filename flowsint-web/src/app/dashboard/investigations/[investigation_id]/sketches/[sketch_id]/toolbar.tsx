@@ -6,6 +6,7 @@ import { ScanButton } from "@/components/sketches/scans-drawer/scan-button"
 import { Button } from "@/components/ui/button"
 import { Toggle } from "@/components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useConfirm } from "@/components/use-confirm-dialog"
 import { cn } from "@/lib/utils"
 import { useGraphControls } from "@/store/graph-controls-store"
 import { useSketchStore } from "@/store/sketch-store"
@@ -33,7 +34,6 @@ import {
 import { notFound } from "next/navigation"
 import { useQueryState } from "nuqs"
 import { memo, useCallback, useMemo } from "react"
-import { shallow } from "zustand/shallow"
 
 
 // Tooltip wrapper component to avoid repetition
@@ -82,13 +82,14 @@ export const Toolbar = memo(function Toolbar({
 }) {
 
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
-    const openAddRelationDialog = useSketchStore((state) => state.openAddRelationDialog)
     const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
+    const removeNodes = useSketchStore((state) => state.removeNodes)
     const toggleSettings = useModalStore((s) => s.toggleSettings)
     const zoomToFit = useGraphControls((s) => s.zoomToFit);
     const zoomIn = useGraphControls((s) => s.zoomIn);
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const [_, setGraphView] = useQueryState("graphView", { defaultValue: "2d" })
+    const { confirm } = useConfirm()
 
 
     const { refetch, isRefetching } = useQuery({
@@ -107,6 +108,11 @@ export const Toolbar = memo(function Toolbar({
         setOpenAddRelationDialog(true)
     }, [])
 
+    const handleDeleteNodes = async () => {
+        if (!selectedNodes.length) return
+        if (!await confirm({ title: `You are about to delete ${selectedNodes.length} node(s).`, message: "The action is irreversible." })) return
+        removeNodes(selectedNodes.map((n) => n.id))
+    }
 
     // Memoize sketch members to prevent unnecessary rerenders
     const sketchMembers = useMemo(() =>
@@ -138,6 +144,7 @@ export const Toolbar = memo(function Toolbar({
                         disabled={!isTwo}
                     />
                     <ToolbarButton
+                        onClick={handleDeleteNodes}
                         icon={<Trash className="h-4 w-4 opacity-70" />}
                         tooltip="Delete"
                         disabled={!isMoreThanZero}
@@ -166,10 +173,10 @@ export const Toolbar = memo(function Toolbar({
                     <ToolbarButton disabled icon={<Layers className="h-4 w-4 opacity-70" />} tooltip="Layers" />
                     <ToolbarButton onClick={toggleSettings} icon={<GearIcon className="h-4 w-4 opacity-70" />} tooltip="Settings" />
                     <Separator />
-                    <Toggle className="h-8 w-8" onClick={() => setGraphView((prev) => prev === "2d" ? "3d" : "2d")} aria-label="Toggle italic">
+                    {/* <Toggle className="h-8 w-8" onClick={() => setGraphView((prev) => prev === "2d" ? "3d" : "2d")} aria-label="Toggle italic">
                         <Rotate3DIcon className={cn("h-4 w-4 opacity-70")} />
-                    </Toggle>
-                    <Separator />
+                    </Toggle> */}
+                    {/* <Separator /> */}
                     <ToolbarButton onClick={refetch} disabled={isRefetching} icon={<RotateCwIcon className={cn("h-4 w-4 opacity-70", isRefetching && "animate-spin")} />} tooltip="Reload" />
                 </TooltipProvider>
             </div>

@@ -17,6 +17,7 @@ import { saveNode } from "@/lib/actions/sketches"
 import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import { useSketchStore } from "@/store/sketch-store"
 import { shallow } from 'zustand/shallow'
+import { DialogTrigger } from "@radix-ui/react-dialog"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -120,8 +121,8 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
 
     return (
         <>
-            <Button asChild onClick={() => setOpenMainDialog(true)}>{children}</Button>
             <Dialog open={openMainDialog} onOpenChange={setOpenMainDialog}>
+                <DialogTrigger asChild>{children}</DialogTrigger>
                 <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (

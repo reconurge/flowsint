@@ -12,14 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { saveEdge } from "@/lib/actions/sketches"
 import { toast } from "sonner"
-import { EdgeData } from "@/types"
 
 export function CreateRelationDialog({ sketchId }: { sketchId: string }) {
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
     const addEdge = useSketchStore((state) => state.addEdge)
     const openAddRelationDialog = useSketchStore((state) => state.openAddRelationDialog)
     const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
-    const [relationType, setRelationType] = useState("")
+    const [relationType, setRelationType] = useState("IS_RELATED_TO")
     const [direction, setDirection] = useState<"one-way" | "two-way">("one-way")
 
     const handleSubmit = async (e: { preventDefault: () => void }) => {

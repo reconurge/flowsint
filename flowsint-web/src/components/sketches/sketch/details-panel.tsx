@@ -24,23 +24,23 @@ export default function DetailsPanel({ data, sketch_id }: { data: any, sketch_id
     return (
         <div className="overflow-y-auto overflow-x-hidden h-full">
             <div className="flex items-center sticky bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
-                <IconContainer
+                {/* <IconContainer
                     type={data?.type}
                     icon={Icon}
                     size={20}
-                />
+                /> */}
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
                 <div className="grow" />
                 <div className="flex items-center gap-2">
                     <LaunchTransform values={[data.label]} sketch_id={sketch_id as string} type={data?.type} />
-                    <DropdownMenu>
+                    {/* <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant={"ghost"} size={"icon"}><MoreHorizontalIcon /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                             <DropdownMenuItem>Hide</DropdownMenuItem>
                             <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
-                    </DropdownMenu>
+                    </DropdownMenu> */}
                 </div>
             </div>
             <KeyValueDisplay data={data} />

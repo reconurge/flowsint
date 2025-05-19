@@ -28,13 +28,11 @@ const SocialNode = memo(
     ({
         node,
         setCurrentNode,
-        isSelected,
         onCheckboxChange,
         isNodeChecked,
     }: {
         node: any
         setCurrentNode: (node: NodeData) => void
-        isSelected: any
         onCheckboxChange: (node: NodeData, checked: boolean) => void
         isNodeChecked: (nodeId: string) => boolean
     }) => {
@@ -62,7 +60,6 @@ const SocialNode = memo(
                     variant={"ghost"}
                     className={cn(
                         "flex-1 flex items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent",
-                        isSelected(node.id) && "border-l-primary bg-background",
                     )}
                     onClick={handleClick}
                 >
@@ -84,13 +81,11 @@ const NodeRenderer = memo(
     ({
         node,
         setCurrentNode,
-        isSelected,
         onCheckboxChange,
         isNodeChecked,
     }: {
         node: any
         setCurrentNode: (node: NodeData) => void
-        isSelected: any
         onCheckboxChange: (node: NodeData, checked: boolean) => void
         isNodeChecked: (nodeId: string) => boolean
     }) => {
@@ -107,7 +102,6 @@ const NodeRenderer = memo(
                 <SocialNode
                     setCurrentNode={setCurrentNode}
                     node={node}
-                    isSelected={isSelected}
                     onCheckboxChange={onCheckboxChange}
                     isNodeChecked={isNodeChecked}
                 />
@@ -123,7 +117,6 @@ const NodeRenderer = memo(
                     variant={"ghost"}
                     className={cn(
                         "flex-1 flex truncate items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent",
-                        isSelected(node.id) && "border-l-primary bg-background",
                     )}
                     onClick={handleClick}
                 >
@@ -142,7 +135,6 @@ const NodeRenderer = memo(
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: boolean }) => {
     const setCurrentNode = useSketchStore((state) => state.setCurrentNode)
-    const isSelected = useSketchStore((state) => state.isSelected)
     const setSelectedNodes = useSketchStore((state) => state.setSelectedNodes)
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
@@ -282,7 +274,6 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: 
                 filteredNodes?.map((node: any) => (
                     <NodeRenderer
                         node={node}
-                        isSelected={isSelected}
                         setCurrentNode={setCurrentNode}
                         onCheckboxChange={handleCheckboxChange}
                         isNodeChecked={isNodeChecked}

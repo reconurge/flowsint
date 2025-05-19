@@ -77,7 +77,6 @@ class ResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for domain_obj, ip_obj in zip(original_input, results):
-            logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {ip_obj.address}.")
             query = """
             MERGE (d:domain {domain: $domain})
             SET d.sketch_id = $sketch_id

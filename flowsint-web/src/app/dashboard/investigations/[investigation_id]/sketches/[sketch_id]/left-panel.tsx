@@ -60,14 +60,17 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                     onChange={handleSearchChange}
                                 />
                             </div>
-                            <NewActions>
-                                <Button
-                                    className="h-7 w-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 text-white border-none"
-                                    size="icon"
-                                >
-                                    <PlusIcon />
-                                </Button>
-                            </NewActions>
+                            <div>
+                                <NewActions>
+                                    <Button
+                                        className="h-7 !w-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 text-white border-none"
+                                        size="icon"
+                                        variant={"ghost"}
+                                    >
+                                        <PlusIcon />
+                                    </Button>
+                                </NewActions>
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 gap-2">
                             {actionItems.map((item: ActionItem) => {
@@ -92,7 +95,7 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                                                 type={childItem.type}
                                                                 color={childItem.color}
                                                                 disabled={childItem.disabled}
-                                                                description={childItem.label}
+                                                                description={childItem.fields.map((n) => n.name).join(", ")}
                                                             />
                                                         ))}
                                                     </div>
@@ -110,7 +113,7 @@ export const LeftPanel = memo(function LeftPanel({ isCollapsed, setIsCollapsed }
                                         type={item.type}
                                         color={item.color}
                                         disabled={item.disabled}
-                                        description={item.label}
+                                        description={item.fields.map((n) => n.name).join(", ")}
                                     />
                                 )
                             })}

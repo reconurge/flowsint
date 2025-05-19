@@ -57,7 +57,7 @@ const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: 
             <Button
                 onClick={handleOpenModal}
                 disabled={isLoading || !transforms?.length}
-                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none font-medium rounded-full"
+                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-4 py-2 text-white border-none font-medium rounded-full"
             >
                 <span className="flex items-center gap-2">
                     <Sparkles className={"h-4 w-4 transition-transform duration-300"} />

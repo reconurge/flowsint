@@ -1,9 +1,17 @@
 import subprocess
-import uuid
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TypeAlias, Union
 from app.utils import is_valid_username
+from app.types.social import MinimalSocial, Social
 from app.scanners.base import Scanner
+from pydantic import TypeAdapter
+from app.utils import is_valid_username, resolve_type
+from app.core.logger import logger
+
+
+InputType: TypeAlias = List[MinimalSocial]
+OutputType: TypeAlias = List[Social]
+
 
 class SherlockScanner(Scanner):
     """Scans the usernames for associated social accounts using Sherlock."""
@@ -21,17 +29,45 @@ class SherlockScanner(Scanner):
         return "username"
     
     @classmethod
-    def input_schema(self) -> Dict[str, str]:
-        return ["username"]
+    def input_schema(cls) -> Dict[str, Any]:
+        adapter = TypeAdapter(InputType)
+        schema = adapter.json_schema()
+        type_name, details = list(schema["$defs"].items())[0]
+        return {
+            "type": type_name,
+            "properties": [
+                {"name": prop, "type": resolve_type(info)}
+                for prop, info in details["properties"].items()
+            ]
+        }
 
     @classmethod
-    def output_schema(self) -> Dict[str, str]:
-        return ["social_profile"]
+    def output_schema(cls) -> Dict[str, Any]:
+        adapter = TypeAdapter(OutputType)
+        schema = adapter.json_schema()
+        type_name, details = list(schema["$defs"].items())[0]
+        return {
+            "type": type_name,
+            "properties": [
+                {"name": prop, "type": resolve_type(info)}
+                for prop, info in details["properties"].items()
+            ]
+        }
         
-    def preprocess(self, usernames: List[str]) -> List[str]:
-        """Validates the list of usernames before scanning."""
-        valid_usernames = [is_valid_username(username) for username in usernames]
-        return valid_usernames
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            obj = None
+            if isinstance(item, str):
+                obj = MinimalSocial(username=item)
+            elif isinstance(item, dict) and "username" in item:
+                obj = MinimalSocial(username=item["username"])
+            elif isinstance(item, MinimalSocial):
+                obj = item
+
+            if obj and obj.username and is_valid_username(obj.username):
+                cleaned.append(obj)
+        return cleaned
 
     def scan(self, usernames: List[str]) -> Dict[str, Any]:
         """Performs the scan using Sherlock on the list of usernames."""
@@ -39,7 +75,6 @@ class SherlockScanner(Scanner):
         
         for username in usernames:
             output_file = Path(f"/tmp/sherlock_{username}.txt")  # Output file path
-
             try:
                 # Running the Sherlock command to perform the scan
                 result = subprocess.run(

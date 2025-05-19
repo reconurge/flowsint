@@ -80,7 +80,7 @@ class SubdomainScanner(Scanner):
             if use_subfinder:
                 subdomains = self.__get_subdomains_from_subfinder(d.domain)
                 if not subdomains:
-                    logger.warning(self.scan_id, self.sketch_id, f"subfinder failed for {d.domain}, falling back to crt.sh")
+                    logger.warn(self.scan_id, self.sketch_id, f"subfinder failed for {d.domain}, falling back to crt.sh")
                     subdomains = self.__get_subdomains_from_crtsh(d.domain)
             else:
                 logger.info(self.scan_id, self.sketch_id, "subfinder not found, using crt.sh only")

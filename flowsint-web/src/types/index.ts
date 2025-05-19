@@ -19,6 +19,9 @@ export type NodeData = {
 export type EdgeData = {
   source: string;
   target: string;
+  from: string,
+  to: string,
+  date: string,
   id: string;
   label: string;
   type: string,

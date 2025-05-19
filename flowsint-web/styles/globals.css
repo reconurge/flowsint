@@ -258,3 +258,7 @@ body {
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 }
+
+.style_module_watermark__6b4371ae{
+  display: none;
+}

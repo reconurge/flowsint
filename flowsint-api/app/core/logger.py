@@ -24,7 +24,7 @@ class Logger:
         self.emit(scan_id, sketch_id, content, level="info")
 
     def warn(self, scan_id: UUID, sketch_id: UUID, content: str):
-        self.emit(scan_id, sketch_id, content, level="warn")
+        self.emit(scan_id, sketch_id, content, level="warning")
 
     def error(self, scan_id: UUID, sketch_id: UUID, content: str):
         self.emit(scan_id, sketch_id, content, level="error")

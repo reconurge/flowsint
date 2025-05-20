@@ -35,50 +35,39 @@ import EnvIndicator from "./env-indicator"
 import { cn, getAvatarColor } from "@/lib/utils"
 import { getInitials } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
-export function NavUser({
-  profile_id,
-}: {
-  profile_id: any
-}) {
-  const { isMobile } = useSidebar()
+import { useSession } from "next-auth/react"
+import { Button } from "@/components/ui/button"
 
-  const {
-    data: profile,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["profiles", profile_id],
-    queryFn: async () => {
-      const res = await fetch(`/api/profiles/${profile_id}`)
-      return res.json()
-    },
-    refetchOnWindowFocus: true,
-  })
+export function NavUser() {
 
-  if (isLoading) return
+  const session = useSession()
+  console.log("session", session)
 
-  const renderAvatar = () => {
-    const name = `${profile?.first_name || "fd"} ${profile?.last_name || "fd"}`
-    const avatarColor = getAvatarColor(name)
-    const avatar = (
-      <div className="relative">
-        {isLoading ? "" :
-          <Avatar
-            key={profile.id}
-            className={cn(
-              'h-8 w-8',
-              "border-2 border-background bg-background relative",
-              "transition-transform",
-              "ring-0 ring-offset-0",
-            )}
-          >
-            <AvatarImage src={profile.avatar_url} alt={``} />
-            <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(name)}</AvatarFallback>
-          </Avatar>}
-      </div>
-    )
-    return avatar
+  if (session.status === "loading") {
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
   }
+  // const renderAvatar = () => {
+  //   const name = `${session?.user?.first_name || "fd"} ${session?.user?.last_name || "fd"}`
+  //   const avatarColor = getAvatarColor(name)
+  //   const avatar = (
+  //     <div className="relative">
+  //       {isLoading ? "" :
+  //         <Avatar
+  //           key={profile.id}
+  //           className={cn(
+  //             'h-8 w-8',
+  //             "border-2 border-background bg-background relative",
+  //             "transition-transform",
+  //             "ring-0 ring-offset-0",
+  //           )}
+  //         >
+  //           <AvatarImage src={profile.avatar_url} alt={``} />
+  //           <AvatarFallback className={cn("text-xs text-white", avatarColor)}>{getInitials(name)}</AvatarFallback>
+  //         </Avatar>}
+  //     </div>
+  //   )
+  //   return avatar
+  // }
 
   return (
     <SidebarMenu>
@@ -89,21 +78,22 @@ export function NavUser({
               size="lg"
               className="p-0 h-auto rounded-full cursor-pointer p-1"
             >
-              {renderAvatar()}
+              <div className="h-8 w-8 rounded-full bg-muted" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                {renderAvatar()}
+                <div className="h-8 w-8 rounded-full bg-muted" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{profile.name}</span>
-                  <span className="truncate text-xs">{profile.email}</span>
+                  {/* @ts-ignore */}
+                  <span className="truncate font-semibold">{session?.user?.email}</span>
+                  {/* @ts-ignore */}
+                  <span className="truncate text-xs">{session?.user?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

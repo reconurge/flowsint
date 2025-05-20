@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from uuid import UUID, uuid4
+from fastapi import APIRouter, HTTPException, Depends, status, Query
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 import json
-from app.utils import extract_input_schema, extract_transform
+from datetime import datetime
+from app.utils import extract_input_schema
 from app.scanners.registry import ScannerRegistry
 from app.core.celery import celery_app 
 from app.types.domain import MinimalDomain
@@ -11,8 +13,11 @@ from app.types.social import MinimalSocial
 from app.types.organization import MinimalOrganization
 from app.types.email import Email
 from app.types.transform import Node, Edge, FlowStep, FlowBranch
-
-from app.core.db import get_db
+from sqlalchemy.orm import Session
+from app.core.postgre_db import get_db
+from app.models.models import Transform, Profile
+from app.api.deps import get_current_user
+from app.api.schemas.transform import TransformRead, TransformCreate, TransformUpdate
 
 class FlowComputationRequest(BaseModel):
     nodes: List[Node]
@@ -33,15 +38,22 @@ class LaunchTransformPayload(BaseModel):
 
 router = APIRouter()
 
-# Endpoints
-@router.get("/transforms")
-def read_root():
-    return {"message": "Flow Computation API is running"}
+# Get the list of all transforms
+@router.get("", response_model=List[TransformRead])
+def get_transforms(
+    category: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
+):
+    query = db.query(Transform)
+    if category is not None and category != "undefined":
+        query = query.filter(Transform.category.any(category))
+    return query.all()
 
-@router.get("/transforms/nodes")
-async def get_scans_list():
+# Returns the "raw_material" for the transform editor
+@router.get("/raw_materials")
+async def get_scans_list(current_user: Profile = Depends(get_current_user)):
     scanners = ScannerRegistry.list_by_category()
-
     flattened_scanners = {
         category: [
             {
@@ -70,19 +82,75 @@ async def get_scans_list():
     flattened_scanners["types"] = object_inputs
 
     return {"items": flattened_scanners}
+
+
+# Create a new transform
+@router.post("/create", response_model=TransformRead, status_code=status.HTTP_201_CREATED)
+def create_transform(payload: TransformCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    new_transform = Transform(
+        id=uuid4(),
+        name=payload.name,
+        description=payload.description,
+        category=payload.category,
+        transform_schema=payload.transform_schema,
+        created_at=datetime.utcnow(),
+        last_updated_at=datetime.utcnow(),
+    )
+    db.add(new_transform)
+    db.commit()
+    db.refresh(new_transform)
+    return new_transform
+
+# Get a transform by ID
+@router.get("/{transform_id}", response_model=TransformRead)
+def get_transform_by_id(transform_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    transform = db.query(Transform).filter(Transform.id == transform_id).first()
+    if not transform:
+        raise HTTPException(status_code=404, detail="Transform not found")
+    return transform
+
+# Update a transform by ID
+@router.put("/{transform_id}", response_model=TransformRead)
+def update_transform(transform_id: UUID, payload: TransformUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    transform = db.query(Transform).filter(Transform.id == transform_id).first()
+    if not transform:
+        raise HTTPException(status_code=404, detail="Transform not found")
     
-@router.post("/transforms/{transform_id}/launch")
+    transform.name = payload.name
+    transform.description = payload.description
+    transform.category = payload.category
+    transform.transform_schema = payload.transform_schema
+    transform.last_updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(transform)
+    return transform
+
+# Delete a transform by ID
+@router.delete("/{transform_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transform(transform_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    transform = db.query(Transform).filter(Transform.id == transform_id).first()
+    if not transform:
+        raise HTTPException(status_code=404, detail="Transform not found")
+    db.delete(transform)
+    db.commit()
+    return None
+
+
+@router.post("/{transform_id}/launch")
 async def launch_transform(
     transform_id: str,
     payload: LaunchTransformPayload,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
 ):
-    db = get_db()
     try:
-        response = db.table("transforms").select("*").eq("id", str(transform_id)).single().execute()
-        if response.data is None:
+        transform = db.query(Transform).filter(Transform.id == transform_id).first()
+        print(transform)
+        if transform is None:
             raise HTTPException(status_code=404, detail="Transform not found")
-        nodes = [Node(**node) for node in response.data["transform_schema"]["nodes"]]
-        edges = [Edge(**edge) for edge in response.data["transform_schema"]["edges"]]
+        nodes = [Node(**node) for node in transform.transform_schema["nodes"]]
+        edges = [Edge(**edge) for edge in transform.transform_schema["edges"]]
         transform_branches = compute_transform_branches(
             payload.values, 
             nodes, 
@@ -96,28 +164,21 @@ async def launch_transform(
         print(e)
         raise HTTPException(status_code=404, detail="Transform not found")
 
-@router.post("/transforms/{transform_id}/compute", response_model=FlowComputationResponse)
-def compute_transforms(request: FlowComputationRequest):
-    # Générer les données d'exemple en fonction du type d'entrée
+@router.post("/{transform_id}/compute", response_model=FlowComputationResponse)
+def compute_transforms(request: FlowComputationRequest, current_user: Profile = Depends(get_current_user)):
     initial_data = generate_sample_data(request.inputType or "string")
-    
-    # Calculer les branches de flux
     transform_branches = compute_transform_branches(
         initial_data, 
         request.nodes, 
         request.edges
     )
-    
     return FlowComputationResponse(
         transformBranches=transform_branches,
         initialData=initial_data
     )
     
-# Fonctions utilitaires
 def generate_sample_data(type_str: str) -> Any:
-    """Génère des données d'exemple en fonction du type"""
     type_str = type_str.lower() if type_str else "string"
-    
     if type_str == "string":
         return "sample_text"
     elif type_str == "number":

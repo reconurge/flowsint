@@ -1,6 +1,5 @@
 fastapi
 redis==5.0.1
-supabase==2.13.0
 celery==5.3.6
 redis==5.0.1
 holehe
@@ -21,3 +20,7 @@ pydantic[email]
 fastapi[all]
 neo4j
 faker
+sqlalchemy 
+psycopg2-binary
+alembic
+passlib[bcrypt]

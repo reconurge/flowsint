@@ -4,14 +4,13 @@ from datetime import datetime
 from pydantic import BaseModel, ValidationError
 from app.scanners.base import Scanner
 from app.scanners.registry import ScannerRegistry
-from app.core.logger import logger
 from app.types.transform import FlowBranch, FlowStep
+from app.core.logger import Logger
 
 class TransformOrchestrator(Scanner):
-    def __init__(self, sketch_id: str, scan_id: str, transform_branches: List[FlowBranch], neo4j_conn=None):
-        super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn)
+    def __init__(self, sketch_id: str, scan_id: str, transform_branches: List[FlowBranch],logger: Logger, neo4j_conn=None ):
+        super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn, logger=logger)
         self.transform_branches = transform_branches
-        self.neo4j_conn = neo4j_conn
         self.scanners = {}  # Map of nodeId -> scanner instance
         self._load_scanners()
 
@@ -40,21 +39,21 @@ class TransformOrchestrator(Scanner):
             if not ScannerRegistry.scanner_exists(scanner_name):
                 raise ValueError(f"Scanner '{scanner_name}' not found in registry")
 
-            scanner = ScannerRegistry.get_scanner(scanner_name, self.sketch_id, self.scan_id, neo4j_conn=self.neo4j_conn)
+            scanner = ScannerRegistry.get_scanner(scanner_name, self.sketch_id, self.scan_id, neo4j_conn=self.neo4j_conn, logger=self.logger)
             self.scanners[node_id] = scanner
             
         # Log the execution plan for debugging
-        # self.log_execution_plan()
+        self.log_execution_plan()
 
     def log_execution_plan(self):
         """Log the execution plan for debugging purposes"""
-        logger.info(self.scan_id, self.sketch_id, "Workflow execution plan:")
+        self.logger.info(self.scan_id, self.sketch_id, "Workflow execution plan:")
         
         for branch_idx, branch in enumerate(self.transform_branches):
             branch_id = branch.id
             branch_name = branch.name
             
-            logger.info(self.scan_id, self.sketch_id, f"Branch: {branch_name} (ID: {branch_id})")
+            self.logger.info(self.scan_id, self.sketch_id, f"Branch: {branch_name} (ID: {branch_id})")
             
             steps = branch.steps
             for step_idx, step in enumerate(steps):
@@ -66,10 +65,10 @@ class TransformOrchestrator(Scanner):
                 inputs_str = ', '.join([f"{k}: {v}" for k, v in step.inputs.items()])
                 outputs_str = ', '.join([f"{k}: {v}" for k, v in step.outputs.items()])
                 
-                logger.info(self.scan_id, self.sketch_id, 
+                self.logger.info(self.scan_id, self.sketch_id, 
                     f"  Step {step_idx+1}: {scanner_name} (Depth: {depth})")
-                logger.info(self.scan_id, self.sketch_id, f"    Inputs: {inputs_str}")
-                logger.info(self.scan_id, self.sketch_id, f"    Outputs: {outputs_str}")
+                self.logger.info(self.scan_id, self.sketch_id, f"    Inputs: {inputs_str}")
+                self.logger.info(self.scan_id, self.sketch_id, f"    Outputs: {outputs_str}")
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -178,7 +177,7 @@ class TransformOrchestrator(Scanner):
                 scanner = self.scanners.get(node_id)
                 
                 if not scanner:
-                    logger.error(self.scan_id, self.sketch_id, f"Scanner not found for node {node_id}")
+                    self.logger.error(self.scan_id, self.sketch_id, f"Scanner not found for node {node_id}")
                     continue
                 
                 scanner_name = scanner.name()
@@ -191,22 +190,22 @@ class TransformOrchestrator(Scanner):
                 try:
                     # Prepare inputs for this scanner
                     # scanner_inputs = self.prepare_scanner_inputs(step, results_mapping, values)
-                    # logger.debug(self.scan_id, self.sketch_id,f"Current values to be used: {str(scanner_inputs)}")
+                    # self.logger.debug(self.scan_id, self.sketch_id,f"Current values to be used: {str(scanner_inputs)}")
                     if not scanner_inputs:
-                        logger.warn(self.scan_id, self.sketch_id,
+                        self.logger.warn(self.scan_id, self.sketch_id,
                                     f"No inputs available for scanner {scanner_name}, skipping")
                         step_result["error"] = "No inputs available"
                         branch_results["steps"].append(step_result)
                         continue
                     
-                    # logger.info(self.scan_id, self.sketch_id, 
+                    # self.logger.info(self.scan_id, self.sketch_id, 
                     #         f"Running scanner {scanner_name} with inputs: {str(scanner_inputs)}")
                     
                     # Execute the scanner
                     outputs = scanner.execute(scanner_inputs)
                     if not isinstance(outputs, (dict, list)):
                         raise ValueError(f"Scanner '{scanner_name}' returned unsupported output format")
-                    logger.success(self.scan_id, self.sketch_id, f"Found {str(len(outputs))} for scanner {scanner.name()}")
+                    self.logger.success(self.scan_id, self.sketch_id, f"Found {str(len(outputs))} for scanner {scanner.name()}")
                     # Convert outputs to JSON-serializable format
                     # outputs = self.results_to_json(outputs)
                     
@@ -223,13 +222,13 @@ class TransformOrchestrator(Scanner):
 
                 except ValidationError as e:
                     error_msg = f"Validation error: {str(e)}"
-                    logger.error(self.scan_id, self.sketch_id, f"Validation error in {scanner_name}: {str(e)}")
+                    self.logger.error(self.scan_id, self.sketch_id, f"Validation error in {scanner_name}: {str(e)}")
                     step_result["error"] = error_msg
                     results["results"][node_id] = {"error": error_msg}
                     
                 except Exception as e:
                     error_msg = f"Error during scan: {str(e)}"
-                    logger.error(self.scan_id, self.sketch_id, f"Error during scan {scanner_name}: {str(e)}")
+                    self.logger.error(self.scan_id, self.sketch_id, f"Error during scan {scanner_name}: {str(e)}")
                     step_result["error"] = error_msg
                     results["results"][node_id] = {"error": error_msg}
                 

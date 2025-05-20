@@ -1,12 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from app.scanners.registry import ScannerRegistry
-from app.neo4j.connector import Neo4jConnection
+from app.core.graph_db import Neo4jConnection
 import os
+from typing import List
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import transforms
+# Routes to be included
+from app.api.routes import auth
+from app.api.routes import investigations
 from app.api.routes import sketches
-
+from app.api.routes import transforms
+from sqlalchemy.orm import Session
+from app.core.postgre_db import get_db 
+from app.api.schemas.log import LogSchema
+from app.models.models import Log
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -30,15 +37,13 @@ neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Ou ["*"] pour tout autoriser en dev
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(transforms.router, prefix="/api", tags=["branches"])
-app.include_router(sketches.router, prefix="/api", tags=["branches"])
-
-@app.get("/scanners")
-async def get_scans_list():
-    return {"scanners": ScannerRegistry.list()}
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(sketches.router, prefix="/api/sketches", tags=["sketches"])
+app.include_router(investigations.router, prefix="/api/investigations", tags=["investigations"])
+app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])

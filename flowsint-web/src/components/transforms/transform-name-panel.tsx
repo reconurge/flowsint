@@ -2,10 +2,8 @@
 
 import { useState, useEffect, type KeyboardEvent, useRef } from "react"
 import { Panel } from "@xyflow/react"
-import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Card } from "../ui/card"
-import { Input } from "../ui/input"
 
 interface TransformDetailsPanelProps {
     transform?: {
@@ -66,17 +64,13 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
 
         try {
             const updates = { [field]: trimmedValue }
-            const { error } = await supabase.from("transforms").update(updates).eq("id", transform.id)
-
-            if (error) throw error
-
+            // TODO
             if (onUpdate) {
                 onUpdate(updates)
             }
             toast.success(`${field === "name" ? "Name" : "Description"} updated.`)
         } catch (error) {
             toast.error(`Failed to update transform ${field}`)
-            // Revert to original value on error
             if (field === "name") {
                 setName(transform.name)
             } else {

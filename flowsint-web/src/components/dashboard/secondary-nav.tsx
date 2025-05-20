@@ -21,7 +21,7 @@ const SecondaryNav = ({ profile_id }: { profile_id: string }) => {
                 <Button size={"sm"} variant={"ghost"}>Changelog</Button>
                 <Button size={"sm"} variant={"ghost"}>Docs</Button>
             </div>
-            <NavUser profile_id={profile_id} />
+            <NavUser />
         </div>
     )
 }

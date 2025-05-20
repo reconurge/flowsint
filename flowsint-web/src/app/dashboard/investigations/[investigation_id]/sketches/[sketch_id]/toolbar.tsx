@@ -2,9 +2,7 @@
 
 import { AvatarList } from "@/components/avatar-list"
 import MoreMenu from "@/components/sketches/more-menu"
-import { ScanButton } from "@/components/sketches/scans-drawer/scan-button"
 import { Button } from "@/components/ui/button"
-import { Toggle } from "@/components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { cn } from "@/lib/utils"
@@ -173,10 +171,6 @@ export const Toolbar = memo(function Toolbar({
                     <ToolbarButton disabled icon={<Layers className="h-4 w-4 opacity-70" />} tooltip="Layers" />
                     <ToolbarButton onClick={toggleSettings} icon={<GearIcon className="h-4 w-4 opacity-70" />} tooltip="Settings" />
                     <Separator />
-                    {/* <Toggle className="h-8 w-8" onClick={() => setGraphView((prev) => prev === "2d" ? "3d" : "2d")} aria-label="Toggle italic">
-                        <Rotate3DIcon className={cn("h-4 w-4 opacity-70")} />
-                    </Toggle> */}
-                    {/* <Separator /> */}
                     <ToolbarButton onClick={refetch} disabled={isRefetching} icon={<RotateCwIcon className={cn("h-4 w-4 opacity-70", isRefetching && "animate-spin")} />} tooltip="Reload" />
                 </TooltipProvider>
             </div>
@@ -187,12 +181,7 @@ export const Toolbar = memo(function Toolbar({
                         users={sketchMembers}
                     />
                 </div>
-                {/* <DownloadButton
-                    endpoint={`/api/investigations/${investigation_id}/sketches/${sketch_id}/table`}
-                    name={investigation_id}
-                /> */}
                 <MoreMenu sketch={sketch} user_id={user_id} />
-                <ScanButton />
             </div>
         </div>
     )

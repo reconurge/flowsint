@@ -1,5 +1,4 @@
-import FileUploadDialog from "@/components/investigations/file-upload";
-import { createClient } from "@/lib/supabase/server";
+import { serverFetch } from "@/lib/server-fetch";
 import { notFound } from "next/navigation";
 
 const DashboardLayout = async ({
@@ -9,16 +8,15 @@ const DashboardLayout = async ({
     children: React.ReactNode;
     params: Promise<{ investigation_id: string }>
 }) => {
-    const supabase = await createClient()
-    const { investigation_id } = await (params)
-    const { data: investigation, error } = await supabase.from("investigations").select("id").eq("id", investigation_id).single()
-    if (!investigation || error) {
+    const { investigation_id } = await params
+    const investigation = await serverFetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/investigations/${investigation_id}`)
+
+    if (!investigation) {
         return notFound()
     }
     return (
         <>
             {children}
-            <FileUploadDialog />
         </>
     )
 }

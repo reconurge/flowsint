@@ -1,14 +1,17 @@
-from app.core.celery import celery_app
-from app.scanners.orchestrator import TransformOrchestrator
-from celery import states
-from app.core.db import get_db
-from typing import List
 import os
+import uuid
 from dotenv import load_dotenv
 from typing import List
-from app.neo4j.connector import Neo4jConnection
-from app.types.transform import FlowBranch
 
+from celery import states
+from app.core.celery import celery_app
+from app.scanners.orchestrator import TransformOrchestrator
+from app.core.postgre_db import SessionLocal, get_db
+from app.core.graph_db import Neo4jConnection
+from app.types.transform import FlowBranch
+from app.models.models import Scan
+from sqlalchemy.orm import Session
+from app.core.logger import Logger
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -16,42 +19,58 @@ USERNAME = os.getenv("NEO4J_USERNAME")
 PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
+db: Session = next(get_db())
+logger = Logger(db)
 
 
 @celery_app.task(name="run_transform", bind=True)
 def run_scan(self, transform_branches, values: List[str], sketch_id: str | None):
-    db = get_db()
+    session = SessionLocal()
     try:
         if not transform_branches:
             raise ValueError("transform_branches not provided in the input transform")
-        
-        res = db.table("scans").insert({
-                    "id": self.request.id,
-                    "status": "pending",
-                    "values": values,
-                    "sketch_id": sketch_id,
-                    "results": []
-                }).execute()
-        scan_id = res.data[0]["id"]
-        
+
+        scan_id = uuid.UUID(self.request.id)
+
+        scan = Scan(
+            id=scan_id,
+            status="pending",
+            values=values,
+            sketch_id=uuid.UUID(sketch_id) if sketch_id else None,
+            results={}
+        )
+        session.add(scan)
+        session.commit()
+
         transform_branches = [FlowBranch(**branch) for branch in transform_branches]
-        scanner = TransformOrchestrator(sketch_id, scan_id, transform_branches=transform_branches, neo4j_conn=neo4j_connection)
+        scanner = TransformOrchestrator(
+            sketch_id=sketch_id,
+            scan_id=str(scan_id),
+            transform_branches=transform_branches,
+            neo4j_conn=neo4j_connection,
+            logger=logger
+        )
         results = scanner.execute(values=values)
-        status = "finished" if "error" not in results else "error"
-        db.table("scans").update({
-            "status": status,
-            "results": scanner.results_to_json(results=results)
-        }).eq("id", self.request.id).execute()
-        return {"result": scanner.results_to_json(results=results)}
-        
+
+        scan.status = "finished" if "error" not in results else "error"
+        scan.results = scanner.results_to_json(results)
+        session.commit()
+
+        return {"result": scan.results}
+
     except Exception as ex:
+        session.rollback()
         error_logs = f"An error occurred: {str(ex)}"
         print(f"Error in task: {error_logs}")
-        db.table("scans").update({
-            "status": "error",
-            "results": {"error": error_logs}
-        }).eq("id", self.request.id).execute()
-        self.update_state(
-            state=states.FAILURE,
-        )
+
+        scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        if scan:
+            scan.status = "error"
+            scan.results = {"error": error_logs}
+            session.commit()
+
+        self.update_state(state=states.FAILURE)
         raise ex
+
+    finally:
+        session.close()

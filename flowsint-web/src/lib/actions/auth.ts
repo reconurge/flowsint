@@ -1,65 +1,43 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { encodedRedirect } from "@/lib/utils";
-
-export async function signInWithGithub() {
-    const supabase = await createClient()
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-            redirectTo: process.env.NEXT_PUBLIC_AUTH_REDIRECT,
-        },
-    })
-    if (error) {
-        return encodedRedirect("error", "/login", error.message);
-    }
-    if (data.url) {
-        redirect(data.url)
-    }
-}
-
+import { encodedRedirect } from '../utils'
+import { signIn, signOut } from '@/auth'
 export async function login(formData: FormData) {
-    const supabase = await createClient()
-
-    // type-casting here for convenience
-    // in practice, you should validate your inputs
-    const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
+    try {
+        await signIn("credentials", formData)
+        redirect('/')
+    } catch (error) {
+        if (error) {
+            return encodedRedirect("error", "/login", "Error signing up." + error);
+        }
+        return encodedRedirect("error", "/login", "Error signing up.");
     }
-
-    const { error } = await supabase.auth.signInWithPassword(data)
-
-    if (error) {
-        return encodedRedirect("error", "/login", error.message);
-    }
-    revalidatePath('/', 'layout')
-    redirect('/dashboard')
 }
 
-export async function signup(formData: FormData) {
-    const supabase = await createClient()
-    const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
+export async function register(formData: FormData) {
+    const body = JSON.stringify({ email: formData.get('email') as string, password: formData.get('password') as string })
+    const res = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body,
+    })
+    if (res.ok) {
+
+    } else {
+        return encodedRedirect("error", "/login", "An error occurred while signing up.");
+
     }
-    const { error } = await supabase.auth.signUp(data)
-    if (error) {
-        return encodedRedirect("error", "/login", error.message);
-    }
-    revalidatePath('/', 'layout')
-    redirect('/')
 }
 
 export async function logout() {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-        redirect('/error')
+    try {
+        await signOut()
+        redirect('/login')
+    } catch (error) {
+        if (error) {
+            return encodedRedirect("error", "/login", "Error logging out.");
+        }
+        return encodedRedirect("error", "/login", "Error logging out.");
     }
-    revalidatePath('/', 'layout')
-    redirect('/login')
 }

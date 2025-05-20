@@ -1,28 +1,63 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Dict, Any, Literal
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from app.utils import flatten
-from typing import Dict, Any
-from app.neo4j.connector import Neo4jConnection
-import os
-from dotenv import load_dotenv
-
-
-load_dotenv()
-
-URI = os.getenv("NEO4J_URI_BOLT")
-USERNAME = os.getenv("NEO4J_USERNAME")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
-
-neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
+from typing import Dict, Any, List
+from sqlalchemy.orm import Session
+from app.api.schemas.sketch import SketchCreate, SketchOut, SketchUpdate
+from app.models.models import Sketch, Profile
+from sqlalchemy.orm import Session
+from uuid import UUID
+from app.core.graph_db import neo4j_connection
+from app.core.postgre_db import get_db
+from app.api.deps import get_current_user
 
 
 router = APIRouter()
 
-@router.get("/sketch/{sketch_id}/nodes")
-async def get_sketch_nodes(sketch_id: str):
+
+@router.post("/create", response_model=SketchOut)
+def create_sketch(data: SketchCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = Sketch(**data.dict())
+    db.add(sketch)
+    db.commit()
+    db.refresh(sketch)
+    return sketch
+
+@router.get("", response_model=List[SketchOut])
+def list_sketches(db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    return db.query(Sketch).all()
+
+@router.get("/{id}", response_model=SketchOut)
+def get_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = db.query(Sketch).get(id)
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    return sketch
+
+@router.put("/{id}", response_model=SketchOut)
+def update_sketch(id: UUID, data: SketchUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = db.query(Sketch).get(id)
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    for key, value in data.dict(exclude_unset=True).items():
+        setattr(sketch, key, value)
+    db.commit()
+    db.refresh(sketch)
+    return sketch
+
+@router.delete("/{id}", status_code=204)
+def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = db.query(Sketch).get(id)
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    db.delete(sketch)
+    db.commit()
+
+@router.get("/{sketch_id}/graph")
+async def get_sketch_nodes(sketch_id: str, current_user: Profile = Depends(get_current_user)):
     import random
 
     nodes_query = """
@@ -79,14 +114,8 @@ class NodeInput(BaseModel):
 def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
     return ", ".join(f"{key}: ${prefix}{key}" for key in props)
 
-# Endpoints
-@router.get("/sketches")
-def read_root():
-    return {"message": "Sketches API is running"}
-
-
-@router.post("/sketch/{sketch_id}/nodes/add")
-def add_node(sketch_id: str, node: NodeInput):
+@router.post("/{sketch_id}/nodes/add")
+def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)):
     
     node_type = getattr(node, "type", "unknown")
     node_data = getattr(node, "data", {})
@@ -138,8 +167,8 @@ class RelationInput(BaseModel):
     type: Literal["one-way", "two-way"]
     label: str = "RELATED_TO"  # Optionnel : nom de la relation
 
-@router.post("/sketch/{sketch_id}/relations/add")
-def add_edge(sketch_id: str, relation: RelationInput):
+@router.post("/{sketch_id}/relations/add")
+def add_edge(sketch_id: str, relation: RelationInput, current_user: Profile = Depends(get_current_user)):
 
     query = f"""
         MATCH (a) WHERE elementId(a) = $from_id

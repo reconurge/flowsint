@@ -1,11 +1,11 @@
 "use server"
-import { createClient } from "../supabase/server"
+import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { serverFetch } from "../server-fetch"
 
 export const createNewInvestigation = async (formData: FormData) => {
-    const supabase = await createClient()
-    const { data: session, error: userError } = await supabase.auth.getUser()
-    if (userError || !session?.user) {
+    const session = auth()
+    if (!session) {
         redirect('/login')
     }
     const data = {
@@ -13,14 +13,14 @@ export const createNewInvestigation = async (formData: FormData) => {
         description: formData.get("description"),
     }
     try {
-        const { data: investigation, error } = await supabase.from("investigations").insert({ ...data, owner_id: session?.user?.id }).select("id").single()
-        if (error) throw error
-        const { data: folder, error: bucketError } = await supabase.storage.from('documents').upload(`${investigation.id}/placeholder`, '')
-        if (bucketError) throw bucketError
-        return { success: true, id: investigation.id, path: folder.path }
+        const url = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/investigations/create`;
+        const body = JSON.stringify(data)
+        const created = await serverFetch(url, {
+            method: "POST",
+            body: body
+        })
+        return { success: true, id: created.id }
     } catch (error) {
-        if ((error as { code?: string })?.code === "42501")
-            return { success: false, error: "Missing permission to create a new investigation." }
         return { success: false, error: "Failed to create new investigation." }
     }
 }

@@ -21,44 +21,19 @@ import { AvatarList } from "@/components/avatar-list"
 // import { SectionCards } from "@/components/investigations/section-cards"
 import { Profile } from "@/types"
 import { Skeleton } from "@/components/ui/skeleton"
+import { clientFetch } from "@/lib/client-fetch"
 
 const DashboardPage = () => {
     const { investigation_id } = useParams()
     const [searchQuery, setSearchQuery] = useState("")
-
-    const { data: investigation, isLoading: isLoadingInvestigations, isRefetching: isRefetchingInvestigations, refetch: refetchSketches } = useQuery({
-        queryKey: ["dashboard", "investigation", investigation_id],
+    const { data: investigation, isLoading, refetch, isRefetching } = useQuery({
+        queryKey: [process.env.NEXT_PUBLIC_FLOWSINT_API, "dashboard", "investigations", investigation_id],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations/${investigation_id}`)
-            if (!res.ok) {
-                notFound()
-            }
-            return res.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/investigations/${investigation_id}`)
+            return data
         },
         refetchOnWindowFocus: true,
     })
-    const {
-        data: documents, isLoading: isLoadingDocs, isRefetching: isRefetchingDocs, refetch: refetchDocs
-    } = useQuery({
-        queryKey: ["investigations", investigation_id, "documents"],
-        queryFn: async () => {
-            const res = await fetch(`/api/investigations/${investigation_id}/documents`)
-            if (!res.ok) {
-                throw new Error("Failed to fetch documents")
-            }
-            return res.json() as Promise<Document[]>
-        },
-        refetchOnWindowFocus: true,
-        enabled: !!investigation_id,
-    })
-
-    const handleRefetch = () => {
-        refetchSketches()
-        refetchDocs()
-    }
-
-    const isLoading = isLoadingDocs || isLoadingInvestigations
-    const isRefetching = isRefetchingDocs || isRefetchingInvestigations
 
     return (
         <>
@@ -103,7 +78,7 @@ const DashboardPage = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button onClick={handleRefetch} disabled={isLoading || isRefetching} variant={"outline"} className="gap-2">
+                        <Button onClick={() => refetch()} disabled={isLoading || isRefetching} variant={"outline"} className="gap-2">
                             <RotateCwIcon className={cn("h-4 w-4", isLoading || isRefetching && "animate-spin")} />  Refresh
                         </Button>
                         <NewSketch>
@@ -113,7 +88,7 @@ const DashboardPage = () => {
                         </NewSketch>
                     </div>
                 </div>
-                {isLoadingInvestigations ? (
+                {isLoading ? (
                     <Loader label="Loading..." />
                 ) : (
                     <Card className="border rounded-md bg-card shadow-xs">
@@ -130,7 +105,7 @@ const DashboardPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {investigation.sketches.length === 0 && documents?.length === 0 ? (
+                                {investigation.sketches.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center w-full py-2 text-muted-foreground">
                                             <div className="flex flex-col justify-center items-center p-3 gap-2">
@@ -193,7 +168,6 @@ const DashboardPage = () => {
                                         </TableRow>
                                     ))
                                 )}
-                                <DocumentList refetch={refetchDocs} isLoading={isLoadingDocs} documents={documents} />
                             </TableBody>
                         </Table>
                     </Card>

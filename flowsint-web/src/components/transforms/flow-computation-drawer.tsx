@@ -13,9 +13,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // import { CopyButton } from "../copy"
 import { useQuery } from "@tanstack/react-query"
-import { toast } from "sonner"
 import Loader from "../loader"
 import { CopyButton } from "../copy"
+import { clientFetch } from "@/lib/client-fetch"
 
 interface FlowComputationDrawerProps {
     open: boolean
@@ -66,19 +66,10 @@ export function FlowComputationDrawer({
         queryKey: ["transforms", transformId, "compute"],
         queryFn: async () => {
             const body = JSON.stringify({ nodes, edges, initialValue: "domain" })
-            const url = `${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms/${transformId}/compute`
-            const res = await fetch(url, {
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms/${transformId}/compute`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: body,
+                body,
             })
-            if (!res.ok) {
-                toast.error("An error occured.")
-            }
-            const data = await res.json()
-            console.log(data)
             setTransformsBranches(data.transformBranches as FlowBranch[])
             setInitialData(data.initialData)
             return data

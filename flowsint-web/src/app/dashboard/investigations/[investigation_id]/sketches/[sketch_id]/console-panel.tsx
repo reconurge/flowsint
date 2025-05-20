@@ -3,7 +3,6 @@
 import { CopyButton } from "@/components/copy"
 import { Button } from "@/components/ui/button"
 import { useConfirm } from "@/components/use-confirm-dialog"
-import { supabase } from "@/lib/supabase/client"
 import { Loader2, TrashIcon, XCircle, AlertTriangle, Info, CheckCircle } from "lucide-react"
 import { useParams } from "next/navigation"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
@@ -34,101 +33,18 @@ const typeToClass: Record<string, string> = {
 
 export const ConsolePanel = memo(function ConsolePanel() {
     const [logEntries, setLogEntries] = useState<LogEntry[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const { sketch_id } = useParams()
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const { confirm } = useConfirm()
 
     const refetch = useCallback(async () => {
-        try {
-            setIsLoading(true)
-            const { data, error } = await supabase
-                .from("logs")
-                .select("*")
-                .eq("sketch_id", sketch_id)
-                .order("created_at", { ascending: true })
-                .limit(50)
-
-            if (error) {
-                toast.error("Failed to load logs")
-                return
-            }
-
-            if (data) {
-                const formattedLogs = data.map((log: any) => ({
-                    id: log.id,
-                    type: log.type || "INFO",
-                    timestamp: new Date(log.created_at).toLocaleTimeString(),
-                    content: log.content,
-                    created_at: log.created_at,
-                }))
-                setLogEntries(formattedLogs)
-            }
-        } catch (error) {
-            console.error("Error in refetch:", error)
-            toast.error("An unexpected error occurred while loading logs")
-        } finally {
-            setIsLoading(false)
-        }
+      // TODO
     }, [sketch_id])
 
     const handleDeleteLogs = useCallback(async () => {
-        try {
-            const confirmed = await confirm({
-                title: "Deleting logs",
-                message: "Are you sure you want to delete these logs ?",
-            })
-
-            if (!confirmed) return
-
-            setIsLoading(true)
-            const { error } = await supabase.from("logs").delete().eq("sketch_id", sketch_id)
-
-            if (error) {
-                toast.error("An error occurred deleting the logs.")
-                return
-            }
-
-            toast.success("Logs cleared.")
-            await refetch()
-        } catch (e) {
-            toast.error("An error occurred deleting the logs.")
-        } finally {
-            setIsLoading(false)
-        }
-    }, [confirm, sketch_id, refetch])
-
-    useEffect(() => {
-        refetch()
-
-        const subscription = supabase
-            .channel("logs-channel")
-            .on(
-                "postgres_changes",
-                {
-                    event: "INSERT",
-                    schema: "public",
-                    table: "logs",
-                    filter: `sketch_id=eq.${sketch_id}`,
-                },
-                (payload) => {
-                    const newLog = payload.new as any
-                    const formattedLog: LogEntry = {
-                        id: newLog.id,
-                        type: newLog.type || "INFO",
-                        timestamp: new Date(newLog.created_at).toLocaleTimeString(),
-                        content: newLog.content,
-                        created_at: newLog.created_at,
-                    }
-                    setLogEntries((prevLogs) => [...prevLogs, formattedLog])
-                },
-            )
-            .subscribe()
-
-        return () => {
-            subscription.unsubscribe()
-        }
-    }, [refetch])
+      // TODO
+    }, [])
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" })

@@ -38,8 +38,6 @@ export default function NewInvestigation({ children, noDropDown }: { children: R
         const result = await createNewInvestigation(formData)
         if (result.success) {
             toast.success("New investigation created.")
-            if (result.path)
-                toast.success("New storage bucket created.")
             router.push(`/dashboard/investigations/${result.id}`)
             setOpen(false)
         } else {

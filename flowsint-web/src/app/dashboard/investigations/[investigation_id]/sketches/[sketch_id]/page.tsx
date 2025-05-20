@@ -1,28 +1,23 @@
 import { notFound, redirect, unauthorized } from "next/navigation"
 import DashboardClient from "./client"
-import { createClient } from "@/lib/supabase/server"
+import { serverFetch } from "@/lib/server-fetch"
+import { auth } from "@/auth"
 
 const InvestigationPage = async ({
     params,
 }: {
     params: Promise<{ investigation_id: string, sketch_id: string }>
 }) => {
-    const supabase = await createClient()
+    const session = await auth();
+    if (!session) return redirect("/login")
     const { investigation_id, sketch_id } = await (params)
-    const {
-        data: { user },
-        error: userError,
-    } = await supabase.auth.getUser();
-    if (!user || userError) {
-        return redirect("/login")
-    }
-    const { data: sketch, error } = await supabase.from("sketches").select("*, members:sketches_profiles(profile:profiles(id, first_name, last_name, avatar_url), role)").eq("id", sketch_id).single()
-    if (!sketch || error) {
+    const sketch = await serverFetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/sketches/${sketch_id}`)
+    if (!sketch) {
         return notFound()
     }
     return (
         <>
-            <DashboardClient investigationId={investigation_id} sketchId={sketch_id} sketch={sketch} user_id={user?.id} />
+            <DashboardClient investigationId={investigation_id} sketchId={sketch_id} sketch={sketch} user_id={session?.user?.id as string} />
         </>)
 }
 

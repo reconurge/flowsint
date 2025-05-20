@@ -5,7 +5,6 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.utils import is_valid_domain, resolve_type
-from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalDomain]
 OutputType: TypeAlias = List[MinimalIp]

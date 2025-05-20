@@ -11,19 +11,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Investigation } from "@/types/investigation";
 import { Badge } from '../ui/badge';
+import { clientFetch } from "@/lib/client-fetch";
 
 export default function InvestigationSelector() {
     const router = useRouter()
     const { investigation_id } = useParams()
-    const { data, isLoading } = useQuery({
-        queryKey: ["dashboard", "investigations"],
+
+    const { data: investigations, isLoading } = useQuery({
+        queryKey: [process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API, "dashboard", "selector", investigation_id],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations`)
-            return res.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/investigations`)
+            return data
         },
         refetchOnWindowFocus: true,
     })
-    const investigations = data?.investigations || []
 
     const handleSelectionChange = (value: string) => {
         router.push(`/dashboard/investigations/${value}`);

@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/server"
 import { PlusCircle, FileCode2 } from "lucide-react"
 import Link from "next/link"
 import { TransformItem } from "@/components/transforms/transform-item"
+import { serverFetch } from "@/lib/server-fetch"
+
+const API_URL = `${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/transforms`
 
 const TransformsPage = async () => {
-    const supabase = await createClient()
-    const { data: transforms } = await supabase.from("transforms").select("*")
-
+    const transforms = await serverFetch(API_URL)
     return (
         <div className="w-full space-y-8 container bg-background grow mx-auto py-12 px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -29,13 +29,13 @@ const TransformsPage = async () => {
                     <EmptyState />
                 ) : (
                     <div className="w-full grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 xl:grid-cols-3 gap-5">
-                        {transforms.map((transform) => (
+                        {transforms.map((transform: any) => (
                             <TransformItem key={transform.id} transform={transform} />
                         ))}
                     </div>
                 )
             }
-        </div >
+        </div>
     )
 }
 
@@ -60,7 +60,5 @@ const EmptyState = () => {
         </Card>
     )
 }
-
-
 
 export default TransformsPage

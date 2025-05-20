@@ -9,18 +9,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
 import { AvatarList } from "../avatar-list"
+import { clientFetch } from "@/lib/client-fetch"
 
 const RecentSketches = ({ limit = 4 }: { limit: string | number }) => {
 
-    const {
-        data: sketches,
-        isLoading,
-        error,
-    } = useQuery({
-        queryKey: ["dashboard", "sketches"],
+    const { data: sketches, error, isLoading } = useQuery({
+        queryKey: ["dashboard", "recent", "sketches"],
         queryFn: async () => {
-            const res = await fetch(`/api/latest-sketches?limit=${limit}`)
-            return res.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/sketches?limit=${limit}`)
+            return data
         },
         refetchOnWindowFocus: true,
     })

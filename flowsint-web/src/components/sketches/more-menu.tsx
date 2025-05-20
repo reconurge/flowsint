@@ -1,5 +1,4 @@
 import { Ellipsis } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -27,13 +26,7 @@ export default function MoreMenu({ sketch, user_id }: { sketch: Sketch, user_id:
                 if (!sketch_id) {
                     throw new Error("No sketch ID provided");
                 }
-                const { error } = await supabase
-                    .from('sketches')
-                    .delete()
-                    .eq('id', sketch_id);
-                if (error) {
-                    throw error;
-                }
+                // TODO
                 router.push(`/dashboard/investigations/${sketch.investigation_id}`)
                 return "Sketch successfully deleted";
             },

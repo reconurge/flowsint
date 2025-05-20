@@ -1,15 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
 import {
     SidebarInset,
     SidebarProvider,
 } from "@/components/ui/sidebar"
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { MainNav } from "@/components/dashboard/main-nav";
-import { NavUser } from "@/components/nav-user";
-import Feedback from "@/components/dashboard/feedback";
 import Link from "next/link";
 import SecondaryNav from "@/components/dashboard/secondary-nav";
+import { auth } from "@/auth";
 
 const DashboardLayout = async ({
     children,
@@ -17,12 +14,8 @@ const DashboardLayout = async ({
     children: React.ReactNode;
 
 }) => {
-    const supabase = await createClient()
-    const { data, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !data?.user) {
-        redirect('/login')
-    }
+    const session = await auth();
+    if (!session) return redirect("/login")
 
     return (
         <SidebarProvider>
@@ -44,7 +37,8 @@ const DashboardLayout = async ({
                             </Link>
                             {/* <Separator orientation="vertical" className="h-6" /> */}
                             <MainNav className="mx-6" />
-                            <SecondaryNav profile_id={data?.user.id} />
+                            {/* @ts-ignore */}
+                            <SecondaryNav profile_id={session?.user?.id as string} />
                         </div>
                     </header>
                     {children}

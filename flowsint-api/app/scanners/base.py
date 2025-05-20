@@ -1,76 +1,63 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
-from app.neo4j.connector import Neo4jConnection
-from app.core.logger import logger
+from typing import List, Dict, Any, Optional
+from app.core.graph_db import Neo4jConnection
+from app.core.logger import Logger
 
 class Scanner(ABC):    
-    def __init__(self, sketch_id:str, scan_id: str, neo4j_conn: Neo4jConnection = None):
+    def __init__(
+        self,
+        sketch_id: Optional[str],
+        scan_id: str,
+        logger: Logger,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+    ):
         self.scan_id = scan_id
         self.sketch_id = sketch_id or "system"
-        self.neo4j_conn = neo4j_conn  # disponible dans tous les scanners
-        
+        self.neo4j_conn = neo4j_conn
+        self.logger = logger
+
     @classmethod
     @abstractmethod
-    def name(self) -> str:
+    def name(cls) -> str:
         pass
-    
+
     @classmethod
     @abstractmethod
-    def category(self) -> str:
+    def category(cls) -> str:
         pass
-    
+
     @classmethod
     @abstractmethod
     def input_schema(cls) -> Dict[str, str]:
-        """
-        Returns the input fields and their types.
-        """
         pass
 
     @classmethod
     @abstractmethod
     def output_schema(cls) -> Dict[str, str]:
-        """
-        Returns the output fields and their types.
-        """
         pass
-    
+
     @abstractmethod
     def scan(self, values: List[str]) -> List[Dict[str, Any]]:
-        """
-        The actual scanning logic that operates on the list of values provided.
-        """
         pass
-    
+
     def preprocess(self, values: List[str]) -> List[str]:
-        """
-        Preprocess the values according to their types.
-        Validates if the values match the expected format for the given types.
-        """
         return values
-    
+
     def postprocess(self, results: List[Dict[str, Any]], input_data: List[str] = None) -> List[Dict[str, Any]]:
-        """
-        Post-process the scan results if necessary (e.g., format them).
-        """
         return results
-    
+
     def execute(self, values: List[str]) -> List[Dict[str, Any]]:
-        """
-        Execute the scanning process by first preprocessing, then scanning, and finally postprocessing.
-        Tries to call postprocess with (results, preprocessed). Falls back to (results) if needed.
-        """
         if self.name() != "transform_orchestrator":
-            logger.info(self.scan_id,self.sketch_id, f"Scanner {self.name()} started.")
-        preprocessed = self.preprocess(values)
-        results = self.scan(preprocessed)
-        processed = self.postprocess(results, preprocessed)
+            self.logger.info(self.scan_id, f"Scanner {self.name()} started.", self.sketch_id)
+
         try:
+            preprocessed = self.preprocess(values)
+            results = self.scan(preprocessed)
+            processed = self.postprocess(results, preprocessed)
             if self.name() != "transform_orchestrator":
-                logger.success(self.scan_id,self.sketch_id, f"Scanner {self.name()} finished.")
+                self.logger.success(self.scan_id, f"Scanner {self.name()} finished.", self.sketch_id)
             return processed
         except Exception as e:
             if self.name() != "transform_orchestrator":
-                logger.error(self.scan_id,self.sketch_id, f"Scanner {self.name()} errored: '{str(e)}'.")
-            return processed
-
+                self.logger.error(self.scan_id, f"Scanner {self.name()} errored: '{str(e)}'.", self.sketch_id)
+            return []

@@ -1,16 +1,7 @@
 import TransformEditor from "@/components/transforms/editor"
-import { notFound } from "next/navigation"
+import { serverFetch } from "@/lib/server-fetch"
 
-async function fetchNodes() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/transforms/nodes`, {
-        next: { revalidate: 3600 }
-    })
-    if (!res.ok) {
-        notFound()
-    }
-    return res.json()
-}
 export default async function Editor() {
-    const nodesData = await fetchNodes()
+    const nodesData = await serverFetch(`${process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API}/transforms/raw_materials`)
     return <TransformEditor nodesData={nodesData} />
 }

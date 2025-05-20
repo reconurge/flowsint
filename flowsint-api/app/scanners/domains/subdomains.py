@@ -6,7 +6,6 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain, Domain
 from app.utils import is_valid_domain, resolve_type
 from pydantic import TypeAdapter
-from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalDomain]
 OutputType: TypeAlias = List[MinimalDomain]
@@ -55,7 +54,7 @@ class SubdomainScanner(Scanner):
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
-        logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: preprocessed: {str(data)}")
+        self.logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: preprocessed: {str(data)}")
         for item in data:
             domain_obj = None
             if isinstance(item, str):
@@ -66,24 +65,24 @@ class SubdomainScanner(Scanner):
                 domain_obj = item
             if domain_obj and is_valid_domain(domain_obj.domain) != "invalid":
                 cleaned.append(domain_obj)
-        logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: postprocessed: {str(cleaned)}")
+        self.logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: postprocessed: {str(cleaned)}")
         return cleaned
 
     def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
         domains: OutputType = []
         use_subfinder = self.__is_subfinder_installed()
-        logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: input data: {str(data)}")
+        self.logger.debug(self.scan_id, self.sketch_id,f"[SUBDOMAIN_SCANNER]: input data: {str(data)}")
 
         for md in data:
             d = Domain(domain=md.domain)
             if use_subfinder:
                 subdomains = self.__get_subdomains_from_subfinder(d.domain)
                 if not subdomains:
-                    logger.warn(self.scan_id, self.sketch_id, f"subfinder failed for {d.domain}, falling back to crt.sh")
+                    self.logger.warn(self.scan_id, self.sketch_id, f"subfinder failed for {d.domain}, falling back to crt.sh")
                     subdomains = self.__get_subdomains_from_crtsh(d.domain)
             else:
-                logger.info(self.scan_id, self.sketch_id, "subfinder not found, using crt.sh only")
+                self.logger.info(self.scan_id, self.sketch_id, "subfinder not found, using crt.sh only")
                 subdomains = self.__get_subdomains_from_crtsh(d.domain)
 
             d.subdomains = sorted(subdomains)
@@ -110,9 +109,9 @@ class SubdomainScanner(Scanner):
                         if "*" not in sub and is_valid_domain(sub) and sub.endswith(domain) and sub != domain:
                             subdomains.add(sub)
                         elif "*" in sub:
-                            logger.debug(self.scan_id, self.sketch_id, f"Ignored wildcard subdomain: {sub}")
+                            self.logger.debug(self.scan_id, self.sketch_id, f"Ignored wildcard subdomain: {sub}")
         except Exception as e:
-            logger.error(self.scan_id, self.sketch_id, f"crt.sh failed for {domain}: {e}")
+            self.logger.error(self.scan_id, self.sketch_id, f"crt.sh failed for {domain}: {e}")
         return subdomains
 
     def __get_subdomains_from_subfinder(self, domain: str) -> set[str]:
@@ -128,9 +127,9 @@ class SubdomainScanner(Scanner):
                     if is_valid_domain(sub) and sub.endswith(domain) and sub != domain and not sub.startswith("."):
                         subdomains.add(sub)
             else:
-                logger.error(self.scan_id, self.sketch_id, f"subfinder failed for {domain}: {result.stderr.strip()}")
+                self.logger.error(self.scan_id, self.sketch_id, f"subfinder failed for {domain}: {result.stderr.strip()}")
         except Exception as e:
-            logger.error(self.scan_id, self.sketch_id, f"subfinder exception for {domain}: {e}")
+            self.logger.error(self.scan_id, self.sketch_id, f"subfinder exception for {domain}: {e}")
         return subdomains
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -156,6 +155,6 @@ class SubdomainScanner(Scanner):
                     "caption": subdomain,
                     "type": "subdomain"
                 })
-            logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found.")
+            self.logger.info(self.scan_id, self.sketch_id, f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found.")
 
         return output

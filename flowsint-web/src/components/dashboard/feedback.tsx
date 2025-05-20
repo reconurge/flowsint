@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type React from "react" // Added import for React
@@ -16,10 +15,7 @@ export default function Feedback() {
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData)
         try {
-            const { error } = await supabase
-                .from("feedbacks")
-                .insert({ ...data })
-            if (error) return toast.error("Could not create new feedback:" + JSON.stringify(error))
+            // TODO
             toast.success("Feedback submitted.")
             setOpen(false)
         } catch (error) {

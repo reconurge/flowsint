@@ -9,7 +9,6 @@ from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.utils import resolve_type, is_valid_ip
-from app.core.logger import logger
 
 InputType: TypeAlias = List[MinimalIp]
 OutputType: TypeAlias = List[MinimalDomain]
@@ -142,7 +141,7 @@ class ReverseResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for domain_obj, ip_obj in zip(original_input, results):
-            logger.success(self.scan_id, self.sketch_id, f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            self.logger.success(self.scan_id, self.sketch_id, f"Resolved {ip_obj.address} to {domain_obj.domain}")
             query = """
             MERGE (d:ip {ip: $ip})
             SET d.sketch_id = $sketch_id

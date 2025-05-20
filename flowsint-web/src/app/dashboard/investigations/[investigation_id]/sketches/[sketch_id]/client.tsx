@@ -13,6 +13,7 @@ import { GraphPanel } from "./graph-panel"
 import { Sketch } from "@/types/sketch"
 import SettingsModal from "./settings-modal"
 import { CreateRelationDialog } from "@/components/sketches/sketch/create-relation"
+import { clientFetch } from "@/lib/client-fetch"
 
 interface DashboardClientProps {
     investigationId: string
@@ -34,16 +35,14 @@ export default function DashboardClient({ investigationId, sketchId, sketch, use
     } = useSketchStore(stateSelector, shallow)
 
     const graphQuery = useQuery({
-        queryKey: ["investigations", investigationId, 'sketches', sketchId, "data"],
+        queryKey: [process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API, "sketches", sketchId, "graph"],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations/${investigationId}/sketches/${sketchId}/sketch`)
-            if (!res.ok) {
-                notFound()
-            }
-            return res.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/sketches/${sketchId}/graph`)
+            return data
         },
         refetchOnWindowFocus: true,
     })
+
     return (
         <>
             <Toolbar investigation_id={investigationId} sketch_id={sketchId} sketch={sketch} user_id={user_id} />

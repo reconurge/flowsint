@@ -19,24 +19,19 @@ import { cn } from "@/lib/utils"
 import { SubNav } from "@/components/dashboard/sub-nav"
 import { Card } from "@/components/ui/card"
 import StatusBadge from "@/components/investigations/status-badge"
+import { clientFetch } from "@/lib/client-fetch"
 
 const DashboardPage = () => {
     const [searchQuery, setSearchQuery] = useState("")
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-
-    const { data, isLoading, refetch, isRefetching } = useQuery({
-        queryKey: ["dashboard", "investigations"],
+    const { data: investigations, isLoading, refetch, isRefetching } = useQuery({
+        queryKey: [process.env.NEXT_PUBLIC_FLOWSINT_API, "dashboard", "investigations"],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations`)
-            if (!res.ok || res.status === 404) {
-                notFound()
-            }
-            return res.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/investigations`)
+            return data
         },
         refetchOnWindowFocus: true,
     })
-    const investigations = data?.investigations || []
-    const filteredInvestigations = investigations.filter(
+    const filteredInvestigations = investigations?.filter(
         (investigation: Investigation) => searchQuery === "" || investigation.name?.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 

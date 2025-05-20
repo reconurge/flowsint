@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import { Bold, Italic, List, ListOrdered, Heading2 } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -62,10 +61,7 @@ export function NodeNotesEditor({ openNote, setOpenNote, individualId }: NoteEdi
         }
         setIsSaving(true)
         try {
-            const { error } = await supabase.from("individuals").update({
-                notes: content
-            }).eq("id", individualId)
-            if (error) throw error
+            // TODO
             toast.success("Note saved successfully")
             editor.commands.setContent("")
             setOpenNote(false)

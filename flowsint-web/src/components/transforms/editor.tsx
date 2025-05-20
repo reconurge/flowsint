@@ -30,7 +30,6 @@ import { categoryColors } from "./scanner-data"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import { FlowControls } from "./controls"
 import { getDagreLayoutedElements } from "@/lib/utils"
-import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useParams, useRouter } from "next/navigation"
 import { TransformModal } from "./save-modal"
@@ -38,6 +37,7 @@ import { useConfirm } from "../use-confirm-dialog"
 import TestTransform from "./test-transform"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
 import { FlowComputationDrawer } from "./flow-computation-drawer"
+import { clientFetch } from "@/lib/client-fetch"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
@@ -213,44 +213,29 @@ const FlowEditor = memo(
                 setLoading(true)
                 try {
                     let newTransform
+                    const body = JSON.stringify({
+                        name: name,
+                        description: description,
+                        category: [inputType],
+                        transform_schema: {
+                            nodes,
+                            edges,
+                        },
+                    })
                     if (transform_id) {
-                        const { data, error } = await supabase
-                            .from("transforms")
-                            .update({
-                                category: [inputType],
-                                transform_schema: {
-                                    nodes,
-                                    edges,
-                                },
-                            })
-                            .eq("id", transform_id)
-                            .select("id")
-                            .single()
-
-                        if (error) throw error
-                        newTransform = data
+                        newTransform = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms/${transform_id}`,
+                            { method: "PUT", body: body }
+                        )
                     } else {
-                        const { data, error } = await supabase
-                            .from("transforms")
-                            .insert({
-                                name: name,
-                                description: description,
-                                category: [inputType],
-                                transform_schema: {
-                                    nodes,
-                                    edges,
-                                },
-                            })
-                            .select("id")
-                            .single()
-
-                        if (error) throw error
-                        newTransform = data
+                        newTransform = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms/create`,
+                            { method: "POST", body: body }
+                        )
+                        if (!newTransform) {
+                            toast.error("Error creating transform")
+                            return
+                        }
                     }
-
                     toast.success("Transform saved successfully.")
-                    // Open the computation drawer after saving
-                    setShowComputationDrawer(true)
                     newTransform && !transform_id && router.push(`/dashboard/transforms/${newTransform.id}`)
                 } catch (error) {
                     toast.error("Error saving transform" + JSON.stringify(error))
@@ -291,16 +276,7 @@ const FlowEditor = memo(
                 })
             ) {
                 setLoading(true)
-                try {
-                    await supabase.from("transforms").delete().eq("id", transform_id)
-                    toast.success("transform deleted successfully.")
-                    router.push("/dashboard/transforms")
-                } catch (error) {
-                    toast.error("Error deleting simulation")
-                    console.error(error)
-                } finally {
-                    setLoading(false)
-                }
+                // TODO
             }
         }, [transform_id, confirm, router])
 

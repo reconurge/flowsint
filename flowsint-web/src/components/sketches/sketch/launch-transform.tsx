@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useTransforms } from "@/hooks/use-transforms"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
 import {
@@ -17,6 +16,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
 import { formatDistanceToNow } from "date-fns"
+import { useQuery } from "@tanstack/react-query"
+import { clientFetch } from "@/lib/client-fetch"
 
 interface Transform {
     id: string
@@ -29,9 +30,18 @@ interface Transform {
 
 const LaunchTransform = ({ values, type, sketch_id }: { values: string[], type: string, sketch_id: string }) => {
     const { launchTransform } = useLaunchTransform()
-    const { data: transforms, isLoading } = useTransforms(type)
     const [isOpen, setIsOpen] = useState(false)
     const [selectedTransform, setSelectedTransform] = useState<Transform | null>(null)
+
+    const { data: transforms, isLoading } = useQuery({
+        queryKey: [process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API, "dashboard", "transforms", type],
+        queryFn: async () => {
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms?category=${type}`)
+            return data
+        },
+        refetchOnWindowFocus: true,
+    })
+
 
     const handleOpenModal = () => {
         setIsOpen(true)

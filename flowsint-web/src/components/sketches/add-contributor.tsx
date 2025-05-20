@@ -20,9 +20,9 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { toast } from "sonner"
 import { cn, getAvatarColor } from "@/lib/utils"
-import { supabase } from "@/lib/supabase/client"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Profile } from "@/types"
+import { clientFetch } from "@/lib/client-fetch"
 
 interface AddInvestigationModalProps {
     sketchId: string
@@ -38,31 +38,24 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
         isLoading,
         refetch,
     } = useQuery({
-        queryKey: ["profiles"],
+        queryKey: [process.env.NEXT_PUBLIC_DOCKER_FLOWSINT_API, "profiles",],
         queryFn: async () => {
-            const response = await fetch("/api/profiles")
-            if (!response.ok) {
-                throw new Error("Erreur lors de la récupération des profils")
-            }
-            return response.json()
+            const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/profiles`)
+            return data
         },
-        enabled: false, // Don't fetch on component mount, only when needed
+        enabled: false,
     })
 
     // Mutation for adding a profile to investigation
     const mutation = useMutation({
         mutationFn: async ({ profile_id, sketch_id }: { profile_id: string; sketch_id: string }) => {
-            const { error } = await supabase.from("sketches_profiles").upsert({ profile_id, sketch_id })
-            if (error)
-                throw (error)
+            // TODO
         },
         onSuccess: () => {
             toast.success(`${selectedProfile?.first_name} ${selectedProfile?.last_name} a été ajouté à l'investigation`)
             setOpen(false)
         },
         onError: (e: { code: string }) => {
-            if (e.code === "42501")
-                return toast.error("You don't have permission to add a new collaborator.")
             return toast.error("An error occured. Try again later.")
         },
     })
@@ -70,7 +63,7 @@ export function AddInvestigationModal({ sketchId, open, setOpen }: AddInvestigat
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen)
         if (newOpen) {
-            refetch() // Fetch profiles when modal opens
+            refetch()
         } else {
             setSelectedProfile(null)
         }

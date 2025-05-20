@@ -8,10 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "docker compose up -d",
-    "compose:start": "docker compose -f docker-compose.override.yml up -d"
-  },
-  "devDependencies": {
-    "supabase": "^2.19.7"
+    "compose:start": "docker compose -f docker-compose.yml up -d"
   },
   "dependencies": {
     "@testing-library/react": "^16.3.0",

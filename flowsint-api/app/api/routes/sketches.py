@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from app.utils import flatten
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
-from app.api.schemas.sketch import SketchCreate, SketchOut, SketchUpdate
+from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from app.models.models import Sketch, Profile
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -14,11 +14,9 @@ from app.core.graph_db import neo4j_connection
 from app.core.postgre_db import get_db
 from app.api.deps import get_current_user
 
-
 router = APIRouter()
 
-
-@router.post("/create", response_model=SketchOut)
+@router.post("/create", response_model=SketchRead)
 def create_sketch(data: SketchCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     sketch = Sketch(**data.dict())
     db.add(sketch)
@@ -26,18 +24,18 @@ def create_sketch(data: SketchCreate, db: Session = Depends(get_db), current_use
     db.refresh(sketch)
     return sketch
 
-@router.get("", response_model=List[SketchOut])
+@router.get("", response_model=List[SketchRead])
 def list_sketches(db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     return db.query(Sketch).all()
 
-@router.get("/{id}", response_model=SketchOut)
-def get_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = db.query(Sketch).get(id)
+@router.get("/{sketch_id}")
+def get_sketch_by_id(sketch_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
-        raise HTTPException(status_code=404, detail="Sketch not found")
+        raise HTTPException(status_code=404, detail="Transform not found")
     return sketch
 
-@router.put("/{id}", response_model=SketchOut)
+@router.put("/{id}", response_model=SketchRead)
 def update_sketch(id: UUID, data: SketchUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     sketch = db.query(Sketch).get(id)
     if not sketch:
@@ -56,17 +54,19 @@ def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile
     db.delete(sketch)
     db.commit()
 
-@router.get("/{sketch_id}/graph")
-async def get_sketch_nodes(sketch_id: str, current_user: Profile = Depends(get_current_user)):
+@router.get("/{id}/graph")
+async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    sketch = db.query(Sketch).filter(Sketch.id == id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Transform not found")
     import random
-
     nodes_query = """
     MATCH (n)
     WHERE n.sketch_id = $sketch_id
     RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
     LIMIT 5000
     """
-    nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": sketch_id})
+    nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": id})
 
     node_ids = [record["id"] for record in nodes_result]
 

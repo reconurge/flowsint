@@ -1,0 +1,15 @@
+{
+  "projectName": "flowsint-app",
+  "mode": "file-router",
+  "typescript": true,
+  "tailwind": true,
+  "packageManager": "pnpm",
+  "git": true,
+  "version": 1,
+  "framework": "react-cra",
+  "chosenAddOns": [
+    "eslint",
+    "shadcn",
+    "tanstack-query"
+  ]
+}

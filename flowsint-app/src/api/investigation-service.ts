@@ -13,6 +13,7 @@ export const investigationService = {
         });
     },
     create: async (body: BodyInit): Promise<any> => {
+        console.log(body)
         return fetchWithAuth(`/api/investigations/create`, {
             method: 'POST',
             body: body

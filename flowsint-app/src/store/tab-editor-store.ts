@@ -3,16 +3,25 @@ import { v4 as uuidv4 } from "uuid"
 import { persist } from "zustand/middleware"
 
 export interface GraphTab {
-    id: string
+    id: string // == graphId ou wallId
     title: string
     data: any
+    type: "graph" | "wall"
+    investigationId: string
     isDirty?: boolean
 }
 
 interface GraphStore {
     tabs: GraphTab[]
 
-    addTab: (id: string, title?: string, data?: any) => string
+    addTab: (params: {
+        id?: string
+        title?: string
+        data?: any
+        investigationId: string
+        type: "graph" | "wall"
+    }) => string
+
     closeTab: (id: string) => void
     updateTabData: (id: string, data: any) => void
     markTabDirty: (id: string, isDirty?: boolean) => void
@@ -23,8 +32,21 @@ export const useTabEditorStore = create<GraphStore>()(
         (set) => ({
             tabs: [],
 
-            addTab: (id = uuidv4(), title = "New Graph", data = {}) => {
-                const newTab = { id, title, data, isDirty: false }
+            addTab: ({
+                id = uuidv4(),
+                title = "New Graph",
+                data = {},
+                investigationId,
+                type,
+            }) => {
+                const newTab: GraphTab = {
+                    id,
+                    title,
+                    data,
+                    investigationId,
+                    type,
+                    isDirty: false,
+                }
 
                 set((state) => ({
                     tabs: [...state.tabs, newTab],
@@ -33,21 +55,25 @@ export const useTabEditorStore = create<GraphStore>()(
                 return id
             },
 
-            closeTab: (id: string) => {
+            closeTab: (id) => {
                 set((state) => ({
                     tabs: state.tabs.filter((tab) => tab.id !== id),
                 }))
             },
 
-            updateTabData: (id: string, data: any) => {
+            updateTabData: (id, data) => {
                 set((state) => ({
-                    tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, data } : tab)),
+                    tabs: state.tabs.map((tab) =>
+                        tab.id === id ? { ...tab, data } : tab,
+                    ),
                 }))
             },
 
-            markTabDirty: (id: string, isDirty = true) => {
+            markTabDirty: (id, isDirty = true) => {
                 set((state) => ({
-                    tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, isDirty } : tab)),
+                    tabs: state.tabs.map((tab) =>
+                        tab.id === id ? { ...tab, isDirty } : tab,
+                    ),
                 }))
             },
         }),

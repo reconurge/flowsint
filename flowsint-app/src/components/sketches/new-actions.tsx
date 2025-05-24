@@ -16,7 +16,7 @@ import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import { useSketchStore } from "@/store/sketch-store"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { sketchService } from "@/api/sketch-service"
-import { useSearch } from "@tanstack/react-router"
+import { useParams } from "@tanstack/react-router"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -32,7 +32,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
     const openFormDialog = useSketchStore(state => state.openFormDialog)
     const setOpenFormDialog = useSketchStore(state => state.setOpenFormDialog)
     const addNode = useSketchStore(state => state.addNode)
-    const { graph: activeTabId } = useSearch({ from: "/_auth/dashboard/investigations/$investigationId" })
+    const { id } = useParams({ strict: false })
 
 
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
@@ -40,7 +40,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
 
     const handleAddNode = async (data: any) => {
         try {
-            if (!currentNodeType || !activeTabId) {
+            if (!currentNodeType || !id) {
                 toast.error("Invalid node type or sketch ID.")
                 return
             }
@@ -62,7 +62,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
             if (addNode) addNode(newNode as any)
             setOpenFormDialog(false)
             toast.success("New node added.")
-            await sketchService.addNode(activeTabId, JSON.stringify(newNode))
+            await sketchService.addNode(id, JSON.stringify(newNode))
             if (setCurrentNode) setCurrentNode(newNode)
         } catch (error) {
             toast.error("Unexpected error during node creation.")

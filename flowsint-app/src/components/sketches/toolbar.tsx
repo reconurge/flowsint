@@ -28,7 +28,6 @@ import {
 import { memo, useCallback } from "react"
 import { toast } from "sonner"
 import { Separator } from "../ui/separator"
-import { useActiveTabId } from "@/hooks/active-tab-helper"
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -60,7 +59,7 @@ const ToolbarButton = memo(function ToolbarButton({
     )
 })
 export const Toolbar = memo(function Toolbar() {
-    const { investigationId } = useParams({ strict: false })
+    const { investigationId, id } = useParams({ strict: false })
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
     const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
     const removeNodes = useSketchStore((state) => state.removeNodes)
@@ -69,12 +68,11 @@ export const Toolbar = memo(function Toolbar() {
     const zoomIn = useGraphControls((s) => s.zoomIn);
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const { confirm } = useConfirm()
-    const activeTabId = useActiveTabId()
 
     const { refetch, isRefetching } = useQuery({
-        queryKey: ["investigations", 'sketches', activeTabId, "data"],
+        queryKey: ["investigations", 'sketches', id, "data"],
         queryFn: async () => {
-            const res = await fetch(`/api/investigations/${investigationId}/sketches/${activeTabId}/sketch`)
+            const res = await fetch(`/api/investigations/${investigationId}/sketches/${id}/sketch`)
             if (!res.ok) {
                 toast.error("An error occured.")
             }

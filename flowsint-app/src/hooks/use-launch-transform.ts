@@ -5,7 +5,8 @@ import { transformService } from "@/api/transfrom-service"
 
 export function useLaunchTransform(askUser: boolean = false) {
     const { confirm } = useConfirm()
-    const launchTransform = async (values: string[], transform_id: string, sketch_id: string | null) => {
+    const launchTransform = async (values: string[], transform_id: string, sketch_id: string | undefined) => {
+        if (!sketch_id) return toast.error("Could not find the graph.")
         if (askUser) {
             const confirmed = await confirm({
                 title: `${transform_id} scan`,

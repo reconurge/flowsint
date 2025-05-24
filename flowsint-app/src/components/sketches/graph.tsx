@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react"
-import { Cosmograph, CosmographProvider, useCosmograph } from '@cosmograph/react'
+import { Cosmograph, CosmographProvider, CosmographTimeline, useCosmograph } from '@cosmograph/react'
 import { useSketchStore } from "@/store/sketch-store"
 import { useNodesDisplaySettings } from "@/store/node-display-settings"
 import Loader from "@/components/shared/loader"
@@ -9,6 +9,7 @@ import { PlusIcon } from "lucide-react"
 import { useGraphControls } from "@/store/graph-controls-store"
 // @ts-ignore
 import { type CosmosInputNode } from "@cosmograph/cosmos"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 
 interface GraphProps {
     isLoading: boolean
@@ -73,8 +74,8 @@ const GraphContent = () => {
         <Cosmograph
             simulationCenter={.05}
             simulationDecay={100}
-            simulationRepulsion={210}
-            simulationLinkDistance={10}
+            simulationRepulsion={50}
+            simulationLinkDistance={1}
             onLabelClick={onLabelClick}
             onClick={onNodeClick}
             // disableSimulation={true}
@@ -111,7 +112,22 @@ const Graph: React.FC<GraphProps> = ({ isLoading }) => {
     return (
         <div className="relative h-full w-full flex flex-col bg-background">
             <CosmographProvider nodes={nodes} links={edges}>
-                <GraphContent />
+                <ResizablePanelGroup direction="vertical" className="h-full">
+                    {/* Panneau principal pour le graphique */}
+                    <ResizablePanel defaultSize={75} minSize={30}>
+                        <GraphContent />
+                    </ResizablePanel>
+                    <ResizableHandle />
+                    <ResizablePanel defaultSize={10} minSize={7}>
+                        <CosmographTimeline
+                            // @ts-ignore
+                            accessor={d => d.date}
+                            animationSpeed={20}
+                            showAnimationControls
+                            onAnimationPlay={() => console.log('Animation started')}
+                        />
+                    </ResizablePanel>
+                </ResizablePanelGroup>
             </CosmographProvider>
         </div>
     )

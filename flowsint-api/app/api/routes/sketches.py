@@ -64,7 +64,7 @@ async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user:
     MATCH (n)
     WHERE n.sketch_id = $sketch_id
     RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
-    LIMIT 5000
+    LIMIT 50000
     """
     nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": id})
 

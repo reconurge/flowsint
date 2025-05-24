@@ -2,8 +2,9 @@ import { fetchWithAuth } from './api';
 
 
 export const transformService = {
-    get: async (): Promise<any> => {
-        return fetchWithAuth('/api/transforms', {
+    get: async (type?: string): Promise<any> => {
+        const url = type ? `/api/transforms?category=${type}` : "/api/transforms"
+        return fetchWithAuth(url, {
             method: 'GET',
         });
     },
@@ -37,7 +38,7 @@ export const transformService = {
         });
     },
     getRawMaterial: async (): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/raw_material`, {
+        return fetchWithAuth(`/api/transforms/raw_materials`, {
             method: 'GET',
         });
     },

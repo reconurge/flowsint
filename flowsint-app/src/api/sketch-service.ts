@@ -8,6 +8,11 @@ export const sketchService = {
         });
     },
     getById: async (sketchId: string): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}`, {
+            method: 'GET',
+        });
+    },
+    getGraphDataById: async (sketchId: string): Promise<any> => {
         return fetchWithAuth(`/api/sketches/${sketchId}/graph`, {
             method: 'GET',
         });
@@ -20,6 +25,12 @@ export const sketchService = {
     },
     addNode: async (sketchId: string, body: BodyInit): Promise<any> => {
         return fetchWithAuth(`/api/sketches/${sketchId}/nodes/add`, {
+            method: 'POST',
+            body: body
+        });
+    },
+    addEdge: async (sketchId: string, body: BodyInit): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}/edges/add`, {
             method: 'POST',
             body: body
         });

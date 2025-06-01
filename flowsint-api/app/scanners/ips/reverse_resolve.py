@@ -141,7 +141,7 @@ class ReverseResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for domain_obj, ip_obj in zip(original_input, results):
-            self.logger.success(self.scan_id, self.sketch_id, f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            self.logger.success(message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
             query = """
             MERGE (d:ip {ip: $ip})
             SET d.sketch_id = $sketch_id

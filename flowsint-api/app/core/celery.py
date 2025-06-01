@@ -1,18 +1,24 @@
 from celery import Celery
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from app.core.config import settings
 
-
-REDIS_URI = os.getenv("REDIS_URI")
-
-
-print("REDIS_URI", REDIS_URI)
-
-
-celery_app = Celery(
+celery = Celery(
     "flowsint",
-    broker=REDIS_URI,
-    backend=REDIS_URI,
-    include=["app.tasks.transform"]
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
+    include=[
+        "app.tasks.logging",
+        "app.tasks.transform",
+    ]
+)
+
+celery.conf.update(
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    timezone="UTC",
+    enable_utc=True,
+    task_track_started=True,
+    task_time_limit=3600,  # 1 hour
+    worker_max_tasks_per_child=1000,
+    worker_prefetch_multiplier=1
 )

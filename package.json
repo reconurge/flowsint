@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@testing-library/react": "^16.3.0",
+    "class-variance-authority": "^0.7.1",
     "cytoscape-fcose": "^2.2.0",
     "graphology-layout-forceatlas2": "^0.10.1",
     "vitest": "^3.1.3"

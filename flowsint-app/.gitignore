@@ -1,5 +1,5 @@
 node_modules
-.DS_Store
 dist
-dist-ssr
-*.local
+out
+.DS_Store
+*.log*

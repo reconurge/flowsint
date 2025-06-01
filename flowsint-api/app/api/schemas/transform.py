@@ -20,7 +20,7 @@ class TransformRead(ORMBase):
     last_updated_at: datetime
 
 class TransformUpdate(BaseModel):
-    name: str
+    name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[List[str]] = None
     transform_schema: Optional[Dict[str, Any]] = None

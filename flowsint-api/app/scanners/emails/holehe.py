@@ -134,7 +134,7 @@ class HoleheScanner(Scanner):
             return results
 
         for profile in results:
-            self.logger.info(self.scan_id, self.sketch_id, f"{profile.username} -> account found on {profile.platform}")
+            self.logger.info(message=f"{profile.username} -> account found on {profile.platform}")
             self.neo4j_conn.query("""
                 MERGE (p:social_profile {profile_url: $profile_url})
                 SET p.platform = $platform,

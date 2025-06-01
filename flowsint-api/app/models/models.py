@@ -57,7 +57,7 @@ class Log(Base):
     __tablename__ = "logs"
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    scan_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("scans.id", ondelete="CASCADE"))
+    scan_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("scans.id", ondelete="CASCADE"), nullable=True)
     content = mapped_column(Text)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     sketch_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)

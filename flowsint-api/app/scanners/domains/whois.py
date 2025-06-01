@@ -9,7 +9,7 @@ from app.types.email import Email
 from pydantic import TypeAdapter
 
 InputType: TypeAlias = List[MinimalDomain]
-OutputType: TypeAlias = List[Whois]
+OutputType: TypeAlias = List[Domain]
 
 
 class WhoisScanner(Scanner):
@@ -110,7 +110,8 @@ class WhoisScanner(Scanner):
             }
 
             query = """
-            MERGE (d:Domain {domain: $domain})
+            MERGE (d:domain {domain: $domain})
+            MERGE (d)-[:HAS_WHOIS {sketch_id: $sketch_id}]->(sub)
             SET d.registrar = $registrar,
                 d.org = $org,
                 d.city = $city,

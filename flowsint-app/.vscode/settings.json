@@ -1,11 +1,11 @@
 {
-  "files.watcherExclude": {
-    "**/routeTree.gen.ts": true
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "search.exclude": {
-    "**/routeTree.gen.ts": true
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.readonlyInclude": {
-    "**/routeTree.gen.ts": true
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

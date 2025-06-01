@@ -58,14 +58,14 @@ export default function NewInvestigation({ children, noDropDown }: { children: R
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">investigation name</Label>
-                                <Input id="name" name="name" placeholder="Suspicion de fraude" required />
+                                <Input id="name" name="name" placeholder="Fraud suspicion" required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Description</Label>
                                 <Input
                                     id="description"
                                     name="description"
-                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                    placeholder="Investigation into a phishing campaign via LinkedIn."
                                 />
                             </div>
                         </div>
@@ -101,14 +101,14 @@ export default function NewInvestigation({ children, noDropDown }: { children: R
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">investigation name</Label>
-                                <Input id="name" name="name" placeholder="Suspicion de fraude" required />
+                                <Input id="name" name="name" placeholder="Fraud suspicion" required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Description</Label>
                                 <Input
                                     id="description"
                                     name="description"
-                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                    placeholder="Investigation into a phishing campaign via LinkedIn."
                                 />
                             </div>
                         </div>

@@ -1,3 +1,6 @@
-package-lock.json
+out
+dist
 pnpm-lock.yaml
-yarn.lock
+LICENSE.md
+tsconfig.json
+tsconfig.*.json

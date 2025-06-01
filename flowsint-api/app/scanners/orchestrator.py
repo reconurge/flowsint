@@ -47,13 +47,13 @@ class TransformOrchestrator(Scanner):
 
     def log_execution_plan(self):
         """Log the execution plan for debugging purposes"""
-        self.logger.info(self.scan_id, self.sketch_id, "Workflow execution plan:")
+        self.logger.info(message="Workflow execution plan:")
         
         for branch_idx, branch in enumerate(self.transform_branches):
             branch_id = branch.id
             branch_name = branch.name
             
-            self.logger.info(self.scan_id, self.sketch_id, f"Branch: {branch_name} (ID: {branch_id})")
+            self.logger.info(message=f"Branch: {branch_name} (ID: {branch_id})")
             
             steps = branch.steps
             for step_idx, step in enumerate(steps):
@@ -64,11 +64,6 @@ class TransformOrchestrator(Scanner):
                 # Log the step information
                 inputs_str = ', '.join([f"{k}: {v}" for k, v in step.inputs.items()])
                 outputs_str = ', '.join([f"{k}: {v}" for k, v in step.outputs.items()])
-                
-                self.logger.info(self.scan_id, self.sketch_id, 
-                    f"  Step {step_idx+1}: {scanner_name} (Depth: {depth})")
-                self.logger.info(self.scan_id, self.sketch_id, f"    Inputs: {inputs_str}")
-                self.logger.info(self.scan_id, self.sketch_id, f"    Outputs: {outputs_str}")
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -157,6 +152,8 @@ class TransformOrchestrator(Scanner):
         
         # Global mapping of output references to actual values
         results_mapping = {}
+        # Cache for scanner results to avoid recomputation
+        scanner_results_cache = {}
         
         # Process each branch
         for branch in self.transform_branches:
@@ -177,7 +174,7 @@ class TransformOrchestrator(Scanner):
                 scanner = self.scanners.get(node_id)
                 
                 if not scanner:
-                    self.logger.error(self.scan_id, self.sketch_id, f"Scanner not found for node {node_id}")
+                    self.logger.error(message=f"Scanner not found for node {node_id}")
                     continue
                 
                 scanner_name = scanner.name()
@@ -188,26 +185,25 @@ class TransformOrchestrator(Scanner):
                 }
                 
                 try:
-                    # Prepare inputs for this scanner
-                    # scanner_inputs = self.prepare_scanner_inputs(step, results_mapping, values)
-                    # self.logger.debug(self.scan_id, self.sketch_id,f"Current values to be used: {str(scanner_inputs)}")
                     if not scanner_inputs:
-                        self.logger.warn(self.scan_id, self.sketch_id,
-                                    f"No inputs available for scanner {scanner_name}, skipping")
+                        self.logger.warn(message=f"No inputs available for scanner {scanner_name}, skipping")
                         step_result["error"] = "No inputs available"
                         branch_results["steps"].append(step_result)
                         continue
                     
-                    # self.logger.info(self.scan_id, self.sketch_id, 
-                    #         f"Running scanner {scanner_name} with inputs: {str(scanner_inputs)}")
-                    
-                    # Execute the scanner
-                    outputs = scanner.execute(scanner_inputs)
-                    if not isinstance(outputs, (dict, list)):
-                        raise ValueError(f"Scanner '{scanner_name}' returned unsupported output format")
-                    self.logger.success(self.scan_id, self.sketch_id, f"Found {str(len(outputs))} for scanner {scanner.name()}")
-                    # Convert outputs to JSON-serializable format
-                    # outputs = self.results_to_json(outputs)
+                    # Check if we already have results for this scanner with these inputs
+                    cache_key = f"{node_id}:{str(scanner_inputs)}"
+                    if cache_key in scanner_results_cache:
+                        self.logger.info(message=f"Reusing cached results for scanner {scanner_name}")
+                        outputs = scanner_results_cache[cache_key]
+                    else:
+                        # Execute the scanner
+                        outputs = scanner.execute(scanner_inputs)
+                        if not isinstance(outputs, (dict, list)):
+                            raise ValueError(f"Scanner '{scanner_name}' returned unsupported output format")
+                        self.logger.success(message=f"Found {str(len(outputs))} for scanner {scanner.name()}")
+                        # Cache the results
+                        scanner_results_cache[cache_key] = outputs
                     
                     # Store the outputs in the step result
                     step_result["outputs"] = outputs
@@ -222,13 +218,13 @@ class TransformOrchestrator(Scanner):
 
                 except ValidationError as e:
                     error_msg = f"Validation error: {str(e)}"
-                    self.logger.error(self.scan_id, self.sketch_id, f"Validation error in {scanner_name}: {str(e)}")
+                    self.logger.error(message=f"Validation error in {scanner_name}: {str(e)}")
                     step_result["error"] = error_msg
                     results["results"][node_id] = {"error": error_msg}
                     
                 except Exception as e:
                     error_msg = f"Error during scan: {str(e)}"
-                    self.logger.error(self.scan_id, self.sketch_id, f"Error during scan {scanner_name}: {str(e)}")
+                    self.logger.error(message=f"Error during scan {scanner_name}: {str(e)}")
                     step_result["error"] = error_msg
                     results["results"][node_id] = {"error": error_msg}
                 

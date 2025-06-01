@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 from typing import Dict, Any, Literal
 from fastapi import HTTPException
@@ -7,7 +7,7 @@ from app.utils import flatten
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
-from app.models.models import Sketch, Profile
+from app.models.models import Sketch, Profile, Investigation
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.core.graph_db import neo4j_connection
@@ -16,28 +16,35 @@ from app.api.deps import get_current_user
 
 router = APIRouter()
 
-@router.post("/create", response_model=SketchRead)
-def create_sketch(data: SketchCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = Sketch(**data.dict())
+@router.post("/create", response_model=SketchRead, status_code=status.HTTP_201_CREATED)
+def create_sketch(
+    data: SketchCreate,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
+):
+    sketch_data = data.dict()
+    sketch_data['owner_id'] = current_user.id
+    sketch = Sketch(**sketch_data)
     db.add(sketch)
     db.commit()
     db.refresh(sketch)
     return sketch
 
+
 @router.get("", response_model=List[SketchRead])
 def list_sketches(db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    return db.query(Sketch).all()
+    return db.query(Sketch).filter(Sketch.owner_id == current_user.id).all()
 
 @router.get("/{sketch_id}")
 def get_sketch_by_id(sketch_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=404, detail="Sketch not found")
     return sketch
 
 @router.put("/{id}", response_model=SketchRead)
 def update_sketch(id: UUID, data: SketchUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = db.query(Sketch).get(id)
+    sketch = db.query(Sketch).filter(Sketch.owner_id == current_user.id).get(id)
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
     for key, value in data.dict(exclude_unset=True).items():
@@ -48,9 +55,22 @@ def update_sketch(id: UUID, data: SketchUpdate, db: Session = Depends(get_db), c
 
 @router.delete("/{id}", status_code=204)
 def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = db.query(Sketch).get(id)
+    sketch = db.query(Sketch).filter(Sketch.id == id, Sketch.owner_id == current_user.id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    
+    # Delete all nodes and relationships in Neo4j first
+    neo4j_query = """
+    MATCH (n {sketch_id: $sketch_id})
+    DETACH DELETE n
+    """
+    try:
+        neo4j_connection.query(neo4j_query, {"sketch_id": str(id)})
+    except Exception as e:
+        print(f"Neo4j cleanup error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clean up graph data")
+    
+    # Then delete the sketch from PostgreSQL
     db.delete(sketch)
     db.commit()
 
@@ -58,13 +78,13 @@ def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile
 async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     sketch = db.query(Sketch).filter(Sketch.id == id).first()
     if not sketch:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=404, detail="Graph not found")
     import random
     nodes_query = """
     MATCH (n)
     WHERE n.sketch_id = $sketch_id
     RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
-    LIMIT 50000
+    LIMIT 10000
     """
     nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": id})
 
@@ -196,4 +216,38 @@ def add_edge(sketch_id: str, relation: RelationInput, current_user: Profile = De
         "status": "edge added",
         "edge": result[0]["r"],
     }
+
+class NodeDeleteInput(BaseModel):
+    nodeIds: List[str]
+
+@router.delete("/{sketch_id}/nodes")
+def delete_nodes(
+    sketch_id: str,
+    nodes: NodeDeleteInput,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
+):
+    # First verify the sketch exists and belongs to the user
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    
+    # Delete nodes and their relationships
+    query = """
+    UNWIND $node_ids AS node_id
+    MATCH (n)
+    WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
+    DETACH DELETE n
+    """
+    
+    try:
+        neo4j_connection.query(query, {
+            "node_ids": nodes.nodeIds,
+            "sketch_id": sketch_id
+        })
+    except Exception as e:
+        print(f"Node deletion error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete nodes")
+    
+    return {"status": "nodes deleted", "count": len(nodes.nodeIds)}
     

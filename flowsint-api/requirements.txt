@@ -24,3 +24,4 @@ sqlalchemy
 psycopg2-binary
 alembic
 passlib[bcrypt]
+sse-starlette

@@ -3,34 +3,40 @@
 import { cn } from "@/lib/utils"
 import { Eye, Users, Camera, Settings, Waypoints } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
+interface InvestigationNavigationProps {
+    investigation_id: string
+    currentTab: string
+}
 
-export function InvestigationNavigation({ investigation_id }: { investigation_id: string }) {
+export function InvestigationNavigation({ investigation_id, currentTab }: InvestigationNavigationProps) {
+    const router = useRouter()
     const pathname = usePathname()
+
     const sections = [
         {
             id: "overview",
             name: "Overview",
-            href: `/dashboard/investigations/${investigation_id}`,
+            href: `/dashboard/investigations/${investigation_id}?tab=overview`,
             icon: Eye,
         },
         {
             id: "sketches",
             name: "Sketches",
-            href: `/dashboard/investigations/${investigation_id}?filter=sketch`,
+            href: `/dashboard/investigations/${investigation_id}?tab=sketches`,
             icon: Waypoints,
         },
         {
             id: "documents",
             name: "Documents",
-            href: `/dashboard/investigations/${investigation_id}?filter=document`,
+            href: `/dashboard/investigations/${investigation_id}?tab=documents`,
             icon: Camera,
         },
         {
             id: "configurations",
             name: "Configurations",
-            href: `/dashboard/investigations/${investigation_id}/settings`,
+            href: `/dashboard/investigations/${investigation_id}?tab=configurations`,
             icon: Settings,
         },
     ]
@@ -40,10 +46,10 @@ export function InvestigationNavigation({ investigation_id }: { investigation_id
             {sections.map((section) => (
                 <Link
                     key={section.id}
-                    href={section?.href || ""}
+                    href={section.href}
                     className={cn(
                         "flex items-center text-sm gap-2 px-4 py-2 transition-colors",
-                        section?.href == pathname
+                        section.id === currentTab
                             ? "bg-background text-accent-foreground"
                             : "text-muted-foreground hover:text-foreground hover:bg-card/50",
                     )}

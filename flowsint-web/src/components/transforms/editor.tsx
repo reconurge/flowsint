@@ -20,7 +20,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { Input } from "@/components/ui/input"
-import { X, Search, TrashIcon } from "lucide-react"
+import { X, Search, TrashIcon, Pause, Play, SkipForward, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import Loader from "../loader"
@@ -36,7 +36,6 @@ import { TransformModal } from "./save-modal"
 import { useConfirm } from "../use-confirm-dialog"
 import TestTransform from "./test-transform"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
-import { FlowComputationDrawer } from "./flow-computation-drawer"
 import { clientFetch } from "@/lib/client-fetch"
 
 const nodeTypes: NodeTypes = {
@@ -67,7 +66,10 @@ const FlowEditor = memo(
         const router = useRouter()
         const { confirm } = useConfirm()
         const { transform_id } = useParams()
-        const [showComputationDrawer, setShowComputationDrawer] = useState(false)
+        const [isSimulating, setIsSimulating] = useState(false)
+        const [currentStepIndex, setCurrentStepIndex] = useState(0)
+        const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
+        const [transformBranches, setTransformsBranches] = useState<any[]>([])
 
         useEffect(() => {
             const existsInput = nodes.find((node) => node.data.type === "type")
@@ -280,13 +282,209 @@ const FlowEditor = memo(
             }
         }, [transform_id, confirm, router])
 
-        const handleComputeFlow = useCallback(() => {
+        const handleComputeFlow = useCallback(async () => {
             if (!transform_id) {
                 toast.error("Save the transform first to compute the flow.")
                 return
             }
-            setShowComputationDrawer(true)
-        }, [transform_id])
+
+            setLoading(true)
+            try {
+                const body = JSON.stringify({ nodes, edges, initialValue: "domain" })
+                const data = await clientFetch(`${process.env.NEXT_PUBLIC_FLOWSINT_API}/transforms/${transform_id}/compute`, {
+                    method: "POST",
+                    body,
+                })
+                setTransformsBranches(data.transformBranches)
+                startSimulation()
+            } catch (error) {
+                toast.error("Error computing flow")
+            } finally {
+                setLoading(false)
+            }
+        }, [transform_id, nodes, edges])
+
+        // Simulation effect
+        useEffect(() => {
+            if (!isSimulating || loading) return
+
+            let timer: NodeJS.Timeout
+
+            const totalSteps = transformBranches.reduce((sum, branch) => sum + branch.steps.length, 0)
+            
+            if (currentStepIndex < totalSteps) {
+                // Find the current branch and step
+                let stepFound = false
+                let branchIndex = 0
+                let stepIndex = 0
+                let currentStepCount = 0
+
+                for (let i = 0; i < transformBranches.length; i++) {
+                    const branch = transformBranches[i]
+                    if (currentStepCount + branch.steps.length > currentStepIndex) {
+                        branchIndex = i
+                        stepIndex = currentStepIndex - currentStepCount
+                        stepFound = true
+                        break
+                    }
+                    currentStepCount += branch.steps.length
+                }
+
+                if (stepFound) {
+                    const currentStep = transformBranches[branchIndex].steps[stepIndex]
+                    
+                    // Update node states
+                    setNodes((nds) => {
+                        return nds.map((node) => {
+                            if (node.id === currentStep.nodeId) {
+                                return {
+                                    ...node,
+                                    data: {
+                                        ...node.data,
+                                        computationState: "processing",
+                                    },
+                                }
+                            }
+                            return node
+                        })
+                    })
+
+                    // Update edges for the active path
+                    setEdges((eds) => {
+                        return eds.map((edge) => {
+                            const isActiveEdge = edge.source === currentStep.nodeId || edge.target === currentStep.nodeId
+                            return {
+                                ...edge,
+                                style: {
+                                    ...edge.style,
+                                    stroke: isActiveEdge ? "#3b82f6" : "#64748b",
+                                    strokeWidth: isActiveEdge ? 2 : 1,
+                                },
+                                animated: isActiveEdge,
+                            }
+                        })
+                    })
+
+                    // After delay, mark as completed and move to next step
+                    timer = setTimeout(() => {
+                        setNodes((nds) => {
+                            return nds.map((node) => {
+                                if (node.id === currentStep.nodeId) {
+                                    return {
+                                        ...node,
+                                        data: {
+                                            ...node.data,
+                                            computationState: "completed",
+                                        },
+                                    }
+                                }
+                                return node
+                            })
+                        })
+
+                        setCurrentStepIndex((prev) => prev + 1)
+                    }, simulationSpeed)
+                }
+            } else {
+                // End of simulation
+                setIsSimulating(false)
+            }
+
+            return () => clearTimeout(timer)
+        }, [isSimulating, currentStepIndex, simulationSpeed, loading, transformBranches])
+
+        const startSimulation = () => {
+            // Reset all nodes to pending state
+            setNodes((nds) =>
+                nds.map((node) => ({
+                    ...node,
+                    data: {
+                        ...node.data,
+                        computationState: "pending",
+                    },
+                })),
+            )
+
+            // Reset all edges
+            setEdges((eds) =>
+                eds.map((edge) => ({
+                    ...edge,
+                    style: {
+                        ...edge.style,
+                        stroke: "#64748b",
+                        strokeWidth: 1,
+                    },
+                    animated: false,
+                })),
+            )
+
+            setCurrentStepIndex(0)
+            setIsSimulating(true)
+        }
+
+        const pauseSimulation = () => {
+            setIsSimulating(false)
+        }
+
+        const skipToEnd = () => {
+            setIsSimulating(false)
+            
+            // Mark all nodes as completed
+            setNodes((nds) =>
+                nds.map((node) => ({
+                    ...node,
+                    data: {
+                        ...node.data,
+                        computationState: "completed",
+                    },
+                })),
+            )
+
+            // Reset edge styling
+            setEdges((eds) =>
+                eds.map((edge) => ({
+                    ...edge,
+                    style: {
+                        ...edge.style,
+                        stroke: "#64748b",
+                        strokeWidth: 1,
+                    },
+                    animated: false,
+                })),
+            )
+
+            const totalSteps = transformBranches.reduce((sum, branch) => sum + branch.steps.length, 0)
+            setCurrentStepIndex(totalSteps)
+        }
+
+        const resetSimulation = () => {
+            setIsSimulating(false)
+            setCurrentStepIndex(0)
+
+            // Reset all nodes
+            setNodes((nds) =>
+                nds.map((node) => ({
+                    ...node,
+                    data: {
+                        ...node.data,
+                        computationState: undefined,
+                    },
+                })),
+            )
+
+            // Reset all edges
+            setEdges((eds) =>
+                eds.map((edge) => ({
+                    ...edge,
+                    style: {
+                        ...edge.style,
+                        stroke: "#64748b",
+                        strokeWidth: 1,
+                    },
+                    animated: false,
+                })),
+            )
+        }
 
         if (!mounted) {
             return <Loader label="Loading..." />
@@ -364,12 +562,38 @@ const FlowEditor = memo(
                                 proOptions={{ hideAttribution: true }}
                                 colorMode={theme}
                             >
+                                <Panel position="top-right" className="space-x-2">
+                                    {isSimulating ? (
+                                        <Button size="sm" variant="outline" onClick={pauseSimulation}>
+                                            <Pause className="h-4 w-4 mr-1" /> Pause
+                                        </Button>
+                                    ) : (
+                                        <Button size="sm" variant="default" onClick={handleComputeFlow}>
+                                            <Play className="h-4 w-4 mr-1" /> Compute
+                                        </Button>
+                                    )}
+                                    <Button size="sm" variant="outline" onClick={skipToEnd}>
+                                        <SkipForward className="h-4 w-4 mr-1" /> Skip
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={resetSimulation}>
+                                        <RefreshCw className="h-4 w-4 mr-1" /> Reset
+                                    </Button>
+                                    <select
+                                        className="text-sm border rounded p-1"
+                                        value={simulationSpeed}
+                                        onChange={(e) => setSimulationSpeed(Number(e.target.value))}
+                                    >
+                                        <option value="2000">Slow</option>
+                                        <option value="1000">Normal</option>
+                                        <option value="500">Fast</option>
+                                        <option value="100">Very Fast</option>
+                                    </select>
+                                </Panel>
                                 <FlowControls
                                     loading={loading}
                                     transform={transform}
                                     handleSaveTransform={handleSaveTransform}
                                     handleDeleteTransform={handleDeleteTransform}
-                                    handleComputeFlow={handleComputeFlow}
                                     setOpenTestTransform={setOpenTestTransform}
                                     onLayout={onLayout}
                                     fitView={fitView}
@@ -415,14 +639,6 @@ const FlowEditor = memo(
                         open={openTestTransform}
                     />
                 )}
-                <FlowComputationDrawer
-                    transformId={transform_id as string}
-                    open={showComputationDrawer}
-                    onOpenChange={setShowComputationDrawer}
-                    nodes={nodes}
-                    edges={edges}
-                    inputType={inputType}
-                />
             </>
         )
     },

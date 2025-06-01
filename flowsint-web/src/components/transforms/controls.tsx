@@ -2,16 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import { Panel } from "@xyflow/react"
-import { Save, Trash2, Play, ZoomIn, ZoomOut, Maximize, LayoutGrid, Calculator } from "lucide-react"
+import { Save, Trash2, Play, ZoomIn, ZoomOut, Maximize, LayoutGrid } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useState } from "react"
 import { TransformDetailsPanel } from "./transform-name-panel"
 
 interface FlowControlsProps {
     loading: boolean
     handleSaveTransform: () => void
     handleDeleteTransform: () => void
-    handleComputeFlow: () => void
     setOpenTestTransform: (open: boolean) => void
     onLayout: () => void
     fitView: () => void
@@ -25,7 +23,6 @@ export function FlowControls({
     loading,
     handleSaveTransform,
     handleDeleteTransform,
-    handleComputeFlow,
     setOpenTestTransform,
     onLayout,
     fitView,
@@ -34,8 +31,6 @@ export function FlowControls({
     isSaved,
     transform
 }: FlowControlsProps) {
-    const [showComputeTooltip, setShowComputeTooltip] = useState(false)
-
     return (
         <TooltipProvider>
             <TransformDetailsPanel transform={transform} />
@@ -88,30 +83,6 @@ export function FlowControls({
                         </Tooltip>
                     </>
                 )}
-
-                <Tooltip open={showComputeTooltip} onOpenChange={setShowComputeTooltip}>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="bg-card"
-                            onClick={() => {
-                                if (isSaved) {
-                                    handleComputeFlow()
-                                } else {
-                                    setShowComputeTooltip(true)
-                                    setTimeout(() => setShowComputeTooltip(false), 3000)
-                                }
-                            }}
-                            disabled={loading || !isSaved}
-                        >
-                            <Calculator className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        {isSaved ? <p>Compute Flow</p> : <p>Save the transform first to compute the flow</p>}
-                    </TooltipContent>
-                </Tooltip>
 
                 <Tooltip>
                     <TooltipTrigger asChild>

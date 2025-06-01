@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from app.utils import extract_input_schema
 from app.scanners.registry import ScannerRegistry
-from app.core.celery import celery_app 
+from app.core.celery import celery
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
 from app.types.social import MinimalSocial
@@ -46,11 +46,11 @@ def get_transforms(
     current_user: Profile = Depends(get_current_user)
 ):
     query = db.query(Transform)
-    if category is not None and category != "undefined":
-        query = query.filter(Transform.category.any(category))
+    # if category is not None and category != "undefined":
+    #     query = query.filter(Transform.category.any(category))
     return query.all()
 
-# Returns the "raw_material" for the transform editor
+# Returns the "raw_materials" for the transform editor
 @router.get("/raw_materials")
 async def get_scans_list(current_user: Profile = Depends(get_current_user)):
     scanners = ScannerRegistry.list_by_category()
@@ -115,16 +115,17 @@ def update_transform(transform_id: UUID, payload: TransformUpdate, db: Session =
     transform = db.query(Transform).filter(Transform.id == transform_id).first()
     if not transform:
         raise HTTPException(status_code=404, detail="Transform not found")
+    update_data = payload.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        print(f'only update {key}')
+        setattr(transform, key, value)
     
-    transform.name = payload.name
-    transform.description = payload.description
-    transform.category = payload.category
-    transform.transform_schema = payload.transform_schema
     transform.last_updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(transform)
     return transform
+
 
 # Delete a transform by ID
 @router.delete("/{transform_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -157,7 +158,7 @@ async def launch_transform(
             edges
         )
         serializable_branches = [branch.dict() for branch in transform_branches]
-        task = celery_app.send_task("run_transform", args=[serializable_branches, payload.values, payload.sketch_id])
+        task = celery.send_task("run_transform", args=[serializable_branches, payload.values, payload.sketch_id])
         return {"id": task.id}
 
     except Exception as e:
@@ -171,7 +172,7 @@ def compute_transforms(request: FlowComputationRequest, current_user: Profile = 
         initial_data, 
         request.nodes, 
         request.edges
-    )
+    )   
     return FlowComputationResponse(
         transformBranches=transform_branches,
         initialData=initial_data
@@ -201,8 +202,8 @@ def generate_sample_data(type_str: str) -> Any:
         return f"sample_{type_str}"
 
 def compute_transform_branches(initial_value: Any, nodes: List[Node], edges: List[Edge]) -> List[FlowBranch]:
-    """Calcule les branches de flux en fonction des nœuds et des arêtes"""
-    # Trouver les nœuds d'entrée (points de départ)
+    """Computes flow branches based on nodes and edges with proper DFS traversal"""
+    # Find input nodes (starting points)
     input_nodes = [node for node in nodes if node.data.get("type") == "type"]
 
     if not input_nodes:
@@ -225,143 +226,220 @@ def compute_transform_branches(initial_value: Any, nodes: List[Node], edges: Lis
         ]
 
     node_map = {node.id: node for node in nodes}
-    processed_nodes = set()
     branches = []
-    
-    def get_outgoing_edges(node_id: str) -> List[Edge]:
-        return [edge for edge in edges if edge.source == node_id]
+    branch_counter = 0
+    # Track scanner outputs across all branches
+    scanner_outputs = {}
 
-    def traverse_graph(
-        node_id: str,
-        branch_id: str,
-        branch_name: str,
-        depth: int,
-        input_data: Dict[str, Any],
-        visited_in_branch=None
-    ):
-        branch_counter = 0
-
-        if visited_in_branch is None:
-            visited_in_branch = set()
-            
-        # Ignorer si ce nœud a déjà été visité dans cette branche
-        if node_id in visited_in_branch:
-            return
-
-        # Marquer comme visité dans cette branche
-        visited_in_branch.add(node_id)
-
-        node = node_map.get(node_id)
-        if not node:
-            return
-
-        # Obtenir ou créer la branche
-        branch = next((b for b in branches if b.id == branch_id), None)
-        if not branch:
-            branch = FlowBranch(id=branch_id, name=branch_name, steps=[])
-            branches.append(branch)
-
-        is_input_node = node.data.get("type") == "type"
+    def calculate_path_length(start_node: str, visited: set = None) -> int:
+        """Calculate the shortest possible path length from a node to any leaf"""
+        if visited is None:
+            visited = set()
         
-        if is_input_node:
-            outputs_array = node.data["outputs"].get("properties", [])
-            first_output_name = outputs_array[0].get("name", "output") if outputs_array else "output"
-            outputs = {first_output_name: initial_value}
-        else:
-            outputs = process_node_data(node, input_data)
-
-        # Ajouter l'étape à la branche
-        branch.steps.append(
-            FlowStep(
-                nodeId=node_id,
-                inputs={} if is_input_node else input_data,
-                outputs=outputs,
-                type= "type" if is_input_node else "scanner",
-                status="pending",
-                branchId=branch_id,
-                depth=depth,
-            )
-        )
-        processed_nodes.add(node_id)
-        out_edges = get_outgoing_edges(node_id)
+        if start_node in visited:
+            return float('inf')
+            
+        visited.add(start_node)
+        out_edges = [edge for edge in edges if edge.source == start_node]
+        
         if not out_edges:
+            return 1
+            
+        min_length = float('inf')
+        for edge in out_edges:
+            length = calculate_path_length(edge.target, visited.copy())
+            min_length = min(min_length, length)
+            
+        return 1 + min_length
+
+    def get_outgoing_edges(node_id: str) -> List[Edge]:
+        """Get outgoing edges sorted by the shortest possible path length"""
+        out_edges = [edge for edge in edges if edge.source == node_id]
+        # Sort edges by the length of the shortest possible path from their target
+        return sorted(
+            out_edges,
+            key=lambda e: calculate_path_length(e.target)
+        )
+
+    def create_step(node_id: str, branch_id: str, depth: int, input_data: Dict[str, Any], is_input_node: bool, outputs: Dict[str, Any]) -> FlowStep:
+        return FlowStep(
+            nodeId=node_id,
+            inputs={} if is_input_node else input_data,
+            outputs=outputs,
+            type="type" if is_input_node else "scanner",
+            status="pending",
+            branchId=branch_id,
+            depth=depth,
+        )
+
+    def explore_branch(current_node_id: str, branch_id: str, branch_name: str, depth: int, input_data: Dict[str, Any], path: List[str], branch_visited: set, steps: List[FlowStep], parent_outputs: Dict[str, Any] = None) -> None:
+        nonlocal branch_counter
+
+        # Skip if node is already in current path (cycle detection)
+        if current_node_id in path:
             return
-        if len(out_edges) == 1:
-            edge = out_edges[0]
-            target_node = node_map.get(edge.target)
-            if target_node:
-                # Passer la sortie comme entrée au nœud suivant
-                output_key = edge.sourceHandle or list(outputs.keys())[0] if outputs else "output"
-                output_value = outputs.get(output_key, None)
+
+        current_node = node_map.get(current_node_id)
+        if not current_node:
+            return
+
+        # Process node outputs
+        is_input_node = current_node.data.get("type") == "type"
+        if is_input_node:
+            outputs_array = current_node.data["outputs"].get("properties", [])
+            first_output_name = outputs_array[0].get("name", "output") if outputs_array else "output"
+            current_outputs = {first_output_name: initial_value}
+        else:
+            # Check if we already have outputs for this scanner
+            if current_node_id in scanner_outputs:
+                current_outputs = scanner_outputs[current_node_id]
+            else:
+                current_outputs = process_node_data(current_node, input_data)
+                # Store the outputs for future use
+                scanner_outputs[current_node_id] = current_outputs
+
+        # Create and add current step
+        current_step = create_step(current_node_id, branch_id, depth, input_data, is_input_node, current_outputs)
+        steps.append(current_step)
+        path.append(current_node_id)
+        branch_visited.add(current_node_id)
+
+        # Get all outgoing edges sorted by path length
+        out_edges = get_outgoing_edges(current_node_id)
+        
+        if not out_edges:
+            # Leaf node reached, save the branch
+            branches.append(FlowBranch(id=branch_id, name=branch_name, steps=steps[:]))
+        else:
+            # Process each outgoing edge in order of shortest path
+            for i, edge in enumerate(out_edges):
+                if edge.target in path:  # Skip if would create cycle
+                    continue
+                    
+                # Prepare next node's input
+                output_key = edge.sourceHandle
+                if not output_key and current_outputs:
+                    output_key = list(current_outputs.keys())[0]
+                
+                output_value = current_outputs.get(output_key) if output_key else None
+                if output_value is None and parent_outputs:
+                    output_value = parent_outputs.get(output_key) if output_key else None
+
                 next_input = {edge.targetHandle or "input": output_value}
 
-                traverse_graph(edge.target, branch_id, branch_name, depth + 1, next_input, visited_in_branch)
-        # Si plusieurs arêtes sortantes, créer de nouvelles branches
-        else:
-            for index, edge in enumerate(out_edges):
-                target_node = node_map.get(edge.target)
-                if target_node:
-                    # Créer un nouvel ID de branche pour toutes les arêtes sauf la première
-                    new_branch_id = branch_id if index == 0 else f"{branch_id}-{branch_counter}"
-                    if index > 0:
-                        branch_counter += 1
-                    new_branch_name = branch_name if index == 0 else f"{branch_name} (Branch {index + 1})"
+                if i == 0:
+                    # Continue in same branch (will be shortest path)
+                    explore_branch(
+                        edge.target,
+                        branch_id,
+                        branch_name,
+                        depth + 1,
+                        next_input,
+                        path,
+                        branch_visited,
+                        steps,
+                        current_outputs
+                    )
+                else:
+                    # Create new branch starting from current node
+                    branch_counter += 1
+                    new_branch_id = f"{branch_id}-{branch_counter}"
+                    new_branch_name = f"{branch_name} (Branch {branch_counter})"
+                    new_steps = steps[:len(steps)]  # Copy steps up to current node
+                    new_branch_visited = branch_visited.copy()  # Create new visited set for the branch
+                    explore_branch(
+                        edge.target,
+                        new_branch_id,
+                        new_branch_name,
+                        depth + 1,
+                        next_input,
+                        path[:],  # Create new path copy for branch
+                        new_branch_visited,
+                        new_steps,
+                        current_outputs
+                    )
 
-                    # Passer la sortie comme entrée au nœud suivant
-                    output_key = edge.sourceHandle or list(outputs.keys())[0] if outputs else "output"
-                    output_value = outputs.get(output_key, None)
-                    next_input = {edge.targetHandle or "input": output_value}
+        # Backtrack: remove current node from path and remove its step
+        path.pop()
+        steps.pop()
 
-                    # Pour la première arête, continuer dans la même branche
-                    # Pour les autres arêtes, créer de nouvelles branches mais ne pas revisiter les nœuds déjà dans ce chemin
-                    new_visited = visited_in_branch if index == 0 else visited_in_branch.copy()
-
-                    traverse_graph(edge.target, new_branch_id, new_branch_name, depth + 1, next_input, new_visited)
-
-    # Démarrer DFS à partir de chaque nœud d'entrée
+    # Start exploration from each input node
     for index, input_node in enumerate(input_nodes):
         branch_id = f"branch-{index}"
         branch_name = f"Flow {index + 1}" if len(input_nodes) > 1 else "Main Flow"
-        traverse_graph(input_node.id, branch_id, branch_name, 0, {})
+        explore_branch(
+            input_node.id,
+            branch_id,
+            branch_name,
+            0,
+            {},
+            [],  # Use list for path to maintain order
+            set(),  # Use set for visited to check membership
+            [],
+            None
+        )
 
-    # Trier les branches par la profondeur de leur premier nœud
-    branches.sort(key=lambda branch: branch.steps[0].depth if branch.steps else 0)
-
+    # Sort branches by length (number of steps)
+    branches.sort(key=lambda branch: len(branch.steps))
     return branches
 
 def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
     """Traite les données de nœud en fonction du type de nœud et des entrées"""
     outputs = {}
     output_types = node.data["outputs"].get("properties", [])
+    
     for output in output_types:
         output_name = output.get("name", "output")
-        # Simuler la transformation basée sur la classe/type du nœud
         class_name = node.data.get("class_name", "")
-        if class_name == "StringToLower":
-            outputs[output_name] = inputs.get("input").lower() if isinstance(inputs.get("input"), str) else inputs.get("input")
-        elif class_name == "StringToUpper":
-            outputs[output_name] = inputs.get("input").upper() if isinstance(inputs.get("input"), str) else inputs.get("input")
-        elif class_name == "Concatenate":
-            outputs[output_name] = f"{inputs.get('input1', '')}{inputs.get('input2', '')}"
-        elif class_name == "Add":
-            outputs[output_name] = (float(inputs.get("input1", 0)) or 0) + (float(inputs.get("input2", 0)) or 0)
-        elif class_name == "Multiply":
-            outputs[output_name] = (float(inputs.get("input1", 0)) or 0) * (float(inputs.get("input2", 0)) or 0)
-        elif class_name == "ParseJSON":
-            try:
-                outputs[output_name] = json.loads(inputs.get("input")) if isinstance(inputs.get("input"), str) else inputs.get("input")
-            except:
-                outputs[output_name] = None
-        elif class_name == "ExtractDomain":
-            if isinstance(inputs.get("input"), str) and "." in inputs.get("input", ""):
-                # Simple extraction de domaine avec regex (implémentation simplifiée)
-                parts = inputs.get("input").split("/")
-                domain_part = next((part for part in parts if "." in part), "")
-                outputs[output_name] = domain_part or inputs.get("input")
-            else:
-                outputs[output_name] = inputs.get("input")
+        # For simulation purposes, we'll return a placeholder value based on the scanner type
+        if class_name in ["ReverseResolveScanner", "ResolveScanner"]:
+            # IP/Domain resolution scanners
+            outputs[output_name] = "192.168.1.1" if "ip" in output_name.lower() else "example.com"
+        elif class_name == "SubdomainScanner":
+            # Subdomain scanner
+            outputs[output_name] = f"sub.{inputs.get('input', 'example.com')}"
+        
+        elif class_name == "WhoisScanner":
+            # WHOIS scanner
+            outputs[output_name] = {
+                "domain": inputs.get("input", "example.com"),
+                "registrar": "Example Registrar",
+                "creation_date": "2020-01-01"
+            }
+        
+        elif class_name == "GeolocationScanner":
+            # Geolocation scanner
+            outputs[output_name] = {
+                "country": "France",
+                "city": "Paris",
+                "coordinates": {"lat": 48.8566, "lon": 2.3522}
+            }
+        
+        elif class_name == "MaigretScanner":
+            # Social media scanner
+            outputs[output_name] = {
+                "username": inputs.get("input", "user123"),
+                "platforms": ["twitter", "github", "linkedin"]
+            }
+        
+        elif class_name == "HoleheScanner":
+            # Email verification scanner
+            outputs[output_name] = {
+                "email": inputs.get("input", "user@example.com"),
+                "exists": True,
+                "platforms": ["gmail", "github"]
+            }
+        
+        elif class_name == "SireneScanner":
+            # Organization scanner
+            outputs[output_name] = {
+                "name": inputs.get("input", "Example Corp"),
+                "siret": "12345678901234",
+                "address": "1 Example Street"
+            }
+        
         else:
-            # Pour les transformations inconnues, simplement passer l'entrée
+            # For unknown scanners, pass through the input
             outputs[output_name] = inputs.get("input") or f"transformed_{output_name}"
 
     return outputs

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from typing import List
 
 from celery import states
-from app.core.celery import celery_app
+from app.core.celery import celery
 from app.scanners.orchestrator import TransformOrchestrator
 from app.core.postgre_db import SessionLocal, get_db
 from app.core.graph_db import Neo4jConnection
@@ -22,8 +22,7 @@ neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
 logger = Logger(db)
 
-
-@celery_app.task(name="run_transform", bind=True)
+@celery.task(name="run_transform", bind=True)
 def run_scan(self, transform_branches, values: List[str], sketch_id: str | None):
     session = SessionLocal()
     try:

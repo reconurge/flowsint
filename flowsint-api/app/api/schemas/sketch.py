@@ -48,7 +48,7 @@ class SketchIn(BaseModel):
     status: Optional[str] = "active"
     investigation_id: UUID  # requis
 
-class SketchOut(BaseModel):
+class SketchRead(BaseModel):
     id: UUID
     title: Optional[str]
     description: Optional[str]

@@ -63,7 +63,7 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Sketch name</Label>
-                                <Input id="title" name="title" placeholder="Suspicion de fraude" required />
+                                <Input id="title" name="title" placeholder="Fraud suspicion" required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Description</Label>
@@ -110,14 +110,14 @@ export default function NewSketch({ children, noDropDown = false }: { children: 
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Investigation name</Label>
-                                <Input id="title" name="title" placeholder="Suspicion de fraude" required />
+                                <Input id="title" name="title" placeholder="Fraud suspicion" required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Description</Label>
                                 <Input
                                     id="description"
                                     name="description"
-                                    placeholder="Investigation sur une campagne de phishing via LinkedIn."
+                                    placeholder="Investigation into a phishing campaign via LinkedIn."
                                 />
                             </div>
                         </div>

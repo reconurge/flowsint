@@ -281,6 +281,8 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
             setLoading(true)
             await transformService.delete(transformId)
             router.navigate({ to: "/dashboard/transforms" })
+            toast.success("Transform deleted successfully.")
+            setLoading(false)
         }
     }, [transformId, confirm, setLoading])
 

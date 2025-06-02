@@ -9,6 +9,88 @@ import { cn } from '@/lib/utils'
 import type { Sketch } from '@/types/sketch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDistanceToNow } from 'date-fns'
+import { Skeleton } from '@/components/ui/skeleton'
+
+function InvestigationSkeleton() {
+    return (
+        <div className="w-full h-full bg-background px-6 py-12 overflow-auto">
+            <div className="max-w-4xl mx-auto space-y-8">
+                {/* Header Section Skeleton */}
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-28" />
+                    </div>
+                </div>
+
+                {/* Overview Cards Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[...Array(3)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-12 mb-2" />
+                                <Skeleton className="h-3 w-32" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Sketches Section Skeleton */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Skeleton className="h-6 w-24" />
+                        <Skeleton className="h-5 w-16" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="p-4 rounded-xl border border-border bg-card">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="h-4 w-4" />
+                                        <Skeleton className="h-4 w-32" />
+                                        <Skeleton className="h-4 w-12 ml-auto" />
+                                    </div>
+                                    <Skeleton className="h-3 w-full" />
+                                    <Skeleton className="h-3 w-3/4" />
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="h-3 w-3" />
+                                        <Skeleton className="h-3 w-32" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Quick Actions Skeleton */}
+                <div className="space-y-4">
+                    <Skeleton className="h-6 w-32" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[...Array(2)].map((_, i) => (
+                            <Card key={i}>
+                                <CardHeader className="flex flex-row items-center gap-3 pb-2">
+                                    <Skeleton className="h-9 w-9 rounded-lg" />
+                                    <Skeleton className="h-6 w-40" />
+                                </CardHeader>
+                                <CardContent>
+                                    <Skeleton className="h-4 w-full" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 export const Route = createFileRoute('/_auth/dashboard/investigations/$investigationId/')({
     loader: async ({ params: { investigationId } }) => {
@@ -17,6 +99,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
         }
     },
     component: InvestigationPage,
+    pendingComponent: InvestigationSkeleton,
 })
 
 function InvestigationPage() {
@@ -41,13 +124,13 @@ function InvestigationPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
-                            <Settings className="w-4 h-4 mr-2" />
+                            <Settings className="w-4 h-4" />
                             Settings
                         </Button>
                         <NewSketch noDropDown>
                             <Button size="sm">
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                New sketch
+                                <PlusIcon className="w-4 h-4" />
+                                New
                             </Button>
                         </NewSketch>
                     </div>
@@ -177,8 +260,8 @@ function InvestigationPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                                <div className="bg-blue-600/90 rounded-lg p-2">
-                                    <FileText className="w-5 h-5 text-white" />
+                                <div className="bg-blue-600/20 rounded-lg p-2">
+                                    <FileText className="w-5 h-5 text-blue-600" />
                                 </div>
                                 <CardTitle className="text-lg">Export Investigation</CardTitle>
                             </CardHeader>
@@ -188,8 +271,8 @@ function InvestigationPage() {
                         </Card>
                         <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                                <div className="bg-green-600/90 rounded-lg p-2">
-                                    <Users className="w-5 h-5 text-white" />
+                                <div className="bg-green-600/20 rounded-lg p-2">
+                                    <Users className="w-5 h-5 text-green-600" />
                                 </div>
                                 <CardTitle className="text-lg">Share Investigation</CardTitle>
                             </CardHeader>

@@ -4,7 +4,6 @@ import { LabeledHandle } from "../ui/labeled-handle"
 import { Badge } from "../ui/badge"
 import { BaseNodeSchema } from "../ui/base-node"
 import { categoryColors } from "./scanner-data"
-import { Progress } from "../ui/progress"
 import { NodeStatusIndicator } from "../ui/node-status-indicator"
 
 // Types for the scanner node based on the new structure

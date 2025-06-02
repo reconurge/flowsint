@@ -9,7 +9,7 @@ import { PlusIcon } from "lucide-react"
 import { useGraphControls } from "@/stores/graph-controls-store"
 // @ts-ignore
 import { type CosmosInputNode } from "@cosmograph/cosmos"
-import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import Legend from "./legend"
 
 // Lazy loading du timeline
@@ -22,64 +22,43 @@ interface GraphProps {
 }
 // Hook pour tracker l'état de chargement de Cosmograph
 const useCosmographLoader = (nodes: any[], edges: any[]) => {
-    const [isCosmographReady, setIsCosmographReady] = useState(false)
-    const [loadingStage, setLoadingStage] = useState<'importing' | 'simulating' | 'rendering' | 'ready'>('importing')
+    const [isCosmographReady, setIsCosmographReady] = useState(true)
+    const [loadingStage, setLoadingStage] = useState<'importing' | 'simulating' | 'rendering' | 'ready'>('ready')
     const cosmograph = useCosmograph()
     const dataVersionRef = useRef(0)
-    const readyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         // Reset l'état quand les données changent
         dataVersionRef.current += 1
         setIsCosmographReady(false)
         setLoadingStage('importing')
-
         if (!cosmograph?.cosmograph || nodes.length === 0) {
             setIsCosmographReady(true)
             setLoadingStage('ready')
             return
         }
-
-        const currentVersion = dataVersionRef.current
-
-        // Étape 1: Import des données
-        setLoadingStage('importing')
-
-        // Attendre que la simulation commence
-        const checkSimulation = () => {
-            if (currentVersion !== dataVersionRef.current) return
-
-            setLoadingStage('simulating')
-
-            // Attendre que la simulation se stabilise
-            const checkStability = () => {
-                if (currentVersion !== dataVersionRef.current) return
-
-                setLoadingStage('rendering')
-
-                readyTimeoutRef.current = setTimeout(() => {
-                    if (currentVersion === dataVersionRef.current) {
-                        setLoadingStage('ready')
-                        setIsCosmographReady(true)
-                    }
-                }, 300)
-            }
-
-            // Attendre 500ms pour la simulation (ajustable selon vos besoins)
-            setTimeout(checkStability, 500)
+        // Skip simulation if no edges
+        if (edges.length === 0) {
+            setIsCosmographReady(true)
+            setLoadingStage('ready')
+            return
         }
-
-        // Démarrer le processus après un court délai
-        setTimeout(checkSimulation, 100)
-
-        return () => {
-            if (readyTimeoutRef.current) {
-                clearTimeout(readyTimeoutRef.current)
-            }
-        }
+        setLoadingStage('simulating')
     }, [cosmograph?.cosmograph, nodes.length, edges.length])
 
-    return { isCosmographReady, loadingStage }
+    const handleSimulationStart = useCallback(() => {
+        if (edges.length > 0) {
+            setLoadingStage('simulating')
+            setIsCosmographReady(false)
+        }
+    }, [edges.length])
+
+    const handleSimulationEnd = useCallback(() => {
+        setLoadingStage('ready')
+        setIsCosmographReady(true)
+    }, [])
+
+    return { isCosmographReady, loadingStage, handleSimulationStart, handleSimulationEnd }
 }
 
 // Composant de loader personnalisé pour Cosmograph
@@ -110,10 +89,11 @@ EmptyState.displayName = "EmptyState"
 
 const GRAPH_CONFIG = {
     // simulationCenter: 0.2,
+    useQuadtree: true,
     simulationDecay: 100,
     simulationGravity: 0.25,
     // simulationLinkSpring: 2,
-    simulationRepulsion: 1,
+    simulationRepulsion: 2,
     // simulationRepulsionTheta: 1.15,
     linkStrength: 1,
     simulationLinkDistance: .1,
@@ -127,7 +107,7 @@ const GraphContent = memo(() => {
     const nodes = useSketchStore(s => s.nodes)
     const edges = useSketchStore(s => s.edges)
     const currentNode = useSketchStore(s => s.currentNode)
-    const { isCosmographReady, loadingStage } = useCosmographLoader(nodes, edges)
+    const { isCosmographReady, loadingStage, handleSimulationStart, handleSimulationEnd } = useCosmographLoader(nodes, edges)
     const clearSelectedNodes = useSketchStore(s => s.clearSelectedNodes)
     const toggleNodeSelection = useSketchStore(s => s.toggleNodeSelection)
     const colors = useNodesDisplaySettings(s => s.colors)
@@ -140,6 +120,7 @@ const GraphContent = memo(() => {
 
     // Callbacks stables - créés une seule fois
     const handleLabelClick = useCallback((node: any, event: MouseEvent) => {
+
         const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
         toggleNodeSelection(node, multiSelect)
         cosmograph?.cosmograph?.zoomToNode(node)
@@ -153,8 +134,7 @@ const GraphContent = memo(() => {
         if (event) {
             const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
             toggleNodeSelection(clickedNode, multiSelect)
-            cosmograph?.cosmograph?.fitViewByNodeIds([clickedNode.id])
-
+            cosmograph?.cosmograph?.zoomToNode(clickedNode)
         } else {
             cosmograph?.cosmograph?.zoomToNode(clickedNode)
         }
@@ -187,15 +167,15 @@ const GraphContent = memo(() => {
                 zoomIn: () => {
                     const current = cosmograph.cosmograph?.getZoomLevel()
                     const zoomLevel = current ? current * 1.5 : 1.5
-                    cosmograph.cosmograph?.setZoomLevel(zoomLevel, 500)
+                    cosmograph.cosmograph?.setZoomLevel(zoomLevel, 200)
                 },
                 zoomToFit: () => {
-                    cosmograph.cosmograph?.fitView(500)
+                    cosmograph.cosmograph?.fitView(200)
                 },
                 zoomOut: () => {
                     const current = cosmograph.cosmograph?.getZoomLevel()
                     const zoomLevel = current ? current * 0.5 : 0.5
-                    cosmograph.cosmograph?.setZoomLevel(zoomLevel, 500)
+                    cosmograph.cosmograph?.setZoomLevel(zoomLevel, 200)
                 },
             }
 
@@ -221,6 +201,8 @@ const GraphContent = memo(() => {
         <div className="relative h-full w-full">
             <Cosmograph
                 {...GRAPH_CONFIG}
+                onSimulationStart={handleSimulationStart}
+                onSimulationEnd={handleSimulationEnd}
                 onLabelClick={handleLabelClick}
                 onClick={handleNodeClick}
                 nodeSize={nodeSizeFunction}
@@ -246,7 +228,7 @@ const TimelinePanel = memo(() => {
     return (
         <Suspense fallback={<div className="h-full flex items-center justify-center text-sm text-muted-foreground">Loading timeline...</div>}>
             <CosmographTimeline
-                className="!bg-background"
+                className="!bg-background !h-full"
                 // @ts-ignore
                 accessor={dateAccessor}
                 animationSpeed={20}
@@ -287,11 +269,9 @@ const Graph = memo(({ isLoading }: GraphProps) => {
     if (isLoading) {
         return <div className="h-full w-full flex items-center justify-center"><Loader /></div>
     }
-
     if (!nodes.length) {
         return <EmptyState />
     }
-
     return (
         <div className="relative h-full grow w-full flex flex-col bg-background min-h-0">
             <GraphProvider nodes={nodes} edges={edges}>
@@ -299,6 +279,10 @@ const Graph = memo(({ isLoading }: GraphProps) => {
                     <ResizablePanel defaultSize={75} minSize={30} className="flex-grow min-h-0 inset-shadow">
                         <GraphContent />
                     </ResizablePanel>
+                    <ResizableHandle />
+                    {/* <ResizablePanel defaultSize={25} minSize={10} className="flex-grow h-full min-h-0 inset-shadow">
+                        <TimelinePanel />
+                    </ResizablePanel> */}
                 </ResizablePanelGroup>
             </GraphProvider>
             <Legend />

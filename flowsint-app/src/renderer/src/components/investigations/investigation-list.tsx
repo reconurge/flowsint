@@ -138,14 +138,14 @@ const InvestigationList = () => {
                 >
                     {data?.map((investigation: Investigation) => (
                         <AccordionItem key={investigation.id} value={investigation.id}>
-                            <AccordionTrigger className="px-2 py-1 text-muted-foreground text-sm hover:no-underline hover:bg-muted/50 group">
+                            <AccordionTrigger className="px-2 py-1.5 text-muted-foreground text-sm hover:no-underline hover:bg-muted/50 group">
                                 <div className="flex items-center gap-2 w-full">
                                     <Link
                                         to="/dashboard/investigations/$investigationId"
                                         params={{
                                             investigationId: investigation.id,
                                         }}
-                                        className="truncate text-ellipsis"
+                                        className="truncate text-ellipsis hover:underline"
                                     >{investigation.name}</Link>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>

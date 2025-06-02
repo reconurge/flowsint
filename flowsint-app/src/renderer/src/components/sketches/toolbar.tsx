@@ -25,6 +25,7 @@ import { memo, useCallback } from "react"
 import { Separator } from "../ui/separator"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
+import { toast } from "sonner"
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -73,8 +74,18 @@ export const Toolbar = memo(function Toolbar() {
     const handleDeleteNodes = async () => {
         if (!selectedNodes.length) return
         if (!await confirm({ title: `You are about to delete ${selectedNodes.length} node(s).`, message: "The action is irreversible." })) return
-        removeNodes(selectedNodes.map((n) => n.id))
-        await sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: selectedNodes.map((n) => n.id) }))
+
+        toast.promise(
+            (async () => {
+                removeNodes(selectedNodes.map((n) => n.id))
+                return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: selectedNodes.map((n) => n.id) }))
+            })(),
+            {
+                loading: `Deleting ${selectedNodes.length} node(s)...`,
+                success: 'Nodes deleted successfully.',
+                error: 'Failed to delete nodes.'
+            }
+        )
     }
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2

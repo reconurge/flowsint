@@ -3,9 +3,11 @@ import { GetStartedSection } from '@/components/dashboard/get-started-section';
 import { RecentInvestigations } from '@/components/dashboard/recent-investigations';
 import { DiscoverSection } from '@/components/dashboard/discover-section';
 import { UsefulResources } from '@/components/dashboard/useful-resources';
+import { InvestigationSkeleton } from '@/components/dashboard/investigation-skeleton';
 
 export const Route = createFileRoute('/_auth/dashboard/')({
     component: DashboardPage,
+    pendingComponent: InvestigationSkeleton,
 });
 
 function DashboardPage() {

@@ -8,7 +8,10 @@ export function TopNavbar() {
     return (
         <header className="flex items-center bg-card h-12 px-4 border-b shrink-0">
             <div className="flex items-center gap-4">
-                <span className="text-lg font-semibold">Flowsint</span>
+                <Link to="/dashboard" className="flex items-center gap-2">
+                    <img src="/icon.png" alt="Flowsint" className="h-8 w-8" />
+                    <span className="text-lg font-semibold">Flowsint</span>
+                </Link>
                 <Link to="/dashboard/tools">
                     <Button variant="ghost" className="px-2">
                         Tools

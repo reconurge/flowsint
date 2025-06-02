@@ -70,7 +70,6 @@ const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
             <GripVertical className="h-5 w-5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
             <div className="space-y-1">
               <h3 className="text-sm font-medium">{scanner.class_name}</h3>
-              <p className="text-xs text-muted-foreground">{scanner.name}</p>
               {scanner.type !== "type" &&
                 <div className="mt-2 text-xs">
                   <div className="flex items-center gap-1">

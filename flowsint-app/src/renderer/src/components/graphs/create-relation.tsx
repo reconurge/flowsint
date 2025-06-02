@@ -22,24 +22,27 @@ export function CreateRelationDialog() {
 
     const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault()
-        try {
-            const newEdge = {
-                source: selectedNodes[0],
-                target: selectedNodes[1],
-                type: direction,
-                label: relationType,
-                sketch_id: sketchId
-            }
-            const newEdgeObject = { type: newEdge.type, label: relationType, from: newEdge.source.id, to: newEdge.target.id } as any
-            if (addEdge) addEdge(newEdgeObject)
-            toast.success("Relation successfully added.")
-            setOpenAddRelationDialog(false)
-            await sketchService.addEdge(sketchId as string, newEdgeObject)
-        } catch (error) {
-            toast.error("Unexpected error during node creation.")
-        } finally {
-            setOpenAddRelationDialog(false)
+        const newEdge = {
+            source: selectedNodes[0],
+            target: selectedNodes[1],
+            type: direction,
+            label: relationType,
+            sketch_id: sketchId
         }
+        const newEdgeObject = { type: newEdge.type, label: relationType, from: newEdge.source.id, to: newEdge.target.id } as any
+
+        toast.promise(
+            (async () => {
+                if (addEdge) addEdge(newEdgeObject)
+                setOpenAddRelationDialog(false)
+                return sketchService.addEdge(sketchId as string, JSON.stringify(newEdge))
+            })(),
+            {
+                loading: 'Creating relation...',
+                success: 'Relation successfully added.',
+                error: 'Unexpected error during relation creation.'
+            }
+        )
     }
 
     const getNodeDisplayName = (node: any) => {

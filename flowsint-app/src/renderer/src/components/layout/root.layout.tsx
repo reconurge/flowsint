@@ -7,6 +7,7 @@ import { ConfirmContextProvider } from "@/components/use-confirm-dialog"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import { LogPanel } from "./log-panel"
 import { useConsoleStore } from "@/stores/console-store"
+import { PathBreadcrumb } from "./breadcrumb"
 
 interface LayoutProps {
     children: ReactNode
@@ -41,13 +42,14 @@ export default function RootLayout({ children }: LayoutProps) {
                                     <ResizablePanel
                                         defaultSize={20}
                                         minSize={16}
+                                        maxSize={30}
                                         collapsible={true}
                                         collapsedSize={0}
                                     >
-                                        {/* <div className="h-10 bg-card flex items-center justify-end px-2 text-sm w-full font-semibold border-b">
-                                            <Button disabled className="h-7 !bg-muted" variant={"outline"}>Import</Button>
-                                        </div> */}
-                                        <div className="h-full flex flex-col overflow-hidden bg-card">
+                                        <div className="h-10 bg-card flex items-center justify-end px-2 text-sm w-full font-semibold border-b">
+                                            <PathBreadcrumb />
+                                        </div>
+                                        <div className="h-[calc(100%-40px)] flex flex-col overflow-hidden bg-card">
                                             <SecondaryNavigation />
                                         </div>
                                     </ResizablePanel>

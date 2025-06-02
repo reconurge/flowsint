@@ -229,7 +229,8 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: 
             <div className="sticky border-b top-0 p-2 bg-card z-10 flex-shrink-0">
                 <div className="flex items-center gap-2">
                     <Badge className="h-7" variant={"outline"}>
-                        <span className="font-semibold">{nodes?.length || 0}</span>{" "}
+                        <span className="font-semibold">
+                            {(filters?.length || searchQuery) ? `${filteredNodes?.length} / ${nodes?.length || 0}` : nodes?.length || 0}</span>{" "}
                         <span className="font-normal opacity-60">nodes</span>
                     </Badge>
                     <div className="relative grow">
@@ -245,14 +246,16 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: 
                     <DropdownMenu>
                         <div>
                             <DropdownMenuTrigger asChild>
-                                <Button variant={"outline"} className="h-7 w-8 relative border-border border" size={"icon"}>
-                                    <FilterIcon className={cn("opacity-60 h-3 w-3", filters && "opacity-100")} />
-                                    {filters && (
-                                        <Badge className="absolute -top-2 -right-1 text-xs rounded-full h-4 w-4" variant={"default"}>
-                                            {filters.length}
-                                        </Badge>
-                                    )}
-                                </Button>
+                                <div>
+                                    <Button variant={"outline"} className="h-7 w-8 relative border-border border" size={"icon"}>
+                                        <FilterIcon className={cn("opacity-60 h-3 w-3", filters && "opacity-100")} />
+                                        {filters && (
+                                            <Badge className="absolute -top-2 -right-1 text-xs rounded-full h-4 w-4" variant={"default"}>
+                                                {filters.length}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </div>
                             </DropdownMenuTrigger>
                         </div>
                         <DropdownMenuContent className="w-48 max-h-[50vh] space-y-1 overflow-y-auto">

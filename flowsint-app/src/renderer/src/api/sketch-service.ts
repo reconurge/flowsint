@@ -35,7 +35,7 @@ export const sketchService = {
         });
     },
     addEdge: async (sketchId: string, body: BodyInit): Promise<any> => {
-        return fetchWithAuth(`/api/sketches/${sketchId}/edges/add`, {
+        return fetchWithAuth(`/api/sketches/${sketchId}/relations/add`, {
             method: 'POST',
             body: body
         });

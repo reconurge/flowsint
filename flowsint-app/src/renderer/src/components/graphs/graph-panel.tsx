@@ -1,20 +1,35 @@
 import { useLoaderData } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, memo, useState } from 'react'
 import Graph from '../sketches/graph'
 import { useSketchStore } from '@/stores/sketch-store'
 import { Toolbar } from '../sketches/toolbar'
 import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
+import { CreateRelationDialog } from './create-relation'
+
+// Separate component for the drag overlay
+const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
+    <div
+        className={cn(
+            'absolute flex items-center justify-center inset-0 bg-primary/20 backdrop-blur-xs gap-1',
+            'opacity-0 pointer-events-none transition-opacity duration-200',
+            isDragging && 'opacity-100 pointer-events-auto'
+        )}
+    >
+        <p className="font-medium">Drop here to add node</p>
+        <ArrowDownToLineIcon className="opacity-60" />
+    </div>
+))
+DragOverlay.displayName = 'DragOverlay'
 
 const GraphPanel = () => {
     const graphPanelRef = useRef<HTMLDivElement>(null)
-    const [isDraggingOver, setIsDraggingOver] = useState(false)
     const handleOpenFormModal = useSketchStore(s => s.handleOpenFormModal)
-
     const updateGraphData = useSketchStore(s => s.updateGraphData)
     const { sketch, graphData } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
+    const [isDraggingOver, setIsDraggingOver] = useState(false)
 
     useEffect(() => {
         if (graphData?.nds && graphData?.rls) {
@@ -22,7 +37,6 @@ const GraphPanel = () => {
         }
     }, [graphData])
 
-    // Handle drag events
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         setIsDraggingOver(true)
@@ -67,22 +81,22 @@ const GraphPanel = () => {
     }
 
     return (
-
-        <div ref={graphPanelRef}
-            className={cn('h-full w-full flex relative outline-2 outline-transparent bg-background')} onDragOver={handleDragOver}
+        <div
+            ref={graphPanelRef}
+            className="h-full w-full flex relative outline-2 outline-transparent bg-background"
+            onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
             <Graph isLoading={false} />
-            {isDraggingOver &&
-                <div className={cn('absolute flex items-center justify-center inset-0 bg-primary/20 backdrop-blur-xs gap-1')}>
-                    <p className="font-medium">Drop here to add node</p> <ArrowDownToLineIcon className="opacity-60" />
-                </div>
-            }
-            <div className='h-full border-l overflow-y-auto'> <Toolbar /></div>
+            <DragOverlay isDragging={isDraggingOver} />
+            <div className='absolute w-10 right-3 top-3 h-min shadow-sm border rounded-full overflow-y-auto'>
+                <Toolbar />
+            </div>
+            <CreateRelationDialog />
         </div>
     )
 }
 
-export default GraphPanel
+export default memo(GraphPanel)

@@ -55,7 +55,7 @@ export function RecentInvestigations() {
 
     return (
         <div className="w-full mt-2">
-            <h2 className="text-xl font-bold mb-2 text-foreground">Recent investigations</h2>
+            <h2 className="text-xl font-bold mb-2 text-foreground">Recent investigations ({investigations.length})</h2>
             <div className="border-b border-border mb-2" />
             <div className="flex flex-col gap-2">
                 {investigations.slice(0, 5).map((investigation) => (

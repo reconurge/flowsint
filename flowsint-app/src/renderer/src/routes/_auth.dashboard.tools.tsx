@@ -98,7 +98,7 @@ const tools: Tool[] = [
 
 function ToolsPage() {
     return (
-        <div className="h-full w-full px-4 py-12 bg-background overflow-auto">
+        <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
             <div className='max-w-7xl mx-auto flex flex-col gap-12 items-center justify-start'>
                 <div className='w-full'>
                     <h1 className="font-semibold text-2xl">Tools</h1>

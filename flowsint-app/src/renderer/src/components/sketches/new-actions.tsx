@@ -137,7 +137,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                             <>Add {currentNodeType.label.toLowerCase()}</>
                         )}
                     </DialogTitle>
-                    <DialogDescription>Feel the required data</DialogDescription>
+                    <DialogDescription>Fill the required data.</DialogDescription>
                     {currentNodeType && (
                         <DynamicForm
                             currentNodeType={currentNodeType}

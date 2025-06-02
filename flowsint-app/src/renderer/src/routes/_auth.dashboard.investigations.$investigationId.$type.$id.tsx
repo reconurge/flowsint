@@ -1,7 +1,6 @@
 import { createFileRoute, useLoaderData } from '@tanstack/react-router'
 import GraphPanel from '@/components/graphs/graph-panel'
 import { sketchService } from '@/api/sketch-service'
-import Loader from '@/components/shared/loader'
 import type { InvestigationGraph } from '@/types'
 
 // Get queryClient from where it's initialized

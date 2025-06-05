@@ -22,10 +22,6 @@ class AsnToCidrsScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "asns"
-    
-    @classmethod
-    def key(cls) -> str:
-        return "number"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:
@@ -74,9 +70,11 @@ class AsnToCidrsScanner(Scanner):
     def scan(self, data: InputType) -> OutputType:
         """Find CIDR from ASN using asnmap."""
         cidrs: OutputType = []
+        self._asn_to_cidrs_map = []  # Store mapping for postprocess
         self.logger.debug(message=f"[ASN_TO_CIDRS_SCANNER]: input data: {str(data)}")
 
         for asn in data:
+            asn_cidrs = []
             cidr_data = self.__get_cidrs_from_asn(asn.number)
             if cidr_data and "as_range" in cidr_data and cidr_data["as_range"]:
                 # Add all CIDRs for this ASN
@@ -84,16 +82,21 @@ class AsnToCidrsScanner(Scanner):
                     try:
                         cidr = CIDR(network=cidr_str)
                         cidrs.append(cidr)
+                        asn_cidrs.append(cidr)
                     except Exception as e:
                         self.logger.error(f"Failed to parse CIDR {cidr_str}: {str(e)}")
                 # If no valid CIDRs were added, add the default one
-                if not any(str(c.network) != "0.0.0.0/0" for c in cidrs):
-                    cidrs.append(CIDR(network="0.0.0.0/0"))
+                if not any(str(c.network) != "0.0.0.0/0" for c in asn_cidrs):
+                    default_cidr = CIDR(network="0.0.0.0/0")
+                    cidrs.append(default_cidr)
+                    asn_cidrs.append(default_cidr)
             else:
                 self.logger.warn(f"No CIDRs found for ASN {asn.number}")
                 # Add an empty CIDR to maintain input/output mapping
-                cidrs.append(CIDR(network="0.0.0.0/0"))
-
+                default_cidr = CIDR(network="0.0.0.0/0")
+                cidrs.append(default_cidr)
+                asn_cidrs.append(default_cidr)
+            self._asn_to_cidrs_map.append((asn, asn_cidrs))
         return cidrs
     
     def __get_cidrs_from_asn(self, asn: int) -> Dict[str, Any]:
@@ -142,32 +145,70 @@ class AsnToCidrsScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between ASNs and their corresponding CIDRs
-        for asn, cidr in zip(original_input, results):
-            if self.neo4j_conn:
-                query = """
-                MERGE (asn:ASN {number: $asn_number})
-                SET asn.sketch_id = $sketch_id,
-                    asn.name = $asn_name,
-                    asn.country = $asn_country,
-                    asn.label = $asn_label,
-                    asn.caption = $asn_caption,
-                    asn.type = "asn"
-                
-                MERGE (cidr:CIDR {network: $cidr_network})
-                SET cidr.sketch_id = $sketch_id,
-                    cidr.label = $cidr_network,
-                    cidr.caption = $cidr_network,
-                    cidr.type = "cidr"
-                
-                MERGE (asn)-[:ANNOUNCES {sketch_id: $sketch_id}]->(cidr)
-                """
-                self.neo4j_conn.query(query, {
-                    "asn_number": asn.number,
-                    "asn_name": asn.name or "Unknown",
-                    "asn_country": asn.country or "Unknown",
-                    "asn_label": f"AS{asn.number}",
-                    "asn_caption": f"AS{asn.number} - {asn.name or 'Unknown'}",
-                    "cidr_network": str(cidr.network),
-                    "sketch_id": self.sketch_id,
-                })
+        # Use the mapping from scan if available, else fallback to zip
+        asn_to_cidrs = getattr(self, '_asn_to_cidrs_map', None)
+        if asn_to_cidrs is not None:
+            for asn, cidr_list in asn_to_cidrs:
+                for cidr in cidr_list:
+                    if str(cidr.network) == "0.0.0.0/0":
+                        continue  # Skip default CIDR for unknown ASN
+                    if self.neo4j_conn:
+                        query = """
+                        MERGE (asn:ASN {number: $asn_number})
+                        SET asn.sketch_id = $sketch_id,
+                            asn.name = $asn_name,
+                            asn.country = $asn_country,
+                            asn.label = $asn_label,
+                            asn.caption = $asn_caption,
+                            asn.type = "asn"
+                        
+                        MERGE (cidr:CIDR {network: $cidr_network})
+                        SET cidr.sketch_id = $sketch_id,
+                            cidr.label = $cidr_network,
+                            cidr.caption = $cidr_network,
+                            cidr.type = "cidr"
+                        
+                        MERGE (asn)-[:ANNOUNCES {sketch_id: $sketch_id}]->(cidr)
+                        """
+                        self.neo4j_conn.query(query, {
+                            "asn_number": asn.number,
+                            "asn_name": asn.name or "Unknown",
+                            "asn_country": asn.country or "Unknown",
+                            "asn_label": f"AS{asn.number}",
+                            "asn_caption": f"AS{asn.number} - {asn.name or 'Unknown'}",
+                            "cidr_network": str(cidr.network),
+                            "sketch_id": self.sketch_id,
+                        })
+        else:
+            # Fallback: original behavior (one-to-one zip)
+            for asn, cidr in zip(original_input, results):
+                if str(cidr.network) == "0.0.0.0/0":
+                    continue  # Skip default CIDR for unknown ASN
+                if self.neo4j_conn:
+                    query = """
+                    MERGE (asn:ASN {number: $asn_number})
+                    SET asn.sketch_id = $sketch_id,
+                        asn.name = $asn_name,
+                        asn.country = $asn_country,
+                        asn.label = $asn_label,
+                        asn.caption = $asn_caption,
+                        asn.type = "asn"
+                    
+                    MERGE (cidr:CIDR {network: $cidr_network})
+                    SET cidr.sketch_id = $sketch_id,
+                        cidr.label = $cidr_network,
+                        cidr.caption = $cidr_network,
+                        cidr.type = "cidr"
+                    
+                    MERGE (asn)-[:ANNOUNCES {sketch_id: $sketch_id}]->(cidr)
+                    """
+                    self.neo4j_conn.query(query, {
+                        "asn_number": asn.number,
+                        "asn_name": asn.name or "Unknown",
+                        "asn_country": asn.country or "Unknown",
+                        "asn_label": f"AS{asn.number}",
+                        "asn_caption": f"AS{asn.number} - {asn.name or 'Unknown'}",
+                        "cidr_network": str(cidr.network),
+                        "sketch_id": self.sketch_id,
+                    })
         return results

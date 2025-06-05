@@ -29,10 +29,10 @@ export const BaseNodeSchema = forwardRef<
         ref={ref}
         style={style}
         className={cn(
-            "relative rounded-md border bg-card p-5 text-card-foreground",
+            "relative rounded-md border-border bg-card p-5 text-card-foreground",
             className,
             selected ? "shadow-lg" : "",
-            "hover:ring-1",
+            "hover:ring-1 hover:ring-primary",
         )}
         tabIndex={0}
         {...props}

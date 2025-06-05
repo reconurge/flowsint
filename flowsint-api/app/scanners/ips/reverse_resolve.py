@@ -81,18 +81,18 @@ class ReverseResolveScanner(Scanner):
         for ip_obj, domain_obj in zip(original_input, results):
             self.logger.success(message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
             query = """
-            MERGE (d:ip {ip: $ip})
-            SET d.sketch_id = $sketch_id
-            MERGE (domain:domain {domain: $domain})
-            SET d.label = $label
-            SET d.caption = $caption
-            SET d.type = $type
-            MERGE (d)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(domain)
+            MERGE (ip:IP {address: $address})
+            SET ip.sketch_id = $sketch_id,
+                ip.label = $label,
+                ip.caption = $caption,
+                ip.type = $type
+            MERGE (domain:Domain {domain: $domain})
+            MERGE (ip)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(domain)
             """
             if self.neo4j_conn:
                 self.neo4j_conn.query(query, {
                     "domain": domain_obj.domain,
-                    "ip": ip_obj.address,
+                    "address": ip_obj.address,
                     "sketch_id": self.sketch_id,
                     "label": ip_obj.address,
                     "caption": ip_obj.address,

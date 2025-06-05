@@ -85,7 +85,12 @@ class TransformOrchestrator(Scanner):
             scanner = self.scanners.get(step.nodeId)
             if scanner:
                 primary_key = scanner.key()
+                self.logger.debug(message=f"No resolved inputs for scanner {scanner.name()} (nodeId={step.nodeId}), using initial values: {initial_values}")
                 return {primary_key: initial_values}
+        else:
+            scanner = self.scanners.get(step.nodeId)
+            if scanner:
+                self.logger.debug(message=f"Prepared inputs for scanner {scanner.name()} (nodeId={step.nodeId}): {inputs}")
         
         return inputs[input_key]
 
@@ -97,6 +102,7 @@ class TransformOrchestrator(Scanner):
         for output_key, output_ref in step_outputs.items():
             if output_key in outputs:
                 results_mapping[output_ref] = outputs[output_key]
+                self.logger.debug(message=f"Updated results_mapping: '{output_ref}' -> {outputs[output_key]}")
 
     @classmethod
     def name(cls) -> str:
@@ -169,6 +175,7 @@ class TransformOrchestrator(Scanner):
                         branch_results["steps"].append(step_result)
                         continue
                     
+                    self.logger.debug(message=f"Executing scanner {scanner_name} (nodeId={node_id}) with inputs: {scanner_inputs}")
                     # Check if we already have results for this scanner with these inputs
                     cache_key = f"{node_id}:{str(scanner_inputs)}"
                     if cache_key in scanner_results_cache:
@@ -183,6 +190,7 @@ class TransformOrchestrator(Scanner):
                         # Cache the results
                         scanner_results_cache[cache_key] = outputs
                     
+                    self.logger.debug(message=f"Scanner {scanner_name} (nodeId={node_id}) returned outputs: {outputs}")
                     # Store the outputs in the step result
                     step_result["outputs"] = outputs
                     step_result["status"] = "completed"

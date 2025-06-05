@@ -5,6 +5,7 @@ import { memo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Info, GripVertical } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getScannerColor } from "./scanner-data"
 
 // Types for the scanner based on the new structure
 export interface ScannerProperty {
@@ -46,7 +47,9 @@ function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
 }
 
 // Memoized scanner item component for the sidebar
-const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
+const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
+  const borderColor = getScannerColor(scanner.type, category)
+
   // Handler for drag start - using useCallback to prevent recreation on each render
   const onDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -63,7 +66,7 @@ const ScannerItem = memo(({ scanner, category, color }: ScannerItemProps) => {
         draggable
         onDragStart={onDragStart}
         className="p-3 rounded-md relative w-full overflow-hidden cursor-grab bg-card border hover:shadow-md transition-all group"
-        style={{ borderLeftWidth: "4px", borderLeftColor: color, cursor: "grab" }}
+        style={{ borderLeftWidth: "4px", borderLeftColor: borderColor, cursor: "grab" }}
       >
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-2">

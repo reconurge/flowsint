@@ -63,12 +63,10 @@ def parse_asn(asn: str) -> int:
 
     
 def is_valid_asn(asn: str) -> bool:
-    # ASN numbers are 16-bit numbers (0-65535)
     if not re.fullmatch(r"(AS)?\d+", asn, re.IGNORECASE):
         return False
-    # Remove 'AS' prefix if present and convert to int
     asn_num = int(re.sub(r"(?i)^AS", "", asn))
-    return 0 <= asn_num <= 65535
+    return 0 <= asn_num <= 4294967295
 
 def resolve_type(details: dict) -> str:
     if "anyOf" in details:

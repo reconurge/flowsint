@@ -119,6 +119,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
     }, [])
 
     const onDrop = useCallback(
+        //@ts-ignore
         (event: React.DragEvent<HTMLDivElement>) => {
             event.preventDefault()
             if (!reactFlowWrapper.current || !reactFlowInstance) return

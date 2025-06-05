@@ -59,10 +59,10 @@ class Logger:
         log = self._create_log("ERROR", formatted_message)
         emit_log_task.delay(str(log.id), self.scan_id, "ERROR", formatted_message)
 
-    def warning(self, message: str):
+    def warn(self, message: str):
         """Log a warning message"""
         formatted_message = self._format_message("WARNING", message)
-        logger.warning(formatted_message)
+        logger.warn(formatted_message)
         log = self._create_log("WARNING", formatted_message)
         emit_log_task.delay(str(log.id), self.scan_id, "WARNING", formatted_message)
 

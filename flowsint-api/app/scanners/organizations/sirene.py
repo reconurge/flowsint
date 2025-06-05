@@ -18,6 +18,10 @@ class SireneScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "organizations"
+    
+    @classmethod
+    def key(cls) -> str:
+        return "name"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:

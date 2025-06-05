@@ -69,7 +69,7 @@ export default function RawMaterial() {
             <div className="flex-1 w-full">
                 {Object.entries(filteredScanners).map(([category, scanners]) => (
                     <div key={category} className="space-y-2 w-full">
-                        <h3 className="text-sm font-medium capitalize pb-1">{category.replace("_", " ")}</h3>
+                        <h3 className="text-sm font-medium capitalize mt-4">{category.replace("_", " ")}</h3>
                         <div className="space-y-2">
                             {/* @ts-ignore */}
                             {scanners.map((scanner: Scanner) => (

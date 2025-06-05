@@ -5,6 +5,7 @@ import type { InvestigationGraph } from '@/types'
 
 // Get queryClient from where it's initialized
 import { getContext } from '@/integrations/tanstack-query/root-provider'
+import Loader from '@/components/loader'
 
 const { queryClient } = getContext();
 
@@ -51,7 +52,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
         <div className="h-full w-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 {/* <Loader /> */}
-                <p className="text-muted-foreground">Loading page...</p>
+                <p className="text-muted-foreground"><Loader /> Fetching nodes...</p>
             </div>
         </div>
     ),

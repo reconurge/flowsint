@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/sheet"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
 import { formatDistanceToNow } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
@@ -86,11 +85,10 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
                             {transforms?.map((transform: Transform) => (
                                 <Card
                                     key={transform.id}
-                                    className={`cursor-pointer border transition-all ${
-                                        selectedTransform?.id === transform.id 
-                                            ? "border-primary bg-primary/5" 
+                                    className={`cursor-pointer border transition-all ${selectedTransform?.id === transform.id
+                                            ? "border-primary bg-primary/5"
                                             : "hover:border-primary/50"
-                                    }`}
+                                        }`}
                                     onClick={() => handleSelectTransform(transform)}
                                 >
                                     <CardHeader className="p-4">
@@ -99,13 +97,13 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
                                                 <RadioGroupItem value={transform.id} id={transform.id} />
                                                 <CardTitle className="text-base">{transform.name}</CardTitle>
                                             </div>
-                                            
+
                                             {transform.description && (
                                                 <CardDescription className="text-sm pl-7">
                                                     {transform.description || "No description available"}
                                                 </CardDescription>
                                             )}
-                                            
+
                                             <div className="flex flex-col space-y-1 text-xs text-muted-foreground pl-7">
                                                 <div>Created {formatDistanceToNow(transform.created_at, { addSuffix: true })}</div>
                                                 <div>Updated {formatDistanceToNow(transform.last_updated_at, { addSuffix: true })}</div>

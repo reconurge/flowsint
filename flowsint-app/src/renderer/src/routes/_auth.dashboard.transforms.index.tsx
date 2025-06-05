@@ -76,7 +76,7 @@ function TransformsPage() {
                             Create and manage your data transformation workflows.
                         </p>
                     </div>
-                    <Button size="lg" onClick={handleCreateTransform}>
+                    <Button size="sm" onClick={handleCreateTransform}>
                         <PlusIcon className="w-4 h-4 mr-2" />
                         New Transform
                     </Button>
@@ -84,7 +84,7 @@ function TransformsPage() {
 
                 {isLoading ? (
                     <div className="p-2">
-                        <SkeletonList rowCount={7} />
+                        <SkeletonList rowCount={6} mode="card" />
                     </div>
                 ) : (
                     <Tabs defaultValue="All" className="space-y-6">

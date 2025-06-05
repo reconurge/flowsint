@@ -1,5 +1,4 @@
-from fastapi import FastAPI, Depends
-from app.scanners.registry import ScannerRegistry
+from fastapi import FastAPI
 from app.core.graph_db import Neo4jConnection
 from app.core.events import init_events
 import os
@@ -12,10 +11,8 @@ from app.api.routes import investigations
 from app.api.routes import sketches
 from app.api.routes import transforms
 from app.api.routes import logs
-from sqlalchemy.orm import Session
-from app.core.postgre_db import get_db 
-from app.api.schemas.log import LogSchema
-from app.models.models import Log
+from app.api.routes import analysis
+
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -56,6 +53,7 @@ app.include_router(sketches.router, prefix="/api/sketches", tags=["sketches"])
 app.include_router(investigations.router, prefix="/api/investigations", tags=["investigations"])
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
+app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 
 # Initialize event system
 init_events(app)

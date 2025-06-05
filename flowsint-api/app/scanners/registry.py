@@ -9,6 +9,11 @@ from app.scanners.ips.geolocation import GeolocationScanner
 from app.scanners.socials.maigret import MaigretScanner
 from app.scanners.emails.holehe import HoleheScanner
 from app.scanners.organizations.sirene import SireneScanner
+from app.scanners.ips.ip_to_asn import AsnScanner
+from app.scanners.ips.asn_to_cidrs import AsnToCidrsScanner
+from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
+from app.scanners.organizations.org_to_asn import OrgToAsnScanner
+
 class ScannerRegistry:
     
     _scanners: Dict[str, Type[Scanner]] = {}
@@ -68,3 +73,7 @@ ScannerRegistry.register(GeolocationScanner)
 ScannerRegistry.register(MaigretScanner)
 ScannerRegistry.register(HoleheScanner)
 ScannerRegistry.register(SireneScanner)
+ScannerRegistry.register(AsnScanner)
+ScannerRegistry.register(AsnToCidrsScanner)
+ScannerRegistry.register(CidrToIpsScanner)
+ScannerRegistry.register(OrgToAsnScanner)

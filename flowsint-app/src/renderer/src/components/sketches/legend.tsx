@@ -35,7 +35,7 @@ const Legend = () => {
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <Card className='p-2 rounded backdrop-blur-sm bg-background/30 border-none'>
+                            <Card className='p-2 rounded-mdbackdrop-blur-sm bg-background/30 border-none'>
                                 <div>
                                     <ul className={cn('grid grid-cols-2 items-center gap-1', showAll && 'grid-cols-3')}>
                                         <AnimatePresence initial={false}>

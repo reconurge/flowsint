@@ -9,17 +9,13 @@ import { PlusIcon } from "lucide-react"
 import { useGraphControls } from "@/stores/graph-controls-store"
 // @ts-ignore
 import { type CosmosInputNode } from "@cosmograph/cosmos"
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
+import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import Legend from "./legend"
 
 // Lazy loading du timeline
 const CosmographTimeline = lazy(() =>
     import('@cosmograph/react').then(module => ({ default: module.CosmographTimeline }))
 )
-
-interface GraphProps {
-    isLoading: boolean
-}
 // Hook pour tracker l'état de chargement de Cosmograph
 const useCosmographLoader = (nodes: any[], edges: any[]) => {
     const [isCosmographReady, setIsCosmographReady] = useState(true)
@@ -262,13 +258,10 @@ const GraphProvider = memo(({ nodes, edges, children }: {
 GraphProvider.displayName = "GraphProvider"
 
 // Composant principal avec optimisations maximales
-const Graph = memo(({ isLoading }: GraphProps) => {
+const Graph = memo(() => {
     const nodes = useSketchStore(s => s.nodes)
     const edges = useSketchStore(s => s.edges)
 
-    if (isLoading) {
-        return <div className="h-full w-full flex items-center justify-center"><Loader /></div>
-    }
     if (!nodes.length) {
         return <EmptyState />
     }
@@ -279,7 +272,7 @@ const Graph = memo(({ isLoading }: GraphProps) => {
                     <ResizablePanel defaultSize={75} minSize={30} className="flex-grow min-h-0 inset-shadow">
                         <GraphContent />
                     </ResizablePanel>
-                    <ResizableHandle />
+                    {/* <ResizableHandle /> */}
                     {/* <ResizablePanel defaultSize={25} minSize={10} className="flex-grow h-full min-h-0 inset-shadow">
                         <TimelinePanel />
                     </ResizablePanel> */}

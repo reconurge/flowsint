@@ -2,14 +2,8 @@
 
 import * as React from "react"
 import {
-    Calculator,
-    Calendar,
-    CreditCard,
     Fingerprint,
     Search,
-    Settings,
-    Smile,
-    User,
     Workflow,
 } from "lucide-react"
 
@@ -20,8 +14,6 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-    CommandSeparator,
-    CommandShortcut,
 } from "@/components/ui/command"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { Button } from "./ui/button"
@@ -41,7 +33,7 @@ export function Command() {
         <>
             <Button variant="ghost" onClick={() => setOpen(true)} className="text-xs h-8 w-full max-w-3xs border flex items-center justify-between hover:border-muted-foreground text-muted-foreground">
                 <span className="flex items-center gap-2"><Search /> Search Flowsint{" "}</span>
-                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                     <span className="text-xs">⌘</span>J
                 </kbd>
             </Button>

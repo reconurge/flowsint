@@ -1,5 +1,5 @@
 import TabBar from '@/components/tab-bar'
-import { useToolbarInitialization } from '@/hooks/useToolbarInitialization'
+import { useToolbarInitialization } from '@/hooks/use-toolbar-initialization'
 import { createLazyFileRoute } from '@tanstack/react-router'
 export const Route = createLazyFileRoute('/toolbar')({
   component: Toolbar

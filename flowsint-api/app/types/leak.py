@@ -1,7 +1,6 @@
-from typing import List, Dict
-from pydantic import BaseModel
-from typing import Optional
+from typing import List, Dict, Optional
+from pydantic import BaseModel, Field
 
 class Leak(BaseModel):
-    leaks: Optional[List[Dict]] = None
-    breaches: Optional[List[Dict]] = None
+    leaks: Optional[List[Dict]] = Field(None, description="List of data leaks found")
+    breaches: Optional[List[Dict]] = Field(None, description="List of security breaches found")

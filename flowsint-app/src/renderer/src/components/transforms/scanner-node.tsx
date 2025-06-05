@@ -3,7 +3,7 @@ import { Position } from "@xyflow/react"
 import { LabeledHandle } from "../ui/labeled-handle"
 import { Badge } from "../ui/badge"
 import { BaseNodeSchema } from "../ui/base-node"
-import { categoryColors } from "./scanner-data"
+import { getScannerColor } from "./scanner-data"
 import { NodeStatusIndicator } from "../ui/node-status-indicator"
 
 // Types for the scanner node based on the new structure
@@ -70,7 +70,7 @@ const getStateColor = (state?: string) => {
 
 // Memoized scanner node component with custom equality check
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
-    const color = categoryColors[data?.category] || "#94a3b8"
+    const color = getScannerColor(data.type, data.category)
     const opacity = data.computationState === "pending" ? 0.5 : 1
 
     const getStatusVariant = (state?: string) => {
@@ -91,8 +91,8 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
     return (
         <NodeStatusIndicator variant={getStatusVariant(data.computationState)}>
             <BaseNodeSchema
-                className="shadow-md rounded-md !border-l-2 p-0 bg-background !max-w-[340px]"
-                style={{ borderLeftWidth: "8px", borderLeftColor: color, cursor: "grab", opacity }}
+                className="shadow-md rounded-md p-0 bg-background !max-w-[340px]"
+                style={{ borderLeftWidth: 4, borderLeftColor: color, cursor: "grab", opacity }}
                 selected={selected}
             >
                 <div className="p-3 bg-card rounded-t-md">

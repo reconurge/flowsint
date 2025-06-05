@@ -12,7 +12,7 @@ export function useElectronNavigation() {
     data?: any
     title?: string
   }) => {
-    const { id, type, investigationId, data, title } = params
+    const { id, type, investigationId, title } = params
     const path = `/dashboard/investigations/${investigationId}/${type}/${id}`
     
     // Add a new tab with title

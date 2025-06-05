@@ -250,7 +250,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: 
                                     <Button variant={"outline"} className="h-7 w-8 relative border-border border" size={"icon"}>
                                         <FilterIcon className={cn("opacity-60 h-3 w-3", filters && "opacity-100")} />
                                         {filters && (
-                                            <Badge className="absolute -top-2 -right-1 text-xs rounded-full h-4 w-4" variant={"default"}>
+                                            <Badge className="absolute -top-2 -right-1 text-xs rounded-full h-4 w-4 text-white" variant={"default"}>
                                                 {filters.length}
                                             </Badge>
                                         )}

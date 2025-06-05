@@ -2,7 +2,6 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Depends, status, Query
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
-import json
 from datetime import datetime
 from app.utils import extract_input_schema
 from app.scanners.registry import ScannerRegistry
@@ -18,6 +17,9 @@ from app.core.postgre_db import get_db
 from app.models.models import Transform, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.transform import TransformRead, TransformCreate, TransformUpdate
+from app.types.asn import ASN
+from app.types.cidr import CIDR
+
 
 class FlowComputationRequest(BaseModel):
     nodes: List[Node]
@@ -45,9 +47,9 @@ def get_transforms(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user)
 ):
-    query = db.query(Transform)
     # if category is not None and category != "undefined":
     #     query = query.filter(Transform.category.any(category))
+    query = db.query(Transform).order_by(Transform.last_updated_at.desc())
     return query.all()
 
 # Returns the "raw_materials" for the transform editor
@@ -72,13 +74,14 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
 
     # Ajoute les types comme des "scanners" spéciaux de type 'type'
     object_inputs = [
-        extract_input_schema("MinimalDomain", MinimalDomain),
-        extract_input_schema("MinimalIp", MinimalIp),
-        extract_input_schema("MinimalSocial", MinimalSocial),
+        extract_input_schema("Organization", MinimalOrganization),
+        extract_input_schema("Domain", MinimalDomain),
+        extract_input_schema("IP address", MinimalIp),
+        extract_input_schema("ASN", ASN),
+        extract_input_schema("CIDR", CIDR),
+        extract_input_schema("Social profile", MinimalSocial),
         extract_input_schema("Email", Email),
-        extract_input_schema("MinimalOrganization", MinimalOrganization)
     ]
-
     flattened_scanners["types"] = object_inputs
 
     return {"items": flattened_scanners}

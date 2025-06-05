@@ -1,4 +1,4 @@
-import { TabsSlice } from '@renderer/types/tab-slice'
+import { TabsSlice } from '@/types/tab-slice'
 import { merge } from 'lodash'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -18,7 +18,7 @@ export const useBoundStore = create(
         //? We need this otherwise action (functions inside the state) will be undefined.
         return merge({}, currentState, persistedState)
       },
-      partialize: (state) =>
+      partialize: () =>
         ({
           tabs: {}
         }) as Pick<Store, 'tabs'>

@@ -23,6 +23,7 @@ export const useDragAndDrop = () => {
     }, [])
 
     const handleDragLeave = useCallback(() => {
+        //@ts-ignore
         dragLeaveTimeoutRef.current = setTimeout(() => {
             setIsDraggingOver(false)
         }, 100)

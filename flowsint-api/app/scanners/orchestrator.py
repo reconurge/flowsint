@@ -41,29 +41,7 @@ class TransformOrchestrator(Scanner):
 
             scanner = ScannerRegistry.get_scanner(scanner_name, self.sketch_id, self.scan_id, neo4j_conn=self.neo4j_conn, logger=self.logger)
             self.scanners[node_id] = scanner
-            
-        # Log the execution plan for debugging
-        self.log_execution_plan()
 
-    def log_execution_plan(self):
-        """Log the execution plan for debugging purposes"""
-        self.logger.info(message="Workflow execution plan:")
-        
-        for branch_idx, branch in enumerate(self.transform_branches):
-            branch_id = branch.id
-            branch_name = branch.name
-            
-            self.logger.info(message=f"Branch: {branch_name} (ID: {branch_id})")
-            
-            steps = branch.steps
-            for step_idx, step in enumerate(steps):
-                node_id = step.nodeId
-                scanner_name = node_id.split('-')[0]
-                depth = step.depth
-                
-                # Log the step information
-                inputs_str = ', '.join([f"{k}: {v}" for k, v in step.inputs.items()])
-                outputs_str = ', '.join([f"{k}: {v}" for k, v in step.outputs.items()])
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -107,7 +85,12 @@ class TransformOrchestrator(Scanner):
             scanner = self.scanners.get(step.nodeId)
             if scanner:
                 primary_key = scanner.key()
+                self.logger.debug(message=f"No resolved inputs for scanner {scanner.name()} (nodeId={step.nodeId}), using initial values: {initial_values}")
                 return {primary_key: initial_values}
+        else:
+            scanner = self.scanners.get(step.nodeId)
+            if scanner:
+                self.logger.debug(message=f"Prepared inputs for scanner {scanner.name()} (nodeId={step.nodeId}): {inputs}")
         
         return inputs[input_key]
 
@@ -119,6 +102,7 @@ class TransformOrchestrator(Scanner):
         for output_key, output_ref in step_outputs.items():
             if output_key in outputs:
                 results_mapping[output_ref] = outputs[output_key]
+                self.logger.debug(message=f"Updated results_mapping: '{output_ref}' -> {outputs[output_key]}")
 
     @classmethod
     def name(cls) -> str:
@@ -191,11 +175,12 @@ class TransformOrchestrator(Scanner):
                         branch_results["steps"].append(step_result)
                         continue
                     
+                    self.logger.debug(message=f"Executing scanner {scanner_name} (nodeId={node_id}) with inputs: {scanner_inputs}")
                     # Check if we already have results for this scanner with these inputs
                     cache_key = f"{node_id}:{str(scanner_inputs)}"
                     if cache_key in scanner_results_cache:
-                        self.logger.info(message=f"Reusing cached results for scanner {scanner_name}")
                         outputs = scanner_results_cache[cache_key]
+                        self.logger.info(message=f"Using cached results for {scanner_name}")
                     else:
                         # Execute the scanner
                         outputs = scanner.execute(scanner_inputs)
@@ -205,6 +190,7 @@ class TransformOrchestrator(Scanner):
                         # Cache the results
                         scanner_results_cache[cache_key] = outputs
                     
+                    self.logger.debug(message=f"Scanner {scanner_name} (nodeId={node_id}) returned outputs: {outputs}")
                     # Store the outputs in the step result
                     step_result["outputs"] = outputs
                     step_result["status"] = "completed"

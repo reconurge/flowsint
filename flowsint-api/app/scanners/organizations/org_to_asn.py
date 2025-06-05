@@ -4,7 +4,6 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
-from app.types.ip import MinimalIp
 from app.types.organization import MinimalOrganization
 from app.types.asn import ASN
 from app.utils import resolve_type
@@ -85,8 +84,7 @@ class OrgToAsnScanner(Scanner):
     
     def __get_asn_from_asnmap(self, name: str) -> Dict[str, Any]:
         try:
-            # Properly run the shell pipeline using shell=True
-            command = f"echo '{name}' | asnmap -silent -json | jq"
+            command = f"echo '{name}' | asnmap -silent -json | jq -s '.'"
             result = subprocess.run(
                 command,
                 shell=True,
@@ -95,19 +93,45 @@ class OrgToAsnScanner(Scanner):
             if not result.stdout.strip():
                 self.logger.info(f"No ASN found for {name}.")
                 return None
-            return json.loads(result.stdout)
+            try:
+                data_array = json.loads(result.stdout)
+                if not data_array:
+                    return None
+                # Merge results if multiple, or just return the first
+                combined_data = {
+                    "as_range": [],
+                    "as_name": None,
+                    "as_country": None,
+                    "as_number": None
+                }
+                for data in data_array:
+                    if "as_range" in data:
+                        combined_data["as_range"].extend(data["as_range"])
+                    if data.get("as_name") and not combined_data["as_name"]:
+                        combined_data["as_name"] = data["as_name"]
+                    if data.get("as_country") and not combined_data["as_country"]:
+                        combined_data["as_country"] = data["as_country"]
+                    if data.get("as_number") and not combined_data["as_number"]:
+                        combined_data["as_number"] = data["as_number"]
+                return combined_data if combined_data["as_range"] else None
+            except json.JSONDecodeError:
+                self.logger.error(f"Failed to parse JSON from asnmap output: {result.stdout}")
+                return None
         except Exception as e:
             self.logger.error(message=f"asnmap exception for {name}: {str(e)}")
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between organizations and their corresponding ASNs
+        self.logger.info(message=f"Postprocessing {len(results)} ASNs for {len(original_input)} organizations")
+        self.logger.info(message=f"RESULTS for ORGTOASN {str(results)}")
+
         for org, asn in zip(original_input, results):
             if asn.number == 0:
                 continue
             if self.neo4j_conn:
                 query = """
-                MERGE (org:Organization {name: $org_name})
+                MERGE (org:Organization {name: $org_name, country: $org_country})
                 SET org.sketch_id = $sketch_id,
                     org.label = $org_name,
                     org.caption = $org_name,
@@ -125,6 +149,7 @@ class OrgToAsnScanner(Scanner):
                 """
                 self.neo4j_conn.query(query, {
                     "org_name": org.name,
+                    "org_country": getattr(org, 'country', None) or "Unknown",
                     "asn_number": asn.number,
                     "asn_name": asn.name,
                     "asn_country": asn.country,

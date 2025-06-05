@@ -74,16 +74,14 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
 
     # Ajoute les types comme des "scanners" spéciaux de type 'type'
     object_inputs = [
+        extract_input_schema("Organization", MinimalOrganization),
         extract_input_schema("Domain", MinimalDomain),
+        extract_input_schema("IP address", MinimalIp),
         extract_input_schema("ASN", ASN),
         extract_input_schema("CIDR", CIDR),
-        extract_input_schema("IP address", MinimalIp),
         extract_input_schema("Social profile", MinimalSocial),
         extract_input_schema("Email", Email),
-        extract_input_schema("Organization", MinimalOrganization)
     ]
-    print(extract_input_schema("ASN", ASN))
-
     flattened_scanners["types"] = object_inputs
 
     return {"items": flattened_scanners}

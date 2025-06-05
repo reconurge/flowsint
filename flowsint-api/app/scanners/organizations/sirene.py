@@ -104,9 +104,8 @@ class SireneScanner(Scanner):
 
         for org in results:
             self.neo4j_conn.query("""
-                MERGE (o:organization {name: $name})
+                MERGE (o:Organization {name: $name, country: $country})
                 SET o.founding_date = $founding_date,
-                    o.country = $country,
                     o.description = $description,
                     o.label = $label,
                     o.caption = $caption,
@@ -115,8 +114,8 @@ class SireneScanner(Scanner):
                     o.sketch_id = $sketch_id
             """, {
                 "name": org.name,
-                "founding_date": org.founding_date,
                 "country": org.country,
+                "founding_date": org.founding_date,
                 "description": org.description,
                 "label": org.name,
                 "caption": org.name,
@@ -135,7 +134,7 @@ class SireneScanner(Scanner):
                         i.label = $label,
                         i.caption = $label
                     WITH i
-                    MATCH (o:organization {name: $org_name})
+                    MATCH (o:Organization {name: $org_name, country: $org_country})
                     MERGE (o)-[:HAS_IDENTIFIER {sketch_id: $sketch_id}]->(i)
                 """, {
                     "type": identifier.type.lower(),
@@ -146,6 +145,7 @@ class SireneScanner(Scanner):
                     "issued_by": identifier.issued_by,
                     "sketch_id": self.sketch_id,
                     "org_name": org.name,
+                    "org_country": org.country,
                 })
 
         return results

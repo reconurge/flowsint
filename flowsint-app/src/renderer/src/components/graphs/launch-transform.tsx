@@ -68,7 +68,7 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
                 className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-4 py-2 text-white border-none font-medium rounded-full"
             >
                 <span className="flex items-center gap-2">
-                    <Sparkles className={"h-4 w-4 transition-transform duration-300"} />
+                    <Sparkles className={"h-4 w-4 transition-transform duration-100"} />
                     <span>Search</span>
                 </span>
             </Button>
@@ -76,7 +76,7 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetContent className="sm:max-w-xl">
                     <SheetHeader>
-                        <SheetTitle>Select a Transform</SheetTitle>
+                        <SheetTitle>Select a transform</SheetTitle>
                         <SheetDescription>Choose a transform to launch from the list below.</SheetDescription>
                     </SheetHeader>
 
@@ -85,7 +85,7 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
                             {transforms?.map((transform: Transform) => (
                                 <Card
                                     key={transform.id}
-                                    className={`cursor-pointer border transition-all ${selectedTransform?.id === transform.id
+                                    className={`cursor-pointer border py-1 transition-all ${selectedTransform?.id === transform.id
                                             ? "border-primary bg-primary/5"
                                             : "hover:border-primary/50"
                                         }`}

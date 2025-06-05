@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { transformService } from '@/api/transfrom-service'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { PlusIcon, FileCode2, Clock } from 'lucide-react'
+import { PlusIcon, FileCode2, Clock, FileX } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { SkeletonList } from '@/components/shared/skeleton-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -86,9 +86,23 @@ function TransformsPage() {
                     <div className="p-2">
                         <SkeletonList rowCount={6} mode="card" />
                     </div>
+                ) : !transforms?.length ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="rounded-full bg-muted/50 p-4 mb-4">
+                            <FileX className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">No transforms yet</h3>
+                        <p className="text-muted-foreground mb-6 max-w-md">
+                            Get started by creating your first transform. You can use transforms to process and manipulate your data in powerful ways.
+                        </p>
+                        <Button onClick={handleCreateTransform}>
+                            <PlusIcon className="w-4 h-4 mr-2" />
+                            Create your first transform
+                        </Button>
+                    </div>
                 ) : (
                     <Tabs defaultValue="All" className="space-y-6">
-                        <TabsList className="w-full justify-start h-auto p-1 bg-muted/50">
+                        <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 overflow-x-auto hide-scrollbar">
                             {allCategories.map((category) => (
                                 <TabsTrigger
                                     key={category}

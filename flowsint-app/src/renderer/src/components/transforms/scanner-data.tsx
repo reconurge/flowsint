@@ -8,13 +8,32 @@ export interface ScannerData {
   items: ScansData
 }
 
-// Colors for each category
+// Default color for fallback cases
+export const DEFAULT_COLOR = "#94a3b8"
+
+// Colors for each category/type
 export const categoryColors: Record<string, string> = {
-  social_profile: "#3b82f6",
+  // Categories
+  social: "#3b82f6",
   emails: "#10b981",
   websites: "#f59e0b",
   phones: "#8b5cf6",
   ips: "#ef4444",
   domains: "#10b981",
   type: "#f59e0b",
+  cidrs: "#A2D4BF",
+  asns: "#F7D154",
+  organizations: "#9C27B0",
+}
+
+/**
+ * Get the color for a scanner based on its type or category
+ * @param type The scanner type
+ * @param category The scanner category
+ * @returns The color to use
+ */
+export const getScannerColor = (type?: string, category?: string): string => {
+  if (type && categoryColors[type]) return categoryColors[type]
+  if (category && categoryColors[category]) return categoryColors[category]
+  return DEFAULT_COLOR
 }

@@ -19,10 +19,6 @@ class CidrToIpsScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "cidrs"
-    
-    @classmethod
-    def key(cls) -> str:
-        return "network"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:
@@ -109,6 +105,7 @@ class CidrToIpsScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
+        self.logger.info(message=f"RESULTS for CIDRTOIPS {str(results)}")
         for cidr, ip in zip(original_input, results):
             if self.neo4j_conn:
                 query = """

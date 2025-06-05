@@ -2,7 +2,6 @@ import type { TabsSlice } from '../types/tabs'
 import type { TabInfo } from '../types/tabs'
 import { produce } from 'immer'
 import type { StateCreator } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 export const createTabSlice: StateCreator<TabsSlice, [], [], TabsSlice> = (set) => ({
   tabs: {

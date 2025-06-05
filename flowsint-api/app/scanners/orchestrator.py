@@ -41,29 +41,7 @@ class TransformOrchestrator(Scanner):
 
             scanner = ScannerRegistry.get_scanner(scanner_name, self.sketch_id, self.scan_id, neo4j_conn=self.neo4j_conn, logger=self.logger)
             self.scanners[node_id] = scanner
-            
-        # Log the execution plan for debugging
-        self.log_execution_plan()
 
-    def log_execution_plan(self):
-        """Log the execution plan for debugging purposes"""
-        self.logger.info(message="Workflow execution plan:")
-        
-        for branch_idx, branch in enumerate(self.transform_branches):
-            branch_id = branch.id
-            branch_name = branch.name
-            
-            self.logger.info(message=f"Branch: {branch_name} (ID: {branch_id})")
-            
-            steps = branch.steps
-            for step_idx, step in enumerate(steps):
-                node_id = step.nodeId
-                scanner_name = node_id.split('-')[0]
-                depth = step.depth
-                
-                # Log the step information
-                inputs_str = ', '.join([f"{k}: {v}" for k, v in step.inputs.items()])
-                outputs_str = ', '.join([f"{k}: {v}" for k, v in step.outputs.items()])
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -194,8 +172,8 @@ class TransformOrchestrator(Scanner):
                     # Check if we already have results for this scanner with these inputs
                     cache_key = f"{node_id}:{str(scanner_inputs)}"
                     if cache_key in scanner_results_cache:
-                        self.logger.info(message=f"Reusing cached results for scanner {scanner_name}")
                         outputs = scanner_results_cache[cache_key]
+                        self.logger.info(message=f"Using cached results for {scanner_name}")
                     else:
                         # Execute the scanner
                         outputs = scanner.execute(scanner_inputs)

@@ -30,6 +30,7 @@ class Investigation(Base):
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     status = mapped_column(String, server_default='active')
     sketches = relationship("Sketch", back_populates="investigation")
+    analyses = relationship("Analysis", back_populates="investigation")
     __table_args__ = (
         Index("idx_investigations_id", "id"),
         Index("idx_investigations_owner_id", "owner_id"),
@@ -136,3 +137,22 @@ class Transform(Base):
     transform_schema = mapped_column(JSON, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Analysis(Base):
+    __tablename__ = "analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = mapped_column(Text, nullable=False)
+    description = mapped_column(Text, nullable=True)
+    content = mapped_column(JSON, nullable=True)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    owner_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
+    investigation_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
+    investigation = relationship("Investigation", back_populates="analyses")
+
+    __table_args__ = (
+        Index("idx_analyses_owner_id", "owner_id"),
+        Index("idx_analyses_investigation_id", "investigation_id"),
+    )

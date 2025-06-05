@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { HelpCircle, Info, Laptop, Terminal, Trash, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
-import { useConsoleStore } from "@/stores/console-store"
+import { useLayoutStore } from "@/stores/layout-store"
 
 export function StatusBar() {
-    const { isOpen, toggleConsole } = useConsoleStore()
-
+    const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
+    const toggleConsole = useLayoutStore(s => s.toggleConsole)
     return (
         <div className="flex items-center bg-card h-8 border-t px-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -16,14 +16,14 @@ export function StatusBar() {
             </div>
             <div className="flex-1"></div>
             <div className="flex items-center gap-2">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-6 gap-1 text-xs hover:bg-accent"
                     onClick={toggleConsole}
                 >
                     <Terminal strokeWidth={1.4} className="h-3 w-3" />
-                    <span>Console {isOpen ? '(Open)' : ''}</span>
+                    <span>Console {isOpenConsole ? '(Open)' : ''}</span>
                 </Button>
                 <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
                     <Unlock strokeWidth={1.4} className="h-3 w-3 opacity-60" />

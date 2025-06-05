@@ -1,17 +1,19 @@
 import { useLoaderData } from '@tanstack/react-router'
 import { useEffect, useRef, memo, useState } from 'react'
-import Graph from '../sketches/graph'
+// import Graph from '../sketches/graph'
 import { useSketchStore } from '@/stores/sketch-store'
 import { Toolbar } from '../sketches/toolbar'
 import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
+// import GraphSigma from '../sketches/graph-sigma'
+import Graph from '../sketches/graph'
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
     <div
         className={cn(
-            'absolute flex items-center justify-center inset-0 bg-primary/20 backdrop-blur-xs gap-1',
+            'absolute flex items-center justify-center inset-0 bg-background/80 backdrop-blur-sm gap-1',
             'opacity-0 pointer-events-none transition-opacity duration-200',
             isDragging && 'opacity-100 pointer-events-auto'
         )}
@@ -89,7 +91,8 @@ const GraphPanel = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <Graph isLoading={false} />
+            <Graph />
+            {/* <GraphSigma /> */}
             <DragOverlay isDragging={isDraggingOver} />
             <div className='absolute w-10 right-3 top-3 h-min shadow-sm border rounded-full overflow-y-auto'>
                 <Toolbar />

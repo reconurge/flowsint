@@ -37,10 +37,10 @@ def is_valid_domain(url_or_domain: str) -> str:
     hostname = parsed.hostname or url_or_domain
     
     if not hostname or "." not in hostname:
-        return "invalid"
+        return False
     
     if not re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", hostname):
-        return "invalid"
+        return False
     
     return hostname
 
@@ -52,10 +52,24 @@ def is_valid_number(phone: str, region: str = "FR") -> None:
     try:
         parsed = phonenumbers.parse(phone, region)
         if not phonenumbers.is_valid_number(parsed):
-            raise ValueError(f"Invalid phone number: {phone}")
+            return False
     except NumberParseException:
-        raise ValueError(f"Invalid phone number: {phone}")
+        return False
     
+def parse_asn(asn: str) -> int:
+    if not is_valid_asn(asn):
+        raise ValueError(f"Invalid ASN format: {asn}")
+    return int(re.sub(r"(?i)^AS", "", asn))
+
+    
+def is_valid_asn(asn: str) -> bool:
+    # ASN numbers are 16-bit numbers (0-65535)
+    if not re.fullmatch(r"(AS)?\d+", asn, re.IGNORECASE):
+        return False
+    # Remove 'AS' prefix if present and convert to int
+    asn_num = int(re.sub(r"(?i)^AS", "", asn))
+    return 0 <= asn_num <= 65535
+
 def resolve_type(details: dict) -> str:
     if "anyOf" in details:
         types = []
@@ -79,12 +93,9 @@ def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
 
-    # Vérifie si le schéma utilise $defs (références internes)
-    if "$defs" in schema:
-        type_name, details = list(schema["$defs"].items())[0]
-    else:
-        type_name = name
-        details = schema
+    # Use the main schema properties, not the $defs
+    type_name = name
+    details = schema
 
     return {
         "class_name": name,

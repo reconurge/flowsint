@@ -98,7 +98,7 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
 
     return (
         <Panel position="top-left" className="m-4">
-            <Card className="px-3 py-2 space-y-1 w-sm rounded gap-1">
+            <Card className="px-3 py-2 gap-1 w-sm rounded-mdgap-1">
                 {isEditingName ? (
                     <input
                         ref={nameInputRef}
@@ -113,7 +113,7 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
                     />
                 ) : (
                     <h1
-                        className="text-xl font-semibold cursor-pointer hover:bg-foreground/10 px-1 py-0.5 rounded transition-colors"
+                        className="text-xl font-semibold cursor-pointer hover:bg-foreground/10 px-1 py-0.5 rounded-mdtransition-colors"
                         onClick={() => !disabled && setIsEditingName(true)}
                     >
                         {name || "My Transform"}
@@ -134,7 +134,7 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
                     />
                 ) : (
                     <p
-                        className="text-sm text-muted-foreground cursor-pointer hover:bg-foreground/10 px-1 py-0.5 rounded transition-colors min-h-[1.5rem]"
+                        className="text-sm text-muted-foreground cursor-pointer hover:bg-foreground/10 px-1 py-0.5 rounded-mdtransition-colors min-h-[1.5rem]"
                         onClick={() => !disabled && setIsEditingDesc(true)}
                     >
                         {description || <span className="italic text-gray-400">Add a description...</span>}

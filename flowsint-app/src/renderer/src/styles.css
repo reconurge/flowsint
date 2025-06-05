@@ -11,6 +11,7 @@ body {
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: var(--tracking-normal);
 }
 
 @layer base {
@@ -36,22 +37,6 @@ body {
     --sidebar-ring: hsl(217.2, 91.2%, 59.8%);
   }
 
-  body {
-    letter-spacing: var(--tracking-normal);
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer base {
   * {
     @apply border-border outline-ring/50;
   }
@@ -113,12 +98,271 @@ body {
   z-index: 103;
 }
 
-body {
-  letter-spacing: var(--tracking-normal);
+.style_module_watermark__6b4371ae {
+  display: none !important;
+  opacity: 0 !important;
 }
 
-body {
-  letter-spacing: var(--tracking-normal);
+.minimal-tiptap-editor .ProseMirror code.inline {
+  @apply rounded border-[var(--mt-code-color)] bg-[var(--mt-code-background)] px-1 py-0.5 text-sm;
+}
+
+.minimal-tiptap-editor .ProseMirror pre {
+  @apply relative overflow-auto rounded font-mono text-sm;
+  @apply border-[var(--mt-pre-border)] bg-[var(--mt-pre-background)] text-[var(--mt-pre-color)];
+  @apply hyphens-none whitespace-pre text-left;
+}
+
+.minimal-tiptap-editor .ProseMirror code {
+  @apply break-words leading-[1.7em];
+}
+
+.minimal-tiptap-editor .ProseMirror pre code {
+  @apply block overflow-x-auto p-3.5;
+}
+
+.minimal-tiptap-editor .ProseMirror pre {
+
+  .hljs-keyword,
+  .hljs-operator,
+  .hljs-function,
+  .hljs-built_in,
+  .hljs-builtin-name {
+    color: var(--hljs-keyword);
+  }
+
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-property,
+  .hljs-attribute,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-params {
+    color: var(--hljs-attr);
+  }
+
+  .hljs-name,
+  .hljs-regexp,
+  .hljs-link,
+  .hljs-type,
+  .hljs-addition {
+    color: var(--hljs-name);
+  }
+
+  .hljs-string,
+  .hljs-bullet {
+    color: var(--hljs-string);
+  }
+
+  .hljs-title,
+  .hljs-subst,
+  .hljs-section {
+    color: var(--hljs-title);
+  }
+
+  .hljs-literal,
+  .hljs-type,
+  .hljs-deletion {
+    color: var(--hljs-literal);
+  }
+
+  .hljs-selector-tag,
+  .hljs-selector-id,
+  .hljs-selector-class {
+    color: var(--hljs-selector-tag);
+  }
+
+  .hljs-number {
+    color: var(--hljs-number);
+  }
+
+  .hljs-comment,
+  .hljs-meta,
+  .hljs-quote {
+    color: var(--hljs-comment);
+  }
+
+  .hljs-emphasis {
+    @apply italic;
+  }
+
+  .hljs-strong {
+    @apply font-bold;
+  }
+}
+
+.minimal-tiptap-editor .ProseMirror ol {
+  @apply list-decimal;
+}
+
+.minimal-tiptap-editor .ProseMirror ol ol {
+  list-style: lower-alpha;
+}
+
+.minimal-tiptap-editor .ProseMirror ol ol ol {
+  list-style: lower-roman;
+}
+
+.minimal-tiptap-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.minimal-tiptap-editor .ProseMirror ul ul {
+  list-style: circle;
+}
+
+.minimal-tiptap-editor .ProseMirror ul ul ul {
+  list-style: square;
+}
+
+.minimal-tiptap-editor .ProseMirror>p.is-editor-empty::before {
+  content: attr(data-placeholder);
+  @apply pointer-events-none float-left h-0 text-[var(--mt-secondary)];
+}
+
+.minimal-tiptap-editor .ProseMirror .heading-node {
+  @apply relative font-semibold;
+}
+
+.minimal-tiptap-editor .ProseMirror .heading-node:first-child {
+  @apply mt-0;
+}
+
+.minimal-tiptap-editor .ProseMirror h1 {
+  @apply mb-4 mt-[46px] text-[1.375rem] leading-7 tracking-[-0.004375rem];
+}
+
+.minimal-tiptap-editor .ProseMirror h2 {
+  @apply mb-3.5 mt-8 text-[1.1875rem] leading-7 tracking-[0.003125rem];
+}
+
+.minimal-tiptap-editor .ProseMirror h3 {
+  @apply mb-3 mt-6 text-[1.0625rem] leading-6 tracking-[0.00625rem];
+}
+
+.minimal-tiptap-editor .ProseMirror h4 {
+  @apply mb-2 mt-4 text-[0.9375rem] leading-6;
+}
+
+.minimal-tiptap-editor .ProseMirror h5 {
+  @apply mb-2 mt-4 text-sm;
+}
+
+.minimal-tiptap-editor .ProseMirror a.link {
+  @apply cursor-pointer text-primary;
+}
+
+.minimal-tiptap-editor .ProseMirror a.link:hover {
+  @apply underline;
+}
+
+[data-rmiz-ghost] {
+  position: absolute;
+  pointer-events: none;
+}
+
+[data-rmiz-btn-zoom],
+[data-rmiz-btn-unzoom] {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+  color: #fff;
+  height: 40px;
+  margin: 0;
+  outline-offset: 2px;
+  padding: 9px;
+  touch-action: manipulation;
+  width: 40px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+[data-rmiz-btn-zoom]:not(:focus):not(:active) {
+  position: absolute;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[data-rmiz-btn-zoom] {
+  position: absolute;
+  inset: 10px 10px auto auto;
+  cursor: zoom-in;
+}
+
+[data-rmiz-btn-unzoom] {
+  position: absolute;
+  inset: 20px 20px auto auto;
+  cursor: zoom-out;
+  z-index: 1;
+}
+
+[data-rmiz-content="found"] img,
+[data-rmiz-content="found"] svg,
+[data-rmiz-content="found"] [role="img"],
+[data-rmiz-content="found"] [data-zoom] {
+  cursor: inherit;
+}
+
+[data-rmiz-modal]::backdrop {
+  display: none;
+}
+
+[data-rmiz-modal][open] {
+  position: fixed;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+[data-rmiz-modal-overlay] {
+  position: absolute;
+  inset: 0;
+  transition: background-color 0.3s;
+}
+
+[data-rmiz-modal-overlay="hidden"] {
+  background-color: rgba(255, 255, 255, 0);
+}
+
+[data-rmiz-modal-overlay="visible"] {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+[data-rmiz-modal-content] {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+[data-rmiz-modal-img] {
+  position: absolute;
+  cursor: zoom-out;
+  image-rendering: high-quality;
+  transform-origin: top left;
+  transition: transform 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  [data-rmiz-modal-overlay],
+  [data-rmiz-modal-img] {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 :root {
@@ -268,7 +512,93 @@ body {
   --shadow-2xl: var(--shadow-2xl);
 }
 
-.style_module_watermark__6b4371ae {
-  display: none !important;
-  opacity: 0 !important;
+.minimal-tiptap-editor .ProseMirror {
+  @apply flex max-w-full cursor-text flex-col;
+  @apply z-0 outline-0;
+}
+
+.minimal-tiptap-editor .ProseMirror>div.editor {
+  @apply block flex-1 whitespace-pre-wrap;
+}
+
+.minimal-tiptap-editor .ProseMirror .block-node:not(:last-child),
+.minimal-tiptap-editor .ProseMirror .list-node:not(:last-child),
+.minimal-tiptap-editor .ProseMirror .text-node:not(:last-child) {
+  @apply mb-2.5;
+}
+
+.minimal-tiptap-editor .ProseMirror ol,
+.minimal-tiptap-editor .ProseMirror ul {
+  @apply pl-6;
+}
+
+.minimal-tiptap-editor .ProseMirror blockquote,
+.minimal-tiptap-editor .ProseMirror dl,
+.minimal-tiptap-editor .ProseMirror ol,
+.minimal-tiptap-editor .ProseMirror p,
+.minimal-tiptap-editor .ProseMirror pre,
+.minimal-tiptap-editor .ProseMirror ul {
+  @apply m-0;
+}
+
+.minimal-tiptap-editor .ProseMirror li {
+  @apply leading-7;
+}
+
+.minimal-tiptap-editor .ProseMirror p {
+  @apply break-words;
+}
+
+.minimal-tiptap-editor .ProseMirror li .text-node:has(+ .list-node),
+.minimal-tiptap-editor .ProseMirror li>.list-node,
+.minimal-tiptap-editor .ProseMirror li>.text-node,
+.minimal-tiptap-editor .ProseMirror li p {
+  @apply mb-0;
+}
+
+.minimal-tiptap-editor .ProseMirror blockquote {
+  @apply relative pl-3.5;
+}
+
+.minimal-tiptap-editor .ProseMirror blockquote::before,
+.minimal-tiptap-editor .ProseMirror blockquote.is-empty::before {
+  @apply absolute bottom-0 left-0 top-0 h-full w-1 rounded-sm bg-accent-foreground/15 content-[''];
+}
+
+.minimal-tiptap-editor .ProseMirror hr {
+  @apply my-3 h-0.5 w-full border-none bg-[var(--mt-hr)];
+}
+
+.minimal-tiptap-editor .ProseMirror-focused hr.ProseMirror-selectednode {
+  @apply rounded-full outline outline-2 outline-offset-1 outline-muted-foreground;
+}
+
+.minimal-tiptap-editor .ProseMirror .ProseMirror-gapcursor {
+  @apply pointer-events-none absolute hidden;
+}
+
+.minimal-tiptap-editor .ProseMirror .ProseMirror-hideselection {
+  @apply caret-transparent;
+}
+
+.minimal-tiptap-editor .ProseMirror.resize-cursor {
+  @apply cursor-col-resize;
+}
+
+.minimal-tiptap-editor .ProseMirror .selection {
+  @apply inline-block;
+}
+
+.minimal-tiptap-editor .ProseMirror s span {
+  @apply line-through;
+}
+
+.minimal-tiptap-editor .ProseMirror .selection,
+.minimal-tiptap-editor .ProseMirror *::selection {
+  @apply bg-primary/25;
+}
+
+/* Override native selection when custom selection is present */
+.minimal-tiptap-editor .ProseMirror .selection::selection {
+  background: transparent;
 }

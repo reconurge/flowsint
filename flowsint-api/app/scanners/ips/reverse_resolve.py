@@ -77,12 +77,33 @@ class ReverseResolveScanner(Scanner):
                 print(f"Error resolving {ip.address}: {e}")
         return results
 
-    def postprocess(self, results: OutputType) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for ip_obj, domain_obj in zip(original_input, results):
+            self.logger.success(message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            query = """
+            MERGE (d:ip {ip: $ip})
+            SET d.sketch_id = $sketch_id
+            MERGE (domain:domain {domain: $domain})
+            SET d.label = $label
+            SET d.caption = $caption
+            SET d.type = $type
+            MERGE (d)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(domain)
+            """
+            if self.neo4j_conn:
+                self.neo4j_conn.query(query, {
+                    "domain": domain_obj.domain,
+                    "ip": ip_obj.address,
+                    "sketch_id": self.sketch_id,
+                    "label": ip_obj.address,
+                    "caption": ip_obj.address,
+                    "type": "ip"
+                })
+
         return results
 
     @classmethod
     def get_domains_from_ip(cls, address: str) -> List[str]:
-        """
+        """ 
         1) Attempt PTR lookup and filter generic provider names.
         2) Query crt.sh for certificates matching the IP SAN/CN.
         3) (Optional) Query a Reverse-IP API if API key is set.
@@ -138,28 +159,3 @@ class ReverseResolveScanner(Scanner):
                 unique.append(c)
 
         return unique
-
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
-        for domain_obj, ip_obj in zip(original_input, results):
-            self.logger.success(message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
-            query = """
-            MERGE (d:ip {ip: $ip})
-            SET d.sketch_id = $sketch_id
-            MERGE (domain:domain {domain: $domain})
-            SET ip.sketch_id = $sketch_id
-            SET ip.label = $label
-            SET ip.caption = $caption
-            SET ip.type = $type
-            MERGE (ip)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(d)
-            """
-            if self.neo4j_conn:
-                self.neo4j_conn.query(query, {
-                    "domain": domain_obj.domain,
-                    "ip": ip_obj.address,
-                    "sketch_id": self.sketch_id,
-                    "label": ip_obj.address,
-                    "caption": ip_obj.address,
-                    "type": "ip"
-                })
-
-        return results

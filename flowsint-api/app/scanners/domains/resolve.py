@@ -60,7 +60,7 @@ class ResolveScanner(Scanner):
                 domain_obj = MinimalDomain(domain=item["domain"])
             elif isinstance(item, MinimalDomain):
                 domain_obj = item
-            if domain_obj and is_valid_domain(domain_obj.domain) != "invalid":
+            if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
         return cleaned
 

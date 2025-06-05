@@ -20,6 +20,7 @@ export function useLaunchTransform(askUser: boolean = false) {
             success: () => `Scan on "${values.join(",")}" has been launched.`,
             error: () => `An error occurred launching transform.`,
         })
+        return
     }
     return {
         launchTransform,

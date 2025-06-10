@@ -1,20 +1,15 @@
 import { Button } from "@/components/ui/button"
-import { HelpCircle, Info, Laptop, Terminal, Trash, Unlock } from "lucide-react"
+import { HelpCircle, Info, Terminal, Trash, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
 import { useLayoutStore } from "@/stores/layout-store"
+import Legend from "../sketches/legend"
 
 export function StatusBar() {
     const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
     const toggleConsole = useLayoutStore(s => s.toggleConsole)
+
     return (
         <div className="flex items-center bg-card h-8 border-t px-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
-                    <Laptop strokeWidth={1.4} className="h-3 w-3 opacity-60" />
-                    <span>Online</span>
-                </Button>
-            </div>
-            <div className="flex-1"></div>
             <div className="flex items-center gap-2">
                 <Button
                     variant="ghost"
@@ -25,6 +20,9 @@ export function StatusBar() {
                     <Terminal strokeWidth={1.4} className="h-3 w-3" />
                     <span>Console {isOpenConsole ? '(Open)' : ''}</span>
                 </Button>
+            </div>
+            <div className="flex-1"></div>
+            <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
                     <Unlock strokeWidth={1.4} className="h-3 w-3 opacity-60" />
                     <span>Vault</span>
@@ -33,9 +31,7 @@ export function StatusBar() {
                     <Trash strokeWidth={1.4} className="h-3 w-3 opacity-60" />
                     <span>Trash</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
-                    <Info className="h-3 w-3 opacity-60" />
-                </Button>
+                <Legend />
                 <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
                     <HelpCircle className="h-3 w-3 opacity-60" />
                 </Button>

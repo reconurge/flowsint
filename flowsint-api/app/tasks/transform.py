@@ -15,16 +15,18 @@ from app.core.logger import Logger
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
+URI="bolt://localhost:7687"
 USERNAME = os.getenv("NEO4J_USERNAME")
 PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
-logger = Logger(db)
+logger = Logger()
 
 @celery.task(name="run_transform", bind=True)
 def run_scan(self, transform_branches, values: List[str], sketch_id: str | None):
     session = SessionLocal()
+
     try:
         if not transform_branches:
             raise ValueError("transform_branches not provided in the input transform")
@@ -34,9 +36,7 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
         scan = Scan(
             id=scan_id,
             status="pending",
-            values=values,
             sketch_id=uuid.UUID(sketch_id) if sketch_id else None,
-            results={}
         )
         session.add(scan)
         session.commit()
@@ -47,11 +47,12 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
             scan_id=str(scan_id),
             transform_branches=transform_branches,
             neo4j_conn=neo4j_connection,
-            logger=logger
         )
-        results = scanner.execute(values=values)
+        
+        # Use the synchronous scan method which internally handles the async operations
+        results = scanner.scan(values=values)
 
-        scan.status = "finished" if "error" not in results else "error"
+        scan.status = "completed"
         scan.results = scanner.results_to_json(results)
         session.commit()
 
@@ -64,7 +65,7 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
 
         scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
         if scan:
-            scan.status = "error"
+            scan.status = "failed"
             scan.results = {"error": error_logs}
             session.commit()
 

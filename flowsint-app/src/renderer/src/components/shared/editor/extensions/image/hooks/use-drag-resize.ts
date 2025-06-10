@@ -147,6 +147,7 @@ export function useDragResize({
     ]
   )
 
+  //@ts-ignore
   useEffect(() => {
     if (resizeDirection) {
       document.addEventListener("keydown", handleKeydown)

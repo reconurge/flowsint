@@ -5,23 +5,20 @@ from typing import Optional
 from datetime import datetime
 
 class LogCreate(BaseModel):
-    scan_id: UUID4
     content: str
-    sketch_id: Optional[UUID4] = None
+    sketch_id: UUID4
     type: Optional[str] = "INFO"
 
 class LogRead(ORMBase):
     id: UUID4
-    scan_id: UUID4
     content: str
     created_at: datetime
-    sketch_id: Optional[UUID4]
+    sketch_id: UUID4
     type: str
 
 class LogSchema(BaseModel):
     id: int
-    scan_id: UUID
-    sketch_id: UUID | None = None
+    sketch_id: UUID
     type: str
     content: str
     created_at: datetime

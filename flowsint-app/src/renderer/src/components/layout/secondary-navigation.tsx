@@ -3,11 +3,20 @@ import InvestigationList from "../investigations/investigation-list"
 import GraphNavigation from "../graphs/graph-navigation"
 import TransformNavigation from "../transforms/transform-navigation"
 import SketchList from "../investigations/sketch-list"
+import WallNavigation from "../walls/wall-navigation"
 
 const SecondaryNavigation = () => {
 
     const { id, investigationId, type } = useParams({ strict: false })
     const { pathname } = useLocation()
+
+    if (pathname.includes("/dashboard/investigations/wall")) {
+        return (
+            <div className="grow w-full overflow-x-hidden">
+                <WallNavigation />
+            </div>
+        )
+    }
 
     if (!investigationId && !id && !pathname.startsWith("/dashboard/transforms")) {
         return (
@@ -38,6 +47,7 @@ const SecondaryNavigation = () => {
             </div>
         )
     }
+
     if (pathname.startsWith("/dashboard/transforms")) {
         return (
             <div className="grow w-full h-full overflow-x-hidden">

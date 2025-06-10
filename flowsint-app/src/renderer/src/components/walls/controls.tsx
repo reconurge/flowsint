@@ -4,43 +4,41 @@ import { Button } from "@/components/ui/button"
 import { Panel } from "@xyflow/react"
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { TransformDetailsPanel } from "../transforms/transform-name-panel"
 
 interface FlowControlsProps {
     loading: boolean
-    handleSaveTransform: () => void
-    handleDeleteTransform: () => void
+    handleSaveWall: () => void
+    handleDeleteWall: () => void
     onLayout: () => void
     fitView: () => void
     zoomIn: () => void
     zoomOut: () => void
     isSaved: boolean,
-    transform?: any
+    wall?: any
 }
 
 export function FlowControls({
     loading,
-    handleSaveTransform,
-    handleDeleteTransform,
+    handleSaveWall,
+    handleDeleteWall,
     onLayout,
     fitView,
     zoomIn,
     zoomOut,
     isSaved,
-    transform
+    wall
 }: FlowControlsProps) {
     return (
         <TooltipProvider>
-            <TransformDetailsPanel transform={transform} />
             <Panel position="bottom-right" className="flex gap-2 mt-28 mr-2 z-40">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" className="bg-card" onClick={handleSaveTransform} disabled={loading}>
+                        <Button variant="outline" size="icon" className="bg-card" onClick={handleSaveWall} disabled={loading}>
                             <Save className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Save Transform</p>
+                        <p>Save Wall</p>
                     </TooltipContent>
                 </Tooltip>
 
@@ -51,14 +49,14 @@ export function FlowControls({
                                 variant="outline"
                                 size="icon"
                                 className="bg-card"
-                                onClick={handleDeleteTransform}
+                                onClick={handleDeleteWall}
                                 disabled={loading}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Delete Transform</p>
+                            <p>Delete Wall</p>
                         </TooltipContent>
                     </Tooltip>
                 )}

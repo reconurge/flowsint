@@ -8,7 +8,7 @@ import { useParams } from "@tanstack/react-router"
 import { SkeletonList } from "../shared/skeleton-list"
 import NewSketch from "../sketches/new-sketch"
 import { SketchListItem } from "./investigation-list"
-
+import { useState, useMemo } from "react"
 
 const SketchList = () => {
     const { investigationId } = useParams({ strict: false })
@@ -16,6 +16,17 @@ const SketchList = () => {
         queryKey: ["investigations", "sketches", investigationId],
         queryFn: () => investigationService.getById(investigationId as string),
     })
+    const [searchQuery, setSearchQuery] = useState("")
+
+    const filteredSketches = useMemo(() => {
+        if (!investigation?.sketches) return []
+        if (!searchQuery.trim()) return investigation.sketches
+
+        const query = searchQuery.toLowerCase().trim()
+        return investigation.sketches.filter((sketch) => 
+            sketch.title.toLowerCase().includes(query)
+        )
+    }, [investigation?.sketches, searchQuery])
 
     if (error) return <div>Error: {(error as Error).message}</div>
     return (
@@ -26,7 +37,13 @@ const SketchList = () => {
                         <PlusIcon className="h-4 w-4" />
                     </Button>
                 </NewSketch>
-                <Input type="search" className="!border border-border h-7" placeholder="Search a sketch..." />
+                <Input 
+                    type="search" 
+                    className="!border border-border h-7" 
+                    placeholder="Search..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
             </div>
 
             <div className="flex-1 overflow-auto">
@@ -34,9 +51,9 @@ const SketchList = () => {
                     <div className="p-2">
                         <SkeletonList rowCount={7} />
                     </div>
-                ) : investigation?.sketches && investigation.sketches.length > 0 ? (
+                ) : filteredSketches.length > 0 ? (
                     <ul>
-                        {investigation.sketches.map((sketch: Sketch) => (
+                        {filteredSketches.map((sketch: Sketch) => (
                             <SketchListItem
                                 refetch={refetch}
                                 key={sketch.id}
@@ -49,9 +66,14 @@ const SketchList = () => {
                     <div className="p-6 flex flex-col items-center text-center gap-3 text-muted-foreground">
                         <Waypoints className="h-10 w-10 text-yellow-500" />
                         <div className="space-y-1">
-                            <h3 className="text-sm font-semibold text-foreground">No sketches yet</h3>
+                            <h3 className="text-sm font-semibold text-foreground">
+                                {searchQuery ? "No matching sketches" : "No sketches yet"}
+                            </h3>
                             <p className="text-xs opacity-70 max-w-xs">
-                                This investigation doesn't contain any sketch. Sketches let you organize and visualize your data as graphs.
+                                {searchQuery 
+                                    ? "Try adjusting your search query to find what you're looking for."
+                                    : "This investigation doesn't contain any sketch. Sketches let you organize and visualize your data as graphs."
+                                }
                             </p>
                         </div>
                         <NewSketch noDropDown>

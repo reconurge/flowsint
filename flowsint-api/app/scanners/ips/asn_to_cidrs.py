@@ -8,6 +8,7 @@ from app.types.cidr import CIDR
 from app.types.ip import MinimalIp
 from app.types.asn import ASN
 from app.utils import is_valid_asn, parse_asn, resolve_type
+from app.core.logger import Logger
 
 InputType: TypeAlias = List[ASN]
 OutputType: TypeAlias = List[CIDR]
@@ -63,7 +64,7 @@ class AsnToCidrsScanner(Scanner):
                 if asn_obj and is_valid_asn(str(asn_obj.number)):
                     cleaned.append(asn_obj)
             except ValueError:
-                self.logger.warn(f"Invalid ASN format: {item}")
+                Logger.warn(self.sketch_id, f"Invalid ASN format: {item}")
                 continue
         return cleaned
 
@@ -71,7 +72,6 @@ class AsnToCidrsScanner(Scanner):
         """Find CIDR from ASN using asnmap."""
         cidrs: OutputType = []
         self._asn_to_cidrs_map = []  # Store mapping for postprocess
-        self.logger.debug(message=f"[ASN_TO_CIDRS_SCANNER]: input data: {str(data)}")
 
         for asn in data:
             asn_cidrs = []
@@ -84,14 +84,14 @@ class AsnToCidrsScanner(Scanner):
                         cidrs.append(cidr)
                         asn_cidrs.append(cidr)
                     except Exception as e:
-                        self.logger.error(f"Failed to parse CIDR {cidr_str}: {str(e)}")
+                        Logger.error(self.sketch_id, f"Failed to parse CIDR {cidr_str}: {str(e)}")
                 # If no valid CIDRs were added, add the default one
                 if not any(str(c.network) != "0.0.0.0/0" for c in asn_cidrs):
                     default_cidr = CIDR(network="0.0.0.0/0")
                     cidrs.append(default_cidr)
                     asn_cidrs.append(default_cidr)
             else:
-                self.logger.warn(f"No CIDRs found for ASN {asn.number}")
+                Logger.warn(self.sketch_id, f"No CIDRs found for ASN {asn.number}")
                 # Add an empty CIDR to maintain input/output mapping
                 default_cidr = CIDR(network="0.0.0.0/0")
                 cidrs.append(default_cidr)
@@ -108,7 +108,7 @@ class AsnToCidrsScanner(Scanner):
                 capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
-                self.logger.info(f"No CIDRs found for {asn}.")
+                Logger.info(self.sketch_id, f"No CIDRs found for {asn}.")
                 return None
             try:
                 # Parse the JSON array
@@ -136,11 +136,11 @@ class AsnToCidrsScanner(Scanner):
                 return combined_data if combined_data["as_range"] else None
 
             except json.JSONDecodeError:
-                self.logger.error(f"Failed to parse JSON from asnmap output: {result.stdout}")
+                Logger.error(self.sketch_id, f"Failed to parse JSON from asnmap output: {result.stdout}")
                 return None
 
         except Exception as e:
-            self.logger.error(message=f"asnmap exception for {asn}: {str(e)}")
+            Logger.error(self.sketch_id, f"asnmap exception for {asn}: {str(e)}")
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -154,7 +154,7 @@ class AsnToCidrsScanner(Scanner):
                         continue  # Skip default CIDR for unknown ASN
                     if self.neo4j_conn:
                         query = """
-                        MERGE (asn:ASN {number: $asn_number})
+                        MERGE (asn:asn {number: $asn_number})
                         SET asn.sketch_id = $sketch_id,
                             asn.name = $asn_name,
                             asn.country = $asn_country,
@@ -162,7 +162,7 @@ class AsnToCidrsScanner(Scanner):
                             asn.caption = $asn_caption,
                             asn.type = "asn"
                         
-                        MERGE (cidr:CIDR {network: $cidr_network})
+                        MERGE (cidr:cidr {network: $cidr_network})
                         SET cidr.sketch_id = $sketch_id,
                             cidr.label = $cidr_network,
                             cidr.caption = $cidr_network,

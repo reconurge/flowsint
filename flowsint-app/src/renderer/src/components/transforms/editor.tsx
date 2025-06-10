@@ -77,7 +77,6 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
     const [currentStepIndex, setCurrentStepIndex] = useState(0)
     const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
     const [transformBranches, setTransformsBranches] = useState<any[]>([])
-
     const nodes = useFlowStore(state => state.nodes)
     const edges = useFlowStore(state => state.edges)
     const selectedNode = useFlowStore(state => state.selectedNode)

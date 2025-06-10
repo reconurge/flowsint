@@ -24,7 +24,6 @@ import { Route as AuthDashboardToolsImport } from './routes/_auth.dashboard.tool
 import { Route as AuthDashboardTransformsIndexImport } from './routes/_auth.dashboard.transforms.index'
 import { Route as AuthDashboardInvestigationsIndexImport } from './routes/_auth.dashboard.investigations.index'
 import { Route as AuthDashboardTransformsTransformIdImport } from './routes/_auth.dashboard.transforms.$transformId'
-import { Route as AuthDashboardInvestigationsWallImport } from './routes/_auth.dashboard.investigations.wall'
 import { Route as AuthDashboardInvestigationsInvestigationIdIndexImport } from './routes/_auth.dashboard.investigations.$investigationId.index'
 import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdImport } from './routes/_auth.dashboard.investigations.$investigationId.$type.$id'
 
@@ -105,13 +104,6 @@ const AuthDashboardTransformsTransformIdRoute =
   AuthDashboardTransformsTransformIdImport.update({
     id: '/transforms/$transformId',
     path: '/transforms/$transformId',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
-
-const AuthDashboardInvestigationsWallRoute =
-  AuthDashboardInvestigationsWallImport.update({
-    id: '/investigations/wall',
-    path: '/investigations/wall',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
 
@@ -196,13 +188,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardIndexImport
       parentRoute: typeof AuthDashboardImport
     }
-    '/_auth/dashboard/investigations/wall': {
-      id: '/_auth/dashboard/investigations/wall'
-      path: '/investigations/wall'
-      fullPath: '/dashboard/investigations/wall'
-      preLoaderRoute: typeof AuthDashboardInvestigationsWallImport
-      parentRoute: typeof AuthDashboardImport
-    }
     '/_auth/dashboard/transforms/$transformId': {
       id: '/_auth/dashboard/transforms/$transformId'
       path: '/transforms/$transformId'
@@ -246,7 +231,6 @@ declare module '@tanstack/react-router' {
 interface AuthDashboardRouteChildren {
   AuthDashboardToolsRoute: typeof AuthDashboardToolsRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
-  AuthDashboardInvestigationsWallRoute: typeof AuthDashboardInvestigationsWallRoute
   AuthDashboardTransformsTransformIdRoute: typeof AuthDashboardTransformsTransformIdRoute
   AuthDashboardInvestigationsIndexRoute: typeof AuthDashboardInvestigationsIndexRoute
   AuthDashboardTransformsIndexRoute: typeof AuthDashboardTransformsIndexRoute
@@ -257,7 +241,6 @@ interface AuthDashboardRouteChildren {
 const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
   AuthDashboardToolsRoute: AuthDashboardToolsRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
-  AuthDashboardInvestigationsWallRoute: AuthDashboardInvestigationsWallRoute,
   AuthDashboardTransformsTransformIdRoute:
     AuthDashboardTransformsTransformIdRoute,
   AuthDashboardInvestigationsIndexRoute: AuthDashboardInvestigationsIndexRoute,
@@ -292,7 +275,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthDashboardRouteWithChildren
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
-  '/dashboard/investigations/wall': typeof AuthDashboardInvestigationsWallRoute
   '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
   '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
   '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
@@ -309,7 +291,6 @@ export interface FileRoutesByTo {
   '/toolbar': typeof ToolbarLazyRoute
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard': typeof AuthDashboardIndexRoute
-  '/dashboard/investigations/wall': typeof AuthDashboardInvestigationsWallRoute
   '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
   '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
   '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
@@ -328,7 +309,6 @@ export interface FileRoutesById {
   '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
   '/_auth/dashboard/tools': typeof AuthDashboardToolsRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
-  '/_auth/dashboard/investigations/wall': typeof AuthDashboardInvestigationsWallRoute
   '/_auth/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
   '/_auth/dashboard/investigations/': typeof AuthDashboardInvestigationsIndexRoute
   '/_auth/dashboard/transforms/': typeof AuthDashboardTransformsIndexRoute
@@ -348,7 +328,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/tools'
     | '/dashboard/'
-    | '/dashboard/investigations/wall'
     | '/dashboard/transforms/$transformId'
     | '/dashboard/investigations'
     | '/dashboard/transforms'
@@ -364,7 +343,6 @@ export interface FileRouteTypes {
     | '/toolbar'
     | '/dashboard/tools'
     | '/dashboard'
-    | '/dashboard/investigations/wall'
     | '/dashboard/transforms/$transformId'
     | '/dashboard/investigations'
     | '/dashboard/transforms'
@@ -381,7 +359,6 @@ export interface FileRouteTypes {
     | '/_auth/dashboard'
     | '/_auth/dashboard/tools'
     | '/_auth/dashboard/'
-    | '/_auth/dashboard/investigations/wall'
     | '/_auth/dashboard/transforms/$transformId'
     | '/_auth/dashboard/investigations/'
     | '/_auth/dashboard/transforms/'
@@ -453,7 +430,6 @@ export const routeTree = rootRoute
       "children": [
         "/_auth/dashboard/tools",
         "/_auth/dashboard/",
-        "/_auth/dashboard/investigations/wall",
         "/_auth/dashboard/transforms/$transformId",
         "/_auth/dashboard/investigations/",
         "/_auth/dashboard/transforms/",
@@ -467,10 +443,6 @@ export const routeTree = rootRoute
     },
     "/_auth/dashboard/": {
       "filePath": "_auth.dashboard.index.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/investigations/wall": {
-      "filePath": "_auth.dashboard.investigations.wall.tsx",
       "parent": "/_auth/dashboard"
     },
     "/_auth/dashboard/transforms/$transformId": {

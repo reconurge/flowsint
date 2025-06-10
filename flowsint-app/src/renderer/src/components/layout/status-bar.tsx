@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { HelpCircle, Info, Terminal, Trash, Unlock } from "lucide-react"
+import { HelpCircle, Terminal, Trash, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
 import { useLayoutStore } from "@/stores/layout-store"
 import Legend from "../sketches/legend"

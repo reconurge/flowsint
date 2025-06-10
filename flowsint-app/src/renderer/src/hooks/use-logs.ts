@@ -11,36 +11,41 @@ export interface Log {
     created_at: string
 }
 
-export function useLogs() {
+export function useLogs(sketch_id: string | undefined) {
     const [realtimeLogs, setRealtimeLogs] = useState<Log[]>([])
-    const [unreadCount, setUnreadCount] = useState(0)
 
     const { data: previousLogs = [], refetch } = useQuery({
-        queryKey: ["logs"],
-        queryFn: logService.get,
+        queryKey: ["logs", sketch_id],
+        queryFn: () => logService.get(sketch_id as string),
         refetchOnWindowFocus: false,
+        enabled: !!sketch_id,
         staleTime: 30_000, // Consider data fresh for 30 seconds
     })
 
+    const handleRefresh = () => {
+        refetch()
+        setRealtimeLogs([]) // Clear realtime logs on refresh to avoid duplicates
+    }
+
     useEffect(() => {
-        console.log("[useLogs] Setting up SSE connection")
-        const eventSource = new EventSource(`http://localhost:5001/api/logs/stream`)
+        const eventSource = new EventSource(`http://localhost:5001/api/logs/sketch/${sketch_id}/stream`)
 
-        eventSource.onopen = () => {
-            console.log("[useLogs] SSE connection opened")
-        }
-
-        eventSource.addEventListener("log", (event) => {
-            console.log("[useLogs] Received log event:", event.data)
+        eventSource.onmessage = (event) => {
             try {
-                const log = JSON.parse(event.data) as Log
-                console.log("[useLogs] Parsed log:", log)
-                setRealtimeLogs((prevLogs) => [...prevLogs.slice(-99), log])
-                setUnreadCount((count) => count + 1)
-            } catch (error) {
+                let log = JSON.parse(event.data)
+                log = JSON.parse(log["data"]) as Log
+                log.content = JSON.parse(log.content)
+                console.log("[useLogs] Received log event:", log)
+
+                setRealtimeLogs((prevLogs) => {
+                    const newLogs = [...prevLogs.slice(-99), log]
+                    return newLogs
+                })
+            }
+            catch (error) {
                 console.error("[useLogs] Failed to parse log event:", error)
             }
-        })
+        }
 
         eventSource.onerror = (error) => {
             console.error("[useLogs] EventSource error:", error)
@@ -51,17 +56,13 @@ export function useLogs() {
             console.log("[useLogs] Cleaning up SSE connection")
             eventSource.close()
         }
-    }, [])
+    }, [sketch_id])
 
     // Combine previous and realtime logs, keeping the most recent 100
     const logs = [...previousLogs, ...realtimeLogs].slice(-100)
 
-    const resetUnreadCount = () => setUnreadCount(0)
-
     return {
         logs,
-        unreadCount,
-        resetUnreadCount,
-        refetch
+        refetch: handleRefresh
     }
 } 

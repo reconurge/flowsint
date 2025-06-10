@@ -104,7 +104,7 @@ class SireneScanner(Scanner):
 
         for org in results:
             self.neo4j_conn.query("""
-                MERGE (o:Organization {name: $name, country: $country})
+                MERGE (o:organization {name: $name, country: $country})
                 SET o.founding_date = $founding_date,
                     o.description = $description,
                     o.label = $label,

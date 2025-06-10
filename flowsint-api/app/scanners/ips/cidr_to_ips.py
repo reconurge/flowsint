@@ -5,6 +5,7 @@ from app.scanners.base import Scanner
 from app.types.cidr import CIDR
 from app.types.ip import MinimalIp
 from app.utils import resolve_type
+from app.core.logger import Logger
 
 InputType: TypeAlias = List[CIDR]
 OutputType: TypeAlias = List[MinimalIp]
@@ -60,14 +61,13 @@ class CidrToIpsScanner(Scanner):
                 if cidr_obj:
                     cleaned.append(cidr_obj)
             except ValueError:
-                self.logger.warn(f"Invalid CIDR format: {item}")
+                Logger.warn(self.sketch_id, f"Invalid CIDR format: {item}")
                 continue
         return cleaned
 
     def scan(self, data: InputType) -> OutputType:
         """Find IP addresses from CIDR using dnsx."""
         ips: OutputType = []
-        self.logger.debug(message=f"[CIDR_TO_IPS_SCANNER]: input data: {str(data)}")
         for cidr in data:
             ip_addresses = self.__get_ips_from_cidr(cidr.network)
             if ip_addresses:
@@ -76,9 +76,9 @@ class CidrToIpsScanner(Scanner):
                         ip = MinimalIp(address=ip_str.strip())
                         ips.append(ip)
                     except Exception as e:
-                        self.logger.error(f"Failed to parse IP {ip_str}: {str(e)}")
+                        Logger.error(self.sketch_id, f"Failed to parse IP {ip_str}: {str(e)}")
             else:
-                self.logger.warn(f"No IPs found for CIDR {cidr.network}")
+                Logger.warn(self.sketch_id, f"No IPs found for CIDR {cidr.network}")
         return ips
     
     def __get_ips_from_cidr(self, cidr: str) -> List[str]:
@@ -92,7 +92,7 @@ class CidrToIpsScanner(Scanner):
                 timeout=60
             )
             if not result.stdout.strip():
-                self.logger.info(f"No IPs found for {cidr}.")
+                Logger.info(self.sketch_id, f"No IPs found for {cidr}.")
                 return []
             
             # Split the output by newlines and filter out empty lines
@@ -100,22 +100,22 @@ class CidrToIpsScanner(Scanner):
             return ip_addresses
 
         except Exception as e:
-            self.logger.error(message=f"dnsx exception for {cidr}: {str(e)}")
+            Logger.error(self.sketch_id, f"dnsx exception for {cidr}: {str(e)}")
             return []
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
-        self.logger.info(message=f"RESULTS for CIDRTOIPS {str(results)}")
+        Logger.info(self.sketch_id, f"RESULTS for CIDRTOIPS {str(results)}")
         for cidr, ip in zip(original_input, results):
             if self.neo4j_conn:
                 query = """
-                MERGE (cidr:CIDR {network: $cidr_network})
+                MERGE (cidr:cidr {network: $cidr_network})
                 SET cidr.sketch_id = $sketch_id,
                     cidr.label = $cidr_network,
                     cidr.caption = $cidr_network,
                     cidr.type = "cidr"
                 
-                MERGE (ip:IP {address: $ip_address})
+                MERGE (ip:ip {address: $ip_address})
                 SET ip.sketch_id = $sketch_id,
                     ip.label = $ip_address,
                     ip.caption = $ip_address,

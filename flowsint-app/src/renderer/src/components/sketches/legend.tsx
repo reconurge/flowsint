@@ -1,84 +1,45 @@
-import { memo, useState } from 'react'
-import { Card } from '../ui/card'
+import { memo } from 'react'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
-import { AnimatePresence, motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { Eye, EyeOff } from 'lucide-react'
-
-const MAX_ENTRIES = 6
+import { Info } from 'lucide-react'
+import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
+import { Button } from '../ui/button'
 
 const Legend = () => {
-    const [showAll, setShowAll] = useState(false)
-    const [isVisible, setIsVisible] = useState(false)
-
     const getIcon = useNodesDisplaySettings(s => s.getIcon)
     const colors = useNodesDisplaySettings(s => s.colors)
     const entries = Object.entries(colors)
-    const visibleEntries = showAll ? entries : entries.slice(0, MAX_ENTRIES)
-    const left = entries.length - MAX_ENTRIES
 
     return (
-        <div className='absolute text-xs bottom-2 left-2'>
-            <div className='flex items-center gap-2'>
-                <button
-                    onClick={() => setIsVisible(prev => !prev)}
-                    className='p-1.5 rounded-full bg-background/30 backdrop-blur-sm hover:bg-background/50 transition-colors'
-                    title={isVisible ? 'Hide legend' : 'Show legend'}
-                >
-                    {isVisible ? <EyeOff className='opacity-70' size={14} /> : <Eye className='opacity-70' size={14} />}
-                </button>
-                <AnimatePresence>
-                    {isVisible && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <Card className='p-2 rounded-mdbackdrop-blur-sm bg-background/30 border-none'>
-                                <div>
-                                    <ul className={cn('grid grid-cols-2 items-center gap-1', showAll && 'grid-cols-3')}>
-                                        <AnimatePresence initial={false}>
-                                            {visibleEntries.map(([key, value]) => (
-                                                <motion.li
-                                                    key={key}
-                                                    layout
-                                                    initial={{ opacity: 0, y: -5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -5 }}
-                                                    transition={{ duration: 0.2 }}
-                                                >
-                                                    <div className='flex items-center gap-2'>
-                                                        {/* @ts-ignore */}
-                                                        <span>{getIcon(key)}</span>
-                                                        <span className='capitalize'>{key.split("_").join(" ")}</span>
-                                                        <span
-                                                            className='w-2 h-2 rounded-full'
-                                                            style={{ backgroundColor: value }}
-                                                        ></span>
-                                                    </div>
-                                                </motion.li>
-                                            ))}
-                                        </AnimatePresence>
-                                    </ul>
-                                    {entries.length > MAX_ENTRIES && (
-                                        <motion.button
-                                            onClick={() => setShowAll(prev => !prev)}
-                                            className='mt-2 text-blue-500 hover:underline'
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.2 }}
-                                        >
-                                            {showAll ? 'Show less' : `Show more (${left})`}
-                                        </motion.button>
-                                    )}
-                                </div>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
-        </div>
+        <>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <div>
+                        <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
+                            <Info className="h-3 w-3 opacity-60" />
+                        </Button>
+                    </div>
+                </DialogTrigger>
+                <DialogContent className='sm:max-w-md'>
+                    <div className='p-2'>
+                        <ul className='grid grid-cols-2 items-center gap-1'>
+                            {entries.map(([key, value]) => (
+                                <li key={key}>
+                                    <div className='flex items-center gap-2'>
+                                        {/* @ts-ignore */}
+                                        <span>{getIcon(key)}</span>
+                                        <span className='capitalize'>{key.split("_").join(" ")}</span>
+                                        <span
+                                            className='w-2 h-2 rounded-full'
+                                            style={{ backgroundColor: value }}
+                                        ></span>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 

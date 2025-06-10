@@ -1,13 +1,15 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import (
     String, Text, DateTime, ForeignKey,
-    Index, func, text, JSON
+    Index, func, text, JSON, Column, Integer, Enum as SQLEnum
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from app.core.enums import ScannerStatus
 
 
 class Feedback(Base):
@@ -58,7 +60,6 @@ class Log(Base):
     __tablename__ = "logs"
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    scan_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("scans.id", ondelete="CASCADE"), nullable=True)
     content = mapped_column(Text)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     sketch_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
@@ -81,15 +82,18 @@ class Scan(Base):
     __tablename__ = "scans"
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
-    status = mapped_column(String, nullable=True)
-    results = mapped_column(JSON, nullable=True)
-    values = mapped_column(ARRAY(Text), nullable=True)
-    sketch_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
-
-    __table_args__ = (
-        Index("idx_scans_sketch_id", "sketch_id"),
-    )
+    sketch_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
+    status = Column(SQLEnum(ScannerStatus), default=ScannerStatus.PENDING)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    error = Column(Text, nullable=True)
+    details = Column(JSON, nullable=True)
+    
+    # Relationships
+    sketch = relationship("Sketch", back_populates="scans")
+    
+    def __repr__(self):
+        return f"<Scan(id={self.id}, status={self.status})>"
 
 
 class Sketch(Base):
@@ -104,6 +108,7 @@ class Sketch(Base):
     investigation_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"))
     investigation = relationship("Investigation", back_populates="sketches")
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    scans = relationship("Scan", back_populates="sketch")
 
     __table_args__ = (
         Index("idx_sketches_investigation_id", "investigation_id"),

@@ -122,6 +122,7 @@ const GraphContent = memo(() => {
         cosmograph?.cosmograph?.zoomToNode(node)
     }, [toggleNodeSelection, cosmograph?.cosmograph])
 
+    //@ts-ignore
     const handleNodeClick = useCallback((clickedNode?: any, index?: number, nodePosition?: [number, number], event?: MouseEvent) => {
         if (!clickedNode) {
             clearSelectedNodes()
@@ -278,7 +279,6 @@ const Graph = memo(() => {
                     </ResizablePanel> */}
                 </ResizablePanelGroup>
             </GraphProvider>
-            <Legend />
         </div>
     )
 })

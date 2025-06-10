@@ -38,6 +38,7 @@ const SecondaryNavigation = () => {
             </div>
         )
     }
+
     if (pathname.startsWith("/dashboard/transforms")) {
         return (
             <div className="grow w-full h-full overflow-x-hidden">

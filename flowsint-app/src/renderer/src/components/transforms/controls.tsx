@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Panel } from "@xyflow/react"
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { TransformDetailsPanel } from "./transform-name-panel"
+import { TransformDetailsPanel } from "../transforms/transform-name-panel"
 
 interface FlowControlsProps {
     loading: boolean

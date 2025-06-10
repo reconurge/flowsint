@@ -1,5 +1,5 @@
 import { useLoaderData } from '@tanstack/react-router'
-import { useEffect, useRef, memo, useState } from 'react'
+import { useEffect, useRef, memo, useState, lazy, Suspense } from 'react'
 // import Graph from '../sketches/graph'
 import { useSketchStore } from '@/stores/sketch-store'
 import { Toolbar } from '../sketches/toolbar'
@@ -7,7 +7,11 @@ import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
 // import GraphSigma from '../sketches/graph-sigma'
-import Graph from '../sketches/graph'
+import type { InvestigationGraph, NodeData, EdgeData } from '@/types'
+import GraphLoader from './graph-loader'
+
+const GraphReactForce = lazy(() => import('../sketches/graph-react-force'))
+const Graph = lazy(() => import('../sketches/graph'))
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -24,11 +28,17 @@ const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
 ))
 DragOverlay.displayName = 'DragOverlay'
 
-const GraphPanel = () => {
+interface GraphPanelProps {
+    graphData: { nds: NodeData[]; rls: EdgeData[] } | null;
+    isLoading: boolean;
+}
+
+const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     const graphPanelRef = useRef<HTMLDivElement>(null)
     const handleOpenFormModal = useSketchStore(s => s.handleOpenFormModal)
+    const nodes = useSketchStore(s => s.nodes)
     const updateGraphData = useSketchStore(s => s.updateGraphData)
-    const { sketch, graphData } = useLoaderData({
+    const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
     const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -66,6 +76,9 @@ const GraphPanel = () => {
             }
         }
     }
+    if (isLoading) {
+        return <GraphLoader />
+    }
 
     if (!sketch || !graphData) {
         return (
@@ -91,11 +104,20 @@ const GraphPanel = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <Graph />
+            <Suspense fallback={
+                <div className="h-full w-full flex items-center justify-center">
+                    <div className="text-center">
+                        <p className="text-muted-foreground">Loading graph...</p>
+                    </div>
+                </div>
+            }>
+                {nodes?.length > 2000 ? <Graph /> : <GraphReactForce />}
+            </Suspense>
+            {/* <Graph /> */}
             {/* <GraphSigma /> */}
             <DragOverlay isDragging={isDraggingOver} />
             <div className='absolute w-10 right-3 top-3 h-min shadow-sm border rounded-full overflow-y-auto'>
-                <Toolbar />
+                <Toolbar isLoading={isLoading} />
             </div>
             <CreateRelationDialog />
         </div>

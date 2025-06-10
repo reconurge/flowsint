@@ -2,13 +2,13 @@ import { fetchWithAuth } from './api';
 
 
 export const logService = {
-    get: async (): Promise<any> => {
-        return fetchWithAuth('/api/logs', {
+    get: async (sketch_id: string): Promise<any> => {
+        return fetchWithAuth(`/api/logs/sketch/${sketch_id}`, {
             method: 'GET',
         });
     },
-    delete: async (): Promise<any> => {
-        return fetchWithAuth(`/api/logs`, {
+    delete: async (sketch_id: string): Promise<any> => {
+        return fetchWithAuth(`/api/logs/sketch/${sketch_id}`, {
             method: 'DELETE',
         });
     },

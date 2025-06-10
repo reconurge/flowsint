@@ -1,7 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 from app.types.email import Email
-from app.types.domain import Domain
 
 class Whois(BaseModel):
     registrar: Optional[str] = Field(None, description="Domain registrar name")

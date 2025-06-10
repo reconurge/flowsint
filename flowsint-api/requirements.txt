@@ -26,3 +26,4 @@ alembic
 passlib[bcrypt]
 sse-starlette
 networkx
+pydantic_neo4j

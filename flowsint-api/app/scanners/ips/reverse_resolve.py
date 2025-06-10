@@ -5,6 +5,7 @@ import dns.resolver
 import requests
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
+from app.core.logger import Logger
 from app.scanners.base import Scanner
 from app.types.domain import MinimalDomain
 from app.types.ip import MinimalIp
@@ -79,14 +80,14 @@ class ReverseResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for ip_obj, domain_obj in zip(original_input, results):
-            self.logger.success(message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            Logger.success(self.sketch_id, message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
             query = """
-            MERGE (ip:IP {address: $address})
+            MERGE (ip:ip {address: $address})
             SET ip.sketch_id = $sketch_id,
                 ip.label = $label,
                 ip.caption = $caption,
                 ip.type = $type
-            MERGE (domain:Domain {domain: $domain})
+            MERGE (domain:domain {domain: $domain})
             MERGE (ip)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(domain)
             """
             if self.neo4j_conn:

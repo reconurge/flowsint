@@ -7,7 +7,7 @@ from app.utils import flatten
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
-from app.models.models import Sketch, Profile, Investigation
+from app.models.models import Sketch, Profile
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.core.graph_db import neo4j_connection
@@ -76,7 +76,7 @@ def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile
 
 @router.get("/{id}/graph")
 async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = db.query(Sketch).filter(Sketch.id == id).first()
+    sketch = db.query(Sketch).filter(Sketch.id == id, Sketch.owner_id == current_user.id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Graph not found")
     import random
@@ -138,7 +138,7 @@ def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
 @router.post("/{sketch_id}/nodes/add")
 def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)):
     
-    node_type = getattr(node, "type", "unknown")
+    node_type = getattr(node, "type", "unknown").lower()
     node_data = getattr(node, "data", {})
 
     properties = {

@@ -1,9 +1,6 @@
 from uuid import UUID
-from sqlalchemy.orm import Session
-from typing import Literal, Optional, Union
-from datetime import datetime
+from typing import Literal, Union
 from app.models.models import Log
-from app.core.events import event_emitter, GLOBAL_STREAM
 from app.tasks.logging import emit_log_task
 from app.core.postgre_db import get_db
 import logging
@@ -22,65 +19,64 @@ LEVEL_MAP = {
 
 
 class Logger:
-    def __init__(self, scan_id: Optional[Union[str, UUID]] = None, sketch_id: Optional[Union[str, UUID]] = None):
-        self.scan_id = str(scan_id) if scan_id and not isinstance(scan_id, Session) else None
-        self.sketch_id = str(sketch_id) if sketch_id and not isinstance(sketch_id, Session) else None
-        self.db = next(get_db())
-        logger.debug(f"Logger initialized for scan_id: {scan_id}, sketch_id: {sketch_id}")
-
-    def _create_log(self, type: str, content: str) -> Log:
+    @staticmethod
+    def _create_log(sketch_id: Union[str, UUID], type: str, content: str) -> Log:
         """Create a log entry in the database"""
-        log = Log(
-            scan_id=self.scan_id,
-            sketch_id=self.sketch_id,
-            type=type,
-            content=content
-        )
-        self.db.add(log)
-        self.db.commit()
-        self.db.refresh(log)
-        return log
+        db = next(get_db())
+        try:
+            log = Log(
+                sketch_id=str(sketch_id),
+                type=type,
+                content=content
+            )
+            db.add(log)
+            db.commit()
+            db.refresh(log)
+            return log
+        finally:
+            db.close()
 
-    def _format_message(self, type: str, message: str) -> str:
+    @staticmethod
+    def _format_message(type: str, message: str) -> str:
         """Format the log message with type prefix"""
         return f"[{type.upper()}] {message}"
 
-    def info(self, message: str):
+    @staticmethod
+    def info(sketch_id: Union[str, UUID], message: str):
         """Log an info message"""
-        formatted_message = self._format_message("INFO", message)
+        formatted_message = Logger._format_message("INFO", message)
         logger.info(formatted_message)
-        log = self._create_log("INFO", formatted_message)
-        emit_log_task.delay(str(log.id), self.scan_id, "INFO", formatted_message)
+        log = Logger._create_log(sketch_id, "INFO", formatted_message)
+        emit_log_task.delay(str(log.id), str(sketch_id), "INFO", formatted_message)
 
-    def error(self, message: str):
+    @staticmethod
+    def error(sketch_id: Union[str, UUID], message: str):
         """Log an error message"""
-        formatted_message = self._format_message("ERROR", message)
+        formatted_message = Logger._format_message("ERROR", message)
         logger.error(formatted_message)
-        log = self._create_log("ERROR", formatted_message)
-        emit_log_task.delay(str(log.id), self.scan_id, "ERROR", formatted_message)
+        log = Logger._create_log(sketch_id, "ERROR", formatted_message)
+        emit_log_task.delay(str(log.id), str(sketch_id), "ERROR", formatted_message)
 
-    def warn(self, message: str):
+    @staticmethod
+    def warn(sketch_id: Union[str, UUID], message: str):
         """Log a warning message"""
-        formatted_message = self._format_message("WARNING", message)
+        formatted_message = Logger._format_message("WARNING", message)
         logger.warn(formatted_message)
-        log = self._create_log("WARNING", formatted_message)
-        emit_log_task.delay(str(log.id), self.scan_id, "WARNING", formatted_message)
+        log = Logger._create_log(sketch_id, "WARNING", formatted_message)
+        emit_log_task.delay(str(log.id), str(sketch_id), "WARNING", formatted_message)
 
-    def debug(self, message: str):
+    @staticmethod
+    def debug(sketch_id: Union[str, UUID], message: str):
         """Log a debug message"""
-        formatted_message = self._format_message("DEBUG", message)
+        formatted_message = Logger._format_message("DEBUG", message)
         logger.debug(formatted_message)
-        log = self._create_log("DEBUG", formatted_message)
-        emit_log_task.delay(str(log.id), self.scan_id, "DEBUG", formatted_message)
+        log = Logger._create_log(sketch_id, "DEBUG", formatted_message)
+        emit_log_task.delay(str(log.id), str(sketch_id), "DEBUG", formatted_message)
 
-    def success(self, message: str):
+    @staticmethod
+    def success(sketch_id: Union[str, UUID], message: str):
         """Log a success message"""
-        formatted_message = self._format_message("SUCCESS", message)
+        formatted_message = Logger._format_message("SUCCESS", message)
         logger.info(formatted_message)
-        log = self._create_log("SUCCESS", formatted_message)
-        emit_log_task.delay(str(log.id), self.scan_id, "SUCCESS", formatted_message)
-
-    def __del__(self):
-        """Clean up database connection"""
-        if hasattr(self, 'db'):
-            self.db.close()
+        log = Logger._create_log(sketch_id, "SUCCESS", formatted_message)
+        emit_log_task.delay(str(log.id), str(sketch_id), "SUCCESS", formatted_message)

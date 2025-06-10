@@ -1,7 +1,7 @@
 import pytest
 import json
 from unittest.mock import Mock
-from app.scanners.ips.ip_to_asn import AsnScanner
+from app.scanners.ips.ip_to_asn import IpToAsnScanner
 from app.types.ip import MinimalIp
 from app.types.asn import ASN
 from app.types.cidr import CIDR
@@ -9,7 +9,7 @@ from tests.logger import TestLogger
 
 logger = TestLogger()
 # The scanner will get a mock logger from conftest.py automatically
-scanner = AsnScanner("sketch_123", "scan_123", logger)
+scanner = IpToAsnScanner("sketch_123", "scan_123", logger)
 
 def test_preprocess_valid_ips():
     ips = [

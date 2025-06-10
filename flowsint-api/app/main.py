@@ -54,6 +54,3 @@ app.include_router(investigations.router, prefix="/api/investigations", tags=["i
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
-
-# Initialize event system
-init_events(app)

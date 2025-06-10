@@ -1,17 +1,18 @@
 import { createFileRoute, useLoaderData } from '@tanstack/react-router'
 import GraphPanel from '@/components/graphs/graph-panel'
 import { sketchService } from '@/api/sketch-service'
-import type { InvestigationGraph } from '@/types'
-
-// Get queryClient from where it's initialized
-import { getContext } from '@/integrations/tanstack-query/root-provider'
-import Loader from '@/components/loader'
-
-const { queryClient } = getContext();
+import { useQuery } from '@tanstack/react-query'
 
 const GraphPageContent = () => {
-    const { params: { type } } = useLoaderData({
+    const { params: { type, id, investigationId } } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
+    })
+
+    const { data: graphData, isLoading } = useQuery({
+        queryKey: ["investigations", investigationId, type, id, "data"],
+        queryFn: () => type === "graph" ? sketchService.getGraphDataById(id) : Promise.resolve(null),
+        enabled: type === "graph",
+        refetchOnWindowFocus: false
     })
 
     if (type !== "graph") {
@@ -25,34 +26,19 @@ const GraphPageContent = () => {
         )
     }
 
-    return <GraphPanel />
+    return <GraphPanel isLoading={isLoading} graphData={graphData} />
 }
 
 export const Route = createFileRoute('/_auth/dashboard/investigations/$investigationId/$type/$id')({
     loader: async ({ params: { id, type, investigationId } }) => {
-        // Start both requests in parallel
-        const [sketch, graphData] = await Promise.all([
-            sketchService.getById(id),
-            type === "graph" ? sketchService.getGraphDataById(id) : Promise.resolve(null)
-        ])
-
-        // Update cache
-        queryClient.setQueryData(["investigations", investigationId, type, id], sketch)
-        if (graphData) {
-            queryClient.setQueryData<InvestigationGraph>(
-                ["investigations", investigationId, type, id, "data"],
-                graphData as InvestigationGraph
-            )
-        }
-
-        return { params: { id, type, investigationId }, sketch, graphData }
+        const sketch = await sketchService.getById(id)
+        return { params: { id, type, investigationId }, sketch }
     },
 
     pendingComponent: () => (
         <div className="h-full w-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-                {/* <Loader /> */}
-                <p className="text-muted-foreground"><Loader /> Fetching nodes...</p>
+                <p className="text-muted-foreground">Loading...</p>
             </div>
         </div>
     ),

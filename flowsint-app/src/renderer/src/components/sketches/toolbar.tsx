@@ -19,13 +19,16 @@ import {
     Trash,
     Undo,
     ZoomIn,
-    Settings
+    Settings,
+    RotateCw
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { Separator } from "../ui/separator"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
+import { cn } from "@/lib/utils"
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -47,7 +50,7 @@ const ToolbarButton = memo(function ToolbarButton({
                     disabled={disabled}
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 rounded-full"
                 >
                     {icon}
                 </Button>
@@ -56,7 +59,7 @@ const ToolbarButton = memo(function ToolbarButton({
         </Tooltip>
     )
 })
-export const Toolbar = memo(function Toolbar() {
+export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
     const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
     const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
     const removeNodes = useSketchStore((state) => state.removeNodes)
@@ -65,7 +68,22 @@ export const Toolbar = memo(function Toolbar() {
     const zoomIn = useGraphControls((s) => s.zoomIn);
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const { confirm } = useConfirm()
-    const { id: sketchId } = useParams({ from: "/_auth/dashboard/investigations/$investigationId/$type/$id" })
+    const { id: sketchId, investigationId, type } = useParams({ from: "/_auth/dashboard/investigations/$investigationId/$type/$id" })
+
+    const { refetch } = useQuery({
+        queryKey: ["investigations", investigationId, type, sketchId, "data"],
+        queryFn: () => type === "graph" ? sketchService.getGraphDataById(sketchId) : Promise.resolve(null),
+        enabled: type === "graph"
+    })
+
+    const handleRefresh = useCallback(async () => {
+        try {
+            await refetch()
+            toast.success("Graph data refreshed");
+        } catch (error) {
+            toast.error("Failed to refresh graph data");
+        }
+    }, [refetch]);
 
     const handleOpenRelationshipDialog = useCallback(() => {
         setOpenAddRelationDialog(true)
@@ -92,11 +110,11 @@ export const Toolbar = memo(function Toolbar() {
 
     return (
         <div className="flex h-full flex-col items-center justify-start bg-background">
-            <div className="flex flex-col justify-start items-center space-y-1">
+            <div className="flex flex-col justify-start items-center space-y-1 py-1">
                 <TooltipProvider>
-                    <ToolbarButton disabled icon={<Undo className="h-4 w-4 opacity-70" />} tooltip="Undo" />
+                    {/* <ToolbarButton disabled icon={<Undo className="h-4 w-4 opacity-70" />} tooltip="Undo" />
                     <ToolbarButton disabled icon={<Redo className="h-4 w-4 opacity-70" />} tooltip="Redo" />
-                    <Separator orientation="horizontal" />
+                    <Separator orientation="horizontal" /> */}
                     <ToolbarButton
                         icon={<Copy className="h-4 w-4 opacity-70" />}
                         tooltip="Copy"
@@ -137,6 +155,13 @@ export const Toolbar = memo(function Toolbar() {
                     <ToolbarButton disabled icon={<LayoutGrid className="h-4 w-4 opacity-70" />} tooltip="Layout" />
                     <ToolbarButton disabled icon={<Layers className="h-4 w-4 opacity-70" />} tooltip="Layers" />
                     <ToolbarButton onClick={toggleSettings} icon={<Settings className="h-4 w-4 opacity-70" />} tooltip="Settings" />
+                    <Separator />
+                    <ToolbarButton
+                        onClick={handleRefresh}
+                        disabled={isLoading}
+                        icon={<RotateCw className={cn("h-4 w-4 opacity-70", isLoading && "animate-spin")} />}
+                        tooltip="Refresh Graph Data"
+                    />
                 </TooltipProvider>
             </div>
         </div>

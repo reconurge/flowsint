@@ -2,6 +2,7 @@ import { createFileRoute, useLoaderData } from '@tanstack/react-router'
 import GraphPanel from '@/components/graphs/graph-panel'
 import { sketchService } from '@/api/sketch-service'
 import { useQuery } from '@tanstack/react-query'
+import Loader from '@/components/loader'
 
 const GraphPageContent = () => {
     const { params: { type, id, investigationId } } = useLoaderData({
@@ -37,8 +38,8 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
 
     pendingComponent: () => (
         <div className="h-full w-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <p className="text-muted-foreground">Loading...</p>
+            <div className="text-center flex items-center gap-2">
+                <Loader />
             </div>
         </div>
     ),

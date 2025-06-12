@@ -16,6 +16,7 @@ import { ModeToggle } from "./mode-toggle"
 import { authService } from "@/api/auth-service"
 import { useCallback } from "react"
 import { useNavigate } from "@tanstack/react-router"
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 
 
 export function NavUser() {
@@ -33,7 +34,10 @@ export function NavUser() {
             size="lg"
             className="p-0 h-auto rounded-full cursor-pointer"
           >
-            <div className="h-8 w-8 rounded-full bg-muted" />
+            <Avatar>
+              <AvatarImage src="https://cherry.img.pmdstatic.net/fit/https.3A.2F.2Fimg.2Egamesider.2Ecom.2Fs3.2Ffrgsg.2F1280.2Fthe-last-of-us.2Fdefault_2023-11-27_291826c8-5b2b-4928-a167-259dd0b18a7c.2Ejpeg/1200x675/quality/80/the-last-of-us-saison-2-mauvaise-nouvelle-pedro-pascal.jpg" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
           </Button>
         </div>
       </DropdownMenuTrigger>
@@ -44,7 +48,10 @@ export function NavUser() {
       >
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <div className="h-8 w-8 rounded-full bg-muted" />
+            <Avatar>
+              <AvatarImage src="https://cherry.img.pmdstatic.net/fit/https.3A.2F.2Fimg.2Egamesider.2Ecom.2Fs3.2Ffrgsg.2F1280.2Fthe-last-of-us.2Fdefault_2023-11-27_291826c8-5b2b-4928-a167-259dd0b18a7c.2Ejpeg/1200x675/quality/80/the-last-of-us-saison-2-mauvaise-nouvelle-pedro-pascal.jpg" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
             </div>
           </div>

@@ -119,12 +119,12 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         )}
-                        {currentParent ? currentParent.label : "Select an action"}
+                        {currentParent ? currentParent.label : "Select an item to insert"}
                     </DialogTitle>
                     <DialogDescription>
                         {currentParent
                             ? `Select a type of ${currentParent.label.toLowerCase()} to add`
-                            : "Choose an item to add"}
+                            : "Choose an item to insert to the graph."}
                     </DialogDescription>
 
                     <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>

@@ -18,8 +18,8 @@ import { useQuery } from '@tanstack/react-query'
 
 function InvestigationSkeleton() {
     return (
-        <div className="w-full h-full bg-background px-6 py-12 overflow-auto">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="w-full h-full bg-background overflow-y-auto">
+            <div className="max-w-7xl mx-auto p-8 space-y-8">
                 {/* Header Section Skeleton */}
                 <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -35,7 +35,7 @@ function InvestigationSkeleton() {
                 {/* Overview Cards Skeleton */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[...Array(4)].map((_, i) => (
-                        <Card key={i}>
+                        <Card key={i} className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <Skeleton className="h-4 w-24" />
                                 <Skeleton className="h-4 w-4" />
@@ -56,7 +56,7 @@ function InvestigationSkeleton() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="p-4 rounded-xl border border-border bg-card">
+                            <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <Skeleton className="h-4 w-4" />
@@ -83,7 +83,7 @@ function InvestigationSkeleton() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="p-4 rounded-xl border border-border bg-card">
+                            <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <Skeleton className="h-4 w-4" />
@@ -107,7 +107,7 @@ function InvestigationSkeleton() {
                     <Skeleton className="h-6 w-32" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[...Array(2)].map((_, i) => (
-                            <Card key={i}>
+                            <Card key={i} className="hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center gap-3 pb-2">
                                     <Skeleton className="h-9 w-9 rounded-lg" />
                                     <Skeleton className="h-6 w-40" />
@@ -174,33 +174,38 @@ function InvestigationPage() {
     const mostRecentActivity = getMostRecentActivity()
 
     return (
-        <div className="w-full h-full bg-background px-6 py-12 overflow-auto">
-            <div className="max-w-4xl mx-auto space-y-8">
-                {/* Header Section */}
-                <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold">{investigation.name}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Created {formatDistanceToNow(new Date(investigation.created_at), { addSuffix: true })}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                            <Settings className="w-4 h-4" />
-                            Settings
-                        </Button>
-                        <NewSketch noDropDown>
-                            <Button size="sm">
-                                <PlusIcon className="w-4 h-4" />
-                                New
+        <div className="w-full h-full bg-background overflow-y-auto">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-secondary/10 to-primary/10 border-b border-border z-10">
+                <div className="max-w-7xl mx-auto p-8">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-bold text-foreground">{investigation.name}</h1>
+                            <p className="text-muted-foreground">
+                                Created {formatDistanceToNow(new Date(investigation.created_at), { addSuffix: true })}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm">
+                                <Settings className="w-4 h-4 mr-2" />
+                                Settings
                             </Button>
-                        </NewSketch>
+                            <NewSketch>
+                                <Button size="sm">
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    New
+                                </Button>
+                            </NewSketch>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto p-8 space-y-8">
                 {/* Overview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Sketches</CardTitle>
                             <Waypoints className="h-4 w-4 text-muted-foreground" />
@@ -212,7 +217,7 @@ function InvestigationPage() {
                             </p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
                             <FileTextIcon className="h-4 w-4 text-muted-foreground" />
@@ -233,7 +238,7 @@ function InvestigationPage() {
                             )}
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
                             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -258,7 +263,7 @@ function InvestigationPage() {
                             )}
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Collaborators</CardTitle>
                             <Users className="h-4 w-4 text-muted-foreground" />
@@ -311,7 +316,7 @@ function InvestigationPage() {
                                         id: sketch.id,
                                     }}
                                     className={cn(
-                                        'group p-4 rounded-xl border border-border bg-card hover:bg-muted transition-colors',
+                                        'group p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all',
                                         'flex flex-col justify-between h-full'
                                     )}
                                 >
@@ -353,7 +358,7 @@ function InvestigationPage() {
                     {isLoadingAnalyses ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {[...Array(3)].map((_, i) => (
-                                <div key={i} className="p-4 rounded-xl border border-border bg-card">
+                                <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2">
                                             <Skeleton className="h-4 w-4" />
@@ -389,8 +394,8 @@ function InvestigationPage() {
                                     key={analysis.id}
                                     onClick={() => handleAnalysisClick(analysis.id)}
                                     className={cn(
-                                        'group p-4 rounded-xl border border-border bg-card hover:bg-muted transition-colors',
-                                        'flex flex-col justify-between h-full cursor-pointer'
+                                        'group p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all cursor-pointer',
+                                        'flex flex-col justify-between h-full'
                                     )}
                                 >
                                     <div className="space-y-2">
@@ -419,7 +424,7 @@ function InvestigationPage() {
                 <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Quick Actions</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                        <Card className="hover:shadow-md transition-all cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
                                 <div className="bg-blue-600/20 rounded-lg p-2">
                                     <FileText className="w-5 h-5 text-blue-600" />
@@ -430,7 +435,7 @@ function InvestigationPage() {
                                 Export your investigation data and sketches for backup or sharing.
                             </CardContent>
                         </Card>
-                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                        <Card className="hover:shadow-md transition-all cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
                                 <div className="bg-green-600/20 rounded-lg p-2">
                                     <Users className="w-5 h-5 text-green-600" />

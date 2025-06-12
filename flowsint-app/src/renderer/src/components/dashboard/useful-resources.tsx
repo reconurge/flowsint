@@ -6,8 +6,8 @@ export function UsefulResources() {
     return (
         <div className="w-full mt-10">
             <h3 className="text-lg font-semibold mb-2">Useful Resources</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
+            <div className="flex flex-col gap-4">
+                <Card className='gap-3'>
                     <CardHeader>
                         <CardTitle>API Reference</CardTitle>
                         <CardDescription>Explore the API for integrations and automation.</CardDescription>
@@ -21,7 +21,7 @@ export function UsefulResources() {
                         </Button>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className='gap-3'>
                     <CardHeader>
                         <CardTitle>Community & Support</CardTitle>
                         <CardDescription>Get help or connect with other users.</CardDescription>

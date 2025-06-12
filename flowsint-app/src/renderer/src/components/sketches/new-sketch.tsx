@@ -142,11 +142,15 @@ export default function NewSketch({
     return (
         <>
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild><div>{children}</div></DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => setOpen(true)}>
                         New sketch
-                        <span className="ml-auto text-xs text-muted-foreground">⌘ E</span>
+                        {/* <span className="ml-auto text-xs text-muted-foreground">⌘ E</span> */}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled>
+                        New wall
+                        {/* <span className="ml-auto text-xs text-muted-foreground">⌘ E</span> */}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

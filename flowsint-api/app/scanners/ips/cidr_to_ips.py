@@ -3,12 +3,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
-from app.types.ip import MinimalIp
+from app.types.ip import Ip
 from app.utils import resolve_type
 from app.core.logger import Logger
 
 InputType: TypeAlias = List[CIDR]
-OutputType: TypeAlias = List[MinimalIp]
+OutputType: TypeAlias = List[Ip]
 
 class CidrToIpsScanner(Scanner):
     """Takes a CIDR and returns its corresponding IP addresses."""
@@ -73,7 +73,7 @@ class CidrToIpsScanner(Scanner):
             if ip_addresses:
                 for ip_str in ip_addresses:
                     try:
-                        ip = MinimalIp(address=ip_str.strip())
+                        ip = Ip(address=ip_str.strip())
                         ips.append(ip)
                     except Exception as e:
                         Logger.error(self.sketch_id, f"Failed to parse IP {ip_str}: {str(e)}")
@@ -105,7 +105,6 @@ class CidrToIpsScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
-        Logger.info(self.sketch_id, f"RESULTS for CIDRTOIPS {str(results)}")
         for cidr, ip in zip(original_input, results):
             if self.neo4j_conn:
                 query = """

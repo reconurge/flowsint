@@ -366,7 +366,7 @@ body {
 }
 
 :root {
-  --background: oklch(1.50 0 0);
+  --background: oklch(.99 0 0);
   --foreground: oklch(0.27 0 0);
   --card: oklch(1.40 0 0);
   --card-foreground: oklch(0.27 0 0);

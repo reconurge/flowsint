@@ -4,7 +4,7 @@ import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Info, GripVertical } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { getScannerColor } from "./scanner-data"
 

@@ -14,6 +14,7 @@ from app.scanners.ips.asn_to_cidrs import AsnToCidrsScanner
 from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
 from app.scanners.organizations.org_to_asn import OrgToAsnScanner
 from app.scanners.domains.domain_to_asn import DomainToAsnScanner
+from app.scanners.crypto.address_to_transactions import WalletAddressToTransactions
 
 class ScannerRegistry:
     
@@ -79,3 +80,4 @@ ScannerRegistry.register(AsnToCidrsScanner)
 ScannerRegistry.register(CidrToIpsScanner)
 ScannerRegistry.register(OrgToAsnScanner)
 ScannerRegistry.register(DomainToAsnScanner)
+ScannerRegistry.register(WalletAddressToTransactions)

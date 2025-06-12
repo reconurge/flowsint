@@ -5,7 +5,7 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
-from app.types.ip import MinimalIp
+from app.types.ip import Ip
 from app.types.asn import ASN
 from app.utils import is_valid_asn, parse_asn, resolve_type
 from app.core.logger import Logger
@@ -85,18 +85,11 @@ class AsnToCidrsScanner(Scanner):
                         asn_cidrs.append(cidr)
                     except Exception as e:
                         Logger.error(self.sketch_id, f"Failed to parse CIDR {cidr_str}: {str(e)}")
-                # If no valid CIDRs were added, add the default one
-                if not any(str(c.network) != "0.0.0.0/0" for c in asn_cidrs):
-                    default_cidr = CIDR(network="0.0.0.0/0")
-                    cidrs.append(default_cidr)
-                    asn_cidrs.append(default_cidr)
             else:
                 Logger.warn(self.sketch_id, f"No CIDRs found for ASN {asn.number}")
-                # Add an empty CIDR to maintain input/output mapping
-                default_cidr = CIDR(network="0.0.0.0/0")
-                cidrs.append(default_cidr)
-                asn_cidrs.append(default_cidr)
-            self._asn_to_cidrs_map.append((asn, asn_cidrs))
+            
+            if asn_cidrs:  # Only add to mapping if we found valid CIDRs
+                self._asn_to_cidrs_map.append((asn, asn_cidrs))
         return cidrs
     
     def __get_cidrs_from_asn(self, asn: int) -> Dict[str, Any]:

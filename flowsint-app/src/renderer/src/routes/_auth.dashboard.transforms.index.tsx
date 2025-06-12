@@ -68,20 +68,25 @@ function TransformsPage() {
 
     return (
         <div className="h-full w-full overflow-y-auto bg-background">
-            <div className="container max-w-6xl mx-auto px-8 py-12">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Transforms</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Create and manage your data transformation workflows.
-                        </p>
+            <div className="bg-gradient-to-r from-secondary/10 to-primary/10 border-b border-border z-10">
+                <div className="max-w-7xl mx-auto p-8">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-bold text-foreground">Transforms</h1>
+                            <p className="text-muted-foreground">
+                                Create and manage your transforms.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button size="sm" onClick={handleCreateTransform}>
+                                <PlusIcon className="w-4 h-4 mr-2" />
+                                New Transform
+                            </Button>
+                        </div>
                     </div>
-                    <Button size="sm" onClick={handleCreateTransform}>
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        New Transform
-                    </Button>
                 </div>
-
+            </div>
+            <div className="max-w-7xl mx-auto p-8 space-y-8">
                 {isLoading ? (
                     <div className="p-2">
                         <SkeletonList rowCount={6} mode="card" />
@@ -118,16 +123,16 @@ function TransformsPage() {
                             <TabsContent key={category} value={category} className="mt-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {transforms
-                                        ?.filter(transform => 
-                                            category === 'All' 
-                                                ? true 
+                                        ?.filter(transform =>
+                                            category === 'All'
+                                                ? true
                                                 : category === 'Uncategorized'
                                                     ? !transform.category?.length
                                                     : transform.category?.includes(category)
                                         )
                                         .map((transform) => (
-                                            <Card 
-                                                key={transform.id} 
+                                            <Card
+                                                key={transform.id}
                                                 className="group hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
                                                 onClick={() => navigate({ to: `/dashboard/transforms/${transform.id}` })}
                                             >
@@ -165,6 +170,6 @@ function TransformsPage() {
                     </Tabs>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

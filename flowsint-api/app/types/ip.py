@@ -1,10 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-class MinimalIp(BaseModel):
+class Ip(BaseModel):
     address: str = Field(..., description="IP address")
-
-class Ip(MinimalIp):
     latitude: Optional[float] = Field(None, description="Latitude coordinate of the IP location")
     longitude: Optional[float] = Field(None, description="Longitude coordinate of the IP location")
     country: Optional[str] = Field(None, description="Country where the IP is located")

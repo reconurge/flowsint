@@ -15,9 +15,7 @@ import {
     LayoutGrid,
     Maximize,
     Minus,
-    Redo,
     Trash,
-    Undo,
     ZoomIn,
     Settings,
     RotateCw

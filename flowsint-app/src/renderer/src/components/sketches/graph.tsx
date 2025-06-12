@@ -11,6 +11,7 @@ import { useGraphControls } from "@/stores/graph-controls-store"
 import { type CosmosInputNode } from "@cosmograph/cosmos"
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import Legend from "./legend"
+import EmptyState from "./empty-state"
 
 // Lazy loading du timeline
 const CosmographTimeline = lazy(() =>
@@ -70,18 +71,6 @@ const CosmographLoader = memo(({ stage }: { stage: string }) => (
 ))
 CosmographLoader.displayName = "CosmographLoader"
 
-// Composant mémorisé pour l'état vide
-const EmptyState = memo(() => (
-    <div className="flex relative bg-background gap-3 h-full flex-col w-full items-center justify-center">
-        Your nodes will be displayed here.
-        <NewActions>
-            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-6 py-2 text-white border-none">
-                Add your first item <PlusIcon />
-            </Button>
-        </NewActions>
-    </div>
-))
-EmptyState.displayName = "EmptyState"
 
 const GRAPH_CONFIG = {
     // simulationCenter: 0.2,

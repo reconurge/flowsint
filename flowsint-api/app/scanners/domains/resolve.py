@@ -2,12 +2,12 @@ import socket
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
-from app.types.domain import MinimalDomain
-from app.types.ip import MinimalIp
+from app.types.domain import Domain
+from app.types.ip import Ip
 from app.utils import is_valid_domain, resolve_type
 
-InputType: TypeAlias = List[MinimalDomain]
-OutputType: TypeAlias = List[MinimalIp]
+InputType: TypeAlias = List[Domain]
+OutputType: TypeAlias = List[Ip]
 
 class ResolveScanner(Scanner):
     """Resolve domain names to IP addresses."""
@@ -55,10 +55,10 @@ class ResolveScanner(Scanner):
         for item in data:
             domain_obj = None
             if isinstance(item, str):
-                domain_obj = MinimalDomain(domain=item)
+                domain_obj = Domain(domain=item)
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = MinimalDomain(domain=item["domain"])
-            elif isinstance(item, MinimalDomain):
+                domain_obj = Domain(domain=item["domain"])
+            elif isinstance(item, Domain):
                 domain_obj = item
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
@@ -69,7 +69,7 @@ class ResolveScanner(Scanner):
         for d in data:
             try:
                 ip = socket.gethostbyname(d.domain)
-                results.append(MinimalIp(address=ip))
+                results.append(Ip(address=ip))
             except Exception as e:
                 print(f"Error resolving {d.domain}: {e}")
         return results

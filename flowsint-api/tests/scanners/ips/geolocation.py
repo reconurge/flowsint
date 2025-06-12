@@ -1,13 +1,13 @@
 import pytest
 from app.scanners.ips.geolocation import GeolocationScanner
-from app.types.ip import MinimalIp, Ip
+from app.types.ip import Ip, Ip
 
 scanner = GeolocationScanner("sketch_123", "scan_123")
 
 def test_preprocess_valid_ips():
     ips = [
-        MinimalIp(address="8.8.8.8"),
-        MinimalIp(address="1.1.1.1"),
+        Ip(address="8.8.8.8"),
+        Ip(address="1.1.1.1"),
     ]
     result = scanner.preprocess(ips)
     result_ips = [d.address for d in result]
@@ -26,9 +26,9 @@ def test_preprocess_string_ips():
 
 def test_preprocess_invalid_ips():
     ips = [
-        MinimalIp(address="8.8.8.8"),
-        MinimalIp(address="invalid_ip"),
-        MinimalIp(address="1.1.1.1"),
+        Ip(address="8.8.8.8"),
+        Ip(address="invalid_ip"),
+        Ip(address="1.1.1.1"),
     ]
     result = scanner.preprocess(ips)
     result_ips = [d.address for d in result]
@@ -40,7 +40,7 @@ def test_preprocess_multiple_formats():
     ips = [
         {"address": "8.8.8.8"},
         {"invalid_key": "1.2.3.4"},
-        MinimalIp(address="1.1.1.1"),
+        Ip(address="1.1.1.1"),
         "1.1.1.1",
     ]
     result = scanner.preprocess(ips)
@@ -62,7 +62,7 @@ def test_scan_returns_ip(monkeypatch):
 
     monkeypatch.setattr(scanner, "get_location_data", mock_get_location_data)
 
-    input_data = [MinimalIp(address="8.8.8.8")]
+    input_data = [Ip(address="8.8.8.8")]
     output = scanner.execute(input_data)
     assert isinstance(output, list)
     assert isinstance(output[0], Ip)
@@ -74,12 +74,6 @@ def test_scan_returns_ip(monkeypatch):
 def test_schemas():
     input_schema = scanner.input_schema()
     output_schema = scanner.output_schema()
-    assert input_schema == [{'name': 'address', 'type': 'string'}]
-    assert output_schema == [
-        {'name': 'address', 'type': 'string'},
-        {'name': 'latitude', 'type': 'number | null'},
-        {'name': 'longitude', 'type': 'number | null'},
-        {'name': 'country', 'type': 'string | null'},
-        {'name': 'city', 'type': 'string | null'},
-        {'name': 'isp', 'type': 'string | null'},
-    ]
+    assert input_schema == {'type': 'Ip', 'properties': [{'name': 'address', 'type': 'string'}, {'name': 'latitude', 'type': 'number | null'}, {'name': 'longitude', 'type': 'number | null'}, {'name': 'country', 'type': 'string | null'}, {'name': 'city', 'type': 'string | null'}, {'name': 'isp', 'type': 'string | null'}]}
+    assert output_schema == {'type': 'Ip', 'properties': [{'name': 'address', 'type': 'string'}, {'name': 'latitude', 'type': 'number | null'}, {'name': 'longitude', 'type': 'number | null'}, {'name': 'country', 'type': 'string | null'}, {'name': 'city', 'type': 'string | null'}, {'name': 'isp', 'type': 'string | null'}]}
+

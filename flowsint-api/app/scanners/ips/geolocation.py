@@ -3,10 +3,10 @@ import requests
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
-from app.types.ip import MinimalIp, Ip
+from app.types.ip import Ip, Ip
 from app.utils import resolve_type, is_valid_ip
 
-InputType: TypeAlias = List[MinimalIp]
+InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[Ip]
 
 class GeolocationScanner(Scanner):
@@ -51,10 +51,10 @@ class GeolocationScanner(Scanner):
         for item in data:
             ip_obj = None
             if isinstance(item, str):
-                ip_obj = MinimalIp(address=item)
+                ip_obj = Ip(address=item)
             elif isinstance(item, dict) and "address" in item:
-                ip_obj = MinimalIp(address=item["address"])
-            elif isinstance(item, MinimalIp):
+                ip_obj = Ip(address=item["address"])
+            elif isinstance(item, Ip):
                 ip_obj = item
             if ip_obj and is_valid_ip(ip_obj.address):
                 cleaned.append(ip_obj)
@@ -78,7 +78,28 @@ class GeolocationScanner(Scanner):
                 print(f"Error geolocating {ip.address}: {e}")
         return results
 
-    def postprocess(self, results: OutputType) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        """Update IP nodes in Neo4j with geolocation information."""
+        if self.neo4j_conn:
+            for ip in results:
+                query = """
+                MATCH (ip:ip {address: $ip_address})
+                SET ip.latitude = $latitude,
+                    ip.longitude = $longitude,
+                    ip.country = $country,
+                    ip.city = $city,
+                    ip.isp = $isp,
+                    ip.sketch_id = $sketch_id
+                """
+                self.neo4j_conn.query(query, {
+                    "ip_address": ip.address,
+                    "latitude": ip.latitude,
+                    "longitude": ip.longitude,
+                    "country": ip.country,
+                    "city": ip.city,
+                    "isp": ip.isp,
+                    "sketch_id": self.sketch_id
+                })
         return results
 
     def get_location_data(self, address: str) -> Dict[str, Any]:

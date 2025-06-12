@@ -34,9 +34,16 @@ export function useLogs(sketch_id: string | undefined) {
             try {
                 let log = JSON.parse(event.data)
                 log = JSON.parse(log["data"]) as Log
-                log.content = JSON.parse(log.content)
+                const content = JSON.parse(log.content)
                 console.log("[useLogs] Received log event:", log)
-
+                log = {
+                    content: content.details.message,
+                    type: log.type,
+                    created_at: content.timestamp,
+                    id: log.id,
+                    scan_id: "",
+                    sketch_id: log.sketch_id,
+                }
                 setRealtimeLogs((prevLogs) => {
                     const newLogs = [...prevLogs.slice(-99), log]
                     return newLogs

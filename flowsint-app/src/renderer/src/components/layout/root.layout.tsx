@@ -10,6 +10,7 @@ import { useLayoutStore } from "@/stores/layout-store"
 import { PathBreadcrumb } from "./breadcrumb"
 import NotesPanel from "./notes-panel"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
+import { useParams } from "@tanstack/react-router"
 
 interface LayoutProps {
     children: ReactNode
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps) {
     const toggleChat = useLayoutStore(s => s.toggleChat)
     const closeChat = useLayoutStore(s => s.closeChat)
     const openChat = useLayoutStore(s => s.openChat)
+    const { investigationId, id } = useParams({ strict: false })
 
     // Set up keyboard shortcut for chat panel
     useKeyboardShortcut({
@@ -39,7 +41,7 @@ export default function RootLayout({ children }: LayoutProps) {
         callback: togglePanel
     })
     useKeyboardShortcut({
-        key: "x",
+        key: "d",
         ctrlOrCmd: true,
         callback: toggleConsole
     })
@@ -92,7 +94,7 @@ export default function RootLayout({ children }: LayoutProps) {
                                     <ResizablePanel className="h-full w-full" id="children" order={3}>
                                         {children}
                                     </ResizablePanel>
-                                    {isOpenChat && (
+                                    {isOpenChat && investigationId && (
                                         <>
                                             <ResizableHandle withHandle />
                                             <ResizablePanel
@@ -119,7 +121,7 @@ export default function RootLayout({ children }: LayoutProps) {
                             </div>
 
                             {/* Console panel - only shown when isOpen is true */}
-                            {isOpenConsole && (
+                            {isOpenConsole && id && (
                                 <>
                                     <ResizableHandle />
                                     <ResizablePanel
@@ -142,3 +144,4 @@ export default function RootLayout({ children }: LayoutProps) {
         </ConfirmContextProvider>
     )
 }
+

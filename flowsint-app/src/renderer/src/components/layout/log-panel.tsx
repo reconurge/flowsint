@@ -30,7 +30,7 @@ export function LogPanel() {
     }
 
     return (
-        <div className="h-full bg-card border rounded-md relative">
+        <div className="h-full bg-card rounded-md relative">
             <ScrollArea className="h-full">
                 <div className="p-4 font-mono text-sm leading-relaxed">
                     {logs.map((log) => (

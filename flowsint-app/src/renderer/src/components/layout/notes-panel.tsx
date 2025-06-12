@@ -7,14 +7,16 @@ import { useParams } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
-import { PlusIcon, Trash2, Save } from "lucide-react"
+import { PlusIcon, Trash2, Save, ChevronsRight } from "lucide-react"
 import { useAnalysisPanelStore } from "@/stores/analysis-panel-store"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
+import { useLayoutStore } from "@/stores/layout-store"
 
 export const AnalysisPanel = () => {
     const { investigationId } = useParams({ strict: false }) as { investigationId: string }
+    const toggleChat = useLayoutStore(s => s.toggleChat)
     const currentAnalysisId = useAnalysisPanelStore(s => s.currentAnalysisId)
     const setCurrentAnalysisId = useAnalysisPanelStore(s => s.setCurrentAnalysisId)
     const { confirm } = useConfirm()
@@ -152,9 +154,12 @@ export const AnalysisPanel = () => {
         <div className="flex flex-col h-full w-full">
             {/* Header with unified title/analysis selector and controls */}
             <div className="border-b bg-background">
-                <div className="flex items-center justify-between p-4">
+                <div className="flex items-center justify-between p-3">
                     {/* Unified title and analysis selector */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Button className="h-8 w-8" variant="ghost" onClick={toggleChat}>
+                            <ChevronsRight />
+                        </Button>
                         {isLoadingAnalyses ? (
                             <Skeleton className="h-9 w-64" />
                         ) : isError ? (

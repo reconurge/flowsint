@@ -1,19 +1,23 @@
-import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { useSketchStore } from '@/stores/sketch-store';
 import { useNodesDisplaySettings } from '@/stores/node-display-settings';
 import { useGraphControls } from '@/stores/graph-controls-store';
 import type { NodeData, EdgeData } from '@/types';
 import type { ItemType } from '@/stores/node-display-settings';
+import EmptyState from './empty-state';
+import { useTheme } from '../theme-provider';
 
 interface GraphReactForceProps {
     style?: React.CSSProperties;
 }
 
+const NODE_COUNT_THRESHOLD = 500;
+
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useSketchStore(s => s.nodes) as NodeData[];
     const rawEdges = useSketchStore(s => s.edges) as EdgeData[];
-    const getIcon = useNodesDisplaySettings(s => s.getIcon);
+    const { theme } = useTheme();
     const getSize = useNodesDisplaySettings(s => s.getSize);
     const colors = useNodesDisplaySettings(s => s.colors) as Record<ItemType, string>;
     const toggleNodeSelection = useSketchStore(s => s.toggleNodeSelection);
@@ -21,12 +25,14 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const currentNode = useSketchStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
 
+    const shouldUseSimpleRendering = useMemo(() => nodes.length > NODE_COUNT_THRESHOLD, [nodes.length]);
+
     // Transform data for Force Graph
     const graphData = useMemo(() => {
         const transformedNodes = nodes.map(node => {
             const type = node.type || node.data?.type;
             const color = colors[type] || '#0074D9';
-            const size = getSize(type) * 0.5;
+            const size = getSize(type);
             let nodeLabel = node.label;
             if (!nodeLabel && 'caption' in node) nodeLabel = (node as any).caption;
             if (!nodeLabel) nodeLabel = node.id;
@@ -36,39 +42,51 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                 nodeLabel: nodeLabel,
                 nodeColor: color,
                 nodeSize: size,
-                val: size, // Force Graph uses val for node size
+                val: size,
             };
         });
 
-        const transformedEdges = rawEdges.map(edge => ({
-            ...edge,
-            edgeLabel: edge.label,
-            source: edge.from,
-            target: edge.to,
-        }));
+        const edgeGroups = new Map();
+        rawEdges.forEach(edge => {
+            const key = `${edge.from}-${edge.to}`;
+            if (!edgeGroups.has(key)) {
+                edgeGroups.set(key, []);
+            }
+            edgeGroups.get(key).push(edge);
+        });
+
+        const transformedEdges = rawEdges.map((edge) => {
+            const key = `${edge.from}-${edge.to}`;
+            const group = edgeGroups.get(key);
+            const groupIndex = group.indexOf(edge);
+            const groupSize = group.length;
+            const curve = groupSize > 1 ? (groupIndex - (groupSize - 1) / 2) * 0.2 : 0;
+
+            return {
+                ...edge,
+                edgeLabel: edge.label,
+                source: edge.from,
+                target: edge.to,
+                curve: curve,
+                groupIndex: groupIndex,
+                groupSize: groupSize
+            };
+        });
 
         return {
             nodes: transformedNodes,
             links: transformedEdges,
         };
-    }, [nodes, rawEdges, getIcon, getSize, colors]);
-
-    React.useEffect(() => {
-        if (graphRef.current && currentNode) {
-            console.log(currentNode, currentNode)
-            graphRef.current.zoomToFit(400);
-        }
-    }, [currentNode]);
+    }, [nodes, rawEdges, getSize, colors]);
 
     const handleNodeClick = useCallback((node: any) => {
         toggleNodeSelection(node, false);
     }, [toggleNodeSelection]);
 
     const handleBackgroundClick = useCallback(() => {
-        clearSelectedNodes()
+        clearSelectedNodes();
     }, [clearSelectedNodes]);
 
-    // Camera controls
     const handleZoomIn = useCallback((graph: any) => {
         const zoom = graph.zoom();
         graph.zoom(zoom * 1.5);
@@ -83,8 +101,58 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         graph.zoomToFit(400);
     }, []);
 
+    const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        const size = node.nodeSize;
+        
+        if (shouldUseSimpleRendering) {
+            // Simple circle rendering for large node counts
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
+            ctx.fillStyle = node.nodeColor;
+            ctx.fill();
+        } else {
+            // Full rendering with icon and label
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
+            ctx.fillStyle = node.nodeColor;
+            ctx.fill();
+
+            const img = new Image();
+            img.src = `./icons/${node.type}.svg` as any;
+            ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
+
+            if (globalScale > 3) {
+                const label = node.nodeLabel || node.label || node.id;
+                if (label) {
+                    const fontSize = Math.max(2, size * 0.2);
+                    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                    const textWidth = ctx.measureText(label).width;
+                    const padding = 2;
+                    
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+                    ctx.lineWidth = 0.2;
+                    const bgWidth = textWidth + padding * 2;
+                    const bgHeight = fontSize + padding;
+                    const bgX = node.x - bgWidth / 2;
+                    const bgY = node.y + size / 2 + 1;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(bgX, bgY, bgWidth, bgHeight, 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = theme === "dark" ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, node.x, bgY + bgHeight / 2);
+                }
+            }
+        }
+    }, [shouldUseSimpleRendering, theme]);
+
     // Set actions in store
-    React.useEffect(() => {
+    useEffect(() => {
         setActions({
             zoomIn: () => handleZoomIn(graphRef.current),
             zoomOut: () => handleZoomOut(graphRef.current),
@@ -115,6 +183,10 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         };
     }, []);
 
+    if (!nodes.length) {
+        return <EmptyState />;
+    }
+
     return (
         <div className="relative h-full grow w-full bg-background">
             <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 300 }}>
@@ -131,8 +203,20 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     cooldownTicks={100}
                     onNodeClick={handleNodeClick}
                     onBackgroundClick={handleBackgroundClick}
+                    linkCurvature={link => link.curve}
+                    linkLabel={link => link.edgeLabel}
+                    linkDirectionalParticles={link => link.__highlighted ? 2 : 0}
+                    linkDirectionalParticleSpeed={0.005}
+                    linkWidth={link => link.__highlighted ? 2 : link.__dimmed ? 0.5 : 1}
+                    linkColor={link => {
+                        if (link.__highlighted) return '#000';
+                        if (link.__dimmed) return '#ccc';
+                        return '#666';
+                    }}
+                    d3AlphaDecay={0.02}
+                    d3VelocityDecay={0.3}
+                    nodeCanvasObject={renderNode}
                     onNodeHover={(node: any) => {
-                        // Highlight connected nodes and links
                         if (node) {
                             graphData.nodes.forEach((n: any) => {
                                 n.__highlighted = n === node;
@@ -143,7 +227,6 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                                 l.__dimmed = l.source !== node && l.target !== node;
                             });
                         } else {
-                            // Reset all nodes and links
                             graphData.nodes.forEach((n: any) => {
                                 n.__highlighted = false;
                                 n.__dimmed = false;
@@ -154,39 +237,6 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                             });
                         }
                     }}
-                    nodeCanvasObject={(node: any, ctx, globalScale) => {
-                        const label = node.nodeLabel;
-                        const fontSize = 12 / globalScale;
-                        ctx.font = `${fontSize}px Sans-Serif`;
-                        const textWidth = ctx.measureText(label).width;
-                        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
-
-                        // Draw node circle
-                        ctx.beginPath();
-                        ctx.arc(node.x, node.y, node.nodeSize, 0, 2 * Math.PI, false);
-                        ctx.fillStyle = node.__highlighted ? node.nodeColor : node.__dimmed ? '#ccc' : node.nodeColor;
-                        ctx.fill();
-
-                        // Level of detail based on zoom
-                        if (globalScale > 3) {
-                            // Show full details: icon + label
-                            const icon = getIcon(node.type || node.data?.type);
-                            if (icon) {
-                                ctx.font = `${fontSize * 1.2}px Sans-Serif`;
-                                ctx.fillText(icon, node.x - fontSize, node.y + fontSize / 3);
-                            }
-                            ctx.font = `${fontSize}px Sans-Serif`;
-                            ctx.fillStyle = node.__highlighted ? '#000' : node.__dimmed ? '#999' : '#000';
-                            ctx.fillText(label, node.x + (icon ? fontSize : 0), node.y + fontSize / 3);
-                        } else if (globalScale > 2) {
-                            // Show only label
-                            ctx.fillStyle = node.__highlighted ? '#000' : node.__dimmed ? '#999' : '#000';
-                            ctx.fillText(label, node.x - bckgDimensions[0] / 2, node.y + fontSize / 3);
-                        }
-                        // When zoomed out (globalScale <= 2), show only the node circle
-                    }}
-                    linkColor={link => link.__highlighted ? '#000' : link.__dimmed ? '#ccc' : '#aaa'}
-                    linkWidth={link => link.__highlighted ? 2 : link.__dimmed ? 0.5 : 1}
                     backgroundColor="transparent"
                 />
             </div>
@@ -194,4 +244,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     );
 };
 
-export default GraphReactForce; 
+export default GraphReactForce;
+
+
+

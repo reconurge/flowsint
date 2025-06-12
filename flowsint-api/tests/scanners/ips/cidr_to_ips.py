@@ -1,7 +1,6 @@
-import pytest
 from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
 from app.types.cidr import CIDR
-from app.types.ip import MinimalIp
+from app.types.ip import Ip
 from tests.logger import TestLogger
 
 logger = TestLogger()
@@ -36,7 +35,7 @@ def test_preprocess_invalid_cidrs():
         "not-a-cidr",
     ]
     result = scanner.preprocess(cidrs)
-    result_networks = [cidr.network for cidr in result]
+    result_networks = [str(cidr.network) for cidr in result]
     assert "8.8.8.0/24" in result_networks
     assert "invalid-cidr" not in result_networks
     assert "not-a-cidr" not in result_networks
@@ -49,7 +48,7 @@ def test_preprocess_multiple_formats():
         "InvalidCIDR",
     ]
     result = scanner.preprocess(cidrs)
-    result_networks = [cidr.network for cidr in result]
+    result_networks = [str(cidr.network) for cidr in result]
     assert "8.8.8.0/24" in result_networks
     assert "9.9.9.0/24" in result_networks
     assert "1.1.1.0/24" not in result_networks
@@ -88,7 +87,7 @@ def test_scan_extracts_ips(monkeypatch):
     ]
     
     for ip in ips:
-        assert isinstance(ip, MinimalIp)
+        assert isinstance(ip, Ip)
         assert ip.address in expected_ips
 
 def test_scan_handles_empty_output(monkeypatch):

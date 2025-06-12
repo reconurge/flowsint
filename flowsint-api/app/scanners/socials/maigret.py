@@ -5,10 +5,10 @@ from typing import List, Dict, Any, TypeAlias, Union
 
 from app.utils import is_valid_username, resolve_type
 from app.scanners.base import Scanner
-from app.types.social import MinimalSocial, Social
+from app.types.social import Social, Social
 from pydantic import TypeAdapter
 
-InputType: TypeAlias = List[MinimalSocial]
+InputType: TypeAlias = List[Social]
 OutputType: TypeAlias = List[Social]
 
 false_positives = ["LeagueOfLegends"]
@@ -59,10 +59,10 @@ class MaigretScanner(Scanner):
         for item in data:
             obj = None
             if isinstance(item, str):
-                obj = MinimalSocial(username=item)
+                obj = Social(username=item)
             elif isinstance(item, dict) and "username" in item:
-                obj = MinimalSocial(username=item["username"])
-            elif isinstance(item, MinimalSocial):
+                obj = Social(username=item["username"])
+            elif isinstance(item, Social):
                 obj = item
 
             if obj and obj.username and is_valid_username(obj.username):

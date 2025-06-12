@@ -6,10 +6,10 @@ from datetime import datetime
 from app.utils import extract_input_schema
 from app.scanners.registry import ScannerRegistry
 from app.core.celery import celery
-from app.types.domain import MinimalDomain
-from app.types.ip import MinimalIp
-from app.types.social import MinimalSocial
-from app.types.organization import MinimalOrganization
+from app.types.domain import Domain
+from app.types.ip import Ip
+from app.types.social import Social
+from app.types.organization import Organization
 from app.types.email import Email
 from app.types.transform import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
@@ -19,6 +19,7 @@ from app.api.deps import get_current_user
 from app.api.schemas.transform import TransformRead, TransformCreate, TransformUpdate
 from app.types.asn import ASN
 from app.types.cidr import CIDR
+from app.types.wallet import Wallet, WalletTransaction
 
 
 class FlowComputationRequest(BaseModel):
@@ -74,13 +75,16 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
 
     # Ajoute les types comme des "scanners" spéciaux de type 'type'
     object_inputs = [
-        extract_input_schema("Organization", MinimalOrganization),
-        extract_input_schema("Domain", MinimalDomain),
-        extract_input_schema("IP address", MinimalIp),
+        extract_input_schema("Organization", Organization),
+        extract_input_schema("Domain", Domain),
+        extract_input_schema("IP address", Ip),
         extract_input_schema("ASN", ASN),
         extract_input_schema("CIDR", CIDR),
-        extract_input_schema("Social profile", MinimalSocial),
+        extract_input_schema("Social profile", Social),
         extract_input_schema("Email", Email),
+        extract_input_schema("Crypto wallet", Wallet),
+        extract_input_schema("Crypto transaction", WalletTransaction),
+
     ]
     flattened_scanners["types"] = object_inputs
 

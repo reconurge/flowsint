@@ -28,7 +28,7 @@ export type ItemType =
     | "username"
     | "siret"
     | "siren"
-    | "crypto_wallet"
+    | "wallet"
     | "asn"
     | "cidr"
 
@@ -58,7 +58,7 @@ export const ITEM_TYPES: ItemType[] = [
     "username",
     "siret",
     "siren",
-    "crypto_wallet",
+    "wallet",
     "asn",
     "cidr",
 ]
@@ -89,7 +89,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     biometric: "#AEB3B9",       // Notion slate gray
     siret: "#ADB9C6",           // Notion blue-gray
     siren: "#9FAAB8",           // Notion dark slate
-    crypto_wallet: "#F7D154",    // Notion gold
+    wallet: "#F7D154",    // Notion gold
     asn: "#F7D154",
     cidr: "#A2D4BF"
 }
@@ -121,7 +121,7 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     username: "🧑‍💻",
     siret: "ℹ️",
     siren: "ℹ️",
-    crypto_wallet: "₿",
+    wallet: "₿",
     asn: "🌐",
     cidr: "📡"
 };
@@ -152,7 +152,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     username: 8,
     siret: 5,
     siren: 5,
-    crypto_wallet: 7,
+    wallet: 7,
     asn: 12,
     cidr: 10
 }

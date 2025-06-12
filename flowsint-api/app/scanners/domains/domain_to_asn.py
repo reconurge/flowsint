@@ -5,12 +5,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
-from app.types.domain import MinimalDomain
+from app.types.domain import Domain
 from app.types.asn import ASN
 from app.utils import is_valid_domain, resolve_type
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[MinimalDomain]
+InputType: TypeAlias = List[Domain]
 OutputType: TypeAlias = List[ASN]
 
 class DomainToAsnScanner(Scanner):
@@ -59,10 +59,10 @@ class DomainToAsnScanner(Scanner):
         for item in data:
             domain_obj = None
             if isinstance(item, str):
-                domain_obj = MinimalDomain(domain=item)
+                domain_obj = Domain(domain=item)
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = MinimalDomain(domain=item["domain"])
-            elif isinstance(item, MinimalDomain):
+                domain_obj = Domain(domain=item["domain"])
+            elif isinstance(item, Domain):
                 domain_obj = item
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)

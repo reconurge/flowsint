@@ -1,5 +1,5 @@
 from app.scanners.orchestrator import TransformOrchestrator
-from app.types.domain import Domain, MinimalDomain
+from app.types.domain import Domain, Domain
 from app.types.whois import Whois
 
 import pytest
@@ -40,7 +40,7 @@ def test_execute_ip_resolve():
     assert results['scanners'] == ['ip_reverse_resolve_scanner']
     assert isinstance(results['results']['ip_reverse_resolve_scanner'], list)
     if(len(results['results']['ip_reverse_resolve_scanner'])!= 0):
-        assert isinstance(results['results']['ip_reverse_resolve_scanner'][0], MinimalDomain)
+        assert isinstance(results['results']['ip_reverse_resolve_scanner'][0], Domain)
     
 def test_execute_ip_resolve_and_whois():
     ips = ['91.199.212.73']

@@ -7,12 +7,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.core.logger import Logger
 from app.scanners.base import Scanner
-from app.types.domain import MinimalDomain
-from app.types.ip import MinimalIp
+from app.types.domain import Domain
+from app.types.ip import Ip
 from app.utils import resolve_type, is_valid_ip
 
-InputType: TypeAlias = List[MinimalIp]
-OutputType: TypeAlias = List[MinimalDomain]
+InputType: TypeAlias = List[Ip]
+OutputType: TypeAlias = List[Domain]
 
 PTR_BLACKLIST = re.compile(r"^ip\d+\.ip-\d+-\d+-\d+-\d+\.")
 
@@ -58,10 +58,10 @@ class ReverseResolveScanner(Scanner):
         for item in data:
             ip_obj = None
             if isinstance(item, str):
-                ip_obj = MinimalIp(address=item)
+                ip_obj = Ip(address=item)
             elif isinstance(item, dict) and "address" in item:
-                ip_obj = MinimalIp(address=item["address"])
-            elif isinstance(item, MinimalIp):
+                ip_obj = Ip(address=item["address"])
+            elif isinstance(item, Ip):
                 ip_obj = item
             if ip_obj and is_valid_ip(ip_obj.address):
                 cleaned.append(ip_obj)
@@ -73,7 +73,7 @@ class ReverseResolveScanner(Scanner):
             try:
                 domains = self.get_domains_from_ip(ip.address)
                 for d in domains:
-                    results.append(MinimalDomain(domain=d))
+                    results.append(Domain(domain=d))
             except Exception as e:
                 print(f"Error resolving {ip.address}: {e}")
         return results
@@ -88,6 +88,10 @@ class ReverseResolveScanner(Scanner):
                 ip.caption = $caption,
                 ip.type = $type
             MERGE (domain:domain {domain: $domain})
+            SET domain.sketch_id = $sketch_id,
+                domain.label = $domain,
+                domain.caption = $domain,
+                domain.type = $domain_type
             MERGE (ip)-[:REVERSE_RESOLVES_TO {sketch_id: $sketch_id}]->(domain)
             """
             if self.neo4j_conn:
@@ -97,7 +101,8 @@ class ReverseResolveScanner(Scanner):
                     "sketch_id": self.sketch_id,
                     "label": ip_obj.address,
                     "caption": ip_obj.address,
-                    "type": "ip"
+                    "type": "ip",
+                    "domain_type":"domain"
                 })
 
         return results

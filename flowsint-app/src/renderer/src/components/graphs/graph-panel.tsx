@@ -7,11 +7,14 @@ import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
 // import GraphSigma from '../sketches/graph-sigma'
-import type { InvestigationGraph, NodeData, EdgeData } from '@/types'
+import type { NodeData, EdgeData } from '@/types'
 import GraphLoader from './graph-loader'
+import Loader from '../loader'
 
 const GraphReactForce = lazy(() => import('../sketches/graph-react-force'))
 const Graph = lazy(() => import('../sketches/graph'))
+// const GraphSigma = lazy(() => import('../sketches/graph-sigma'))
+
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -106,12 +109,13 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
         >
             <Suspense fallback={
                 <div className="h-full w-full flex items-center justify-center">
-                    <div className="text-center">
-                        <p className="text-muted-foreground">Loading graph...</p>
+                    <div className="text-center flex items-center gap-2">
+                        <Loader />
                     </div>
                 </div>
             }>
-                {nodes?.length > 2000 ? <Graph /> : <GraphReactForce />}
+                {/* {nodes?.length > 2000 ? <Graph /> : <GraphReactForce />} */}
+                <GraphReactForce />
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}

@@ -3,12 +3,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 import whois
 from app.utils import is_valid_domain, resolve_type
 from app.scanners.base import Scanner
-from app.types.domain import Domain, MinimalDomain
+from app.types.domain import Domain, Domain
 from app.types.whois import Whois
 from app.types.email import Email
 from pydantic import TypeAdapter
 
-InputType: TypeAlias = List[MinimalDomain]
+InputType: TypeAlias = List[Domain]
 OutputType: TypeAlias = List[Domain]
 
 
@@ -58,10 +58,10 @@ class WhoisScanner(Scanner):
         for item in data:
             domain_obj = None
             if isinstance(item, str):
-                domain_obj = MinimalDomain(domain=item)
+                domain_obj = Domain(domain=item)
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = MinimalDomain(domain=item["domain"])
-            elif isinstance(item, MinimalDomain):
+                domain_obj = Domain(domain=item["domain"])
+            elif isinstance(item, Domain):
                 domain_obj = item
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
@@ -84,7 +84,8 @@ class WhoisScanner(Scanner):
                     creation_date=str(w_data.get("creation_date")) if w_data.get("creation_date") else None,
                     expiration_date=str(w_data.get("expiration_date")) if w_data.get("expiration_date") else None,
                 )
-                results.append(whois_obj)
+                d.whois = whois_obj
+                results.append(d)
 
             except Exception as e:
                 print(e)
@@ -93,12 +94,13 @@ class WhoisScanner(Scanner):
         return results
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
-        for whois_obj in results:
+        for domain in results:
             if not self.neo4j_conn:
                 continue
+            whois_obj = domain.whois
 
             props = {
-                "domain": whois_obj.domain.domain,
+                "domain": domain.domain,
                 "registrar": whois_obj.registrar,
                 "org": whois_obj.org,
                 "city": whois_obj.city,

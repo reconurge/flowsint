@@ -2,14 +2,14 @@ import requests
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
-from app.types.organization import MinimalOrganization, Organization, Identifier
+from app.types.organization import Organization, Organization, Identifier
 from app.utils import resolve_type
 
-InputType: TypeAlias = List[MinimalOrganization]
+InputType: TypeAlias = List[Organization]
 OutputType: TypeAlias = List[Organization]
 
 class SireneScanner(Scanner):
-    """Enrich MinimalOrganization with data from SIRENE (France only)."""
+    """Enrich Organization with data from SIRENE (France only)."""
 
     @classmethod
     def name(cls) -> str:
@@ -53,10 +53,10 @@ class SireneScanner(Scanner):
         cleaned: InputType = []
         for item in data:
             if isinstance(item, str):
-                cleaned.append(MinimalOrganization(name=item))
+                cleaned.append(Organization(name=item))
             elif isinstance(item, dict) and "name" in item:
-                cleaned.append(MinimalOrganization(**item))
-            elif isinstance(item, MinimalOrganization):
+                cleaned.append(Organization(**item))
+            elif isinstance(item, Organization):
                 cleaned.append(item)
         return cleaned
 
@@ -109,7 +109,6 @@ class SireneScanner(Scanner):
                     o.description = $description,
                     o.label = $label,
                     o.caption = $caption,
-                    o.color = $color,
                     o.type = $type,
                     o.sketch_id = $sketch_id
             """, {
@@ -119,7 +118,6 @@ class SireneScanner(Scanner):
                 "description": org.description,
                 "label": org.name,
                 "caption": org.name,
-                "color": "#2F80ED",
                 "type": "organization",
                 "sketch_id": self.sketch_id,
             })

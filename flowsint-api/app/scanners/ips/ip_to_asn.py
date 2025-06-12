@@ -5,12 +5,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
-from app.types.ip import MinimalIp
+from app.types.ip import Ip
 from app.types.asn import ASN
 from app.utils import is_valid_ip, resolve_type
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[MinimalIp]
+InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[ASN]
 
 class IpToAsnScanner(Scanner):
@@ -59,10 +59,10 @@ class IpToAsnScanner(Scanner):
         for item in data:
             ip_obj = None
             if isinstance(item, str):
-                ip_obj = MinimalIp(address=item)
+                ip_obj = Ip(address=item)
             elif isinstance(item, dict) and "address" in item:
-                ip_obj = MinimalIp(address=item["address"])
-            elif isinstance(item, MinimalIp):
+                ip_obj = Ip(address=item["address"])
+            elif isinstance(item, Ip):
                 ip_obj = item
             if ip_obj and is_valid_ip(ip_obj.address):
                 cleaned.append(ip_obj)

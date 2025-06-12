@@ -3,13 +3,13 @@ import requests
 import subprocess
 from typing import List, Dict, Any, TypeAlias, Union
 from app.scanners.base import Scanner
-from app.types.domain import MinimalDomain, Domain
+from app.types.domain import Domain, Domain
 from app.utils import is_valid_domain, resolve_type
 from pydantic import TypeAdapter
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[MinimalDomain]
-OutputType: TypeAlias = List[MinimalDomain]
+InputType: TypeAlias = List[Domain]
+OutputType: TypeAlias = List[Domain]
 
 class SubdomainScanner(Scanner):
     """Scanner to find subdomains associated with a domain."""
@@ -58,10 +58,10 @@ class SubdomainScanner(Scanner):
         for item in data:
             domain_obj = None
             if isinstance(item, str):
-                domain_obj = MinimalDomain(domain=item)
+                domain_obj = Domain(domain=item)
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = MinimalDomain(domain=item["domain"])
-            elif isinstance(item, MinimalDomain):
+                domain_obj = Domain(domain=item["domain"])
+            elif isinstance(item, Domain):
                 domain_obj = item
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
@@ -136,7 +136,7 @@ class SubdomainScanner(Scanner):
             if not self.neo4j_conn:
                 continue
             for subdomain in domain_obj.subdomains:
-                output.append(MinimalDomain(domain=subdomain))
+                output.append(Domain(domain=subdomain))
                 Logger.info(self.sketch_id, f"{domain_obj.domain} -> {subdomain}")
                 self.neo4j_conn.query("""
                     MERGE (sub:domain {domain: $subdomain})

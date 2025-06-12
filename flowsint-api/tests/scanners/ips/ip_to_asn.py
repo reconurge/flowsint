@@ -2,7 +2,7 @@ import pytest
 import json
 from unittest.mock import Mock
 from app.scanners.ips.ip_to_asn import IpToAsnScanner
-from app.types.ip import MinimalIp
+from app.types.ip import Ip
 from app.types.asn import ASN
 from app.types.cidr import CIDR
 from tests.logger import TestLogger
@@ -13,8 +13,8 @@ scanner = IpToAsnScanner("sketch_123", "scan_123", logger)
 
 def test_preprocess_valid_ips():
     ips = [
-        MinimalIp(address="8.8.8.8"),
-        MinimalIp(address="1.1.1.1"),
+        Ip(address="8.8.8.8"),
+        Ip(address="1.1.1.1"),
     ]
     result = scanner.preprocess(ips)
     
@@ -30,14 +30,14 @@ def test_unprocessed_valid_ips():
     ]
     result = scanner.preprocess(ips)
     result_ips = [ip for ip in result]
-    expected_ips = [MinimalIp(address=ip) for ip in ips]
+    expected_ips = [Ip(address=ip) for ip in ips]
     assert result_ips == expected_ips 
     
 def test_preprocess_invalid_ips():
     ips = [
-        MinimalIp(address="8.8.8.8"),
-        MinimalIp(address="invalid_ip"),
-        MinimalIp(address="192.168.1.1"),
+        Ip(address="8.8.8.8"),
+        Ip(address="invalid_ip"),
+        Ip(address="192.168.1.1"),
     ]
     result = scanner.preprocess(ips)
 
@@ -50,7 +50,7 @@ def test_preprocess_multiple_formats():
     ips = [
         {"address": "8.8.8.8"},
         {"invalid_key": "1.1.1.1"},
-        MinimalIp(address="192.168.1.1"),
+        Ip(address="192.168.1.1"),
         "10.0.0.1",
     ]
     result = scanner.preprocess(ips)
@@ -84,7 +84,7 @@ def test_scan_extracts_asn_info(monkeypatch):
     # Patch the subprocess call in the scanner
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
-    input_data = [MinimalIp(address="8.8.8.8")]
+    input_data = [Ip(address="8.8.8.8")]
     asns = scanner.scan(input_data)
     
     assert isinstance(asns, list)
@@ -112,7 +112,7 @@ def test_scan_handles_no_asn_found(monkeypatch):
 
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
-    input_data = [MinimalIp(address="192.168.1.1")]
+    input_data = [Ip(address="192.168.1.1")]
     asns = scanner.scan(input_data)
     
     assert isinstance(asns, list)
@@ -132,7 +132,7 @@ def test_scan_handles_subprocess_exception(monkeypatch):
 
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
-    input_data = [MinimalIp(address="8.8.8.8")]
+    input_data = [Ip(address="8.8.8.8")]
     asns = scanner.scan(input_data)
     
     assert isinstance(asns, list)
@@ -175,7 +175,7 @@ def test_scan_multiple_ips(monkeypatch):
 
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
-    input_data = [MinimalIp(address="8.8.8.8"), MinimalIp(address="1.1.1.1")]
+    input_data = [Ip(address="8.8.8.8"), Ip(address="1.1.1.1")]
     asns = scanner.scan(input_data)
     
     assert len(asns) == 2
@@ -213,7 +213,7 @@ def test_postprocess_creates_neo4j_relationships(monkeypatch):
     mock_neo4j = Mock()
     scanner.neo4j_conn = mock_neo4j
     
-    input_data = [MinimalIp(address="8.8.8.8")]
+    input_data = [Ip(address="8.8.8.8")]
     asn_results = [ASN(
         number=15169,
         name="GOOGLE",
@@ -244,7 +244,7 @@ def test_postprocess_skips_unknown_asns(monkeypatch):
     mock_neo4j = Mock()
     scanner.neo4j_conn = mock_neo4j
     
-    input_data = [MinimalIp(address="192.168.1.1")]
+    input_data = [Ip(address="192.168.1.1")]
     asn_results = [ASN(
         number=0,  # Unknown ASN
         name="Unknown",

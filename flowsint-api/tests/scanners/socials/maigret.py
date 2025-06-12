@@ -1,6 +1,6 @@
 from pathlib import Path
 from app.scanners.socials.maigret import MaigretScanner
-from app.types.social import MinimalSocial
+from app.types.social import Social
 
 scanner = MaigretScanner("sketch_123", "scan_123")
 
@@ -11,14 +11,14 @@ def test_unprocessed_valid_usernames():
     ]
     result = scanner.preprocess(usernames)
     result_usernames = [d for d in result]
-    expected_usernames = [MinimalSocial(username=d) for d in usernames]
+    expected_usernames = [Social(username=d) for d in usernames]
     assert result_usernames == expected_usernames 
     
 def test_preprocess_invalid_usernames():
     usernames = [
-        MinimalSocial(username="toto123"),
-        MinimalSocial(username="DorianXd78_Official"),
-        MinimalSocial(username="This is not a username"),
+        Social(username="toto123"),
+        Social(username="DorianXd78_Official"),
+        Social(username="This is not a username"),
     ]
     result = scanner.preprocess(usernames)
 
@@ -31,7 +31,7 @@ def test_preprocess_multiple_formats():
     usernames = [
         {"username": "toto123"},
         {"invalid_key": "ValId_UseRnAme"},
-        MinimalSocial(username="DorianXd78_Official"),
+        Social(username="DorianXd78_Official"),
         "MySimpleUsername",
     ]
     result = scanner.preprocess(usernames)

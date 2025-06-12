@@ -1,6 +1,7 @@
 from pathlib import Path
 from app.scanners.emails.holehe import HoleheScanner
 from app.types.email import Email
+from app.types.social import Social
 
 scanner = HoleheScanner("sketch_123", "scan_123")
 
@@ -44,4 +45,5 @@ def test_preprocess_multiple_formats():
 
 def test_scan():
     output = scanner.execute(["eliott.morcillo@gmail.com"])
-    print(output)
+    assert isinstance(output, list)
+    assert isinstance(output[0], Social)

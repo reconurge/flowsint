@@ -1,12 +1,12 @@
 import pytest
 from app.scanners.organizations.sirene import SireneScanner
-from app.types.organization import MinimalOrganization, Organization
+from app.types.organization import Organization, Organization
 
 scanner = SireneScanner("sketch_123", "scan_123")
 
 def test_preprocess_valid_names():
     data = [
-        MinimalOrganization(name="OpenAI"),
+        Organization(name="OpenAI"),
         {"name": "Inria"},
         "OVH"
     ]
@@ -56,7 +56,7 @@ def test_scan_enriches_organization(monkeypatch):
 
     monkeypatch.setattr("requests.get", mock_get)
 
-    input_data = [MinimalOrganization(name="OpenAI")]
+    input_data = [Organization(name="OpenAI")]
     result = scanner.scan(input_data)
 
     assert isinstance(result, list)

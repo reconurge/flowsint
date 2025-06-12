@@ -4,12 +4,12 @@ import subprocess
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
-from app.types.organization import MinimalOrganization
+from app.types.organization import Organization
 from app.types.asn import ASN
 from app.utils import resolve_type
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[MinimalOrganization]
+InputType: TypeAlias = List[Organization]
 OutputType: TypeAlias = List[ASN]
 
 class OrgToAsnScanner(Scanner):
@@ -58,10 +58,10 @@ class OrgToAsnScanner(Scanner):
         for item in data:
             org_obj = None
             if isinstance(item, str):
-                org_obj = MinimalOrganization(name=item)
+                org_obj = Organization(name=item)
             elif isinstance(item, dict) and "name" in item:
-                org_obj = MinimalOrganization(name=item["name"])
-            elif isinstance(item, MinimalOrganization):
+                org_obj = Organization(name=item["name"])
+            elif isinstance(item, Organization):
                 org_obj = item
             if org_obj:
                 cleaned.append(org_obj)

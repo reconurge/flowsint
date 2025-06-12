@@ -1,4 +1,5 @@
-from typing import Literal
+from typing import Literal, Union, Any
+from uuid import UUID
 
 LogLevel = Literal["info", "warn", "error", "success", "debug"]
 
@@ -12,34 +13,45 @@ LEVEL_MAP = {
 
 
 class TestLogger:
-    def __init__(self):
-        pass
-
-    def _format_message(self, type: str, message: str) -> str:
+    @staticmethod
+    def _format_message(type: str, message: str) -> str:
         """Format the log message with type prefix"""
         return f"[{type.upper()}] {message}"
+    
+    @staticmethod
+    def _create_log(sketch_id: Union[str, UUID], log_type: str, content: str) -> Any:
+        """Create a dummy log object for testing"""
+        class DummyLog:
+            def __init__(self):
+                self.id = 'dummy_id'
+        return DummyLog()
 
-    def info(self, message: str):
+    @staticmethod
+    def info(sketch_id: Union[str, UUID], message: str):
         """Log an info message"""
-        formatted_message = self._format_message("INFO", message)
+        formatted_message = TestLogger._format_message("INFO", message)
         print(formatted_message)
 
-    def error(self, message: str):
+    @staticmethod
+    def error(sketch_id: Union[str, UUID], message: str):
         """Log an error message"""
-        formatted_message = self._format_message("ERROR", message)
+        formatted_message = TestLogger._format_message("ERROR", message)
         print(formatted_message)
 
-    def warn(self, message: str):
+    @staticmethod
+    def warn(sketch_id: Union[str, UUID], message: str):
         """Log a warning message"""
-        formatted_message = self._format_message("WARNING", message)
+        formatted_message = TestLogger._format_message("WARNING", message)
         print(formatted_message)
 
-    def debug(self, message: str):
+    @staticmethod
+    def debug(sketch_id: Union[str, UUID], message: str):
         """Log a debug message"""
-        formatted_message = self._format_message("DEBUG", message)
+        formatted_message = TestLogger._format_message("DEBUG", message)
         print(formatted_message)
 
-    def success(self, message: str):
+    @staticmethod
+    def success(sketch_id: Union[str, UUID], message: str):
         """Log a success message"""
-        formatted_message = self._format_message("SUCCESS", message)
+        formatted_message = TestLogger._format_message("SUCCESS", message)
         print(formatted_message)

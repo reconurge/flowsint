@@ -2,14 +2,14 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Any, List, TypeAlias, Union
 from app.utils import is_valid_username
-from app.types.social import MinimalSocial, Social
+from app.types.social import Social, Social
 from app.scanners.base import Scanner
 from pydantic import TypeAdapter
 from app.utils import is_valid_username, resolve_type
 from app.core.logger import logger
 
 
-InputType: TypeAlias = List[MinimalSocial]
+InputType: TypeAlias = List[Social]
 OutputType: TypeAlias = List[Social]
 
 
@@ -59,10 +59,10 @@ class SherlockScanner(Scanner):
         for item in data:
             obj = None
             if isinstance(item, str):
-                obj = MinimalSocial(username=item)
+                obj = Social(username=item)
             elif isinstance(item, dict) and "username" in item:
-                obj = MinimalSocial(username=item["username"])
-            elif isinstance(item, MinimalSocial):
+                obj = Social(username=item["username"])
+            elif isinstance(item, Social):
                 obj = item
 
             if obj and obj.username and is_valid_username(obj.username):

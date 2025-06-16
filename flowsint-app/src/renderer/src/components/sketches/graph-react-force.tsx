@@ -22,7 +22,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const colors = useNodesDisplaySettings(s => s.colors) as Record<ItemType, string>;
     const toggleNodeSelection = useSketchStore(s => s.toggleNodeSelection);
     const clearSelectedNodes = useSketchStore(s => s.clearSelectedNodes);
-    const currentNode = useSketchStore(s => s.currentNode);
+    // const currentNode = useSketchStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
 
     const shouldUseSimpleRendering = useMemo(() => nodes.length > NODE_COUNT_THRESHOLD, [nodes.length]);
@@ -117,9 +117,9 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
             ctx.fillStyle = node.nodeColor;
             ctx.fill();
 
-            const img = new Image();
-            img.src = `./icons/${node.type}.svg` as any;
-            ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
+            // const img = new Image();
+            // img.src = `./icons/${node.type}.svg` as any;
+            // ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
 
             if (globalScale > 3) {
                 const label = node.nodeLabel || node.label || node.id;
@@ -209,9 +209,9 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     linkDirectionalParticleSpeed={0.005}
                     linkWidth={link => link.__highlighted ? 2 : link.__dimmed ? 0.5 : 1}
                     linkColor={link => {
-                        if (link.__highlighted) return '#000';
-                        if (link.__dimmed) return '#ccc';
-                        return '#666';
+                        if (link.__highlighted) return 'rgba(171, 171, 171, 0.23)';
+                        if (link.__dimmed) return 'rgba(146, 146, 146, 0.33)';
+                        return 'rgba(166, 166, 166, 0.32)';
                     }}
                     d3AlphaDecay={0.02}
                     d3VelocityDecay={0.3}

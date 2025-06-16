@@ -6,13 +6,20 @@ import type { Analysis } from "@/types"
 import { useParams } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
-import { PlusIcon, Trash2, Save, ChevronsRight } from "lucide-react"
+import { PlusIcon, Trash2, Save, ChevronsRight, Sparkles, ChevronDown, XIcon } from "lucide-react"
 import { useAnalysisPanelStore } from "@/stores/analysis-panel-store"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
 import { useLayoutStore } from "@/stores/layout-store"
+import { useChat } from "@/hooks/use-chat"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { Textarea } from "@/components/ui/textarea"
+import { Editor } from "@tiptap/core"
 
 export const AnalysisPanel = () => {
     const { investigationId } = useParams({ strict: false }) as { investigationId: string }
@@ -20,7 +27,25 @@ export const AnalysisPanel = () => {
     const currentAnalysisId = useAnalysisPanelStore(s => s.currentAnalysisId)
     const setCurrentAnalysisId = useAnalysisPanelStore(s => s.setCurrentAnalysisId)
     const { confirm } = useConfirm()
-
+    // State for editor
+    const [editorValue, setEditorValue] = useState<any>("")
+    const [titleValue, setTitleValue] = useState("")
+    const [editor, setEditor] = useState<Editor | undefined>(undefined)
+    const [isEditingTitle, setIsEditingTitle] = useState(false)
+    const [includeContext, setIncludeContext] = useState(false)
+    // Chat hook
+    const {
+        isAiLoading,
+        promptOpen,
+        setPromptOpen,
+        customPrompt,
+        setCustomPrompt,
+        handleCustomPrompt
+    } = useChat({
+        onContentUpdate: setEditorValue,
+        onSuccess: () => saveMutation.mutate({}),
+        editor: editor
+    })
 
     // Fetch all analyses for this investigation
     const { data: analyses, isLoading: isLoadingAnalyses, isError, refetch } = useQuery<Analysis[]>({
@@ -41,35 +66,30 @@ export const AnalysisPanel = () => {
         }
     }, [analyses, currentAnalysisId, setCurrentAnalysisId])
 
-    // State for editor
-    const [editorValue, setEditorValue] = useState<any>("")
-    const [titleValue, setTitleValue] = useState("")
-
-    useEffect(() => {
-        if (currentAnalysis) {
-            // Handle both string content and object content
-            const content = currentAnalysis.content
-            if (typeof content === 'string') {
-                try {
-                    // Try to parse if it's a JSON string
-                    setEditorValue(JSON.parse(content))
-                } catch {
-                    // If parsing fails, treat as plain text and convert to editor format
-                    setEditorValue(content || "")
-                }
-            } else {
-                // If it's already an object, use it directly
-                setEditorValue(content || "")
-            }
-            console.log("Setting editorValue:", content)
-            setTitleValue(currentAnalysis.title || "")
-        } else {
-            // Reset when no analysis is selected
-            setEditorValue("")
-            setTitleValue("")
-            console.log("Resetting editorValue")
+    // Add title update mutation
+    const updateTitleMutation = useMutation({
+        mutationFn: async (newTitle: string) => {
+            if (!currentAnalysis) return
+            return analysisService.update(currentAnalysis.id, JSON.stringify({
+                ...currentAnalysis,
+                title: newTitle
+            }))
+        },
+        onSuccess: async () => {
+            await refetch()
+            toast.success("Title updated")
+        },
+        onError: (error) => {
+            toast.error("Failed to update title: " + (error instanceof Error ? error.message : "Unknown error"))
         }
-    }, [currentAnalysisId, currentAnalysis?.id, currentAnalysis?.content, currentAnalysis?.title])
+    })
+
+    // Handle title update
+    const handleTitleUpdate = (newTitle: string) => {
+        setTitleValue(newTitle)
+        updateTitleMutation.mutate(newTitle)
+        setIsEditingTitle(false)
+    }
 
     // Mutations
     const createMutation = useMutation({
@@ -80,7 +100,6 @@ export const AnalysisPanel = () => {
                 content: {},
             }
             const res = await analysisService.create(JSON.stringify(newAnalysis))
-
             return res
         },
         onSuccess: async (data) => {
@@ -142,6 +161,43 @@ export const AnalysisPanel = () => {
         deleteMutation.mutate(currentAnalysisId)
     }
 
+    useEffect(() => {
+        if (currentAnalysis) {
+            // Handle both string content and object content
+            const content = currentAnalysis.content
+            if (typeof content === 'string') {
+                try {
+                    // Try to parse if it's a JSON string
+                    const parsedContent = JSON.parse(content)
+                    setEditorValue(parsedContent)
+                    if (editor) {
+                        editor.commands.setContent(parsedContent)
+                    }
+                } catch {
+                    // If parsing fails, treat as plain text and convert to editor format
+                    setEditorValue(content || "")
+                    if (editor) {
+                        editor.commands.setContent(content || "")
+                    }
+                }
+            } else {
+                // If it's already an object, use it directly
+                setEditorValue(content || "")
+                if (editor) {
+                    editor.commands.setContent(content || "")
+                }
+            }
+            setTitleValue(currentAnalysis.title || "")
+        } else {
+            // Reset when no analysis is selected
+            setEditorValue("")
+            setTitleValue("")
+            if (editor) {
+                editor.commands.setContent("")
+            }
+        }
+    }, [currentAnalysisId, currentAnalysis?.id, currentAnalysis?.content, currentAnalysis?.title, editor])
+
     useKeyboardShortcut({
         key: "s",
         ctrlOrCmd: true,
@@ -150,12 +206,18 @@ export const AnalysisPanel = () => {
         },
     })
 
+    useKeyboardShortcut({
+        key: "e",
+        ctrlOrCmd: true,
+        callback: () => setPromptOpen(!promptOpen),
+    })
+
     return (
         <div className="flex flex-col h-full w-full">
             {/* Header with unified title/analysis selector and controls */}
             <div className="border-b bg-background">
                 <div className="flex items-center justify-between p-3">
-                    {/* Unified title and analysis selector */}
+                    {/* Left section with navigation and title */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <Button className="h-8 w-8" variant="ghost" onClick={toggleChat}>
                             <ChevronsRight />
@@ -165,36 +227,75 @@ export const AnalysisPanel = () => {
                         ) : isError ? (
                             <div className="text-sm text-destructive">Error loading analyses</div>
                         ) : analyses && analyses.length > 0 ? (
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <Select
-                                    value={currentAnalysisId || ""}
-                                    onValueChange={(value) => setCurrentAnalysisId(value)}
-                                >
-                                    <SelectTrigger className="border-none shadow-none bg-transparent hover:bg-muted/20 focus:bg-muted/30 p-2 h-auto min-w-0 flex-1">
-                                        <div className="flex flex-col items-start min-w-0 flex-1">
-                                            <input
-                                                className="text-xl font-bold bg-transparent outline-none border-none p-0 m-0 w-full placeholder:text-muted-foreground/60"
-                                                value={titleValue}
-                                                onChange={e => setTitleValue(e.target.value)}
-                                                placeholder="Untitled Analysis"
-                                                disabled={!currentAnalysis}
-                                                onClick={e => e.stopPropagation()}
-                                            />
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <ChevronDown className="h-4 w-4" />
+                                            </Button>
                                         </div>
-                                    </SelectTrigger>
-                                    <SelectContent className="shadow-none border-muted">
-                                        {analyses.map((analysis) => (
-                                            <SelectItem key={analysis.id} value={analysis.id}>
-                                                <div className="flex flex-col items-start">
-                                                    <span className="font-medium">{analysis.title || "Untitled"}</span>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {analysis.id === currentAnalysisId ? "Current" : "Switch to this analysis"}
-                                                    </span>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-0" align="start">
+                                        <div className="flex flex-col">
+                                            {analyses.map((analysis) => (
+                                                <Button
+                                                    key={analysis.id}
+                                                    variant="ghost"
+                                                    className="justify-start px-2 py-1.5 h-auto"
+                                                    onClick={() => setCurrentAnalysisId(analysis.id)}
+                                                >
+                                                    <div className="flex flex-col items-start">
+                                                        <span className="font-medium">{analysis.title || "Untitled"}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {analysis.id === currentAnalysisId ? "Current" : "Switch to this analysis"}
+                                                        </span>
+                                                    </div>
+                                                </Button>
+                                            ))}
+                                            <Button
+                                                variant="ghost"
+                                                className="justify-start px-2 py-1.5 h-auto text-primary"
+                                                onClick={() => createMutation.mutate()}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <PlusIcon className="w-4 h-4" />
+                                                    <span>Create new analysis</span>
                                                 </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            </Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {isEditingTitle ? (
+                                        <input
+                                            className="text-lg font-medium bg-transparent outline-none border-none p-0 m-0 w-full"
+                                            value={titleValue}
+                                            onChange={e => setTitleValue(e.target.value)}
+                                            onBlur={() => {
+                                                handleTitleUpdate(titleValue)
+                                                setIsEditingTitle(false)
+                                            }}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') {
+                                                    handleTitleUpdate(titleValue)
+                                                    setIsEditingTitle(false)
+                                                } else if (e.key === 'Escape') {
+                                                    setIsEditingTitle(false)
+                                                    setTitleValue(currentAnalysis?.title || "")
+                                                }
+                                            }}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <span
+                                            className="text-lg font-medium cursor-pointer hover:text-primary truncate min-w-0 flex-1"
+                                            onClick={() => setIsEditingTitle(true)}
+                                        >
+                                            {titleValue || "Untitled Analysis"}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -205,6 +306,16 @@ export const AnalysisPanel = () => {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-1">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            disabled={!currentAnalysis || isAiLoading}
+                            title="AI Prompt"
+                            className="h-8 w-8"
+                            onClick={() => setPromptOpen(!promptOpen)}
+                        >
+                            <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+                        </Button>
                         <Button
                             size="icon"
                             variant="ghost"
@@ -240,21 +351,83 @@ export const AnalysisPanel = () => {
             </div>
 
             {/* Editor */}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 flex flex-col">
                 {currentAnalysis ? (
-                    <MinimalTiptapEditor
-                        key={currentAnalysisId}
-                        immediatelyRender={false}
-                        value={editorValue}
-                        onChange={setEditorValue}
-                        className="w-full h-full"
-                        editorContentClassName="p-5 min-h-[300px]"
-                        output="json"
-                        placeholder="Enter your analysis..."
-                        autofocus={true}
-                        editable={true}
-                        editorClassName="focus:outline-hidden"
-                    />
+                    <>
+                        <MinimalTiptapEditor
+                            key={currentAnalysisId}
+                            immediatelyRender={true}
+                            value={editorValue}
+                            onChange={setEditorValue}
+                            className="w-full flex-1"
+                            editorContentClassName="p-5 min-h-[300px]"
+                            output="json"
+                            placeholder="Enter your analysis..."
+                            autofocus={true}
+                            editable={true}
+                            editorClassName="focus:outline-hidden"
+                            onEditorReady={setEditor}
+                        />
+                        {/* Prompt Panel */}
+                        <div className={`border-t bg-background transition-all duration-200 ${promptOpen ? 'h-[300px]' : 'h-0'}`}>
+                            <div className="flex flex-col h-full">
+                                <div className="flex items-center justify-between p-2 border-b">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+                                        <span className="text-sm font-medium">AI Prompt</span>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setPromptOpen(false)}
+                                        className="h-6 w-6 px-2"
+                                    >
+                                        <XIcon />
+                                    </Button>
+                                </div>
+                                <div className="flex-1 p-2 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIncludeContext(!includeContext)}
+                                            className="h-6 px-2"
+                                        >
+                                            {includeContext ? "Hide Context" : "Show Context"}
+                                        </Button>
+                                        {includeContext && (
+                                            <span className="text-xs text-muted-foreground">
+                                                Current analysis content will be included as context
+                                            </span>
+                                        )}
+                                    </div>
+                                    {includeContext && (
+                                        <Textarea
+                                            autoFocus
+                                            value={JSON.stringify(editorValue, null, 2)}
+                                            readOnly
+                                            className="h-[100px] text-xs font-mono resize-none"
+                                        />
+                                    )}
+                                    <Textarea
+                                        placeholder="Enter your prompt..."
+                                        value={customPrompt}
+                                        onChange={(e) => setCustomPrompt(e.target.value)}
+                                        className="flex-1 resize-none"
+                                    />
+                                </div>
+                                <div className="p-2 border-t">
+                                    <Button
+                                        onClick={() => handleCustomPrompt(editorValue)}
+                                        disabled={!customPrompt.trim() || isAiLoading}
+                                        className="w-full"
+                                    >
+                                        {isAiLoading ? "Generating..." : "Generate"}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
                         <div>No analysis selected.</div>

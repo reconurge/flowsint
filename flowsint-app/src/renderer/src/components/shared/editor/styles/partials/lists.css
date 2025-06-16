@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.minimal-tiptap-editor .ProseMirror ol {
+  @apply list-decimal;
+}
+
+.minimal-tiptap-editor .ProseMirror ol ol {
+  list-style: lower-alpha;
+}
+
+.minimal-tiptap-editor .ProseMirror ol ol ol {
+  list-style: lower-roman;
+}
+
+.minimal-tiptap-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.minimal-tiptap-editor .ProseMirror ul ul {
+  list-style: circle;
+}
+
+.minimal-tiptap-editor .ProseMirror ul ul ul {
+  list-style: square;
+}

@@ -12,6 +12,7 @@ import { SectionFive } from "./components/section/five"
 import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu"
 import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap"
 import { MeasuredContainer } from "./components/measured-container"
+// import "./styles/index.css"
 
 export interface MinimalTiptapProps
   extends Omit<UseMinimalTiptapEditorProps, "onUpdate"> {
@@ -19,6 +20,7 @@ export interface MinimalTiptapProps
   onChange?: (value: Content) => void
   className?: string
   editorContentClassName?: string
+  onEditorReady?: (editor: Editor) => void
 }
 //@ts-ignore
 const Toolbar = ({ editor }: { editor: Editor }) => (
@@ -67,12 +69,18 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 export const MinimalTiptapEditor = React.forwardRef<
   HTMLDivElement,
   MinimalTiptapProps
->(({ value, onChange, className, editorContentClassName, ...props }, ref) => {
+>(({ value, onChange, className, editorContentClassName, onEditorReady, ...props }, ref) => {
   const editor = useMinimalTiptapEditor({
     value,
     onUpdate: onChange,
     ...props,
   })
+
+  React.useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor)
+    }
+  }, [editor, onEditorReady])
 
   if (!editor) {
     return null

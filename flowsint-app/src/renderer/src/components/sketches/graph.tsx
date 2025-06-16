@@ -3,14 +3,10 @@ import { Cosmograph, CosmographProvider, useCosmograph } from '@cosmograph/react
 import { useSketchStore } from "@/stores/sketch-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import Loader from "@/components/shared/loader"
-import { Button } from "@/components/ui/button"
-import NewActions from "@/components/sketches/new-actions"
-import { PlusIcon } from "lucide-react"
 import { useGraphControls } from "@/stores/graph-controls-store"
 // @ts-ignore
 import { type CosmosInputNode } from "@cosmograph/cosmos"
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
-import Legend from "./legend"
 import EmptyState from "./empty-state"
 
 // Lazy loading du timeline
@@ -60,7 +56,7 @@ const useCosmographLoader = (nodes: any[], edges: any[]) => {
 
 // Composant de loader personnalisé pour Cosmograph
 const CosmographLoader = memo(({ stage }: { stage: string }) => (
-    <div className="absolute  inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
         <Loader />
         <div className="mt-4 text-sm text-muted-foreground">
             {stage === 'importing' && 'Importing graph data...'}
@@ -82,8 +78,7 @@ const GRAPH_CONFIG = {
     // simulationRepulsionTheta: 1.15,
     linkStrength: 1,
     simulationLinkDistance: .1,
-    nodeSizeScale: 0.1,
-
+    nodeSizeScale: 0.2,
     // simulationLinkDistance: 6,
     backgroundColor: "transparent" as const,
 }
@@ -103,9 +98,7 @@ const GraphContent = memo(() => {
     const cosmograph = useCosmograph()
     const actionsSetRef = useRef(false)
 
-    // Callbacks stables - créés une seule fois
     const handleLabelClick = useCallback((node: any, event: MouseEvent) => {
-
         const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
         toggleNodeSelection(node, multiSelect)
         cosmograph?.cosmograph?.zoomToNode(node)

@@ -114,8 +114,8 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
                     </div>
                 </div>
             }>
-                {/* {nodes?.length > 2000 ? <Graph /> : <GraphReactForce />} */}
-                <GraphReactForce />
+                {nodes?.length > 500 ? <Graph /> : <GraphReactForce />}
+                {/* <GraphReactForce /> */}
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}

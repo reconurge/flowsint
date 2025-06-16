@@ -33,7 +33,7 @@ interface UseChatOptions {
 
 export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) => {
     const [isAiLoading, setIsAiLoading] = useState(false)
-    const [promptOpen, setPromptOpen] = useState(true)
+    const [promptOpen, setPromptOpen] = useState(false)
     const [customPrompt, setCustomPrompt] = useState("")
     const selectedNodes = useSketchStore(s => s.selectedNodes)
 
@@ -85,7 +85,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
         },
         onSuccess: () => {
             onSuccess?.()
-            toast.success("AI completion added!")
+            // toast.success("AI completion added!")
         },
         onError: (error) => {
             console.error("Chat error:", error)

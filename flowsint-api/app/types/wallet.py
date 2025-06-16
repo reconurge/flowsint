@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 class Wallet(BaseModel):
     """Represents a cryptocurrency wallet."""
@@ -34,6 +34,28 @@ class WalletTransaction(BaseModel):
     txreceipt_status: Optional[str] = Field(None, alias="txreceipt_status", description="Transaction receipt status")
     error_message: Optional[str] = Field(None, description="Error message if transaction failed")
 
+
+class NFT(BaseModel):
+    """Represents a Non-Fungible Token (NFT) held or minted by a wallet."""
+    wallet: Wallet = Field(..., description="Source wallet")
+    contract_address: str = Field(..., description="Address of the NFT smart contract (ERC-721/1155)")
+    token_id: str = Field(..., description="Unique token ID of the NFT within the contract")
+    collection_name: Optional[str] = Field(None, description="Name of the NFT collection")
+    metadata_url: Optional[HttpUrl] = Field(None, description="URL to the metadata JSON or IPFS resource")
+    image_url: Optional[HttpUrl] = Field(None, description="URL to the image or media representing the NFT")
+    name: Optional[str] = Field(None, description="Name or title of the NFT")
+    description: Optional[str] = Field(None, description="Text description of the NFT")
+    owner_address: Optional[str] = Field(None, description="Current owner of the NFT")
+    creator_address: Optional[str] = Field(None, description="Original minter or creator address")
+    last_transfer_date: Optional[str] = Field(None, description="Date of last transfer or update (ISO format)")
+    node_id: Optional[str] = Field(None, description="NFT node ID in the Explorer graph")
+
+    @property
+    def uid(self):
+        return f"{self.contract_address}:{self.token_id}"
+
+
 # Update forward references
 Wallet.model_rebuild()
-WalletTransaction.model_rebuild() 
+WalletTransaction.model_rebuild()
+NFT.model_rebuild()

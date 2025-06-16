@@ -12,8 +12,5 @@ class ScanCreate(BaseModel):
 
 class ScanRead(ORMBase):
     id: UUID4
-    created_at: datetime
-    values: Optional[List[str]]
     sketch_id: Optional[UUID4]
     status: Optional[str]
-    results: Optional[Any]

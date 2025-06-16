@@ -40,8 +40,9 @@ export interface Tool {
   path: string
   description?: string,
   active: boolean
-  repo?: string
+  link?: string
   avatar?: string
+  apiKeyRequired?: false | "free" | "paid"
 }
 
 export interface ToolCategory {

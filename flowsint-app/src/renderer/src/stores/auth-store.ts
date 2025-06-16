@@ -18,7 +18,7 @@ interface AuthState {
 
 // Create a custom storage that handles cross-tab synchronization
 const createCrossTabStorage = () => {
-    const storage = createJSONStorage(() => sessionStorage);
+    const storage = createJSONStorage(() => localStorage);
     
     // Listen for storage changes from other tabs
     if (typeof window !== 'undefined') {
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
 
 // Initialize auth state from session storage on app load
 if (typeof window !== 'undefined') {
-    const storedAuth = sessionStorage.getItem('auth-storage');
+    const storedAuth = localStorage.getItem('auth-storage');
     if (storedAuth) {
         try {
             const parsedAuth = JSON.parse(storedAuth);

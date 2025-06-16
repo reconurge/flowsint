@@ -3,6 +3,7 @@ import InvestigationList from "../investigations/investigation-list"
 import GraphNavigation from "../graphs/graph-navigation"
 import TransformNavigation from "../transforms/transform-navigation"
 import SketchList from "../investigations/sketch-list"
+import AnalysesList from "../analyses/analyses-list"
 
 const SecondaryNavigation = () => {
 
@@ -23,6 +24,7 @@ const SecondaryNavigation = () => {
             </div>
         )
     }
+
     if (investigationId && id && type === "graph") {
         return (
             <div className="grow w-full overflow-x-hidden">
@@ -30,6 +32,14 @@ const SecondaryNavigation = () => {
             </div>
         )
     }
+    if (investigationId && id && type === "analysis") {
+        return (
+            <div className="grow w-full overflow-x-hidden">
+                <AnalysesList />
+            </div>
+        )
+    }
+
 
     if (investigationId && id && type === "wall") {
         return (

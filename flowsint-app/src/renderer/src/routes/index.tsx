@@ -1,11 +1,7 @@
-import { Navigate, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
+
 
 export const Route = createFileRoute('/')({
-  component: HomeComponent,
-})
 
-function HomeComponent() {
-  return (
-    <Navigate to="/dashboard" />
-  )
-}
+    component: () => <Outlet />
+})

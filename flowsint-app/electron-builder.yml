@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: electron-chrome-tabs
+appId: com.flowsint.app
+productName: flowsint
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: electron-chrome-tabs
+  executableName: flowsint
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

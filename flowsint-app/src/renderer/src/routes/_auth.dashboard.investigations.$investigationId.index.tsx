@@ -136,6 +136,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
 
 function InvestigationPage() {
     const { investigation } = Route.useLoaderData()
+    const isOpenChat = useLayoutStore(s => s.isOpenChat)
     const { data: analyses, isLoading: isLoadingAnalyses } = useQuery<Analysis[]>({
         queryKey: ['analyses', investigation.id],
         queryFn: () => analysisService.getByInvestigationId(investigation.id),
@@ -176,9 +177,9 @@ function InvestigationPage() {
     return (
         <div className="w-full h-full bg-background overflow-y-auto">
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-secondary/10 to-primary/10 border-b border-border z-10">
+            <div className={cn("border-b border-border z-10", isOpenChat ? "bg-background" : "bg-gradient-to-r from-secondary/10 to-primary/10")}>
                 <div className="max-w-7xl mx-auto p-8">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
                         <div className="space-y-1">
                             <h1 className="text-3xl font-bold text-foreground">{investigation.name}</h1>
                             <p className="text-muted-foreground">
@@ -390,9 +391,14 @@ function InvestigationPage() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {analyses?.map((analysis) => (
-                                <div
+                                <Link
                                     key={analysis.id}
-                                    onClick={() => handleAnalysisClick(analysis.id)}
+                                    to="/dashboard/investigations/$investigationId/$type/$id"
+                                    params={{
+                                        investigationId: investigation.id,
+                                        type: 'analysis',
+                                        id: analysis.id,
+                                    }}
                                     className={cn(
                                         'group p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all cursor-pointer',
                                         'flex flex-col justify-between h-full'
@@ -414,7 +420,7 @@ function InvestigationPage() {
                                             <span>Last updated {formatDistanceToNow(new Date(analysis.last_updated_at), { addSuffix: true })}</span>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
@@ -449,6 +455,6 @@ function InvestigationPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

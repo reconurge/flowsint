@@ -110,14 +110,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         <div className="flex h-full flex-col items-center justify-start bg-background">
             <div className="flex flex-col justify-start items-center space-y-1 py-1">
                 <TooltipProvider>
-                    {/* <ToolbarButton disabled icon={<Undo className="h-4 w-4 opacity-70" />} tooltip="Undo" />
-                    <ToolbarButton disabled icon={<Redo className="h-4 w-4 opacity-70" />} tooltip="Redo" />
-                    <Separator orientation="horizontal" /> */}
-                    <ToolbarButton
-                        icon={<Copy className="h-4 w-4 opacity-70" />}
-                        tooltip="Copy"
-                        disabled={!isMoreThanZero}
-                    />
                     <ToolbarButton
                         onClick={handleOpenRelationshipDialog}
                         icon={<GitBranchIcon className="h-4 w-4 opacity-70" />}
@@ -131,7 +123,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         disabled={!isMoreThanZero}
                     />
                     <Separator />
-                    <ToolbarButton disabled icon={<ArrowDownUp className="h-4 w-4 opacity-70" />} tooltip="Arrange" />
                     <ToolbarButton disabled icon={<Filter className="h-4 w-4 opacity-70" />} tooltip="Filter" />
                     <Separator />
                     <ToolbarButton
@@ -150,8 +141,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         onClick={zoomToFit}
                     />
                     <Separator />
-                    <ToolbarButton disabled icon={<LayoutGrid className="h-4 w-4 opacity-70" />} tooltip="Layout" />
-                    <ToolbarButton disabled icon={<Layers className="h-4 w-4 opacity-70" />} tooltip="Layers" />
                     <ToolbarButton onClick={toggleSettings} icon={<Settings className="h-4 w-4 opacity-70" />} tooltip="Settings" />
                     <Separator />
                     <ToolbarButton

@@ -44,7 +44,7 @@ export const Tab = ({ item, onClick, onRemove, isSelected, showSeparator }: Prop
           isSelected ? 'text-foreground' : 'text-white'
         )}
         layout="position"
-      >{`${item.title} ${item.id}`}</motion.span>
+      >{`${item.title || "Flowsint"} ${item.id}`}</motion.span>
       <motion.div
         layout
         className="absolute top-0 bottom-0 right-[0px] flex align-center items-center justify-end

@@ -1,4 +1,4 @@
-import { Terminal } from "lucide-react"
+import { Terminal, Key } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { Tool } from "@/types"
@@ -12,7 +12,7 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
     return (
         <Card className={cn("flex flex-col shadow-none bg-card rounded-md relative", tool.active ? "opacity-100" : "opacity-70")}>
-            <CardHeader className="py-3">
+            <CardHeader >
                 <CardTitle className="flex items-center gap-2 mt-4">
                     {tool.avatar ?
                         <Avatar
@@ -32,9 +32,24 @@ export function ToolCard({ tool }: ToolCardProps) {
             <CardContent className="flex-1">
                 {tool.description && <p className="text-sm text-muted-foreground">{tool.description}</p>}
             </CardContent>
-            <div className="absolute top-2 right-2">
-                {tool.active ? <Badge className="bg-green-500/15 text-green-500 text-xs shadow-none border-green-500/30">Active</Badge> :
-                    <Badge className="bg-orange-500/15 text-orange-500 text-xs shadow-none border-orange-500/30">Coming soon</Badge>}
+            <div className="absolute top-2 right-2 flex flex-row items-center gap-1">
+                {tool.apiKeyRequired && (
+                    <Badge
+                        className={
+                            tool.apiKeyRequired === "paid"
+                                ? "bg-yellow-500/15 text-yellow-700 text-xs shadow-none border-yellow-500/30 flex items-center gap-1"
+                                : "bg-blue-500/15 text-blue-700 text-xs shadow-none border-blue-500/30 flex items-center gap-1"
+                        }
+                    >
+                        <Key className="h-3 w-3 mr-1" />
+                        {tool.apiKeyRequired === "paid" ? "Paid API Key" : "Free API Key"}
+                    </Badge>
+                )}
+                {tool.active ? (
+                    <Badge className="bg-green-500/15 text-green-500 text-xs shadow-none border-green-500/30">Active</Badge>
+                ) : (
+                    <Badge className="bg-orange-500/15 text-orange-500 text-xs shadow-none border-orange-500/30">Coming soon</Badge>
+                )}
             </div>
         </Card >
     )

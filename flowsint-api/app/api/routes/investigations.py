@@ -40,7 +40,7 @@ def create_investigation(payload: InvestigationCreate, db: Session = Depends(get
 def get_investigation_by_id(investigation_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     investigation = db.query(Investigation).options(selectinload(Investigation.sketches)).filter(Investigation.id == investigation_id).filter(Investigation.owner_id == current_user.id).first()
     if not investigation:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=404, detail="Investigation not found")
     return investigation
 
 # Get a investigation by ID
@@ -60,7 +60,7 @@ def get_sketches_by_investigation(
 def update_investigation(investigation_id: UUID, payload: InvestigationUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
     investigation = db.query(Investigation).filter(Investigation.id == investigation_id).first()
     if not investigation:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=404, detail="Investigation not found")
     
     investigation.name = payload.name
     investigation.description = payload.description

@@ -13,7 +13,7 @@ from app.api.routes import transforms
 from app.api.routes import logs
 from app.api.routes import analysis
 from app.api.routes import chat
-
+from app.api.routes import scan
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -56,3 +56,4 @@ app.include_router(transforms.router, prefix="/api/transforms", tags=["transform
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(scan.router, prefix="/api/scans", tags=["scans"])

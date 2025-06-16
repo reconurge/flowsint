@@ -8,7 +8,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resi
 import { LogPanel } from "./log-panel"
 import { useLayoutStore } from "@/stores/layout-store"
 import { PathBreadcrumb } from "./breadcrumb"
-import NotesPanel from "./notes-panel"
+import NotesPanel from "../analyses/notes-panel"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useParams } from "@tanstack/react-router"
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps) {
     const toggleChat = useLayoutStore(s => s.toggleChat)
     const closeChat = useLayoutStore(s => s.closeChat)
     const openChat = useLayoutStore(s => s.openChat)
-    const { investigationId, id } = useParams({ strict: false })
+    const { investigationId, type, id } = useParams({ strict: false })
 
     // Set up keyboard shortcut for chat panel
     useKeyboardShortcut({
@@ -94,7 +94,7 @@ export default function RootLayout({ children }: LayoutProps) {
                                     <ResizablePanel className="h-full w-full" id="children" order={3}>
                                         {children}
                                     </ResizablePanel>
-                                    {isOpenChat && investigationId && (
+                                    {isOpenChat && type !== "analysis" && investigationId && (
                                         <>
                                             <ResizableHandle withHandle />
                                             <ResizablePanel

@@ -2,7 +2,7 @@
 
 import { memo } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"
-import { DynamicForm } from "../sketches/dynamic-form"
+import { DynamicForm } from "../graphs/dynamic-form"
 
 interface TestTransformProps {
     open: boolean

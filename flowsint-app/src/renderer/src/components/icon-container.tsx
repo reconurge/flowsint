@@ -26,7 +26,7 @@ export function IconContainer({ type, color, icon: Icon, size = 12 }: IconContai
         <div>
             <div
                 style={{
-                    border: `${size / 4}px solid ${bgColor}`,
+                    border: `${size / 8}px solid ${bgColor}`,
                     width: `${containerSize}px`,
                     height: `${containerSize}px`,
                 }}

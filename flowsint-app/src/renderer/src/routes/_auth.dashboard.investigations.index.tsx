@@ -42,9 +42,9 @@ function InvestigationPage() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto p-8 space-y-8">
+            <div className="max-w-7xl mx-auto @container p-8 space-y-8">
                 {/* Overview Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 @xs:grid-cols-1 @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-2 @xl:grid-cols-4 gap-4">
                     <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Investigations</CardTitle>

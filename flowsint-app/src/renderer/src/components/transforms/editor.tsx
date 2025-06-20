@@ -28,7 +28,7 @@ import { TransformModal } from "./save-modal"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { useParams, useRouter } from "@tanstack/react-router"
 import { transformService } from "@/api/transfrom-service"
-import { useFlowStore, type FlowNode, type FlowEdge } from "@/stores/flow-store"
+import { useTransformStore, type TransformNode, type TransformEdge } from "@/stores/transform-store"
 import type { CSSProperties } from 'react'
 import {
     Select,
@@ -43,16 +43,10 @@ const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
 }
 
-interface FlowEditorProps {
-    theme: ColorMode
-    initialEdges: FlowEdge[]
-    initialNodes: FlowNode[]
-    transform?: any
-}
-
 interface TransformEditorProps {
-    initialEdges?: FlowEdge[]
-    initialNodes?: FlowNode[]
+    theme: ColorMode
+    initialEdges: TransformEdge[]
+    initialNodes: TransformNode[]
     transform?: any
 }
 
@@ -64,7 +58,7 @@ const defaultMarkerEnd: EdgeMarker = {
     color: "#64748b",
 }
 
-const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowEditorProps) => {
+const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform }: TransformEditorProps) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
     const reactFlowWrapper = useRef<HTMLDivElement>(null)
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
@@ -77,18 +71,18 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
     const [currentStepIndex, setCurrentStepIndex] = useState(0)
     const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
     const [transformBranches, setTransformsBranches] = useState<any[]>([])
-    const nodes = useFlowStore(state => state.nodes)
-    const edges = useFlowStore(state => state.edges)
-    const selectedNode = useFlowStore(state => state.selectedNode)
-    const loading = useFlowStore(state => state.loading)
-    const setNodes = useFlowStore(state => state.setNodes)
-    const setEdges = useFlowStore(state => state.setEdges)
-    const onNodesChange = useFlowStore(state => state.onNodesChange)
-    const onEdgesChange = useFlowStore(state => state.onEdgesChange)
-    const onConnect = useFlowStore(state => state.onConnect)
-    const setSelectedNode = useFlowStore(state => state.setSelectedNode)
-    const setLoading = useFlowStore(state => state.setLoading)
-    const deleteNode = useFlowStore(state => state.deleteNode)
+    const nodes = useTransformStore(state => state.nodes)
+    const edges = useTransformStore(state => state.edges)
+    const selectedNode = useTransformStore(state => state.selectedNode)
+    const loading = useTransformStore(state => state.loading)
+    const setNodes = useTransformStore(state => state.setNodes)
+    const setEdges = useTransformStore(state => state.setEdges)
+    const onNodesChange = useTransformStore(state => state.onNodesChange)
+    const onEdgesChange = useTransformStore(state => state.onEdgesChange)
+    const onConnect = useTransformStore(state => state.onConnect)
+    const setSelectedNode = useTransformStore(state => state.setSelectedNode)
+    const setLoading = useTransformStore(state => state.setLoading)
+    const deleteNode = useTransformStore(state => state.deleteNode)
 
     // Initialize store with initial data
     useEffect(() => {
@@ -142,7 +136,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
                 x: event.clientX - reactFlowBounds.left,
                 y: event.clientY - reactFlowBounds.top,
             })
-            const newNode: FlowNode = {
+            const newNode: TransformNode = {
                 id: `${scannerData.name}-${Date.now()}`,
                 type: "scanner",
                 position,
@@ -173,7 +167,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
 
     const onNodeClick: NodeMouseHandler = useCallback(
         (_: React.MouseEvent, node: Node) => {
-            const typedNode = node as FlowNode
+            const typedNode = node as TransformNode
             setSelectedNode(typedNode)
             const nodeWidth = typedNode.measured?.width ?? 0
             const nodeHeight = typedNode.measured?.height ?? 0
@@ -204,11 +198,11 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
                         key: node.data.class_name || node.id,
                     },
                 })),
-                edges as FlowEdge[],
+                edges as TransformEdge[],
                 { direction: "LR" }
             )
-            setNodes(layouted.nodes as FlowNode[])
-            setEdges(layouted.edges as FlowEdge[])
+            setNodes(layouted.nodes as TransformNode[])
+            setEdges(layouted.edges as TransformEdge[])
             window.requestAnimationFrame(() => {
                 fitView()
             })
@@ -310,7 +304,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
     }, [transformId, nodes, edges])
 
     // Update the updateNodeState function with proper types
-    const updateNodeState = useCallback((nds: FlowNode[], nodeId: string, state: 'pending' | 'processing' | 'completed' | 'error') => {
+    const updateNodeState = useCallback((nds: TransformNode[], nodeId: string, state: 'pending' | 'processing' | 'completed' | 'error') => {
         return nds.map((node) => {
             if (node.id === nodeId) {
                 return {
@@ -355,10 +349,10 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
                 const currentStep = transformBranches[branchIndex].steps[stepIndex]
 
                 // Update node states with proper types
-                setNodes((nds: FlowNode[]) => updateNodeState(nds, currentStep.nodeId, "processing"))
+                setNodes((nds: TransformNode[]) => updateNodeState(nds, currentStep.nodeId, "processing"))
 
                 // Update edges with proper types
-                setEdges((eds: FlowEdge[]) => {
+                setEdges((eds: TransformEdge[]) => {
                     return eds.map((edge) => ({
                         ...edge,
                         style: {
@@ -372,7 +366,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
 
                 // After delay, mark as completed and move to next step
                 timer = setTimeout(() => {
-                    setNodes((nds: FlowNode[]) => updateNodeState(nds, currentStep.nodeId, "completed"))
+                    setNodes((nds: TransformNode[]) => updateNodeState(nds, currentStep.nodeId, "completed"))
                     setCurrentStepIndex((prev) => prev + 1)
                 }, simulationSpeed)
             }
@@ -386,7 +380,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
 
     const startSimulation = () => {
         // Reset all nodes to pending state
-        setNodes((nds: FlowNode[]) =>
+        setNodes((nds: TransformNode[]) =>
             nds.map((node) => ({
                 ...node,
                 data: {
@@ -397,7 +391,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
         )
 
         // Reset all edges
-        setEdges((eds: FlowEdge[]) =>
+        setEdges((eds: TransformEdge[]) =>
             eds.map((edge) => ({
                 ...edge,
                 style: {
@@ -421,7 +415,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
         setIsSimulating(false)
 
         // Mark all nodes as completed
-        setNodes((nds: FlowNode[]) =>
+        setNodes((nds: TransformNode[]) =>
             nds.map((node) => ({
                 ...node,
                 data: {
@@ -432,7 +426,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
         )
 
         // Reset edge styling
-        setEdges((eds: FlowEdge[]) =>
+        setEdges((eds: TransformEdge[]) =>
             eds.map((edge) => ({
                 ...edge,
                 style: {
@@ -453,7 +447,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
         setCurrentStepIndex(0)
 
         // Reset all nodes
-        setNodes((nds: FlowNode[]) =>
+        setNodes((nds: TransformNode[]) =>
             nds.map((node) => ({
                 ...node,
                 data: {
@@ -464,7 +458,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
         )
 
         // Reset all edges
-        setEdges((eds: FlowEdge[]) =>
+        setEdges((eds: TransformEdge[]) =>
             eds.map((edge) => ({
                 ...edge,
                 style: {
@@ -551,7 +545,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, transform }: FlowE
     )
 })
 
-FlowEditor.displayName = "FlowEditor"
+TransformEditor.displayName = "TransformEditor"
 
 function TransformEditor({
     initialEdges = [],
@@ -566,11 +560,11 @@ function TransformEditor({
         animated: true,
         style: defaultEdgeStyle,
         markerEnd: defaultMarkerEnd
-    })) as FlowEdge[]
+    })) as TransformEdge[]
 
     return (
         <ReactFlowProvider>
-            <FlowEditor
+            <TransformEditorFlow
                 transform={transform}
                 initialEdges={enhancedEdges}
                 initialNodes={initialNodes}
@@ -581,7 +575,7 @@ function TransformEditor({
 }
 
 // Update the NodePanel type
-const NodePanel = memo(({ node, onDelete }: { node: FlowNode; onDelete: () => void }) => (
+const NodePanel = memo(({ node, onDelete }: { node: TransformNode; onDelete: () => void }) => (
     <Panel position="bottom-right" className="bg-card p-3 rounded-md shadow-md border w-72">
         <div className="flex justify-between items-start mb-2">
             <h3 className="font-medium">{node.data.class_name}</h3>

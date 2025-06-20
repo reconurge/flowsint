@@ -1,4 +1,4 @@
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import NodesPanel from "./nodes-panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserPlus, Users } from "lucide-react"
@@ -7,8 +7,8 @@ import DetailsPanel from "./details-panel"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 
 const GraphNavigation = () => {
-    const nodes = useSketchStore((s) => s.nodes)
-    const currentNode = useSketchStore((s) => s.currentNode)
+    const nodes = useGraphStore((s) => s.nodes)
+    const currentNode = useGraphStore((s) => s.currentNode)
 
     return (
         <div className="h-full w-full min-h-0">

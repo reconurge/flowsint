@@ -75,7 +75,7 @@ class IpToAsnScanner(Scanner):
         for ip in data:
             asn_data = self.__get_asn_from_asnmap(ip.address)
             if asn_data:
-                Logger.info(self.sketch_id, f"IP {ip.address} has ASN {asn_data['as_number']}.")
+                Logger.info(self.sketch_id, {"message": f"IP {ip.address} has ASN {asn_data['as_number']}."})
                 asns.append(ASN(
                     number=int(asn_data["as_number"].lstrip("AS")),
                     name=asn_data["as_name"],
@@ -83,7 +83,7 @@ class IpToAsnScanner(Scanner):
                     cidrs=[CIDR(network=cidr) for cidr in asn_data["as_range"]]
                 ))
             else:
-                Logger.info(self.sketch_id, f"No ASN found for IP {ip.address}")
+                Logger.info(self.sketch_id, {"message": f"No ASN found for IP {ip.address}"})
         return asns
     
     def __get_asn_from_asnmap(self, ip: str) -> Dict[str, Any]:
@@ -96,7 +96,7 @@ class IpToAsnScanner(Scanner):
                 capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
-                Logger.info(self.sketch_id, f"No ASN found for {ip}.")
+                Logger.info(self.sketch_id, {"message": f"No ASN found for {ip}."})
                 return None
             try:
                 # Parse the JSON array
@@ -124,16 +124,17 @@ class IpToAsnScanner(Scanner):
                 return combined_data if combined_data["as_number"] else None
 
             except json.JSONDecodeError:
-                Logger.error(self.sketch_id, f"Failed to parse JSON from asnmap output: {result.stdout}")
+                Logger.error(self.sketch_id, {"message": f"Failed to parse JSON from asnmap output: {result.stdout}"})
                 return None
 
         except Exception as e:
-            Logger.error(self.sketch_id, f"asnmap exception for {ip}: {str(e)}")
+            Logger.error(self.sketch_id, {"message": f"asnmap exception for {ip}: {str(e)}"})
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between IP addresses and their corresponding ASNs
         for input_ip, result_asn in zip(original_input, results):
+            Logger.graph_append(self.sketch_id, {"message": f"IP {input_ip.address} -> ASN {result_asn.number}"})
             # Skip if no valid ASN was found
             if result_asn.number == 0:
                 continue

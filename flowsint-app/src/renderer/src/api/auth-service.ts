@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/auth-store';
 import { fetchWithAuth } from './api';
-import { useBoundStore } from '@/stores/useBoundStore';
+import { useBoundStore } from '@/stores/use-bound-store';
 
 interface RegisterData {
     username: string;

@@ -5,7 +5,7 @@ from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.ip import Ip, Ip
 from app.utils import resolve_type, is_valid_ip
-
+from app.core.logger import Logger
 InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[Ip]
 
@@ -82,6 +82,7 @@ class GeolocationScanner(Scanner):
         """Update IP nodes in Neo4j with geolocation information."""
         if self.neo4j_conn:
             for ip in results:
+                Logger.graph_append(self.sketch_id, {"message": f"Geolocated {ip.address} to {ip.city}, {ip.country} (lat: {ip.latitude}, lon: {ip.longitude})"})
                 query = """
                 MATCH (ip:ip {address: $ip_address})
                 SET ip.latitude = $latitude,

@@ -64,7 +64,7 @@ class AsnToCidrsScanner(Scanner):
                 if asn_obj and is_valid_asn(str(asn_obj.number)):
                     cleaned.append(asn_obj)
             except ValueError:
-                Logger.warn(self.sketch_id, f"Invalid ASN format: {item}")
+                Logger.warn(self.sketch_id, {"message": f"Invalid ASN format: {item}"})
                 continue
         return cleaned
 
@@ -84,9 +84,9 @@ class AsnToCidrsScanner(Scanner):
                         cidrs.append(cidr)
                         asn_cidrs.append(cidr)
                     except Exception as e:
-                        Logger.error(self.sketch_id, f"Failed to parse CIDR {cidr_str}: {str(e)}")
+                        Logger.error(self.sketch_id, {"message": f"Failed to parse CIDR {cidr_str}: {str(e)}"})
             else:
-                Logger.warn(self.sketch_id, f"No CIDRs found for ASN {asn.number}")
+                Logger.warn(self.sketch_id, {"message": f"No CIDRs found for ASN {asn.number}"})
             
             if asn_cidrs:  # Only add to mapping if we found valid CIDRs
                 self._asn_to_cidrs_map.append((asn, asn_cidrs))
@@ -101,7 +101,7 @@ class AsnToCidrsScanner(Scanner):
                 capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
-                Logger.info(self.sketch_id, f"No CIDRs found for {asn}.")
+                Logger.info(self.sketch_id, {"message": f"No CIDRs found for {asn}."})
                 return None
             try:
                 # Parse the JSON array
@@ -129,11 +129,11 @@ class AsnToCidrsScanner(Scanner):
                 return combined_data if combined_data["as_range"] else None
 
             except json.JSONDecodeError:
-                Logger.error(self.sketch_id, f"Failed to parse JSON from asnmap output: {result.stdout}")
+                Logger.error(self.sketch_id, {"message": f"Failed to parse JSON from asnmap output: {result.stdout}"})
                 return None
 
         except Exception as e:
-            Logger.error(self.sketch_id, f"asnmap exception for {asn}: {str(e)}")
+            Logger.error(self.sketch_id, {"message": f"asnmap exception for {asn}: {str(e)}"})
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -177,6 +177,7 @@ class AsnToCidrsScanner(Scanner):
             for asn, cidr in zip(original_input, results):
                 if str(cidr.network) == "0.0.0.0/0":
                     continue  # Skip default CIDR for unknown ASN
+                Logger.graph_append(self.sketch_id, {"message": f"ASN {asn.number} -> {cidr.network}"})
                 if self.neo4j_conn:
                     query = """
                     MERGE (asn:ASN {number: $asn_number})

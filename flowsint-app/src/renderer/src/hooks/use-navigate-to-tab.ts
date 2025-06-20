@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useBoundStore } from "@/stores/useBoundStore";
+import { useBoundStore } from "@/stores/use-bound-store";
 
 export interface NavigateToTabOptions {
     id: string;

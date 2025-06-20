@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from typing import Dict, Any, Literal
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -104,10 +104,12 @@ async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user:
             "labels": record["labels"],
             "data": record["data"],
             "label": record["data"].get("label", "Node"),
-            "type": record["labels"][0].lower(),
+            "type": "custom",
             "caption": record["data"].get("label", "Node"),
-            "x": random.random() * 1000,
-            "y": random.random() * 1000,
+            "position":{
+                "x": random.random() * 1000,
+                "y": random.random() * 1000,
+            },
             "idx": idx
         }
         for idx, record in enumerate(nodes_result)
@@ -116,41 +118,66 @@ async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user:
     rels = [
         {
             "id": str(record["id"]),
-            "type": record["type"],
-            "from": str(record["source"]),
-            "to": str(record["target"]),
+            "type": "straight",
+            "source": str(record["source"]),
+            "target": str(record["target"]),
             "data": record["data"],
             "caption": record["type"],
+            "label": record["type"].lower(),
         }
         for record in rels_result
     ]
 
     return {"nds": nodes, "rls": rels}
 
+class NodeData(BaseModel):
+    label: str = Field(default="Node", description="Label/name of the node")
+    color: str = Field(default="Node", description="Color of the node")
+    type: str = Field(default="Node", description="Type of the node")
+    # Add any other specific data fields that might be common across nodes
 
 class NodeInput(BaseModel):
-    type: str
-    data: Dict[str, Any] = Field(default_factory=dict)
+    type: str = Field(..., description="Type of the node")
+    data: NodeData = Field(default_factory=NodeData, description="Additional data for the node")
+    
+    @validator('type')
+    def validate_type(cls, v):
+        # Convert to lowercase and strip any whitespace
+        v = v.lower().strip()
+        if not v:
+            raise ValueError('Type cannot be empty')
+        return v
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "type": "person",
+                "data": {
+                    "label": "John Doe",
+                    "color": "#FF0000"
+                }
+            }
+        }
 
 def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
     return ", ".join(f"{key}: ${prefix}{key}" for key in props)
 
 @router.post("/{sketch_id}/nodes/add")
 def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)):
-    
-    node_type = getattr(node, "type", "unknown").lower()
-    node_data = getattr(node, "data", {})
+    node_data = node.data.model_dump()
+    print(node_data)
+    node_type = node_data["type"]
 
     properties = {
         "type": node_type,
         "sketch_id": sketch_id,
-        "caption": node_data.get("label", "Node"),
-        "label": node_data.get("label", "Node"),
-        "color": node_data.get("color", "Node"),
+        "caption": node_data["label"],
+        "label": node_data["label"],
+        "color": node_data["color"],
         "size": 40,
     }
 
-    if node_data and isinstance(node_data, dict):
+    if node_data:
         flattened_data = flatten(node_data)
         properties.update(flattened_data)
 
@@ -174,8 +201,9 @@ def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(ge
         new_node = create_result[0]["node"]
     except (IndexError, KeyError) as e:
         print(f"Error extracting node_id: {e}, result: {create_result}")
-        new_node = None
-    new_node["data"]=node_data
+        raise HTTPException(status_code=500, detail="Failed to extract node data from response")
+    
+    new_node["data"] = node_data
 
     return {
         "status": "node added",

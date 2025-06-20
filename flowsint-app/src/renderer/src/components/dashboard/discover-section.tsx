@@ -9,21 +9,21 @@ export function DiscoverSection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="border border-border/60 bg-card/90">
                     <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                        <div className="bg-blue-600/20 rounded-lg p-2 flex items-center justify-center"><PlusCircle className="w-5 h-5 text-blue-600" /></div>
+                        <div className="bg-muted rounded-lg p-2 flex items-center justify-center"><PlusCircle className="w-5 h-5 text-muted-foreground" /></div>
                         <CardTitle className="text-base">Start a new investigation</CardTitle>
                     </CardHeader>
                     <CardContent className="text-muted-foreground text-sm">Quickly create a new investigation to begin your work.</CardContent>
                 </Card>
                 <Card className="border border-border/60 bg-card/90">
                     <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                        <div className="bg-orange-600/20 rounded-lg p-2 flex items-center justify-center"><Import className="w-5 h-5 text-orange-600" /></div>
+                        <div className="bg-muted rounded-lg p-2 flex items-center justify-center"><Import className="w-5 h-5 text-muted-foreground" /></div>
                         <CardTitle className="text-base">Import data</CardTitle>
                     </CardHeader>
                     <CardContent className="text-muted-foreground text-sm">Import investigations or data from files to get started quickly.</CardContent>
                 </Card>
                 <Card className="border border-border/60 bg-card/90">
                     <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                        <div className="bg-green-600/20 rounded-lg p-2 flex items-center justify-center"><FileText className="w-5 h-5 text-green-600" /></div>
+                        <div className="bg-muted rounded-lg p-2 flex items-center justify-center"><FileText className="w-5 h-5 text-muted-foreground" /></div>
                         <CardTitle className="text-base">Read documentation</CardTitle>
                     </CardHeader>
                     <CardContent className="text-muted-foreground text-sm">Learn how to use the platform and best practices.</CardContent>

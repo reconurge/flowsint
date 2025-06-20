@@ -1,12 +1,12 @@
 import os
-import socket
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 import requests
+from datetime import datetime
 from app.scanners.base import Scanner
 from app.types.wallet import Wallet, WalletTransaction
 from app.utils import resolve_type
-
+from app.core.logger import Logger
 InputType: TypeAlias = List[Wallet]
 OutputType: TypeAlias = List[WalletTransaction]
 
@@ -78,7 +78,7 @@ class WalletAddressToTransactions(Scanner):
                 transactions = self._get_transactions(d.address)
                 results.append(transactions)
             except Exception as e:
-                print(f"Error resolving transactions for {d.address}: {e}")
+                Logger.error(self.sketch_id, {"message": f"Error resolving transactions for {d.address}: {e}"})
         return results
     
     def _get_transactions(self, address: str) -> List[WalletTransaction]:
@@ -91,7 +91,7 @@ class WalletAddressToTransactions(Scanner):
         "startblock": 0,
         "endblock": 99999999,
         "page": 1,
-        "offset": 10000,
+        "offset": 100,
         "sort": "asc",
         "apikey": ETHERSCAN_API_KEY
     }
@@ -184,5 +184,6 @@ class WalletAddressToTransactions(Scanner):
                     "contract_address": tx.contract_address,
                     "sketch_id": self.sketch_id
                 })
+                Logger.graph_append(self.sketch_id, {"message": f"Transaction on {datetime.fromtimestamp(int(tx.timestamp)).strftime('%Y-%m-%d %H:%M:%S') if tx.timestamp else 'Unknown time'}: {tx.source.address} -> {tx.target.address}"})
 
         return results

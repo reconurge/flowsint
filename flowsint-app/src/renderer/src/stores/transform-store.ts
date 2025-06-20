@@ -12,7 +12,6 @@ import {
     applyEdgeChanges
 } from "@xyflow/react"
 
-
 export interface NodeData {
     class_name: string
     module: string
@@ -28,20 +27,20 @@ export interface NodeData {
     [key: string]: unknown
 }
 
-export type FlowNode = Node<NodeData>
-export type FlowEdge = Edge
+export type TransformNode = Node<NodeData>
+export type TransformEdge = Edge
 
-export interface FlowState {
-    nodes: FlowNode[]
-    edges: FlowEdge[]
-    selectedNode: FlowNode | null
+export interface TransformState {
+    nodes: TransformNode[]
+    edges: TransformEdge[]
+    selectedNode: TransformNode | null
     loading: boolean
-    setNodes: (nodes: FlowNode[] | ((prev: FlowNode[]) => FlowNode[])) => void
-    setEdges: (edges: FlowEdge[] | ((prev: FlowEdge[]) => FlowEdge[])) => void
+    setNodes: (nodes: TransformNode[] | ((prev: TransformNode[]) => TransformNode[])) => void
+    setEdges: (edges: TransformEdge[] | ((prev: TransformEdge[]) => TransformEdge[])) => void
     onNodesChange: OnNodesChange
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
-    setSelectedNode: (node: FlowNode | null) => void
+    setSelectedNode: (node: TransformNode | null) => void
     setLoading: (loading: boolean) => void
     deleteNode: (nodeId: string) => void
 }
@@ -54,16 +53,16 @@ const defaultMarkerEnd: EdgeMarker = {
     color: "#64748b",
 }
 
-export const useFlowStore = create<FlowState>((set, get) => ({
-    nodes: [] as FlowNode[],
-    edges: [] as FlowEdge[],
+export const useTransformStore = create<TransformState>((set, get) => ({
+    nodes: [] as TransformNode[],
+    edges: [] as TransformEdge[],
     selectedNode: null,
     loading: false,
     setNodes: (nodes) => set({ nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes }),
     setEdges: (edges) => set({ edges: typeof edges === 'function' ? edges(get().edges) : edges }),
     onNodesChange: (changes) => {
         set({
-            nodes: applyNodeChanges(changes, get().nodes) as FlowNode[],
+            nodes: applyNodeChanges(changes, get().nodes) as TransformNode[],
         })
     },
     onEdgesChange: (changes) => {
@@ -72,7 +71,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
         })
     },
     onConnect: (connection: Connection) => {
-        const edge: FlowEdge = {
+        const edge: TransformEdge = {
             id: `${connection.source}-${connection.target}`,
             source: connection.source!,
             target: connection.target!,

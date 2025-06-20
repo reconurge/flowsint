@@ -1,4 +1,4 @@
-import { useBoundStore } from '@/store/useBoundStore'
+import { useBoundStore } from '@/stores/use-bound-store'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { MdAdd } from 'react-icons/md'
 import { Tab } from './tab'

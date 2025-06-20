@@ -12,7 +12,6 @@ class EventEmitter:
         self.id = uuid.uuid4()
         self.redis = redis.from_url(os.getenv("REDIS_URI", "redis://localhost:6379/0"))
         self.pubsubs: Dict[str, redis.client.PubSub] = {}
-        print(f"[EventEmitter] Initialized with id {self.id}")
 
     async def subscribe(self, channel: str):
         """Subscribe to Redis channel"""
@@ -20,7 +19,6 @@ class EventEmitter:
             pubsub = self.redis.pubsub()
             await pubsub.subscribe(channel)
             self.pubsubs[channel] = pubsub
-            print(f"[EventEmitter] Subscribed to Redis channel {channel}")
 
     async def unsubscribe(self, channel: str):
         """Unsubscribe from Redis channel"""
@@ -28,12 +26,10 @@ class EventEmitter:
             await self.pubsubs[channel].unsubscribe(channel)
             await self.pubsubs[channel].close()
             del self.pubsubs[channel]
-            print(f"[EventEmitter] Unsubscribed from Redis channel {channel}")
 
     async def get_message(self, channel: str = None):
         """Get the next message from Redis for a specific channel"""
         if channel not in self.pubsubs:
-            print(f"[EventEmitter] No subscription found for channel {channel}")
             return None
             
         message = await self.pubsubs[channel].get_message(ignore_subscribe_messages=True)
@@ -41,22 +37,17 @@ class EventEmitter:
             await asyncio.sleep(0.1)
             return None
             
-        print(f"[EventEmitter] Raw message from Redis: {str(message)}")
         if message:
             data = message["data"]
             if isinstance(data, bytes):
                 decoded = data.decode("utf-8")
-                print(f"[EventEmitter] Decoded message: {decoded}")
                 return decoded
-            print(f"[EventEmitter] Non-bytes message: {str(data)}")
             return str(data)
         return None
 
     async def emit(self, channel: str, data: any):
         """Emit an event to a Redis channel"""
-        print(f"[EventEmitter] Emitting to channel {channel}: {data}")
         await self.redis.publish(channel, json.dumps(data))
-        print(f"[EventEmitter] Successfully emitted to channel {channel}")
 
     def _is_valid_uuid(self, uuid_str: str) -> bool:
         """Validate if the string is a valid UUID"""

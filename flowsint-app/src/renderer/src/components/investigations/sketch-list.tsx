@@ -6,7 +6,7 @@ import { PlusIcon, Waypoints } from "lucide-react"
 import { Input } from "../ui/input"
 import { useParams } from "@tanstack/react-router"
 import { SkeletonList } from "../shared/skeleton-list"
-import NewSketch from "../sketches/new-sketch"
+import NewSketch from "../graphs/new-sketch"
 import { SketchListItem } from "./investigation-list"
 import { useState, useMemo } from "react"
 

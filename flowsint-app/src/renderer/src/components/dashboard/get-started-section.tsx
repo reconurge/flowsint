@@ -9,8 +9,8 @@ export function GetStartedSection() {
                 {/* Action 1 */}
                 <NewInvestigation noDropDown>
                     <div className="flex flex-row items-center gap-4 px-6 py-5 hover:bg-accent/50 cursor-pointer transition-colors">
-                        <div className="bg-blue-600/20 rounded-lg p-3 flex items-center justify-center">
-                            <PlusCircle className="w-4 h-4 text-blue-600" />
+                        <div className="bg-muted rounded-lg p-3 flex items-center justify-center">
+                            <PlusCircle className="w-4 h-4 text-muted-foreground" />
                         </div>
                         <div className="flex-1 flex flex-col">
                             <span className="font-semibold text-lg text-foreground">Start a new investigation</span>
@@ -20,8 +20,8 @@ export function GetStartedSection() {
                 </NewInvestigation>
                 {/* Action 2 */}
                 <div className="flex flex-row items-center gap-4 px-6 py-5 hover:bg-accent/50 cursor-pointer transition-colors">
-                    <div className="bg-orange-600/20 rounded-lg p-3 flex items-center justify-center">
-                        <Import className="w-4 h-4 text-orange-600" />
+                    <div className="bg-muted rounded-lg p-3 flex items-center justify-center">
+                        <Import className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 flex flex-col">
                         <span className="font-semibold text-lg text-foreground">Import data</span>

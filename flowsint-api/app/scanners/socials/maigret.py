@@ -7,6 +7,7 @@ from app.utils import is_valid_username, resolve_type
 from app.scanners.base import Scanner
 from app.types.social import Social, Social
 from pydantic import TypeAdapter
+from app.core.logger import Logger
 
 InputType: TypeAlias = List[Social]
 OutputType: TypeAlias = List[Social]
@@ -79,7 +80,7 @@ class MaigretScanner(Scanner):
                 timeout=100
             )
         except Exception as e:
-            print(f"[ERROR] Maigret execution failed for {username}: {e}")
+            print(f"[FAILED] Maigret execution failed for {username}: {e}")
         return output_file
     
     def parse_maigret_output(self, username: str, output_file: Path) -> List[Social]:
@@ -91,7 +92,7 @@ class MaigretScanner(Scanner):
             with open(output_file, "r") as f:
                 raw_data = json.load(f)
         except Exception as e:
-            print(f"[ERROR] Failed to load output file for {username}: {e}")
+            print(f"[FAILED] Failed to load output file for {username}: {e}")
             return results
 
         for platform, profile in raw_data.items():
@@ -147,7 +148,7 @@ class MaigretScanner(Scanner):
             return results
 
         for profile in results:
-            self.logger.info(message=f"{profile.username} -> account found on {profile.platform}")
+            Logger.graph_append(self.sketch_id, {"message": f"{profile.username} -> account found on {profile.platform}"})
             self.neo4j_conn.query("""
                 MERGE (p:social_profile {profile_url: $profile_url})
                 SET p.username = $username,

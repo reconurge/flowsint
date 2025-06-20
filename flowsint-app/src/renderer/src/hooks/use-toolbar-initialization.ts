@@ -1,4 +1,4 @@
-import { useBoundStore } from '@/store/useBoundStore'
+import { useBoundStore } from '@/stores/use-bound-store'
 import { useEffect, useState } from 'react'
 
 export function useToolbarInitialization() {

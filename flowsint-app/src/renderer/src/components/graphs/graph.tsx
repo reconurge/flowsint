@@ -1,6 +1,6 @@
 import { useCallback, useEffect, memo, lazy, Suspense, useRef, useState } from "react"
 import { Cosmograph, CosmographProvider, useCosmograph } from '@cosmograph/react'
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import Loader from "@/components/shared/loader"
 import { useGraphControls } from "@/stores/graph-controls-store"
@@ -84,12 +84,12 @@ const GRAPH_CONFIG = {
 }
 
 const GraphContent = memo(() => {
-    const nodes = useSketchStore(s => s.nodes)
-    const edges = useSketchStore(s => s.edges)
-    const currentNode = useSketchStore(s => s.currentNode)
+    const nodes = useGraphStore(s => s.nodes)
+    const edges = useGraphStore(s => s.edges)
+    const currentNode = useGraphStore(s => s.currentNode)
     const { isCosmographReady, loadingStage, handleSimulationStart, handleSimulationEnd } = useCosmographLoader(nodes, edges)
-    const clearSelectedNodes = useSketchStore(s => s.clearSelectedNodes)
-    const toggleNodeSelection = useSketchStore(s => s.toggleNodeSelection)
+    const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
+    const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection)
     const colors = useNodesDisplaySettings(s => s.colors)
     const getSize = useNodesDisplaySettings(s => s.getSize)
     const getIcon = useNodesDisplaySettings(s => s.getIcon)
@@ -120,10 +120,10 @@ const GraphContent = memo(() => {
     }, [toggleNodeSelection, clearSelectedNodes, cosmograph?.cosmograph])
 
     // Fonctions de style stables
-    const nodeColorFunction = useCallback((n: CosmosInputNode & { type?: string }) =>
-        colors[n.type as keyof typeof colors] || "#000000", [colors])
+    const nodeColorFunction = useCallback((n: CosmosInputNode & { data?: { type?: string } }) =>
+        colors[n.data?.type as keyof typeof colors] || "#000000", [colors])
 
-    const nodeSizeFunction = useCallback((n: any) => getSize(n.type), [getSize])
+    const nodeSizeFunction = useCallback((n: any) => getSize(n.data?.type), [getSize])
 
     const nodeLabelFunction = useCallback((n: any) => `${getIcon(n.data.type)} ${n.label}`, [getIcon])
 
@@ -225,15 +225,9 @@ const GraphProvider = memo(({ nodes, edges, children }: {
     edges: any[],
     children: React.ReactNode
 }) => {
-    // Transform edges to use source/target instead of from/to
-    const transformedEdges = edges.map(edge => ({
-        ...edge,
-        source: edge.from,
-        target: edge.to
-    }))
 
     return (
-        <CosmographProvider nodes={nodes} links={transformedEdges}>
+        <CosmographProvider nodes={nodes} links={edges}>
             {children}
         </CosmographProvider>
     )
@@ -242,8 +236,8 @@ GraphProvider.displayName = "GraphProvider"
 
 // Composant principal avec optimisations maximales
 const Graph = memo(() => {
-    const nodes = useSketchStore(s => s.nodes)
-    const edges = useSketchStore(s => s.edges)
+    const nodes = useGraphStore(s => s.nodes)
+    const edges = useGraphStore(s => s.edges)
 
     if (!nodes.length) {
         return <EmptyState />

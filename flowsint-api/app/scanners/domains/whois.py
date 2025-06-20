@@ -7,6 +7,7 @@ from app.types.domain import Domain, Domain
 from app.types.whois import Whois
 from app.types.email import Email
 from pydantic import TypeAdapter
+from app.core.logger import Logger
 
 InputType: TypeAlias = List[Domain]
 OutputType: TypeAlias = List[Domain]
@@ -98,6 +99,7 @@ class WhoisScanner(Scanner):
             if not self.neo4j_conn:
                 continue
             whois_obj = domain.whois
+            Logger.graph_append(self.sketch_id, {"message": f"WHOIS for {domain.domain} -> registrar: {whois_obj.registrar} org: {whois_obj.org} city: {whois_obj.city} country: {whois_obj.country} creation_date: {whois_obj.creation_date} expiration_date: {whois_obj.expiration_date} email: {whois_obj.email.email}"})
 
             props = {
                 "domain": domain.domain,

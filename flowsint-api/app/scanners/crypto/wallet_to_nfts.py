@@ -6,7 +6,7 @@ import requests
 from app.scanners.base import Scanner
 from app.types.wallet import Wallet, NFT
 from app.utils import resolve_type
-
+from app.core.logger import Logger
 InputType: TypeAlias = List[Wallet]
 OutputType: TypeAlias = List[NFT]
 
@@ -162,5 +162,7 @@ class WalletAddressToNFTs(Scanner):
                     "token_id": nft.token_id,
                     "sketch_id": self.sketch_id
                 })
+                Logger.graph_append(self.sketch_id, {"message": f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}"})
+
 
         return results

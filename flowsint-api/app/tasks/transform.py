@@ -12,6 +12,7 @@ from app.types.transform import FlowBranch
 from app.models.models import Scan
 from sqlalchemy.orm import Session
 from app.core.logger import Logger
+from app.core.enums import EventLevel
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -35,7 +36,7 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
 
         scan = Scan(
             id=scan_id,
-            status="pending",
+            status=EventLevel.PENDING,
             sketch_id=uuid.UUID(sketch_id) if sketch_id else None,
         )
         session.add(scan)
@@ -52,7 +53,7 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
         # Use the synchronous scan method which internally handles the async operations
         results = scanner.scan(values=values)
 
-        scan.status = "completed"
+        scan.status = EventLevel.COMPLETED
         scan.results = scanner.results_to_json(results)
         session.commit()
 
@@ -65,7 +66,7 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
 
         scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
         if scan:
-            scan.status = "failed"
+            scan.status = EventLevel.FAILED
             scan.results = {"error": error_logs}
             session.commit()
 

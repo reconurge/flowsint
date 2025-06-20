@@ -15,7 +15,7 @@ import { HorizontalRule } from '@tiptap/extension-horizontal-rule'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 import { Color } from '@tiptap/extension-color'
 import type { Editor } from '@tiptap/react'
-import { useSketchStore } from '@/stores/sketch-store';
+import { useGraphStore } from '@/stores/graph-store';
 
 const markdownToHtml = (markdown: string) => {
     return marked(markdown, {
@@ -35,7 +35,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
     const [isAiLoading, setIsAiLoading] = useState(false)
     const [promptOpen, setPromptOpen] = useState(false)
     const [customPrompt, setCustomPrompt] = useState("")
-    const selectedNodes = useSketchStore(s => s.selectedNodes)
+    const selectedNodes = useGraphStore(s => s.selectedNodes)
 
     const aiCompletionMutation = useMutation({
         mutationFn: async (prompt: string) => {

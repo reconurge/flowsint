@@ -35,7 +35,7 @@ export default function InvestigationSelector() {
             {isLoading ? <Skeleton className="h-7 w-40 bg-foreground/10" /> :
                 // @ts-ignore
                 <Select onValueChange={handleSelectionChange} defaultValue={investigationId}>
-                    <SelectTrigger className="min-w-none h-7 w-full hover:bg-foreground/10 rounded-sm font-medium shadow-none border-none text-ellipsis truncate gap-1 inset-shadow-none">
+                    <SelectTrigger className="min-w-none !h-7 w-full hover:bg-foreground/10 !bg-transparent rounded-sm font-medium shadow-none border-none text-ellipsis truncate gap-1 inset-shadow-none">
                         <SelectValue placeholder="Select an investigation" />
                     </SelectTrigger>
                     <SelectContent>

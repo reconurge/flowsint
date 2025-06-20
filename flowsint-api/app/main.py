@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from app.core.graph_db import Neo4jConnection
-from app.core.events import init_events
 import os
 from typing import List
 from dotenv import load_dotenv
@@ -10,7 +9,7 @@ from app.api.routes import auth
 from app.api.routes import investigations
 from app.api.routes import sketches
 from app.api.routes import transforms
-from app.api.routes import logs
+from app.api.routes import events
 from app.api.routes import analysis
 from app.api.routes import chat
 from app.api.routes import scan
@@ -53,7 +52,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(sketches.router, prefix="/api/sketches", tags=["sketches"])
 app.include_router(investigations.router, prefix="/api/investigations", tags=["investigations"])
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
-app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
+app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(scan.router, prefix="/api/scans", tags=["scans"])

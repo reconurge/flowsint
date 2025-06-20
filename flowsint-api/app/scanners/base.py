@@ -46,16 +46,16 @@ class Scanner(ABC):
 
     def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         if self.name() != "transform_orchestrator":
-            Logger.info(self.sketch_id, f"Scanner {self.name()} started.")
+            Logger.info(self.sketch_id, {"message": f"Scanner {self.name()} started."})
 
         try:
             preprocessed = self.preprocess(values)
             results = self.scan(preprocessed)
             processed = self.postprocess(results, preprocessed)
             if self.name() != "transform_orchestrator":
-                Logger.success(self.sketch_id, f"Scanner {self.name()} finished.")
+                Logger.success(self.sketch_id, {"message": f"Scanner {self.name()} finished."})
             return processed
         except Exception as e:
             if self.name() != "transform_orchestrator":
-                Logger.error(self.sketch_id, f"Scanner {self.name()} errored: '{str(e)}'.")
+                Logger.error(self.sketch_id, {"message": f"Scanner {self.name()} errored: '{str(e)}'."})
             return []

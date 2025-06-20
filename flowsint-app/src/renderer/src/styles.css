@@ -4,18 +4,47 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --font-family-oxanium: 'Oxanium', sans-serif;
+}
+
 body {
   @apply m-0;
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Oxanium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: var(--tracking-normal);
 }
 
+/* Smooth scrolling optimizations */
+html {
+  scroll-behavior: smooth;
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* For iOS smooth scrolling */
+}
+
+/* Optimizations for virtualized lists */
+.virtualized-container {
+  contain: strict;
+  will-change: scroll-position;
+}
+
+.virtualized-item {
+  contain: layout style paint;
+  transform: translateZ(0);
+  /* Force hardware acceleration */
+  will-change: transform;
+}
+
 @layer base {
   :root {
+    --font-oxanium: 'Oxanium', sans-serif;
     --sidebar-background: hsl(0, 0%, 98%);
     --sidebar-foreground: hsl(240, 5.3%, 26.1%);
     --sidebar-primary: hsl(240, 5.9%, 10%);
@@ -464,6 +493,7 @@ body {
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --xy-edge-label-background-color: var(--background)!important;
 }
 
 .minimal-tiptap-editor .ProseMirror {
@@ -558,7 +588,7 @@ body {
 }
 
 /* Basic editor styles */
-.tiptap > :first-child {
+.tiptap> :first-child {
   margin-top: 0;
 }
 

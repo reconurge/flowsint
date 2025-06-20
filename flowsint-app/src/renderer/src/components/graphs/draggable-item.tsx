@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react"
 import { GripVertical } from "lucide-react"
 import { memo, useState } from "react"
 import { IconContainer } from "@/components/icon-container"
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -27,7 +27,7 @@ export const DraggableItem = memo(function DraggableItem({
     disabled = false,
     description,
 }: DraggableItemProps) {
-    const handleOpenFormModal = useSketchStore((s) => s.handleOpenFormModal)
+    const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
     const [isDragging, setIsDragging] = useState(false)
 
     const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
@@ -55,7 +55,7 @@ export const DraggableItem = memo(function DraggableItem({
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                         className={cn(
-                            "px-2 py-1 group rounded-md relative overflow-hidden border-l-4 bg-card border hover:shadow-md transition-shadow w-full text-left",
+                            "px-0 py-1 group flex flex-col items-center w-full justify-center gap-1 rounded-md relative overflow-hidden",
                             {
                                 "opacity-50": isDragging || disabled,
                                 "cursor-not-allowed": disabled,
@@ -64,15 +64,11 @@ export const DraggableItem = memo(function DraggableItem({
                         )}
                         style={{ borderLeftColor: color }}
                     >
-                        <div className="flex justify-start items-center w-full gap-2">
-                            <IconContainer icon={icon} color={color} type={type} />
-                            <div className="space-y-1 truncate flex-1">
-                                <h3 className="text-sm font-medium truncate">{label}</h3>
-                                <p className="text-xs text-muted-foreground truncate">{description || label}</p>
-                            </div>
-                            {!disabled && (
-                                <GripVertical className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
-                            )}
+                        <div className="flex justify-center items-center bg-background w-full text-left h-20 border rounded-lg">
+                            <IconContainer size={18} icon={icon} color={color} type={type} />
+                        </div>
+                        <div className="space-y-1 truncate flex-1">
+                            <h3 className="text-xs font-normal opacity-60 truncate">{label}</h3>
                         </div>
                     </button>
                 </TooltipTrigger>

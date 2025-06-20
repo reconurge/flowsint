@@ -1,28 +1,47 @@
 import { create } from "zustand"
 import type { EdgeData, NodeData } from "@/types"
+import {
+    type Node,
+    type Edge,
+    type OnNodesChange,
+    type OnEdgesChange,
+    type OnConnect,
+    type Connection,
+    applyNodeChanges,
+    applyEdgeChanges
+} from "@xyflow/react"
 import { type ActionItem, findActionItemByKey } from "@/lib/action-items"
 
-interface SketchState {
+export type GraphNode = Node<NodeData> & {
+    collapsed?: boolean;
+    hidden?: boolean;
+}
+export type GraphEdge = Edge<EdgeData>
+
+interface GraphState {
     // === Graph ===
-    nodes: NodeData[]
-    edges: EdgeData[]
-    setNodes: (nodes: NodeData[]) => void
-    setEdges: (edges: EdgeData[]) => void
-    addNode: (newNode: Partial<NodeData>) => NodeData
-    addEdge: (newEdge: Partial<EdgeData>) => EdgeData
+    nodes: GraphNode[]
+    edges: GraphEdge[]
+    setNodes: (nodes: GraphNode[]) => void
+    setEdges: (edges: GraphEdge[]) => void
+    addNode: (newNode: Partial<GraphNode>) => GraphNode
+    addEdge: (newEdge: Partial<GraphEdge>) => GraphEdge
     removeNodes: (nodeIds: string[]) => void
     removeEdges: (edgeIds: string[]) => void
-    updateGraphData: (nodes: NodeData[], edges: EdgeData[]) => void
+    updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
+    onNodesChange: OnNodesChange
+    onEdgesChange: OnEdgesChange
+    onConnect: OnConnect
 
     // === Selection & Current ===
-    currentNode: NodeData | null
-    selectedNodes: NodeData[]
+    currentNode: GraphNode | null
+    selectedNodes: GraphNode[]
     isCurrent: (nodeId: string) => boolean
     isSelected: (nodeId: string) => boolean
-    setCurrentNode: (node: NodeData | null) => void
-    setSelectedNodes: (nodes: NodeData[]) => void
+    setCurrentNode: (node: GraphNode | null) => void
+    setSelectedNodes: (nodes: GraphNode[]) => void
     clearSelectedNodes: () => void
-    toggleNodeSelection: (node: NodeData, multiSelect?: boolean) => void
+    toggleNodeSelection: (node: GraphNode, multiSelect?: boolean) => void
 
     // === Dialogs ===
     openMainDialog: boolean
@@ -40,9 +59,12 @@ interface SketchState {
     // === Filters ===
     filters: Record<string, unknown>
     setFilters: (filters: Record<string, unknown>) => void
+
+    // === Collapse/Expand logic ===
+    toggleCollapse: (nodeId: string) => void
 }
 
-export const useSketchStore = create<SketchState>()((set, get) => ({
+export const useGraphStore = create<GraphState>()((set, get) => ({
     // === Graph ===
     nodes: [],
     edges: [],
@@ -50,19 +72,23 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
     setEdges: (edges) => set({ edges }),
     addNode: (newNode) => {
         const { nodes } = get()
-        const nodeWithId: NodeData = {
+        const nodeWithId: GraphNode = {
             id: newNode.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            position: {
+                x: 0,
+                y: 0,
+            },
             ...newNode,
-        } as NodeData
-        set({ nodes: [...nodes, nodeWithId] })
+        } as GraphNode
+        set({ nodes: [...nodes, nodeWithId], currentNode: nodeWithId })
         return nodeWithId
     },
     addEdge: (newEdge) => {
         const { edges } = get()
-        const edgeWithId: EdgeData = {
+        const edgeWithId: GraphEdge = {
             id: newEdge.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
             ...newEdge,
-        } as EdgeData
+        } as GraphEdge
         set({ edges: [...edges, edgeWithId] })
         return edgeWithId
     },
@@ -70,7 +96,7 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
         const { nodes, edges } = get();
         const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
         const newEdges = edges.filter(
-            (e) => !nodeIds.includes(e.from) && !nodeIds.includes(e.to)
+            (e) => !nodeIds.includes(e.source) && !nodeIds.includes(e.target)
         );
         set({ nodes: newNodes, edges: newEdges });
     },
@@ -79,8 +105,30 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
         const newEdges = edges.filter((e) => !edgeIds.includes(e.id))
         set({ edges: newEdges })
     },
-    updateGraphData: (nodes: NodeData[], edges: EdgeData[]) => {
+    updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => {
         set({ nodes, edges })
+    },
+    onNodesChange: (changes) => {
+        set({
+            nodes: applyNodeChanges(changes, get().nodes) as GraphNode[],
+        })
+    },
+    onEdgesChange: (changes) => {
+        set({
+            edges: applyEdgeChanges(changes, get().edges) as GraphEdge[],
+        })
+    },
+    onConnect: (connection: Connection) => {
+        const edge: GraphEdge = {
+            id: `${connection.source}-${connection.target}`,
+            source: connection.source!,
+            target: connection.target!,
+            sourceHandle: connection.sourceHandle,
+            targetHandle: connection.targetHandle,
+        }
+        set({
+            edges: [...get().edges, edge],
+        })
     },
 
     // === Selection & Current ===
@@ -97,7 +145,7 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
     toggleNodeSelection: (node, multiSelect = false) => {
         const { selectedNodes, currentNode } = get()
         const isSelected = selectedNodes.some((n) => n.id === node.id)
-        let newSelected: NodeData[]
+        let newSelected: GraphNode[]
 
         if (multiSelect) {
             newSelected = isSelected
@@ -137,4 +185,41 @@ export const useSketchStore = create<SketchState>()((set, get) => ({
     // === Filters ===
     filters: {},
     setFilters: (filters) => set({ filters }),
+
+    // === Collapse/Expand logic ===
+    toggleCollapse: (nodeId) => {
+        const { nodes, edges } = get();
+        // Find the node
+        const node = nodes.find(n => n.id === nodeId);
+        if (!node) return;
+        const isCollapsing = !node.collapsed;
+        // Recursively find all descendants
+        const getDescendants = (parentId: string, accNodes: Set<string>, accEdges: Set<string>) => {
+            edges.forEach(edge => {
+                if (edge.source === parentId) {
+                    accEdges.add(edge.id);
+                    accNodes.add(edge.target);
+                    getDescendants(edge.target, accNodes, accEdges);
+                }
+            });
+        };
+        const descendantNodeIds = new Set<string>();
+        const descendantEdgeIds = new Set<string>();
+        getDescendants(nodeId, descendantNodeIds, descendantEdgeIds);
+        // Update nodes and edges
+        set({
+            nodes: nodes.map(n =>
+                n.id === nodeId
+                    ? { ...n, collapsed: isCollapsing }
+                    : descendantNodeIds.has(n.id)
+                        ? { ...n, hidden: isCollapsing }
+                        : n
+            ),
+            edges: edges.map(e =>
+                descendantEdgeIds.has(e.id)
+                    ? { ...e, hidden: isCollapsing }
+                    : e
+            ),
+        });
+    },
 }))

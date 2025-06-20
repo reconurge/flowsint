@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from 'react'
-import { useSketchStore } from '@/stores/sketch-store'
+import { useGraphStore } from '@/stores/graph-store'
 
 export const useDragAndDrop = () => {
     const [isDraggingOver, setIsDraggingOver] = useState(false)
-    const handleOpenFormModal = useSketchStore(s => s.handleOpenFormModal)
+    const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
     const dragLeaveTimeoutRef = useRef<number | null>(null)
 
     const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {

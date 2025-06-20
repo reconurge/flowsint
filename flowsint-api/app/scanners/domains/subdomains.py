@@ -137,7 +137,7 @@ class SubdomainScanner(Scanner):
                 continue
             for subdomain in domain_obj.subdomains:
                 output.append(Domain(domain=subdomain))
-                Logger.info(self.sketch_id, f"{domain_obj.domain} -> {subdomain}")
+                Logger.info(self.sketch_id, {"message": f"{domain_obj.domain} -> {subdomain}"})
                 self.neo4j_conn.query("""
                     MERGE (sub:domain {domain: $subdomain})
                     SET sub.sketch_id = $sketch_id,
@@ -154,6 +154,6 @@ class SubdomainScanner(Scanner):
                     "caption": subdomain,
                     "type": "subdomain"
                 })
-            Logger.success(self.sketch_id, f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found.")
+            Logger.graph_append(self.sketch_id, {"message":f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found."})
 
         return output

@@ -6,7 +6,7 @@ celery = Celery(
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
     include=[
-        "app.tasks.logging",
+        "app.tasks.event",
         "app.tasks.transform",
     ]
 )

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useBoundStore } from '@/stores/useBoundStore';
+import { useBoundStore } from '@/stores/use-bound-store';
 import type { TabInfo } from '@/types/tabs';
 
 interface UseTabManagementProps {

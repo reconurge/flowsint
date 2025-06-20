@@ -3,13 +3,13 @@ from datetime import datetime
 
 from sqlalchemy import (
     String, Text, DateTime, ForeignKey,
-    Index, func, text, JSON, Column, Integer, Enum as SQLEnum
+    Index, func, JSON, Column, Enum as SQLEnum
 )
-from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from app.core.enums import ScannerStatus
+from app.core.enums import EventLevel
 
 
 class Feedback(Base):
@@ -60,10 +60,10 @@ class Log(Base):
     __tablename__ = "logs"
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    content = mapped_column(Text)
+    content = mapped_column(JSONB, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     sketch_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
-    type = mapped_column(String, server_default="INFO")
+    type = Column(SQLEnum(EventLevel), default=EventLevel.INFO)
 
 
 class Profile(Base):
@@ -83,7 +83,7 @@ class Scan(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     sketch_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
-    status = Column(SQLEnum(ScannerStatus), default=ScannerStatus.PENDING)
+    status = Column(SQLEnum(EventLevel), default=EventLevel.PENDING)
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
     error = Column(Text, nullable=True)

@@ -66,8 +66,8 @@ export function RecentInvestigations() {
                         className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-muted/50 transition-colors"
                     >
                         <div className="flex items-center gap-3">
-                            <span className="bg-blue-600/20 rounded-lg p-2">
-                                <PlusCircle className="w-4 h-4 text-blue-600" />
+                            <span className="bg-muted rounded-lg p-2">
+                                <PlusCircle className="w-4 h-4 text-muted-foreground" />
                             </span>
                             <div className="flex flex-col">
                                 <span className="font-medium text-foreground">{investigation.name}</span>

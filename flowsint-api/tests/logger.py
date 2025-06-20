@@ -1,12 +1,12 @@
 from typing import Literal, Union, Any
 from uuid import UUID
 
-LogLevel = Literal["info", "warn", "error", "success", "debug"]
+EventLevel = Literal["info", "warn", "error", "success", "debug"]
 
 LEVEL_MAP = {
     "info": "INFO",
     "warn": "WARN", 
-    "error": "ERROR",
+    "error": "FAILED",
     "success": "SUCCESS",
     "debug": "DEBUG",
 }
@@ -35,7 +35,7 @@ class TestLogger:
     @staticmethod
     def error(sketch_id: Union[str, UUID], message: str):
         """Log an error message"""
-        formatted_message = TestLogger._format_message("ERROR", message)
+        formatted_message = TestLogger._format_message("FAILED", message)
         print(formatted_message)
 
     @staticmethod

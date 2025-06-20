@@ -4,30 +4,40 @@ import { sketchService } from '@/api/sketch-service'
 import { useQuery } from '@tanstack/react-query'
 import Loader from '@/components/loader'
 import { analysisService } from '@/api/analysis-service'
-import AnalysisPanel from '@/components/analyses/notes-panel'
+import { AnalysisPage } from '@/components/analyses/analysis-page'
+import { useGraphControls } from '@/stores/graph-controls-store'
+import { useEffect } from 'react'
 
 const services = {
     graph: sketchService.getGraphDataById,
     analysis: analysisService.getById,
 }
+
 const GraphPageContent = () => {
-    const { params: { type, id, investigationId } } = useLoaderData({
+    const setActions = useGraphControls((s) => s.setActions)
+    const { params: { type, id, investigationId }, sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
 
-    const { data: graphData, isLoading } = useQuery({
+    const { data: data, isLoading, isRefetching, isError, refetch } = useQuery({
         queryKey: ["investigations", investigationId, type, id, "data"],
-        queryFn: () => services[type] || Promise.resolve(null),
-        enabled: ["graph"].includes(type),
-        refetchOnWindowFocus: false
+        queryFn: () => services[type](id),
+        enabled: ["graph", "analysis"].includes(type),
+        // refetchInterval: 5000,
+        refetchOnWindowFocus: false,
+        initialData: sketch
     })
 
+    useEffect(() => {
+        setActions({ refetchGraph: refetch })
+    }, [refetch, setActions, id])
+
     if (type === "graph") {
-        return <GraphPanel isLoading={isLoading} graphData={graphData} />
+        return <GraphPanel isLoading={isLoading} isRefetching={isRefetching} graphData={data} />
     }
 
     if (type === "analysis") {
-        return <AnalysisPanel />
+        return <AnalysisPage analysis={data} isLoading={isLoading} isError={isError} refetch={refetch} />
     }
 
     return (

@@ -80,7 +80,7 @@ class ReverseResolveScanner(Scanner):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for ip_obj, domain_obj in zip(original_input, results):
-            Logger.success(self.sketch_id, message=f"Resolved {ip_obj.address} to {domain_obj.domain}")
+            Logger.graph_append(self.sketch_id, {"message": f"Reverse resolved {ip_obj.address} -> {domain_obj.domain}"})
             query = """
             MERGE (ip:ip {address: $address})
             SET ip.sketch_id = $sketch_id,

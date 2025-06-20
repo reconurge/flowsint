@@ -1,0 +1,70 @@
+import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { logService } from "@/api/log-service"
+import { GraphEdge, GraphNode } from "@/stores/graph-store"
+import { EventLevel } from "@/types"
+import { useGraphControls } from "@/stores/graph-controls-store"
+
+export function useEvents(sketch_id: string | undefined) {
+    const [liveLogs, setLiveLogs] = useState<Event[]>([])
+    // const [graphUpdates, setGraphUpdates] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }[]>([])
+    const refetchGraph = useGraphControls((s) => s.refetchGraph)
+
+    const { data: previousLogs = [], refetch } = useQuery({
+        queryKey: ["logs", sketch_id],
+        queryFn: () => logService.get(sketch_id as string),
+        refetchOnWindowFocus: false,
+        enabled: !!sketch_id,
+        staleTime: 30_000,
+    })
+
+    const handleRefresh = () => {
+        refetch()
+        setLiveLogs([]) // Pour éviter les doublons dans les logs live
+    }
+
+    useEffect(() => {
+        if (!sketch_id) return
+
+        const eventSource = new EventSource(`http://localhost:5001/api/events/sketch/${sketch_id}/stream`)
+
+        eventSource.onmessage = (e) => {
+            try {
+                const raw = JSON.parse(e.data) as any
+                const event = JSON.parse(raw.data) as Event
+                if (event.type === EventLevel.COMPLETED) {
+                    refetchGraph()
+                    // const nodes = event.payload.nodes as GraphNode[]
+                    // const edges = event.payload.edges as GraphEdge[]
+                    // if (nodes && edges) {
+                    //     setGraphUpdates((prev) => [...prev, { nodes: nodes, edges: edges }])
+                    // } else {
+                    //     console.error("[useSketchEvents] Graph append event has no nodes or edges")
+                    // }
+                }
+                setLiveLogs((prev) => [...prev.slice(-99), event])
+            } catch (error) {
+                console.error("[useSketchEvents] Failed to parse SSE event:", error)
+            }
+        }
+
+        eventSource.onerror = (error) => {
+            console.error("[useSketchEvents] EventSource error:", error)
+            eventSource.close()
+        }
+
+        return () => {
+            console.log("[useSketchEvents] Closing SSE connection")
+            eventSource.close()
+        }
+    }, [sketch_id])
+
+    const logs = [...previousLogs, ...liveLogs].slice(-100)
+
+    return {
+        logs,
+        // graphUpdates,
+        refetch: handleRefresh,
+        // clearGraphUpdates: () => setGraphUpdates([]),
+    }
+}

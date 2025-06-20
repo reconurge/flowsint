@@ -1,32 +1,22 @@
 from uuid import UUID
-from typing import Literal, Union
+from typing import Any, Dict, Union
 from app.models.models import Log
-from app.tasks.logging import emit_log_task
+from app.tasks.event import emit_event_task
 from app.core.postgre_db import get_db
+from app.core.enums import EventLevel
 import logging
 
 logger = logging.getLogger(__name__)
 
-LogLevel = Literal["info", "warn", "error", "success", "debug"]
-
-LEVEL_MAP = {
-    "info": "INFO",
-    "warn": "WARN",
-    "error": "ERROR",
-    "success": "SUCCESS",
-    "debug": "DEBUG",
-}
-
-
 class Logger:
     @staticmethod
-    def _create_log(sketch_id: Union[str, UUID], type: str, content: str) -> Log:
+    def _create_log(sketch_id: Union[str, UUID], level: EventLevel, content: str) -> Log:
         """Create a log entry in the database"""
         db = next(get_db())
         try:
             log = Log(
                 sketch_id=str(sketch_id),
-                type=type,
+                type=level.value,
                 content=content
             )
             db.add(log)
@@ -37,46 +27,49 @@ class Logger:
             db.close()
 
     @staticmethod
-    def _format_message(type: str, message: str) -> str:
-        """Format the log message with type prefix"""
-        return f"[{type.upper()}] {message}"
-
-    @staticmethod
-    def info(sketch_id: Union[str, UUID], message: str):
+    def info(sketch_id: Union[str, UUID], message: Dict):
         """Log an info message"""
-        formatted_message = Logger._format_message("INFO", message)
-        logger.info(formatted_message)
-        log = Logger._create_log(sketch_id, "INFO", formatted_message)
-        emit_log_task.delay(str(log.id), str(sketch_id), "INFO", formatted_message)
+        log = Logger._create_log(sketch_id, EventLevel.INFO, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.INFO, message])
 
     @staticmethod
-    def error(sketch_id: Union[str, UUID], message: str):
+    def error(sketch_id: Union[str, UUID], message: Dict):
         """Log an error message"""
-        formatted_message = Logger._format_message("ERROR", message)
-        logger.error(formatted_message)
-        log = Logger._create_log(sketch_id, "ERROR", formatted_message)
-        emit_log_task.delay(str(log.id), str(sketch_id), "ERROR", formatted_message)
+        log = Logger._create_log(sketch_id, EventLevel.FAILED, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.FAILED, message])
 
     @staticmethod
-    def warn(sketch_id: Union[str, UUID], message: str):
+    def warn(sketch_id: Union[str, UUID], message: Dict):
         """Log a warning message"""
-        formatted_message = Logger._format_message("WARNING", message)
-        logger.warn(formatted_message)
-        log = Logger._create_log(sketch_id, "WARNING", formatted_message)
-        emit_log_task.delay(str(log.id), str(sketch_id), "WARNING", formatted_message)
+        log = Logger._create_log(sketch_id, EventLevel.WARNING, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.WARNING, message])
 
     @staticmethod
-    def debug(sketch_id: Union[str, UUID], message: str):
+    def debug(sketch_id: Union[str, UUID], message: Dict):
         """Log a debug message"""
-        formatted_message = Logger._format_message("DEBUG", message)
-        logger.debug(formatted_message)
-        log = Logger._create_log(sketch_id, "DEBUG", formatted_message)
-        emit_log_task.delay(str(log.id), str(sketch_id), "DEBUG", formatted_message)
+        log = Logger._create_log(sketch_id, EventLevel.DEBUG, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.DEBUG, message])
+        
+    @staticmethod
+    def graph_append(sketch_id: Union[str, UUID], message: Dict):
+        """Log an insert event to the graph"""
+        log = Logger._create_log(sketch_id, EventLevel.GRAPH_APPEND, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.GRAPH_APPEND, message])
 
     @staticmethod
-    def success(sketch_id: Union[str, UUID], message: str):
+    def success(sketch_id: Union[str, UUID], message: Dict):
         """Log a success message"""
-        formatted_message = Logger._format_message("SUCCESS", message)
-        logger.info(formatted_message)
-        log = Logger._create_log(sketch_id, "SUCCESS", formatted_message)
-        emit_log_task.delay(str(log.id), str(sketch_id), "SUCCESS", formatted_message)
+        log = Logger._create_log(sketch_id, EventLevel.SUCCESS, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.SUCCESS, message])
+        
+    @staticmethod
+    def completed(sketch_id: Union[str, UUID], message: Dict):
+        """Log a completed message"""
+        log = Logger._create_log(sketch_id, EventLevel.COMPLETED, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.COMPLETED, message])
+    
+    @staticmethod
+    def pending(sketch_id: Union[str, UUID], message: Dict):
+        """Log a pending message"""
+        log = Logger._create_log(sketch_id, EventLevel.PENDING, message)
+        emit_event_task.apply(args=[str(log.id), str(sketch_id), EventLevel.PENDING, message])

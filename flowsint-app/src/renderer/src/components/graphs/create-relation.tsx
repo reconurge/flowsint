@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -13,10 +13,10 @@ import { useParams } from "@tanstack/react-router"
 export function CreateRelationDialog() {
 
     const { id: sketchId } = useParams({ strict: false })
-    const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
-    const addEdge = useSketchStore((state) => state.addEdge)
-    const openAddRelationDialog = useSketchStore((state) => state.openAddRelationDialog)
-    const setOpenAddRelationDialog = useSketchStore((state) => state.setOpenAddRelationDialog)
+    const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
+    const addEdge = useGraphStore((state) => state.addEdge)
+    const openAddRelationDialog = useGraphStore((state) => state.openAddRelationDialog)
+    const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
     const [relationType, setRelationType] = useState("IS_RELATED_TO")
     const [direction, setDirection] = useState<"one-way" | "two-way">("one-way")
 
@@ -29,7 +29,7 @@ export function CreateRelationDialog() {
             label: relationType,
             sketch_id: sketchId
         }
-        const newEdgeObject = { type: newEdge.type, label: relationType, from: newEdge.source.id, to: newEdge.target.id } as any
+        const newEdgeObject = { type: newEdge.type, label: relationType, source: newEdge.source.id, target: newEdge.target.id } as any
 
         toast.promise(
             (async () => {

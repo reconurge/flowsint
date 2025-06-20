@@ -1,13 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { PlusIcon, Search } from "lucide-react"
 import { memo, useCallback, useState } from "react"
 import { type ActionItem, actionItems } from "@/lib/action-items"
 import { DraggableItem } from "./draggable-item"
 import { Input } from "@/components/ui/input"
-import NewActions from "@/components/sketches/new-actions"
+import NewActions from "@/components/graphs/new-actions"
 
 export const ItemsPanel = memo(function LeftPanel() {
     const [searchQuery, setSearchQuery] = useState<string>("")
@@ -41,36 +40,32 @@ export const ItemsPanel = memo(function LeftPanel() {
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-3">
                 {actionItems.map((item: ActionItem) => {
                     if (item.children && item.children.length > 0) {
                         return (
-                            <Accordion key={item.id} type="single" collapsible className="border-b border-border">
-                                <AccordionItem value={item.id.toString()}>
-                                    <AccordionTrigger className="py-1 text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-2">
-                                            <span>{item.label}</span>
-                                            {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="grid grid-cols-1 gap-2 p-2">
-                                            {item.children.map((childItem) => (
-                                                <DraggableItem
-                                                    key={childItem.id}
-                                                    itemKey={childItem.key}
-                                                    label={childItem.label}
-                                                    icon={childItem.icon}
-                                                    type={childItem.type}
-                                                    color={childItem.color}
-                                                    disabled={childItem.disabled}
-                                                    description={childItem.fields.map((n) => n.name).join(", ")}
-                                                />
-                                            ))}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
+                            <div key={item.id} className="@container">
+                                <div className="py-1 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <span>{item.label} ({item.children.length})</span>
+                                        {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 @xs:grid-cols-3 @sm:grid-cols-4 @md:grid-cols-5 gap-2">
+                                    {item.children.map((childItem) => (
+                                        <DraggableItem
+                                            key={childItem.id}
+                                            itemKey={childItem.key}
+                                            label={childItem.label}
+                                            icon={childItem.icon}
+                                            type={childItem.type}
+                                            color={childItem.color}
+                                            disabled={childItem.disabled}
+                                            description={childItem.fields.map((n) => n.name).join(", ")}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         )
                     }
                     return (

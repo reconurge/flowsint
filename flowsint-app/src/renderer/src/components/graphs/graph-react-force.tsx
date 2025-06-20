@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { useSketchStore } from '@/stores/sketch-store';
+import { GraphEdge, GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useNodesDisplaySettings } from '@/stores/node-display-settings';
 import { useGraphControls } from '@/stores/graph-controls-store';
-import type { NodeData, EdgeData } from '@/types';
 import type { ItemType } from '@/stores/node-display-settings';
 import EmptyState from './empty-state';
 import { useTheme } from '../theme-provider';
@@ -15,14 +14,14 @@ interface GraphReactForceProps {
 const NODE_COUNT_THRESHOLD = 500;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
-    const nodes = useSketchStore(s => s.nodes) as NodeData[];
-    const rawEdges = useSketchStore(s => s.edges) as EdgeData[];
+    const nodes = useGraphStore(s => s.nodes) as GraphNode[];
+    const rawEdges = useGraphStore(s => s.edges) as GraphEdge[];
     const { theme } = useTheme();
     const getSize = useNodesDisplaySettings(s => s.getSize);
     const colors = useNodesDisplaySettings(s => s.colors) as Record<ItemType, string>;
-    const toggleNodeSelection = useSketchStore(s => s.toggleNodeSelection);
-    const clearSelectedNodes = useSketchStore(s => s.clearSelectedNodes);
-    // const currentNode = useSketchStore(s => s.currentNode);
+    const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection);
+    const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes);
+    // const currentNode = useGraphStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
 
     const shouldUseSimpleRendering = useMemo(() => nodes.length > NODE_COUNT_THRESHOLD, [nodes.length]);
@@ -30,10 +29,10 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     // Transform data for Force Graph
     const graphData = useMemo(() => {
         const transformedNodes = nodes.map(node => {
-            const type = node.type || node.data?.type;
+            const type = node.data?.type as ItemType;
             const color = colors[type] || '#0074D9';
             const size = getSize(type);
-            let nodeLabel = node.label;
+            let nodeLabel = node.data.label;
             if (!nodeLabel && 'caption' in node) nodeLabel = (node as any).caption;
             if (!nodeLabel) nodeLabel = node.id;
 
@@ -48,7 +47,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
         const edgeGroups = new Map();
         rawEdges.forEach(edge => {
-            const key = `${edge.from}-${edge.to}`;
+            const key = `${edge.source}-${edge.target}`;
             if (!edgeGroups.has(key)) {
                 edgeGroups.set(key, []);
             }
@@ -56,7 +55,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         });
 
         const transformedEdges = rawEdges.map((edge) => {
-            const key = `${edge.from}-${edge.to}`;
+            const key = `${edge.source}-${edge.target}`;
             const group = edgeGroups.get(key);
             const groupIndex = group.indexOf(edge);
             const groupSize = group.length;
@@ -65,8 +64,6 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
             return {
                 ...edge,
                 edgeLabel: edge.label,
-                source: edge.from,
-                target: edge.to,
                 curve: curve,
                 groupIndex: groupIndex,
                 groupSize: groupSize
@@ -103,7 +100,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
     const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
         const size = node.nodeSize;
-        
+
         if (shouldUseSimpleRendering) {
             // Simple circle rendering for large node counts
             ctx.beginPath();
@@ -128,7 +125,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                     const textWidth = ctx.measureText(label).width;
                     const padding = 2;
-                    
+
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
                     ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
                     ctx.lineWidth = 0.2;
@@ -136,12 +133,12 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     const bgHeight = fontSize + padding;
                     const bgX = node.x - bgWidth / 2;
                     const bgY = node.y + size / 2 + 1;
-                    
+
                     ctx.beginPath();
                     ctx.roundRect(bgX, bgY, bgWidth, bgHeight, 2);
                     ctx.fill();
                     ctx.stroke();
-                    
+
                     ctx.fillStyle = theme === "dark" ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -204,7 +201,6 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     onNodeClick={handleNodeClick}
                     onBackgroundClick={handleBackgroundClick}
                     linkCurvature={link => link.curve}
-                    linkLabel={link => link.edgeLabel}
                     linkDirectionalParticles={link => link.__highlighted ? 2 : 0}
                     linkDirectionalParticleSpeed={0.005}
                     linkWidth={link => link.__highlighted ? 2 : link.__dimmed ? 0.5 : 1}

@@ -74,7 +74,7 @@ class DomainToAsnScanner(Scanner):
         for domain in data:
             asn_data = self.__get_asn_from_asnmap(domain.domain)
             if asn_data:
-                Logger.info(self.sketch_id, f"Domain {domain.domain} has ASN {asn_data['as_number']}.")
+                Logger.info(self.sketch_id, {"message": f"Domain {domain.domain} has ASN {asn_data['as_number']}."})
                 asns.append(ASN(
                     number=int(asn_data["as_number"].lstrip("AS")),
                     name=asn_data["as_name"],
@@ -82,7 +82,7 @@ class DomainToAsnScanner(Scanner):
                     cidrs=[CIDR(network=cidr) for cidr in asn_data["as_range"]]
                 ))
             else:
-                Logger.info(self.sketch_id, f"No ASN found for domain {domain.domain}")
+                Logger.info(self.sketch_id, {"message": f"No ASN found for domain {domain.domain}"})
         return asns
     
     def __get_asn_from_asnmap(self, domain: str) -> Dict[str, Any]:
@@ -97,7 +97,7 @@ class DomainToAsnScanner(Scanner):
                 return None
             return json.loads(result.stdout)
         except Exception as e:
-            Logger.error(self.sketch_id, f"asnmap exception for {domain}: {str(e)}")
+            Logger.error(self.sketch_id, {"message": f"asnmap exception for {domain}: {str(e)}"})
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -106,6 +106,7 @@ class DomainToAsnScanner(Scanner):
             # Skip if no valid ASN was found
             if result_asn.number == 0:
                 continue
+            Logger.graph_append(self.sketch_id, {"message": f"Domain {input_ip.domain} -> ASN {result_asn.number}"})
                 
             query = """
             MERGE (domain:domain {domain: $domain})

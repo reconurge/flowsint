@@ -4,7 +4,7 @@ import { analysisService } from '@/api/analysis-service'
 import { Waypoints, PlusIcon, Users, FileText, Settings, Activity, FileText as FileTextIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import NewSketch from '@/components/sketches/new-sketch'
+import NewSketch from '@/components/graphs/new-sketch'
 import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import type { Sketch } from '@/types/sketch'
@@ -33,7 +33,7 @@ function InvestigationSkeleton() {
                 </div>
 
                 {/* Overview Cards Skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
                     {[...Array(4)].map((_, i) => (
                         <Card key={i} className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -54,7 +54,7 @@ function InvestigationSkeleton() {
                         <Skeleton className="h-6 w-24" />
                         <Skeleton className="h-5 w-16" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                         {[...Array(3)].map((_, i) => (
                             <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                 <div className="space-y-2">
@@ -81,7 +81,7 @@ function InvestigationSkeleton() {
                         <Skeleton className="h-6 w-24" />
                         <Skeleton className="h-5 w-16" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                         {[...Array(3)].map((_, i) => (
                             <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                 <div className="space-y-2">
@@ -105,7 +105,7 @@ function InvestigationSkeleton() {
                 {/* Quick Actions Skeleton */}
                 <div className="space-y-4">
                     <Skeleton className="h-6 w-32" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                         {[...Array(2)].map((_, i) => (
                             <Card key={i} className="hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center gap-3 pb-2">
@@ -203,9 +203,9 @@ function InvestigationPage() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto p-8 space-y-8">
+            <div className="max-w-7xl mx-auto p-8 @container space-y-8">
                 {/* Overview Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 @xs:grid-cols-2 @sm:grid-cols-2 @md:grid-cols-2 @lg:grid-cols-2 @xl:grid-cols-4 gap-4">
                     <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Sketches</CardTitle>
@@ -289,7 +289,7 @@ function InvestigationPage() {
 
                     {!hasSketches ? (
                         <div className="flex flex-col items-center justify-center text-center gap-4 p-8 border border-dashed rounded-xl">
-                            <Waypoints className="w-10 h-10 text-yellow-500" />
+                            <Waypoints className="w-10 h-10 text-muted-foreground" />
                             <div className="space-y-1 max-w-md">
                                 <h3 className="text-lg font-semibold text-foreground">
                                     No sketches yet
@@ -306,7 +306,7 @@ function InvestigationPage() {
                             </NewSketch>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 @xs:grid-cols-1 @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-2 @xl:grid-cols-4 gap-4">
                             {investigation.sketches.map((sketch: Sketch) => (
                                 <Link
                                     key={sketch.id}
@@ -323,8 +323,8 @@ function InvestigationPage() {
                                 >
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                            <Waypoints className="w-4 h-4 text-yellow-500" />
-                                            {sketch.title}
+                                            <Waypoints className="w-4 h-4 text-muted-foreground" />
+                                            <span className="truncate text-ellipsis">{sketch.title}</span>
                                             <Badge variant="outline" className="text-[10px] py-0.5 px-1 ml-auto">SKETCH</Badge>
                                         </div>
                                         {sketch.description && (
@@ -344,7 +344,7 @@ function InvestigationPage() {
                 </div>
 
                 {/* Analyses Section */}
-                <div className="space-y-4">
+                <div className="space-y-4 @container">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold">Analyses</h2>
                         {isLoadingAnalyses ? (
@@ -357,7 +357,7 @@ function InvestigationPage() {
                     </div>
 
                     {isLoadingAnalyses ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 @xs:grid-cols-1 @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-2 @xl:grid-cols-4 gap-4">
                             {[...Array(3)].map((_, i) => (
                                 <div key={i} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                                     <div className="space-y-2">
@@ -389,7 +389,7 @@ function InvestigationPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 @xs:grid-cols-1 @sm:grid-cols-1 @md:grid-cols-2 @lg:grid-cols-2 @xl:grid-cols-4 gap-4">
                             {analyses?.map((analysis) => (
                                 <Link
                                     key={analysis.id}
@@ -406,8 +406,8 @@ function InvestigationPage() {
                                 >
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                            <FileTextIcon className="w-4 h-4 text-blue-500" />
-                                            {analysis.title || 'Untitled Analysis'}
+                                            <FileTextIcon className="w-4 h-4 text-muted-foreground" />
+                                            <span className="truncate text-ellipsis">{analysis.title || 'Untitled Analysis'}</span>
                                             <Badge variant="outline" className="text-[10px] py-0.5 px-1 ml-auto">ANALYSIS</Badge>
                                         </div>
                                         {analysis.description && (
@@ -429,11 +429,11 @@ function InvestigationPage() {
                 {/* Quick Actions */}
                 <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Quick Actions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                         <Card className="hover:shadow-md transition-all cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                                <div className="bg-blue-600/20 rounded-lg p-2">
-                                    <FileText className="w-5 h-5 text-blue-600" />
+                                <div className="bg-muted rounded-lg p-2">
+                                    <FileText className="w-5 h-5 text-muted-foreground" />
                                 </div>
                                 <CardTitle className="text-lg">Export Investigation</CardTitle>
                             </CardHeader>
@@ -443,8 +443,8 @@ function InvestigationPage() {
                         </Card>
                         <Card className="hover:shadow-md transition-all cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-                                <div className="bg-green-600/20 rounded-lg p-2">
-                                    <Users className="w-5 h-5 text-green-600" />
+                                <div className="bg-muted rounded-lg p-2">
+                                    <Users className="w-5 h-5 text-muted-foreground" />
                                 </div>
                                 <CardTitle className="text-lg">Share Investigation</CardTitle>
                             </CardHeader>

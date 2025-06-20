@@ -61,7 +61,7 @@ class CidrToIpsScanner(Scanner):
                 if cidr_obj:
                     cleaned.append(cidr_obj)
             except ValueError:
-                Logger.warn(self.sketch_id, f"Invalid CIDR format: {item}")
+                Logger.warn(self.sketch_id, {"message": f"Invalid CIDR format: {item}"})
                 continue
         return cleaned
 
@@ -76,9 +76,9 @@ class CidrToIpsScanner(Scanner):
                         ip = Ip(address=ip_str.strip())
                         ips.append(ip)
                     except Exception as e:
-                        Logger.error(self.sketch_id, f"Failed to parse IP {ip_str}: {str(e)}")
+                        Logger.error(self.sketch_id, {"message": f"Failed to parse IP {ip_str}: {str(e)}"})
             else:
-                Logger.warn(self.sketch_id, f"No IPs found for CIDR {cidr.network}")
+                Logger.warn(self.sketch_id, {"message": f"No IPs found for CIDR {cidr.network}"})
         return ips
     
     def __get_ips_from_cidr(self, cidr: str) -> List[str]:
@@ -92,7 +92,7 @@ class CidrToIpsScanner(Scanner):
                 timeout=60
             )
             if not result.stdout.strip():
-                Logger.info(self.sketch_id, f"No IPs found for {cidr}.")
+                Logger.info(self.sketch_id, {"message": f"No IPs found for {cidr}."})
                 return []
             
             # Split the output by newlines and filter out empty lines
@@ -100,12 +100,13 @@ class CidrToIpsScanner(Scanner):
             return ip_addresses
 
         except Exception as e:
-            Logger.error(self.sketch_id, f"dnsx exception for {cidr}: {str(e)}")
+            Logger.error(self.sketch_id, {"message": f"dnsx exception for {cidr}: {str(e)}"})
             return []
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
         for cidr, ip in zip(original_input, results):
+            Logger.graph_append(self.sketch_id, {"message": f"Found {len(results)} IPs for CIDR {cidr.network}"})
             if self.neo4j_conn:
                 query = """
                 MERGE (cidr:cidr {network: $cidr_network})

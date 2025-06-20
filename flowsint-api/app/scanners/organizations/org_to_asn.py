@@ -74,7 +74,6 @@ class OrgToAsnScanner(Scanner):
         for org in data:
             asn_data = self.__get_asn_from_asnmap(org.name)
             if asn_data:
-                Logger.info(self.sketch_id, f"ASN {asn_data['as_number']} found for org {org.name}.")
                 asns.append(ASN(
                     number=int(asn_data["as_number"].lstrip("AS")),
                     name=asn_data["as_name"],
@@ -82,7 +81,7 @@ class OrgToAsnScanner(Scanner):
                     cidrs=[]
                 ))
             else:
-                Logger.info(self.sketch_id, f"No ASN found for org {org.name}")
+                Logger.info(self.sketch_id, {"message": f"No ASN found for org {org.name}."})
         return asns
     
     def __get_asn_from_asnmap(self, name: str) -> Dict[str, Any]:
@@ -95,7 +94,6 @@ class OrgToAsnScanner(Scanner):
                 capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
-                Logger.info(self.sketch_id, f"No ASN found for {name}.")
                 return None
             try:
                 # Parse the JSON array
@@ -123,17 +121,13 @@ class OrgToAsnScanner(Scanner):
                 return combined_data if combined_data["as_number"] else None
 
             except json.JSONDecodeError:
-                Logger.error(self.sketch_id, f"Failed to parse JSON from asnmap output: {result.stdout}")
                 return None
 
         except Exception as e:
-            Logger.error(self.sketch_id, f"asnmap exception for {name}: {str(e)}")
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between organizations and their corresponding ASNs
-        Logger.info(self.sketch_id, f"Postprocessing {len(results)} ASNs for {len(original_input)} organizations")
-        Logger.info(self.sketch_id, f"RESULTS for ORGTOASN {str(results)}")
         for input_org, result_asn in zip(original_input, results):
             # Skip if no valid ASN was found
             if result_asn.number == 0:
@@ -167,5 +161,6 @@ class OrgToAsnScanner(Scanner):
                     "asn_caption": f"AS{result_asn.number} - {result_asn.name}",
                     "sketch_id": self.sketch_id,
                 })
+                Logger.graph_append(self.sketch_id, {"message": f"Found for {input_org.name} -> ASN {result_asn.number}"})
 
         return results

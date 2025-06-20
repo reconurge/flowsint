@@ -4,6 +4,9 @@ from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.organization import Organization, Organization, Identifier
 from app.utils import resolve_type
+from app.core.logger import Logger
+
+
 
 InputType: TypeAlias = List[Organization]
 OutputType: TypeAlias = List[Organization]
@@ -136,8 +139,8 @@ class SireneScanner(Scanner):
                     MERGE (o)-[:HAS_IDENTIFIER {sketch_id: $sketch_id}]->(i)
                 """, {
                     "type": identifier.type.lower(),
-                    "label": f"{identifier.type}: {identifier.value}",
-                    "caption": f"{identifier.type}: {identifier.value}",
+                    "label": f"{identifier.value}",
+                    "caption": f"{identifier.value}",
                     "value": identifier.value,
                     "country": identifier.country,
                     "issued_by": identifier.issued_by,
@@ -145,6 +148,8 @@ class SireneScanner(Scanner):
                     "org_name": org.name,
                     "org_country": org.country,
                 })
+                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: {identifier.type} {identifier.value} -> {org.name}"})
+
 
         return results
 

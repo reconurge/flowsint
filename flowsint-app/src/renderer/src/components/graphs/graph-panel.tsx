@@ -1,19 +1,17 @@
 import { useLoaderData } from '@tanstack/react-router'
 import { useEffect, useRef, memo, useState, lazy, Suspense } from 'react'
-// import Graph from '../sketches/graph'
-import { useSketchStore } from '@/stores/sketch-store'
-import { Toolbar } from '../sketches/toolbar'
+import { useGraphStore, type GraphNode, type GraphEdge } from '@/stores/graph-store'
+import { Toolbar } from './toolbar'
 import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
-// import GraphSigma from '../sketches/graph-sigma'
-import type { NodeData, EdgeData } from '@/types'
 import GraphLoader from './graph-loader'
 import Loader from '../loader'
-
-const GraphReactForce = lazy(() => import('../sketches/graph-react-force'))
-const Graph = lazy(() => import('../sketches/graph'))
-// const GraphSigma = lazy(() => import('../sketches/graph-sigma'))
+import WallEditor from './wall/wall'
+import GraphReactForce from './graph-react-force'
+import { useGraphControls } from '@/stores/graph-controls-store'
+// const GraphReactForce = lazy(() => import('./graph-react-force'))
+const Graph = lazy(() => import('./graph'))
 
 
 // Separate component for the drag overlay
@@ -32,15 +30,18 @@ const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
 DragOverlay.displayName = 'DragOverlay'
 
 interface GraphPanelProps {
-    graphData: { nds: NodeData[]; rls: EdgeData[] } | null;
+    graphData: { nds: GraphNode[]; rls: GraphEdge[] } | null;
     isLoading: boolean;
+    isRefetching: boolean;
 }
 
-const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
+const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => {
     const graphPanelRef = useRef<HTMLDivElement>(null)
-    const handleOpenFormModal = useSketchStore(s => s.handleOpenFormModal)
-    const nodes = useSketchStore(s => s.nodes)
-    const updateGraphData = useSketchStore(s => s.updateGraphData)
+    const [loading, setLoading] = useState(isLoading)
+    const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
+    const nodes = useGraphStore(s => s.nodes)
+    const view = useGraphControls((s) => s.view)
+    const updateGraphData = useGraphStore(s => s.updateGraphData)
     const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
@@ -49,8 +50,9 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     useEffect(() => {
         if (graphData?.nds && graphData?.rls) {
             updateGraphData(graphData.nds, graphData.rls)
+            setLoading(false)
         }
-    }, [graphData])
+    }, [graphData, setLoading])
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -114,13 +116,13 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
                     </div>
                 </div>
             }>
-                {nodes?.length > 500 ? <Graph /> : <GraphReactForce />}
+                {nodes?.length > 400 || view === "force" ? <Graph /> : <WallEditor isRefetching={isRefetching} isLoading={loading} />}
                 {/* <GraphReactForce /> */}
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}
             <DragOverlay isDragging={isDraggingOver} />
-            <div className='absolute w-10 right-3 top-3 h-min shadow-sm border rounded-full overflow-y-auto'>
+            <div className='absolute  left-3 top-3'>
                 <Toolbar isLoading={isLoading} />
             </div>
             <CreateRelationDialog />

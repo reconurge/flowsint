@@ -7,8 +7,8 @@ from app.scanners.base import Scanner
 from app.scanners.registry import ScannerRegistry
 from app.types.transform import FlowBranch, FlowStep
 from app.core.logger import Logger
-from app.tasks.logging import emit_log_task
-from app.api.routes.logs import ScannerStatus
+from app.tasks.event import emit_event_task
+from app.core.enums import EventLevel
 import asyncio
 import json
 
@@ -146,17 +146,7 @@ class TransformOrchestrator(Scanner):
             "branches": [],
             "results": {}
         }
-        
-        # Update status to running
-        status_data = {
-            "status": ScannerStatus.RUNNING,
-            "timestamp": datetime.utcnow().isoformat(),
-            "details": {
-                "message": "Starting scan",
-                "total_steps": sum(len(branch.steps) for branch in self.transform_branches)
-            }
-        }
-        emit_log_task.delay(str(uuid.uuid4()), self.sketch_id, "INFO", json.dumps(status_data))
+        Logger.pending(self.sketch_id, {"message": "Starting transform..."})
         
         # Global mapping of output references to actual values
         results_mapping = {}
@@ -186,7 +176,7 @@ class TransformOrchestrator(Scanner):
                 scanner = self.scanners.get(node_id)
                 
                 if not scanner:
-                    Logger.error(self.sketch_id, f"Scanner not found for node {node_id}")
+                    Logger.error(self.sketch_id, {"message": f"Scanner not found for node {node_id}"})
                     continue
                 
                 scanner_name = scanner.name()
@@ -199,18 +189,6 @@ class TransformOrchestrator(Scanner):
                 try:
                     # Update status for current step
                     completed_steps += 1
-                    status_data = {
-                        "status": ScannerStatus.RUNNING,
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "details": {
-                            "message": f"Running {scanner_name}",
-                            "current_step": completed_steps,
-                            "total_steps": total_steps,
-                            "progress": (completed_steps / total_steps) * 100
-                        }
-                    }
-                    emit_log_task.delay(str(uuid.uuid4()), self.sketch_id, "INFO", json.dumps(status_data))
-                    
                     if not scanner_inputs:
                         step_result["error"] = "No inputs available"
                         branch_results["steps"].append(step_result)
@@ -220,7 +198,6 @@ class TransformOrchestrator(Scanner):
                     cache_key = f"{node_id}:{str(scanner_inputs)}"
                     if cache_key in scanner_results_cache:
                         outputs = scanner_results_cache[cache_key]
-                        Logger.info(self.sketch_id, f"Using cached results for {scanner_name}")
                     else:
                         # Execute the scanner
                         outputs = scanner.execute(scanner_inputs)
@@ -235,62 +212,28 @@ class TransformOrchestrator(Scanner):
                     
                     # Update the global results mapping with the outputs
                     self.update_results_mapping(outputs, step.outputs, results_mapping)
-                    
                     # Also store the raw outputs in the main results
                     results["results"][node_id] = outputs
                     scanner_inputs = outputs
 
                 except ValidationError as e:
                     error_msg = f"Validation error: {str(e)}"
-                    Logger.error(self.sketch_id, f"Validation error in {scanner_name}: {str(e)}")
-                    step_result["error"] = error_msg
+                    Logger.error(self.sketch_id, {"message": error_msg})
                     results["results"][node_id] = {"error": error_msg}
-                    
-                    # Update status to failed
-                    status_data = {
-                        "status": ScannerStatus.FAILED,
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "details": {
-                            "error": error_msg,
-                            "failed_step": scanner_name
-                        }
-                    }
-                    emit_log_task.delay(str(uuid.uuid4()), self.sketch_id, "ERROR", json.dumps(status_data))
                     return results
                 
                 except Exception as e:
                     error_msg = f"Error during scan: {str(e)}"
-                    Logger.error(self.sketch_id, f"Error during scan {scanner_name}: {str(e)}")
+                    Logger.error(self.sketch_id, {"message":error_msg})
                     step_result["error"] = error_msg
                     results["results"][node_id] = {"error": error_msg}
-                    
-                    # Update status to failed
-                    status_data = {
-                        "status": ScannerStatus.FAILED,
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "details": {
-                            "error": error_msg,
-                            "failed_step": scanner_name
-                        }
-                    }
-                    emit_log_task.delay(str(uuid.uuid4()), self.sketch_id, "ERROR", json.dumps(status_data))
                     return results
                 
                 branch_results["steps"].append(step_result)
             
             results["branches"].append(branch_results)
         
-        # Update status to completed
-        status_data = {
-            "status": ScannerStatus.COMPLETED,
-            "timestamp": datetime.utcnow().isoformat(),
-            "details": {
-                "message": "Scan completed successfully",
-                "total_steps": total_steps,
-                "completed_steps": completed_steps
-            }
-        }
-        emit_log_task.delay(str(uuid.uuid4()), self.sketch_id, "INFO", json.dumps(status_data))
+        Logger.completed(self.sketch_id, {"message": "Transform completed successfully."})
         
         # Include the final reference mapping for debugging
         results["reference_mapping"] = results_mapping

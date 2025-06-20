@@ -5,6 +5,9 @@ from app.scanners.base import Scanner
 from app.types.domain import Domain
 from app.types.ip import Ip
 from app.utils import is_valid_domain, resolve_type
+import uuid
+from app.types.transform import Node, Edge
+from app.core.logger import Logger
 
 InputType: TypeAlias = List[Domain]
 OutputType: TypeAlias = List[Ip]
@@ -78,6 +81,10 @@ class ResolveScanner(Scanner):
         for domain_obj, ip_obj in zip(original_input, results):
             query = """
             MERGE (d:domain {domain: $domain})
+            SET d.domain = $domain
+            SET d.label = $domain
+            SET d.caption = $caption
+            SET d.type = "domain"
             SET d.sketch_id = $sketch_id
             MERGE (ip:ip {address: $ip})
             SET ip.sketch_id = $sketch_id
@@ -95,5 +102,36 @@ class ResolveScanner(Scanner):
                     "caption": ip_obj.address,
                     "type": "ip"
                 })
+            nodes = [Node(
+                id=str(uuid.uuid4()),
+                data={
+                    "label": ip_obj.address,
+                    "caption": ip_obj.address,
+                    "type": "ip"
+                },
+                position={
+                    "x": 0,
+                    "y": 0,
+                },
+                type="ip"
+            )]
+            edges =[Edge(
+                id=str(uuid.uuid4()),
+                source="",
+                target="",
+                data={
+                    "label": "RESOLVES_TO",
+                    "caption": "RESOLVES_TO"
+                },
+            )]
+            nodes=[node.model_dump_json() for node in nodes]
+            edges=[edge.model_dump_json() for edge in edges]
+            payload:Dict = {
+                "message": f"IP found for domain {domain_obj.domain} -> {ip_obj.address}"
+                # "nodes": nodes,
+                # "edges": edges
+                }
+            Logger.graph_append(self.sketch_id, payload)
+
 
         return results

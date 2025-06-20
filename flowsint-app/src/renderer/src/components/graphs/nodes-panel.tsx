@@ -1,7 +1,7 @@
 import type React from "react"
 import { memo, useMemo, useState, useCallback, useRef } from "react"
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TypeBadge } from "@/components/type-badge"
@@ -18,7 +18,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { NodeData } from "@/types"
+import type { GraphNode } from "@/stores/graph-store"
 import { Checkbox } from "@/components/ui/checkbox"
 
 // Hauteur fixe pour chaque item (en pixels)
@@ -33,8 +33,8 @@ const SocialNode = memo(
         isNodeChecked,
     }: {
         node: any
-        setCurrentNode: (node: NodeData) => void
-        onCheckboxChange: (node: NodeData, checked: boolean) => void
+        setCurrentNode: (node: GraphNode) => void
+        onCheckboxChange: (node: GraphNode, checked: boolean) => void
         isNodeChecked: (nodeId: string) => boolean
     }) => {
         const platformsIcons = usePlatformIcons()
@@ -88,8 +88,8 @@ const NodeRenderer = memo(
         isNodeChecked,
     }: {
         node: any
-        setCurrentNode: (node: NodeData) => void
-        onCheckboxChange: (node: NodeData, checked: boolean) => void
+        setCurrentNode: (node: GraphNode) => void
+        onCheckboxChange: (node: GraphNode, checked: boolean) => void
         isNodeChecked: (nodeId: string) => boolean
     }) => {
         const handleClick = useCallback(() => setCurrentNode(node), [node, setCurrentNode])
@@ -139,9 +139,9 @@ const VirtualizedItem = memo(({
     isNodeChecked
 }: {
     index: number
-    node: NodeData
-    setCurrentNode: (node: NodeData) => void
-    onCheckboxChange: (node: NodeData, checked: boolean) => void
+    node: GraphNode
+    setCurrentNode: (node: GraphNode) => void
+    onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
 }) => {
     return (
@@ -154,10 +154,10 @@ const VirtualizedItem = memo(({
     )
 })
 
-const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: boolean }) => {
-    const setCurrentNode = useSketchStore((state) => state.setCurrentNode)
-    const setSelectedNodes = useSketchStore((state) => state.setSelectedNodes)
-    const selectedNodes = useSketchStore((state) => state.selectedNodes || [])
+const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?: boolean }) => {
+    const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
+    const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
+    const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [filters, setFilters] = useState<null | string[]>(null)
 
@@ -213,7 +213,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: NodeData[]; isLoading?: 
     )
 
     const handleCheckboxChange = useCallback(
-        (node: NodeData, checked: boolean) => {
+        (node: GraphNode, checked: boolean) => {
             if (checked) {
                 setSelectedNodes([...selectedNodes.filter((n) => n.id !== node.id), node])
             } else {

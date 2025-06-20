@@ -81,10 +81,10 @@ export default function RootLayout({ children }: LayoutProps) {
                                                 collapsible={true}
                                                 collapsedSize={0}
                                             >
-                                                <div className="h-10 bg-card flex items-center justify-end px-2 text-sm w-full font-semibold border-b">
+                                                {/* <div className="h-10 bg-card flex items-center justify-end px-2 text-sm w-full font-semibold border-b">
                                                     <PathBreadcrumb />
-                                                </div>
-                                                <div className="h-[calc(100%-40px)] flex flex-col overflow-hidden bg-card">
+                                                </div> */}
+                                                <div className="h-full flex flex-col overflow-hidden bg-card">
                                                     <SecondaryNavigation />
                                                 </div>
                                             </ResizablePanel>

@@ -9,6 +9,7 @@ class Node(BaseModel):
     
 class Edge(BaseModel):
     id: str = Field(..., description="Unique identifier for the edge")
+    data: Optional[Dict[str, Any]] = Field(None, description="Data payload associated with the edge")
     source: str = Field(..., description="ID of the source node")
     target: str = Field(..., description="ID of the target node")
     sourceHandle: Optional[str] = Field(None, description="Handle ID on the source node")

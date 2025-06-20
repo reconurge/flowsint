@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { actionItems, type ActionItem, type FormField } from "@/lib/action-items"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { DynamicForm } from "@/components/sketches/dynamic-form"
+import { DynamicForm } from "@/components/graphs/dynamic-form"
 import { Badge } from "@/components/ui/badge"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-import { useSketchStore } from "@/stores/sketch-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
@@ -25,15 +25,14 @@ interface ActionDialogProps {
 
 export default function ActionDialog({ children, setCurrentNode }: ActionDialogProps) {
     const colors = useNodesDisplaySettings(s => s.colors)
-    const handleOpenFormModal = useSketchStore(state => state.handleOpenFormModal)
-    const currentNodeType = useSketchStore(state => state.currentNodeType)
-    const openMainDialog = useSketchStore(state => state.openMainDialog)
-    const setOpenMainDialog = useSketchStore(state => state.setOpenMainDialog)
-    const openFormDialog = useSketchStore(state => state.openFormDialog)
-    const setOpenFormDialog = useSketchStore(state => state.setOpenFormDialog)
-    const addNode = useSketchStore(state => state.addNode)
+    const handleOpenFormModal = useGraphStore(state => state.handleOpenFormModal)
+    const currentNodeType = useGraphStore(state => state.currentNodeType)
+    const openMainDialog = useGraphStore(state => state.openMainDialog)
+    const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog)
+    const openFormDialog = useGraphStore(state => state.openFormDialog)
+    const setOpenFormDialog = useGraphStore(state => state.setOpenFormDialog)
+    const addNode = useGraphStore(state => state.addNode)
     const { id } = useParams({ strict: false })
-
 
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
@@ -49,7 +48,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
             const type = currentNodeType.type
             const color = colors[type as keyof typeof colors]
             const newNode = {
-                type: type,
+                type: "custom",
                 caption: label,
                 label: label,
                 color,
@@ -57,7 +56,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                     ...flattenObj(data),
                     color,
                     label,
-                    type,
+                    type: type.toLowerCase(),
                 },
             }
             if (addNode) addNode(newNode as any)

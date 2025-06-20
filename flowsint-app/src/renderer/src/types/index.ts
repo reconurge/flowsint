@@ -1,5 +1,20 @@
+import { GraphEdge, GraphNode } from "@/stores/graph-store";
 import type { Edge, Node } from "@xyflow/react";
 import { type SVGProps } from "react";
+
+export enum EventLevel {
+  // Standard log levels
+  INFO = "INFO",
+  WARNING = "WARNING",
+  FAILED = "FAILED",
+  SUCCESS = "SUCCESS",
+  DEBUG = "DEBUG",
+  // Scanner-specific statuses
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  GRAPH_APPEND = "GRAPH_APPEND",
+}
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -7,19 +22,16 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 
 export type NodeData = {
   id: string;
-  position: any,
   type: string,
-  data: any,
+  caption: string,
   label: string,
-  width?: number,
-  height?: number,
-  x?: number,
-  y?: number
+  // Allow any other properties
+  [key: string]: any;
 };
 
 export type EdgeData = {
-  source: string;
-  target: string;
+  // source: string;
+  // target: string;
   from: string,
   to: string,
   date: string,
@@ -30,8 +42,8 @@ export type EdgeData = {
 };
 
 export type InvestigationGraph = {
-  nodes: NodeData[];
-  edges: EdgeData[];
+  nodes: Node[];
+  edges: Edge[];
 };
 
 
@@ -98,4 +110,18 @@ export interface Analysis {
   last_updated_at: string; // ISO date string
   owner_id?: string | null; // UUID
   investigation_id?: string | null; // UUID
+}
+
+export interface Payload {
+  message: string
+  nodes?: GraphNode[]
+  edges?: GraphEdge[]
+}
+export type Event = {
+  id: string
+  scan_id: string
+  sketch_id: string | null
+  type: EventLevel
+  payload: Payload
+  created_at: string
 }

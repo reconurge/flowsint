@@ -2,6 +2,7 @@ import { useBoundStore } from '@/stores/use-bound-store'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { MdAdd } from 'react-icons/md'
 import { Tab } from './tab'
+import { useParams } from '@tanstack/react-router'
 
 export default function TabBar() {
   const tabs = useBoundStore((state) => state.tabs.items)
@@ -11,6 +12,19 @@ export default function TabBar() {
   const setTabs = useBoundStore((state) => state.tabs.reorder)
   const selectedTab = useBoundStore((state) => state.tabs.selectedTabId)
   const selectedTabIndex = useBoundStore((state) => state.tabs.selectedTabIndex)
+  const { investigationId } = useParams({ strict: false })
+
+  const handleAddTab = () => {
+    if (investigationId) {
+      add({
+        id: `new-tab-${Date.now()}`,
+        type: 'graph',
+        investigationId,
+        title: 'New Tab'
+      })
+    }
+  }
+
   return (
     <div className="flex flex-row flex-grow bg-background">
       <Reorder.Group
@@ -34,7 +48,7 @@ export default function TabBar() {
           <motion.button
             className="titlebar-button flex items-center justify-center hover:bg-white/5
               rounded-full h-6 w-6  transition-all duration-300 ml-2"
-            onClick={add}
+            onClick={handleAddTab}
             whileTap={{ scale: 0.9 }}
           >
             <MdAdd className="opacity-55 hover:opacity-100 transition-all text-white duration-300" />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { transformService } from '@/api/transfrom-service';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -6,9 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, FileCode2, Search, Info, Star } from 'lucide-react';
 import { Transform } from '@/types';
-import { GraphNode } from '@/stores/graph-store';
+import { GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
+import { cn } from '@/lib/utils';
+import { useConfirm } from '@/components/use-confirm-dialog';
+import { toast } from 'sonner';
+import { sketchService } from '@/api/sketch-service';
+
+function capitalizeFirstLetter(string: string) {
+    return string.charAt(0).toUpperCase() + string.slice(1)
+}
 
 export default function ContextMenu({
     node,
@@ -16,8 +24,11 @@ export default function ContextMenu({
     left,
     right,
     bottom,
+    wrapperWidth,
+    wrapperHeight,
     onEdit,
     onDelete,
+    setMenu,
     ...props
 }: {
     node: GraphNode;
@@ -25,16 +36,22 @@ export default function ContextMenu({
     left: number;
     right: number;
     bottom: number;
+    wrapperWidth: number;
+    wrapperHeight: number;
     onEdit?: () => void;
     onDelete?: () => void;
+    setMenu: (menu: any | null) => void;
     [key: string]: any;
 }) {
-    const { id } = useParams({ strict: false })
+    const { id: sketchId } = useParams({ strict: false })
     const [searchQuery, setSearchQuery] = useState('');
+    const { confirm } = useConfirm();
     const { launchTransform } = useLaunchTransform(false);
+    const removeNodes = useGraphStore(s => s.removeNodes);
     const { data: transforms, isLoading } = useQuery({
-        queryKey: ["transforms"],
-        queryFn: () => transformService.get(),
+        queryKey: ["transforms", node.data.type],
+        queryFn: () => transformService.get(capitalizeFirstLetter(node.data.type)),
+        // queryFn: () => transformService.get(),
     });
 
     const filteredTransforms = transforms?.filter((transform: Transform) => {
@@ -45,38 +62,89 @@ export default function ContextMenu({
         return matchesName || matchesDescription;
     }) || [];
 
+    // Calculate dynamic dimensions based on available space
+    const maxWidth = 320; // Default width (w-80)
+    const maxHeight = 500; // Default height (h-96)
+    const minWidth = 280; // Minimum width
+    const minHeight = 200; // Minimum height
+
+    // Calculate available space based on menu position and wrapper dimensions
+    let availableWidth = maxWidth;
+    let availableHeight = maxHeight;
+
+    if (left > 0) {
+        // Menu is positioned from left, so available width is from left to right edge
+        availableWidth = wrapperWidth - left - 20; // 20px padding from right edge
+    } else if (right > 0) {
+        // Menu is positioned from right, so available width is from left edge to right position
+        availableWidth = wrapperWidth - right - 20; // 20px padding from left edge
+    }
+
+    if (top > 0) {
+        // Menu is positioned from top, so available height is from top to bottom edge
+        availableHeight = wrapperHeight - top - 20; // 20px padding from bottom edge
+    } else if (bottom > 0) {
+        // Menu is positioned from bottom, so available height is from top edge to bottom position
+        availableHeight = wrapperHeight - bottom - 20; // 20px padding from top edge
+    }
+
+    // Determine dynamic dimensions
+    const dynamicWidth = Math.min(maxWidth, Math.max(minWidth, availableWidth));
+    const dynamicHeight = Math.min(maxHeight, Math.max(minHeight, availableHeight));
+
+    // Calculate dynamic styles
+    const dynamicStyles = {
+        width: `${dynamicWidth}px`,
+        maxHeight: `${dynamicHeight}px`,
+        top: top > 0 ? `${top}px` : 'auto',
+        left: left > 0 ? `${left}px` : 'auto',
+        right: right > 0 ? `${right}px` : 'auto',
+        bottom: bottom > 0 ? `${bottom}px` : 'auto',
+    };
+
     const handleMenuClick = (e: React.MouseEvent) => {
         e.stopPropagation();
     };
 
-    const handleButtonClick = (e: React.MouseEvent, action?: () => void) => {
-        e.stopPropagation();
-        action?.();
-    };
+    const handleDeleteNode = async () => {
+        if (!node.id || !sketchId) return
+        if (!await confirm({ title: `You are about to delete this node ?`, message: "The action is irreversible." })) return
+        toast.promise(
+            (async () => {
+                removeNodes([node.id])
+                return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: [node.id] }))
+            })(),
+            {
+                loading: `Deleting ${node.data.label}...`,
+                success: 'Node deleted successfully.',
+                error: 'Failed to delete node.'
+            }
+        )
+    }
 
     const handleTransformClick = (e: React.MouseEvent, transformId: string) => {
         e.stopPropagation();
-        launchTransform([node.data.label], transformId, id)
+        launchTransform([node.data.label], transformId, sketchId)
+        setMenu(null)
     };
 
     return (
         <div
-            style={{ top, left, right, bottom }}
-            className="bg-background border border-border flex flex-col rounded-lg shadow-lg absolute z-50 w-80 h-96"
+            style={dynamicStyles}
+            className="bg-background border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
             onClick={handleMenuClick}
             {...props}
         >
             {/* Header with title and action buttons */}
-            <div className="px-3 py-2 border-b border-border flex items-center justify-between">
-                <p className="text-xs text-muted-foreground font-medium truncate flex-1">
-                    {node.data.label} - {node.data.type}
-                </p>
+            <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
+                <div className='flex text-xs items-center gap-1 truncate'>
+                    <span className='block truncate'>{node.data.label}</span> - <span className='block'>{node.data.type}</span>
+                </div>
                 <div className="flex items-center  gap-1 ml-2">
                     <Button
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-                        onClick={(e) => handleButtonClick(e, onEdit)}
                     >
                         <Pencil className="h-3 w-3" strokeWidth={1.5} />
                     </Button>
@@ -84,7 +152,7 @@ export default function ContextMenu({
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                        onClick={(e) => handleButtonClick(e, onDelete)}
+                        onClick={handleDeleteNode}
                     >
                         <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                     </Button>
@@ -92,7 +160,7 @@ export default function ContextMenu({
             </div>
 
             {/* Search bar */}
-            <div className="px-3 py-2 border-b border-border">
+            <div className="px-3 py-2 border-b border-border flex-shrink-0">
                 <div className="relative">
                     <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
@@ -110,7 +178,7 @@ export default function ContextMenu({
             </div>
 
             {/* Transforms list */}
-            <div className="flex-1 overflow-auto grow">
+            <div className="flex-1 overflow-auto min-h-0">
                 {isLoading ? (
                     <div className="p-2 space-y-2">
                         {[...Array(8)].map((_, i) => (
@@ -144,9 +212,7 @@ export default function ContextMenu({
 
                                 </div>
                                 <div className='flex items-center gap-1'>
-                                    <Button className='w-5 h-5' variant='ghost' size={"icon"}>
-                                        <Star className='w-4 h-4 opacity-50' strokeWidth={1.5} />
-                                    </Button>
+                                    <FavoriteButton isFavorite={false} />
                                     <Button className='w-5 h-5' variant='ghost' size={"icon"}>
                                         <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
                                     </Button>
@@ -165,3 +231,19 @@ export default function ContextMenu({
         </div>
     );
 }
+
+
+const FavoriteButton = memo(({ isFavorite }: { isFavorite: boolean }) => {
+    const [favorite, seFavorite] = useState(isFavorite);
+
+    const handleClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        seFavorite(!favorite);
+    }, [favorite]);
+
+    return (
+        <Button onClick={handleClick} className='w-5 h-5' variant='ghost' size={"icon"}>
+            <Star fill={favorite ? 'yellow' : 'none'} className={cn('w-4 h-4 opacity-50', favorite && 'text-yellow-500 opacity-100')} strokeWidth={1.5} />
+        </Button>
+    )
+})

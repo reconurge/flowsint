@@ -3,6 +3,7 @@ import { HelpCircle, Terminal, Trash, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
 import { useLayoutStore } from "@/stores/layout-store"
 import Legend from "../graphs/legend"
+import { Link } from "@tanstack/react-router"
 
 export function StatusBar() {
     const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
@@ -23,10 +24,12 @@ export function StatusBar() {
             </div>
             <div className="flex-1"></div>
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
-                    <Unlock strokeWidth={1.4} className="h-3 w-3 opacity-60" />
-                    <span>Vault</span>
-                </Button>
+                <Link to="/dashboard/vault">
+                    <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
+                        <Unlock strokeWidth={1.4} className="h-3 w-3 opacity-60" />
+                        <span>Vault</span>
+                    </Button>
+                </Link>
                 <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
                     <Trash strokeWidth={1.4} className="h-3 w-3 opacity-60" />
                     <span>Trash</span>

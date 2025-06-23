@@ -21,7 +21,7 @@ class ResolveScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "domains"
+        return "Domain"
     
     @classmethod
     def key(cls) -> str:
@@ -81,16 +81,13 @@ class ResolveScanner(Scanner):
         for domain_obj, ip_obj in zip(original_input, results):
             query = """
             MERGE (d:domain {domain: $domain})
-            SET d.domain = $domain
-            SET d.label = $domain
-            SET d.caption = $caption
-            SET d.type = "domain"
-            SET d.sketch_id = $sketch_id
+            SET d.sketch_id = $sketch_id,
+                d.label = $domain,
+                d.type = "domain"
             MERGE (ip:ip {address: $ip})
-            SET ip.sketch_id = $sketch_id
-            SET ip.label = $label
-            SET ip.caption = $caption
-            SET ip.type = $type
+            SET ip.sketch_id = $sketch_id,
+                ip.label = $label,
+                ip.type = "ip"
             MERGE (d)-[:RESOLVES_TO {sketch_id: $sketch_id}]->(ip)
             """
             if self.neo4j_conn:
@@ -99,14 +96,11 @@ class ResolveScanner(Scanner):
                     "ip": ip_obj.address,
                     "sketch_id": self.sketch_id,
                     "label": ip_obj.address,
-                    "caption": ip_obj.address,
-                    "type": "ip"
                 })
             nodes = [Node(
                 id=str(uuid.uuid4()),
                 data={
                     "label": ip_obj.address,
-                    "caption": ip_obj.address,
                     "type": "ip"
                 },
                 position={
@@ -121,7 +115,6 @@ class ResolveScanner(Scanner):
                 target="",
                 data={
                     "label": "RESOLVES_TO",
-                    "caption": "RESOLVES_TO"
                 },
             )]
             nodes=[node.model_dump_json() for node in nodes]

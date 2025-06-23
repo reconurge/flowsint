@@ -99,7 +99,8 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
             return
         }
         const content = typeof currentContent === 'string' ? currentContent : JSON.stringify(currentContent)
-        const context = selectedNodes ? `entities:${JSON.stringify(selectedNodes)}}\n\nContext:\n${content}` : content
+        const nodeLabel = selectedNodes.map(node => node.data.label).join(", ")
+        const context = selectedNodes ? `entities:${nodeLabel}\n\nContext:\n${content}` : content
         const fullPrompt = `${customPrompt}\n\nContext:\n${context}`
         setPromptOpen(false)
         setCustomPrompt("")

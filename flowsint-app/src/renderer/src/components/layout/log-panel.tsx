@@ -1,7 +1,6 @@
 "use client"
 
 import { ScrollArea } from "../ui/scroll-area"
-import { useEvents } from "@/hooks/use-events"
 import { Badge } from "../ui/badge"
 import { logService } from "@/api/log-service"
 import { useConfirm } from "../use-confirm-dialog"
@@ -20,11 +19,12 @@ import {
     FileText,
     Trash2,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { CopyButton } from "../copy"
 import { EventLevel } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "../ui/button"
+import { type Event } from "@/types"
 
 const logLevelConfig = {
     [EventLevel.INFO]: {
@@ -100,19 +100,17 @@ const defaultConfig = {
     emoji: "📝",
 }
 
-export function LogPanel() {
+export function LogPanel({ logs, refetch }: { logs: Event[], refetch: () => void }) {
     const { id: sketch_id } = useParams({ strict: false })
-    const { logs, refetch } = useEvents(sketch_id)
     const { confirm } = useConfirm()
-    const [isAutoScroll, setIsAutoScroll] = useState(true)
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        if (isAutoScroll && bottomRef.current) {
+        if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: "smooth" })
         }
-    }, [logs, isAutoScroll])
+    }, [logs])
 
     const handleDeleteLogs = async () => {
         if (!sketch_id) return

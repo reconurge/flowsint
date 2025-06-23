@@ -59,6 +59,9 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         left: number;
         right: number;
         bottom: number;
+        wrapperWidth: number;
+        wrapperHeight: number;
+        setMenu: (menu: any | null) => void;
     } | null>(null);
 
 
@@ -200,13 +203,42 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
             const relativeX = event.clientX - pane.left;
             const relativeY = event.clientY - pane.top;
 
+            // Calculate available space in each direction
+            const menuWidth = 320; // Default menu width
+            const menuHeight = 250; // Use a more reasonable height for overflow calculation
+            const padding = 20; // Minimum padding from edges
+
+            // Determine if menu would overflow in each direction
+            const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
+            const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
+
+            // Calculate final position
+            let finalTop = 0;
+            let finalLeft = 0;
+            let finalRight = 0;
+            let finalBottom = 0;
+
+            if (wouldOverflowRight) {
+                finalRight = pane.width - relativeX;
+            } else {
+                finalLeft = relativeX;
+            }
+
+            if (wouldOverflowBottom) {
+                finalBottom = pane.height - relativeY;
+            } else {
+                finalTop = relativeY;
+            }
+
             setMenu({
                 node: node as GraphNode,
-                top: relativeY < pane.height - 200 ? relativeY : 0,
-                left: relativeX < pane.width - 200 ? relativeX : 0,
-                right: relativeX >= pane.width - 200 ? pane.width - relativeX : 0,
-                bottom:
-                    relativeY >= pane.height - 200 ? pane.height - relativeY : 0,
+                top: finalTop,
+                left: finalLeft,
+                right: finalRight,
+                bottom: finalBottom,
+                wrapperWidth: pane.width,
+                wrapperHeight: pane.height,
+                setMenu: setMenu,
             });
         },
         [setMenu],

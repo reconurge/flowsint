@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-class Address(BaseModel):
+class PhysicalAddress(BaseModel):
     address: str = Field(..., description="Street address")
     city: str = Field(..., description="City name")
     country: str = Field(..., description="Country name")

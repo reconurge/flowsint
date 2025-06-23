@@ -62,6 +62,12 @@ interface GraphState {
 
     // === Collapse/Expand logic ===
     toggleCollapse: (nodeId: string) => void
+
+    // === Utils ===
+    nodesLength: number
+    edgesLength: number
+    getNodesLength: () => number
+    getEdgesLength: () => number
 }
 
 export const useGraphStore = create<GraphState>()((set, get) => ({
@@ -222,4 +228,11 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
             ),
         });
     },
+
+    // === Utils ===
+    nodesLength: 0,
+    edgesLength: 0,
+
+    getNodesLength: () => get().nodes.length,
+    getEdgesLength: () => get().edges.length,
 }))

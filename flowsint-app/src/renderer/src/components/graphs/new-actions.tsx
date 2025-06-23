@@ -24,7 +24,6 @@ interface ActionDialogProps {
 }
 
 export default function ActionDialog({ children, setCurrentNode }: ActionDialogProps) {
-    const colors = useNodesDisplaySettings(s => s.colors)
     const handleOpenFormModal = useGraphStore(state => state.handleOpenFormModal)
     const currentNodeType = useGraphStore(state => state.currentNodeType)
     const openMainDialog = useGraphStore(state => state.openMainDialog)
@@ -46,19 +45,16 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
             const label_key = currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name || currentNodeType.fields[0].name
             const label = data[label_key as keyof typeof data]
             const type = currentNodeType.type
-            const color = colors[type as keyof typeof colors]
             const newNode = {
                 type: "custom",
-                caption: label,
                 label: label,
-                color,
                 data: {
                     ...flattenObj(data),
-                    color,
                     label,
                     type: type.toLowerCase(),
                 },
             }
+            console.log(newNode)
             if (addNode) addNode(newNode as any)
             setOpenFormDialog(false)
             toast.success("New node added.")

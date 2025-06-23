@@ -9,7 +9,7 @@ from app.core.logger import Logger
 
 
 InputType: TypeAlias = List[Organization]
-OutputType: TypeAlias = List[Organization]
+OutputType: TypeAlias = List[Identifier]
 
 class SireneScanner(Scanner):
     """Enrich Organization with data from SIRENE (France only)."""

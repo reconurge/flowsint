@@ -5,14 +5,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { useGraphControls } from "@/stores/graph-controls-store"
 import { useGraphStore } from "@/stores/graph-store"
-import { useModalStore } from "@/stores/store-settings"
 import {
-    Filter,
     Maximize,
     Minus,
     Trash,
     ZoomIn,
-    Settings,
     RotateCw,
     GitPullRequestCreate,
     GitFork,
@@ -23,6 +20,7 @@ import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -64,13 +62,13 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
     const setView = useGraphControls((s) => s.setView)
     const removeNodes = useGraphStore((state) => state.removeNodes)
-    const toggleSettings = useModalStore((s) => s.toggleSettings)
     const zoomToFit = useGraphControls((s) => s.zoomToFit);
     const zoomIn = useGraphControls((s) => s.zoomIn);
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const onLayout = useGraphControls((s) => s.onLayout);
     const { confirm } = useConfirm()
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
+    const nodesLength = useGraphStore((s) => s.getNodesLength())
 
     const handleRefresh = useCallback(() => {
         try {
@@ -103,6 +101,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     }
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2
+    const isGraphOnly = nodesLength > 300
 
     const handleForceLayout = useCallback(() => {
         setView("force")
@@ -113,8 +112,15 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         onLayout && onLayout("dagre")
     }, [onLayout, setView])
 
+
+    const { isMac } = useKeyboardShortcut({
+        key: "y",
+        ctrlOrCmd: true,
+        callback: handleDagreLayout
+    })
+
     return (
-        <div className="flex justify-start gap-2 items-center space-y-1 py-1">
+        <div className="flex justify-start gap-2 items-center">
             <TooltipProvider>
                 <ToolbarButton
                     onClick={handleOpenRelationshipDialog}
@@ -147,13 +153,15 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 />
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                    tooltip="Graph"
+                    tooltip={isGraphOnly ? "Graph is rendered in force layout only" : "Graph"}
                     onClick={handleForceLayout}
+                    disabled={isGraphOnly}
                 />
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70" />}
-                    tooltip="Hierarchy"
+                    tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayout}
+                    disabled={isGraphOnly}
                 />
                 {/* <ToolbarButton onClick={toggleSettings} icon={<Settings className="h-4 w-4 opacity-70" />} tooltip="Settings" /> */}
                 <ToolbarButton

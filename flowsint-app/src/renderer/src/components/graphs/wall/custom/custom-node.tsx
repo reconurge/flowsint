@@ -60,7 +60,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
                 id="bottom"
                 className="opacity-0"
             />
-            <div style={{ width: size, height: size, borderColor: (selected || isCurrent(id)) ? "#f97316" : color }} className="!rounded-full gap-0 bg-card flex items-center justify-center border-2 border-primary/70 p-1 overflow-hidden">
+            <div style={{ width: size, height: size, borderColor: (selected || isCurrent(id)) ? "#f97316" : color }} className="!rounded-full gap-0 flex items-center justify-center border-2 border-primary/70 p-1 overflow-hidden">
                 <img
                     src={iconUrl}
                     alt={data?.label as string ?? "N/A"}

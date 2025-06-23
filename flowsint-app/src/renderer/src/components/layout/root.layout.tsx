@@ -7,10 +7,10 @@ import { ConfirmContextProvider } from "@/components/use-confirm-dialog"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import { LogPanel } from "./log-panel"
 import { useLayoutStore } from "@/stores/layout-store"
-import { PathBreadcrumb } from "./breadcrumb"
 import NotesPanel from "../analyses/notes-panel"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useParams } from "@tanstack/react-router"
+import { useEvents } from "@/hooks/use-events"
 
 interface LayoutProps {
     children: ReactNode
@@ -28,6 +28,8 @@ export default function RootLayout({ children }: LayoutProps) {
     const closeChat = useLayoutStore(s => s.closeChat)
     const openChat = useLayoutStore(s => s.openChat)
     const { investigationId, type, id } = useParams({ strict: false })
+    const { logs, refetch } = useEvents(id as string)
+
 
     // Set up keyboard shortcut for chat panel
     useKeyboardShortcut({
@@ -132,7 +134,7 @@ export default function RootLayout({ children }: LayoutProps) {
                                         maxSize={50}
                                     >
                                         <div className="h-full overflow-hidden">
-                                            <LogPanel />
+                                            <LogPanel logs={logs} refetch={refetch} />
                                         </div>
                                     </ResizablePanel>
                                 </>

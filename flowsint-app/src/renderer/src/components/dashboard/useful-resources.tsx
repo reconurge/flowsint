@@ -6,7 +6,7 @@ export function UsefulResources() {
     return (
         <div className="w-full mt-10">
             <h3 className="text-lg font-semibold mb-2">Useful Resources</h3>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-4">
                 <Card className='gap-3 grow'>
                     <CardHeader>
                         <CardTitle>API Reference</CardTitle>

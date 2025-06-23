@@ -35,7 +35,7 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
     const [selectedTransform, setSelectedTransform] = useState<Transform | null>(null)
 
     const { data: transforms, isLoading } = useQuery({
-        queryKey: ["dashboard", "transforms", type],
+        queryKey: ["transforms", type],
         queryFn: () => transformService.get(type),
         refetchOnWindowFocus: true,
     })
@@ -86,8 +86,8 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
                                 <Card
                                     key={transform.id}
                                     className={`cursor-pointer border py-1 transition-all ${selectedTransform?.id === transform.id
-                                            ? "border-primary bg-primary/5"
-                                            : "hover:border-primary/50"
+                                        ? "border-primary bg-primary/5"
+                                        : "hover:border-primary/50"
                                         }`}
                                     onClick={() => handleSelectTransform(transform)}
                                 >

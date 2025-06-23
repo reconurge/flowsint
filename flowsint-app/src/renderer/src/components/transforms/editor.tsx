@@ -44,7 +44,7 @@ const nodeTypes: NodeTypes = {
 }
 
 interface TransformEditorProps {
-    theme: ColorMode
+    theme?: ColorMode
     initialEdges: TransformEdge[]
     initialNodes: TransformNode[]
     transform?: any
@@ -120,12 +120,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as ScannerNodeData & {
                 category: string
             }
-            if (scannerData.type === "input") {
-                const existsInput = nodes.find((node) => node.data.type === "input")
-                if (existsInput) {
-                    return toast.error("Only one input node is allowed")
-                }
-            }
+
             if (scannerData.type === "type") {
                 const existsType = nodes.find((node) => node.data.type === "type")
                 if (existsType) {
@@ -220,7 +215,6 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             setLoading(true)
             try {
                 const inputType = nodes.find((node) => node.data.type === "type")?.data?.class_name
-                console.log(nodes)
                 if (!inputType) {
                     toast.error("Make sure your transform contains an input type.")
                     return

@@ -5,12 +5,12 @@ from typing import List, Dict, Any, TypeAlias, Union
 
 from app.utils import is_valid_username, resolve_type
 from app.scanners.base import Scanner
-from app.types.social import Social, Social
+from app.types.social import SocialProfile
 from pydantic import TypeAdapter
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[Social]
-OutputType: TypeAlias = List[Social]
+InputType: TypeAlias = List[SocialProfile]
+OutputType: TypeAlias = List[SocialProfile]
 
 false_positives = ["LeagueOfLegends"]
 
@@ -60,10 +60,10 @@ class MaigretScanner(Scanner):
         for item in data:
             obj = None
             if isinstance(item, str):
-                obj = Social(username=item)
+                obj = SocialProfile(username=item)
             elif isinstance(item, dict) and "username" in item:
-                obj = Social(username=item["username"])
-            elif isinstance(item, Social):
+                obj = SocialProfile(username=item["username"])
+            elif isinstance(item, SocialProfile):
                 obj = item
 
             if obj and obj.username and is_valid_username(obj.username):
@@ -83,8 +83,8 @@ class MaigretScanner(Scanner):
             print(f"[FAILED] Maigret execution failed for {username}: {e}")
         return output_file
     
-    def parse_maigret_output(self, username: str, output_file: Path) -> List[Social]:
-        results: List[Social] = []
+    def parse_maigret_output(self, username: str, output_file: Path) -> List[SocialProfile]:
+        results: List[SocialProfile] = []
         if not output_file.exists():
             return results
 
@@ -119,7 +119,7 @@ class MaigretScanner(Scanner):
             except ValueError:
                 followers = following = posts = None
 
-            results.append(Social(
+            results.append(SocialProfile(
                 username=username,
                 profile_url=profile_url,
                 platform=platform,

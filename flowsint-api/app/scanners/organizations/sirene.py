@@ -20,7 +20,7 @@ class SireneScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "organizations"
+        return "Organization"
     
     @classmethod
     def key(cls) -> str:
@@ -116,7 +116,7 @@ class SireneScanner(Scanner):
                     o.sketch_id = $sketch_id
             """, {
                 "name": org.name,
-                "country": org.country,
+                "country": "FR",
                 "founding_date": org.founding_date,
                 "description": org.description,
                 "label": org.name,

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Pencil, Trash2, FileCode2, Search, Info, Star } from 'lucide-react';
+import { Pencil, Trash2, FileCode2, Search, Info, Star, Sparkles } from 'lucide-react';
 import { Transform } from '@/types';
 import { GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
@@ -13,6 +13,13 @@ import { cn } from '@/lib/utils';
 import { useConfirm } from '@/components/use-confirm-dialog';
 import { toast } from 'sonner';
 import { sketchService } from '@/api/sketch-service';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useLayoutStore } from '@/stores/layout-store';
 
 function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1)
@@ -48,6 +55,10 @@ export default function ContextMenu({
     const { confirm } = useConfirm();
     const { launchTransform } = useLaunchTransform(false);
     const removeNodes = useGraphStore(s => s.removeNodes);
+    const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection);
+    const openChat = useLayoutStore(s => s.openChat);
+    const setCurrentNode = useGraphStore(s => s.setCurrentNode);
+    const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal);
     const { data: transforms, isLoading } = useQuery({
         queryKey: ["transforms", node.data.type],
         queryFn: () => transformService.get(capitalizeFirstLetter(node.data.type)),
@@ -106,6 +117,20 @@ export default function ContextMenu({
         e.stopPropagation();
     };
 
+    const handleAskAI = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleNodeSelection(node, false)
+        openChat()
+    }, [node, toggleNodeSelection, openChat])
+
+    const handleEditNode = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const typedNode = node as GraphNode
+        setCurrentNode(typedNode)
+        setOpenNodeEditorModal(true)
+        setMenu(null)
+    }, [node, setCurrentNode, setOpenNodeEditorModal])
+
     const handleDeleteNode = async () => {
         if (!node.id || !sketchId) return
         if (!await confirm({ title: `You are about to delete this node ?`, message: "The action is irreversible." })) return
@@ -141,21 +166,59 @@ export default function ContextMenu({
                     <span className='block truncate'>{node.data.label}</span> - <span className='block'>{node.data.type}</span>
                 </div>
                 <div className="flex items-center  gap-1 ml-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-                    >
-                        <Pencil className="h-3 w-3" strokeWidth={1.5} />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                        onClick={handleDeleteNode}
-                    >
-                        <Trash2 className="h-3 w-3" strokeWidth={1.5} />
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <Button
+                                        onClick={handleAskAI}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                                    >
+                                        <Sparkles className="h-3 w-3" strokeWidth={1.5} />
+                                    </Button>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Ask AI</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <Button
+                                        onClick={handleEditNode}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                                    >
+                                        <Pencil className="h-3 w-3" strokeWidth={1.5} />
+                                    </Button>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Edit node</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                                        onClick={handleDeleteNode}
+                                    >
+                                        <Trash2 className="h-3 w-3" strokeWidth={1.5} />
+                                    </Button>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Delete node</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
             </div>
 

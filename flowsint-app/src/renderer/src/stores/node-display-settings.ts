@@ -94,7 +94,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     cryptowallet: "#F7D154",    // Notion gold
     asn: "#F7D154",
     cidr: "#A2D4BF",
-    whois: "#A6D0BF"
+    whois: "#EAAFAF"
 }
 
 // Définition des icônes par défaut pour chaque type d'élément

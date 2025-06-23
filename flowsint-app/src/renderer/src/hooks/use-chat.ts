@@ -33,7 +33,7 @@ interface UseChatOptions {
 
 export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) => {
     const [isAiLoading, setIsAiLoading] = useState(false)
-    const [promptOpen, setPromptOpen] = useState(false)
+    const [promptOpen, setPromptOpen] = useState(true)
     const [customPrompt, setCustomPrompt] = useState("")
     const selectedNodes = useGraphStore(s => s.selectedNodes)
 

@@ -53,7 +53,7 @@ class Scanner(ABC):
             results = self.scan(preprocessed)
             processed = self.postprocess(results, preprocessed)
             if self.name() != "transform_orchestrator":
-                Logger.success(self.sketch_id, {"message": f"Scanner {self.name()} finished."})
+                Logger.completed(self.sketch_id, {"message": f"Scanner {self.name()} finished."})
             return processed
         except Exception as e:
             if self.name() != "transform_orchestrator":

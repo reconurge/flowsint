@@ -29,6 +29,7 @@ interface GraphState {
     removeNodes: (nodeIds: string[]) => void
     removeEdges: (edgeIds: string[]) => void
     updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
+    updateNode: (nodeId: string, updates: Partial<NodeData>) => void
     onNodesChange: OnNodesChange
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
@@ -47,9 +48,11 @@ interface GraphState {
     openMainDialog: boolean
     openFormDialog: boolean
     openAddRelationDialog: boolean
+    openNodeEditorModal: boolean
     setOpenMainDialog: (open: boolean) => void
     setOpenFormDialog: (open: boolean) => void
     setOpenAddRelationDialog: (open: boolean) => void
+    setOpenNodeEditorModal: (open: boolean) => void
 
     // === Action Type for Form ===
     currentNodeType: ActionItem | null
@@ -114,6 +117,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => {
         set({ nodes, edges })
     },
+    updateNode: (nodeId, updates) => {
+        const { nodes } = get()
+        const updatedNodes = nodes.map(node =>
+            node.id === nodeId 
+                ? { ...node, data: { ...node.data, ...updates } }
+                : node
+        )
+        set({ nodes: updatedNodes })
+    },
     onNodesChange: (changes) => {
         set({
             nodes: applyNodeChanges(changes, get().nodes) as GraphNode[],
@@ -171,9 +183,11 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     openMainDialog: false,
     openFormDialog: false,
     openAddRelationDialog: false,
+    openNodeEditorModal: false,
     setOpenMainDialog: (open) => set({ openMainDialog: open }),
     setOpenFormDialog: (open) => set({ openFormDialog: open }),
     setOpenAddRelationDialog: (open) => set({ openAddRelationDialog: open }),
+    setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
 
     // === Action Type for Form ===
     currentNodeType: null,

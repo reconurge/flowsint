@@ -32,6 +32,7 @@ export function useEvents(sketch_id: string | undefined) {
             try {
                 const raw = JSON.parse(e.data) as any
                 const event = JSON.parse(raw.data) as Event
+                console.log("event", event.type)
                 if (event.type === EventLevel.COMPLETED) {
                     refetchGraph()
                     // const nodes = event.payload.nodes as GraphNode[]

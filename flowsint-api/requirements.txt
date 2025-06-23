@@ -28,3 +28,7 @@ sse-starlette
 networkx
 pydantic_neo4j
 mistralai
+beautifulsoup4
+lxml
+requests-random-user-agent
+spacy

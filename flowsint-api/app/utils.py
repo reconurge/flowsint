@@ -68,22 +68,33 @@ def is_valid_asn(asn: str) -> bool:
     asn_num = int(re.sub(r"(?i)^AS", "", asn))
     return 0 <= asn_num <= 4294967295
 
-def resolve_type(details: dict) -> str:
+def resolve_type(details: dict, schema_context: dict = None) -> str:
     if "anyOf" in details:
         types = []
         for option in details["anyOf"]:
             if "$ref" in option:
                 ref = option["$ref"].split("/")[-1]
                 types.append(ref)
+            elif option.get("type") == "array":
+                # Handle array types within anyOf
+                item_type = resolve_type(option.get("items", {}), schema_context)
+                types.append(f"{item_type}[]")
             else:
                 types.append(option.get("type", "unknown"))
         return " | ".join(types)
     
     if "type" in details:
         if details["type"] == "array":
-            item_type = resolve_type(details.get("items", {}))
+            item_type = resolve_type(details.get("items", {}), schema_context)
             return f"{item_type}[]"
         return details["type"]
+    
+    # Handle $ref in array items or other contexts
+    if "$ref" in details and schema_context:
+        ref_path = details["$ref"]
+        if ref_path.startswith("#/$defs/"):
+            ref_name = ref_path.split("/")[-1]
+            return ref_name
     
     return "any"
 
@@ -105,7 +116,7 @@ def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
             "properties": [
                 {
                     "name": prop,
-                    "type": resolve_type(info)
+                    "type": resolve_type(info, schema)
                 }
                 for prop, info in details.get("properties", {}).items()
             ]

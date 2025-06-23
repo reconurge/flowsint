@@ -36,7 +36,7 @@ class WalletAddressToNFTs(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }
@@ -49,7 +49,7 @@ class WalletAddressToNFTs(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }
@@ -116,11 +116,11 @@ class WalletAddressToNFTs(Scanner):
             for nft in nfts:
                 # Create or update wallet node
                 wallet_query = """
-                MERGE (wallet:wallet {wallet: $wallet_address})
-                SET wallet.sketch_id = $sketch_id,
-                    wallet.label = $wallet_address,
-                    wallet.caption = $wallet_address,
-                    wallet.type = "wallet"
+                MERGE (cryptowallet:cryptowallet {wallet: $wallet_address})
+                SET cryptowallet.sketch_id = $sketch_id,
+                    cryptowallet.label = $wallet_address,
+                    cryptowallet.caption = $wallet_address,
+                    cryptowallet.type = "cryptowallet"
                 """
                 self.neo4j_conn.query(wallet_query, {
                     "wallet_address": nft.wallet.address,

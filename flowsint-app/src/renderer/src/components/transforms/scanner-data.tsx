@@ -15,15 +15,15 @@ export const DEFAULT_COLOR = "#94a3b8"
 export const categoryColors: Record<string, string> = {
   // Categories
   social: "#3b82f6",
-  emails: "#10b981",
-  websites: "#f59e0b",
-  phones: "#8b5cf6",
+  email: "#10b981",
+  website: "#f59e0b",
+  phone: "#8b5cf6",
   ips: "#ef4444",
   domains: "#10b981",
   type: "#f59e0b",
-  cidrs: "#A2D4BF",
-  asns: "#F7D154",
-  organizations: "#9C27B0",
+  cidr: "#A2D4BF",
+  asn: "#F7D154",
+  organization: "#9C27B0",
 }
 
 /**

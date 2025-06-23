@@ -20,7 +20,7 @@ import { getDagreLayoutedElements, getForceLayoutedElements } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
 import { useGraphStore, type GraphNode, type GraphEdge } from "@/stores/graph-store"
 import { CustomNode } from "./custom/custom-node"
-import FloatingEdge from "./custom/floating-edge"
+// import FloatingEdge from "./custom/floating-edge"
 import FloatingConnectionLine from "./custom/connection-line"
 import GraphLoader from "../graph-loader"
 import { useGraphControls } from "@/stores/graph-controls-store"
@@ -32,9 +32,9 @@ const nodeTypes = {
     custom: CustomNode,
 };
 
-const edgeTypes = {
-    custom: FloatingEdge,
-};
+// const edgeTypes = {
+//     custom: FloatingEdge,
+// };
 
 const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
@@ -53,6 +53,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     const onNodesChange = useGraphStore(state => state.onNodesChange)
     const onEdgesChange = useGraphStore(state => state.onEdgesChange)
     const onConnect = useGraphStore(state => state.onConnect)
+    const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
     const [menu, setMenu] = useState<{
         node: GraphNode;
         top: number;
@@ -63,7 +64,6 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         wrapperHeight: number;
         setMenu: (menu: any | null) => void;
     } | null>(null);
-
 
     // Memoize filtered nodes and edges
     const visibleNodes = useMemo(() => nodes.filter(n => !n.hidden), [nodes])
@@ -147,6 +147,15 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         [setCenter, setCurrentNode],
     )
 
+    const onNodeDoubleClick: NodeMouseHandler = useCallback(
+        (_: React.MouseEvent, node: Node) => {
+            const typedNode = node as GraphNode
+            setCurrentNode(typedNode)
+            setOpenNodeEditorModal(true)
+        },
+        [setCurrentNode],
+    )
+
     const onPaneClick = useCallback(() => {
         setCurrentNode(null)
         clearSelectedNodes()
@@ -156,7 +165,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     const onLayout = useCallback((type: "dagre" | "force") => {
         // Wait for nodes to be measured before running layout
         setTimeout(() => {
-            let layouted;
+            let layouted: any;
             if (type === "dagre") {
                 layouted = getDagreLayoutedElements(
                     nodes,
@@ -255,6 +264,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         onDrop,
         onDragOver,
         onNodeClick,
+        onNodeDoubleClick,
         onPaneClick,
         onNodesChange,
         onEdgesChange,
@@ -271,6 +281,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         onNodeContextMenu,
         onDragOver,
         onNodeClick,
+        onNodeDoubleClick,
         onPaneClick,
         onNodesChange,
         onEdgesChange,

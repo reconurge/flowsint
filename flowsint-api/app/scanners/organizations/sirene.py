@@ -30,12 +30,15 @@ class SireneScanner(Scanner):
     def input_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(InputType)
         schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
+        # Find the Organization type in $defs
+        organization_def = schema["$defs"].get("Organization")
+        if not organization_def:
+            raise ValueError("Organization type not found in schema")
         return {
-            "type": type_name,
+            "type": "Organization",
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
-                for prop, info in details["properties"].items()
+                {"name": prop, "type": resolve_type(info, schema)}
+                for prop, info in organization_def["properties"].items()
             ]
         }
 
@@ -47,7 +50,7 @@ class SireneScanner(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }

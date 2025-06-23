@@ -2,15 +2,32 @@
 import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
+import { Button } from "@/components/ui/button"
+import { Edit, Edit2 } from "lucide-react"
 import LaunchTransform from "./launch-transform"
+import { useGraphStore } from "@/stores/graph-store"
 
 export default function DetailsPanel({ data }: { data: any }) {
+    const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
+    const handleEdit = () => {
+        setOpenNodeEditorModal(true)
+
+    }
+
     return (
         <div className="overflow-y-auto overflow-x-hidden w-full min-w-0 h-full min-h-0">
             <div className="flex items-center sticky w-full bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
                 <h1 className="text-md font-semibold truncate">{data?.label}</h1>
                 <div className="grow" />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleEdit}
+                        className="h-7 w-7 p-0"
+                    >
+                        <Edit2 strokeWidth={1.5} className="!h-4 !w-4 opacity-60" />
+                    </Button>
                     <LaunchTransform values={[data.label]} type={data?.type} />
                 </div>
             </div>

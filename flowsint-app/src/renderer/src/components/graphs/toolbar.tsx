@@ -14,6 +14,7 @@ import {
     GitPullRequestCreate,
     GitFork,
     Waypoints,
+    Rotate3D,
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { sketchService } from "@/api/sketch-service"
@@ -101,17 +102,20 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     }
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2
-    const isGraphOnly = nodesLength > 300
+    const isGraphOnly = nodesLength > 500
 
     const handleForceLayout = useCallback(() => {
         setView("force")
+    }, [setView])
+
+    const handleForce3DLayout = useCallback(() => {
+        setView("force3d")
     }, [setView])
 
     const handleDagreLayout = useCallback(() => {
         setView("hierarchy")
         onLayout && onLayout("dagre")
     }, [onLayout, setView])
-
 
     const { isMac } = useKeyboardShortcut({
         key: "y",
@@ -152,16 +156,20 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     onClick={zoomToFit}
                 />
                 <ToolbarButton
-                    icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                    tooltip={isGraphOnly ? "Graph is rendered in force layout only" : "Graph"}
-                    onClick={handleForceLayout}
-                    disabled={isGraphOnly}
-                />
-                <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayout}
                     disabled={isGraphOnly}
+                />
+                <ToolbarButton
+                    icon={<Waypoints className="h-4 w-4 opacity-70" />}
+                    tooltip={"Graph"}
+                    onClick={handleForceLayout}
+                />
+                <ToolbarButton
+                    icon={<Rotate3D className="h-4 w-4 opacity-70" />}
+                    tooltip={"3D Graph"}
+                    onClick={handleForce3DLayout}
                 />
                 {/* <ToolbarButton onClick={toggleSettings} icon={<Settings className="h-4 w-4 opacity-70" />} tooltip="Settings" /> */}
                 <ToolbarButton

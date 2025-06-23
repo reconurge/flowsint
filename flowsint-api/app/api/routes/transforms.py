@@ -20,7 +20,7 @@ from app.api.schemas.transform import TransformRead, TransformCreate, TransformU
 from app.types.asn import ASN
 from app.types.cidr import CIDR
 from app.types.wallet import Wallet, WalletTransaction
-
+from app.types.website import Website
 
 class FlowComputationRequest(BaseModel):
     nodes: List[Node]
@@ -48,10 +48,16 @@ def get_transforms(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user)
 ):
+    query = db.query(Transform)
+    
     if category is not None and category != "undefined":
-        query = db.query(Transform).filter(Transform.category.any(category))
-    else:
-        query = db.query(Transform)
+        # Case-insensitive filtering by checking if any category matches (case-insensitive)
+        transforms = query.all()
+        return [
+            transform for transform in transforms 
+            if any(cat.lower() == category.lower() for cat in transform.category)
+        ]
+    
     return query.order_by(Transform.last_updated_at.desc()).all()
 
 # Returns the "raw_materials" for the transform editor
@@ -78,6 +84,7 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
     object_inputs = [
         extract_input_schema("Organization", Organization),
         extract_input_schema("Domain", Domain),
+        extract_input_schema("Website", Website),
         extract_input_schema("Ip", Ip),
         extract_input_schema("ASN", ASN),
         extract_input_schema("CIDR", CIDR),

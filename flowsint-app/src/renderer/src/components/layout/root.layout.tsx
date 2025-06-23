@@ -74,6 +74,7 @@ export default function RootLayout({ children }: LayoutProps) {
                                         <>
                                             <ResizablePanel
                                                 id="sidebar"
+                                                className="min-w-64"
                                                 order={2}
                                                 defaultSize={20}
                                                 minSize={16}

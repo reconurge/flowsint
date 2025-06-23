@@ -32,7 +32,7 @@ class AsnToCidrsScanner(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }
@@ -45,7 +45,7 @@ class AsnToCidrsScanner(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }

@@ -39,7 +39,7 @@ class WalletAddressToTransactions(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }
@@ -52,7 +52,7 @@ class WalletAddressToTransactions(Scanner):
         return {
             "type": type_name,
             "properties": [
-                {"name": prop, "type": resolve_type(info)}
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
             ]
         }
@@ -131,12 +131,12 @@ class WalletAddressToTransactions(Scanner):
             for tx in transactions:
                 # Create or update both wallet nodes in a single operation
                 wallets_query = """
-                MERGE (source:wallet {wallet: $source_address})
-                MERGE (target:wallet {wallet: $target_address})
+                MERGE (source:cryptowallet {wallet: $source_address})
+                MERGE (target:cryptowallet {wallet: $target_address})
                 SET source.sketch_id = $sketch_id,
                     source.label = $source_address,
                     source.caption = $source_address,
-                    source.type = "wallet"
+                    source.type = "cryptowallet"
                 """
                 self.neo4j_conn.query(wallets_query, {
                     "source_address": tx.source.address,
@@ -146,8 +146,8 @@ class WalletAddressToTransactions(Scanner):
 
                 # Create transaction as an edge between wallets
                 tx_query = """
-                MATCH (source:wallet {wallet: $source})
-                MATCH (target:wallet {wallet: $target})
+                MATCH (source:cryptowallet {cryptowallet: $source})
+                MATCH (target:cryptowallet {cryptowallet: $target})
                 MERGE (source)-[tx:TRANSACTION {hash: $hash}]->(target)
                 SET tx.value = $value,
                     tx.timestamp = $timestamp,

@@ -13,4 +13,3 @@ class Organization(BaseModel):
     founding_date: Optional[str] = Field(None, description="Date when the organization was founded")
     country: Optional[str] = Field(None, description="Country where the organization is based")
     description: Optional[str] = Field(None, description="Description of the organization's activities")
-    identifiers: Optional[List[Identifier]] = Field(None, description="List of official identifiers for the organization")

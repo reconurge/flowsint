@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 from sqlalchemy.orm import Session, selectinload
 from app.core.postgre_db import get_db
-from app.models.models import Investigation, Profile, Sketch
+from app.models.models import Analysis, Investigation, Profile, Sketch
 from app.api.deps import get_current_user
 from app.api.schemas.investigation import InvestigationRead, InvestigationCreate, InvestigationUpdate
 from app.api.schemas.sketch import SketchRead
@@ -80,6 +80,8 @@ def delete_investigation(investigation_id: UUID, db: Session = Depends(get_db), 
     
     # Get all sketches related to this investigation
     sketches = db.query(Sketch).filter(Sketch.investigation_id == investigation_id).all()
+    analyses = db.query(Analysis).filter(Sketch.investigation_id == investigation_id).all()
+
     
     # Delete all nodes and relationships for each sketch in Neo4j
     for sketch in sketches:
@@ -96,6 +98,8 @@ def delete_investigation(investigation_id: UUID, db: Session = Depends(get_db), 
     # Delete all sketches from PostgreSQL
     for sketch in sketches:
         db.delete(sketch)
+    for analysis in analyses:
+        db.delete(analysis)
     
     # Finally delete the investigation
     db.delete(investigation)

@@ -22,11 +22,11 @@ class DomainToAsnScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "domains"
+        return "Domain"
     
     @classmethod
     def key(cls) -> str:
-        return "domain"
+        return "Domain"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:
@@ -112,7 +112,6 @@ class DomainToAsnScanner(Scanner):
             MERGE (domain:domain {domain: $domain})
             SET domain.sketch_id = $sketch_id,
                 domain.label = $domain,
-                domain.caption = $domain,
                 domain.type = "domain"
             
             MERGE (asn:asn {number: $asn_number})
@@ -120,7 +119,6 @@ class DomainToAsnScanner(Scanner):
                 asn.name = $asn_name,
                 asn.country = $asn_country,
                 asn.label = $asn_label,
-                asn.caption = $asn_caption,
                 asn.type = "asn"
             
             MERGE (domain)-[:BELONGS_TO {sketch_id: $sketch_id}]->(asn)

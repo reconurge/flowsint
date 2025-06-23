@@ -32,6 +32,7 @@ export const Route = createFileRoute('/_auth/dashboard/transforms/$transformId')
 
 function TranformPage() {
     const { transform } = Route.useLoaderData()
+    console.log(transform)
     return (
         <Editor
             key={transform.id}

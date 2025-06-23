@@ -20,7 +20,7 @@ class SubdomainScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "domains"
+        return "Domain"
 
     @classmethod
     def key(cls) -> str:
@@ -55,7 +55,9 @@ class SubdomainScanner(Scanner):
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
-        for item in data:
+        invalid_items = []
+        
+        for i, item in enumerate(data):
             domain_obj = None
             if isinstance(item, str):
                 domain_obj = Domain(domain=item)
@@ -63,8 +65,20 @@ class SubdomainScanner(Scanner):
                 domain_obj = Domain(domain=item["domain"])
             elif isinstance(item, Domain):
                 domain_obj = item
+            else:
+                invalid_items.append(f"Item at index {i}: {type(item).__name__} - {item}")
+                continue
+                
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
+            else:
+                invalid_items.append(f"Item at index {i}: Invalid domain '{getattr(domain_obj, 'domain', item) if domain_obj else item}'")
+        
+        if invalid_items:
+            error_msg = f"Invalid input format. The following items could not be processed:\n" + "\n".join(invalid_items)
+            Logger.error(self.sketch_id, {"message":error_msg})
+            raise ValueError(error_msg)
+            
         return cleaned
 
     def scan(self, data: InputType) -> OutputType:
@@ -83,8 +97,7 @@ class SubdomainScanner(Scanner):
                 Logger.info(self.sketch_id, "subfinder not found, using crt.sh only")
                 subdomains = self.__get_subdomains_from_crtsh(d.domain)
 
-            d.subdomains = sorted(subdomains)
-            domains.append(d)
+            domains.append({"domain": d.domain, "subdomains": sorted(subdomains)})
 
         return domains
 
@@ -135,25 +148,23 @@ class SubdomainScanner(Scanner):
         for domain_obj in results:
             if not self.neo4j_conn:
                 continue
-            for subdomain in domain_obj.subdomains:
+            for subdomain in domain_obj["subdomains"]:
                 output.append(Domain(domain=subdomain))
-                Logger.info(self.sketch_id, {"message": f"{domain_obj.domain} -> {subdomain}"})
+                Logger.info(self.sketch_id, {"message": f"{domain_obj['domain']} -> {subdomain}"})
                 self.neo4j_conn.query("""
                     MERGE (sub:domain {domain: $subdomain})
                     SET sub.sketch_id = $sketch_id,
                         sub.label = $label,
-                        sub.caption = $caption,
                         sub.type = $type
                     MERGE (d:domain {domain: $domain})
                     MERGE (d)-[:HAS_SUBDOMAIN {sketch_id: $sketch_id}]->(sub)
                 """, {
-                    "domain": domain_obj.domain,
+                    "domain": domain_obj["domain"],
                     "subdomain": subdomain,
                     "sketch_id": self.sketch_id,
                     "label": subdomain,
-                    "caption": subdomain,
-                    "type": "subdomain"
+                    "type": "domain"
                 })
-            Logger.graph_append(self.sketch_id, {"message":f"{domain_obj.domain} -> {len(domain_obj.subdomains)} subdomain(s) found."})
+            Logger.graph_append(self.sketch_id, {"message":f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."})
 
         return output

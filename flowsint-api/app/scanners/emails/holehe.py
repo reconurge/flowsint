@@ -1,13 +1,13 @@
 from typing import Dict, Any, List, TypeAlias, Union
 from app.scanners.base import Scanner
 from app.types.email import Email
-from app.types.social import Social
+from app.types.social import SocialProfile
 from pydantic import TypeAdapter
 from app.utils import is_valid_email, resolve_type
 import asyncio
 from app.core.logger import Logger
 InputType: TypeAlias = List[Email]
-OutputType: TypeAlias = List[Social]
+OutputType: TypeAlias = List[SocialProfile]
 
 class HoleheScanner(Scanner):
     @classmethod
@@ -106,7 +106,7 @@ class HoleheScanner(Scanner):
                 for result in result["results"]:
                     if("error" not in result and "exists" in result):
                         found.append(
-                        Social(
+                        SocialProfile(
                             username=email.email,
                             profile_url=f"https://{result['domain']}",
                             platform=result["name"]))         

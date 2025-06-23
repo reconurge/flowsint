@@ -10,226 +10,326 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as MiddlewareRouteImport } from './routes/middleware'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthDashboardRouteImport } from './routes/_auth.dashboard'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth.dashboard.index'
+import { Route as AuthDashboardVaultRouteImport } from './routes/_auth.dashboard.vault'
+import { Route as AuthDashboardToolsRouteImport } from './routes/_auth.dashboard.tools'
+import { Route as AuthDashboardTransformsIndexRouteImport } from './routes/_auth.dashboard.transforms.index'
+import { Route as AuthDashboardInvestigationsIndexRouteImport } from './routes/_auth.dashboard.investigations.index'
+import { Route as AuthDashboardTransformsTransformIdRouteImport } from './routes/_auth.dashboard.transforms.$transformId'
+import { Route as AuthDashboardInvestigationsInvestigationIdIndexRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.index'
+import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.$type.$id'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as RegisterImport } from './routes/register'
-import { Route as MiddlewareImport } from './routes/middleware'
-import { Route as LoginImport } from './routes/login'
-import { Route as AuthImport } from './routes/_auth'
-import { Route as IndexImport } from './routes/index'
-import { Route as AuthDashboardImport } from './routes/_auth.dashboard'
-import { Route as AuthDashboardIndexImport } from './routes/_auth.dashboard.index'
-import { Route as AuthDashboardToolsImport } from './routes/_auth.dashboard.tools'
-import { Route as AuthDashboardTransformsIndexImport } from './routes/_auth.dashboard.transforms.index'
-import { Route as AuthDashboardInvestigationsIndexImport } from './routes/_auth.dashboard.investigations.index'
-import { Route as AuthDashboardTransformsTransformIdImport } from './routes/_auth.dashboard.transforms.$transformId'
-import { Route as AuthDashboardInvestigationsInvestigationIdIndexImport } from './routes/_auth.dashboard.investigations.$investigationId.index'
-import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdImport } from './routes/_auth.dashboard.investigations.$investigationId.$type.$id'
+const ToolbarLazyRouteImport = createFileRoute('/toolbar')()
 
-// Create Virtual Routes
-
-const ToolbarLazyImport = createFileRoute('/toolbar')()
-
-// Create/Update Routes
-
-const ToolbarLazyRoute = ToolbarLazyImport.update({
+const ToolbarLazyRoute = ToolbarLazyRouteImport.update({
   id: '/toolbar',
   path: '/toolbar',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/toolbar.lazy').then((d) => d.Route))
-
-const RegisterRoute = RegisterImport.update({
+const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const MiddlewareRoute = MiddlewareImport.update({
+const MiddlewareRoute = MiddlewareRouteImport.update({
   id: '/middleware',
   path: '/middleware',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const LoginRoute = LoginImport.update({
+const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRoute = AuthImport.update({
+const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthDashboardRoute = AuthDashboardImport.update({
+const AuthDashboardRoute = AuthDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthDashboardIndexRoute = AuthDashboardIndexImport.update({
+const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthDashboardRoute,
 } as any)
-
-const AuthDashboardToolsRoute = AuthDashboardToolsImport.update({
+const AuthDashboardVaultRoute = AuthDashboardVaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
+const AuthDashboardToolsRoute = AuthDashboardToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
   getParentRoute: () => AuthDashboardRoute,
 } as any)
-
 const AuthDashboardTransformsIndexRoute =
-  AuthDashboardTransformsIndexImport.update({
+  AuthDashboardTransformsIndexRouteImport.update({
     id: '/transforms/',
     path: '/transforms/',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
-
 const AuthDashboardInvestigationsIndexRoute =
-  AuthDashboardInvestigationsIndexImport.update({
+  AuthDashboardInvestigationsIndexRouteImport.update({
     id: '/investigations/',
     path: '/investigations/',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
-
 const AuthDashboardTransformsTransformIdRoute =
-  AuthDashboardTransformsTransformIdImport.update({
+  AuthDashboardTransformsTransformIdRouteImport.update({
     id: '/transforms/$transformId',
     path: '/transforms/$transformId',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
-
 const AuthDashboardInvestigationsInvestigationIdIndexRoute =
-  AuthDashboardInvestigationsInvestigationIdIndexImport.update({
+  AuthDashboardInvestigationsInvestigationIdIndexRouteImport.update({
     id: '/investigations/$investigationId/',
     path: '/investigations/$investigationId/',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
-
 const AuthDashboardInvestigationsInvestigationIdTypeIdRoute =
-  AuthDashboardInvestigationsInvestigationIdTypeIdImport.update({
+  AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport.update({
     id: '/investigations/$investigationId/$type/$id',
     path: '/investigations/$investigationId/$type/$id',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
 
-// Populate the FileRoutesByPath interface
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/middleware': typeof MiddlewareRoute
+  '/register': typeof RegisterRoute
+  '/toolbar': typeof ToolbarLazyRoute
+  '/dashboard': typeof AuthDashboardRouteWithChildren
+  '/dashboard/tools': typeof AuthDashboardToolsRoute
+  '/dashboard/vault': typeof AuthDashboardVaultRoute
+  '/dashboard/': typeof AuthDashboardIndexRoute
+  '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
+  '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
+  '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
+  '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
+  '/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/middleware': typeof MiddlewareRoute
+  '/register': typeof RegisterRoute
+  '/toolbar': typeof ToolbarLazyRoute
+  '/dashboard/tools': typeof AuthDashboardToolsRoute
+  '/dashboard/vault': typeof AuthDashboardVaultRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
+  '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
+  '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
+  '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
+  '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
+  '/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
+}
+export interface FileRoutesById {
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
+  '/login': typeof LoginRoute
+  '/middleware': typeof MiddlewareRoute
+  '/register': typeof RegisterRoute
+  '/toolbar': typeof ToolbarLazyRoute
+  '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
+  '/_auth/dashboard/tools': typeof AuthDashboardToolsRoute
+  '/_auth/dashboard/vault': typeof AuthDashboardVaultRoute
+  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
+  '/_auth/dashboard/investigations/': typeof AuthDashboardInvestigationsIndexRoute
+  '/_auth/dashboard/transforms/': typeof AuthDashboardTransformsIndexRoute
+  '/_auth/dashboard/investigations/$investigationId/': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
+  '/_auth/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
+}
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/middleware'
+    | '/register'
+    | '/toolbar'
+    | '/dashboard'
+    | '/dashboard/tools'
+    | '/dashboard/vault'
+    | '/dashboard/'
+    | '/dashboard/transforms/$transformId'
+    | '/dashboard/investigations'
+    | '/dashboard/transforms'
+    | '/dashboard/investigations/$investigationId'
+    | '/dashboard/investigations/$investigationId/$type/$id'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/login'
+    | '/middleware'
+    | '/register'
+    | '/toolbar'
+    | '/dashboard/tools'
+    | '/dashboard/vault'
+    | '/dashboard'
+    | '/dashboard/transforms/$transformId'
+    | '/dashboard/investigations'
+    | '/dashboard/transforms'
+    | '/dashboard/investigations/$investigationId'
+    | '/dashboard/investigations/$investigationId/$type/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/login'
+    | '/middleware'
+    | '/register'
+    | '/toolbar'
+    | '/_auth/dashboard'
+    | '/_auth/dashboard/tools'
+    | '/_auth/dashboard/vault'
+    | '/_auth/dashboard/'
+    | '/_auth/dashboard/transforms/$transformId'
+    | '/_auth/dashboard/investigations/'
+    | '/_auth/dashboard/transforms/'
+    | '/_auth/dashboard/investigations/$investigationId/'
+    | '/_auth/dashboard/investigations/$investigationId/$type/$id'
+  fileRoutesById: FileRoutesById
+}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  MiddlewareRoute: typeof MiddlewareRoute
+  RegisterRoute: typeof RegisterRoute
+  ToolbarLazyRoute: typeof ToolbarLazyRoute
+}
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/middleware': {
-      id: '/middleware'
-      path: '/middleware'
-      fullPath: '/middleware'
-      preLoaderRoute: typeof MiddlewareImport
-      parentRoute: typeof rootRoute
+    '/toolbar': {
+      id: '/toolbar'
+      path: '/toolbar'
+      fullPath: '/toolbar'
+      preLoaderRoute: typeof ToolbarLazyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/register': {
       id: '/register'
       path: '/register'
       fullPath: '/register'
-      preLoaderRoute: typeof RegisterImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/toolbar': {
-      id: '/toolbar'
-      path: '/toolbar'
-      fullPath: '/toolbar'
-      preLoaderRoute: typeof ToolbarLazyImport
-      parentRoute: typeof rootRoute
+    '/middleware': {
+      id: '/middleware'
+      path: '/middleware'
+      fullPath: '/middleware'
+      preLoaderRoute: typeof MiddlewareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_auth/dashboard': {
       id: '/_auth/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/dashboard/tools': {
-      id: '/_auth/dashboard/tools'
-      path: '/tools'
-      fullPath: '/dashboard/tools'
-      preLoaderRoute: typeof AuthDashboardToolsImport
-      parentRoute: typeof AuthDashboardImport
+      preLoaderRoute: typeof AuthDashboardRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
-      preLoaderRoute: typeof AuthDashboardIndexImport
-      parentRoute: typeof AuthDashboardImport
+      preLoaderRoute: typeof AuthDashboardIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
-    '/_auth/dashboard/transforms/$transformId': {
-      id: '/_auth/dashboard/transforms/$transformId'
-      path: '/transforms/$transformId'
-      fullPath: '/dashboard/transforms/$transformId'
-      preLoaderRoute: typeof AuthDashboardTransformsTransformIdImport
-      parentRoute: typeof AuthDashboardImport
+    '/_auth/dashboard/vault': {
+      id: '/_auth/dashboard/vault'
+      path: '/vault'
+      fullPath: '/dashboard/vault'
+      preLoaderRoute: typeof AuthDashboardVaultRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
-    '/_auth/dashboard/investigations/': {
-      id: '/_auth/dashboard/investigations/'
-      path: '/investigations'
-      fullPath: '/dashboard/investigations'
-      preLoaderRoute: typeof AuthDashboardInvestigationsIndexImport
-      parentRoute: typeof AuthDashboardImport
+    '/_auth/dashboard/tools': {
+      id: '/_auth/dashboard/tools'
+      path: '/tools'
+      fullPath: '/dashboard/tools'
+      preLoaderRoute: typeof AuthDashboardToolsRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
     '/_auth/dashboard/transforms/': {
       id: '/_auth/dashboard/transforms/'
       path: '/transforms'
       fullPath: '/dashboard/transforms'
-      preLoaderRoute: typeof AuthDashboardTransformsIndexImport
-      parentRoute: typeof AuthDashboardImport
+      preLoaderRoute: typeof AuthDashboardTransformsIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/investigations/': {
+      id: '/_auth/dashboard/investigations/'
+      path: '/investigations'
+      fullPath: '/dashboard/investigations'
+      preLoaderRoute: typeof AuthDashboardInvestigationsIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/transforms/$transformId': {
+      id: '/_auth/dashboard/transforms/$transformId'
+      path: '/transforms/$transformId'
+      fullPath: '/dashboard/transforms/$transformId'
+      preLoaderRoute: typeof AuthDashboardTransformsTransformIdRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
     '/_auth/dashboard/investigations/$investigationId/': {
       id: '/_auth/dashboard/investigations/$investigationId/'
       path: '/investigations/$investigationId'
       fullPath: '/dashboard/investigations/$investigationId'
-      preLoaderRoute: typeof AuthDashboardInvestigationsInvestigationIdIndexImport
-      parentRoute: typeof AuthDashboardImport
+      preLoaderRoute: typeof AuthDashboardInvestigationsInvestigationIdIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
     '/_auth/dashboard/investigations/$investigationId/$type/$id': {
       id: '/_auth/dashboard/investigations/$investigationId/$type/$id'
       path: '/investigations/$investigationId/$type/$id'
       fullPath: '/dashboard/investigations/$investigationId/$type/$id'
-      preLoaderRoute: typeof AuthDashboardInvestigationsInvestigationIdTypeIdImport
-      parentRoute: typeof AuthDashboardImport
+      preLoaderRoute: typeof AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
   }
 }
 
-// Create and export the route tree
-
 interface AuthDashboardRouteChildren {
   AuthDashboardToolsRoute: typeof AuthDashboardToolsRoute
+  AuthDashboardVaultRoute: typeof AuthDashboardVaultRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
   AuthDashboardTransformsTransformIdRoute: typeof AuthDashboardTransformsTransformIdRoute
   AuthDashboardInvestigationsIndexRoute: typeof AuthDashboardInvestigationsIndexRoute
@@ -240,6 +340,7 @@ interface AuthDashboardRouteChildren {
 
 const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
   AuthDashboardToolsRoute: AuthDashboardToolsRoute,
+  AuthDashboardVaultRoute: AuthDashboardVaultRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
   AuthDashboardTransformsTransformIdRoute:
     AuthDashboardTransformsTransformIdRoute,
@@ -265,117 +366,6 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
-export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/middleware': typeof MiddlewareRoute
-  '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
-  '/dashboard': typeof AuthDashboardRouteWithChildren
-  '/dashboard/tools': typeof AuthDashboardToolsRoute
-  '/dashboard/': typeof AuthDashboardIndexRoute
-  '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
-  '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
-  '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
-  '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
-  '/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
-}
-
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/middleware': typeof MiddlewareRoute
-  '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
-  '/dashboard/tools': typeof AuthDashboardToolsRoute
-  '/dashboard': typeof AuthDashboardIndexRoute
-  '/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
-  '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
-  '/dashboard/transforms': typeof AuthDashboardTransformsIndexRoute
-  '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
-  '/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
-}
-
-export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/_auth': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/middleware': typeof MiddlewareRoute
-  '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
-  '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
-  '/_auth/dashboard/tools': typeof AuthDashboardToolsRoute
-  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
-  '/_auth/dashboard/transforms/$transformId': typeof AuthDashboardTransformsTransformIdRoute
-  '/_auth/dashboard/investigations/': typeof AuthDashboardInvestigationsIndexRoute
-  '/_auth/dashboard/transforms/': typeof AuthDashboardTransformsIndexRoute
-  '/_auth/dashboard/investigations/$investigationId/': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
-  '/_auth/dashboard/investigations/$investigationId/$type/$id': typeof AuthDashboardInvestigationsInvestigationIdTypeIdRoute
-}
-
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | ''
-    | '/login'
-    | '/middleware'
-    | '/register'
-    | '/toolbar'
-    | '/dashboard'
-    | '/dashboard/tools'
-    | '/dashboard/'
-    | '/dashboard/transforms/$transformId'
-    | '/dashboard/investigations'
-    | '/dashboard/transforms'
-    | '/dashboard/investigations/$investigationId'
-    | '/dashboard/investigations/$investigationId/$type/$id'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | ''
-    | '/login'
-    | '/middleware'
-    | '/register'
-    | '/toolbar'
-    | '/dashboard/tools'
-    | '/dashboard'
-    | '/dashboard/transforms/$transformId'
-    | '/dashboard/investigations'
-    | '/dashboard/transforms'
-    | '/dashboard/investigations/$investigationId'
-    | '/dashboard/investigations/$investigationId/$type/$id'
-  id:
-    | '__root__'
-    | '/'
-    | '/_auth'
-    | '/login'
-    | '/middleware'
-    | '/register'
-    | '/toolbar'
-    | '/_auth/dashboard'
-    | '/_auth/dashboard/tools'
-    | '/_auth/dashboard/'
-    | '/_auth/dashboard/transforms/$transformId'
-    | '/_auth/dashboard/investigations/'
-    | '/_auth/dashboard/transforms/'
-    | '/_auth/dashboard/investigations/$investigationId/'
-    | '/_auth/dashboard/investigations/$investigationId/$type/$id'
-  fileRoutesById: FileRoutesById
-}
-
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuthRoute: typeof AuthRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  MiddlewareRoute: typeof MiddlewareRoute
-  RegisterRoute: typeof RegisterRoute
-  ToolbarLazyRoute: typeof ToolbarLazyRoute
-}
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
@@ -384,87 +374,6 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ToolbarLazyRoute: ToolbarLazyRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/_auth",
-        "/login",
-        "/middleware",
-        "/register",
-        "/toolbar"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/_auth": {
-      "filePath": "_auth.tsx",
-      "children": [
-        "/_auth/dashboard"
-      ]
-    },
-    "/login": {
-      "filePath": "login.tsx"
-    },
-    "/middleware": {
-      "filePath": "middleware.tsx"
-    },
-    "/register": {
-      "filePath": "register.tsx"
-    },
-    "/toolbar": {
-      "filePath": "toolbar.lazy.tsx"
-    },
-    "/_auth/dashboard": {
-      "filePath": "_auth.dashboard.tsx",
-      "parent": "/_auth",
-      "children": [
-        "/_auth/dashboard/tools",
-        "/_auth/dashboard/",
-        "/_auth/dashboard/transforms/$transformId",
-        "/_auth/dashboard/investigations/",
-        "/_auth/dashboard/transforms/",
-        "/_auth/dashboard/investigations/$investigationId/",
-        "/_auth/dashboard/investigations/$investigationId/$type/$id"
-      ]
-    },
-    "/_auth/dashboard/tools": {
-      "filePath": "_auth.dashboard.tools.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/": {
-      "filePath": "_auth.dashboard.index.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/transforms/$transformId": {
-      "filePath": "_auth.dashboard.transforms.$transformId.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/investigations/": {
-      "filePath": "_auth.dashboard.investigations.index.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/transforms/": {
-      "filePath": "_auth.dashboard.transforms.index.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/investigations/$investigationId/": {
-      "filePath": "_auth.dashboard.investigations.$investigationId.index.tsx",
-      "parent": "/_auth/dashboard"
-    },
-    "/_auth/dashboard/investigations/$investigationId/$type/$id": {
-      "filePath": "_auth.dashboard.investigations.$investigationId.$type.$id.tsx",
-      "parent": "/_auth/dashboard"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

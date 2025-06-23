@@ -5,7 +5,7 @@ import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PlusIcon, Trash2, Save, Sparkles, XIcon, ChevronDown, ChevronsRight, ExternalLink } from "lucide-react"
+import { PlusIcon, Trash2, Save, Sparkles, XIcon, ChevronDown, ChevronsRight, ExternalLink, Send, Zap, FileText, Code2, X, ImageIcon, ArrowUp, Settings } from "lucide-react"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
@@ -19,6 +19,10 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import { Badge } from "../ui/badge"
+import { Separator } from "../ui/separator"
+import { useGraphStore } from "@/stores/graph-store"
 
 interface AnalysisEditorProps {
     // Core data
@@ -73,8 +77,8 @@ export const AnalysisEditor = ({
     const [titleValue, setTitleValue] = useState("")
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
-    const [includeContext, setIncludeContext] = useState(false)
-
+    const selectedNodes = useGraphStore(s => s.selectedNodes)
+    const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
     // Chat hook
     const {
         isAiLoading,
@@ -239,7 +243,7 @@ export const AnalysisEditor = ({
         <div className={`flex flex-col h-full w-full ${className}`}>
             {/* Header */}
             {showHeader && (
-                <div className="border-b bg-background h-11 w-full flex items-center justify-between">
+                <div className="border-b bg-card h-11 w-full flex items-center justify-between">
                     <div className="flex items-center justify-between p-3 w-full">
                         {/* Left section with navigation and title */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -383,83 +387,88 @@ export const AnalysisEditor = ({
             {/* Editor */}
             <div className="flex-1 min-h-0 flex flex-col">
                 {analysis ? (
-                    <>
-                        <div className="flex-1 h-full w-full">
-                            <MinimalTiptapEditor
-                                key={analysis.id}
-                                immediatelyRender={true}
-                                value={editorValue}
-                                onChange={setEditorValue}
-                                className="w-full flex-1"
-                                editorContentClassName="p-5 min-h-[300px]"
-                                output="json"
-                                placeholder="Enter your analysis..."
-                                autofocus={true}
-                                editable={true}
-                                editorClassName="focus:outline-hidden"
-                                onEditorReady={setEditor}
-                            />
-                        </div>
-                        {/* Prompt Panel */}
-                        <div className={`border-t bg-background transition-all duration-200 ${promptOpen ? 'h-[300px]' : 'h-0'}`}>
-                            <div className="flex flex-col h-full">
-                                <div className="flex items-center justify-between p-2 border-b">
-                                    <div className="flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4" strokeWidth={1.5} />
-                                        <span className="text-sm font-medium">AI Prompt</span>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setPromptOpen(false)}
-                                        className="h-6 w-6 px-2"
-                                    >
-                                        <XIcon />
-                                    </Button>
-                                </div>
-                                <div className="flex-1 p-2 flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setIncludeContext(!includeContext)}
-                                            className="h-6 px-2"
-                                        >
-                                            {includeContext ? "Hide Context" : "Show Context"}
-                                        </Button>
-                                        {includeContext && (
-                                            <span className="text-xs text-muted-foreground">
-                                                Current analysis content will be included as context
-                                            </span>
-                                        )}
-                                    </div>
-                                    {includeContext && (
-                                        <Textarea
-                                            autoFocus
-                                            value={JSON.stringify(editorValue, null, 2)}
-                                            readOnly
-                                            className="h-[100px] text-xs font-mono resize-none"
-                                        />
-                                    )}
-                                    <Textarea
-                                        placeholder="Enter your prompt..."
-                                        value={customPrompt}
-                                        onChange={(e) => setCustomPrompt(e.target.value)}
-                                        className="flex-1 resize-none"
-                                    />
-                                </div>
-                                <div className="p-2 border-t">
-                                    <Button
-                                        onClick={() => handleCustomPrompt(editorValue)}
-                                        disabled={!customPrompt.trim() || isAiLoading}
-                                        className="w-full"
-                                    >
-                                        {isAiLoading ? "Generating..." : "Generate"}
-                                    </Button>
-                                </div>
+                    <ResizablePanelGroup autoSaveId="conditional" direction="vertical" className="h-full">
+                        <ResizablePanel
+                            id="editor"
+                            defaultSize={promptOpen ? 70 : 100}
+                            minSize={30}
+                            className="transition-all duration-200"
+                        >
+                            <div className="h-full w-full">
+                                <MinimalTiptapEditor
+                                    key={analysis.id}
+                                    immediatelyRender={true}
+                                    value={editorValue}
+                                    onChange={setEditorValue}
+                                    className="w-full h-full"
+                                    editorContentClassName="p-5 min-h-[300px]"
+                                    output="json"
+                                    placeholder="Enter your analysis..."
+                                    autofocus={true}
+                                    editable={true}
+                                    editorClassName="focus:outline-hidden"
+                                    onEditorReady={setEditor}
+                                />
                             </div>
-                        </div>
-                    </>
+                        </ResizablePanel>
+
+                        {promptOpen && (
+                            <>
+                                <ResizableHandle withHandle />
+                                <ResizablePanel id="chat" defaultSize={30} minSize={20} maxSize={50} className="transition-all duration-200">
+                                    <div className="h-full bg-card flex flex-col">
+                                        <div className="flex flex-col h-full">
+                                            {/* File Tabs Header */}
+                                            <div className="flex items-center bg-background border-b p-1">
+                                                {selectedNodes?.length > 0 && <Badge variant={"outline"} className="flex items-center gap-1 pr-1">
+                                                    {selectedNodes?.length} entities(s) in context
+                                                    <Button size={"icon"} variant={"ghost"} className="h-5 w-5 rounded-full" onClick={clearSelectedNodes}>
+                                                        <XIcon className="h-3 w-3" />
+                                                    </Button>
+                                                </Badge>}
+                                                <div className="ml-auto pr-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => setPromptOpen(false)}
+                                                        className="h-6 w-6 text-[#888] hover:text-white hover:bg-[#333]"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {/* Bottom Input Bar */}
+                                            <div className="border-t bg-card grow">
+                                                <div className="p-3 h-full">
+                                                    <div className="relative h-full">
+                                                        <Textarea
+                                                            placeholder="Enter your prompt..."
+                                                            value={customPrompt}
+                                                            autoFocus
+                                                            onChange={(e) => setCustomPrompt(e.target.value)}
+                                                            className="h-full resize-none bg-background focus:ring-1 pr-12"
+                                                        />
+                                                        <Button
+                                                            onClick={() => handleCustomPrompt(editorValue)}
+                                                            disabled={!customPrompt.trim() || isAiLoading}
+                                                            size="icon"
+                                                            className="absolute bottom-2 right-2 h-8 w-8 bg-[#444] hover:bg-[#555] text-white disabled:opacity-50"
+                                                        >
+                                                            {isAiLoading ? (
+                                                                <div className="w-4 h-4 border-2 border-[#888] border-t-white rounded-full animate-spin" />
+                                                            ) : (
+                                                                <ArrowUp className="w-4 h-4" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ResizablePanel>
+                            </>
+                        )}
+                    </ResizablePanelGroup>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
                         <div>No analysis selected.</div>

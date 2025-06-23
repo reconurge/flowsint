@@ -123,7 +123,7 @@ async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user:
             "target": str(record["target"]),
             "data": record["data"],
             "caption": record["type"],
-            "label": record["type"].lower(),
+            # "label": record["type"].lower(),
         }
         for record in rels_result
     ]
@@ -136,28 +136,12 @@ class NodeData(BaseModel):
     type: str = Field(default="Node", description="Type of the node")
     # Add any other specific data fields that might be common across nodes
 
+    class Config:
+        extra = "allow"  # Accept any additional fields
+
 class NodeInput(BaseModel):
     type: str = Field(..., description="Type of the node")
     data: NodeData = Field(default_factory=NodeData, description="Additional data for the node")
-    
-    @validator('type')
-    def validate_type(cls, v):
-        # Convert to lowercase and strip any whitespace
-        v = v.lower().strip()
-        if not v:
-            raise ValueError('Type cannot be empty')
-        return v
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "type": "person",
-                "data": {
-                    "label": "John Doe",
-                    "color": "#FF0000"
-                }
-            }
-        }
 
 def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
     return ", ".join(f"{key}: ${prefix}{key}" for key in props)
@@ -165,23 +149,25 @@ def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
 @router.post("/{sketch_id}/nodes/add")
 def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)):
     node_data = node.data.model_dump()
+    
     print(node_data)
     node_type = node_data["type"]
 
     properties = {
-        "type": node_type,
+        "type": node_type.lower(),
         "sketch_id": sketch_id,
         "caption": node_data["label"],
         "label": node_data["label"],
-        "color": node_data["color"],
-        "size": 40,
     }
 
     if node_data:
         flattened_data = flatten(node_data)
         properties.update(flattened_data)
+    
 
     cypher_props = dict_to_cypher_props(properties)
+    print(properties)
+    print(cypher_props)
 
     create_query = f"""
         MERGE (d:`{node_type}` {{ {cypher_props} }})

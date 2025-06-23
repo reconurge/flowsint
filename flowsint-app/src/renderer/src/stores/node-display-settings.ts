@@ -28,9 +28,10 @@ export type ItemType =
     | "username"
     | "siret"
     | "siren"
-    | "wallet"
+    | "cryptowallet"
     | "asn"
     | "cidr"
+    | "whois"
 
 export const ITEM_TYPES: ItemType[] = [
     "individual",
@@ -58,9 +59,10 @@ export const ITEM_TYPES: ItemType[] = [
     "username",
     "siret",
     "siren",
-    "wallet",
+    "cryptowallet",
     "asn",
     "cidr",
+    "whois"
 ]
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
@@ -89,9 +91,10 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     biometric: "#AEB3B9",       // Notion slate gray
     siret: "#ADB9C6",           // Notion blue-gray
     siren: "#9FAAB8",           // Notion dark slate
-    wallet: "#F7D154",    // Notion gold
+    cryptowallet: "#F7D154",    // Notion gold
     asn: "#F7D154",
-    cidr: "#A2D4BF"
+    cidr: "#A2D4BF",
+    whois: "#A6D0BF"
 }
 
 // Définition des icônes par défaut pour chaque type d'élément
@@ -121,9 +124,10 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     username: "🧑‍💻",
     siret: "ℹ️",
     siren: "ℹ️",
-    wallet: "₿",
+    cryptowallet: "₿",
     asn: "🌐",
-    cidr: "📡"
+    cidr: "📡",
+    whois: "🌐"
 };
 
 const DEFAULT_SIZES: Record<ItemType, number> = {
@@ -152,9 +156,10 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     username: 8,
     siret: 5,
     siren: 5,
-    wallet: 7,
-    asn: 12,
-    cidr: 10
+    cryptowallet: 7,
+    asn: 12,    
+    cidr: 10,
+    whois: 6
 }
 
 interface NodesDisplaySettingsState {

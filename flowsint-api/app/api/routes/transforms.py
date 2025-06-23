@@ -8,7 +8,7 @@ from app.scanners.registry import ScannerRegistry
 from app.core.celery import celery
 from app.types.domain import Domain
 from app.types.ip import Ip
-from app.types.social import Social
+from app.types.social import SocialProfile
 from app.types.organization import Organization
 from app.types.email import Email
 from app.types.transform import Node, Edge, FlowStep, FlowBranch
@@ -48,10 +48,11 @@ def get_transforms(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user)
 ):
-    # if category is not None and category != "undefined":
-    #     query = query.filter(Transform.category.any(category))
-    query = db.query(Transform).order_by(Transform.last_updated_at.desc())
-    return query.all()
+    if category is not None and category != "undefined":
+        query = db.query(Transform).filter(Transform.category.any(category))
+    else:
+        query = db.query(Transform)
+    return query.order_by(Transform.last_updated_at.desc()).all()
 
 # Returns the "raw_materials" for the transform editor
 @router.get("/raw_materials")
@@ -77,13 +78,13 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
     object_inputs = [
         extract_input_schema("Organization", Organization),
         extract_input_schema("Domain", Domain),
-        extract_input_schema("IP address", Ip),
+        extract_input_schema("Ip", Ip),
         extract_input_schema("ASN", ASN),
         extract_input_schema("CIDR", CIDR),
-        extract_input_schema("Social profile", Social),
+        extract_input_schema("SocialProfile", SocialProfile),
         extract_input_schema("Email", Email),
-        extract_input_schema("Crypto wallet", Wallet),
-        extract_input_schema("Crypto transaction", WalletTransaction),
+        extract_input_schema("CryptoWallet", Wallet),
+        extract_input_schema("CryptoTransaction", WalletTransaction),
 
     ]
     flattened_scanners["types"] = object_inputs
@@ -94,6 +95,7 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
 # Create a new transform
 @router.post("/create", response_model=TransformRead, status_code=status.HTTP_201_CREATED)
 def create_transform(payload: TransformCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+    
     new_transform = Transform(
         id=uuid4(),
         name=payload.name,
@@ -125,6 +127,9 @@ def update_transform(transform_id: UUID, payload: TransformUpdate, db: Session =
     update_data = payload.dict(exclude_unset=True)
     for key, value in update_data.items():
         print(f'only update {key}')
+        if key == "category":
+            if "SocialProfile" in value:
+                value.append("Username")
         setattr(transform, key, value)
     
     transform.last_updated_at = datetime.utcnow()

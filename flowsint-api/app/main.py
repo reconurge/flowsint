@@ -13,6 +13,7 @@ from app.api.routes import events
 from app.api.routes import analysis
 from app.api.routes import chat
 from app.api.routes import scan
+from app.api.routes import keys
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -56,3 +57,4 @@ app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(scan.router, prefix="/api/scans", tags=["scans"])
+app.include_router(keys.router, prefix="/api/third_party_keys", tags=["third_party_keys"])

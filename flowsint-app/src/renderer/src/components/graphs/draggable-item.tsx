@@ -1,16 +1,15 @@
 "use client"
 
-import type { LucideIcon } from "lucide-react"
-import { GripVertical } from "lucide-react"
 import { memo, useState } from "react"
 import { IconContainer } from "@/components/icon-container"
 import { useGraphStore } from "@/stores/graph-store"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 
 interface DraggableItemProps {
     label: string
-    icon: LucideIcon
+    icon: string
     type: string
     color?: string
     disabled?: boolean
@@ -29,6 +28,8 @@ export const DraggableItem = memo(function DraggableItem({
 }: DraggableItemProps) {
     const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
     const [isDragging, setIsDragging] = useState(false)
+    const colors = useNodesDisplaySettings((s) => s.colors)
+    const colorStr = colors[icon as string] || color
 
     const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
         const itemData = JSON.stringify({ label, type, color, description, itemKey })
@@ -62,10 +63,10 @@ export const DraggableItem = memo(function DraggableItem({
                                 "cursor-grab": !disabled,
                             }
                         )}
-                        style={{ borderLeftColor: color }}
+                        style={{ borderLeftColor: colorStr }}
                     >
                         <div className="flex justify-center items-center bg-background w-full text-left h-20 border rounded-lg">
-                            <IconContainer size={18} icon={icon} color={color} type={type} />
+                            <IconContainer size={22} icon={icon} color={colorStr} type={type} />
                         </div>
                         <div className="space-y-1 truncate flex-1">
                             <h3 className="text-xs font-normal opacity-60 truncate">{label}</h3>

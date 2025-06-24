@@ -263,17 +263,17 @@ export const AnalysisEditor = ({
                                             </Button>
                                         </div>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-0" align="start">
-                                        <div className="flex flex-col">
+                                    <PopoverContent className="w-[200px] truncate text-ellipsis p-0" align="start">
+                                        <div className="flex flex-col truncate text-ellipsis">
                                             {analyses.map((analysisItem) => (
                                                 <Button
                                                     key={analysisItem.id}
                                                     variant="ghost"
-                                                    className="justify-start px-2 py-1.5 h-auto"
+                                                    className="justify-start px-2 py-1.5 h-auto truncate text-ellipsis"
                                                     onClick={() => onAnalysisSelect?.(analysisItem.id)}
                                                 >
-                                                    <div className="flex flex-col items-start">
-                                                        <span className="font-medium">{analysisItem.title || "Untitled"}</span>
+                                                    <div className="flex flex-col items-start truncate text-ellipsis">
+                                                        <span className="font-medium truncate text-ellipsis">{analysisItem.title || "Untitled"}</span>
                                                         <span className="text-xs text-muted-foreground">
                                                             {analysisItem.id === currentAnalysisId ? "Current" : "Switch to this analysis"}
                                                         </span>

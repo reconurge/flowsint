@@ -61,12 +61,12 @@ export default function NewSketch({
             const result = await sketchService.create(JSON.stringify(payload))
 
             if (result.id) {
+                setOpen(false)
                 toast.success("New sketch created.")
                 router.navigate({
                     to: `/dashboard/investigations/${investigationId}/graph/${result.id}`,
                 })
                 reset()
-                setOpen(false)
             } else {
                 toast.error(result.error || "Failed to create sketch.")
             }

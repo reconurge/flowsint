@@ -55,6 +55,45 @@ def remove_dup_individual(individuals):
     return unique_individuals
 
 
+def get_email_from_mailto(html):
+    """Extract emails from mailto links in HTML content."""
+    try:
+        emails = []
+        
+        # First, try to extract mailto patterns from the entire content (works for any format)
+        mailto_pattern = r'mailto:([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})'
+        mailto_matches = re.findall(mailto_pattern, html, re.IGNORECASE)
+        for email in mailto_matches:
+            email_clean = email.strip()
+            if len(email_clean) <= 100:
+                emails.append(email_clean)
+        
+        # If it looks like HTML, also try to parse it with BeautifulSoup for more structured extraction
+        if '<' in html and '>' in html:
+            try:
+                soup = BeautifulSoup(html, 'lxml')
+                # Find all anchor tags with mailto href
+                mailto_links = soup.find_all('a', href=re.compile(r'^mailto:', re.IGNORECASE))
+                
+                for link in mailto_links:
+                    href = link.get('href', '')
+                    # Extract email from mailto:email@domain.com
+                    email_match = re.search(r'^mailto:([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})', href, re.IGNORECASE)
+                    if email_match:
+                        email = email_match.group(1).strip()
+                        if len(email) <= 100:
+                            emails.append(email)
+            except Exception:
+                # If BeautifulSoup parsing fails, we already have the regex results
+                pass
+        
+        # Remove duplicates while preserving order
+        return remove_dup_email(emails)
+        
+    except Exception:
+        return []
+
+
 def get_email(html):
     """Extract emails from HTML content."""
     try:
@@ -325,8 +364,11 @@ class WebsiteToCrawler(Scanner):
                     soup = BeautifulSoup(html_content, 'lxml', from_encoding=response.encoding)
                     visible_text = soup.get_text(separator=' ')
                     
-                    # Extract emails, phones, and individuals from this page
-                    page_emails = get_email(visible_text)
+                    # Extract emails from both HTML content (for mailto links) and visible text (for regular patterns)
+                    page_emails_from_text = get_email(visible_text)
+                    page_emails_from_mailto = get_email_from_mailto(html_content)
+                    page_emails = remove_dup_email(page_emails_from_text + page_emails_from_mailto)
+                    
                     page_phones = get_phone(visible_text)
                     # page_individuals = get_individuals(visible_text)
                     

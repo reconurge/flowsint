@@ -1,32 +1,3 @@
-import {
-    AtSign,
-    Bike,
-    Bitcoin,
-    Building2,
-    Car,
-    Facebook,
-    Ghost,
-    Github,
-    Globe,
-    Instagram,
-    Linkedin,
-    Locate,
-    MapPin,
-    MessageCircle,
-    MessageSquare,
-    Phone,
-    Plane,
-    Sailboat,
-    Send,
-    Twitch,
-    Twitter,
-    User,
-    UserCheckIcon,
-    Video,
-    type LucideIcon,
-} from "lucide-react"
-
-
 export type FieldType = "text" | "date" | "email" | "number" | "select" | "textarea" | "hidden" | "tel" | "url" | "metadata"
 
 export interface SelectOption {
@@ -48,7 +19,7 @@ export interface ActionItem {
     type: string
     table: string
     key: string
-    icon: LucideIcon
+    icon: string
     label: string
     color?: string
     fields: FormField[]
@@ -74,7 +45,7 @@ export const actionItems: ActionItem[] = [
         type: "person",
         table: "",
         key: "person",
-        icon: User,
+        icon: "individual",
         label: "Person",
         label_key: "name",
         fields: [],
@@ -85,7 +56,7 @@ export const actionItems: ActionItem[] = [
                 table: "individuals",
                 key: "individual",
                 label_key: "first_name",
-                icon: User,
+                icon: "individual",
                 label: "Individual",
                 fields: [{ name: "first_name", label: "Firstname", type: "text", required: true },
                 { name: "last_name", label: "Lastname", type: "text", required: true },
@@ -110,7 +81,7 @@ export const actionItems: ActionItem[] = [
                 type: "Username",
                 table: "usernames",
                 key: "username",
-                icon: UserCheckIcon,
+                icon: "username",
                 label: "Username",
                 label_key: "username",
                 fields: [{ name: "username", label: "Username", type: "text", required: true }],
@@ -123,7 +94,7 @@ export const actionItems: ActionItem[] = [
         type: "organization",
         table: "",
         key: "organization_category",
-        icon: Building2,
+        icon: "organization",
         label: "Organization",
         label_key: "name",
         fields: [],
@@ -133,7 +104,7 @@ export const actionItems: ActionItem[] = [
                 type: "Organization",
                 table: "organizations",
                 key: "organization",
-                icon: Building2,
+                icon: "organization",
                 label: "Organization",
                 label_key: "name",
                 fields: [
@@ -163,7 +134,7 @@ export const actionItems: ActionItem[] = [
         type: "contact",
         table: "",
         key: "contact",
-        icon: Phone,
+        icon: "phone",
         label: "Contact",
         label_key: "value",
         fields: [],
@@ -174,7 +145,7 @@ export const actionItems: ActionItem[] = [
                 table: "phones",
                 key: "phone",
                 label_key: "number",
-                icon: Phone,
+                icon: "phone",
                 label: "Phone number",
                 fields: [{ name: "number", label: "Phone number", type: "tel", required: true },
                 {
@@ -193,7 +164,7 @@ export const actionItems: ActionItem[] = [
                 type: "Email",
                 table: "emails",
                 key: "email",
-                icon: AtSign,
+                icon: "email",
                 label_key: "email",
                 label: "Email address",
                 fields: [{ name: "email", label: "Email", type: "email", required: true }],
@@ -206,7 +177,7 @@ export const actionItems: ActionItem[] = [
         type: "digital",
         table: "",
         key: "digital",
-        icon: Globe,
+        icon: "website",
         label: "Digital",
         label_key: "value",
         fields: [],
@@ -217,7 +188,7 @@ export const actionItems: ActionItem[] = [
                 table: "websites",
                 key: "website",
                 label_key: "url",
-                icon: Globe,
+                icon: "website",
                 label: "Website",
                 fields: [
                     { name: "url", label: "URL", type: "url", required: true },
@@ -232,7 +203,7 @@ export const actionItems: ActionItem[] = [
                 type: "Domain",
                 table: "domains",
                 key: "domain",
-                icon: Locate,
+                icon: "domain",
                 label_key: "domain",
                 label: "Domain",
                 fields: [{ name: "domain", label: "Domain", type: "text", required: true }],
@@ -244,7 +215,7 @@ export const actionItems: ActionItem[] = [
                 table: "subdomains",
                 key: "subdomain",
                 label_key: "subomain",
-                icon: Locate,
+                icon: "subdomain",
                 label: "Subdomain",
                 fields: [{ name: "subomain", label: "subdomain", type: "text", required: true }, { name: "root", label: "root domain", type: "text", required: true }],
                 size: "h-5 w-5",
@@ -254,7 +225,7 @@ export const actionItems: ActionItem[] = [
                 type: "Ip",
                 table: "ips",
                 key: "ip",
-                icon: Locate,
+                icon: "ip",
                 label: "IP address",
                 label_key: "address",
                 fields: [{ name: "address", label: "IP address", type: "text", required: true }],
@@ -267,7 +238,7 @@ export const actionItems: ActionItem[] = [
         type: "finance",
         table: "",
         key: "finance",
-        icon: Bitcoin,
+        icon: "cryptowallet",
         label: "Finance",
         label_key: "value",
         fields: [],
@@ -278,7 +249,7 @@ export const actionItems: ActionItem[] = [
                 table: "wallets",
                 key: "wallet",
                 label_key: "wallet",
-                icon: Bitcoin,
+                icon: "cryptowallet",
                 label: "Crypto wallet",
                 fields: [
                     { name: "wallet", label: "Wallet", type: "text", required: true },
@@ -302,18 +273,18 @@ export const actionItems: ActionItem[] = [
         type: "location",
         table: "",
         key: "location",
-        icon: MapPin,
+        icon: "location",
         label: "Location",
         label_key: "address",
         fields: [],
         children: [
             {
                 id: 3,
-                type: "PhysicalAddress",
+                type: "Location",
                 table: "addresses",
                 label_key: "address",
                 key: "address",
-                icon: MapPin,
+                icon: "location",
                 label: "Physical address",
                 fields: [
                     { name: "address", label: "Address", type: "text", required: true },
@@ -333,7 +304,7 @@ export const actionItems: ActionItem[] = [
         size: "h-5 w-5",
         table: "",
         key: "social_profile",
-        icon: Send,
+        icon: "social_profile",
         label: "Social account",
         label_key: "username",
         fields: [],
@@ -344,7 +315,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_facebook",
                 label_key: "username",
-                icon: Facebook,
+                icon: "social_profile",
                 color: "#1d4ed8",
                 label: "Facebook",
                 fields: [
@@ -360,7 +331,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_instagram",
                 label_key: "username",
-                icon: Instagram,
+                icon: "social_profile",
                 color: "#db2777",
                 label: "Instagram",
                 fields: [
@@ -376,7 +347,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_telegram",
                 label_key: "username",
-                icon: Send,
+                icon: "social_profile",
                 color: "#0369a1",
                 label: "Telegram",
                 fields: [
@@ -392,7 +363,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_signal",
                 label_key: "username",
-                icon: MessageCircle,
+                icon: "social_profile",
                 color: "#3B45FC",
                 label: "Signal",
                 fields: [
@@ -409,7 +380,7 @@ export const actionItems: ActionItem[] = [
                 key: "social_profiles_snapchat",
                 label_key: "username",
                 color: "#FEFC00",
-                icon: Ghost,
+                icon: "social_profile",
                 label: "Snapchat",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: true },
@@ -424,7 +395,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_github",
                 label_key: "username",
-                icon: Github,
+                icon: "social_profile",
                 label: "Github",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: false },
@@ -439,7 +410,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_coco",
                 label_key: "username",
-                icon: Send,
+                icon: "social_profile",
                 label: "Coco",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: true },
@@ -457,7 +428,7 @@ export const actionItems: ActionItem[] = [
                 key: "social_profiles_linkedin",
                 label_key: "username",
                 color: "#116AC9",
-                icon: Linkedin,
+                icon: "social_profile",
                 label: "LinkedIn",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: true },
@@ -472,7 +443,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_twitter",
                 label_key: "username",
-                icon: Twitter,
+                icon: "social_profile",
                 label: "Twitter",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: true },
@@ -487,7 +458,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_tiktok",
                 label_key: "username",
-                icon: Video,
+                icon: "social_profile",
                 label: "TikTok",
                 fields: [
                     { name: "profile_url", label: "Profile URL", type: "url", required: true },
@@ -502,7 +473,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_reddit",
                 label_key: "username",
-                icon: MessageSquare,
+                icon: "social_profile",
                 color: "#FF4B13",
                 label: "Reddit",
                 fields: [
@@ -518,7 +489,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_discord",
                 label_key: "username",
-                icon: MessageCircle,
+                icon: "social_profile",
                 color: "#525FEE",
                 label: "Discord",
                 fields: [
@@ -534,7 +505,7 @@ export const actionItems: ActionItem[] = [
                 table: "social_profiles",
                 key: "social_profiles_twitch",
                 label_key: "username",
-                icon: Twitch,
+                icon: "social_profile",
                 color: "#A96FFF",
                 label: "Twitch",
                 fields: [
@@ -550,7 +521,7 @@ export const actionItems: ActionItem[] = [
         id: 14,
         type: "vehicle",
         table: "",
-        icon: Car,
+        icon: "vehicle",
         label: "Vehicle",
         label_key: "plate",
         key: "vehicle",
@@ -561,7 +532,7 @@ export const actionItems: ActionItem[] = [
                 type: "Vehicle",
                 table: "vehicles",
                 key: "vehicles_car",
-                icon: Car,
+                icon: "vehicle",
                 label: "Car",
                 label_key: "plate",
                 fields: [
@@ -579,7 +550,7 @@ export const actionItems: ActionItem[] = [
                 table: "vehicles",
                 key: "vehicles_motorcycle",
                 label_key: "plate",
-                icon: Bike,
+                icon: "vehicle",
                 label: "Motorcycle",
                 fields: [
                     { name: "plate", label: "License plate", type: "text", required: true },
@@ -596,7 +567,7 @@ export const actionItems: ActionItem[] = [
                 table: "vehicles",
                 key: "vehicles_boat",
                 label_key: "plate",
-                icon: Sailboat,
+                icon: "vehicle",
                 label: "Boat",
                 fields: [
                     { name: "plate", label: "Registration number", type: "text", required: true },
@@ -612,7 +583,7 @@ export const actionItems: ActionItem[] = [
                 type: "Vehicle",
                 table: "vehicles",
                 key: "vehicles_aircraft",
-                icon: Plane,
+                icon: "vehicle",
                 label_key: "plate",
                 label: "Aircraft",
                 fields: [

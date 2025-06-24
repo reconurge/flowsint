@@ -64,11 +64,10 @@ export default function NewInvestigation({ children, noDropDown }: NewInvestigat
     const onSubmit = async (data: InvestigationFormData) => {
         try {
             const result = await investigationService.create(JSON.stringify(data))
-            console.log(result)
             if (result.id) {
+                handleClose()
                 toast.success("New investigation created.")
                 router.navigate({ to: `/dashboard/investigations/${result.id}` })
-                handleClose()
             } else {
                 toast.error(result.error || "Failed to create investigation")
             }

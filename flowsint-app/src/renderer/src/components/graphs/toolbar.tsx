@@ -103,24 +103,30 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2
     const isGraphOnly = nodesLength > 500
+    const isCosmoOnly = nodesLength > 3000
 
     const handleForceLayout = useCallback(() => {
         setView("force")
     }, [setView])
 
-    const handleForce3DLayout = useCallback(() => {
-        setView("force3d")
-    }, [setView])
+    // const handleForce3DLayout = useCallback(() => {
+    //     setView("force3d")
+    // }, [setView])
 
-    const handleDagreLayout = useCallback(() => {
+    const handleDagreLayoutTB = useCallback(() => {
         setView("hierarchy")
-        onLayout && onLayout("dagre")
+        onLayout && onLayout("dagre-tb")
+    }, [onLayout, setView])
+
+    const handleDagreLayoutLR = useCallback(() => {
+        setView("hierarchy")
+        onLayout && onLayout("dagre-lr")
     }, [onLayout, setView])
 
     const { isMac } = useKeyboardShortcut({
         key: "y",
         ctrlOrCmd: true,
-        callback: handleDagreLayout
+        callback: handleDagreLayoutTB
     })
 
     return (
@@ -156,21 +162,30 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     onClick={zoomToFit}
                 />
                 <ToolbarButton
-                    icon={<GitFork className="h-4 w-4 opacity-70" />}
+                    icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
-                    onClick={handleDagreLayout}
+                    onClick={handleDagreLayoutTB}
+                    disabled={isGraphOnly}
+                />
+                <ToolbarButton
+                    icon={<GitFork className="h-4 w-4 opacity-70 rotate-90" />}
+                    tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                    onClick={handleDagreLayoutLR}
                     disabled={isGraphOnly}
                 />
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
                     tooltip={"Graph"}
                     onClick={handleForceLayout}
+                    disabled={isCosmoOnly}
                 />
-                <ToolbarButton
+
+                {/* <ToolbarButton
                     icon={<Rotate3D className="h-4 w-4 opacity-70" />}
                     tooltip={"3D Graph"}
                     onClick={handleForce3DLayout}
-                />
+                    disabled={isCosmoOnly}
+                /> */}
                 {/* <ToolbarButton onClick={toggleSettings} icon={<Settings className="h-4 w-4 opacity-70" />} tooltip="Settings" /> */}
                 <ToolbarButton
                     onClick={handleRefresh}

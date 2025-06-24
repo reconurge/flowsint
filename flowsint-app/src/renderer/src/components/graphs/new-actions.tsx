@@ -17,6 +17,7 @@ import { useGraphStore } from "@/stores/graph-store"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
+import { useIcon } from "@/hooks/use-icon"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -152,7 +153,7 @@ interface ActionCardProps {
 }
 
 function ActionCard({ item, onSelect }: ActionCardProps) {
-    const Icon = item.icon
+    const IconComponent = useIcon(item.icon)
 
     return (
         <Card
@@ -168,7 +169,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                     className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2"
                     style={{ backgroundColor: item.color ? `${item.color}20` : "var(--primary-20)" }}
                 >
-                    <Icon style={{ color: item.color }} className={cn("h-6 w-6 opacity-60", item.color ? "" : "text-primary")} />
+                    <IconComponent style={{ color: item.color }} className={cn("h-6 w-6 opacity-60", item.color ? "" : "text-primary")} />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
                 <div className="text-sm mt-2 opacity-60">{item.fields.map((n) => n.name).join(", ")}</div>

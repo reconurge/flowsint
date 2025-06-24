@@ -209,7 +209,7 @@ function InvestigationPage() {
                     <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Sketches</CardTitle>
-                            <Waypoints className="h-4 w-4 text-muted-foreground" />
+                            <Waypoints className="h-4 w-4 text-muted-foreground opacity-70" strokeWidth={1.5} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{investigation.sketches?.length || 0}</div>
@@ -221,7 +221,7 @@ function InvestigationPage() {
                     <Card className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
-                            <FileTextIcon className="h-4 w-4 text-muted-foreground" />
+                            <FileTextIcon className="h-4 w-4 text-muted-foreground opacity-70" strokeWidth={1.5} />
                         </CardHeader>
                         <CardContent>
                             {isLoadingAnalyses ? (
@@ -289,7 +289,7 @@ function InvestigationPage() {
 
                     {!hasSketches ? (
                         <div className="flex flex-col items-center justify-center text-center gap-4 p-8 border border-dashed rounded-xl">
-                            <Waypoints className="w-10 h-10 text-muted-foreground" />
+                            <Waypoints className="w-10 h-10 text-muted-foreground opacity-70" strokeWidth={1.5} />
                             <div className="space-y-1 max-w-md">
                                 <h3 className="text-lg font-semibold text-foreground">
                                     No sketches yet
@@ -323,7 +323,7 @@ function InvestigationPage() {
                                 >
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                            <Waypoints className="w-4 h-4 text-muted-foreground" />
+                                            <Waypoints className="w-4 h-4 text-muted-foreground opacity-70" strokeWidth={1.5} />
                                             <span className="truncate text-ellipsis">{sketch.title}</span>
                                             <Badge variant="outline" className="text-[10px] py-0.5 px-1 ml-auto">SKETCH</Badge>
                                         </div>
@@ -378,7 +378,7 @@ function InvestigationPage() {
                         </div>
                     ) : !hasAnalyses ? (
                         <div className="flex flex-col items-center justify-center text-center gap-4 p-8 border border-dashed rounded-xl">
-                            <FileTextIcon className="w-10 h-10 opacity-60" />
+                            <FileTextIcon className="w-10 h-10 opacity-70" strokeWidth={1.5} />
                             <div className="space-y-1 max-w-md">
                                 <h3 className="text-lg font-semibold text-foreground">
                                     No analyses yet
@@ -406,7 +406,7 @@ function InvestigationPage() {
                                 >
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                            <FileTextIcon className="w-4 h-4 text-muted-foreground" />
+                                            <FileTextIcon className="w-4 h-4 text-muted-foreground opacity-70" strokeWidth={1.5} />
                                             <span className="truncate text-ellipsis">{analysis.title || 'Untitled Analysis'}</span>
                                             <Badge variant="outline" className="text-[10px] py-0.5 px-1 ml-auto">ANALYSIS</Badge>
                                         </div>
@@ -433,7 +433,7 @@ function InvestigationPage() {
                         <Card className="hover:shadow-md transition-all cursor-pointer">
                             <CardHeader className="flex flex-row items-center gap-3 pb-2">
                                 <div className="bg-muted rounded-lg p-2">
-                                    <FileText className="w-5 h-5 text-muted-foreground" />
+                                    <FileText className="w-5 h-5 text-muted-foreground opacity-70" strokeWidth={1.5} />
                                 </div>
                                 <CardTitle className="text-lg">Export Investigation</CardTitle>
                             </CardHeader>

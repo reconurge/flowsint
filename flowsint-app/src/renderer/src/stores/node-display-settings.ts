@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware"
 export type ItemType =
     | "individual"
     | "phone"
-    | "address"
+    | "location"
     | "email"
     | "ip"
     | "social_profile"
@@ -36,7 +36,7 @@ export type ItemType =
 export const ITEM_TYPES: ItemType[] = [
     "individual",
     "phone",
-    "address",
+    "location",
     "email",
     "ip",
     "social_profile",
@@ -68,7 +68,7 @@ export const ITEM_TYPES: ItemType[] = [
 const DEFAULT_COLORS: Record<ItemType, string> = {
     individual: "#A9CCF4",      // Notion medium blue
     phone: "#A0D7CF",           // Notion soft teal
-    address: "#A4BFD5",         // Notion dusty blue
+    location: "#EAAFAF",         // Notion dusty blue
     email: "#C4B9ED",           // Notion lavender
     ip: "#F0C19E",              // Notion pale orange
     social_profile: "#B8AFE6",  // Notion muted purple
@@ -101,7 +101,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
 const DEFAULT_ICONS: Record<ItemType, string> = {
     individual: "👤",
     phone: "📞",
-    address: "🏠",
+    location: "🏠",
     email: "✉️",
     ip: "🌐",
     social_profile: "📱",
@@ -133,7 +133,7 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
 const DEFAULT_SIZES: Record<ItemType, number> = {
     individual: 10,
     phone: 8,
-    address: 7,
+    location: 7,
     email: 7,
     ip: 7,
     social_profile: 7,

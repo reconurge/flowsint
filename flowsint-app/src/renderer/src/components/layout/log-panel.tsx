@@ -24,7 +24,7 @@ import { CopyButton } from "../copy"
 import { EventLevel } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "../ui/button"
-import { type Event } from "@/types"
+import { useEvents } from "@/hooks/use-events"
 
 const logLevelConfig = {
     [EventLevel.INFO]: {
@@ -100,11 +100,13 @@ const defaultConfig = {
     emoji: "📝",
 }
 
-export function LogPanel({ logs, refetch }: { logs: Event[], refetch: () => void }) {
+export function LogPanel() {
     const { id: sketch_id } = useParams({ strict: false })
     const { confirm } = useConfirm()
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
+    const { logs, refetch } = useEvents(sketch_id as string)
+
 
     useEffect(() => {
         if (bottomRef.current) {
@@ -137,7 +139,7 @@ export function LogPanel({ logs, refetch }: { logs: Event[], refetch: () => void
     return (
         <div className="h-full bg-background overflow-hidden flex flex-col relative">
             <ScrollArea className="flex-1 h-full" ref={scrollAreaRef}>
-                <div className="font-mono text-sm h-full">
+                <div className="text-sm h-full">
                     {logs.length === 0 ? (
                         <div className="text-center text-gray-500 h-full py-8">
                             <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />

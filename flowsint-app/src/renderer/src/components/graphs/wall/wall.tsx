@@ -162,15 +162,21 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         setMenu(null)
     }, [setCurrentNode, clearSelectedNodes, setMenu])
 
-    const onLayout = useCallback((type: "dagre" | "force") => {
+    const onLayout = useCallback((type: "dagre-tb" | "dagre-lr" | "force") => {
         // Wait for nodes to be measured before running layout
         setTimeout(() => {
             let layouted: any;
-            if (type === "dagre") {
+            if (type === "dagre-tb") {
                 layouted = getDagreLayoutedElements(
                     nodes,
                     edges,
                     { direction: "TB" }
+                );
+            } else if (type === "dagre-lr") {
+                layouted = getDagreLayoutedElements(
+                    nodes,
+                    edges,
+                    { direction: "LR" }
                 );
             } else {
                 layouted = getForceLayoutedElements(
@@ -195,7 +201,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     // Run dagre layout on first render
     useEffect(() => {
         if (reactFlowInstance && nodes.length) {
-            onLayout("dagre")
+            onLayout("dagre-tb")
         }
     }, [reactFlowInstance, nodes.length])
 

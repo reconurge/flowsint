@@ -88,21 +88,19 @@ export default function InvestigationSelector() {
                                     <span className="text-left truncate">{investigation.name}</span>
                                 </Button>
                             ))}
-
-                            {/* Separator and Create New Investigation */}
-                            <Separator className="my-0.5" />
-                            <div className="py-0.5">
-                                <NewInvestigation noDropDown={true}>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full justify-start gap-2 h-auto py-1.5 px-2 rounded-none hover:bg-accent text-muted-foreground hover:text-foreground text-sm"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        <span className="text-left truncate">Create new investigation</span>
-                                    </Button>
-                                </NewInvestigation>
-                            </div>
+                        </div>
+                        <Separator className="my-0.5" />
+                        <div className="py-0.5">
+                            <NewInvestigation noDropDown={true}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full justify-start gap-2 h-auto py-1.5 px-2 rounded-none hover:bg-accent text-muted-foreground hover:text-foreground text-sm"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span className="text-left truncate">Create new investigation</span>
+                                </Button>
+                            </NewInvestigation>
                         </div>
                     </PopoverContent>
                 </Popover>}

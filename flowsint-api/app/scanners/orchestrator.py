@@ -7,8 +7,6 @@ from app.scanners.base import Scanner
 from app.scanners.registry import ScannerRegistry
 from app.types.transform import FlowBranch, FlowStep
 from app.core.logger import Logger
-from app.tasks.event import emit_event_task
-from app.core.enums import EventLevel
 import asyncio
 import json
 

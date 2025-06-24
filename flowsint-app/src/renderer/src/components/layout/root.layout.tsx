@@ -28,7 +28,6 @@ export default function RootLayout({ children }: LayoutProps) {
     const closeChat = useLayoutStore(s => s.closeChat)
     const openChat = useLayoutStore(s => s.openChat)
     const { investigationId, type, id } = useParams({ strict: false })
-    const { logs, refetch } = useEvents(id as string)
 
 
     // Set up keyboard shortcut for chat panel
@@ -131,11 +130,11 @@ export default function RootLayout({ children }: LayoutProps) {
                                         id="console"
                                         order={5}
                                         defaultSize={30}
-                                        minSize={20}
+                                        minSize={10}
                                         maxSize={50}
                                     >
                                         <div className="h-full overflow-hidden">
-                                            <LogPanel logs={logs} refetch={refetch} />
+                                            <LogPanel />
                                         </div>
                                     </ResizablePanel>
                                 </>

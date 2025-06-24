@@ -56,7 +56,7 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
                     "flex items-center gap-2 px-3 py-2",
                     isActive ? "bg-muted" : "hover:bg-muted/50"
                 )}>
-                    <Waypoints className="h-4 w-4 text-primary" />
+                    <Waypoints className="h-4 w-4 text-primary opacity-70" strokeWidth={1.5} />
                     <span className="flex-1 text-sm truncate">{sketch.title}</span>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

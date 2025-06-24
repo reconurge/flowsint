@@ -118,14 +118,22 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     </div>
                 </div>
             }>
-                {nodes?.length > 500 ? (
+                {/* {nodes?.length > 500 ? (
+                    <Graph />
+                ) : nodes?.length > 500 ? (
                     view === "force3d" ? <GraphReactForce3D /> : <GraphReactForce />
                 ) : (
                     view === "force3d" ? <GraphReactForce3D /> : 
                     view === "force" ? <GraphReactForce /> : 
                     <WallEditor isRefetching={isRefetching} isLoading={loading} />
-                )}
+                )} */}
                 {/* <Graph /> */}
+                {nodes?.length > 500 ? (
+                    <Graph />
+                ) : (
+                    view === "force" ? <GraphReactForce /> :
+                        <WallEditor isRefetching={isRefetching} isLoading={loading} />
+                )}
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}

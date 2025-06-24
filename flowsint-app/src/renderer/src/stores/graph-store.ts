@@ -15,6 +15,8 @@ import { type ActionItem, findActionItemByKey } from "@/lib/action-items"
 export type GraphNode = Node<NodeData> & {
     collapsed?: boolean;
     hidden?: boolean;
+    targetPosition?: "left" | "right" | "top" | "bottom";
+    sourcePosition?: "left" | "right" | "top" | "bottom";
 }
 export type GraphEdge = Edge<EdgeData>
 

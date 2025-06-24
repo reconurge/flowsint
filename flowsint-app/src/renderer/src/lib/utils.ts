@@ -213,6 +213,8 @@ export const getDagreLayoutedElements = (nodes: Node[],
   nodes.forEach((node) =>
     g.setNode(node.id, {
       ...node,
+      targetPosition: options.direction === "LR" ? 'left' : 'top',
+      sourcePosition: options.direction === "LR" ? 'right' : 'bottom',
       width: node.measured?.width ?? 0,
       height: node.measured?.height ?? 0,
     }),

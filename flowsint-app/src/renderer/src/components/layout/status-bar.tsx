@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button"
-import { HelpCircle, Terminal, Trash, Unlock } from "lucide-react"
+import { Terminal, Trash, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
 import { useLayoutStore } from "@/stores/layout-store"
 import Legend from "../graphs/legend"
 import { Link } from "@tanstack/react-router"
+import InfoDialog from "./info"
 
 export function StatusBar() {
     const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
@@ -35,9 +36,7 @@ export function StatusBar() {
                     <span>Trash</span>
                 </Button>
                 <Legend />
-                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
-                    <HelpCircle className="h-3 w-3 opacity-60" />
-                </Button>
+                <InfoDialog />
                 <ModeToggle />
             </div>
         </div>

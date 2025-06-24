@@ -11,6 +11,10 @@ export type ItemType =
     | "social_profile"
     | "organization"
     | "vehicle"
+    | "car"
+    | "motorcycle"
+    | "boat"
+    | "plane"
     | "website"
     | "domain"
     | "subdomain"
@@ -42,6 +46,10 @@ export const ITEM_TYPES: ItemType[] = [
     "social_profile",
     "organization",
     "vehicle",
+    "car",
+    "motorcycle",
+    "boat",
+    "plane",
     "website",
     "domain",
     "subdomain",
@@ -74,6 +82,10 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     social_profile: "#B8AFE6",  // Notion muted purple
     organization: "#D1C0AF",    // Notion taupe
     vehicle: "#E9CD89",         // Notion wheat
+    car: "#E9CD89",             // Notion wheat (same as vehicle)
+    motorcycle: "#D4C4A8",      // Notion warm beige
+    boat: "#B8D4E3",            // Notion soft blue
+    plane: "#E2D1C3",           // Notion light taupe
     website: "#E7B8D2",         // Notion dusty rose
     domain: "#A6D0BF",          // Notion sage
     subdomain: "#9DCBE4",       // Notion sky blue
@@ -107,6 +119,10 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     social_profile: "📱",
     organization: "🏢",
     vehicle: "🚗",
+    car: "🚗",
+    motorcycle: "🏍️",
+    boat: "🚤",
+    plane: "✈️",
     website: "🔗",
     domain: "🌍",
     subdomain: "🧩",
@@ -139,6 +155,10 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     social_profile: 7,
     organization: 10,
     vehicle: 7,
+    car: 7,
+    motorcycle: 7,
+    boat: 7,
+    plane: 7,
     website: 7,
     domain: 8,
     subdomain: 7,
@@ -157,7 +177,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     siret: 5,
     siren: 5,
     cryptowallet: 7,
-    asn: 12,    
+    asn: 12,
     cidr: 10,
     whois: 6
 }

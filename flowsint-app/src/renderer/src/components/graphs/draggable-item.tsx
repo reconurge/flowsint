@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useState } from "react"
-import { IconContainer } from "@/components/icon-container"
+import { useIcon } from "@/hooks/use-icon"
 import { useGraphStore } from "@/stores/graph-store"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -30,6 +30,7 @@ export const DraggableItem = memo(function DraggableItem({
     const [isDragging, setIsDragging] = useState(false)
     const colors = useNodesDisplaySettings((s) => s.colors)
     const colorStr = colors[icon as string] || color
+    const IconComponent = useIcon(icon)
 
     const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
         const itemData = JSON.stringify({ label, type, color, description, itemKey })
@@ -66,7 +67,7 @@ export const DraggableItem = memo(function DraggableItem({
                         style={{ borderLeftColor: colorStr }}
                     >
                         <div className="flex justify-center items-center bg-background w-full text-left h-20 border rounded-lg">
-                            <IconContainer size={22} icon={icon} color={colorStr} type={type} />
+                            <IconComponent size={24} color={colorStr} type={type} />
                         </div>
                         <div className="space-y-1 truncate flex-1">
                             <h3 className="text-xs font-normal opacity-60 truncate">{label}</h3>

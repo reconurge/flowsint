@@ -6,12 +6,13 @@ import { useGraphControls } from '@/stores/graph-controls-store';
 import type { ItemType } from '@/stores/node-display-settings';
 import EmptyState from './empty-state';
 import { useTheme } from '../theme-provider';
+import ContextMenu from './wall/custom/context-menu';
 
 interface GraphReactForceProps {
     style?: React.CSSProperties;
 }
 
-const NODE_COUNT_THRESHOLD = 500;
+const NODE_COUNT_THRESHOLD = 1500;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useGraphStore(s => s.nodes) as GraphNode[];
@@ -23,7 +24,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes);
     // const currentNode = useGraphStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
-
+    const [menu, setMenu] = useState<any>(null);
     const shouldUseSimpleRendering = useMemo(() => nodes.length > NODE_COUNT_THRESHOLD, [nodes.length]);
 
     // Transform data for Force Graph
@@ -41,6 +42,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                 nodeLabel: nodeLabel,
                 nodeColor: color,
                 nodeSize: size,
+                nodeType: type,
                 val: size,
             };
         });
@@ -82,7 +84,9 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
     const handleBackgroundClick = useCallback(() => {
         clearSelectedNodes();
-    }, [clearSelectedNodes]);
+        setMenu(null)
+    }, [clearSelectedNodes, setMenu]);
+
 
     const handleZoomIn = useCallback((graph: any) => {
         const zoom = graph.zoom();
@@ -100,6 +104,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
     const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
         const size = node.nodeSize;
+        const type = node.nodeType as ItemType;
 
         if (shouldUseSimpleRendering) {
             // Simple circle rendering for large node counts
@@ -110,13 +115,13 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         } else {
             // Full rendering with icon and label
             ctx.beginPath();
-            ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
+            // ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
             ctx.fillStyle = node.nodeColor;
             ctx.fill();
-
-            // const img = new Image();
-            // img.src = `./icons/${node.type}.svg` as any;
-            // ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
+            const img = new Image();
+            img.src = `/icons/${type}.svg`;
+            // Draw icon if available
+            ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
 
             if (globalScale > 3) {
                 const label = node.nodeLabel || node.label || node.id;
@@ -180,6 +185,54 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         };
     }, []);
 
+    const onNodeContextMenu = useCallback(
+        (data: any, event: MouseEvent) => {
+            if (!containerRef.current) return;
+            const pane = containerRef.current.getBoundingClientRect();
+            // Use the mouse event coordinates instead of node position
+            const relativeX = event.clientX - pane.left;
+            const relativeY = event.clientY - pane.top;
+            // Calculate available space in each direction
+            const menuWidth = 320; // Default menu width
+            const menuHeight = 250; // Use a more reasonable height for overflow calculation
+            const padding = 20; // Minimum padding from edges
+
+            // Determine if menu would overflow in each direction
+            const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
+            const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
+
+            // Calculate final position
+            let finalTop = 0;
+            let finalLeft = 0;
+            let finalRight = 0;
+            let finalBottom = 0;
+
+            if (wouldOverflowRight) {
+                finalRight = pane.width - relativeX;
+            } else {
+                finalLeft = relativeX;
+            }
+
+            if (wouldOverflowBottom) {
+                finalBottom = pane.height - relativeY;
+            } else {
+                finalTop = relativeY;
+            }
+
+            setMenu({
+                node: { data: data.data, id: data.id, label: data.label, position: data.position } as GraphNode,
+                top: finalTop,
+                left: finalLeft,
+                right: finalRight,
+                bottom: finalBottom,
+                wrapperWidth: pane.width,
+                wrapperHeight: pane.height,
+                setMenu: setMenu,
+            });
+        },
+        [setMenu],
+    );
+
     if (!nodes.length) {
         return <EmptyState />;
     }
@@ -193,11 +246,12 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     height={dimensions.height}
                     graphData={graphData}
                     nodeLabel="label"
-                    nodeColor={node => node.nodeColor}
+                    nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : "#00000000"}
                     nodeRelSize={6}
                     linkDirectionalArrowLength={3.5}
                     linkDirectionalArrowRelPos={1}
                     cooldownTicks={100}
+                    onNodeRightClick={onNodeContextMenu}
                     onNodeClick={handleNodeClick}
                     onBackgroundClick={handleBackgroundClick}
                     linkCurvature={link => link.curve}
@@ -235,6 +289,10 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     }}
                     backgroundColor="transparent"
                 />
+                {menu && <ContextMenu
+                    onClick={handleBackgroundClick}
+                    {...menu}
+                />}
             </div>
         </div>
     );

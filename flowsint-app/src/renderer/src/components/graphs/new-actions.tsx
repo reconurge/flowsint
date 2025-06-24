@@ -12,7 +12,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/graphs/dynamic-form"
 import { Badge } from "@/components/ui/badge"
-import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { useGraphStore } from "@/stores/graph-store"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { sketchService } from "@/api/sketch-service"
@@ -167,9 +166,8 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
             <CardContent className="p-2 relative flex flex-col items-center text-center h-full">
                 <div
                     className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2"
-                    style={{ backgroundColor: item.color ? `${item.color}20` : "var(--primary-20)" }}
                 >
-                    <IconComponent style={{ color: item.color }} className={cn("h-6 w-6 opacity-60", item.color ? "" : "text-primary")} />
+                    <IconComponent style={{ color: item.color }} className={cn("h-12 w-12", item.color ? "" : "text-primary")} />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
                 <div className="text-sm mt-2 opacity-60">{item.fields.map((n) => n.name).join(", ")}</div>

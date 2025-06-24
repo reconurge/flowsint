@@ -9,7 +9,7 @@ import GraphLoader from './graph-loader'
 import Loader from '../loader'
 import WallEditor from './wall/wall'
 import GraphReactForce from './graph-react-force'
-import GraphReactForce3D from './graph-react-force-3d'
+// import GraphReactForce3D from './graph-react-force-3d'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './wall/node-editor-modal'
 // const GraphReactForce = lazy(() => import('./graph-react-force'))
@@ -128,7 +128,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     <WallEditor isRefetching={isRefetching} isLoading={loading} />
                 )} */}
                 {/* <Graph /> */}
-                {nodes?.length > 500 ? (
+                {nodes?.length > 1500 ? (
                     <Graph />
                 ) : (
                     view === "force" ? <GraphReactForce /> :

@@ -6,7 +6,6 @@ from app.scanners.base import Scanner
 from app.types.domain import Domain, Domain
 from app.types.whois import Whois
 from app.types.email import Email
-from app.types.organization import Organization
 from pydantic import TypeAdapter
 from app.core.logger import Logger
 
@@ -41,17 +40,19 @@ class WhoisScanner(Scanner):
                 for prop, info in details["properties"].items()
             ]
         }
-
     @classmethod
     def output_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(OutputType)
         schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
+        # Find the Website type in $defs
+        whois_def = schema["$defs"].get("Whois")
+        if not whois_def:
+            raise ValueError("Whois type not found in schema")
         return {
-            "type": type_name,
+            "type": "Whois",
             "properties": [
                 {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
+                for prop, info in whois_def["properties"].items()
             ]
         }
 

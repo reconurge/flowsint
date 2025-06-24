@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Edit3, Save, X, Hash, Type, FileText, Tag } from "lucide-react"
 import type { NodeData } from "@/types"
 import { useGraphStore } from "@/stores/graph-store"
@@ -79,17 +78,18 @@ export const NodeEditorModal: React.FC = () => {
                             <div className="p-2 rounded-lg bg-primary/10">
                                 <Edit3 className="h-5 w-5 text-primary" />
                             </div>
-                            <div className="flex-1">
+                            <div className="flex gap-3">
                                 <SheetTitle className="text-lg font-semibold">
                                     Edit Node Properties
                                 </SheetTitle>
                                 <p className="text-sm text-muted-foreground mt-1">
                                     {currentNode.data.label || currentNode.id}
                                 </p>
+                                <Badge variant="outline" className="text-xs">
+                                    {currentNode.data.type || "Unknown Type"}
+                                </Badge>
                             </div>
-                            <Badge variant="outline" className="text-xs">
-                                {currentNode.data.type || "Unknown Type"}
-                            </Badge>
+
                         </div>
                     </SheetHeader>
 
@@ -177,8 +177,8 @@ export const NodeEditorModal: React.FC = () => {
                                         <div className="space-y-4">
                                             {additionalFields.map(([key, value]) => (
                                                 <div key={key} className="space-y-2">
-                                                    <Label 
-                                                        htmlFor={key} 
+                                                    <Label
+                                                        htmlFor={key}
                                                         className="text-sm font-medium capitalize"
                                                     >
                                                         {key.replace(/_/g, ' ')}
@@ -241,15 +241,15 @@ export const NodeEditorModal: React.FC = () => {
                                 {additionalFields.length} additional properties
                             </div>
                             <div className="flex gap-2">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={handleCancel}
                                     className="gap-2"
                                 >
                                     <X className="h-4 w-4" />
                                     Cancel
                                 </Button>
-                                <Button 
+                                <Button
                                     onClick={handleSave}
                                     className="gap-2"
                                 >

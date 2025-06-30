@@ -5,14 +5,22 @@ import { UserPlus, Users } from "lucide-react"
 import { ItemsPanel } from "./items-panel"
 import DetailsPanel from "./details-panel"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
+import { useLayoutStore } from "@/stores/layout-store"
 
 const GraphNavigation = () => {
     const nodes = useGraphStore((s) => s.nodes)
     const currentNode = useGraphStore((s) => s.currentNode)
+    const activeTab = useLayoutStore((s) => s.activeTab)
+    const setActiveTab = useLayoutStore((s) => s.setActiveTab)
 
     return (
         <div className="h-full w-full min-h-0">
-            <Tabs defaultValue="entities" className="w-full h-full gap-0 flex flex-col min-w-0">
+            <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                defaultValue="entities"
+                className="w-full h-full gap-0 flex flex-col min-w-0"
+            >
                 <TabsList className="w-full p-0 rounded-none my-0 border-b">
                     <TabsTrigger value="entities"><Users className="h-3 w-3 opacity-60" /> Entities</TabsTrigger>
                     <TabsTrigger value="items"><UserPlus className="h-3 w-3 opacity-60" /> Items</TabsTrigger>

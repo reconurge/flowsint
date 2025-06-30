@@ -11,12 +11,18 @@ interface LayoutStore {
     openPanel: () => void
     closeChat: () => void
     openChat: () => void
+    activeTab: string
+    activeTransformTab: string
+    setActiveTab: (tab: "entities" | "items" | string) => void
+    setActiveTransformTab: (tab: "transforms" | "items" | string) => void
 }
 
 export const useLayoutStore = create<LayoutStore>((set) => ({
     isOpenConsole: false,
     isOpenPanel: true,
     isOpenChat: false,
+    activeTab: "entities",
+    activeTransformTab: "transforms",
     toggleConsole: () => set((state) => ({ isOpenConsole: !state.isOpenConsole })),
     togglePanel: () => set((state) => ({ isOpenPanel: !state.isOpenPanel })),
     toggleChat: () => set((state) => ({ isOpenChat: !state.isOpenChat })),
@@ -24,4 +30,6 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
     openPanel: () => set({ isOpenPanel: true }),
     closeChat: () => set({ isOpenChat: false }),
     openChat: () => set({ isOpenChat: true }),
+    setActiveTab: (tab: string) => set({ activeTab: tab }),
+    setActiveTransformTab: (tab: string) => set({ activeTransformTab: tab }),
 })) 

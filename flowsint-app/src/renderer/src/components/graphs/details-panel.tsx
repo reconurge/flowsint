@@ -3,7 +3,7 @@ import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { Button } from "@/components/ui/button"
-import { Edit, Edit2 } from "lucide-react"
+import { Edit2, Check, X } from "lucide-react"
 import LaunchTransform from "./launch-transform"
 import { useGraphStore } from "@/stores/graph-store"
 
@@ -11,7 +11,6 @@ export default function DetailsPanel({ data }: { data: any }) {
     const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
     const handleEdit = () => {
         setOpenNodeEditorModal(true)
-
     }
 
     return (
@@ -31,6 +30,14 @@ export default function DetailsPanel({ data }: { data: any }) {
                     <LaunchTransform values={[data.label]} type={data?.type} />
                 </div>
             </div>
+            {data?.description && (
+                <div className="px-4 py-3 border-b border-border">
+                    <div 
+                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: data.description }}
+                    />
+                </div>
+            )}
             <KeyValueDisplay data={data} />
         </div>
     )
@@ -45,12 +52,28 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
     return (
         <div className={cn("w-full border-collapse", className)}>
             {data && Object.entries(data)
-                .filter(([key]) => !["sketch_id", "caption", "size", "color"].includes(key))
+                .filter(([key]) => !["sketch_id", "caption", "size", "color", "description"].includes(key))
                 .map(([key, value], index) => {
-                    const val = Array.isArray(value) ? `${value.length} items` : value?.toString() || null
-                    const display = (typeof val === "string" && val.startsWith("https://"))
-                        ? <a href={val} className="underline text-primary truncate" target="_blank" rel="noopener noreferrer">{val}</a>
-                        : val
+                    let val: string | null = null
+                    let display: React.ReactNode = null
+
+                    if (typeof value === "boolean") {
+                        val = value.toString()
+                        display = value ? (
+                            <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                            <X className="h-4 w-4 text-red-600" />
+                        )
+                    } else if (Array.isArray(value)) {
+                        val = `${value.length} items`
+                        display = val
+                    } else {
+                        val = value?.toString() || null
+                        display = (typeof val === "string" && val.startsWith("https://"))
+                            ? <a href={val} className="underline text-primary truncate" target="_blank" rel="noopener noreferrer">{val}</a>
+                            : val
+                    }
+
                     return (
                         <div
                             key={index}
@@ -59,7 +82,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
                             <div className="w-1/2 px-4 p-2 text-sm text-muted-foreground font-normal truncate">{key}</div>
                             <div className="w-1/2 px-4 p-2 text-sm font-medium flex items-center justify-between min-w-0">
                                 <div className="truncate font-semibold">{display || <span className="italic text-muted-foreground">N/A</span>}</div>
-                                {display && <CopyButton className="h-6 w-6 shrink-0" content={val} />}
+                                {display && val && typeof value !== "boolean" && <CopyButton className="h-6 w-6 shrink-0" content={val} />}
                             </div>
                         </div>
                     )

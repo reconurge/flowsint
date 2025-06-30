@@ -161,7 +161,7 @@ export function LogPanel() {
                                     <div className="flex items-center gap-2 min-w-0">
                                         <Icon className={cn("w-4 h-4 mt-0.5 flex-shrink-0", config.color)} />
                                         <span className="text-xs font-medium min-w-[60px]">{formatTime(log.created_at)}</span>
-                                        <Badge className={cn("text-xs px-2 py-0.5", config.badge)}>{log.type}</Badge>
+                                        <Badge className={cn("text-[.6rem] px-2 py-0.5", config.badge)}>{log.type}</Badge>
 
                                     </div>
                                     <div className="min-w-0 flex-1">

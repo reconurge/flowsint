@@ -16,7 +16,7 @@ class HoleheScanner(Scanner):
     
     @classmethod
     def category(self) -> str:
-        return "emails"
+        return "Email"
     
     @classmethod
     def key(self) -> str:

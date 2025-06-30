@@ -15,7 +15,7 @@ import { type Analysis } from "@/types";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { investigationService } from "@/api/investigation-service";
 import { analysisService } from "@/api/analysis-service";
-import { Waypoints, FileText, Search, ChevronDown, Plus } from "lucide-react";
+import { Waypoints, FileText, Search, ChevronDown, Plus, ArrowLeft, Home } from "lucide-react";
 import NewSketch from "@/components/graphs/new-sketch";
 
 export default function CaseSelector() {
@@ -117,8 +117,7 @@ export default function CaseSelector() {
                                     className="w-full justify-start gap-2 h-auto py-1.5 px-2 rounded-none hover:bg-accent text-sm"
                                     onClick={() => handleSelectionChange("overview")}
                                 >
-                                    <div className="w-4 h-4" />
-                                    <span className="text-left truncate">Overview</span>
+                                    <span className="text-left truncate flex items-center gap-1 text-muted-foreground"><Home strokeWidth={1.5} /><ArrowLeft strokeWidth={1.5} /> back to case</span>
                                 </Button>
                             </div>
 

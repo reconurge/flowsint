@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Edit3, Save, X, Hash, Type, FileText, Tag } from "lucide-react"
+import { Edit3, Save, X, Hash, Type, FileText, Tag, Check } from "lucide-react"
 import type { NodeData } from "@/types"
 import { useGraphStore } from "@/stores/graph-store"
 
@@ -96,6 +96,23 @@ export const NodeEditorModal: React.FC = () => {
                     {/* Content */}
                     <div className="flex-1 px-6 py-6 grow overflow-y-auto">
                         <div className="space-y-6 pb-6">
+                            {/* Description */}
+                            {currentNode.data.description && (
+                                <Card className="border bg-card/50">
+                                    <CardHeader className="pb-4">
+                                        <CardTitle className="text-base font-medium">
+                                            Description
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div 
+                                            className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                                            dangerouslySetInnerHTML={{ __html: currentNode.data.description }}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            )}
+
                             {/* Core Properties Card */}
                             <Card className="border bg-card/50">
                                 <CardHeader className="pb-4">
@@ -183,7 +200,26 @@ export const NodeEditorModal: React.FC = () => {
                                                     >
                                                         {key.replace(/_/g, ' ')}
                                                     </Label>
-                                                    {typeof value === "string" && value.length > 100 ? (
+                                                    {typeof value === "boolean" ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant={formData[key as keyof NodeData] ? "default" : "outline"}
+                                                                size="sm"
+                                                                onClick={() => handleInputChange(key as keyof NodeData, (!formData[key as keyof NodeData]).toString())}
+                                                                className="gap-2"
+                                                            >
+                                                                {formData[key as keyof NodeData] ? (
+                                                                    <>
+                                                                        <Check className="h-3 w-3" />
+                                                                        True
+                                                                    </>
+                                                                ) : (
+                                                                    "False"
+                                                                )}
+                                                            </Button>
+                                                        </div>
+                                                    ) : typeof value === "string" && value.length > 100 ? (
                                                         <Textarea
                                                             id={key}
                                                             value={formData[key as keyof NodeData] as string || ""}

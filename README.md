@@ -1,6 +1,5 @@
-# flowsint
+# Flowsint
 
-A graph manager to help you save time in your investigations.
+AI-powered graph analysis and intelligence platform to help you discover hidden relationships and insights.
 
-<img width="1437" alt="flowsint" src="https://github.com/user-attachments/assets/5c179b55-8cce-44ea-913c-21d2391713a3" />
-![flowsint-editor](https://github.com/user-attachments/assets/97e01c9a-500e-4a95-8ee7-68f95be851cf)
+<img width="1440" alt="Capture d’écran 2025-06-24 à 11 51 28" src="https://github.com/user-attachments/assets/ab0c895f-ca9b-4b33-a818-48ed215da905" />

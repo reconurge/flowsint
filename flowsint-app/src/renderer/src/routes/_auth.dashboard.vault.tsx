@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Loader2, Plus, ExternalLink, Trash2, CheckCircle, XCircle, Clock, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 import { useConfirm } from '../components/use-confirm-dialog'
+import Loader from '@/components/loader'
 
 export const Route = createFileRoute('/_auth/dashboard/vault')({
     component: VaultPage,
@@ -84,7 +85,7 @@ function VaultPage() {
             title: 'Delete API Key',
             message: `Are you sure you want to delete the API key for ${serviceName}? This action cannot be undone.`
         })
-        
+
         if (confirmed) {
             deleteKeyMutation.mutate(keyId)
         }
@@ -113,13 +114,13 @@ function VaultPage() {
     if (servicesLoading || keysLoading) {
         return (
             <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
-                <div className='max-w-7xl mx-auto flex flex-col gap-12 items-center justify-start'>
+                <div className='max-w-7xl mx-auto flex h-full flex-col gap-12 items-center justify-start'>
                     <div className='w-full'>
                         <h1 className="font-semibold text-2xl">Vault</h1>
                         <p className="opacity-60 mt-3">Here are the keys used to query third party services.</p>
                     </div>
-                    <div className="w-full flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin" />
+                    <div className="w-full h-full flex items-center justify-center">
+                        <Loader />
                     </div>
                 </div>
             </div>
@@ -176,14 +177,14 @@ function VaultPage() {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={() => setIsAddDialogOpen(false)}
                                     disabled={createKeyMutation.isPending}
                                 >
                                     Cancel
                                 </Button>
-                                <Button 
+                                <Button
                                     onClick={handleAddKey}
                                     disabled={createKeyMutation.isPending || !selectedService || !apiKey.trim()}
                                 >
@@ -261,9 +262,9 @@ function VaultPage() {
                                                                 <span className="hidden sm:inline">Visit</span>
                                                             </Button>
                                                             {key ? (
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="sm" 
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
                                                                     className="text-destructive hover:text-destructive/80 h-8 px-2"
                                                                     onClick={() => handleDeleteKey(key.id, service.service)}
                                                                     disabled={deleteKeyMutation.isPending}

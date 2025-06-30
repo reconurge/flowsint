@@ -522,7 +522,7 @@ export const actionItems: ActionItem[] = [
     },
     {
         id: 14,
-        type: "vehicle",
+        type: "Vehicle",
         table: "",
         icon: "car",
         label: "Vehicle",
@@ -532,7 +532,7 @@ export const actionItems: ActionItem[] = [
         children: [
             {
                 id: 15,
-                type: "Vehicle",
+                type: "Car",
                 table: "vehicles",
                 key: "vehicles_car",
                 icon: "car",
@@ -549,7 +549,7 @@ export const actionItems: ActionItem[] = [
             },
             {
                 id: 16,
-                type: "Vehicle",
+                type: "motorcycle",
                 table: "vehicles",
                 key: "vehicles_motorcycle",
                 label_key: "plate",
@@ -566,7 +566,7 @@ export const actionItems: ActionItem[] = [
             },
             {
                 id: 17,
-                type: "Vehicle",
+                type: "boat",
                 table: "vehicles",
                 key: "vehicles_boat",
                 label_key: "plate",
@@ -583,7 +583,7 @@ export const actionItems: ActionItem[] = [
             },
             {
                 id: 23,
-                type: "Vehicle",
+                type: "plane",
                 table: "vehicles",
                 key: "vehicles_aircraft",
                 icon: "plane",

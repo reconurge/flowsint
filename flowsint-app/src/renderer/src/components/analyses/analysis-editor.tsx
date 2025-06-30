@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MinimalTiptapEditor } from "@/components/analyses/editor"
 import { analysisService } from "@/api/analysis-service"

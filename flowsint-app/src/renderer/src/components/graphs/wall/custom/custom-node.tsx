@@ -10,7 +10,7 @@ const size = 32;
 export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
     const isCurrent = useGraphStore(state => state.isCurrent);
     const color = useNodesDisplaySettings(state => state.colors[data.type as keyof typeof state.colors]);
-    const IconComponent = useIcon(data.type as string);
+    const IconComponent = useIcon(data.type as string, data?.src as string | null);
 
 
     return (
@@ -51,7 +51,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
                 />
             </div>
             <div
-                className="text-nowrap text-center truncate text-ellipsis"
+                className="text-nowrap text-center max-w-[160px] truncate text-ellipsis truncate text-ellipsis"
                 style={{
                     fontSize: 11,
                     color: (selected || isCurrent(id)) ? "#f97316" : "#94a3b8",

@@ -36,6 +36,8 @@ export type ItemType =
     | "asn"
     | "cidr"
     | "whois"
+    | "gravatar"
+    | "breach"
 
 export const ITEM_TYPES: ItemType[] = [
     "individual",
@@ -70,7 +72,9 @@ export const ITEM_TYPES: ItemType[] = [
     "cryptowallet",
     "asn",
     "cidr",
-    "whois"
+    "whois",
+    "gravatar",
+    "breach"
 ]
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
@@ -106,7 +110,9 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     cryptowallet: "#F7D154",    // Notion gold
     asn: "#F7D154",
     cidr: "#A2D4BF",
-    whois: "#EAAFAF"
+    whois: "#EAAFAF",
+    gravatar: "#B8D4E3",        // Notion soft blue (similar to boat)
+    breach: "#E4B1AD"           // Notion terracotta (similar to media)
 }
 
 // Définition des icônes par défaut pour chaque type d'élément
@@ -143,7 +149,9 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     cryptowallet: "₿",
     asn: "🌐",
     cidr: "📡",
-    whois: "🌐"
+    whois: "🌐",
+    gravatar: "🖼️",
+    breach: "🔓"
 };
 
 const DEFAULT_SIZES: Record<ItemType, number> = {
@@ -179,7 +187,9 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     cryptowallet: 7,
     asn: 12,
     cidr: 10,
-    whois: 6
+    whois: 6,
+    gravatar: 7,
+    breach: 8
 }
 
 interface NodesDisplaySettingsState {

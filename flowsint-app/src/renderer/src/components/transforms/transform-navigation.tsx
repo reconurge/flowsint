@@ -2,11 +2,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserPlus, Users } from "lucide-react"
 import RawMaterial from "./raw-material"
 import TransformsList from "./transforms-list"
+import { useLayoutStore } from "@/stores/layout-store"
 
 const TransformNavigation = () => {
+    const activeTransformTab = useLayoutStore((s) => s.activeTransformTab)
+    const setActiveTransformTab = useLayoutStore((s) => s.setActiveTransformTab)
+
     return (
         <div className="h-full w-full bg-card flex flex-col min-h-0">
-            <Tabs defaultValue="transforms" className="w-full h-full flex flex-col gap-0 min-h-0">
+            <Tabs
+                value={activeTransformTab}
+                onValueChange={setActiveTransformTab}
+                defaultValue="transforms"
+                className="w-full h-full flex flex-col gap-0 min-h-0">
                 <TabsList className="w-full p-0 rounded-none my-0 border-b flex-shrink-0">
                     <TabsTrigger value="transforms"><Users className="h-3 w-3 opacity-60" /> Transforms</TabsTrigger>
                     <TabsTrigger value="items"><UserPlus className="h-3 w-3 opacity-60" /> Items</TabsTrigger>

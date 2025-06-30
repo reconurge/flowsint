@@ -19,6 +19,9 @@ from app.scanners.crypto.wallet_to_nfts import WalletAddressToNFTs
 from app.scanners.domains.to_website import DomainToWebsiteScanner
 from app.scanners.websites.to_crawler import WebsiteToCrawler
 from app.scanners.websites.to_domain import WebsiteToDomainScanner
+from app.scanners.emails.to_gravatar import EmailToGravatarScanner
+from app.scanners.emails.to_leaks import EmailToBreachesScanner
+
 class ScannerRegistry:
     
     _scanners: Dict[str, Type[Scanner]] = {}
@@ -88,3 +91,5 @@ ScannerRegistry.register(WalletAddressToNFTs)
 ScannerRegistry.register(DomainToWebsiteScanner)
 ScannerRegistry.register(WebsiteToCrawler)
 ScannerRegistry.register(WebsiteToDomainScanner)
+ScannerRegistry.register(EmailToGravatarScanner)
+ScannerRegistry.register(EmailToBreachesScanner)

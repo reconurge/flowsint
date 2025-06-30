@@ -20,7 +20,7 @@ const getDefaultIconPath = (): string => {
   return new URL(`/icons/default.svg`, window.location.origin).href;
 };
 
-export const useIcon = (type: IconType) => {
+export const useIcon = (type: IconType, src?: string | null) => {
   // Memoize the icon path
   const iconPath = useMemo(() => getIconPath(type), [type]);
 
@@ -49,7 +49,7 @@ export const useIcon = (type: IconType) => {
           className={`flex bg-card items-center justify-center rounded-full ${className || ""}`}
         >
           <img
-            src={iconPath}
+            src={src || iconPath}
             width={size}
             height={size}
             alt={`${type} icon`}
@@ -64,7 +64,7 @@ export const useIcon = (type: IconType) => {
 
     return (
       <img
-        src={iconPath}
+        src={src || iconPath}
         className={className}
         width={size}
         height={size}

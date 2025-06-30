@@ -17,6 +17,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { useIcon } from "@/hooks/use-icon"
+import { useLayoutStore } from "@/stores/layout-store"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -31,6 +32,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
     const openFormDialog = useGraphStore(state => state.openFormDialog)
     const setOpenFormDialog = useGraphStore(state => state.setOpenFormDialog)
     const addNode = useGraphStore(state => state.addNode)
+    const setActiveTab = useLayoutStore(state => state.setActiveTab)
     const { id } = useParams({ strict: false })
 
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
@@ -54,8 +56,8 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                     type: type.toLowerCase(),
                 },
             }
-            console.log(newNode)
             if (addNode) addNode(newNode as any)
+            setActiveTab("entities")
             setOpenFormDialog(false)
             toast.success("New node added.")
             await sketchService.addNode(id, JSON.stringify(newNode))

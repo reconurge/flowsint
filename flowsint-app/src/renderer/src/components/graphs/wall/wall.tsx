@@ -26,6 +26,7 @@ import GraphLoader from "../graph-loader"
 import { useGraphControls } from "@/stores/graph-controls-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import ContextMenu from './custom/context-menu';
+import { useLayoutStore } from "@/stores/layout-store"
 
 
 const nodeTypes = {
@@ -54,6 +55,8 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     const onEdgesChange = useGraphStore(state => state.onEdgesChange)
     const onConnect = useGraphStore(state => state.onConnect)
     const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
+    const setActiveTab = useLayoutStore((s) => s.setActiveTab)
+
     const [menu, setMenu] = useState<{
         node: GraphNode;
         top: number;
@@ -137,6 +140,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         (_: React.MouseEvent, node: Node) => {
             const typedNode = node as GraphNode
             setCurrentNode(typedNode)
+            setActiveTab("entities")
             const nodeWidth = typedNode.measured?.width ?? 0
             const nodeHeight = typedNode.measured?.height ?? 0
             setCenter(typedNode.position.x + nodeWidth / 2, typedNode.position.y + nodeHeight / 2 + 20, {

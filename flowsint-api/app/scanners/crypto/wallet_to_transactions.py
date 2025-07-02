@@ -4,11 +4,11 @@ from pydantic import TypeAdapter
 import requests
 from datetime import datetime
 from app.scanners.base import Scanner
-from app.types.wallet import Wallet, WalletTransaction
+from app.types.wallet import CryptoWallet, CryptoWalletTransaction
 from app.utils import resolve_type
 from app.core.logger import Logger
-InputType: TypeAlias = List[Wallet]
-OutputType: TypeAlias = List[WalletTransaction]
+InputType: TypeAlias = List[CryptoWallet]
+OutputType: TypeAlias = List[CryptoWalletTransaction]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
@@ -16,7 +16,7 @@ ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 def wei_to_eth(wei_str):
     return int(wei_str) / 10**18
 
-class WalletAddressToTransactions(Scanner):
+class CryptoWalletAddressToTransactions(Scanner):
     """Resolve transactions for a wallet address (ETH)."""
 
     @classmethod
@@ -25,7 +25,7 @@ class WalletAddressToTransactions(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "crypto"
+        return "CryptoCryptoWallet"
     
     @classmethod
     def key(cls) -> str:
@@ -62,10 +62,10 @@ class WalletAddressToTransactions(Scanner):
         for item in data:
             wallet_obj = None
             if isinstance(item, str):
-                wallet_obj = Wallet(address=item)
+                wallet_obj = CryptoWallet(address=item)
             elif isinstance(item, dict) and "address" in item:
-                wallet_obj = Wallet(address=item["address"])
-            elif isinstance(item, Wallet):
+                wallet_obj = CryptoWallet(address=item["address"])
+            elif isinstance(item, CryptoWallet):
                 wallet_obj = item
             if wallet_obj:
                 cleaned.append(wallet_obj)
@@ -81,7 +81,7 @@ class WalletAddressToTransactions(Scanner):
                 Logger.error(self.sketch_id, {"message": f"Error resolving transactions for {d.address}: {e}"})
         return results
     
-    def _get_transactions(self, address: str) -> List[WalletTransaction]:
+    def _get_transactions(self, address: str) -> List[CryptoWalletTransaction]:
         transactions = []
         """Get transactions for a wallet address."""
         params = {
@@ -100,11 +100,11 @@ class WalletAddressToTransactions(Scanner):
         results = data["result"]
         for tx in results:
             if tx["to"] !=None:
-                target = Wallet(address=tx["to"])
+                target = CryptoWallet(address=tx["to"])
             else:
-                target = Wallet(address=tx["contractAddress"])
-            transactions.append(WalletTransaction(
-                source=Wallet(address=address),
+                target = CryptoWallet(address=tx["contractAddress"])
+            transactions.append(CryptoWalletTransaction(
+                source=CryptoWallet(address=address),
                 target=target,
                 hash=tx["hash"],
                 value=wei_to_eth(tx["value"]),

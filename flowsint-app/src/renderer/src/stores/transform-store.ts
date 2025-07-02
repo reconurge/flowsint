@@ -11,6 +11,7 @@ import {
     applyNodeChanges,
     applyEdgeChanges
 } from "@xyflow/react"
+import { toast } from "sonner"
 
 export interface NodeData {
     class_name: string
@@ -71,6 +72,11 @@ export const useTransformStore = create<TransformState>((set, get) => ({
         })
     },
     onConnect: (connection: Connection) => {
+        if (connection.sourceHandle !== connection.targetHandle) {
+            toast.error(`Cannot connect ${connection.sourceHandle} to ${connection.targetHandle}.`)
+            return
+        }
+
         const edge: TransformEdge = {
             id: `${connection.source}-${connection.target}`,
             source: connection.source!,

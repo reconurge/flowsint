@@ -30,19 +30,57 @@ def is_valid_email(email: str) -> bool:
     return True
 
 
-
 def is_valid_domain(url_or_domain: str) -> str:
 
-    parsed = urlparse(url_or_domain if "://" in url_or_domain else "http://" + url_or_domain)
-    hostname = parsed.hostname or url_or_domain
+    try:
+        parsed = urlparse(url_or_domain if "://" in url_or_domain else "http://" + url_or_domain)
+        hostname = parsed.hostname or url_or_domain
     
-    if not hostname or "." not in hostname:
+        if not hostname or "." not in hostname:
+            return False
+        
+        if not re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", hostname):
+            return False
+    
+        return True
+    except Exception as e:
         return False
+
+def is_root_domain(domain: str) -> bool:
+    """
+    Determine if a domain is a root domain or subdomain.
     
-    if not re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", hostname):
+    Args:
+        domain: The domain string to check
+        
+    Returns:
+        True if it's a root domain (e.g., example.com), False if it's a subdomain (e.g., sub.example.com)
+    """
+    try:
+        # Remove protocol if present
+        if "://" in domain:
+            parsed = urlparse(domain)
+            domain = parsed.hostname or domain
+        
+        # Split by dots
+        parts = domain.split('.')
+        
+        # Handle common country code TLDs that have 2 parts (e.g., .co.uk, .com.au, .org.uk)
+        common_cc_tlds = ['.co.uk', '.com.au', '.org.uk', '.net.uk', '.gov.uk', '.ac.uk', 
+                         '.co.nz', '.com.sg', '.co.jp', '.co.kr', '.com.br', '.com.mx']
+        
+        # Check if the domain ends with a common country code TLD
+        for cc_tld in common_cc_tlds:
+            if domain.endswith(cc_tld):
+                # For country code TLDs, we need exactly 3 parts (e.g., example.co.uk)
+                return len(parts) == 3
+        
+        # For regular TLDs, a root domain has 2 parts (e.g., example.com)
+        # A subdomain has 3 or more parts (e.g., sub.example.com, www.sub.example.com)
+        return len(parts) == 2
+    except Exception:
+        # If we can't parse it, assume it's not a root domain
         return False
-    
-    return hostname
 
 def is_valid_number(phone: str, region: str = "FR") -> None:
     """
@@ -125,7 +163,9 @@ def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
             "type": "",
             "properties": []
         },
-        "type": "type"
+        "type": "type",
+        "category": name,
+
     }
 
 

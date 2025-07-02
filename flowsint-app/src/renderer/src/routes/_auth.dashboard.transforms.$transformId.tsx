@@ -2,8 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { transformService } from '@/api/transfrom-service'
 import Editor from '@/components/transforms/editor'
 import Loader from '@/components/loader'
-import { useEffect } from 'react'
-import { useLayoutStore } from '@/stores/layout-store'
 
 export const Route = createFileRoute('/_auth/dashboard/transforms/$transformId')({
     loader: async ({ params: { transformId } }) => {
@@ -34,12 +32,6 @@ export const Route = createFileRoute('/_auth/dashboard/transforms/$transformId')
 
 function TranformPage() {
     const { transform } = Route.useLoaderData()
-    const setActiveTransformTab = useLayoutStore((s) => s.setActiveTransformTab)
-
-    useEffect(() => {
-        setActiveTransformTab("items")
-    }, [setActiveTransformTab])
-
     return (
         <Editor
             key={transform.id}

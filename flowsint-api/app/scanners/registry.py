@@ -1,5 +1,4 @@
 from typing import Dict, Type
-
 from app.scanners.base import Scanner
 from app.scanners.domains.subdomains import SubdomainScanner
 from app.scanners.domains.whois import WhoisScanner
@@ -8,19 +7,20 @@ from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 from app.scanners.ips.geolocation import GeolocationScanner
 from app.scanners.socials.maigret import MaigretScanner
 from app.scanners.emails.holehe import HoleheScanner
-from app.scanners.organizations.sirene import SireneScanner
 from app.scanners.ips.ip_to_asn import IpToAsnScanner
 from app.scanners.ips.asn_to_cidrs import AsnToCidrsScanner
 from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
 from app.scanners.organizations.org_to_asn import OrgToAsnScanner
 from app.scanners.domains.domain_to_asn import DomainToAsnScanner
-from app.scanners.crypto.wallet_to_transactions import WalletAddressToTransactions
+from app.scanners.crypto.wallet_to_transactions import CryptoWalletAddressToTransactions
 from app.scanners.crypto.wallet_to_nfts import WalletAddressToNFTs
 from app.scanners.domains.to_website import DomainToWebsiteScanner
 from app.scanners.websites.to_crawler import WebsiteToCrawler
 from app.scanners.websites.to_domain import WebsiteToDomainScanner
 from app.scanners.emails.to_gravatar import EmailToGravatarScanner
 from app.scanners.emails.to_leaks import EmailToBreachesScanner
+from app.scanners.individuals.to_org import IndividualToOrgScanner
+from app.scanners.organizations.to_infos import OrgToInfosScanner
 
 class ScannerRegistry:
     
@@ -68,6 +68,7 @@ class ScannerRegistry:
                 "name": scanner.name(),
                 "module": scanner.__module__,
                 "doc": scanner.__doc__,
+                "category": category,
                 "inputs": scanner.input_schema(),
                 "outputs": scanner.output_schema(),
             })
@@ -80,16 +81,19 @@ ScannerRegistry.register(WhoisScanner)
 ScannerRegistry.register(GeolocationScanner)
 ScannerRegistry.register(MaigretScanner)
 ScannerRegistry.register(HoleheScanner)
-ScannerRegistry.register(SireneScanner)
 ScannerRegistry.register(IpToAsnScanner)
 ScannerRegistry.register(AsnToCidrsScanner)
 ScannerRegistry.register(CidrToIpsScanner)
 ScannerRegistry.register(OrgToAsnScanner)
 ScannerRegistry.register(DomainToAsnScanner)
-ScannerRegistry.register(WalletAddressToTransactions)
+ScannerRegistry.register(CryptoWalletAddressToTransactions)
 ScannerRegistry.register(WalletAddressToNFTs)
 ScannerRegistry.register(DomainToWebsiteScanner)
 ScannerRegistry.register(WebsiteToCrawler)
 ScannerRegistry.register(WebsiteToDomainScanner)
 ScannerRegistry.register(EmailToGravatarScanner)
 ScannerRegistry.register(EmailToBreachesScanner)
+ScannerRegistry.register(IndividualToOrgScanner)
+ScannerRegistry.register(OrgToInfosScanner)
+ScannerRegistry.register(IndividualToOrgScanner)
+

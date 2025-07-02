@@ -4,7 +4,7 @@ from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.domain import Domain
 from app.types.ip import Ip
-from app.utils import is_valid_domain, resolve_type
+from app.utils import is_valid_domain, resolve_type, is_root_domain
 import uuid
 from app.types.transform import Node, Edge
 from app.core.logger import Logger
@@ -58,11 +58,12 @@ class ResolveScanner(Scanner):
         for item in data:
             domain_obj = None
             if isinstance(item, str):
-                domain_obj = Domain(domain=item)
+                domain_obj = Domain(domain=item, root=is_root_domain(item))
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = Domain(domain=item["domain"])
+                domain_obj = Domain(domain=item["domain"], root=is_root_domain(item["domain"]))
             elif isinstance(item, Domain):
-                domain_obj = item
+                # If the Domain object already exists, update its root field
+                domain_obj = Domain(domain=item.domain, root=is_root_domain(item.domain))
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
         return cleaned
@@ -83,7 +84,7 @@ class ResolveScanner(Scanner):
             MERGE (d:domain {domain: $domain})
             SET d.sketch_id = $sketch_id,
                 d.label = $domain,
-                d.type = "domain"
+                d.type = $type
             MERGE (ip:ip {address: $ip})
             SET ip.sketch_id = $sketch_id,
                 ip.label = $label,
@@ -96,6 +97,7 @@ class ResolveScanner(Scanner):
                     "ip": ip_obj.address,
                     "sketch_id": self.sketch_id,
                     "label": ip_obj.address,
+                    "type": "domain" if domain_obj.root else "subdomain"
                 })
             nodes = [Node(
                 id=str(uuid.uuid4()),

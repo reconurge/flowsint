@@ -41,14 +41,6 @@ const SecondaryNavigation = () => {
     }
 
 
-    if (investigationId && id && type === "wall") {
-        return (
-            <div className="grow">
-                (WALL) THis will show: entities, items
-            </div>
-        )
-    }
-
     if (pathname.startsWith("/dashboard/transforms")) {
         return (
             <div className="grow w-full h-full overflow-x-hidden">

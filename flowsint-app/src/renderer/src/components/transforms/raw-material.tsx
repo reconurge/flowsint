@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
-import { categoryColors } from "./scanner-data"
 import ScannerItem, { type Scanner } from "./scanner-item"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
@@ -12,7 +11,7 @@ import { SkeletonList } from "../shared/skeleton-list"
 export default function RawMaterial() {
 
     const { data: materials, isLoading, error } = useQuery({
-        queryKey: ["investigations"],
+        queryKey: ["raw_material"],
         queryFn: transformService.getRawMaterial,
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
@@ -76,8 +75,7 @@ export default function RawMaterial() {
                                 <ScannerItem
                                     key={scanner.name}
                                     scanner={scanner}
-                                    category={category}
-                                    color={categoryColors[category] || categoryColors[scanner.type] || "#94a3b8"}
+                                    category={scanner.category}
                                 />
                             ))}
                         </div>

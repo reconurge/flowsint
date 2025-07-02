@@ -7,7 +7,7 @@ from app.types.domain import Domain, Domain
 from app.utils import is_valid_domain, resolve_type
 from pydantic import TypeAdapter
 from app.core.logger import Logger
-
+from app.tools.network.subfinder import SubfinderTool
 InputType: TypeAlias = List[Domain]
 OutputType: TypeAlias = List[Domain]
 
@@ -55,9 +55,7 @@ class SubdomainScanner(Scanner):
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
-        invalid_items = []
-        
-        for i, item in enumerate(data):
+        for item in data:
             domain_obj = None
             if isinstance(item, str):
                 domain_obj = Domain(domain=item)
@@ -65,21 +63,10 @@ class SubdomainScanner(Scanner):
                 domain_obj = Domain(domain=item["domain"])
             elif isinstance(item, Domain):
                 domain_obj = item
-            else:
-                invalid_items.append(f"Item at index {i}: {type(item).__name__} - {item}")
-                continue
-                
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
-            else:
-                invalid_items.append(f"Item at index {i}: Invalid domain '{getattr(domain_obj, 'domain', item) if domain_obj else item}'")
-        
-        if invalid_items:
-            error_msg = f"Invalid input format. The following items could not be processed:\n" + "\n".join(invalid_items)
-            Logger.error(self.sketch_id, {"message":error_msg})
-            raise ValueError(error_msg)
-            
         return cleaned
+      
 
     def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
@@ -127,18 +114,9 @@ class SubdomainScanner(Scanner):
 
     def __get_subdomains_from_subfinder(self, domain: str) -> set[str]:
         subdomains: set[str] = set()
+        subfinder = SubfinderTool()
         try:
-            result = subprocess.run(
-                ["subfinder", "-silent", "-d", domain],
-                capture_output=True, text=True, timeout=60
-            )
-            if result.returncode == 0:
-                for sub in result.stdout.strip().splitlines():
-                    sub = sub.strip().lower()
-                    if is_valid_domain(sub) and sub.endswith(domain) and sub != domain and not sub.startswith("."):
-                        subdomains.add(sub)
-            else:
-                Logger.error(self.sketch_id, f"subfinder failed for {domain}: {result.stderr.strip()}")
+            subdomains = subfinder.launch(domain)
         except Exception as e:
             Logger.error(self.sketch_id, f"subfinder exception for {domain}: {e}")
         return subdomains
@@ -163,7 +141,7 @@ class SubdomainScanner(Scanner):
                     "subdomain": subdomain,
                     "sketch_id": self.sketch_id,
                     "label": subdomain,
-                    "type": "domain"
+                    "type": "subdomain"
                 })
             Logger.graph_append(self.sketch_id, {"message":f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."})
 

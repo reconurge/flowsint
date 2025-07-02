@@ -4,11 +4,11 @@ from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
 import requests
 from app.scanners.base import Scanner
-from app.types.wallet import Wallet, NFT
+from app.types.wallet import CryptoWallet, CryptoNFT
 from app.utils import resolve_type
 from app.core.logger import Logger
-InputType: TypeAlias = List[Wallet]
-OutputType: TypeAlias = List[NFT]
+InputType: TypeAlias = List[CryptoWallet]
+OutputType: TypeAlias = List[CryptoNFT]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
@@ -22,7 +22,7 @@ class WalletAddressToNFTs(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "crypto"
+        return "CryptoWallet"
     
     @classmethod
     def key(cls) -> str:
@@ -59,10 +59,10 @@ class WalletAddressToNFTs(Scanner):
         for item in data:
             wallet_obj = None
             if isinstance(item, str):
-                wallet_obj = Wallet(address=item)
+                wallet_obj = CryptoWallet(address=item)
             elif isinstance(item, dict) and "address" in item:
-                wallet_obj = Wallet(address=item["address"])
-            elif isinstance(item, Wallet):
+                wallet_obj = CryptoWallet(address=item["address"])
+            elif isinstance(item, CryptoWallet):
                 wallet_obj = item
             if wallet_obj:
                 cleaned.append(wallet_obj)
@@ -78,7 +78,7 @@ class WalletAddressToNFTs(Scanner):
                 print(f"Error resolving nfts for {d.address}: {e}")
         return results
     
-    def _get_nfts(self, address: str) -> List[NFT]:
+    def _get_nfts(self, address: str) -> List[CryptoNFT]:
         nfts = []
         """Get nfts for a wallet address."""
         params = {
@@ -96,8 +96,8 @@ class WalletAddressToNFTs(Scanner):
         data = response.json()
         results = data["result"]
         for tx in results:
-            nfts.append(NFT(
-                wallet=Wallet(address=address),
+            nfts.append(CryptoNFT(
+                wallet=CryptoWallet(address=address),
                 contract_address=tx["contractAddress"],
                 token_id=tx["tokenID"],
                 collection_name=tx["collectionName"],

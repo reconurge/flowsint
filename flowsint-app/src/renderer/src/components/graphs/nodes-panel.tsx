@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TypeBadge } from "@/components/type-badge"
 import { Search, FilterIcon, XIcon } from "lucide-react"
-import { usePlatformIcons } from "@/hooks/use-platform-icons"
 import { Input } from "@/components/ui/input"
 import { actionItems } from "@/lib/action-items"
 import { cn } from "@/lib/utils"
@@ -24,61 +23,22 @@ import { Checkbox } from "@/components/ui/checkbox"
 // Hauteur fixe pour chaque item (en pixels)
 const ITEM_HEIGHT = 40
 
-// Mémoiser le composant SocialNode
-const SocialNode = memo(
-    ({
-        node,
-        setCurrentNode,
-        onCheckboxChange,
-        isNodeChecked,
-    }: {
-        node: any
-        setCurrentNode: (node: GraphNode) => void
-        onCheckboxChange: (node: GraphNode, checked: boolean) => void
-        isNodeChecked: (nodeId: string) => boolean
-    }) => {
-        const platformsIcons = usePlatformIcons()
-        const platformIcon = useMemo(() => {
-            // @ts-ignore
-            return platformsIcons?.[node?.data?.platform]?.icon
-        }, [platformsIcons, node?.data?.platform])
-
-        const handleClick = useCallback(() => setCurrentNode(node), [node, setCurrentNode])
-
-        const handleCheckboxChange = useCallback(
-            (checked: boolean) => {
-                onCheckboxChange(node, checked)
-            },
-            [node, onCheckboxChange],
-        )
-
-        return (
-            <div className="flex items-center border-b h-full">
-                <div className="pl-2">
-                    <Checkbox checked={isNodeChecked(node.id)} onCheckedChange={handleCheckboxChange} className="mr-1" />
-                </div>
-                <Button
-                    variant={"ghost"}
-                    className={cn(
-                        "flex-1 flex items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent h-full gap-2"
-                    )}
-                    onClick={handleClick}
-                >
-                    <Badge variant="secondary" className="h-7 w-7 p-0 rounded-full flex-shrink-0">
-                        {platformIcon}
-                    </Badge>
-                    <div className="min-w-0 grow truncate text-ellipsis">
-                        {node?.data?.username || <span className="italic opacity-60">Unknown</span>}
-                    </div>
-                    <div className="flex-shrink-0">
-                        <TypeBadge type={node?.data?.type as string} />
-                    </div>
-                </Button>
-            </div>
-        )
-    },
-)
-
+// Function to extract all leaf-level node types from actionItems
+const getAllNodeTypes = () => {
+    const types: string[] = []
+    actionItems.forEach(item => {
+        if (item.children) {
+            item.children.forEach(child => {
+                if (child.type && !types.includes(child.type)) {
+                    types.push(child.type)
+                }
+            })
+        } else if (item.type && !types.includes(item.type)) {
+            types.push(item.type)
+        }
+    })
+    return types.sort()
+}
 // Mémoiser le composant NodeRenderer
 const NodeRenderer = memo(
     ({
@@ -99,17 +59,6 @@ const NodeRenderer = memo(
             },
             [node, onCheckboxChange],
         )
-
-        if (node.data?.type === "social") {
-            return (
-                <SocialNode
-                    setCurrentNode={setCurrentNode}
-                    node={node}
-                    onCheckboxChange={onCheckboxChange}
-                    isNodeChecked={isNodeChecked}
-                />
-            )
-        }
 
         return (
             <div className="flex items-center hover:bg-muted border-b h-full">
@@ -171,7 +120,9 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                 //@ts-ignore
                 node?.data?.label?.toLowerCase().includes(searchText) || node?.id?.toLowerCase().includes(searchText)
 
-            const matchesFilter = !filters || filters.includes(node?.data?.type as string)
+            const matchesFilter = !filters || filters.some(filter =>
+                filter.toLowerCase() === (node?.data?.type as string)?.toLowerCase()
+            )
 
             return matchesSearch && matchesFilter
         })
@@ -212,6 +163,20 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         [selectedNodes],
     )
 
+    const handleCheckAll = useCallback(
+        (checked: boolean) => {
+            if (!checked) {
+                setSelectedNodes([])
+                return
+            }
+            if (filters?.length || searchQuery) {
+                setSelectedNodes(filteredNodes)
+            }
+            else setSelectedNodes(nodes)
+        },
+        [nodes, filteredNodes, filters, searchQuery, selectedNodes, setSelectedNodes],
+    )
+
     const handleCheckboxChange = useCallback(
         (node: GraphNode, checked: boolean) => {
             if (checked) {
@@ -227,7 +192,11 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         <div className="overflow-hidden bg-card h-full flex flex-col w-full !p-0 !m-0">
             {/* Header fixe */}
             <div className="sticky border-b top-0 p-2 bg-card z-10 flex-shrink-0">
+
                 <div className="flex items-center gap-2">
+                    <div>
+                        <Checkbox onCheckedChange={handleCheckAll} className="mr-1" />
+                    </div>
                     <Badge className="h-7" variant={"outline"}>
                         <span className="font-semibold">
                             {(filters?.length || searchQuery) ? `${filteredNodes?.length} / ${nodes?.length || 0}` : nodes?.length || 0}</span>{" "}
@@ -275,13 +244,13 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                             <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>
                                 All
                             </DropdownMenuItem>
-                            {actionItems.map((item) => (
+                            {getAllNodeTypes().map((type) => (
                                 <DropdownMenuItem
-                                    className={cn(filters?.includes(item?.type) && "bg-primary/30")}
-                                    key={item.id}
-                                    onClick={() => toggleFilter(item?.type)}
+                                    className={cn(filters?.includes(type) && "bg-primary/30")}
+                                    key={type}
+                                    onClick={() => toggleFilter(type)}
                                 >
-                                    {item?.type || "unknown"}
+                                    {type || "unknown"}
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>

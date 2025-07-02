@@ -22,7 +22,7 @@ class AsnToCidrsScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "asns"
+        return "Asn"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:

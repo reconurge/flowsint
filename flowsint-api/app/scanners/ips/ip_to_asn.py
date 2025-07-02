@@ -22,7 +22,7 @@ class IpToAsnScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "ips"
+        return "Ip"
     
     @classmethod
     def key(cls) -> str:

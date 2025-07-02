@@ -55,7 +55,7 @@ export const actionItems: ActionItem[] = [
                 type: "Individual",
                 table: "individuals",
                 key: "individual",
-                label_key: "first_name",
+                label_key: "full_name",
                 icon: "individual",
                 label: "Individual",
                 fields: [{ name: "first_name", label: "Firstname", type: "text", required: true },

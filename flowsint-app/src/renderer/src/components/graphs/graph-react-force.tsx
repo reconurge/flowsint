@@ -12,7 +12,7 @@ interface GraphReactForceProps {
     style?: React.CSSProperties;
 }
 
-const NODE_COUNT_THRESHOLD = 1500;
+const NODE_COUNT_THRESHOLD = 500;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useGraphStore(s => s.nodes) as GraphNode[];
@@ -25,7 +25,11 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     // const currentNode = useGraphStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
     const [menu, setMenu] = useState<any>(null);
-    const shouldUseSimpleRendering = useMemo(() => nodes.length > NODE_COUNT_THRESHOLD, [nodes.length]);
+    const [currentZoom, setCurrentZoom] = useState(1);
+    const shouldUseSimpleRendering = useMemo(() => {
+        // Use simple rendering for large node counts or when zoomed out
+        return nodes.length > NODE_COUNT_THRESHOLD || currentZoom < 2.5;
+    }, [nodes.length, currentZoom]);
 
     // Transform data for Force Graph
     const graphData = useMemo(() => {
@@ -106,10 +110,11 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         const size = node.nodeSize;
         const type = node.nodeType as ItemType;
 
+        // Use simple rendering for large node counts
         if (shouldUseSimpleRendering) {
             // Simple circle rendering for large node counts
             ctx.beginPath();
-            ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
+            ctx.arc(node.x, node.y, size * .65, 0, 2 * Math.PI);
             ctx.fillStyle = node.nodeColor;
             ctx.fill();
         } else {
@@ -126,7 +131,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
             if (globalScale > 3) {
                 const label = node.nodeLabel || node.label || node.id;
                 if (label) {
-                    const fontSize = Math.max(2, size * 0.2);
+                    const fontSize = Math.max(2, size * 0.4);
                     ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                     const textWidth = ctx.measureText(label).width;
                     const padding = 2;
@@ -140,7 +145,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     const bgY = node.y + size / 2 + 1;
 
                     ctx.beginPath();
-                    ctx.roundRect(bgX, bgY, bgWidth, bgHeight, 2);
+                    ctx.roundRect(bgX, bgY, bgWidth, bgHeight, .75);
                     ctx.fill();
                     ctx.stroke();
 
@@ -239,7 +244,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
     return (
         <div className="relative h-full grow w-full bg-background">
-            <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 300 }}>
+            <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 300, minWidth: 300 }}>
                 <ForceGraph2D
                     ref={graphRef}
                     width={dimensions.width}
@@ -288,6 +293,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                         }
                     }}
                     backgroundColor="transparent"
+                    onZoom={(zoom) => setCurrentZoom(zoom.k)}
                 />
                 {menu && <ContextMenu
                     onClick={handleBackgroundClick}

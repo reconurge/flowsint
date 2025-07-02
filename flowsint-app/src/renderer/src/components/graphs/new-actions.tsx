@@ -45,8 +45,14 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                 return
             }
             const label_key = currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name || currentNodeType.fields[0].name
-            const label = data[label_key as keyof typeof data]
             const type = currentNodeType.type
+            let label = data[label_key as keyof typeof data]
+            if (type === "Individual") {
+                data.full_name = `${data.first_name} ${data.last_name}`
+                label = data.full_name
+            }
+
+            // Quick fix in the case where it's an individual, we want to add the fullname
             const newNode = {
                 type: "custom",
                 label: label,

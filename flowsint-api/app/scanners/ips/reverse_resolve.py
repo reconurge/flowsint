@@ -25,7 +25,7 @@ class ReverseResolveScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "ips"
+        return "Ip"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:

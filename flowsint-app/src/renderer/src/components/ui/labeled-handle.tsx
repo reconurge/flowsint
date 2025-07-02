@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes } from "react";
+import { forwardRef, ReactNode, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { type HandleProps } from "@xyflow/react";
 
@@ -16,14 +16,14 @@ export const LabeledHandle = forwardRef<
     HTMLDivElement,
     HandleProps &
     HTMLAttributes<HTMLDivElement> & {
-        name: string | (string & Element);
-        dataType: string,
+        label: string | (string & Element) | ReactNode;
+        description: string,
         handleClassName?: string;
         labelClassName?: string;
     }
 >(
     (
-        { className, labelClassName, handleClassName, name, position, dataType, ...props },
+        { className, labelClassName, handleClassName, label, position, description, ...props },
         ref,
     ) => (
         <div
@@ -36,7 +36,7 @@ export const LabeledHandle = forwardRef<
         >
             <BaseHandle position={position} className={handleClassName} {...props} />
             <label className={cn("px-3 text-foreground", labelClassName)}>
-                {name} <Badge variant={"outline"}>{dataType}</Badge>
+                {label} <Badge variant={"outline"}>{description}</Badge>
             </label>
         </div>
     ),

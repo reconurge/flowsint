@@ -1,15 +1,15 @@
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, Field, HttpUrl
 
-class Wallet(BaseModel):
+class CryptoWallet(BaseModel):
     """Represents a cryptocurrency wallet."""
     address: str = Field(..., description="Wallet address")
     node_id: Optional[str] = Field(None, description="Wallet Explorer node ID")
 
-class WalletTransaction(BaseModel):
+class CryptoWalletTransaction(BaseModel):
     """Represents a cryptocurrency transaction."""
-    source: Wallet = Field(..., description="Source wallet")
-    target: Optional[Wallet] = Field(None, description="Target wallet")
+    source: CryptoWallet = Field(..., description="Source wallet")
+    target: Optional[CryptoWallet] = Field(None, description="Target wallet")
     hash: Optional[str] = Field(None, description="Transaction hash")
     value: Optional[float] = Field(None, description="Transaction value in cryptocurrency")
     amount: Optional[float] = Field(None, description="Transaction amount in cryptocurrency")
@@ -35,9 +35,9 @@ class WalletTransaction(BaseModel):
     error_message: Optional[str] = Field(None, description="Error message if transaction failed")
 
 
-class NFT(BaseModel):
+class CryptoNFT(BaseModel):
     """Represents a Non-Fungible Token (NFT) held or minted by a wallet."""
-    wallet: Wallet = Field(..., description="Source wallet")
+    wallet: CryptoWallet = Field(..., description="Source wallet")
     contract_address: str = Field(..., description="Address of the NFT smart contract (ERC-721/1155)")
     token_id: str = Field(..., description="Unique token ID of the NFT within the contract")
     collection_name: Optional[str] = Field(None, description="Name of the NFT collection")
@@ -56,6 +56,6 @@ class NFT(BaseModel):
 
 
 # Update forward references
-Wallet.model_rebuild()
-WalletTransaction.model_rebuild()
-NFT.model_rebuild()
+CryptoWallet.model_rebuild()
+CryptoWalletTransaction.model_rebuild()
+CryptoNFT.model_rebuild()

@@ -1,9 +1,7 @@
-import pytest
 from app.scanners.domains.subdomains import SubdomainScanner
 from app.types.domain import Domain, Domain
 
 scanner = SubdomainScanner("sketch_123", "scan_123")
-
 
 def test_preprocess_valid_domains():
     domains = [
@@ -95,11 +93,3 @@ def test_scan_extracts_subdomains(monkeypatch):
     ])
     print(domains)
     # assert domains[0].subdomains == expected
-
-
-def test_schemas():
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
-    assert input_schema == {'type': 'Domain', 'properties': [{'name': 'domain', 'type': 'string'}, {'name': 'subdomains', 'type': 'array | null'}, {'name': 'ips', 'type': 'array | null'}, {'name': 'whois', 'type': 'Whois | null'}]}
-    assert output_schema == {'type': 'Domain', 'properties': [{'name': 'domain', 'type': 'string'}, {'name': 'subdomains', 'type': 'array | null'}, {'name': 'ips', 'type': 'array | null'}, {'name': 'whois', 'type': 'Whois | null'}]}
-

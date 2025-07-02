@@ -19,8 +19,9 @@ from app.api.deps import get_current_user
 from app.api.schemas.transform import TransformRead, TransformCreate, TransformUpdate
 from app.types.asn import ASN
 from app.types.cidr import CIDR
-from app.types.wallet import Wallet, WalletTransaction
+from app.types.wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
 from app.types.website import Website
+from app.types.individual import Individual
 
 class FlowComputationRequest(BaseModel):
     nodes: List[Node]
@@ -62,12 +63,13 @@ def get_transforms(
 
 # Returns the "raw_materials" for the transform editor
 @router.get("/raw_materials")
-async def get_scans_list(current_user: Profile = Depends(get_current_user)):
+async def get_scans_list():
     scanners = ScannerRegistry.list_by_category()
     flattened_scanners = {
         category: [
             {
                 "class_name": scanner["class_name"],
+                "category": scanner["category"],
                 "name": scanner["name"],
                 "module": scanner["module"],
                 "doc": scanner["doc"],
@@ -83,6 +85,7 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
     # Ajoute les types comme des "scanners" spéciaux de type 'type'
     object_inputs = [
         extract_input_schema("Organization", Organization),
+        extract_input_schema("Individual", Individual),
         extract_input_schema("Domain", Domain),
         extract_input_schema("Website", Website),
         extract_input_schema("Ip", Ip),
@@ -90,9 +93,9 @@ async def get_scans_list(current_user: Profile = Depends(get_current_user)):
         extract_input_schema("CIDR", CIDR),
         extract_input_schema("SocialProfile", SocialProfile),
         extract_input_schema("Email", Email),
-        extract_input_schema("CryptoWallet", Wallet),
-        extract_input_schema("CryptoTransaction", WalletTransaction),
-
+        extract_input_schema("CryptoWallet", CryptoWallet),
+        extract_input_schema("CryptoTransaction", CryptoWalletTransaction),
+        extract_input_schema("CryptoNFT", CryptoNFT)
     ]
     flattened_scanners["types"] = object_inputs
 

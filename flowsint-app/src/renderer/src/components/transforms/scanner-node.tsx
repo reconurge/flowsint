@@ -3,8 +3,9 @@ import { Position } from "@xyflow/react"
 import { LabeledHandle } from "../ui/labeled-handle"
 import { Badge } from "../ui/badge"
 import { BaseNodeSchema } from "../ui/base-node"
-import { getScannerColor } from "./scanner-data"
 import { NodeStatusIndicator } from "../ui/node-status-indicator"
+import { useNodesDisplaySettings } from "@/stores/node-display-settings"
+import { useIcon } from "@/hooks/use-icon"
 
 // Types for the scanner node based on the new structure
 export interface ScannerNodeData extends Record<string, unknown> {
@@ -70,8 +71,13 @@ const getStateColor = (state?: string) => {
 
 // Memoized scanner node component with custom equality check
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
-    const color = getScannerColor(data.type, data.category)
+    const colors = useNodesDisplaySettings(s => s.colors)
+    const inputColor = colors[data.inputs.type.toLowerCase()]
+    const outputColor = colors[data.outputs.type.toLowerCase()]
     const opacity = data.computationState === "pending" ? 0.5 : 1
+    const InputIconComponent = useIcon(data.inputs.type.toLowerCase() as string, null);
+    const OutputIconComponent = useIcon(data.outputs.type.toLowerCase() as string, null);
+
 
     const getStatusVariant = (state?: string) => {
         switch (state) {
@@ -92,7 +98,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
         <NodeStatusIndicator variant={getStatusVariant(data.computationState)}>
             <BaseNodeSchema
                 className="shadow-md rounded-md p-0 bg-background !max-w-[340px]"
-                style={{ borderLeftWidth: 4, borderLeftColor: color, cursor: "grab", opacity }}
+                style={{ borderLeftWidth: 8, borderRightWidth: 8, borderLeftColor: inputColor ?? outputColor, borderRightColor: outputColor, cursor: "grab", opacity }}
                 selected={selected}
             >
                 <div className="p-3 bg-card rounded-t-md">
@@ -114,32 +120,28 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                 <div>
                     <div className="grid grid-cols-2 py-1">
                         <div className="pl-0 pr-6">
-                            <p className="font-bold text-center text-xs mb-2">{data.inputs.type}</p>
-                            {data?.inputs?.properties?.map((property, i) => (
+                            {data.inputs.properties.length > 0 && (
                                 <LabeledHandle
                                     isConnectable={isConnectable}
-                                    id={property.name}
-                                    name={property.name}
-                                    dataType={property.type}
-                                    key={i}
+                                    id={data.inputs.type}
+                                    label={<span className="flex items-center gap-1">{data.inputs.type}<InputIconComponent size={12} /></span>}
+                                    description={`${data.inputs.properties.length} properties`}
                                     type="target"
                                     position={Position.Left}
                                 />
-                            ))}
+                            )}
                         </div>
                         <div className="pr-0">
-                            <p className="font-bold text-center pr-1 text-xs mb-2">{data.outputs.type}</p>
-                            {data?.outputs?.properties?.map((property, i) => (
+                            {data.outputs.properties.length > 0 && (
                                 <LabeledHandle
                                     isConnectable={isConnectable}
-                                    id={property.name}
-                                    name={property.name}
-                                    dataType={property.type}
-                                    key={i}
+                                    id={data.outputs.type}
+                                    label={<span className="flex items-center gap-1"><OutputIconComponent size={12} />{data.outputs.type}</span>}
+                                    description={`${data.inputs.properties.length} properties`}
                                     type="source"
                                     position={Position.Right}
                                 />
-                            ))}
+                            )}
                         </div>
                     </div>
                 </div>

@@ -19,7 +19,7 @@ class CidrToIpsScanner(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "cidrs"
+        return "Cidr"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:

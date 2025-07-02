@@ -59,6 +59,7 @@ const defaultMarkerEnd: EdgeMarker = {
 }
 
 const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform }: TransformEditorProps) => {
+    // #### React Flow and UI State ####
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
     const reactFlowWrapper = useRef<HTMLDivElement>(null)
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
@@ -67,10 +68,14 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     const { transformId } = useParams({ strict: false })
     const [showModal, setShowModal] = useState(false)
     const hasInitialized = useRef(false)
+    
+    // #### Simulation State ####
     const [isSimulating, setIsSimulating] = useState(false)
     const [currentStepIndex, setCurrentStepIndex] = useState(0)
     const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
     const [transformBranches, setTransformsBranches] = useState<any[]>([])
+    
+    // #### Transform Store State ####
     const nodes = useTransformStore(state => state.nodes)
     const edges = useTransformStore(state => state.edges)
     const selectedNode = useTransformStore(state => state.selectedNode)
@@ -84,6 +89,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     const setLoading = useTransformStore(state => state.setLoading)
     const deleteNode = useTransformStore(state => state.deleteNode)
 
+    // #### Initialization Effects ####
     // Initialize store with initial data
     useEffect(() => {
         if (!hasInitialized.current && (initialNodes.length > 0 || initialEdges.length > 0)) {
@@ -106,6 +112,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         }
     }, [selectedNode, reactFlowInstance, setCenter])
 
+    // #### Drag and Drop Handlers ####
     const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault()
         event.dataTransfer.dropEffect = "move"
@@ -160,6 +167,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         [reactFlowInstance, nodes, setNodes, setCenter],
     )
 
+    // #### Node Interaction Handlers ####
     const onNodeClick: NodeMouseHandler = useCallback(
         (_: React.MouseEvent, node: Node) => {
             const typedNode = node as TransformNode
@@ -178,6 +186,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         setSelectedNode(null)
     }, [setSelectedNode])
 
+    // #### Layout and Node Management ####
     const onLayout = useCallback(() => {
         // Wait for nodes to be measured before running layout
         setTimeout(() => {
@@ -210,6 +219,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         }
     }, [selectedNode, deleteNode])
 
+    // #### Transform CRUD Operations ####
     const saveTransform = useCallback(
         async (name: string, description: string) => {
             setLoading(true)
@@ -274,6 +284,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         }
     }, [transformId, confirm, setLoading])
 
+    // #### Flow Computation ####
     const handleComputeFlow = useCallback(async () => {
         if (!transformId) {
             toast.error("Save the transform first to compute the flow.")
@@ -297,6 +308,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         }
     }, [transformId, nodes, edges])
 
+    // #### Simulation State Management ####
     // Update the updateNodeState function with proper types
     const updateNodeState = useCallback((nds: TransformNode[], nodeId: string, state: 'pending' | 'processing' | 'completed' | 'error') => {
         return nds.map((node) => {
@@ -313,7 +325,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         })
     }, [])
 
-    // In the simulation effect
+    // #### Simulation Effect ####
     useEffect(() => {
         if (!isSimulating || loading) return
 
@@ -372,6 +384,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         return () => clearTimeout(timer)
     }, [isSimulating, currentStepIndex, simulationSpeed, loading, transformBranches, updateNodeState])
 
+    // #### Simulation Control Functions ####
     const startSimulation = () => {
         // Reset all nodes to pending state
         setNodes((nds: TransformNode[]) =>
@@ -465,6 +478,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         )
     }
 
+    // #### Render ####
     return (
         <>
             <div ref={reactFlowWrapper} className="w-full h-full bg-background">
@@ -541,6 +555,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
 
 TransformEditor.displayName = "TransformEditor"
 
+// #### Main Component ####
 function TransformEditor({
     initialEdges = [],
     initialNodes = [],
@@ -568,11 +583,11 @@ function TransformEditor({
     )
 }
 
-// Update the NodePanel type
+// #### Node Panel Component ####
 const NodePanel = memo(({ node, onDelete }: { node: TransformNode; onDelete: () => void }) => (
     <Panel position="bottom-right" className="bg-card p-3 rounded-md shadow-md border w-72">
         <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium">{node.data.class_name}</h3>
+            <h3 className="font-medium">{node.data.name}</h3>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDelete}>
                 <TrashIcon className="h-4 w-4" />
             </Button>

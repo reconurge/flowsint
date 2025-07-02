@@ -32,3 +32,4 @@ beautifulsoup4
 lxml
 requests-random-user-agent
 spacy
+docker

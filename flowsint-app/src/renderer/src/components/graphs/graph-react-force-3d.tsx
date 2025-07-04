@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import { GraphEdge, GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useNodesDisplaySettings } from '@/stores/node-display-settings';

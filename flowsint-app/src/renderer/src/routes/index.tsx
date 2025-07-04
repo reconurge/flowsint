@@ -1,7 +1,7 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Navigate, createFileRoute } from '@tanstack/react-router'
 
 
 export const Route = createFileRoute('/')({
 
-    component: () => <Outlet />
+    component: () => <Navigate to={"/dashboard"} />
 })

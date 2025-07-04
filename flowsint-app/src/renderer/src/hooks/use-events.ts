@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { logService } from "@/api/log-service"
-import { GraphEdge, GraphNode } from "@/stores/graph-store"
 import { EventLevel } from "@/types"
 import { useGraphControls } from "@/stores/graph-controls-store"
 

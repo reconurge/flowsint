@@ -7,9 +7,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { SkeletonList } from '@/components/shared/skeleton-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDistanceToNow } from 'date-fns'
-import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import NewTransform from '@/components/transforms/new-transform'
 
 interface Transform {
     id: string
@@ -27,31 +27,10 @@ export const Route = createFileRoute('/_auth/dashboard/transforms/')({
 
 function TransformsPage() {
     const navigate = useNavigate()
-    const { data: transforms, isLoading, refetch } = useQuery<Transform[]>({
+    const { data: transforms, isLoading } = useQuery<Transform[]>({
         queryKey: ["transforms"],
         queryFn: () => transformService.get(),
     })
-
-    const handleCreateTransform = async () => {
-        toast.promise(
-            (async () => {
-                const response = await transformService.create(JSON.stringify({
-                    name: "New Transform",
-                    description: "A new transform",
-                    category: [],
-                    transform_schema: {}
-                }))
-                refetch()
-                navigate({ to: `/dashboard/transforms/${response.id}` })
-                return response
-            })(),
-            {
-                loading: 'Creating transform...',
-                success: 'Transform created successfully.',
-                error: 'Failed to create transform.'
-            }
-        )
-    }
 
     // Get all unique categories
     const categories = transforms?.reduce((acc: string[], transform) => {
@@ -78,10 +57,12 @@ function TransformsPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button size="sm" onClick={handleCreateTransform}>
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                New Transform
-                            </Button>
+                            <NewTransform>
+                                <Button size="sm">
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    New Transform
+                                </Button>
+                            </NewTransform>
                         </div>
                     </div>
                 </div>
@@ -100,10 +81,12 @@ function TransformsPage() {
                         <p className="text-muted-foreground mb-6 max-w-md">
                             Get started by creating your first transform. You can use transforms to process and manipulate your data in powerful ways.
                         </p>
-                        <Button onClick={handleCreateTransform}>
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            Create your first transform
-                        </Button>
+                        <NewTransform>
+                            <Button>
+                                <PlusIcon className="w-4 h-4 mr-2" />
+                                Create your first transform
+                            </Button>
+                        </NewTransform>
                     </div>
                 ) : (
                     <Tabs defaultValue="All" className="space-y-6">

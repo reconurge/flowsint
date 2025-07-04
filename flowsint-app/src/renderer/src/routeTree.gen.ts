@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MiddlewareRouteImport } from './routes/middleware'
@@ -26,13 +24,6 @@ import { Route as AuthDashboardTransformsTransformIdRouteImport } from './routes
 import { Route as AuthDashboardInvestigationsInvestigationIdIndexRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.index'
 import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.$type.$id'
 
-const ToolbarLazyRouteImport = createFileRoute('/toolbar')()
-
-const ToolbarLazyRoute = ToolbarLazyRouteImport.update({
-  id: '/toolbar',
-  path: '/toolbar',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/toolbar.lazy').then((d) => d.Route))
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -113,7 +104,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/middleware': typeof MiddlewareRoute
   '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
   '/dashboard': typeof AuthDashboardRouteWithChildren
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard/vault': typeof AuthDashboardVaultRoute
@@ -129,7 +119,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/middleware': typeof MiddlewareRoute
   '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard/vault': typeof AuthDashboardVaultRoute
   '/dashboard': typeof AuthDashboardIndexRoute
@@ -146,7 +135,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/middleware': typeof MiddlewareRoute
   '/register': typeof RegisterRoute
-  '/toolbar': typeof ToolbarLazyRoute
   '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
   '/_auth/dashboard/tools': typeof AuthDashboardToolsRoute
   '/_auth/dashboard/vault': typeof AuthDashboardVaultRoute
@@ -164,7 +152,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/middleware'
     | '/register'
-    | '/toolbar'
     | '/dashboard'
     | '/dashboard/tools'
     | '/dashboard/vault'
@@ -180,7 +167,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/middleware'
     | '/register'
-    | '/toolbar'
     | '/dashboard/tools'
     | '/dashboard/vault'
     | '/dashboard'
@@ -196,7 +182,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/middleware'
     | '/register'
-    | '/toolbar'
     | '/_auth/dashboard'
     | '/_auth/dashboard/tools'
     | '/_auth/dashboard/vault'
@@ -214,18 +199,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MiddlewareRoute: typeof MiddlewareRoute
   RegisterRoute: typeof RegisterRoute
-  ToolbarLazyRoute: typeof ToolbarLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/toolbar': {
-      id: '/toolbar'
-      path: '/toolbar'
-      fullPath: '/toolbar'
-      preLoaderRoute: typeof ToolbarLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -372,7 +349,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MiddlewareRoute: MiddlewareRoute,
   RegisterRoute: RegisterRoute,
-  ToolbarLazyRoute: ToolbarLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

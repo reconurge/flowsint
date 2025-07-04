@@ -1,7 +1,6 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app } from 'electron'
 import { initializeMainWindow } from './main-window'
-import { initTabsIpcHandlers } from './tabs-handler'
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
@@ -10,7 +9,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  initTabsIpcHandlers()
   initializeMainWindow()
 })
 

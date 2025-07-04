@@ -114,7 +114,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     cryptowallet: "#F7D154",    // Notion gold
     cryptotransaction: "#E6D4A0", // Notion warm yellow
     cryptonft: "#D4E6A0",       // Notion soft lime
-    asn: "#E8C8A0",             // Notion warm peach
+    asn: "#EAAFAF",             // Notion warm peach
     cidr: "#B8E6B8",            // Notion soft mint
     whois: "#D4B5D4",           // Notion dusty lavender
     gravatar: "#A8D8E8",        // Notion pale blue
@@ -195,7 +195,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     cryptowallet: 7,
     cryptotransaction: 7,
     cryptonft: 7,
-    asn: 12,
+    asn: 11,
     cidr: 10,
     whois: 6,
     gravatar: 7,

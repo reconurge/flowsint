@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { HelpCircle, Info } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog'
 import { Button } from '../ui/button'
 

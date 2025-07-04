@@ -1,10 +1,17 @@
 {
-  "name": "electron-chrome-tabs",
+  "name": "flowsint-app",
+  "productName": "Flowsint",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "AI-powered graph analysis and intelligence platform to help you discover hidden relationships and insights.",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "win": {
+    "icon": "build/icon.ico"
+  },
+  "mac": {
+    "icon": "build/icon.icns"
+  },
+  "author": "DexterMorgan",
+  "homepage": "https://www.flowsint.fr/",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
@@ -116,6 +123,7 @@
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@tanstack/react-router": "^1.98.0",
+    "@tanstack/router-cli": "^1.124.0",
     "@tanstack/router-devtools": "^1.98.0",
     "@types/node": "^22.15.29",
     "@types/react": "^18.3.3",
@@ -123,7 +131,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "electron": "^31.0.2",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.0.12",
     "electron-store": "^10.0.1",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",

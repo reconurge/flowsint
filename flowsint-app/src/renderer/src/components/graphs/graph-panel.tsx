@@ -128,7 +128,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     <WallEditor isRefetching={isRefetching} isLoading={loading} />
                 )} */}
                 {/* <Graph /> */}
-                {nodes?.length > 5000 ? (
+                {nodes?.length > 100 ? (
                     <Graph />
                 ) : (
                     view === "force" ? <GraphReactForce /> :

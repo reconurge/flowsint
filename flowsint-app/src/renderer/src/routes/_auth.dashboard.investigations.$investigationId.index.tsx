@@ -12,7 +12,6 @@ import type { Analysis } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDistanceToNow } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAnalysisPanelStore } from '@/stores/analysis-panel-store'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useQuery } from '@tanstack/react-query'
 
@@ -143,8 +142,6 @@ function InvestigationPage() {
     })
     const hasSketches = investigation?.sketches?.length > 0
     const hasAnalyses = analyses && analyses.length > 0
-    const setCurrentAnalysisId = useAnalysisPanelStore(s => s.setCurrentAnalysisId)
-    const openChat = useLayoutStore(s => s.openChat)
 
     // Get the most recent sketch update
     const mostRecentSketch = investigation.sketches?.sort((a, b) =>
@@ -155,11 +152,6 @@ function InvestigationPage() {
     const mostRecentAnalysis = analyses?.sort((a, b) =>
         new Date(b.last_updated_at).getTime() - new Date(a.last_updated_at).getTime()
     )[0]
-
-    const handleAnalysisClick = (analysisId: string) => {
-        setCurrentAnalysisId(analysisId)
-        openChat()
-    }
 
     // Get the most recent activity between sketches and analyses
     const getMostRecentActivity = () => {

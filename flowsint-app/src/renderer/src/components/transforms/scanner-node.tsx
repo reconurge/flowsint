@@ -98,7 +98,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
         <NodeStatusIndicator variant={getStatusVariant(data.computationState)}>
             <BaseNodeSchema
                 className="shadow-md rounded-md p-0 bg-background !max-w-[340px]"
-                style={{ borderLeftWidth: 8, borderRightWidth: 8, borderLeftColor: inputColor ?? outputColor, borderRightColor: outputColor, cursor: "grab", opacity }}
+                style={{ borderLeftWidth: 5, borderRightWidth: 5, borderLeftColor: inputColor ?? outputColor, borderRightColor: outputColor, cursor: "grab", opacity }}
                 selected={selected}
             >
                 <div className="p-3 bg-card rounded-t-md">

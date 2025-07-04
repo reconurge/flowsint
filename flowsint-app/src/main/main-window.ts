@@ -1,19 +1,20 @@
 import { is } from '@electron-toolkit/utils'
-import { app, BaseWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import icon from '../../resources/icon.png?asset'
-import { restoreTabs, saveTabs, showContent } from './tabs'
-import { createToolbar } from './toolbar'
+import { join } from 'path'
 
-let baseWindow: BaseWindow | null = null
+let mainWindow: BrowserWindow | null = null
+
 /**
- * Initializes the main application window with a splash screen.
- * Creates the window, configures settings, loads toolbar and content,
- * checks for updates, handles authentication, and restores previous window state.
+ * Initializes the main application window.
+ * Creates the window and loads the renderer content.
  * Must only be called once during application startup.
  */
 export async function initializeMainWindow() {
-  baseWindow = new BaseWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
+    icon: join(__dirname, 'icon.png'),
+    title: "Flowsint",
     height: 770,
     show: false,
     autoHideMenuBar: true,
@@ -25,48 +26,60 @@ export async function initializeMainWindow() {
       y: 9
     },
     backgroundColor: '#292524',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+      partition: 'persist:shared'
+    },
     ...(process.platform === 'linux' ? { icon } : {})
   })
 
-  // Set the main window, Must be called here before any other functions.
+  // Set up event handlers
   setupMainWindowEventHandlers()
 
-  const toolbar = await createToolbar()
-  const mainContent = await restoreTabs()
-  if (mainContent === null || toolbar === null) {
-    console.error('Failed to load toolbar or mainContent')
-    return
+  // Load the renderer content
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  baseWindow.contentView.addChildView(toolbar!)
-  baseWindow.contentView.addChildView(mainContent)
+  // Set CSP to allow connections to localhost:5001
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:5001 ws: wss:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';"
+        ]
+      }
+    })
+  })
 
-  showContent(mainContent)
-  mainContent.webContents.focus()
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    require('electron').shell.openExternal(details.url)
+    return { action: 'deny' }
+  })
+
   showWindow()
 }
 
 /**
  * Configures event handlers for window resizing, movement, and application lifecycle events.
  * Handles window state persistence and platform-specific behaviors (Mac/Windows).
- * @param baseWindow - The main application window instance
  */
 function setupMainWindowEventHandlers() {
   app.on('activate', () => {
     showWindow()
   })
-
-  app.on('before-quit', () => {
-    saveTabs()
-  })
 }
 
 /**
  * Returns the main application window instance.
- * @returns The main BaseWindow instance or null if not initialized
+ * @returns The main BrowserWindow instance or null if not initialized
  */
-export function getBaseWindow() {
-  return baseWindow
+export function getMainWindow() {
+  return mainWindow
 }
 
 /**
@@ -74,17 +87,17 @@ export function getBaseWindow() {
  * Handles different behavior for development and production environments.
  */
 export function showWindow() {
-  if (!baseWindow) {
+  if (!mainWindow) {
     return
   }
 
   //? This is to prevent the window from gaining focus everytime we make a change in code.
   if (!is.dev && !process.env['ELECTRON_RENDERER_URL']) {
-    baseWindow!.show()
+    mainWindow.show()
     return
   }
 
-  if (!baseWindow.isVisible()) {
-    baseWindow!.show()
+  if (!mainWindow.isVisible()) {
+    mainWindow.show()
   }
 }

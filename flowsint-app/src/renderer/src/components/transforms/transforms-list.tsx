@@ -5,7 +5,9 @@ import { SkeletonList } from "../shared/skeleton-list"
 import { Input } from "../ui/input"
 import { useState, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { Pencil } from "lucide-react"
+import { Pencil, PlusIcon } from "lucide-react"
+import { Button } from "../ui/button"
+import NewTransform from "./new-transform"
 
 const TransformsList = () => {
     const { data: transforms, isLoading } = useQuery({
@@ -34,7 +36,12 @@ const TransformsList = () => {
 
     return (
         <div className="flex flex-col h-full min-h-0 overflow-hidden bg-card">
-            <div className="p-2 border-b">
+            <div className="p-2 border-b flex items-center gap-1">
+                <NewTransform>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <PlusIcon className="h-4 w-4" />
+                    </Button>
+                </NewTransform>
                 <Input
                     type="search"
                     className="h-7"

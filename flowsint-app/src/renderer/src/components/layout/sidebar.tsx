@@ -1,5 +1,4 @@
 import {
-    BrickWall,
     ChevronsRightIcon,
     Fingerprint,
     Home,

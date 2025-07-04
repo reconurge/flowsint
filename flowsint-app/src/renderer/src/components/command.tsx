@@ -7,7 +7,6 @@ import {
     Workflow,
     FileText,
     Waypoints,
-    Loader2,
 } from "lucide-react"
 
 import {
@@ -76,19 +75,19 @@ export function Command() {
         }
 
         const query = searchQuery.toLowerCase().trim()
-        
+
         const filteredInvestigations = investigations.filter((investigation: Investigation) => {
             const matchesName = investigation.name.toLowerCase().includes(query)
             const matchesDescription = investigation.description?.toLowerCase().includes(query)
-            const matchesSketches = investigation.sketches?.some(sketch => 
+            const matchesSketches = investigation.sketches?.some(sketch =>
                 sketch.title.toLowerCase().includes(query)
             )
             // Check if any analyses in this investigation match the query
-            const investigationAnalyses = allAnalyses.filter((analysis: Analysis) => 
+            const investigationAnalyses = allAnalyses.filter((analysis: Analysis) =>
                 analysis.investigation_id === investigation.id
             )
-            const matchesAnalyses = investigationAnalyses.some(analysis => 
-                analysis.title.toLowerCase().includes(query) || 
+            const matchesAnalyses = investigationAnalyses.some(analysis =>
+                analysis.title.toLowerCase().includes(query) ||
                 analysis.description?.toLowerCase().includes(query)
             )
             return matchesName || matchesDescription || matchesSketches || matchesAnalyses
@@ -130,8 +129,8 @@ export function Command() {
                 </kbd>
             </Button>
             <CommandDialog open={open} onOpenChange={setOpen}>
-                <CommandInput 
-                    placeholder="Type a command or search..." 
+                <CommandInput
+                    placeholder="Type a command or search..."
                     value={searchQuery}
                     onValueChange={setSearchQuery}
                 />
@@ -149,9 +148,9 @@ export function Command() {
                                             {filteredData.investigations.map((investigation: Investigation) => (
                                                 <React.Fragment key={investigation.id}>
                                                     <CommandItem asChild>
-                                                        <Link 
-                                                            onClick={() => setOpen(false)} 
-                                                            to="/dashboard/investigations/$investigationId" 
+                                                        <Link
+                                                            onClick={() => setOpen(false)}
+                                                            to="/dashboard/investigations/$investigationId"
                                                             params={{ investigationId: investigation.id }}
                                                             className="flex items-center gap-2"
                                                         >
@@ -159,17 +158,17 @@ export function Command() {
                                                             <span className="flex-1">{investigation.name}</span>
                                                         </Link>
                                                     </CommandItem>
-                                                    
+
                                                     {/* Show sketches for this investigation */}
                                                     {investigation.sketches?.map((sketch) => (
                                                         <CommandItem asChild key={sketch.id}>
-                                                            <Link 
-                                                                onClick={() => setOpen(false)} 
-                                                                to="/dashboard/investigations/$investigationId/$type/$id" 
-                                                                params={{ 
+                                                            <Link
+                                                                onClick={() => setOpen(false)}
+                                                                to="/dashboard/investigations/$investigationId/$type/$id"
+                                                                params={{
                                                                     investigationId: investigation.id,
                                                                     type: "graph",
-                                                                    id: sketch.id 
+                                                                    id: sketch.id
                                                                 }}
                                                                 className="flex items-center gap-2 pl-6"
                                                             >
@@ -182,13 +181,13 @@ export function Command() {
                                                     {/* Show analyses for this investigation */}
                                                     {analysesByInvestigation[investigation.id]?.map((analysis) => (
                                                         <CommandItem asChild key={analysis.id}>
-                                                            <Link 
-                                                                onClick={() => setOpen(false)} 
-                                                                to="/dashboard/investigations/$investigationId/$type/$id" 
-                                                                params={{ 
+                                                            <Link
+                                                                onClick={() => setOpen(false)}
+                                                                to="/dashboard/investigations/$investigationId/$type/$id"
+                                                                params={{
                                                                     investigationId: investigation.id,
                                                                     type: "analysis",
-                                                                    id: analysis.id 
+                                                                    id: analysis.id
                                                                 }}
                                                                 className="flex items-center gap-2 pl-6"
                                                             >

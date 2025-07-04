@@ -14,7 +14,6 @@ import {
     GitPullRequestCreate,
     GitFork,
     Waypoints,
-    Rotate3D,
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { sketchService } from "@/api/sketch-service"
@@ -49,7 +48,7 @@ const ToolbarButton = memo(function ToolbarButton({
                         className="h-8 w-8 relative shadow-none"
                     >
                         {icon}
-                        {badge && <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-4.5 h-4.5 flex items-center justify-center line-height-0">{badge}</span>}
+                        {badge && <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">{badge}</span>}
                     </Button>
                 </div>
             </TooltipTrigger>

@@ -71,7 +71,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
           draggable
           onDragStart={onDragStart}
           className="p-3 rounded-md relative w-full overflow-hidden cursor-grab bg-card border hover:shadow-md transition-all group"
-          style={{ borderLeftWidth: "8px", borderRightWidth: "8px", borderLeftColor: borderInputColor ?? borderOutputColor, borderRightColor: borderOutputColor, cursor: "grab" }}
+          style={{ borderLeftWidth: "5px", borderRightWidth: "5px", borderLeftColor: borderInputColor ?? borderOutputColor, borderRightColor: borderOutputColor, cursor: "grab" }}
         >
           <div className="flex justify-between grow items-start">
             <div className="flex items-start gap-2 grow truncate text-ellipsis">

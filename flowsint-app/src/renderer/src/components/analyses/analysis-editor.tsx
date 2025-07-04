@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MinimalTiptapEditor } from "@/components/analyses/editor"
 import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PlusIcon, Trash2, Save, Sparkles, XIcon, ChevronDown, ChevronsRight, ExternalLink, Send, Zap, FileText, Code2, X, ImageIcon, ArrowUp, Settings } from "lucide-react"
+import { PlusIcon, Trash2, Save, Sparkles, XIcon, ChevronDown, ChevronsRight, ExternalLink, X, ArrowUp } from "lucide-react"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/popover"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { Badge } from "../ui/badge"
-import { Separator } from "../ui/separator"
 import { useGraphStore } from "@/stores/graph-store"
 
 interface AnalysisEditorProps {

@@ -24,8 +24,15 @@ const createCrossTabStorage = () => {
     if (typeof window !== 'undefined') {
         window.addEventListener('storage', (event) => {
             if (event.key === 'auth-storage') {
-                // Force a re-render when auth state changes in another tab
-                useAuthStore.setState(JSON.parse(event.newValue || '{}'));
+                try {
+                    // Force a re-render when auth state changes in another tab
+                    const parsed = JSON.parse(event.newValue || '{}');
+                    if (parsed.state) {
+                        useAuthStore.setState(parsed.state);
+                    }
+                } catch (error) {
+                    console.error('Failed to parse cross-tab auth state:', error);
+                }
             }
         });
     }
@@ -57,9 +64,13 @@ if (typeof window !== 'undefined') {
     if (storedAuth) {
         try {
             const parsedAuth = JSON.parse(storedAuth);
-            useAuthStore.setState(parsedAuth.state);
+            if (parsedAuth.state) {
+                useAuthStore.setState(parsedAuth.state);
+            }
         } catch (error) {
             console.error('Failed to parse stored auth state:', error);
+            // Clear corrupted storage
+            localStorage.removeItem('auth-storage');
         }
     }
 }

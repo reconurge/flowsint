@@ -10,7 +10,6 @@ import { useLayoutStore } from "@/stores/layout-store"
 import NotesPanel from "../analyses/notes-panel"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useParams } from "@tanstack/react-router"
-import { useEvents } from "@/hooks/use-events"
 
 interface LayoutProps {
     children: ReactNode

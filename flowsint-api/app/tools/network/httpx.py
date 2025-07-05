@@ -1,9 +1,10 @@
 import json
-from typing import Any, Literal
+from typing import Any, List
 from app.tools.dockertool import DockerTool
+from app.utils import is_valid_domain
 
-class AsnmapTool(DockerTool):
-    image = "projectdiscovery/asnmap"
+class HttpxTool(DockerTool):
+    image = "projectdiscovery/httpx"
     default_tag = "latest"
     
     def __init__(self):
@@ -11,15 +12,15 @@ class AsnmapTool(DockerTool):
         
     @classmethod
     def name(cls) -> str:
-        return "asnmap"
+        return "httpx"
     
     @classmethod
     def description(cls) -> str:
-        return "ASN mapping and network reconnaissance tool."
+        return "An HTTP toolkit that probes services, web servers, and other valuable metadata."
 
     @classmethod
     def category(cls) -> str:
-        return "ASN discovery"
+        return "Web technologies enumeration"
 
     def install(self) -> None:
         super().install()
@@ -41,6 +42,7 @@ class AsnmapTool(DockerTool):
         except Exception as e:
             return f"unknown (error: {str(e)})"
         
+        
     def update(self) -> None:
         # Pull the latest image
         self.install()
@@ -48,24 +50,27 @@ class AsnmapTool(DockerTool):
     def is_installed(self) -> bool:
         return super().is_installed()
 
-    def launch(self, item: str, type: Literal["domain", "org", "ip", "asn"] = "domain") -> Any:
-        flags = {
-            "domain" : '-d',
-            'org':  '-org',
-            'ip' : '-i',
-            'asn': '-a'
-            }
-        flag = flags[type]
-        try:
-            # Use the -target argument as asnmap expects
-            result = super().launch(f"{flag} {item} -silent -json")
-            if result and result != "":
-                return json.loads(result)
-            else:
-                return {}
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse JSON output from asnmap: {str(e)}")
-        except Exception as e:
-            # Try to get more info from the container logs
-            raise RuntimeError(f"Error running asnmap: {str(e)}. Output: {getattr(e, 'output', 'No output')}")
+    def launch(self, target: str, args: List[str]| None = None) -> Any:
+        if args is None:
+            args = []
+        args_str = ' '.join(args) if args else ''
+        command = f"-u {target} {args_str} -json -silent"
+        result = super().launch(command)
+        
+        # Handle empty result
+        if not result or result.strip() == "":
+            return []
+        
+        # Handle multiple JSON lines (one per result)
+        lines = result.strip().split('\n')
+        results = []
+        
+        for line in lines:
+            line = line.strip()
+            if line:
+                try:
+                    results.append(json.loads(line))
+                except json.JSONDecodeError as e:
+                    raise e
+        return results
     

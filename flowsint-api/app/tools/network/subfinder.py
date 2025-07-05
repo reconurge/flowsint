@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from app.tools.dockertool import DockerTool
 from app.utils import is_valid_domain
 
@@ -50,12 +50,11 @@ class SubfinderTool(DockerTool):
     def is_installed(self) -> bool:
         return super().is_installed()
 
-    def launch(self, domain: str) -> Any:
+    def launch(self, domain: str, args:List[str]) -> Any:
         subdomains: set[str] = set()
-        command = f"-d {domain}"
+        command = f"-d {domain} {' '.join(args)}"
         result =  super().launch(command)
         for sub in result.split("\n"):
-            print(sub)
             if is_valid_domain(sub) and sub.endswith(domain) and sub != domain and not sub.startswith("."):
                 subdomains.add(sub)
         return list(subdomains)

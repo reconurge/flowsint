@@ -48,13 +48,15 @@ class AsnmapTool(DockerTool):
     def is_installed(self) -> bool:
         return super().is_installed()
 
-    def launch(self, item: str, type: Literal["domain", "org", "ip", "asn"] = "domain") -> Any:
+    def launch(self, item: str, type: Literal["domain", "organization", "ip", "asn"] = "domain") -> Any:
         flags = {
             "domain" : '-d',
             'org':  '-org',
             'ip' : '-i',
             'asn': '-a'
             }
+        if(flags.get(type) is None):
+            raise ValueError(f"Invalid type: {type}")
         flag = flags[type]
         try:
             # Use the -target argument as asnmap expects

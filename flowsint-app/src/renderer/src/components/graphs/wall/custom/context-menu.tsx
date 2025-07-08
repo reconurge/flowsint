@@ -9,7 +9,7 @@ import { Transform } from '@/types';
 import { GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
-import { cn } from '@/lib/utils';
+import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { useConfirm } from '@/components/use-confirm-dialog';
 import { toast } from 'sonner';
 import { sketchService } from '@/api/sketch-service';
@@ -20,10 +20,6 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useLayoutStore } from '@/stores/layout-store';
-
-function capitalizeFirstLetter(string: string) {
-    return string.charAt(0).toUpperCase() + string.slice(1)
-}
 
 export default function ContextMenu({
     node,

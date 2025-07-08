@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Edit3, Save, X, Hash, Type, FileText, Tag, Check } from "lucide-react"
 import type { NodeData } from "@/types"
 import { useGraphStore } from "@/stores/graph-store"
+import { MapFromAddress } from "../map"
 
 export const NodeEditorModal: React.FC = () => {
     const currentNode = useGraphStore(state => state.currentNode)
@@ -105,7 +106,7 @@ export const NodeEditorModal: React.FC = () => {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <div 
+                                        <div
                                             className="text-sm text-muted-foreground prose prose-sm max-w-none"
                                             dangerouslySetInnerHTML={{ __html: currentNode.data.description }}
                                         />
@@ -267,6 +268,19 @@ export const NodeEditorModal: React.FC = () => {
                                     </div>
                                 </CardContent>
                             </Card>
+
+                            {formData.type === "location" && <Card className="border bg-muted/30">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base font-medium">
+                                        Location
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="overflow-hidden rounded-lg bg-background border">
+                                        <MapFromAddress address={formData.label as string} />
+                                    </div>
+                                </CardContent>
+                            </Card>}
                         </div>
                     </div>
 

@@ -93,7 +93,7 @@ class OrgToAsnScanner(Scanner):
     def __get_asn_from_asnmap(self, name: str) -> Dict[str, Any]:
         try:
             # Properly run the shell pipeline using shell=True
-            command = f"echo {name} | asnmap -silent -json | jq"
+            command = f"echo {name} | asnmap -silent -json | jq -s"
             result = subprocess.run(
                 command,
                 shell=True,
@@ -126,10 +126,12 @@ class OrgToAsnScanner(Scanner):
 
                 return combined_data if combined_data["as_number"] else None
 
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
+                Logger.error(self.sketch_id, {"message": f"An error occurred while parsing the JSON output from asnmap: {str(e)}"})
                 return None
 
         except Exception as e:
+            Logger.error(self.sketch_id, {"message": f"An error occurred while running asnmap: {str(e)}"})
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:

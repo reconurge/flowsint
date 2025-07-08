@@ -8,11 +8,10 @@ import { CreateRelationDialog } from './create-relation'
 import GraphLoader from './graph-loader'
 import Loader from '../loader'
 import WallEditor from './wall/wall'
-import GraphReactForce from './graph-react-force'
-// import GraphReactForce3D from './graph-react-force-3d'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './wall/node-editor-modal'
-// const GraphReactForce = lazy(() => import('./graph-react-force'))
+import NodesTable from '../table'
+const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
 
 
@@ -118,22 +117,14 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     </div>
                 </div>
             }>
-                {/* {nodes?.length > 500 ? (
-                    <Graph />
-                ) : nodes?.length > 500 ? (
-                    view === "force3d" ? <GraphReactForce3D /> : <GraphReactForce />
-                ) : (
-                    view === "force3d" ? <GraphReactForce3D /> : 
-                    view === "force" ? <GraphReactForce /> : 
-                    <WallEditor isRefetching={isRefetching} isLoading={loading} />
-                )} */}
                 {/* <Graph /> */}
-                {nodes?.length > 500 ? (
-                    <Graph />
-                ) : (
-                    view === "force" ? <GraphReactForce /> :
-                        <WallEditor isRefetching={isRefetching} isLoading={loading} />
-                )}
+                {nodes?.length > 500? (
+                    <>{view === "table" ? <NodesTable /> : <Graph />}</>
+                ) : (<>
+                    {view === "force" && <GraphReactForce />}
+                    {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />}
+                    {view === "table" && <NodesTable />}
+                </>)}
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}

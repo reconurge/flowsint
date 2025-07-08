@@ -100,7 +100,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
         }
         const content = typeof currentContent === 'string' ? currentContent : JSON.stringify(currentContent)
         const nodeLabel = selectedNodes.map(node => node.data.label).join(", ")
-        const context = selectedNodes ? `${nodeLabel}\n\nContext:\n${content}` : content
+        const context = selectedNodes ? `Tu te mets dans la peau d'un analyste CTI/OSINT. Dans tes éléments de réponse, n'indique pas que tu es un analyste CTI/OSINT, juste la réponse. Aujourd'hui, voici ton cas: ${nodeLabel}\n\nContext:\n${content}` : content
         const fullPrompt = `${customPrompt}\n\nContext:\n${context}`
         setPromptOpen(false)
         setCustomPrompt("")

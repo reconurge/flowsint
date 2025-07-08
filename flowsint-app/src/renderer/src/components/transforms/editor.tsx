@@ -68,13 +68,13 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     const { transformId } = useParams({ strict: false })
     const [showModal, setShowModal] = useState(false)
     const hasInitialized = useRef(false)
-    
+
     // #### Simulation State ####
     const [isSimulating, setIsSimulating] = useState(false)
     const [currentStepIndex, setCurrentStepIndex] = useState(0)
     const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
     const [transformBranches, setTransformsBranches] = useState<any[]>([])
-    
+
     // #### Transform Store State ####
     const nodes = useTransformStore(state => state.nodes)
     const edges = useTransformStore(state => state.edges)
@@ -312,7 +312,15 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     // Update the updateNodeState function with proper types
     const updateNodeState = useCallback((nds: TransformNode[], nodeId: string, state: 'pending' | 'processing' | 'completed' | 'error') => {
         return nds.map((node) => {
+            // focus on node
             if (node.id === nodeId) {
+                const nodeWidth = node.measured?.width ?? 0
+                const nodeHeight = node.measured?.height ?? 0
+                setCenter(
+                    node.position.x + nodeWidth / 2,
+                    node.position.y + nodeHeight / 2 + 20,
+                    { duration: 500, zoom: 1 }
+                )
                 return {
                     ...node,
                     data: {
@@ -323,7 +331,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             }
             return node
         })
-    }, [])
+    }, [setCenter])
 
     // #### Simulation Effect ####
     useEffect(() => {
@@ -378,6 +386,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             }
         } else {
             // End of simulation
+            fitView({ duration: 500 })
             setIsSimulating(false)
         }
 
@@ -525,8 +534,8 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                                 <SelectContent>
                                     <SelectItem value="2000">Slow</SelectItem>
                                     <SelectItem value="1000">Normal</SelectItem>
-                                    <SelectItem value="500">Fast</SelectItem>
-                                    <SelectItem value="100">Very Fast</SelectItem>
+                                    <SelectItem value="750">Fast</SelectItem>
+                                    <SelectItem value="400">Very fast</SelectItem>
                                 </SelectContent>
                             </Select>
                         </Panel>}

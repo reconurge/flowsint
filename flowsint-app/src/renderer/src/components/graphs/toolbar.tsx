@@ -14,6 +14,7 @@ import {
     GitPullRequestCreate,
     GitFork,
     Waypoints,
+    Table
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { sketchService } from "@/api/sketch-service"
@@ -59,6 +60,7 @@ const ToolbarButton = memo(function ToolbarButton({
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
     const { id: sketchId } = useParams({ from: "/_auth/dashboard/investigations/$investigationId/$type/$id" })
     const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
+    const view = useGraphControls(s => s.view)
     const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
     const setView = useGraphControls((s) => s.setView)
     const removeNodes = useGraphStore((state) => state.removeNodes)
@@ -68,6 +70,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const onLayout = useGraphControls((s) => s.onLayout);
     const { confirm } = useConfirm()
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
+    const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
     const nodesLength = useGraphStore((s) => s.getNodesLength())
 
     const handleRefresh = useCallback(() => {
@@ -83,13 +86,14 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         setOpenAddRelationDialog(true)
     }, [])
 
-    const handleDeleteNodes = async () => {
+    const handleDeleteNodes = useCallback(async () => {
         if (!selectedNodes.length) return
         if (!await confirm({ title: `You are about to delete ${selectedNodes.length} node(s).`, message: "The action is irreversible." })) return
 
         toast.promise(
             (async () => {
                 removeNodes(selectedNodes.map((n) => n.id))
+                clearSelectedNodes()
                 return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: selectedNodes.map((n) => n.id) }))
             })(),
             {
@@ -98,19 +102,19 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 error: 'Failed to delete nodes.'
             }
         )
-    }
+    }, [selectedNodes, confirm, removeNodes, clearSelectedNodes, sketchId])
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2
     const isGraphOnly = nodesLength > 500
-    const isCosmoOnly = nodesLength > 3000
+    // const isCosmoOnly = nodesLength > 3000
 
     const handleForceLayout = useCallback(() => {
         setView("force")
     }, [setView])
 
-    // const handleForce3DLayout = useCallback(() => {
-    //     setView("force3d")
-    // }, [setView])
+    const handleTableLayout = useCallback(() => {
+        setView("table")
+    }, [setView])
 
     const handleDagreLayoutTB = useCallback(() => {
         setView("hierarchy")
@@ -145,27 +149,30 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     badge={isMoreThanZero ? selectedNodes.length : null}
                 />
                 {/* <ToolbarButton disabled icon={<Filter className="h-4 w-4 opacity-70" />} tooltip="Filter" /> */}
-                <ToolbarButton
-                    icon={<ZoomIn className="h-4 w-4 opacity-70" />}
-                    tooltip="Zoom In"
-                    onClick={zoomIn}
-                />
-                <ToolbarButton
-                    icon={<Minus className="h-4 w-4 opacity-70" />}
-                    tooltip="Zoom Out"
-                    onClick={zoomOut}
-                />
-                <ToolbarButton
-                    icon={<Maximize className="h-4 w-4 opacity-70" />}
-                    tooltip="Fit to View"
-                    onClick={zoomToFit}
-                />
-                <ToolbarButton
-                    icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                    tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
-                    onClick={handleDagreLayoutTB}
-                    disabled={isGraphOnly}
-                />
+                {view !== "table" &&
+                    <>
+                        < ToolbarButton
+                            icon={<ZoomIn className="h-4 w-4 opacity-70" />}
+                            tooltip="Zoom In"
+                            onClick={zoomIn}
+                        />
+                        <ToolbarButton
+                            icon={<Minus className="h-4 w-4 opacity-70" />}
+                            tooltip="Zoom Out"
+                            onClick={zoomOut}
+                        />
+                        <ToolbarButton
+                            icon={<Maximize className="h-4 w-4 opacity-70" />}
+                            tooltip="Fit to View"
+                            onClick={zoomToFit}
+                        />
+                        <ToolbarButton
+                            icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
+                            tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                            onClick={handleDagreLayoutTB}
+                            disabled={isGraphOnly}
+                        />
+                    </>}
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-90" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
@@ -174,9 +181,14 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 />
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                    tooltip={"Graph"}
+                    tooltip={"Graph view"}
                     onClick={handleForceLayout}
-                    disabled={isCosmoOnly}
+                // disabled={isCosmoOnly}
+                />
+                <ToolbarButton
+                    icon={<Table className="h-4 w-4 opacity-70" />}
+                    tooltip={"Table view"}
+                    onClick={handleTableLayout}
                 />
 
                 {/* <ToolbarButton

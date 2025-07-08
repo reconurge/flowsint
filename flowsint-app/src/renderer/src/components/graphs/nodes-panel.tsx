@@ -61,14 +61,14 @@ const NodeRenderer = memo(
         )
 
         return (
-            <div className="flex items-center hover:bg-muted border-b h-full">
+            <div className="flex items-center overflow-hidden hover:bg-muted border-b h-full">
                 <div className="pl-2">
                     <Checkbox checked={isNodeChecked(node.id)} onCheckedChange={handleCheckboxChange} className="mr-1 border-border" />
                 </div>
                 <Button
                     variant={"ghost"}
                     className={cn(
-                        "flex-1 flex truncate items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent h-full",
+                        "flex-1 flex truncate mt-0 overflow-hidden items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent h-full",
                     )}
                     onClick={handleClick}
                 >

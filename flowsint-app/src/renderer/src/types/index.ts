@@ -25,6 +25,7 @@ export type NodeData = {
   type: string,
   caption: string,
   label: string,
+  created_at: string,
   // Allow any other properties
   [key: string]: any;
 };

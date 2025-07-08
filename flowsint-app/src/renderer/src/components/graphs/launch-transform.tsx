@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { transformService } from "@/api/transfrom-service"
 import { useParams } from "@tanstack/react-router"
+import { capitalizeFirstLetter } from "@/lib/utils"
 
 interface Transform {
     id: string
@@ -36,9 +37,9 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
 
     const { data: transforms, isLoading } = useQuery({
         queryKey: ["transforms", type],
-        queryFn: () => transformService.get(type),
-        refetchOnWindowFocus: true,
-    })
+        queryFn: () => transformService.get(capitalizeFirstLetter(type)),
+        // queryFn: () => transformService.get(),
+    });
 
 
     const handleOpenModal = () => {

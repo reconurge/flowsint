@@ -440,9 +440,9 @@
   optionalDependencies:
     global-agent "^3.0.0"
 
-"@electron/node-gyp@git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2":
+"@electron/node-gyp@https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2":
   version "10.2.0-electron.1"
-  resolved "git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2"
+  resolved "https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2"
   dependencies:
     env-paths "^2.2.0"
     exponential-backoff "^3.1.1"
@@ -1946,6 +1946,13 @@
     "@tanstack/store" "0.7.1"
     use-sync-external-store "^1.5.0"
 
+"@tanstack/react-table@^8.21.3":
+  version "8.21.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.21.3.tgz#2c38c747a5731c1a07174fda764b9c2b1fb5e91b"
+  integrity sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==
+  dependencies:
+    "@tanstack/table-core" "8.21.3"
+
 "@tanstack/react-virtual@^3.13.9":
   version "3.13.12"
   resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.13.12.tgz#d372dc2783739cc04ec1a728ca8203937687a819"
@@ -2042,6 +2049,11 @@
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/@tanstack/store/-/store-0.7.1.tgz#e00a7f382b079a154f5d938886a72e7a1b5a9085"
   integrity sha512-PjUQKXEXhLYj2X5/6c1Xn/0/qKY0IVFxTJweopRfF26xfjVyb14yALydJrHupDh3/d+1WKmfEgZPBVCmDkzzwg==
+
+"@tanstack/table-core@8.21.3":
+  version "8.21.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.21.3.tgz#2977727d8fc8dfa079112d9f4d4c019110f1732c"
+  integrity sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==
 
 "@tanstack/virtual-core@3.13.12":
   version "3.13.12"
@@ -5489,6 +5501,11 @@ lazy-val@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/lazy-val/-/lazy-val-1.0.5.tgz#6cf3b9f5bc31cee7ee3e369c0832b7583dcd923d"
   integrity sha512-0/BnGCCfyUMkBpeDgWihanIAF9JmZhHBgUhEqzvf+adhNGLoP6TaiI5oF8oyb3I45P+PcnrqihSf01M0l0G5+Q==
+
+leaflet@^1.9.4:
+  version "1.9.4"
+  resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.9.4.tgz#23fae724e282fa25745aff82ca4d394748db7d8d"
+  integrity sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==
 
 levn@^0.4.1:
   version "0.4.1"

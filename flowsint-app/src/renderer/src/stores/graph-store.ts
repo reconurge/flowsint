@@ -61,6 +61,9 @@ interface GraphState {
     setCurrentNodeType: (nodeType: ActionItem | null) => void
     handleOpenFormModal: (key: string) => void
 
+    // === Action Type for Edit form ===
+    handleEdit: (node: GraphNode) => void
+
     // === Filters ===
     filters: Record<string, unknown>
     setFilters: (filters: Record<string, unknown>) => void
@@ -122,7 +125,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     updateNode: (nodeId, updates) => {
         const { nodes } = get()
         const updatedNodes = nodes.map(node =>
-            node.id === nodeId 
+            node.id === nodeId
                 ? { ...node, data: { ...node.data, ...updates } }
                 : node
         )
@@ -190,6 +193,9 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     setOpenFormDialog: (open) => set({ openFormDialog: open }),
     setOpenAddRelationDialog: (open) => set({ openAddRelationDialog: open }),
     setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
+
+    // === Action Type for Edit form ===
+    handleEdit: (node) => set({ currentNode: node, openNodeEditorModal: true }),
 
     // === Action Type for Form ===
     currentNodeType: null,

@@ -1,5 +1,4 @@
-"use client"
-import { memo } from "react"
+import { memo, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { Button } from "@/components/ui/button"
@@ -9,9 +8,9 @@ import { useGraphStore } from "@/stores/graph-store"
 
 export default function DetailsPanel({ data }: { data: any }) {
     const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
-    const handleEdit = () => {
+    const handleEdit = useCallback(() => {
         setOpenNodeEditorModal(true)
-    }
+    }, [])
 
     return (
         <div className="overflow-y-auto overflow-x-hidden w-full min-w-0 h-full min-h-0">
@@ -32,7 +31,7 @@ export default function DetailsPanel({ data }: { data: any }) {
             </div>
             {data?.description && (
                 <div className="px-4 py-3 border-b border-border">
-                    <div 
+                    <div
                         className="text-sm text-muted-foreground prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: data.description }}
                     />

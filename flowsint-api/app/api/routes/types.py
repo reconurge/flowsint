@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 from uuid import UUID, uuid4
 from fastapi import APIRouter
 from pydantic import BaseModel, TypeAdapter
@@ -30,7 +30,7 @@ async def get_types_list():
             "fields": [],
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
-                extract_input_schema(SocialProfile, label_key="username"),
+                extract_input_schema(SocialProfile, label_key="username", icon="username"),
             ],
         },
         {
@@ -55,6 +55,21 @@ async def get_types_list():
                 extract_input_schema(Phone, label_key="number"),
                 extract_input_schema(Email, label_key="email"),
             ],
+        },
+        {
+            "id": uuid4(),
+            "type": "digital_category",
+            "key": "digital",
+            "icon": "domain",
+            "label": "Digital",
+            "fields": [],
+            "children": [
+                extract_input_schema(ASN, label_key="number"),
+                extract_input_schema(CIDR, label_key="network"),
+                extract_input_schema(Domain, label_key="domain"),
+                extract_input_schema(Website, label_key="url"),
+                extract_input_schema(Ip, label_key="address"),
+            ],
         }
     ]
 
@@ -62,7 +77,7 @@ async def get_types_list():
 
 
 
-def extract_input_schema(model: Type[BaseModel], label_key:str) -> Dict[str, Any]:
+def extract_input_schema(model: Type[BaseModel], label_key:str, icon: Optional[str]=None) -> Dict[str, Any]:
     
     adapter = TypeAdapter(model)
     print(model.__name__)
@@ -75,7 +90,7 @@ def extract_input_schema(model: Type[BaseModel], label_key:str) -> Dict[str, Any
                 "type": type_name,
                 "key": type_name.lower(),
                 "label_key": label_key,
-                "icon": type_name.lower(),
+                "icon": icon or type_name.lower(),
                 "label": type_name,
                 "fields": [resolve_field(prop, details=info, schema=schema)  
                 for prop, info in details.get("properties", {}).items()

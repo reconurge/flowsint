@@ -11,6 +11,9 @@ import WallEditor from './wall/wall'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './node-editor-modal'
 import NodesTable from '../table'
+import { findActionItemByKey } from '@/lib/action-items'
+import { useActionItems } from '@/hooks/use-action-items'
+import { toast } from 'sonner'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
 
@@ -43,6 +46,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
     const nodes = useGraphStore(s => s.nodes)
     const view = useGraphControls((s) => s.view)
     const updateGraphData = useGraphStore(s => s.updateGraphData)
+    const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
     const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
@@ -72,11 +76,15 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         setIsDraggingOver(false)
+        if (isLoadingActionItems || !actionItems) {
+            toast.error("Sorry, an error occured. Please try again.")
+            return
+        }
         const data = e.dataTransfer.getData("text/plain")
         if (data) {
             try {
                 const parsedData = JSON.parse(data)
-                handleOpenFormModal(parsedData.itemKey)
+                handleOpenFormModal(findActionItemByKey(parsedData.itemKey, actionItems))
             } catch (error) {
                 return
             }

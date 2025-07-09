@@ -3,10 +3,12 @@
 import { Button } from "@/components/ui/button"
 import { PlusIcon, Search } from "lucide-react"
 import { memo, useCallback, useState } from "react"
-import { type ActionItem, actionItems } from "@/lib/action-items"
+import { type ActionItem } from "@/lib/action-items"
 import { DraggableItem } from "./draggable-item"
 import { Input } from "@/components/ui/input"
 import NewActions from "@/components/graphs/new-actions"
+import { useActionItems } from "@/hooks/use-action-items"
+import { SkeletonList } from "../shared/skeleton-list"
 
 export const ItemsPanel = memo(function LeftPanel() {
     const [searchQuery, setSearchQuery] = useState<string>("")
@@ -14,6 +16,8 @@ export const ItemsPanel = memo(function LeftPanel() {
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value)
     }, [])
+
+    const { actionItems, isLoading } = useActionItems()
 
     return (
         <div className="bg-card p-4 h-full w-full overflow-y-auto flex flex-col">
@@ -41,46 +45,47 @@ export const ItemsPanel = memo(function LeftPanel() {
                 </div>
             </div>
             <div className="grid grid-cols-1 gap-3">
-                {actionItems.map((item: ActionItem) => {
-                    if (item.children && item.children.length > 0) {
-                        return (
-                            <div key={item.id} className="@container">
-                                <div className="py-1 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-2">
-                                        <span>{item.label} ({item.children.length})</span>
-                                        {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
+                {isLoading ? <SkeletonList rowCount={8} /> :
+                    actionItems?.map((item: ActionItem) => {
+                        if (item.children && item.children.length > 0) {
+                            return (
+                                <div key={item.id} className="@container">
+                                    <div className="py-1 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-2">
+                                            <span>{item.label} ({item.children.length})</span>
+                                            {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 @xs:grid-cols-3 @sm:grid-cols-4 @md:grid-cols-5 gap-2">
+                                        {item.children.map((childItem) => (
+                                            <DraggableItem
+                                                key={childItem.id}
+                                                itemKey={childItem.key}
+                                                label={childItem.label}
+                                                icon={childItem.icon}
+                                                type={childItem.type}
+                                                color={childItem.color}
+                                                disabled={childItem.disabled}
+                                                description={childItem.fields.map((n) => n.name).join(", ")}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 @xs:grid-cols-3 @sm:grid-cols-4 @md:grid-cols-5 gap-2">
-                                    {item.children.map((childItem) => (
-                                        <DraggableItem
-                                            key={childItem.id}
-                                            itemKey={childItem.key}
-                                            label={childItem.label}
-                                            icon={childItem.icon}
-                                            type={childItem.type}
-                                            color={childItem.color}
-                                            disabled={childItem.disabled}
-                                            description={childItem.fields.map((n) => n.name).join(", ")}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                            )
+                        }
+                        return (
+                            <DraggableItem
+                                key={item.id}
+                                label={item.label}
+                                itemKey={item.key}
+                                icon={item.icon}
+                                type={item.type}
+                                color={item.color}
+                                disabled={item.disabled}
+                                description={item.fields.map((n) => n.name).join(", ")}
+                            />
                         )
-                    }
-                    return (
-                        <DraggableItem
-                            key={item.id}
-                            label={item.label}
-                            itemKey={item.key}
-                            icon={item.icon}
-                            type={item.type}
-                            color={item.color}
-                            disabled={item.disabled}
-                            description={item.fields.map((n) => n.name).join(", ")}
-                        />
-                    )
-                })}
+                    })}
             </div>
         </div>
     )

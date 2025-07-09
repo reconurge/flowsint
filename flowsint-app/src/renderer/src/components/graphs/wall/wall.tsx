@@ -14,6 +14,8 @@ import {
     BackgroundVariant,
     // EdgeTypes,
     MarkerType,
+    EdgeTypes,
+    ConnectionMode,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { getDagreLayoutedElements, getForceLayoutedElements } from "@/lib/utils"
@@ -27,15 +29,15 @@ import { useGraphControls } from "@/stores/graph-controls-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import ContextMenu from './custom/context-menu';
 import { useLayoutStore } from "@/stores/layout-store"
-
+import SimpleFloatingEdge from './custom/floating-edge';
 
 const nodeTypes = {
     custom: CustomNode,
 };
 
-// const edgeTypes = {
-//     custom: FloatingEdge,
-// };
+const edgeTypes = {
+    custom: SimpleFloatingEdge,
+};
 
 const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
@@ -123,6 +125,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
                     type: newNodeData.type,
                     caption: newNodeData.caption,
                     label: newNodeData.label,
+                    created_at: new Date().toISOString(),
                 },
             }
             addNode(newNode)
@@ -268,7 +271,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         nodes: visibleNodes,
         edges: visibleEdges,
         nodeTypes,
-        // edgeTypes: edgeTypes as EdgeTypes,
+        edgeTypes: edgeTypes as EdgeTypes,
         onInit: setReactFlowInstance,
         onNodeContextMenu,
         onDrop,
@@ -284,6 +287,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         proOptions: { hideAttribution: true },
         colorMode: theme,
         onlyRenderVisibleElements: nodes.length > 500,
+        connectionMode: ConnectionMode.Loose
     }), [
         visibleNodes,
         visibleEdges,

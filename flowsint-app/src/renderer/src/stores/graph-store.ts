@@ -10,7 +10,7 @@ import {
     applyNodeChanges,
     applyEdgeChanges
 } from "@xyflow/react"
-import { type ActionItem, findActionItemByKey } from "@/lib/action-items"
+import { type ActionItem } from "@/lib/action-items"
 
 export type GraphNode = Node<NodeData> & {
     collapsed?: boolean;
@@ -59,7 +59,7 @@ interface GraphState {
     // === Action Type for Form ===
     currentNodeType: ActionItem | null
     setCurrentNodeType: (nodeType: ActionItem | null) => void
-    handleOpenFormModal: (key: string) => void
+    handleOpenFormModal: (selectedItem: ActionItem | undefined) => void
 
     // === Action Type for Edit form ===
     handleEdit: (node: GraphNode) => void
@@ -200,8 +200,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
     // === Action Type for Form ===
     currentNodeType: null,
     setCurrentNodeType: (nodeType) => set({ currentNodeType: nodeType }),
-    handleOpenFormModal: (key) => {
-        const selectedItem = findActionItemByKey(key)
+    handleOpenFormModal: (selectedItem) => {
         if (!selectedItem) return
         set({
             currentNodeType: selectedItem,

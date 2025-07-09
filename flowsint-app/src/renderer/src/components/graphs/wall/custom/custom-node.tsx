@@ -14,31 +14,11 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
 
 
     return (
-        <div className="xy-node -z-[5000] relative p-1 flex flex-col justify-center items-center !rounded-full h-20">
-            <Handle
-                type="target"
-                position={Position.Top}
-                id="top"
-                className="opacity-0"
-            />
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                id="bottom"
-                className="opacity-0"
-            />
-            <Handle
-                type="source"
-                position={Position.Left}
-                id="left"
-                className="opacity-0"
-            />
-            <Handle
-                type="target"
-                position={Position.Right}
-                id="right"
-                className="opacity-0"
-            />
+        <div className="xy-node -z-[5000] relative p-1 group flex flex-col justify-center items-center !rounded-full h-20">
+            <Handle type="target" position={Position.Top} id="a" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="target" position={Position.Right} id="b" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Bottom} id="c" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Left} id="d" className="opacity-0 group-hover:opacity-100" />
             <div style={{ width: size, height: size, borderColor: (selected || isCurrent(id)) ? "#f97316" : color }} className="!rounded-full gap-0 flex items-center justify-center border-primary/70 p-1 overflow-hidden">
                 <IconComponent
                     size={size}
@@ -51,7 +31,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
                 />
             </div>
             <div
-                className="text-nowrap text-center max-w-[160px] truncate text-ellipsis truncate text-ellipsis"
+                className="text-nowrap text-center max-w-[60px]  text-ellipsis truncate"
                 style={{
                     fontSize: 11,
                     color: (selected || isCurrent(id)) ? "#f97316" : "#94a3b8",

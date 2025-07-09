@@ -17,7 +17,6 @@ export interface FormField {
 export interface ActionItem {
     id: number
     type: string
-    table: string
     key: string
     icon: string
     label: string
@@ -43,7 +42,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 100,
         type: "person",
-        table: "",
         key: "person",
         icon: "individual",
         label: "Person",
@@ -53,7 +51,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 1,
                 type: "Individual",
-                table: "individuals",
                 key: "individual",
                 label_key: "full_name",
                 icon: "individual",
@@ -79,7 +76,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 512932,
                 type: "Username",
-                table: "usernames",
                 key: "username",
                 icon: "username",
                 label: "Username",
@@ -92,7 +88,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 101,
         type: "organization",
-        table: "",
         key: "organization_category",
         icon: "organization",
         label: "Organization",
@@ -102,7 +97,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 24,
                 type: "Organization",
-                table: "organizations",
                 key: "organization",
                 icon: "organization",
                 label: "Organization",
@@ -132,7 +126,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 102,
         type: "contact",
-        table: "",
         key: "contact",
         icon: "phone",
         label: "Contact",
@@ -142,7 +135,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 2,
                 type: "Phone",
-                table: "phones",
                 key: "phone",
                 label_key: "number",
                 icon: "phone",
@@ -162,7 +154,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 4,
                 type: "Email",
-                table: "emails",
                 key: "email",
                 icon: "email",
                 label_key: "email",
@@ -175,7 +166,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 103,
         type: "digital",
-        table: "",
         key: "digital",
         icon: "website",
         label: "Digital",
@@ -185,7 +175,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 25,
                 type: "Website",
-                table: "websites",
                 key: "website",
                 label_key: "url",
                 icon: "website",
@@ -201,7 +190,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 259,
                 type: "Domain",
-                table: "domains",
                 key: "domain",
                 icon: "domain",
                 label_key: "domain",
@@ -212,7 +200,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 2588,
                 type: "Subdomain",
-                table: "subdomains",
                 key: "subdomain",
                 label_key: "subomain",
                 icon: "subdomain",
@@ -223,7 +210,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 5,
                 type: "Ip",
-                table: "ips",
                 key: "ip",
                 icon: "ip",
                 label: "IP address",
@@ -236,7 +222,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 104,
         type: "finance",
-        table: "",
         key: "finance",
         icon: "cryptowallet",
         label: "Finance",
@@ -246,7 +231,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 215,
                 type: "CryptoWallet",
-                table: "wallets",
                 key: "wallet",
                 label_key: "wallet",
                 icon: "cryptowallet",
@@ -271,7 +255,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 105,
         type: "location",
-        table: "",
         key: "location",
         icon: "location",
         label: "Location",
@@ -281,7 +264,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 3,
                 type: "Location",
-                table: "addresses",
                 label_key: "address",
                 key: "address",
                 icon: "location",
@@ -302,7 +284,6 @@ export const actionItems: ActionItem[] = [
         id: 6,
         type: "Socials",
         size: "h-5 w-5",
-        table: "",
         key: "social_profile",
         icon: "social_profile",
         label: "Social account",
@@ -312,7 +293,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 7,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_facebook",
                 label_key: "username",
                 icon: "facebook",
@@ -328,7 +308,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 8,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_instagram",
                 label_key: "username",
                 icon: "instagram",
@@ -344,7 +323,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 9,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_telegram",
                 label_key: "username",
                 icon: "telegram",
@@ -360,7 +338,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 10,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_signal",
                 label_key: "username",
                 icon: "signal",
@@ -376,7 +353,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 11,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_snapchat",
                 label_key: "username",
                 color: "#FEFC00",
@@ -392,7 +368,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 12,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_github",
                 label_key: "username",
                 color: "#B8B8BD",
@@ -405,27 +380,9 @@ export const actionItems: ActionItem[] = [
                 ],
                 size: "h-5 w-5",
             },
-            // {
-            //     id: 13,
-            //     type: "SocialProfile",
-            //     table: "social_profiles",
-            //     key: "social_profiles_coco",
-            //     label_key: "username",
-            //     icon: "social_profile",
-            //     label: "Coco",
-            //     fields: [
-            //         { name: "profile_url", label: "Profile URL", type: "url", required: true },
-            //         { name: "username", label: "Username", type: "text", required: false },
-            //         { name: "platform", label: "Platform", type: "hidden", required: true },
-            //     ],
-            //     disabled: true,
-            //     comingSoon: true,
-            //     size: "h-5 w-5",
-            // },
             {
                 id: 18,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_linkedin",
                 label_key: "username",
                 color: "#007EBB",
@@ -441,7 +398,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 19,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_twitter",
                 label_key: "username",
                 icon: "x",
@@ -457,7 +413,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 20,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_tiktok",
                 label_key: "username",
                 color: "#6C2B53",
@@ -473,7 +428,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 21,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_reddit",
                 label_key: "username",
                 icon: "reddit",
@@ -489,7 +443,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 22,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_discord",
                 label_key: "username",
                 icon: "discord",
@@ -505,7 +458,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 2343,
                 type: "SocialProfile",
-                table: "social_profiles",
                 key: "social_profiles_twitch",
                 label_key: "username",
                 icon: "twitch",
@@ -523,7 +475,6 @@ export const actionItems: ActionItem[] = [
     {
         id: 14,
         type: "Vehicle",
-        table: "",
         icon: "car",
         label: "Vehicle",
         label_key: "plate",
@@ -533,7 +484,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 15,
                 type: "Car",
-                table: "vehicles",
                 key: "vehicles_car",
                 icon: "car",
                 label: "Car",
@@ -550,7 +500,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 16,
                 type: "motorcycle",
-                table: "vehicles",
                 key: "vehicles_motorcycle",
                 label_key: "plate",
                 icon: "motorcycle",
@@ -567,7 +516,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 17,
                 type: "boat",
-                table: "vehicles",
                 key: "vehicles_boat",
                 label_key: "plate",
                 icon: "boat",
@@ -584,7 +532,6 @@ export const actionItems: ActionItem[] = [
             {
                 id: 23,
                 type: "plane",
-                table: "vehicles",
                 key: "vehicles_aircraft",
                 icon: "plane",
                 label_key: "plate",
@@ -602,7 +549,8 @@ export const actionItems: ActionItem[] = [
     },
 ]
 
-export function findActionItemByKey(key: string): ActionItem | undefined {
+export function findActionItemByKey(key: string, actionItems: ActionItem[] | undefined): ActionItem | undefined {
+    if (!actionItems) return
     for (const item of actionItems) {
         if (item.key === key) return item
         if (item.children) {

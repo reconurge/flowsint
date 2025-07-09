@@ -6,6 +6,8 @@ import { useGraphStore } from "@/stores/graph-store"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
+import { useActionItems } from "@/hooks/use-action-items"
+import { findActionItemByKey } from "@/lib/action-items"
 
 interface DraggableItemProps {
     label: string
@@ -27,6 +29,7 @@ export const DraggableItem = memo(function DraggableItem({
     description,
 }: DraggableItemProps) {
     const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
+    const { actionItems } = useActionItems()
     const [isDragging, setIsDragging] = useState(false)
     const colors = useNodesDisplaySettings((s) => s.colors)
     const colorStr = colors[icon as string] || color
@@ -44,7 +47,7 @@ export const DraggableItem = memo(function DraggableItem({
 
     const onClick = () => {
         if (disabled) return
-        handleOpenFormModal(itemKey)
+        handleOpenFormModal(findActionItemByKey(itemKey, actionItems))
     }
 
     return (

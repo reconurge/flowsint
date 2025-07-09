@@ -1,8 +1,11 @@
 import { useCallback, useRef, useState } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
+import { findActionItemByKey } from '@/lib/action-items'
+import { useActionItems } from './use-action-items'
 
 export const useDragAndDrop = () => {
     const [isDraggingOver, setIsDraggingOver] = useState(false)
+    const { actionItems } = useActionItems()
     const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
     const dragLeaveTimeoutRef = useRef<number | null>(null)
 
@@ -42,12 +45,12 @@ export const useDragAndDrop = () => {
         try {
             const parsedData = JSON.parse(data)
             if (parsedData?.itemKey) {
-                handleOpenFormModal(parsedData.itemKey)
+                handleOpenFormModal(findActionItemByKey(parsedData.itemKey, actionItems))
             }
         } catch (error) {
             console.warn('Failed to parse dropped data:', error)
         }
-    }, [handleOpenFormModal])
+    }, [handleOpenFormModal, actionItems])
 
     return {
         isDraggingOver,

@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from "sonner"
 import { cn, flattenObj } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
-import { actionItems, type ActionItem, type FormField } from "@/lib/action-items"
+import { type ActionItem, type FormField, findActionItemByKey } from "@/lib/action-items"
 import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/graphs/dynamic-form"
@@ -18,6 +18,7 @@ import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { useIcon } from "@/hooks/use-icon"
 import { useLayoutStore } from "@/stores/layout-store"
+import { useActionItems } from "@/hooks/use-action-items"
 
 interface ActionDialogProps {
     children: React.ReactNode
@@ -34,6 +35,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
     const addNode = useGraphStore(state => state.addNode)
     const setActiveTab = useLayoutStore(state => state.setActiveTab)
     const { id } = useParams({ strict: false })
+    const { actionItems, isLoading } = useActionItems()
 
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
@@ -89,6 +91,16 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
     const renderActionCards = () => {
         const items = currentParent ? currentParent.children || [] : actionItems
 
+        if (!items || items.length === 0) {
+            return (
+                <div className="flex items-center justify-center h-32">
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground">No action items available</p>
+                    </div>
+                </div>
+            )
+        }
+
         return (
             <AnimatePresence mode="wait">
                 <motion.div
@@ -103,7 +115,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                         <ActionCard
                             key={item.id}
                             item={item}
-                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenFormModal(item.key)}
+                            onSelect={item.children ? () => navigateToSubItems(item) : () => handleOpenFormModal(findActionItemByKey(item.key, actionItems))}
                         />
                     ))}
                 </motion.div>
@@ -114,7 +126,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
     return (
         <>
             <Dialog open={openMainDialog} onOpenChange={setOpenMainDialog}>
-                <DialogTrigger asChild>{children}</DialogTrigger>
+                <DialogTrigger disabled={isLoading} asChild>{children}</DialogTrigger>
                 <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (
@@ -130,11 +142,27 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                             : "Choose an item to insert to the graph."}
                     </DialogDescription>
 
-                    <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">{renderActionCards()}</div>
+                    <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-1 pb-2">
+                                {Array.from({ length: 6 }).map((_, index) => (
+                                    <Card key={index} className="h-full">
+                                        <CardContent className="p-2 relative flex flex-col items-center text-center h-full">
+                                            <div className="w-8 h-8 rounded-full bg-muted animate-pulse mb-3 mt-2"></div>
+                                            <div className="h-4 bg-muted rounded animate-pulse w-20 mb-2"></div>
+                                            <div className="h-3 bg-muted rounded animate-pulse w-32"></div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            renderActionCards()
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
             <Dialog open={openFormDialog} onOpenChange={setOpenFormDialog}>
-                <DialogContent>
+                <DialogContent className="max-h-[95vh] flex flex-col">
                     <DialogTitle>
                         {currentNodeType && (
                             <>Add {currentNodeType.label.toLowerCase()}</>
@@ -142,11 +170,13 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                     </DialogTitle>
                     <DialogDescription>Fill the required data.</DialogDescription>
                     {currentNodeType && (
-                        <DynamicForm
-                            currentNodeType={currentNodeType}
-                            isForm={true}
-                            onSubmit={handleAddNode}
-                        />
+                        <div className="grow overflow-y-auto">
+                            <DynamicForm
+                                currentNodeType={currentNodeType}
+                                isForm={true}
+                                onSubmit={handleAddNode}
+                            />
+                        </div>
                     )}
                 </DialogContent >
             </Dialog>
@@ -178,7 +208,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                     <IconComponent style={{ color: item.color }} className={cn("h-12 w-12", item.color ? "" : "text-primary")} />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
-                <div className="text-sm mt-2 opacity-60">{item.fields.map((n) => n.name).join(", ")}</div>
+                {!item.children && <div className="text-sm mt-2 opacity-60">{item.fields.length} fields</div>}
                 {item.disabled && (
                     <Badge variant="outline" className="mt-2 absolute top-2 left-2">
                         Soon

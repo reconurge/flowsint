@@ -31,7 +31,6 @@ interface DynamicFormProps {
 export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isForm = true, loading = false }: DynamicFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-
     const dynamicSchema = useMemo(() => {
         const createDynamicSchema = () => {
             const schemaMap: Record<string, z.ZodType<any>> = {}
@@ -320,21 +319,23 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                                 return (
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button
-                                                ref={ref}
-                                                type="button"
-                                                variant="outline"
-                                                className={cn(
-                                                    "w-full justify-start text-left font-normal",
-                                                    !isValidDate && "text-muted-foreground",
-                                                    errors[field.name] && "border-destructive",
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {isValidDate
-                                                    ? format(dateValue as Date, "PPP", { locale: fr })
-                                                    : field.placeholder || `Sélectionner une date`}
-                                            </Button>
+                                            <div>
+                                                <Button
+                                                    ref={ref}
+                                                    type="button"
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !isValidDate && "text-muted-foreground",
+                                                        errors[field.name] && "border-destructive",
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {isValidDate
+                                                        ? format(dateValue as Date, "PPP", { locale: fr })
+                                                        : field.placeholder || `Sélectionner une date`}
+                                                </Button>
+                                            </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar
@@ -412,10 +413,9 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
         return <div className="space-y-4">{currentNodeType.fields.map(renderField)}</div>
     }
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 p-1">
             <div className="space-y-4">{currentNodeType.fields.map(renderField)}</div>
-
-            <div className="flex justify-end space-x-2 pt-2">
+            <div className="flex sticky translate-y-1 p-1 bottom-0 bg-card items-center justify-end space-x-2">
                 <Button type="submit" disabled={isSubmitting || loading}>
                     {isSubmitting || loading ? (
                         <>

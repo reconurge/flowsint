@@ -166,17 +166,17 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                             tooltip="Fit to View"
                             onClick={zoomToFit}
                         />
-                        <ToolbarButton
-                            icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                            tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
-                            onClick={handleDagreLayoutTB}
-                            disabled={isGraphOnly}
-                        />
                     </>}
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-90" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayoutLR}
+                    disabled={isGraphOnly}
+                />
+                <ToolbarButton
+                    icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
+                    tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                    onClick={handleDagreLayoutTB}
                     disabled={isGraphOnly}
                 />
                 <ToolbarButton

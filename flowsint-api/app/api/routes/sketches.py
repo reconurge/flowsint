@@ -235,6 +235,70 @@ def add_edge(sketch_id: str, relation: RelationInput, current_user: Profile = De
 class NodeDeleteInput(BaseModel):
     nodeIds: List[str]
 
+class NodeEditInput(BaseModel):
+    nodeId: str
+    data: NodeData = Field(default_factory=NodeData, description="Updated data for the node")
+
+@router.put("/{sketch_id}/nodes/edit")
+def edit_node(
+    sketch_id: str,
+    node_edit: NodeEditInput,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
+):
+    # First verify the sketch exists and belongs to the user
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    
+    node_data = node_edit.data.model_dump()
+    node_type = node_data.get("type", "Node")
+    
+    # Prepare properties to update
+    properties = {
+        "type": node_type.lower(),
+        "caption": node_data.get("label", "Node"),
+        "label": node_data.get("label", "Node"),
+    }
+    
+    # Add any additional data from the flattened node_data
+    if node_data:
+        flattened_data = flatten(node_data)
+        properties.update(flattened_data)
+    
+    # Build the SET clause for the Cypher query
+    set_clause = ", ".join(f"n.{key} = ${key}" for key in properties.keys())
+    
+    query = f"""
+        MATCH (n)
+        WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
+        SET {set_clause}
+        RETURN n as node
+    """
+    
+    params = {
+        "node_id": node_edit.nodeId,
+        "sketch_id": sketch_id,
+        **properties
+    }
+    
+    try:
+        result = neo4j_connection.query(query, params)
+    except Exception as e:
+        print(f"Node update error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update node")
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Node not found or not accessible")
+    
+    updated_node = result[0]["node"]
+    updated_node["data"] = node_data
+    
+    return {
+        "status": "node updated",
+        "node": updated_node,
+    }
+
 @router.delete("/{sketch_id}/nodes")
 def delete_nodes(
     sketch_id: str,

@@ -6,10 +6,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Edit3, Save, X, Hash, Type, FileText, Tag, Check } from "lucide-react"
+import { Edit3, Save, X, Hash, Type, FileText, Tag, Check, Loader2 } from "lucide-react"
 import type { NodeData } from "@/types"
 import { useGraphStore } from "@/stores/graph-store"
-import { MapFromAddress } from "../map"
+import { MapFromAddress } from "./map"
+import { sketchService } from "@/api/sketch-service"
+import { useParams } from "@tanstack/react-router"
+import { toast } from "sonner"
 
 export const NodeEditorModal: React.FC = () => {
     const currentNode = useGraphStore(state => state.currentNode)
@@ -17,12 +20,15 @@ export const NodeEditorModal: React.FC = () => {
     const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
     const updateNode = useGraphStore(state => state.updateNode)
     const setCurrentNode = useGraphStore(state => state.setCurrentNode)
+    const { id: sketchId } = useParams({ strict: false })
 
     const [formData, setFormData] = useState<Partial<NodeData>>({
         label: "",
         caption: "",
         type: ""
     });
+
+    const [isSaving, setIsSaving] = useState(false);
 
     // Update form data when currentNode changes
     useEffect(() => {
@@ -36,17 +42,42 @@ export const NodeEditorModal: React.FC = () => {
         }
     }, [currentNode]);
 
-    const handleSave = () => {
-        if (currentNode) {
-            updateNode(currentNode.id, formData);
-            setCurrentNode({
-                ...currentNode,
-                data: {
-                    ...currentNode.data,
-                    ...formData
-                }
-            });
-            setOpenNodeEditorModal(false);
+    const handleSave = async () => {
+        if (!currentNode || !sketchId) return;
+
+        setIsSaving(true);
+        
+        try {
+            // Prepare the data for the API
+            const updateData = {
+                nodeId: currentNode.id,
+                data: formData
+            };
+
+            // Call the API to update the node
+            const result = await sketchService.updateNode(sketchId, JSON.stringify(updateData));
+
+            if (result.status === "node updated") {
+                // Update the local store
+                updateNode(currentNode.id, formData);
+                setCurrentNode({
+                    ...currentNode,
+                    data: {
+                        ...currentNode.data,
+                        ...formData
+                    }
+                });
+                
+                toast.success("Node updated successfully");
+                setOpenNodeEditorModal(false);
+            } else {
+                toast.error("Failed to update node");
+            }
+        } catch (error) {
+            console.error("Error updating node:", error);
+            toast.error("Failed to update node. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -60,6 +91,7 @@ export const NodeEditorModal: React.FC = () => {
             [field]: value
         }));
     };
+    const isLocation = formData.type === "location" || (formData.latitude && formData.longitude)
 
     if (!currentNode) return null;
 
@@ -269,15 +301,15 @@ export const NodeEditorModal: React.FC = () => {
                                 </CardContent>
                             </Card>
 
-                            {formData.type === "location" && <Card className="border bg-muted/30">
+                            {isLocation && <Card className="border bg-muted/30">
                                 <CardHeader className="pb-3">
                                     <CardTitle className="text-base font-medium">
-                                        Location
+                                        Location {formData.type === "location" ? <>({formData.label})</> : <>(lat:{formData.latitude} - lon:{formData.longitude})</>}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="overflow-hidden rounded-lg bg-background border">
-                                        <MapFromAddress address={formData.label as string} />
+                                        <MapFromAddress lat={formData.latitude} lon={formData.longitude} address={formData.label as string} />
                                     </div>
                                 </CardContent>
                             </Card>}
@@ -301,10 +333,15 @@ export const NodeEditorModal: React.FC = () => {
                                 </Button>
                                 <Button
                                     onClick={handleSave}
+                                    disabled={isSaving}
                                     className="gap-2"
                                 >
-                                    <Save className="h-4 w-4" />
-                                    Save Changes
+                                    {isSaving ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Save className="h-4 w-4" />
+                                    )}
+                                    {isSaving ? "Saving..." : "Save Changes"}
                                 </Button>
                             </div>
                         </div>

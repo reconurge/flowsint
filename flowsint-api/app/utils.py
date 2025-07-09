@@ -136,17 +136,17 @@ def resolve_type(details: dict, schema_context: dict = None) -> str:
     
     return "any"
 
-def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
+def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
 
     # Use the main schema properties, not the $defs
-    type_name = name
+    type_name = model.__name__
     details = schema
 
     return {
-        "class_name": name,
-        "name": name,
+        "class_name": model.__name__,
+        "name": model.__name__,
         "module": model.__module__,
         "doc": model.__doc__ or "",
         "outputs": {
@@ -164,8 +164,7 @@ def extract_input_schema(name: str, model: Type[BaseModel]) -> Dict[str, Any]:
             "properties": []
         },
         "type": "type",
-        "category": name,
-
+        "category": model.__name__,
     }
 
 

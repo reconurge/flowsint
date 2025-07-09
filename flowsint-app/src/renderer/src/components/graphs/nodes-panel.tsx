@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TypeBadge } from "@/components/type-badge"
 import { Search, FilterIcon, XIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { actionItems } from "@/lib/action-items"
+import { useActionItems } from "@/hooks/use-action-items"
 import { cn } from "@/lib/utils"
 import {
     DropdownMenu,
@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 const ITEM_HEIGHT = 40
 
 // Function to extract all leaf-level node types from actionItems
-const getAllNodeTypes = () => {
+const getAllNodeTypes = (actionItems: any[]) => {
     const types: string[] = []
     actionItems.forEach(item => {
         if (item.children) {
@@ -109,6 +109,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
     const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [filters, setFilters] = useState<null | string[]>(null)
+    const { actionItems } = useActionItems()
 
     // Ref pour le conteneur parent du virtualizer
     const parentRef = useRef<HTMLDivElement>(null)
@@ -244,7 +245,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                             <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>
                                 All
                             </DropdownMenuItem>
-                            {getAllNodeTypes().map((type) => (
+                            {getAllNodeTypes(actionItems || []).map((type) => (
                                 <DropdownMenuItem
                                     className={cn(filters?.includes(type) && "bg-primary/30")}
                                     key={type}

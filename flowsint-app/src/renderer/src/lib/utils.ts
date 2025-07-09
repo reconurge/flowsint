@@ -129,8 +129,8 @@ export const getForceLayoutedElements = (
   edges: Edge[],
   options: LayoutOptions = {
     direction: "LR",
-    strength: -300,
-    distance: 100,
+    strength: -30,
+    distance: 10,
     iterations: 300,
   },
 ) => {
@@ -202,7 +202,7 @@ export const getDagreLayoutedElements = (nodes: Node[],
   options: LayoutOptions = {
     direction: "TB",
     strength: -300,
-    distance: 100,
+    distance: 10,
     iterations: 300,
   },) => {
 
@@ -265,13 +265,12 @@ function convertFieldToSimpleFormat(field: FormField): string {
 }
 
 export function generateNodeTypes() {
-  const nodeTypes: Record<string, { table: string; type: string; fields: string[] }> = {}
+  const nodeTypes: Record<string, { type: string; fields: string[] }> = {}
 
   function processItems(items: ActionItem[]) {
     items.forEach((item) => {
-      if (item.table && !item.disabled) {
+      if (!item.disabled) {
         nodeTypes[item.key] = {
-          table: item.table,
           type: item.type,
           fields: item.fields.map(convertFieldToSimpleFormat),
         }
@@ -369,3 +368,6 @@ export function hexToRgba(hex: string, alpha: number) {
 export function capitalizeFirstLetter(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
+
+
+

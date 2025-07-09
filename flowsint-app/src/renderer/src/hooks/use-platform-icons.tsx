@@ -1,9 +1,14 @@
 import { type JSX, useMemo } from "react";
-import { actionItems, type ActionItem } from "@/lib/action-items"
+import { type ActionItem } from "@/lib/action-items"
 import { useIcon } from "@/hooks/use-icon"
+import { useActionItems } from "./use-action-items"
 
 export const usePlatformIcons = () => {
+    const { actionItems } = useActionItems()
+    
     return useMemo(() => {
+        if (!actionItems) return {}
+        
         const socials = actionItems.find((item) => item.type === "Socials")?.children
         if (!socials)
             return {};
@@ -16,6 +21,6 @@ export const usePlatformIcons = () => {
             };
             return acc;
         }, {} as Record<string, { icon: JSX.Element, color: string }>);
-    }, []);
+    }, [actionItems]);
 };
 

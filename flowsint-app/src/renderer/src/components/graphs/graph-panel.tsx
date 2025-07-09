@@ -9,7 +9,7 @@ import GraphLoader from './graph-loader'
 import Loader from '../loader'
 import WallEditor from './wall/wall'
 import { useGraphControls } from '@/stores/graph-controls-store'
-import { NodeEditorModal } from './wall/node-editor-modal'
+import { NodeEditorModal } from './node-editor-modal'
 import NodesTable from '../table'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
@@ -53,7 +53,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
             updateGraphData(graphData.nds, graphData.rls)
             setLoading(false)
         }
-    }, [graphData, setLoading])
+    }, [graphData?.nds, graphData?.rls, setLoading])
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -118,7 +118,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                 </div>
             }>
                 {/* <Graph /> */}
-                {nodes?.length > 500? (
+                {nodes?.length > 500 ? (
                     <>{view === "table" ? <NodesTable /> : <Graph />}</>
                 ) : (<>
                     {view === "force" && <GraphReactForce />}

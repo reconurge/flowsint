@@ -46,4 +46,15 @@ export const sketchService = {
             body: body
         });
     },
+    updateNode: async (sketchId: string, body: BodyInit): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}/nodes/edit`, {
+            method: 'PUT',
+            body: body
+        });
+    },
+    types: async (): Promise<any> => {
+        return fetchWithAuth(`/api/types`, {
+            method: 'GET'
+        });
+    },
 };

@@ -33,6 +33,7 @@ class Investigation(Base):
     status = mapped_column(String, server_default='active')
     sketches = relationship("Sketch", back_populates="investigation")
     analyses = relationship("Analysis", back_populates="investigation")
+    chats = relationship("Chat", back_populates="investigation")
     __table_args__ = (
         Index("idx_investigations_id", "id"),
         Index("idx_investigations_owner_id", "owner_id"),
@@ -162,6 +163,36 @@ class Analysis(Base):
         Index("idx_analyses_investigation_id", "investigation_id"),
     )
 
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = mapped_column(Text, nullable=False)
+    description = mapped_column(Text, nullable=True)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    owner_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
+    investigation_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
+    investigation = relationship("Investigation", back_populates="chats")
+    messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete")
+    __table_args__ = (
+        Index("idx_chats_owner_id", "owner_id"),
+        Index("idx_chats_investigation_id", "investigation_id"),
+    )
+
+class ChatMessage(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    content = mapped_column(JSON, nullable=True)
+    context = mapped_column(JSON, nullable=True)
+    is_bot: Mapped[bool] = mapped_column(default=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    chat_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("chats.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    chat = relationship("Chat", back_populates="messages")
+    __table_args__ = (
+        Index("idx_messages_chat_id", "chat_id"),
+    )
 
 class ThirdPartyKey(Base):
     __tablename__ = "third_party_keys"

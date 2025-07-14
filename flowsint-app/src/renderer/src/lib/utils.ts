@@ -1,8 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import Dagre from '@dagrejs/dagre';
-import { actionItems } from "./action-items"
-import type { ActionItem, FormField } from "./action-items"
+
 import { type Edge, Position, type Node } from '@xyflow/react';
 import * as d3 from "d3-force"
 
@@ -254,40 +253,6 @@ export const formatFileSize = (bytes: number) => {
 }
 
 
-function convertFieldToSimpleFormat(field: FormField): string {
-  if ((field.type === "hidden" && field.name === "platform") || field.name === "type") {
-    const defaultValue = field.options?.[0]?.value || ""
-    if (defaultValue) {
-      return `${field.name}:${defaultValue}`
-    }
-  }
-  return field.name
-}
-
-export function generateNodeTypes() {
-  const nodeTypes: Record<string, { type: string; fields: string[] }> = {}
-
-  function processItems(items: ActionItem[]) {
-    items.forEach((item) => {
-      if (!item.disabled) {
-        nodeTypes[item.key] = {
-          type: item.type,
-          fields: item.fields.map(convertFieldToSimpleFormat),
-        }
-      }
-
-      // Traiter les enfants récursivement
-      if (item.children && item.children.length > 0) {
-        processItems(item.children)
-      }
-    })
-  }
-
-  processItems(actionItems)
-  return nodeTypes
-}
-
-export const nodesTypes = generateNodeTypes()
 
 export const getInitials = (name: string) => {
   return name

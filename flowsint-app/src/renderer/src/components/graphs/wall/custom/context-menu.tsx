@@ -152,7 +152,7 @@ export default function ContextMenu({
     return (
         <div
             style={dynamicStyles}
-            className="bg-background border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
+            className="bg-background/90 backdrop-blur-sm border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
             onClick={handleMenuClick}
             {...props}
         >

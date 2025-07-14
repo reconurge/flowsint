@@ -5,12 +5,10 @@ import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PlusIcon, Trash2, Save, Sparkles, XIcon, ChevronDown, ChevronsRight, ExternalLink, X, ArrowUp } from "lucide-react"
+import { PlusIcon, Trash2, Save, ChevronDown, ChevronsRight, ExternalLink } from "lucide-react"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
-import { useChat } from "@/hooks/use-chat"
-import { Textarea } from "@/components/ui/textarea"
 import { Editor } from "@tiptap/core"
 import { Link, useParams } from "@tanstack/react-router"
 import { useLayoutStore } from "@/stores/layout-store"
@@ -19,9 +17,6 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-import { Badge } from "../ui/badge"
-import { useGraphStore } from "@/stores/graph-store"
 
 interface AnalysisEditorProps {
     // Core data
@@ -67,7 +62,7 @@ export const AnalysisEditor = ({
     currentAnalysisId
 }: AnalysisEditorProps) => {
     const { confirm } = useConfirm()
-    const toggleChat = useLayoutStore(s => s.toggleChat)
+    const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
     const { investigationId: routeInvestigationId, type } = useParams({ strict: false }) as { investigationId: string, type: string }
     const queryClient = useQueryClient()
 
@@ -76,21 +71,6 @@ export const AnalysisEditor = ({
     const [titleValue, setTitleValue] = useState("")
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
-    const selectedNodes = useGraphStore(s => s.selectedNodes)
-    const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
-    // Chat hook
-    const {
-        isAiLoading,
-        promptOpen,
-        setPromptOpen,
-        customPrompt,
-        setCustomPrompt,
-        handleCustomPrompt
-    } = useChat({
-        onContentUpdate: setEditorValue,
-        onSuccess: () => saveMutation.mutate({}),
-        editor: editor
-    })
 
     // Mutations
     const createMutation = useMutation({
@@ -228,12 +208,6 @@ export const AnalysisEditor = ({
         },
     })
 
-    useKeyboardShortcut({
-        key: "e",
-        ctrlOrCmd: true,
-        callback: () => setPromptOpen(!promptOpen),
-    })
-
     if (isLoading) {
         return <Skeleton className="h-full w-full" />
     }
@@ -247,7 +221,7 @@ export const AnalysisEditor = ({
                         {/* Left section with navigation and title */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                             {showNavigation && type !== "analysis" && (
-                                <Button className="h-8 w-8" variant="ghost" onClick={toggleChat}>
+                                <Button className="h-8 w-8" variant="ghost" onClick={toggleAnalysis}>
                                     <ChevronsRight />
                                 </Button>
                             )}
@@ -336,16 +310,6 @@ export const AnalysisEditor = ({
                                         </Button>
                                     </Link>
                                 )}
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    disabled={!analysis || isAiLoading}
-                                    title="AI Prompt"
-                                    className="h-8 w-8"
-                                    onClick={() => setPromptOpen(!promptOpen)}
-                                >
-                                    <Sparkles className="w-4 h-4" strokeWidth={1.5} />
-                                </Button>
                                 {type !== "analysis" &&
                                     <Button
                                         size="icon"
@@ -386,88 +350,22 @@ export const AnalysisEditor = ({
             {/* Editor */}
             <div className="flex-1 min-h-0 flex flex-col">
                 {analysis ? (
-                    <ResizablePanelGroup autoSaveId="conditional" direction="vertical" className="h-full">
-                        <ResizablePanel
-                            id="editor"
-                            defaultSize={promptOpen ? 70 : 100}
-                            minSize={30}
-                            className="transition-all duration-200"
-                        >
-                            <div className="h-full w-full">
-                                <MinimalTiptapEditor
-                                    key={analysis.id}
-                                    immediatelyRender={true}
-                                    value={editorValue}
-                                    onChange={setEditorValue}
-                                    className="w-full h-full"
-                                    editorContentClassName="p-5 min-h-[300px]"
-                                    output="json"
-                                    placeholder="Enter your analysis..."
-                                    autofocus={true}
-                                    editable={true}
-                                    editorClassName="focus:outline-hidden"
-                                    onEditorReady={setEditor}
-                                />
-                            </div>
-                        </ResizablePanel>
-
-                        {promptOpen && (
-                            <>
-                                <ResizableHandle withHandle />
-                                <ResizablePanel id="chat" defaultSize={30} minSize={20} maxSize={50} className="transition-all duration-200">
-                                    <div className="h-full bg-card flex flex-col">
-                                        <div className="flex flex-col h-full">
-                                            {/* File Tabs Header */}
-                                            <div className="flex items-center bg-background border-b p-1">
-                                                {selectedNodes?.length > 0 && <Badge variant={"outline"} className="flex items-center gap-1 pr-1">
-                                                    {selectedNodes?.length} entities(s) in context
-                                                    <Button size={"icon"} variant={"ghost"} className="h-5 w-5 rounded-full" onClick={clearSelectedNodes}>
-                                                        <XIcon className="h-3 w-3" />
-                                                    </Button>
-                                                </Badge>}
-                                                <div className="ml-auto pr-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => setPromptOpen(false)}
-                                                        className="h-6 w-6 text-[#888] hover:text-white hover:bg-[#333]"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            {/* Bottom Input Bar */}
-                                            <div className="border-t bg-card grow">
-                                                <div className="p-3 h-full">
-                                                    <div className="relative h-full">
-                                                        <Textarea
-                                                            placeholder="Enter your prompt..."
-                                                            value={customPrompt}
-                                                            autoFocus
-                                                            onChange={(e) => setCustomPrompt(e.target.value)}
-                                                            className="h-full resize-none bg-background focus:ring-1 pr-12"
-                                                        />
-                                                        <Button
-                                                            onClick={() => handleCustomPrompt(editorValue)}
-                                                            disabled={!customPrompt.trim() || isAiLoading}
-                                                            size="icon"
-                                                            className="absolute bottom-2 right-2 h-8 w-8 bg-[#444] hover:bg-[#555] text-white disabled:opacity-50"
-                                                        >
-                                                            {isAiLoading ? (
-                                                                <div className="w-4 h-4 border-2 border-[#888] border-t-white rounded-full animate-spin" />
-                                                            ) : (
-                                                                <ArrowUp className="w-4 h-4" />
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </ResizablePanel>
-                            </>
-                        )}
-                    </ResizablePanelGroup>
+                    <div className="h-full w-full">
+                        <MinimalTiptapEditor
+                            key={analysis.id}
+                            immediatelyRender={true}
+                            value={editorValue}
+                            onChange={setEditorValue}
+                            className="w-full h-full"
+                            editorContentClassName="p-5 min-h-[300px]"
+                            output="json"
+                            placeholder="Enter your analysis..."
+                            autofocus={true}
+                            editable={true}
+                            editorClassName="focus:outline-hidden"
+                            onEditorReady={setEditor}
+                        />
+                    </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
                         <div>No analysis selected.</div>

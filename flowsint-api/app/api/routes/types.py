@@ -14,6 +14,7 @@ from app.types.wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
 from app.types.website import Website
 from app.types.individual import Individual
 from app.types.phone import Phone
+from app.types.leak import Leak
 
 router = APIRouter()
 
@@ -26,11 +27,12 @@ async def get_types_list():
             "type": "person",
             "key": "person_category",
             "icon": "individual",
-            "label": "Person",
+            "label": "Identities & Entities",
             "fields": [],
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
                 extract_input_schema(SocialProfile, label_key="username", icon="username"),
+                extract_input_schema(Organization, label_key="name"),
             ],
         },
         {
@@ -49,19 +51,20 @@ async def get_types_list():
             "type": "contact_category",
             "key": "contact",
             "icon": "phone",
-            "label": "Contact",
+            "label": "Communication & Contact",
             "fields": [],
             "children": [
                 extract_input_schema(Phone, label_key="number"),
                 extract_input_schema(Email, label_key="email"),
+                extract_input_schema(SocialProfile, label_key="username", icon="username"),
             ],
         },
         {
             "id": uuid4(),
-            "type": "digital_category",
-            "key": "digital",
+            "type": "network_category",
+            "key": "network",
             "icon": "domain",
-            "label": "Digital",
+            "label": "Network",
             "fields": [],
             "children": [
                 extract_input_schema(ASN, label_key="number"),
@@ -69,6 +72,30 @@ async def get_types_list():
                 extract_input_schema(Domain, label_key="domain"),
                 extract_input_schema(Website, label_key="url"),
                 extract_input_schema(Ip, label_key="address"),
+            ],
+        },
+        {
+            "id": uuid4(),
+            "type": "leak_category",
+            "key": "leaks",
+            "icon": "breach",
+            "label": "Leaks",
+            "fields": [],
+            "children": [
+                extract_input_schema(Leak, label_key="name", icon = "breach"),
+            ],
+        },
+        {
+            "id": uuid4(),
+            "type": "crypto_category",
+            "key": "crypto",
+            "icon": "cryptowallet",
+            "label": "Crypto",
+            "fields": [],
+            "children": [
+                extract_input_schema(CryptoWallet, label_key="address", icon = "cryptowallet"),
+                extract_input_schema(CryptoWalletTransaction, label_key="hash", icon = "cryptowallet"),
+                extract_input_schema(CryptoNFT, label_key="name", icon = "cryptowallet"),
             ],
         }
     ]

@@ -14,6 +14,7 @@ import NodesTable from '../table'
 import { findActionItemByKey } from '@/lib/action-items'
 import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
+import MapPanel from '../map/map-panel'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
 
@@ -127,17 +128,21 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
             }>
                 {/* <Graph /> */}
                 {nodes?.length > 500 ? (
-                    <>{view === "table" ? <NodesTable /> : <Graph />}</>
+                    <>{view === "table" && <NodesTable />}
+                        {["force", "hierarchy"].includes(view) && <Graph />}
+                        {view === "map" && <MapPanel />}
+                    </>
                 ) : (<>
                     {view === "force" && <GraphReactForce />}
                     {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />}
                     {view === "table" && <NodesTable />}
+                    {view === "map" && <MapPanel />}
                 </>)}
             </Suspense>
             {/* <Graph /> */}
             {/* <GraphSigma /> */}
             <DragOverlay isDragging={isDraggingOver} />
-            <div className='absolute  left-3 top-3'>
+            <div className='absolute z-21 left-3 top-3'>
                 <Toolbar isLoading={isLoading} />
             </div>
             <CreateRelationDialog />

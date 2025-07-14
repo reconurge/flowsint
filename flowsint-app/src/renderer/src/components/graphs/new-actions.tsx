@@ -127,7 +127,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
         <>
             <Dialog open={openMainDialog} onOpenChange={setOpenMainDialog}>
                 <DialogTrigger disabled={isLoading} asChild>{children}</DialogTrigger>
-                <DialogContent className="sm:max-w-[700px] h-[80vh] overflow-hidden flex flex-col">
+                <DialogContent className="sm:max-w-[800px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (
                             <Button variant="ghost" size="icon" className="mr-2" onClick={navigateBack}>
@@ -195,7 +195,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all bg-card hover:border-primary border border-transparent hover:shadow-md",
+                "cursor-pointer transition-all hover:border-primary border border-transparent hover:shadow-md bg-muted",
                 item.disabled && "opacity-50 cursor-not-allowed",
                 "h-full",
             )}

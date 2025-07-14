@@ -329,4 +329,140 @@ def delete_nodes(
         raise HTTPException(status_code=500, detail="Failed to delete nodes")
     
     return {"status": "nodes deleted", "count": len(nodes.nodeIds)}
+
+@router.get("/{sketch_id}/nodes/{node_id}")
+def get_related_nodes(
+    sketch_id: str,
+    node_id: str,
+    db: Session = Depends(get_db),
+    # current_user: Profile = Depends(get_current_user)
+):
+    # First verify the sketch exists and belongs to the user
+    # sketch = db.query(Sketch).filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id).first()
+    # if not sketch:
+    #     raise HTTPException(status_code=404, detail="Sketch not found")
+    
+    # Query to get all direct relationships and connected nodes
+    # First, let's get the center node
+    center_query = """
+    MATCH (n)
+    WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
+    RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
+    """
+    
+    try:
+        center_result = neo4j_connection.query(center_query, {
+            "sketch_id": sketch_id,
+            "node_id": node_id
+        })
+    except Exception as e:
+        print(f"Center node query error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve center node")
+    
+    if not center_result:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    # Now get all relationships and connected nodes
+    relationships_query = """
+    MATCH (n)
+    WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
+    OPTIONAL MATCH (n)-[r]->(other)
+    WHERE other.sketch_id = $sketch_id
+    OPTIONAL MATCH (other)-[r2]->(n)
+    WHERE other.sketch_id = $sketch_id
+    RETURN 
+        elementId(r) as rel_id,
+        type(r) as rel_type,
+        properties(r) as rel_data,
+        elementId(other) as other_node_id,
+        labels(other) as other_node_labels,
+        properties(other) as other_node_data,
+        'outgoing' as direction
+    UNION
+    MATCH (n)
+    WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
+    OPTIONAL MATCH (other)-[r]->(n)
+    WHERE other.sketch_id = $sketch_id
+    RETURN 
+        elementId(r) as rel_id,
+        type(r) as rel_type,
+        properties(r) as rel_data,
+        elementId(other) as other_node_id,
+        labels(other) as other_node_labels,
+        properties(other) as other_node_data,
+        'incoming' as direction
+    """
+    
+    try:
+        result = neo4j_connection.query(relationships_query, {
+            "sketch_id": sketch_id,
+            "node_id": node_id
+        })
+    except Exception as e:
+        print(f"Related nodes query error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve related nodes")
+    
+    # Extract center node info
+    center_record = center_result[0]
+    center_node = {
+        "id": center_record["id"],
+        "labels": center_record["labels"],
+        "data": center_record["data"],
+        "label": center_record["data"].get("label", "Node"),
+        "type": "custom",
+        "caption": center_record["data"].get("label", "Node")
+    }
+    
+    # Collect all related nodes and relationships
+    related_nodes = []
+    relationships = []
+    seen_nodes = set()
+    seen_relationships = set()
+    
+    for record in result:
+        # Skip if no relationship found
+        if not record["rel_id"]:
+            continue
+            
+        # Add relationship if not seen
+        if record["rel_id"] not in seen_relationships:
+            if record["direction"] == "outgoing":
+                relationships.append({
+                    "id": record["rel_id"],
+                    "type": "straight",
+                    "source": center_node["id"],
+                    "target": record["other_node_id"],
+                    "data": record["rel_data"],
+                    "caption": record["rel_type"]
+                })
+            else:  # incoming
+                relationships.append({
+                    "id": record["rel_id"],
+                    "type": "straight",
+                    "source": record["other_node_id"],
+                    "target": center_node["id"],
+                    "data": record["rel_data"],
+                    "caption": record["rel_type"]
+                })
+            seen_relationships.add(record["rel_id"])
+        
+        # Add related node if not seen
+        if record["other_node_id"] and record["other_node_id"] not in seen_nodes:
+            related_nodes.append({
+                "id": record["other_node_id"],
+                "labels": record["other_node_labels"],
+                "data": record["other_node_data"],
+                "label": record["other_node_data"].get("label", "Node"),
+                "type": "custom",
+                "caption": record["other_node_data"].get("label", "Node")
+            })
+            seen_nodes.add(record["other_node_id"])
+    
+    # Combine center node with related nodes
+    all_nodes = [center_node] + related_nodes
+    
+    return {
+        "nds": all_nodes,
+        "rls": relationships
+    }
     

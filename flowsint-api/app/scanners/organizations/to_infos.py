@@ -264,6 +264,7 @@ class OrgToInfosScanner(Scanner):
             self.neo4j_conn.query("""
                 MERGE (o:Organization {name: $name, country: $country})
                 SET o.siren = $siren,
+                    o.siege_siret = $siret,
                     o.nom_complet = $nom_complet,
                     o.nom_raison_sociale = $nom_raison_sociale,
                     o.sigle = $sigle,
@@ -292,6 +293,7 @@ class OrgToInfosScanner(Scanner):
                 "name": org.name,
                 "country": "FR",
                 "siren": org.siren,
+                "siret": org.siege_siret,
                 "nom_complet": org.nom_complet,
                 "nom_raison_sociale": org.nom_raison_sociale,
                 "sigle": org.sigle,
@@ -315,54 +317,11 @@ class OrgToInfosScanner(Scanner):
                 "sketch_id": self.sketch_id,
             })
 
-            # Add SIREN as identifier if available
             if org.siren:
-                self.neo4j_conn.query("""
-                    MERGE (i:Identifier {type: 'siren', value: $value})
-                    SET i.country = $country,
-                        i.issued_by = $issued_by,
-                        i.sketch_id = $sketch_id,
-                        i.label = $label,
-                        i.caption = $label
-                    WITH i
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:HAS_IDENTIFIER {sketch_id: $sketch_id}]->(i)
-                """, {
-                    "type": "siren",
-                    "label": f"SIREN: {org.siren}",
-                    "caption": f"SIREN: {org.siren}",
-                    "value": org.siren,
-                    "country": "FR",
-                    "issued_by": "INSEE",
-                    "sketch_id": self.sketch_id,
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
                 Logger.graph_append(self.sketch_id, {"message": f"{org.name}: SIREN {org.siren} -> {org.name}"})
 
             # Add SIRET as identifier if available
             if org.siege_siret:
-                self.neo4j_conn.query("""
-                    MERGE (i:Identifier {type: 'siret', value: $value})
-                    SET i.country = $country,
-                        i.issued_by = $issued_by,
-                        i.sketch_id = $sketch_id,
-                        i.label = $label,
-                        i.caption = $label
-                    WITH i
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:HAS_IDENTIFIER {sketch_id: $sketch_id}]->(i)
-                """, {
-                    "type": "siret",
-                    "label": f"SIRET: {org.siege_siret}",
-                    "caption": f"SIRET: {org.siege_siret}",
-                    "value": org.siege_siret,
-                    "country": "FR",
-                    "issued_by": "INSEE",
-                    "sketch_id": self.sketch_id,
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
                 Logger.graph_append(self.sketch_id, {"message": f"{org.name}: SIRET {org.siege_siret} -> {org.name}"})
 
             # Add dirigeants (leaders) as Individual nodes with relationships
@@ -455,46 +414,10 @@ class OrgToInfosScanner(Scanner):
 
             # Add activity codes as Activity nodes
             if org.activite_principale:
-                self.neo4j_conn.query("""
-                    MERGE (a:Activity {code: $code})
-                    SET a.section = $section,
-                        a.sketch_id = $sketch_id,
-                        a.label = $label,
-                        a.caption = $caption,
-                        a.type = 'activity'
-                    WITH a
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:HAS_ACTIVITY {sketch_id: $sketch_id}]->(a)
-                """, {
-                    "code": org.activite_principale,
-                    "section": org.section_activite_principale,
-                    "sketch_id": self.sketch_id,
-                    "label": f"Activity: {org.activite_principale}",
-                    "caption": f"Activity: {org.activite_principale}",
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
                 Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}"})
 
             # Add legal nature as LegalNature node
             if org.nature_juridique:
-                self.neo4j_conn.query("""
-                    MERGE (l:LegalNature {code: $code})
-                    SET l.sketch_id = $sketch_id,
-                        l.label = $label,
-                        l.caption = $caption,
-                        l.type = 'legal_nature'
-                    WITH l
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:HAS_LEGAL_NATURE {sketch_id: $sketch_id}]->(l)
-                """, {
-                    "code": org.nature_juridique,
-                    "sketch_id": self.sketch_id,
-                    "label": f"Legal Nature: {org.nature_juridique}",
-                    "caption": f"Legal Nature: {org.nature_juridique}",
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
                 Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}"})
 
         return results

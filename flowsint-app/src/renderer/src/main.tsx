@@ -1,15 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { createHashHistory } from '@tanstack/react-router'
 import { Provider as TanStackQueryProvider, getContext as getQueryContext } from '@/integrations/tanstack-query/root-provider'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
 import { ThemeProvider } from '@/components/theme-provider'
-// const hashHistory = createHashHistory()
+
+const hashHistory = createHashHistory()
 
 const router = createRouter({
   routeTree,
-  // history: hashHistory,
+  history: hashHistory,
   context: {
     ...getQueryContext(),
   },

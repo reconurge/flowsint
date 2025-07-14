@@ -48,15 +48,3 @@ class SketchIn(BaseModel):
     status: Optional[str] = "active"
     investigation_id: UUID  # requis
 
-class SketchRead(BaseModel):
-    id: UUID
-    title: Optional[str]
-    description: Optional[str]
-    created_at: Optional[datetime]
-    owner_id: Optional[UUID]
-    status: Optional[str]
-    investigation_id: UUID
-    last_updated_at: Optional[datetime]
-
-    class Config:
-        from_attributes = True

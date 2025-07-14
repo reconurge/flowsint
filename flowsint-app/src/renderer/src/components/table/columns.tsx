@@ -301,7 +301,7 @@ export const columns: ColumnDef<GraphNode>[] = [
         },
         accessorKey: "data.confidence",
         cell: ({ row }) => {
-            const confidence = 85 // row.original.data.confidence || 85
+            const confidence = row.original.data.confidence || 85
             const color = getConfidenceColor(confidence)
 
             return (
@@ -462,8 +462,8 @@ export const columns: ColumnDef<GraphNode>[] = [
 
             return (
                 <div className={`text-left font-medium text-xs ${isProduction
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-emerald-600 dark:text-emerald-400'
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-emerald-600 dark:text-emerald-400'
                     }`}>
                     {env}
                 </div>
@@ -476,12 +476,12 @@ export const columns: ColumnDef<GraphNode>[] = [
         minSize: 50,
         maxSize: 50,
         enableResizing: false,
-        header: ({ column }) => {
+        header: () => {
             return (
                 <div className="w-[50]"></div>
             )
         },
-        cell: ({ row }) => {
+        cell: () => {
             return (
                 <div className="flex items-center justify-center w-full h-full">
                     <DropdownMenu>

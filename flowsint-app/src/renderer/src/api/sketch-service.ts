@@ -52,6 +52,11 @@ export const sketchService = {
             body: body
         });
     },
+    getNodeNeighbors: async (sketchId: string, nodeId: string): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}/nodes/${nodeId}`, {
+            method: 'GET'
+        });
+    },
     types: async (): Promise<any> => {
         return fetchWithAuth(`/api/types`, {
             method: 'GET'

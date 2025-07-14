@@ -316,7 +316,7 @@ export function DataTable<TData, TValue>({
                         </tr>
                     ))}
                 </thead>
-                <MemoizedTableBody
+                <TableBody
                     table={table}
                     tableContainerRef={tableContainerRef}
                     columnSizeVars={columnSizeVars}

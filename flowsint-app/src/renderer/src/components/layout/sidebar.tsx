@@ -26,17 +26,17 @@ export function Sidebar() {
     const isOpenPanel = useLayoutStore(s => s.isOpenPanel)
 
     const navItems: NavItem[] = [
-        { icon: Home, label: "Dashboard", href: "/dashboard" },
+        { icon: Home, label: "Dashboard", href: "/dashboard/" },
         { icon: Fingerprint, label: "Cases", href: "/dashboard/investigations" },
         // { icon: BrickWall, label: "Walls", href: "/dashboard/investigations/wall" },
         { icon: Workflow, label: "Transforms", href: "/dashboard/transforms" },
     ]
 
     const commonClasses =
-        "flex items-center justify-center h-14 w-full rounded-sm hover:bg-muted"
+        "flex items-center justify-center h-12 w-full rounded-sm hover:bg-muted"
 
     return (
-        <div className="w-16 border-r h-full flex flex-col shrink-0 bg-card">
+        <div className="w-14 border-r h-full flex flex-col shrink-0 bg-card">
             <div className="flex flex-col items-center gap-1 p-2">
                 {navItems.map((item, index) => {
                     const IconComponent = item.icon
@@ -50,7 +50,7 @@ export function Sidebar() {
                                     <Link
                                         to={item.href}
                                         className={commonClasses}
-                                        activeProps={{ className: `${commonClasses} bg-muted` }}
+                                        activeProps={{ className: `${commonClasses}` }}
                                     >
                                         {content}
                                     </Link>

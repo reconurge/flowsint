@@ -19,13 +19,13 @@ export default function RootLayout({ children }: LayoutProps) {
     const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
     const toggleConsole = useLayoutStore(s => s.toggleConsole)
     const isOpenPanel = useLayoutStore(s => s.isOpenPanel)
-    const isOpenChat = useLayoutStore(s => s.isOpenChat)
+    const isOpenAnalysis = useLayoutStore(s => s.isOpenAnalysis)
     const togglePanel = useLayoutStore(s => s.togglePanel)
     const closePanel = useLayoutStore(s => s.closePanel)
     const openPanel = useLayoutStore(s => s.openPanel)
-    const toggleChat = useLayoutStore(s => s.toggleChat)
-    const closeChat = useLayoutStore(s => s.closeChat)
-    const openChat = useLayoutStore(s => s.openChat)
+    const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
+    const closeAnalysis = useLayoutStore(s => s.closeAnalysis)
+    const openAnalysis = useLayoutStore(s => s.openAnalysis)
     const { investigationId, type, id } = useParams({ strict: false })
 
 
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps) {
     useKeyboardShortcut({
         key: "l",
         ctrlOrCmd: true,
-        callback: toggleChat
+        callback: toggleAnalysis
     })
     useKeyboardShortcut({
         key: "b",
@@ -89,13 +89,13 @@ export default function RootLayout({ children }: LayoutProps) {
                                                     <SecondaryNavigation />
                                                 </div>
                                             </ResizablePanel>
-                                            <ResizableHandle withHandle />
+                                            <ResizableHandle />
                                         </>
                                     )}
                                     <ResizablePanel className="h-full w-full" id="children" order={3}>
                                         {children}
                                     </ResizablePanel>
-                                    {isOpenChat && type !== "analysis" && investigationId && (
+                                    {isOpenAnalysis && type !== "analysis" && investigationId && (
                                         <>
                                             <ResizableHandle withHandle />
                                             <ResizablePanel
@@ -104,8 +104,8 @@ export default function RootLayout({ children }: LayoutProps) {
                                                 defaultSize={20}
                                                 minSize={16}
                                                 maxSize={40}
-                                                onCollapse={closeChat}
-                                                onExpand={openChat}
+                                                onCollapse={closeAnalysis}
+                                                onExpand={openAnalysis}
                                                 collapsible={true}
                                                 collapsedSize={2}
                                             >

@@ -53,7 +53,7 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
         >
             {({ isActive }) => (
                 <div className={cn(
-                    "flex items-center gap-2 px-3 py-2",
+                    "flex items-center group gap-2 px-3 py-2",
                     isActive ? "bg-muted" : "hover:bg-muted/50"
                 )}>
                     <Waypoints className="h-4 w-4 text-primary opacity-70" strokeWidth={1.5} />
@@ -61,7 +61,7 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-all duration-100">
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -95,7 +95,7 @@ const InvestigationList = () => {
         const query = searchQuery.toLowerCase().trim()
         return data.filter((investigation) => {
             const matchesInvestigation = investigation.name.toLowerCase().includes(query)
-            const matchesSketches = investigation.sketches?.some(sketch => 
+            const matchesSketches = investigation.sketches?.some(sketch =>
                 sketch.title.toLowerCase().includes(query)
             )
             return matchesInvestigation || matchesSketches
@@ -147,7 +147,7 @@ const InvestigationList = () => {
                 <div className="overflow-auto">
                     {filteredInvestigations.map((investigation: Investigation) => (
                         <div key={investigation.id}>
-                            <div className="flex items-center gap-2 px-3 py-2 border-b">
+                            <div className="flex items-center group gap-2 px-3 py-2 border-b">
                                 <Link
                                     to="/dashboard/investigations/$investigationId"
                                     params={{
@@ -163,7 +163,7 @@ const InvestigationList = () => {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <div>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-all duration-100">
                                                 <MoreVertical className="h-4 w-4" />
                                             </Button>
                                         </div>

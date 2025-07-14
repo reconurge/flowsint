@@ -228,7 +228,7 @@ function VaultPage() {
                                                         {getStatusIcon(service)}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex flex-col gap-1">
+                                                        <div className="flex gap-1">
                                                             <div className="font-medium">{service.service}</div>
                                                             {!service.active && (
                                                                 <Badge variant="outline" className="w-fit text-orange-600 border-orange-200 dark:text-orange-400 dark:border-orange-800 text-xs">

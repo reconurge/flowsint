@@ -92,7 +92,7 @@ export const MinimalTiptapEditor = React.forwardRef<
       name="editor"
       ref={ref}
       className={cn(
-        "flex h-full grow overflow-y-auto hide-scrollbar w-full flex-col",
+        "flex hide-scrollbar w-full flex-col",
         className
       )}
     >

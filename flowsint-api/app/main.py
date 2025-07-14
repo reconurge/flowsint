@@ -57,7 +57,7 @@ app.include_router(investigations.router, prefix="/api/investigations", tags=["i
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
 app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
-app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(chat.router, prefix="/api/chats", tags=["chats"])
 app.include_router(scan.router, prefix="/api/scans", tags=["scans"])
 app.include_router(keys.router, prefix="/api/third_party_keys", tags=["third_party_keys"])
 app.include_router(types.router, prefix="/api/types", tags=["types"])

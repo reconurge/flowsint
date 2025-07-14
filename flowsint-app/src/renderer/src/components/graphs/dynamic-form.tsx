@@ -415,7 +415,7 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 p-1">
             <div className="space-y-4">{currentNodeType.fields.map(renderField)}</div>
-            <div className="flex sticky translate-y-1 p-1 bottom-0 bg-card items-center justify-end space-x-2">
+            <div className="flex sticky translate-y-1 p-1 bottom-0 bg-background items-center justify-end space-x-2">
                 <Button type="submit" disabled={isSubmitting || loading}>
                     {isSubmitting || loading ? (
                         <>

@@ -5,7 +5,7 @@ holehe==0.1.7
 python-dotenv==1.0.0
 uvicorn==0.24.0
 sherlock-project==1.4.0
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 requests==2.31.0
 git+https://github.com/soxoj/maigret
 python-whois==0.8.0

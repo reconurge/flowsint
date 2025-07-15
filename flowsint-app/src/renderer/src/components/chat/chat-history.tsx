@@ -2,7 +2,7 @@ import { chatCRUDService } from '@/api/chat-service';
 import { useQuery } from '@tanstack/react-query';
 import { SkeletonList } from '../shared/skeleton-list';
 import { Button } from '../ui/button';
-import { ArrowLeft, Trash, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Trash, MessageSquare, Sparkles } from 'lucide-react';
 import { Chat } from '@/types';
 import { useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
@@ -51,7 +51,7 @@ const ChatHistory = ({ setView, deleteChatMutation, handleCreateNewChat }: { set
                         <div className="relative mb-6">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-xl animate-pulse"></div>
                             <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-6 border border-primary/20">
-                                <MessageSquare className="h-8 w-8 text-primary/60" />
+                                <Sparkles className="h-8 w-8 text-primary/60" />
                             </div>
                         </div>
                         <div className="space-y-2 max-w-sm">

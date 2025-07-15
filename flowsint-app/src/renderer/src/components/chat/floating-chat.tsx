@@ -89,10 +89,13 @@ function FloatingChat() {
             {!isOpenChat &&
                 <div className="fixed bottom-12 right-4 z-10">
                     <Button
-                        className='h-12 w-12 rounded-full'
+                        className='h-16 w-16 rounded-full bg-card border border-border bg-opacity-100'
+                        variant="outline"
                         onClick={toggleChat}
                     >
-                        <Sparkles className='!h-5 !w-5' />
+                        {/* <Sparkles className='!h-5 !w-5' /> */}
+                        <img src="/icon.png" alt="Flowsint" className="h-12 w-12 object-cover" />
+
                     </Button>
                 </div>}
 
@@ -176,8 +179,8 @@ function FloatingChat() {
                                                     <>
                                                         <div className="relative mb-6">
                                                             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-xl animate-pulse"></div>
-                                                            <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-6 border border-primary/20">
-                                                                <Sparkles className="h-8 w-8 text-primary/60" />
+                                                            <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-4 border border-primary/20">
+                                                                <img src="/icon.png" alt="Flowsint" className="h-12 w-12 object-cover" />
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2 max-w-sm">
@@ -287,9 +290,9 @@ const ChatMessageComponent = ({ message }: { message: ChatMessage }) => {
         )}>
             <div className={cn("bg-muted-foreground/5 max-w-[80%] border border-border",
                 "p-1 rounded-lg",
-                "flex flex-col items-end"
+                "flex flex-col items-end overflow-x-hidden"
             )}>
-                {message?.context && message.context.length > 0 && <div className='flex items-center justify-end mb-2'><ContextList context={message.context} /></div>}
+                {message?.context && message.context.length > 0 && <div className='flex items-center w-full overflow-x-auto justify-end mb-2'><ContextList context={message.context} /></div>}
                 <span className='px-3'><MemoizedMarkdown id={message.id} content={message.content} /></span>
             </div>
         </div >)

@@ -12,7 +12,7 @@ interface GraphReactForceProps {
     style?: React.CSSProperties;
 }
 
-const NODE_COUNT_THRESHOLD = 500;
+const NODE_COUNT_THRESHOLD = 10;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useGraphStore(s => s.nodes) as GraphNode[];

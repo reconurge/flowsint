@@ -141,17 +141,53 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
 
     // Show loading if geocoding is in progress
     if (geocodeQuery.isLoading) {
-        return <div className="p-3"><p>Loading map…</p></div>;
+        return (
+            <div className="h-full w-full flex items-center justify-center">
+                <div className="text-center space-y-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground">Loading map data...</p>
+                </div>
+            </div>
+        );
     }
 
     // Show error if geocoding failed
     if (geocodeQuery.isError) {
-        return <div className="p-3"><p>Could not find some addresses.</p></div>;
+        return (
+            <div className="h-full w-full flex items-center justify-center">
+                <div className="text-center space-y-3">
+                    <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+                        <svg className="w-6 h-6 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p className="font-medium text-foreground">Unable to load map</p>
+                        <p className="text-sm text-muted-foreground">Could not find some addresses.</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     // Don't render if we don't have any valid coordinates
     if (validCoordinates.length === 0) {
-        return <div className="p-3"><p>No valid coordinates provided.</p></div>;
+        return (
+            <div className="h-full w-full flex items-center justify-center">
+                <div className="text-center space-y-3">
+                    <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p className="font-medium text-foreground">No locations to display</p>
+                        <p className="text-sm text-muted-foreground">No valid coordinates provided.</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return <div id={mapId} style={{ minHeight: height, height: '100%', width: '100%' }} />;

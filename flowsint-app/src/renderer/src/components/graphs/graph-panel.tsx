@@ -18,6 +18,8 @@ import MapPanel from '../map/map-panel'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
 
+const NODE_COUNT_THRESHOLD = 1000;
+
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -127,7 +129,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                 </div>
             }>
                 {/* <Graph /> */}
-                {nodes?.length > 500 ? (
+                {nodes?.length > NODE_COUNT_THRESHOLD ? (
                     <>{view === "table" && <NodesTable />}
                         {["force", "hierarchy"].includes(view) && <Graph />}
                         {view === "map" && <MapPanel />}

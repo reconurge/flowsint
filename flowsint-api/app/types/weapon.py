@@ -1,0 +1,28 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class Weapon(BaseModel):
+    name: str = Field(..., description="Weapon name or identifier", title="Name")
+    type: Optional[str] = Field(None, description="Type of weapon (malware, exploit, tool, etc.)", title="Type")
+    category: Optional[str] = Field(None, description="Weapon category (ransomware, trojan, exploit, etc.)", title="Category")
+    description: Optional[str] = Field(None, description="Weapon description", title="Description")
+    first_seen: Optional[str] = Field(None, description="First time weapon was observed", title="First Seen")
+    last_seen: Optional[str] = Field(None, description="Last time weapon was observed", title="Last Seen")
+    is_active: Optional[bool] = Field(None, description="Whether weapon is currently active", title="Is Active")
+    threat_level: Optional[str] = Field(None, description="Threat level assessment", title="Threat Level")
+    targets: Optional[List[str]] = Field(None, description="Target platforms or systems", title="Targets")
+    attack_vectors: Optional[List[str]] = Field(None, description="Attack vectors used", title="Attack Vectors")
+    payload_type: Optional[str] = Field(None, description="Type of payload delivered", title="Payload Type")
+    delivery_method: Optional[str] = Field(None, description="Method of delivery", title="Delivery Method")
+    evasion_techniques: Optional[List[str]] = Field(None, description="Evasion techniques used", title="Evasion Techniques")
+    persistence_mechanisms: Optional[List[str]] = Field(None, description="Persistence mechanisms", title="Persistence Mechanisms")
+    command_control: Optional[List[str]] = Field(None, description="Command and control infrastructure", title="Command & Control")
+    encryption_methods: Optional[List[str]] = Field(None, description="Encryption methods used", title="Encryption Methods")
+    obfuscation_techniques: Optional[List[str]] = Field(None, description="Obfuscation techniques", title="Obfuscation Techniques")
+    source: Optional[str] = Field(None, description="Source of weapon information", title="Source")
+    analysis_report: Optional[str] = Field(None, description="Link to analysis report", title="Analysis Report")
+    sample_hashes: Optional[List[str]] = Field(None, description="Sample file hashes", title="Sample Hashes")
+    ioc_indicators: Optional[List[str]] = Field(None, description="Indicators of compromise", title="IOC Indicators")
+    attribution: Optional[str] = Field(None, description="Attributed threat actor or group", title="Attribution")
+    cve_references: Optional[List[str]] = Field(None, description="Related CVE references", title="CVE References")
+    mitre_techniques: Optional[List[str]] = Field(None, description="MITRE ATT&CK techniques", title="MITRE Techniques") 

@@ -21,6 +21,7 @@ from app.scanners.emails.to_gravatar import EmailToGravatarScanner
 from app.scanners.emails.to_leaks import EmailToBreachesScanner
 from app.scanners.individuals.to_org import IndividualToOrgScanner
 from app.scanners.organizations.to_infos import OrgToInfosScanner
+from app.scanners.websites.to_webtrackers import WebsiteToWebtrackersScanner
 
 class ScannerRegistry:
     
@@ -96,4 +97,5 @@ ScannerRegistry.register(EmailToBreachesScanner)
 ScannerRegistry.register(IndividualToOrgScanner)
 ScannerRegistry.register(OrgToInfosScanner)
 ScannerRegistry.register(IndividualToOrgScanner)
+ScannerRegistry.register(WebsiteToWebtrackersScanner)
 

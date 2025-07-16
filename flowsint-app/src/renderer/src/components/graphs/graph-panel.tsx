@@ -15,10 +15,12 @@ import { findActionItemByKey } from '@/lib/action-items'
 import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
+import NewActions from './new-actions'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const Graph = lazy(() => import('./graph'))
 
-const NODE_COUNT_THRESHOLD = 1000;
+const NODE_COUNT_THRESHOLD = 500;
+
 
 
 // Separate component for the drag overlay
@@ -56,6 +58,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
     const [isDraggingOver, setIsDraggingOver] = useState(false)
 
     useEffect(() => {
+        updateGraphData([], [])
         if (graphData?.nds && graphData?.rls) {
             updateGraphData(graphData.nds, graphData.rls)
             setLoading(false)
@@ -147,6 +150,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
             <div className='absolute z-21 left-3 top-3'>
                 <Toolbar isLoading={isLoading} />
             </div>
+            <NewActions />
             <CreateRelationDialog />
             <NodeEditorModal />
         </div>

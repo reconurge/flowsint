@@ -6,16 +6,21 @@ import { memo, useCallback, useState } from "react"
 import { type ActionItem } from "@/lib/action-items"
 import { DraggableItem } from "./draggable-item"
 import { Input } from "@/components/ui/input"
-import NewActions from "@/components/graphs/new-actions"
 import { useActionItems } from "@/hooks/use-action-items"
 import { SkeletonList } from "../shared/skeleton-list"
+import { useGraphStore } from "@/stores/graph-store"
 
 export const ItemsPanel = memo(function LeftPanel() {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog)
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value)
     }, [])
+
+    const handleOpenNewActionDialog = useCallback(() => {
+        setOpenMainDialog(true)
+    }, [setOpenMainDialog])
 
     const { actionItems, isLoading } = useActionItems()
 
@@ -23,15 +28,14 @@ export const ItemsPanel = memo(function LeftPanel() {
         <div className="bg-card p-4 h-full w-full overflow-y-auto flex flex-col">
             <div className="flex items-center gap-2 mb-3">
                 <div>
-                    <NewActions>
-                        <Button
-                            className="h-7 !w-7"
-                            size="icon"
-                            variant={"ghost"}
-                        >
-                            <PlusIcon />
-                        </Button>
-                    </NewActions>
+                    <Button
+                        onClick={handleOpenNewActionDialog}
+                        className="h-7 !w-7"
+                        size="icon"
+                        variant={"ghost"}
+                    >
+                        <PlusIcon />
+                    </Button>
                 </div>
                 <div className="relative grow">
                     <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />

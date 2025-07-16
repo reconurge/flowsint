@@ -46,6 +46,10 @@ interface GraphState {
     clearSelectedNodes: () => void
     toggleNodeSelection: (node: GraphNode, multiSelect?: boolean) => void
 
+    // === Relation ===
+    relatedNodeToAdd: GraphNode | null
+    setRelatedNodeToAdd: (node: GraphNode | null) => void
+
     // === Dialogs ===
     openMainDialog: boolean
     openFormDialog: boolean
@@ -183,6 +187,10 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
             currentNode: multiSelect ? currentNode : (isSelected ? null : node),
         })
     },
+
+    // === Relation ===
+    relatedNodeToAdd: null,
+    setRelatedNodeToAdd: (node) => set({ relatedNodeToAdd: node }),
 
     // === Dialogs ===
     openMainDialog: false,

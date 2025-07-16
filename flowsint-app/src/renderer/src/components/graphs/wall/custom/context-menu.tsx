@@ -4,22 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Pencil, Trash2, FileCode2, Search, Info, Star, Sparkles } from 'lucide-react';
+import { FileCode2, Search, Info, Star } from 'lucide-react';
 import { Transform } from '@/types';
 import { GraphNode, useGraphStore } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { useConfirm } from '@/components/use-confirm-dialog';
-import { toast } from 'sonner';
-import { sketchService } from '@/api/sketch-service';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useLayoutStore } from '@/stores/layout-store';
+import NodeActions from '../../node-actions';
 
 export default function ContextMenu({
     node,
@@ -48,17 +41,11 @@ export default function ContextMenu({
 }) {
     const { id: sketchId } = useParams({ strict: false })
     const [searchQuery, setSearchQuery] = useState('');
-    const { confirm } = useConfirm();
     const { launchTransform } = useLaunchTransform(false);
-    const removeNodes = useGraphStore(s => s.removeNodes);
-    const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection);
-    const openChat = useLayoutStore(s => s.openChat);
-    const setCurrentNode = useGraphStore(s => s.setCurrentNode);
-    const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal);
+
     const { data: transforms, isLoading } = useQuery({
         queryKey: ["transforms", node.data.type],
         queryFn: () => transformService.get(capitalizeFirstLetter(node.data.type)),
-        // queryFn: () => transformService.get(),
     });
 
     const filteredTransforms = transforms?.filter((transform: Transform) => {
@@ -113,36 +100,6 @@ export default function ContextMenu({
         e.stopPropagation();
     };
 
-    const handleAskAI = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        toggleNodeSelection(node, false)
-        openChat()
-    }, [node, toggleNodeSelection, openChat])
-
-    const handleEditNode = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        const typedNode = node as GraphNode
-        setCurrentNode(typedNode)
-        setOpenNodeEditorModal(true)
-        setMenu(null)
-    }, [node, setCurrentNode, setOpenNodeEditorModal])
-
-    const handleDeleteNode = async () => {
-        if (!node.id || !sketchId) return
-        if (!await confirm({ title: `You are about to delete this node ?`, message: "The action is irreversible." })) return
-        toast.promise(
-            (async () => {
-                removeNodes([node.id])
-                return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: [node.id] }))
-            })(),
-            {
-                loading: `Deleting ${node.data.label}...`,
-                success: 'Node deleted successfully.',
-                error: 'Failed to delete node.'
-            }
-        )
-    }
-
     const handleTransformClick = (e: React.MouseEvent, transformId: string) => {
         e.stopPropagation();
         launchTransform([node.data.label], transformId, sketchId)
@@ -161,61 +118,7 @@ export default function ContextMenu({
                 <div className='flex text-xs items-center gap-1 truncate'>
                     <span className='block truncate'>{node.data.label}</span> - <span className='block'>{node.data.type}</span>
                 </div>
-                <div className="flex items-center  gap-1 ml-2">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div>
-                                    <Button
-                                        onClick={handleAskAI}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-                                    >
-                                        <Sparkles className="h-3 w-3" strokeWidth={1.5} />
-                                    </Button>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Ask AI</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div>
-                                    <Button
-                                        onClick={handleEditNode}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-                                    >
-                                        <Pencil className="h-3 w-3" strokeWidth={1.5} />
-                                    </Button>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Edit node</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                                        onClick={handleDeleteNode}
-                                    >
-                                        <Trash2 className="h-3 w-3" strokeWidth={1.5} />
-                                    </Button>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Delete node</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
+                <NodeActions node={node} setMenu={setMenu} />
             </div>
 
             {/* Search bar */}
@@ -240,7 +143,7 @@ export default function ContextMenu({
             <div className="flex-1 overflow-auto min-h-0">
                 {isLoading ? (
                     <div className="p-2 space-y-2">
-                        {[...Array(8)].map((_, i) => (
+                        {[...Array(3)].map((_, i) => (
                             <div key={i} className="flex items-center gap-2 p-2 rounded-md">
                                 <Skeleton className="h-4 w-4" />
                                 <div className="flex-1 space-y-1">

@@ -137,7 +137,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     online_activity: "#B5D1A9", // sage
     digital_footprint: "#D9B0B0", // brick
     username: "#C7BEE4",        // periwinkle
-    credential: "#BDC4CA",      // medium gray
+    credential: "#F7D154",      // medium gray
     biometric: "#AEB3B9",       // slate gray
     siret: "#ADB9C6",           // blue-gray
     siren: "#9FAAB8",           // dark slate
@@ -154,14 +154,14 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     dns: "#B8E6B8",             // soft mint
     ssl: "#E6D4A0",             // warm yellow
     message: "#C4B9ED",         // lavender
-    malware: "#E6B8B8",         // soft rose
+    malware: "#1DA7A8",         // soft rose
     weapon: "#F4B8A8",          // coral
     script: "#D4A5D4",          // dusty violet
     reputation: "#A9CCF4",      // medium blue
     risk: "#EAAFAF",            // dusty rose
     file: "#C1C6CD",            // cool gray
     bank: "#F7D154",            // gold
-    creditcard: "#E6D4A0",      // warm yellow
+    creditcard: "#0253A4",      // warm yellow
     alias: "#D4A5D4",           // dusty violet
     affiliation: "#A6D0BF"      // sage
 }

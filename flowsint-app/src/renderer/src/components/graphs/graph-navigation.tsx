@@ -42,7 +42,7 @@ const GraphNavigation = () => {
                                     defaultSize={30}
                                     className="flex flex-col w-full overflow-hidden min-h-0 min-w-0"
                                 >
-                                    <DetailsPanel data={currentNode.data} />
+                                    <DetailsPanel node={currentNode} />
                                 </ResizablePanel>
                                 <ResizableHandle />
                             </>

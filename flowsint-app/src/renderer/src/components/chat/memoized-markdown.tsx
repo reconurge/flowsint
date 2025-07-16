@@ -3,7 +3,8 @@ import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { cn } from '@/lib/utils';
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
     const tokens = marked.lexer(markdown);
@@ -13,26 +14,26 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 const MemoizedMarkdownBlock = memo(
     ({ content }: { content: string }) => {
         return <ReactMarkdown
-         components={{
-            code({ node, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '')
-                return match ? (
-                    <SyntaxHighlighter
-                        children={String(children).replace(/\n$/, '')}
-                        style={dark}
-                        language={match[1]}
-                        PreTag="div"
-                        className="rounded-md p-2 text-sm"
-                        {...props}
-                    />
-                ) : (
-                    <code className={className} {...props}>
-                        {children}
-                    </code>
-                )
-            }
-        }} 
-        remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
+            components={{
+                code({ node, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return match ? (
+                        <SyntaxHighlighter
+                            children={String(children).replace(/\n$/, '')}
+                            style={dracula}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded border border-border bg-muted px-1 py-0.5 text-sm"
+                            {...props}
+                        />
+                    ) : (
+                        <code className={cn("rounded border border-border bg-muted px-1 py-0.5 text-sm", className)} {...props}>
+                            {children}
+                        </code>
+                    )
+                }
+            }}
+            remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
     },
     (prevProps, nextProps) => {
         if (prevProps.content !== nextProps.content) return false;

@@ -15,6 +15,7 @@ import { MemoizedMarkdown } from './memoized-markdown'
 import { ChatSkeleton } from './chat-skeleton'
 import { ResizableChat } from './resizable-chat'
 import ChatHistory from './chat-history'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 
 function FloatingChat() {
     const [editorValue, setEditorValue] = useState<any>("")
@@ -57,7 +58,7 @@ function FloatingChat() {
         onSuccess: () => { },
     })
 
-    useKeyboardShortcut({
+    const { isMac } = useKeyboardShortcut({
         key: "e",
         ctrlOrCmd: true,
         callback: toggleChat,
@@ -84,28 +85,42 @@ function FloatingChat() {
         }
     }, [messages, editorValue])
 
+    const keyboardShortcut = isMac ? "⌘+E" : "Ctrl+E"
+
     return (
         <>
             {!isOpenChat &&
                 <div className="fixed bottom-12 right-4 z-10">
-                    <Button
-                        className='h-16 w-16 rounded-full bg-card border border-border bg-opacity-100'
-                        variant="outline"
-                        onClick={toggleChat}
-                    >
-                        {/* <Sparkles className='!h-5 !w-5' /> */}
-                        <img src="/icon.png" alt="Flowsint" className="h-12 w-12 object-cover" />
-
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <Button
+                                        className='h-16 w-16 p-0 rounded-full cursor-pointer bg-background border border-border bg-opacity-100'
+                                        variant="outline"
+                                        onClick={toggleChat}
+                                    >
+                                        {/* <Sparkles className='!h-5 !w-5' /> */}
+                                        <img src="/icon.png" alt="Flowsint" className="h-12 w-12 object-contain" />
+                                    </Button>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                                <div className="text-center">
+                                    <div>Toggle assistant</div>
+                                    <div className="text-xs opacity-70">{keyboardShortcut}</div>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>}
 
             {/* Chat Panel */}
             {isOpenChat &&
 
-
                 <div className="fixed bottom-12 overflow-hidden rounded-2xl right-4 shadow z-21">
                     <ResizableChat minWidth={400} minHeight={400} maxWidth={800} maxHeight={800}>
-                        <Card className="overflow-hidden backdrop-blur-sm bg-card/90 rounded-2xl gap-0 py-0 h-full">
+                        <Card className="overflow-hidden !backdrop-blur bg-background/90 rounded-2xl gap-0 py-0 h-full">
                             {view === "history" ? (
                                 <ChatHistory setView={setView} deleteChatMutation={deleteChatMutation} handleCreateNewChat={handlecreateNewChat} />
                             ) : (

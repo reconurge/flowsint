@@ -213,10 +213,10 @@ export const AnalysisEditor = ({
     }
 
     return (
-        <div className={`flex flex-col h-full w-full ${className}`}>
+        <div className={`flex flex-col h-full w-full overflow-y-auto ${className}`}>
             {/* Header */}
             {showHeader && (
-                <div className="border-b bg-card h-11 w-full flex items-center justify-between">
+                <div className="bg-background/70 sticky top-0 z-10 backdrop-blur-sm h-11 w-full flex items-center justify-between">
                     <div className="flex items-center justify-between p-3 w-full">
                         {/* Left section with navigation and title */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">

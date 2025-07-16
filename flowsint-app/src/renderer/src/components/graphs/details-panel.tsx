@@ -1,43 +1,53 @@
-import { memo, useCallback } from "react"
+import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
-import { Button } from "@/components/ui/button"
-import { Edit2, Check, X } from "lucide-react"
+import { Check, Rocket, X } from "lucide-react"
 import LaunchTransform from "./launch-transform"
-import { useGraphStore } from "@/stores/graph-store"
+import NodeActions from "./node-actions"
+import { GraphNode } from "@/stores/graph-store"
+import { Button } from "../ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 
-export default function DetailsPanel({ data }: { data: any }) {
-    const setOpenNodeEditorModal = useGraphStore(state => state.setOpenNodeEditorModal)
-    const handleEdit = useCallback(() => {
-        setOpenNodeEditorModal(true)
-    }, [])
+export default function DetailsPanel({ node }: { node: GraphNode }) {
 
     return (
         <div className="overflow-y-auto overflow-x-hidden w-full min-w-0 h-full min-h-0">
             <div className="flex items-center sticky w-full bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
-                <h1 className="text-md font-semibold truncate">{data?.label}</h1>
+                <h1 className="text-md font-semibold truncate">{node.data?.label}</h1>
                 <div className="grow" />
-                <div className="flex items-center gap-1">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleEdit}
-                        className="h-7 w-7 p-0"
-                    >
-                        <Edit2 strokeWidth={1.5} className="!h-4 !w-4 opacity-60" />
-                    </Button>
-                    <LaunchTransform values={[data.label]} type={data?.type} />
+                <div className="flex items-center">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <LaunchTransform values={[node.data.label]} type={node.data?.type}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                                        >
+                                            <Rocket className="h-3 w-3" strokeWidth={2} />
+                                        </Button>
+                                    </LaunchTransform>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Launch transform</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <NodeActions node={node} />
                 </div>
             </div>
-            {data?.description && (
+            {node.data?.description && (
                 <div className="px-4 py-3 border-b border-border">
                     <div
                         className="text-sm text-muted-foreground prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: data.description }}
+                        dangerouslySetInnerHTML={{ __html: node.data.description }}
                     />
                 </div>
             )}
-            <KeyValueDisplay data={data} />
+            <KeyValueDisplay data={node.data} />
         </div>
     )
 }

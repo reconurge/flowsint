@@ -14,7 +14,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
 
 
     return (
-        <div className="xy-node -z-[5000] -w-[160px] relative p-1 flex flex-col justify-center items-center !rounded-full h-20">
+        <div className="xy-node -z-[5000] relative p-1 flex flex-col justify-center items-center !rounded-full h-20">
             <Handle type="target" position={Position.Top} id="a" className="opacity-0 group-hover:opacity-100" />
             <Handle type="target" position={Position.Right} id="b" className="opacity-0 group-hover:opacity-100" />
             <Handle type="source" position={Position.Bottom} id="c" className="opacity-0 group-hover:opacity-100" />
@@ -31,7 +31,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
                 />
             </div>
             <div
-                className="text-nowrap text-center text-ellipsis truncate"
+                className="text-nowrap text-center max-w-[160px]  text-ellipsis truncate"
                 style={{
                     fontSize: 11,
                     color: (selected || isCurrent(id)) ? "#f97316" : "#94a3b8",

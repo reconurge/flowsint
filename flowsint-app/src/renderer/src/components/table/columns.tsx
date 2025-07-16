@@ -14,7 +14,6 @@ import {
 import { Checkbox } from "../ui/checkbox"
 import { useCallback, memo } from "react"
 import { GraphNode, useGraphStore } from "@/stores/graph-store"
-import { Badge } from "@/components/ui/badge"
 
 // Memoized icon component to prevent unnecessary re-renders
 const MemoizedIcon = memo(({ type, size = 16 }: { type: string; size?: number }) => {
@@ -27,29 +26,15 @@ MemoizedIcon.displayName = 'MemoizedIcon'
 const getStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
         case 'active':
-            return { bg: 'bg-emerald-50 dark:bg-emerald-950/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800', icon: CheckCircle }
+            return { bg: 'bg-emerald-50 dark:bg-emerald-950/20', text: 'text-emerald-700 dark:text-emerald-200', border: 'border-emerald-500 dark:border-emerald-800', icon: CheckCircle }
         case 'pending':
-            return { bg: 'bg-amber-50 dark:bg-amber-950/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800', icon: Clock }
+            return { bg: 'bg-amber-50 dark:bg-amber-950/20', text: 'text-amber-700 dark:text-amber-200', border: 'border-amber-500 dark:border-amber-800', icon: Clock }
         case 'error':
-            return { bg: 'bg-red-50 dark:bg-red-950/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800', icon: XCircle }
+            return { bg: 'bg-red-50 dark:bg-red-950/20', text: 'text-red-700 dark:text-red-200', border: 'border-red-500 dark:border-red-800', icon: XCircle }
         case 'warning':
-            return { bg: 'bg-orange-50 dark:bg-orange-950/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800', icon: AlertTriangle }
+            return { bg: 'bg-orange-50 dark:bg-orange-950/20', text: 'text-orange-700 dark:text-orange-200', border: 'border-orange-500 dark:border-orange-800', icon: AlertTriangle }
         default:
-            return { bg: 'bg-gray-50 dark:bg-gray-900', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-200 dark:border-gray-700', icon: Clock }
-    }
-}
-
-// Helper function to get priority styling
-const getPriorityStyle = (priority: string) => {
-    switch (priority?.toLowerCase()) {
-        case 'high':
-            return { bg: 'bg-red-50 dark:bg-red-950/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' }
-        case 'medium':
-            return { bg: 'bg-amber-50 dark:bg-amber-950/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' }
-        case 'low':
-            return { bg: 'bg-emerald-50 dark:bg-emerald-950/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' }
-        default:
-            return { bg: 'bg-gray-50 dark:bg-gray-900', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-200 dark:border-gray-700' }
+            return { bg: 'bg-gray-50 dark:bg-gray-900', text: 'text-gray-700 dark:text-gray-200', border: 'border-gray-500 dark:border-gray-700', icon: Clock }
     }
 }
 
@@ -57,15 +42,15 @@ const getPriorityStyle = (priority: string) => {
 const getRiskStyle = (risk: string) => {
     switch (risk?.toLowerCase()) {
         case 'critical':
-            return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-200' }
+            return { bg: 'bg-red-200 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-500' }
         case 'high':
-            return { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-200' }
+            return { bg: 'bg-orange-200 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-500' }
         case 'medium':
-            return { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-800 dark:text-amber-200' }
+            return { bg: 'bg-amber-200 dark:bg-amber-900/30', text: 'text-amber-800 dark:text-amber-500' }
         case 'low':
-            return { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-800 dark:text-emerald-200' }
+            return { bg: 'bg-emerald-200 dark:bg-emerald-900/30', text: 'text-emerald-800 dark:text-emerald-500' }
         default:
-            return { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-800 dark:text-gray-200' }
+            return { bg: 'bg-gray-200 dark:bg-gray-800', text: 'text-gray-800 dark:text-gray-500' }
     }
 }
 
@@ -80,7 +65,7 @@ const getConfidenceColor = (confidence: number) => {
 export const columns: ColumnDef<GraphNode>[] = [
     {
         size: 50,
-        minSize: 50,
+        minSize:50,
         maxSize: 50,
         enableResizing: false,
         accessorKey: "icon",
@@ -114,6 +99,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         accessorKey: "data.label",
         header: ({ column }) => {
             return (
@@ -141,12 +129,12 @@ export const columns: ColumnDef<GraphNode>[] = [
             return (
                 <button
                     onClick={openEdit}
-                    className="text-left font-medium flex items-center gap-2 h-full truncate text-ellipsis w-full rounded-md p-2 transition-colors duration-200"
+                    className="text-left font-medium flex items-center gap-2 h-full truncate text-ellipsis w-full rounded-md p-2 transition-colors duration-500"
                 >
                     {/* <div className="flex-shrink-0">
                         <IconComponent size={16} />
                     </div> */}
-                    <span className="hover:text-primary truncate text-[.9rem] block font-medium transition-colors duration-200">
+                    <span className="hover:text-primary truncate text-[.9rem] block font-medium transition-colors duration-500">
                         {row.original.data.label}
                     </span>
                 </button>
@@ -167,9 +155,9 @@ export const columns: ColumnDef<GraphNode>[] = [
                 </Button>
             )
         },
-        size: 100,
-        minSize: 110,
-        maxSize: 150,
+        size: 120,
+        minSize:80,
+        maxSize: 200,
         accessorKey: "data.type",
         cell: ({ row }) => {
             const type = row.original.data.type
@@ -182,6 +170,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         header: ({ column }) => {
             return (
                 <Button
@@ -210,59 +201,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Priority
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.priority",
-        cell: ({ row }) => {
-            const priority = row.original.data.priority || 'Medium'
-            const style = getPriorityStyle(priority)
-
-            return (
-                <Badge
-                    variant="outline"
-                    className={`${style.bg} ${style.text} ${style.border} font-medium capitalize text-xs`}
-                >
-                    {priority}
-                </Badge>
-            )
-        }
-    },
-    {
-        enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Category
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.category",
-        cell: ({ row }) => {
-            const category = row.original.data.category || 'Network'
-            return (
-                <div className="text-left font-medium text-gray-700 dark:text-gray-300">
-                    {category}
-                </div>
-            )
-        }
-    },
-    {
-        enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         header: ({ column }) => {
             return (
                 <Button
@@ -279,7 +220,7 @@ export const columns: ColumnDef<GraphNode>[] = [
         cell: ({ row }) => {
             const source = row.original.data.source || 'Scanner'
             return (
-                <div className="text-left font-medium text-gray-700 dark:text-gray-300">
+                <div className="text-left font-medium text-gray-700 dark:text-gray-200">
                     {source}
                 </div>
             )
@@ -287,6 +228,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         header: ({ column }) => {
             return (
                 <Button
@@ -306,9 +250,9 @@ export const columns: ColumnDef<GraphNode>[] = [
 
             return (
                 <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                    <div className="flex-1 bg-gray-500 dark:bg-gray-700 rounded-full h-1.5">
                         <div
-                            className={`h-1.5 rounded-full transition-all duration-300 ${color.replace('text-', 'bg-')}`}
+                            className={`h-1.5 rounded-full transition-all duration-200 ${color.replace('text-', 'bg-')}`}
                             style={{ width: `${confidence}%` }}
                         />
                     </div>
@@ -321,6 +265,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         header: ({ column }) => {
             return (
                 <Button
@@ -335,7 +282,7 @@ export const columns: ColumnDef<GraphNode>[] = [
         },
         accessorKey: "data.riskLevel",
         cell: ({ row }) => {
-            const risk = row.original.data.riskLevel || 'Low'
+            const risk = row.original.data.riskLevel || 'N/A'
             const style = getRiskStyle(risk)
 
             return (
@@ -347,30 +294,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     {
         enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Tags
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.tags",
-        cell: ({ row }) => {
-            const tags = row.original.data.tags || 'infrastructure'
-            return (
-                <div className="text-left font-medium text-gray-600 dark:text-gray-400 text-xs">
-                    {tags}
-                </div>
-            )
-        }
-    },
-    {
-        enableResizing: true,
+        size: 200,
+        minSize:120,
+        maxSize: 500,
         header: ({ column }) => {
             return (
                 <Button
@@ -394,86 +320,9 @@ export const columns: ColumnDef<GraphNode>[] = [
         }
     },
     {
-        enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Owner
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.owner",
-        cell: ({ row }) => {
-            const owner = row.original.data.owner || 'Team A'
-            return (
-                <div className="text-left font-medium text-gray-700 dark:text-gray-300">
-                    {owner}
-                </div>
-            )
-        }
-    },
-    {
-        enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Version
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.version",
-        cell: ({ row }) => {
-            const version = row.original.data.version || '1.2.3'
-            return (
-                <div className="text-left font-medium text-gray-500 dark:text-gray-400 font-mono text-xs">
-                    v{version}
-                </div>
-            )
-        }
-    },
-    {
-        enableResizing: true,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    className="h-7"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Environment
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            )
-        },
-        accessorKey: "data.environment",
-        cell: ({ row }) => {
-            const env = row.original.data.environment || 'Production'
-            const isProduction = env.toLowerCase() === 'production'
-
-            return (
-                <div className={`text-left font-medium text-xs ${isProduction
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-emerald-600 dark:text-emerald-400'
-                    }`}>
-                    {env}
-                </div>
-            )
-        }
-    },
-    {
         id: "actions",
         size: 50,
-        minSize: 50,
+        minSize:50,
         maxSize: 50,
         enableResizing: false,
         header: () => {
@@ -487,7 +336,7 @@ export const columns: ColumnDef<GraphNode>[] = [
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <div>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
+                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-500">
                                     <span className="sr-only">Open menu</span>
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>

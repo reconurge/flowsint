@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -10,6 +9,7 @@ import {
     SheetTitle,
     SheetDescription,
     SheetFooter,
+    SheetTrigger,
 } from "@/components/ui/sheet"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query"
 import { transformService } from "@/api/transfrom-service"
 import { useParams } from "@tanstack/react-router"
 import { capitalizeFirstLetter } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Transform {
     id: string
@@ -29,7 +30,7 @@ interface Transform {
     last_updated_at: string
 }
 
-const LaunchTransform = ({ values, type }: { values: string[], type: string }) => {
+const LaunchTransform = ({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
     const { launchTransform } = useLaunchTransform()
     const { id: sketch_id } = useParams({ strict: false })
     const [isOpen, setIsOpen] = useState(false)
@@ -41,40 +42,27 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
         // queryFn: () => transformService.get(),
     });
 
-
-    const handleOpenModal = () => {
-        setIsOpen(true)
-    }
-
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsOpen(false)
-    }
+    }, [])
 
-    const handleSelectTransform = (transform: Transform) => {
+    const handleSelectTransform = useCallback((transform: Transform) => {
         setSelectedTransform(transform)
-    }
+    }, [])
 
-    const handleLaunchTransform = () => {
+    const handleLaunchTransform = useCallback(() => {
         if (selectedTransform) {
             launchTransform(values, selectedTransform.id, sketch_id)
             handleCloseModal()
         }
-    }
+    }, [selectedTransform, launchTransform, values, sketch_id])
 
     return (
         <div>
-            <Button
-                onClick={handleOpenModal}
-                disabled={isLoading || !transforms?.length}
-                className="relative min-w-[80px] h-8 overflow-hidden truncate bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300 px-4 py-2 text-white border-none font-medium rounded-full"
-            >
-                <span className="flex items-center gap-2">
-                    <Sparkles className={"h-4 w-4 transition-transform duration-100"} />
-                    <span>Search</span>
-                </span>
-            </Button>
-
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                    <div>{children}</div>
+                </SheetTrigger>
                 <SheetContent className="sm:max-w-xl">
                     <SheetHeader>
                         <SheetTitle>Select a transform</SheetTitle>
@@ -83,36 +71,60 @@ const LaunchTransform = ({ values, type }: { values: string[], type: string }) =
 
                     <div className="p-4 grow overflow-auto">
                         <RadioGroup value={selectedTransform?.id} className="space-y-3">
-                            {transforms?.map((transform: Transform) => (
-                                <Card
-                                    key={transform.id}
-                                    className={`cursor-pointer border py-1 transition-all ${selectedTransform?.id === transform.id
-                                        ? "border-primary bg-primary/5"
-                                        : "hover:border-primary/50"
-                                        }`}
-                                    onClick={() => handleSelectTransform(transform)}
-                                >
-                                    <CardHeader className="p-4">
-                                        <div className="flex flex-col space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <RadioGroupItem value={transform.id} id={transform.id} />
-                                                <CardTitle className="text-base">{transform.name}</CardTitle>
+                            {isLoading ? (
+                                // Skeleton loading state
+                                Array.from({ length: 3 }).map((_, index) => (
+                                    <Card key={index} className="border py-1">
+                                        <CardHeader className="p-4">
+                                            <div className="flex flex-col space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                                    <Skeleton className="h-5 w-32" />
+                                                </div>
+                                                <div className="pl-7 space-y-2">
+                                                    <Skeleton className="h-4 w-full" />
+                                                    <Skeleton className="h-4 w-3/4" />
+                                                </div>
+                                                <div className="flex flex-col space-y-1 pl-7">
+                                                    <Skeleton className="h-3 w-24" />
+                                                    <Skeleton className="h-3 w-20" />
+                                                </div>
                                             </div>
+                                        </CardHeader>
+                                    </Card>
+                                ))
+                            ) : (
+                                transforms?.map((transform: Transform) => (
+                                    <Card
+                                        key={transform.id}
+                                        className={`cursor-pointer border py-1 transition-all ${selectedTransform?.id === transform.id
+                                            ? "border-primary bg-primary/5"
+                                            : "hover:border-primary/50"
+                                            }`}
+                                        onClick={() => handleSelectTransform(transform)}
+                                    >
+                                        <CardHeader className="p-4">
+                                            <div className="flex flex-col space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <RadioGroupItem value={transform.id} id={transform.id} />
+                                                    <CardTitle className="text-base">{transform.name}</CardTitle>
+                                                </div>
 
-                                            {transform.description && (
-                                                <CardDescription className="text-sm pl-7">
-                                                    {transform.description || "No description available"}
-                                                </CardDescription>
-                                            )}
+                                                {transform.description && (
+                                                    <CardDescription className="text-sm pl-7">
+                                                        {transform.description || "No description available"}
+                                                    </CardDescription>
+                                                )}
 
-                                            <div className="flex flex-col space-y-1 text-xs text-muted-foreground pl-7">
-                                                <div>Created {formatDistanceToNow(transform.created_at, { addSuffix: true })}</div>
-                                                <div>Updated {formatDistanceToNow(transform.last_updated_at, { addSuffix: true })}</div>
+                                                <div className="flex flex-col space-y-1 text-xs text-muted-foreground pl-7">
+                                                    <div>Created {formatDistanceToNow(transform.created_at, { addSuffix: true })}</div>
+                                                    <div>Updated {formatDistanceToNow(transform.last_updated_at, { addSuffix: true })}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardHeader>
-                                </Card>
-                            ))}
+                                        </CardHeader>
+                                    </Card>
+                                ))
+                            )}
                         </RadioGroup>
                     </div>
 

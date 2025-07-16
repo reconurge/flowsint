@@ -1,7 +1,4 @@
-"use client"
-
-import type React from "react"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from "sonner"
@@ -12,49 +9,49 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/graphs/dynamic-form"
 import { Badge } from "@/components/ui/badge"
-import { useGraphStore } from "@/stores/graph-store"
-import { DialogTrigger } from "@radix-ui/react-dialog"
+import { GraphNode, useGraphStore } from "@/stores/graph-store"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { useIcon } from "@/hooks/use-icon"
 import { useLayoutStore } from "@/stores/layout-store"
 import { useActionItems } from "@/hooks/use-action-items"
 
-interface ActionDialogProps {
-    children: React.ReactNode
-    setCurrentNode?: (node: any) => void
-}
-
-export default function ActionDialog({ children, setCurrentNode }: ActionDialogProps) {
+export default function ActionDialog() {
     const handleOpenFormModal = useGraphStore(state => state.handleOpenFormModal)
     const currentNodeType = useGraphStore(state => state.currentNodeType)
+    const setCurrentNode = useGraphStore(state => state.setCurrentNode)
+    const relatedNodeToAdd = useGraphStore(state => state.relatedNodeToAdd)
+    const setRelatedNodeToAdd = useGraphStore(state => state.setRelatedNodeToAdd)
     const openMainDialog = useGraphStore(state => state.openMainDialog)
     const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog)
     const openFormDialog = useGraphStore(state => state.openFormDialog)
     const setOpenFormDialog = useGraphStore(state => state.setOpenFormDialog)
     const addNode = useGraphStore(state => state.addNode)
+    const addEdge = useGraphStore(state => state.addEdge)
     const setActiveTab = useLayoutStore(state => state.setActiveTab)
-    const { id } = useParams({ strict: false })
+    const { id: sketch_id } = useParams({ strict: false })
     const { actionItems, isLoading } = useActionItems()
 
     const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
     const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
+    const handleDialogOpenChange = useCallback((open: boolean) => {
+        setOpenMainDialog(open)
+        if (!open) {
+            setRelatedNodeToAdd(null)
+        }
+    }, [setOpenMainDialog, setRelatedNodeToAdd])
+
     const handleAddNode = async (data: any) => {
         try {
-            if (!currentNodeType || !id) {
+            if (!currentNodeType || !sketch_id) {
                 toast.error("Invalid node type or sketch ID.")
                 return
             }
             const label_key = currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name || currentNodeType.fields[0].name
             const type = currentNodeType.type
             let label = data[label_key as keyof typeof data]
-            if (type === "Individual") {
-                data.full_name = `${data.first_name} ${data.last_name}`
-                label = data.full_name
-            }
 
-            // Quick fix in the case where it's an individual, we want to add the fullname
             const newNode = {
                 type: "custom",
                 label: label,
@@ -64,18 +61,58 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                     type: type.toLowerCase(),
                 },
             }
-            if (addNode) addNode(newNode as any)
+
+            // First, create the node via API to get the real database ID
+            const newNodeResponse = await sketchService.addNode(sketch_id as string, JSON.stringify(newNode))
+
+            // Add the node to local state with the real ID from the API response
+            if (addNode && newNodeResponse.node) {
+                const nodeWithRealId = {
+                    ...newNode,
+                    id: newNodeResponse.node.id,
+                    position: { x: 0, y: 0 }
+                }
+                addNode(nodeWithRealId as any)
+            }
+
+            // If we have a related node to connect to, create the edge
+            if (relatedNodeToAdd && newNodeResponse.node) {
+                const newEdge = {
+                    source: relatedNodeToAdd,
+                    target: newNodeResponse.node,
+                    type: "one-way",
+                    label: `HAS_${newNode.data.type.toUpperCase()}`,
+                    sketch_id: sketch_id
+                }
+
+                // Add edge to local state
+                if (addEdge) {
+                    const newEdgeObject = {
+                        type: "straight",
+                        label: newEdge.label,
+                        source: newEdge.source.id,
+                        target: newEdge.target.id
+                    }
+                    addEdge(newEdgeObject)
+                }
+
+                // Make API call to persist the edge
+                await sketchService.addEdge(sketch_id as string, JSON.stringify(newEdge))
+            }
+
+            // Set current node using the API response (which has the correct ID from the database)
+            if (setCurrentNode) setCurrentNode({ ...newNodeResponse.node, position: { x: 0, y: 0 } } as GraphNode)
             setActiveTab("entities")
-            setOpenFormDialog(false)
-            toast.success("New node added.")
-            await sketchService.addNode(id, JSON.stringify(newNode))
-            if (setCurrentNode) setCurrentNode(newNode)
+            toast.success(relatedNodeToAdd ? `New relation added to ${relatedNodeToAdd.data.label}.` : "New node added.")
         } catch (error) {
+            console.error(error)
             toast.error("Unexpected error during node creation.")
         } finally {
             setOpenMainDialog(false)
+            setOpenFormDialog(false)
         }
     }
+
     const navigateToSubItems = (item: ActionItem) => {
         setNavigationHistory([...navigationHistory, item])
         setCurrentParent(item)
@@ -125,8 +162,7 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
 
     return (
         <>
-            <Dialog open={openMainDialog} onOpenChange={setOpenMainDialog}>
-                <DialogTrigger disabled={isLoading} asChild>{children}</DialogTrigger>
+            <Dialog open={openMainDialog} onOpenChange={handleDialogOpenChange}>
                 <DialogContent className="sm:max-w-[800px] h-[80vh] overflow-hidden flex flex-col">
                     <DialogTitle className="flex items-center">
                         {currentParent && (
@@ -134,12 +170,25 @@ export default function ActionDialog({ children, setCurrentNode }: ActionDialogP
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         )}
-                        {currentParent ? currentParent.label : "Select an item to insert"}
+                        {relatedNodeToAdd
+                            ? `Add a relation to `
+                            : currentParent
+                                ? currentParent.label
+                                : "Select an item to insert"
+                        }
+                        {relatedNodeToAdd && (
+                            <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
+                                {relatedNodeToAdd.data.label}
+                            </span>
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        {currentParent
-                            ? `Select a type of ${currentParent.label.toLowerCase()} to add`
-                            : "Choose an item to insert to the graph."}
+                        {relatedNodeToAdd
+                            ? "Choose what type of relation to add to this node."
+                            : currentParent
+                                ? `Select a type of ${currentParent.label.toLowerCase()} to add`
+                                : "Choose an item to insert to the graph."
+                        }
                     </DialogDescription>
 
                     <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">

@@ -1,9 +1,5 @@
-from datetime import datetime
 from typing import List, Dict, Any, TypeAlias, Union, Set
-import requests
-import re
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 from app.utils import resolve_type
 from app.scanners.base import Scanner
 from app.types.website import Website
@@ -11,8 +7,7 @@ from app.types.phone import Phone
 from app.types.email import Email
 from pydantic import TypeAdapter
 from app.core.logger import Logger
-from reconcrawl import Crawler
-
+from app.tools.network.reconcrawl import ReconCrawlTool
 
 InputType: TypeAlias = List[Website]
 OutputType: TypeAlias = List[Dict[str, Union[Website, List[Phone], List[Email]]]]
@@ -93,18 +88,8 @@ class WebsiteToCrawler(Scanner):
         for website in data:
             try:
                 Logger.info(self.sketch_id, {"message": f"Starting comprehensive crawl of {str(website.url)}"})
-                crawler = Crawler(
-                url=str(website.url),
-                max_pages=50,
-                timeout=30,
-                delay=1.0,
-                verbose=False,
-                recursive=True
-            )
-                crawler.fetch()
-                crawler.extract_emails()
-                crawler.extract_phones()
-                crawl_result = crawler.get_results()
+                crawler = ReconCrawlTool()
+                crawl_result = crawler.launch(website.url, {"recursive": True, "verify_ssl": True, "max_pages": 500, "timeout": 10, "delay": 1.0, "verbose": False})
                 website_result = {
                     "website": str(website.url),  # Store as string instead of Website object
                     "emails": [],

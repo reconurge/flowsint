@@ -150,7 +150,6 @@ def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
 def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)):
     node_data = node.data.model_dump()
     
-    print(node_data)
     node_type = node_data["type"]
 
     properties = {
@@ -166,12 +165,10 @@ def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(ge
     
 
     cypher_props = dict_to_cypher_props(properties)
-    print(properties)
-    print(cypher_props)
 
     create_query = f"""
         MERGE (d:`{node_type}` {{ {cypher_props} }})
-        RETURN d as node
+        RETURN d as node, elementId(d) as id
     """
 
     try:
@@ -185,11 +182,13 @@ def add_node(sketch_id: str, node: NodeInput, current_user: Profile = Depends(ge
 
     try:
         new_node = create_result[0]["node"]
+        new_node["id"] = create_result[0]["id"]
     except (IndexError, KeyError) as e:
         print(f"Error extracting node_id: {e}, result: {create_result}")
         raise HTTPException(status_code=500, detail="Failed to extract node data from response")
     
     new_node["data"] = node_data
+    new_node["data"]["id"] = new_node["id"]
 
     return {
         "status": "node added",
@@ -223,7 +222,7 @@ def add_edge(sketch_id: str, relation: RelationInput, current_user: Profile = De
     except Exception as e:
         print(f"Edge creation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create edge")
-    print(result)
+
     if not result:
         raise HTTPException(status_code=400, detail="Edge creation failed")
 

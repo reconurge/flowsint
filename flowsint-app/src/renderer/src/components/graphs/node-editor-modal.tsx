@@ -148,7 +148,7 @@ export const NodeEditorModal: React.FC = () => {
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="label" className="text-sm font-medium flex items-center gap-2">
+                                <Label htmlFor="label" className="text-sm opacity-60 font-medium flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
                                     Label
                                 </Label>
@@ -167,7 +167,7 @@ export const NodeEditorModal: React.FC = () => {
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="type" className="text-sm font-medium flex items-center gap-2">
+                                <Label htmlFor="type" className="text-sm opacity-60 font-medium flex items-center gap-2">
                                     <Type className="h-3 w-3" />
                                     Type
                                 </Label>
@@ -187,7 +187,7 @@ export const NodeEditorModal: React.FC = () => {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="caption" className="text-sm font-medium flex items-center gap-2">
+                            <Label htmlFor="caption" className="text-sm opacity-60 font-medium flex items-center gap-2">
                                 <FileText className="h-3 w-3" />
                                 Caption
                             </Label>
@@ -206,7 +206,7 @@ export const NodeEditorModal: React.FC = () => {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="id" className="text-sm font-medium flex items-center gap-2">
+                            <Label htmlFor="id" className="text-sm opacity-60 font-medium flex items-center gap-2">
                                 <Hash className="h-3 w-3" />
                                 ID
                             </Label>
@@ -229,7 +229,7 @@ export const NodeEditorModal: React.FC = () => {
                             <div key={key} className="space-y-2">
                                 <Label
                                     htmlFor={key}
-                                    className="text-sm font-medium capitalize"
+                                    className="text-sm opacity-60 font-medium capitalize"
                                 >
                                     {key.replace(/_/g, ' ')}
                                 </Label>

@@ -271,7 +271,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         nodes: visibleNodes,
         edges: visibleEdges,
         nodeTypes,
-        edgeTypes: edgeTypes as EdgeTypes,
+        // edgeTypes: edgeTypes as EdgeTypes,
         onInit: setReactFlowInstance,
         onNodeContextMenu,
         onDrop,
@@ -286,6 +286,8 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         fitView: true,
         proOptions: { hideAttribution: true },
         colorMode: theme,
+        minZoom: 0.1,
+        maxZoom: 2.5,
         onlyRenderVisibleElements: nodes.length > 500,
         connectionMode: ConnectionMode.Loose
     }), [

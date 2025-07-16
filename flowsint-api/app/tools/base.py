@@ -16,6 +16,11 @@ class Tool(ABC):
     @abstractmethod
     def description(cls) -> str:
         pass
+    
+    @classmethod
+    @abstractmethod
+    def version(cls) -> str:
+        pass
 
     @abstractmethod
     def launch(self, value: str, *args, **kwargs) -> Any:

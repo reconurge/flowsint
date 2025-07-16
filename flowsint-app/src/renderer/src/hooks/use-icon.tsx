@@ -52,6 +52,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
             src={src || iconPath}
             width={size}
             height={size}
+            className="object-contain"
             alt={`${type} icon`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -65,7 +66,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
     return (
       <img
         src={src || iconPath}
-        className={className}
+        className={`object-contain ${className}`}
         width={size}
         height={size}
         style={style}

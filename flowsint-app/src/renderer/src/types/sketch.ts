@@ -1,4 +1,4 @@
-import { type Profile } from "."
+import { type Profile } from "./profile"
 import { type Investigation } from "./investigation"
 
 export interface Sketch {
@@ -16,42 +16,4 @@ export interface Sketch {
     investigation?: Investigation
     investigation_id: string
     members?: { profile: Profile }[]
-}
-export interface Individual {
-    id: string
-    full_name: string
-}
-
-export interface Email {
-    id: string
-    email: string
-}
-
-export interface Phone {
-    id: string,
-    number: string
-}
-
-export interface Social {
-    id: string
-    profile_url: string
-    username: string
-    platform: string
-}
-
-export interface IP {
-    id: string
-    address: string
-}
-
-export interface Address {
-    id: string
-    address: string
-    city: string
-    country: string
-    zip: string
-}
-
-export interface Relation {
-    id: string
 }

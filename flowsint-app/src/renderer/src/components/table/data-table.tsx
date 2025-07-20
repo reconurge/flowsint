@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    noStickyCol?: boolean;
 }
 
 // Stable style objects to prevent re-renders
@@ -45,7 +46,8 @@ const VirtualRow = React.memo<{
     virtualRow: any;
     lastCellIndex: number;
     columnSizeVars: Record<string, number>;
-}>(({ row, virtualRow, lastCellIndex, columnSizeVars }) => {
+    noStickyCol?: boolean;
+}>(({ row, virtualRow, lastCellIndex, columnSizeVars, noStickyCol }) => {
     const visibleCells = row.getVisibleCells();
 
     // Memoize the row style with transform
@@ -70,6 +72,7 @@ const VirtualRow = React.memo<{
                     isBeforeLast={index === lastCellIndex - 1}
                     isLast={index === lastCellIndex}
                     columnSizeVars={columnSizeVars}
+                    noStickyCol={noStickyCol}
                 />
             ))}
         </tr>
@@ -84,7 +87,8 @@ const VirtualCell = React.memo<{
     isLast: boolean;
     isBeforeLast: boolean,
     columnSizeVars: Record<string, number>;
-}>(({ cell, index, isFirst, isLast, isBeforeLast, columnSizeVars }) => {
+    noStickyCol?: boolean;
+}>(({ cell, index, isFirst, isLast, isBeforeLast, columnSizeVars, noStickyCol }) => {
     const cellStyle = React.useMemo(() => ({
         width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
         minWidth: `calc(var(--col-${cell.column.id}-size) * 1px)`,
@@ -97,9 +101,9 @@ const VirtualCell = React.memo<{
     const cellClassName = React.useMemo(() => cn(
         "px-4 py-1 truncate relative overflow-hidden",
         !isBeforeLast && !isLast && "border-r",
-        index === 0 && "sticky z-10 left-0 bg-card border-b border-r",
-        index === 1 && "sticky z-11 left-[50px] bg-card border-b border-r",
-        isLast && "sticky right-0 z-10 bg-background px-0 border-l border-b",
+        index === 0 && !noStickyCol && "sticky z-10 left-0 bg-card border-b border-r",
+        index === 1 && !noStickyCol && "sticky z-11 left-[50px] bg-card border-b border-r",
+        isLast && !noStickyCol && "sticky right-0 z-10 bg-background px-0 border-l border-b",
     ), [isFirst, isLast, index, isBeforeLast]);
 
     return (
@@ -114,10 +118,11 @@ const VirtualCell = React.memo<{
 });
 
 // Table body component
-const TableBody = ({ table, tableContainerRef, columnSizeVars }: {
+const TableBody = ({ table, tableContainerRef, columnSizeVars, noStickyCol }: {
     table: Table<any>;
     tableContainerRef: React.RefObject<HTMLDivElement>;
     columnSizeVars: Record<string, number>;
+    noStickyCol?: boolean;
 }) => {
     const { rows } = table.getRowModel();
 
@@ -168,6 +173,7 @@ const TableBody = ({ table, tableContainerRef, columnSizeVars }: {
                         virtualRow={virtualRow}
                         lastCellIndex={lastCellIndex}
                         columnSizeVars={columnSizeVars}
+                        noStickyCol={noStickyCol}
                     />
                 );
             })}
@@ -207,7 +213,8 @@ const HeaderCell = React.memo<{
     isLast: boolean;
     isBeforeLast: boolean;
     columnSizeVars: Record<string, number>;
-}>(({ header, index, isFirst, isLast, isBeforeLast, columnSizeVars }) => {
+    noStickyCol?: boolean;
+}>(({ header, index, isFirst, isLast, isBeforeLast, columnSizeVars, noStickyCol }) => {
     const headerStyle = React.useMemo(() => ({
         width: `calc(var(--header-${header.id}-size) * 1px)`,
         minWidth: `calc(var(--header-${header.id}-size) * 1px)`,
@@ -217,10 +224,10 @@ const HeaderCell = React.memo<{
     const headerClassName = React.useMemo(() => cn(
         !isBeforeLast && !isLast && "border-r",
         "px-4 py-1 text-center font-medium text-muted-foreground border-b overflow-hidde",
-        isFirst && `!sticky z-30`,
-        index === 0 && "left-0 bg-card",
-        index === 1 && "left-[50px] bg-card",
-        isLast && "!sticky right-0 z-30 bg-background border-l",
+        isFirst && !noStickyCol && `!sticky z-30`,
+        index === 0 && !noStickyCol && "left-0 bg-card",
+        index === 1 && !noStickyCol && "left-[50px] bg-card",
+        isLast && !noStickyCol && "!sticky right-0 z-30 bg-background border-l",
     ), [isFirst, isLast, index, isBeforeLast]);
 
     return (
@@ -246,6 +253,7 @@ const HeaderCell = React.memo<{
 export function DataTable<TData, TValue>({
     columns,
     data,
+    noStickyCol = false,
 }: DataTableProps<TData, TValue>) {
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
     const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -311,6 +319,7 @@ export function DataTable<TData, TValue>({
                                     isFirst={index === 0 || index === 1}
                                     isLast={index === lastColumnIndex}
                                     columnSizeVars={columnSizeVars}
+                                    noStickyCol={noStickyCol}
                                 />
                             ))}
                         </tr>
@@ -320,6 +329,7 @@ export function DataTable<TData, TValue>({
                     table={table}
                     tableContainerRef={tableContainerRef}
                     columnSizeVars={columnSizeVars}
+                    noStickyCol={noStickyCol}
                 />
             </table>
         </div>

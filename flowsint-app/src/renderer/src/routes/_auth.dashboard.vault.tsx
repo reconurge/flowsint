@@ -1,55 +1,43 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ThirdPartyKeysService } from '../api/third-party-keys-service'
+import { KeyService } from '../api/key-service'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog'
 import { Label } from '../components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
-import { Loader2, Plus, ExternalLink, Trash2, CheckCircle, XCircle, Clock, Shield } from 'lucide-react'
+import { Loader2, Plus, Trash2, Clock, Shield, Key, Zap, Lock, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { useConfirm } from '../components/use-confirm-dialog'
 import Loader from '@/components/loader'
-
+import { type Key as KeyType } from '@/types/key'
 export const Route = createFileRoute('/_auth/dashboard/vault')({
     component: VaultPage,
 })
 
-interface ServiceInfo {
-    service: string
-    variable: string
-    url: string
-    active: boolean
-}
 function VaultPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-    const [selectedService, setSelectedService] = useState('')
+    const [keyName, setKeyName] = useState('')
     const [apiKey, setApiKey] = useState('')
     const queryClient = useQueryClient()
     const { confirm } = useConfirm()
 
-    // Fetch services and keys
-    const { data: services = [], isLoading: servicesLoading } = useQuery({
-        queryKey: ['third-party-services'],
-        queryFn: () => ThirdPartyKeysService.getServices(),
-    })
-
-    const { data: keys = [], isLoading: keysLoading } = useQuery({
-        queryKey: ['third-party-keys'],
-        queryFn: () => ThirdPartyKeysService.get(),
+    // Fetch keys
+    const { data: keys = [], isLoading: keysLoading } = useQuery<KeyType[]>({
+        queryKey: ['keys'],
+        queryFn: () => KeyService.get(),
     })
 
     // Create key mutation
     const createKeyMutation = useMutation({
-        mutationFn: ThirdPartyKeysService.create,
+        mutationFn: KeyService.create,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['third-party-keys'] })
+            queryClient.invalidateQueries({ queryKey: ['keys'] })
             setIsAddDialogOpen(false)
-            setSelectedService('')
+            setKeyName('')
             setApiKey('')
             toast.success('API key added successfully!')
         },
@@ -61,9 +49,9 @@ function VaultPage() {
 
     // Delete key mutation
     const deleteKeyMutation = useMutation({
-        mutationFn: ThirdPartyKeysService.deleteById,
+        mutationFn: KeyService.deleteById,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['third-party-keys'] })
+            queryClient.invalidateQueries({ queryKey: ['keys'] })
             toast.success('API key deleted successfully!')
         },
         onError: (error) => {
@@ -73,17 +61,17 @@ function VaultPage() {
     })
 
     const handleAddKey = () => {
-        if (!selectedService || !apiKey.trim()) {
-            toast.error('Please select a service and enter an API key')
+        if (!keyName.trim() || !apiKey.trim()) {
+            toast.error('Please enter both a name and an API key')
             return
         }
-        createKeyMutation.mutate({ service: selectedService, key: apiKey })
+        createKeyMutation.mutate({ name: keyName.trim(), key: apiKey })
     }
 
-    const handleDeleteKey = async (keyId: string, serviceName: string) => {
+    const handleDeleteKey = async (keyId: string, keyName: string) => {
         const confirmed = await confirm({
             title: 'Delete API Key',
-            message: `Are you sure you want to delete the API key for ${serviceName}? This action cannot be undone.`
+            message: `Are you sure you want to delete the API key "${keyName}"? This action cannot be undone.`
         })
 
         if (confirmed) {
@@ -91,33 +79,13 @@ function VaultPage() {
         }
     }
 
-    const getKeyForService = (serviceName: string) => {
-        return keys.find(key => key.service === serviceName)
-    }
-
-    const getStatusIcon = (service: ServiceInfo) => {
-        const key = getKeyForService(service.service)
-        if (key) {
-            return <CheckCircle className="w-5 h-5 text-green-500" />
-        }
-        return <XCircle className="w-5 h-5 text-red-500" />
-    }
-
-    const getStatusBadge = (service: ServiceInfo) => {
-        const key = getKeyForService(service.service)
-        if (key) {
-            return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Configured</Badge>
-        }
-        return <Badge variant="secondary" className="bg-muted text-muted-foreground">Not configured</Badge>
-    }
-
-    if (servicesLoading || keysLoading) {
+    if (keysLoading) {
         return (
             <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
                 <div className='max-w-7xl mx-auto flex h-full flex-col gap-12 items-center justify-start'>
                     <div className='w-full'>
                         <h1 className="font-semibold text-2xl">Vault</h1>
-                        <p className="opacity-60 mt-3">Here are the keys used to query third party services.</p>
+                        <p className="opacity-60 mt-3">Manage your API keys for third-party services.</p>
                     </div>
                     <div className="w-full h-full flex items-center justify-center">
                         <Loader />
@@ -130,15 +98,18 @@ function VaultPage() {
     return (
         <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
             <div className='max-w-7xl mx-auto flex flex-col gap-12 items-center justify-start'>
-                <div className='w-full flex justify-between items-start'>
+                <div className='w-full flex justify-between items-center'>
                     <div>
-                        <h1 className="font-semibold text-2xl">Vault</h1>
-                        <p className="opacity-60 mt-3">Here are the keys used to query third party services.</p>
+                        <h1 className="font-semibold text-3xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                            Vault
+                        </h1>
+                        <p className="text-muted-foreground mt-2">Securely manage your API keys for third-party services.</p>
                     </div>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
+                            <Button
+                            >
+                                <Plus className="w-5 h-5" />
                                 Add API Key
                             </Button>
                         </DialogTrigger>
@@ -146,24 +117,18 @@ function VaultPage() {
                             <DialogHeader>
                                 <DialogTitle>Add API Key</DialogTitle>
                                 <DialogDescription>
-                                    Add a new API key for a third-party service. Your keys are encrypted and stored securely.
+                                    Add a new API key with a custom name. Your keys are encrypted and stored securely.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="service">Service</Label>
-                                    <Select value={selectedService} onValueChange={setSelectedService}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a service" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {services.filter(s => s.active).map((service) => (
-                                                <SelectItem key={service.service} value={service.service}>
-                                                    {service.service}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="keyName">Key Name</Label>
+                                    <Input
+                                        id="keyName"
+                                        placeholder="e.g., OpenAI, GitHub, Shodan..."
+                                        value={keyName}
+                                        onChange={(e) => setKeyName(e.target.value)}
+                                    />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="apiKey">API Key</Label>
@@ -186,7 +151,7 @@ function VaultPage() {
                                 </Button>
                                 <Button
                                     onClick={handleAddKey}
-                                    disabled={createKeyMutation.isPending || !selectedService || !apiKey.trim()}
+                                    disabled={createKeyMutation.isPending || !keyName.trim() || !apiKey.trim()}
                                 >
                                     {createKeyMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                     Add Key
@@ -197,105 +162,134 @@ function VaultPage() {
                 </div>
 
                 <div className="w-full">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Shield className="w-5 h-5" />
-                                Third-Party Services
-                            </CardTitle>
-                            <CardDescription>
-                                Manage your API keys for external services. Configured services will be available for your investigations.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
+                    {keys.length === 0 ? (
+                        <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+                            <CardContent className="flex flex-col items-center justify-center py-20 px-8">
+                                <div className="text-center space-y-4 max-w-md">
+                                    <h3 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                                        Your Vault is Empty
+                                    </h3>
+                                    <p className="text-muted-foreground text-lg leading-relaxed">
+                                        Add your first API key to unlock the power of third-party services in your investigations.
+                                    </p>
+
+                                    <div className="flex flex-wrap justify-center gap-3 pt-4 pb-6">
+                                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-2">
+                                            <Zap className="w-4 h-4 mr-2" />
+                                            Fast Setup
+                                        </Badge>
+                                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 px-4 py-2">
+                                            <Lock className="w-4 h-4 mr-2" />
+                                            Encrypted
+                                        </Badge>
+                                        <Badge variant="secondary" className="bg-violet-50 text-violet-700 border-violet-200 px-4 py-2">
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Secure
+                                        </Badge>
+                                    </div>
+
+                                    <Button
+                                        onClick={() => setIsAddDialogOpen(true)}
+
+                                    >
+                                        <Plus className="w-5 h-5 mr-2" />
+                                        Add Your First Key
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Card className="overflow-hidden border bg-gradient-to-br from-background to-muted/20">
+                            <CardHeader className="border-b">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-3 text-xl">
+                                        <div className="p-2 bg-primary rounded-lg">
+                                            <Shield className="w-5 h-5 text-white" strokeWidth={1.9} />
+                                        </div>
+                                        API Keys
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="px-3 py-1">
+                                        {keys.length} {keys.length === 1 ? 'key' : 'keys'}
+                                    </Badge>
+                                </div>
+                                <CardDescription className="text-base mt-2">
+                                    Your encrypted API keys for external services. These keys will be available for your investigations.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12"></TableHead>
-                                            <TableHead>Service</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Added</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
+                                        <TableRow className="border-b bg-muted/30">
+                                            <TableHead className="py-4 px-6 text-sm font-semibold w-2/5">
+                                                <div className="flex items-center gap-2">
+                                                    <Key className="w-4 h-4" />
+                                                    Name
+                                                </div>
+                                            </TableHead>
+                                            <TableHead className="py-4 text-sm font-semibold w-1/3">
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-4 h-4" />
+                                                    Created
+                                                </div>
+                                            </TableHead>
+                                            <TableHead className="py-4 px-6 text-sm font-semibold text-right w-1/5">
+                                                Actions
+                                            </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {services.map((service) => {
-                                            const key = getKeyForService(service.service)
-                                            return (
-                                                <TableRow key={service.service} className="hover:bg-muted/50">
-                                                    <TableCell className="w-12">
-                                                        {getStatusIcon(service)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-1">
-                                                            <div className="font-medium">{service.service}</div>
-                                                            {!service.active && (
-                                                                <Badge variant="outline" className="w-fit text-orange-600 border-orange-200 dark:text-orange-400 dark:border-orange-800 text-xs">
-                                                                    Coming Soon
-                                                                </Badge>
-                                                            )}
+                                        {keys.map((key: KeyType) => (
+                                            <TableRow
+                                                key={key.id}
+                                                className="group hover:bg-gradient-to-r hover:from-primary/5 hover:to-accent/5 transition-all duration-200 border-b border-border/50"
+                                            >
+                                                <TableCell className="py-5 px-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-2 bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                                                            <Key className="w-4 h-4 text-primary" />
                                                         </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {getStatusBadge(service)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {key ? (
-                                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                <Clock className="w-4 h-4" />
-                                                                {new Date(key.created_at).toLocaleDateString()}
+                                                        <div>
+                                                            <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                                                                {key.name}
                                                             </div>
-                                                        ) : (
-                                                            <span className="text-sm text-muted-foreground">—</span>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => window.open(service.url, '_blank')}
-                                                                className="flex items-center gap-1 h-8 px-2"
-                                                            >
-                                                                <ExternalLink className="w-4 h-4" />
-                                                                <span className="hidden sm:inline">Visit</span>
-                                                            </Button>
-                                                            {key ? (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="text-destructive hover:text-destructive/80 h-8 px-2"
-                                                                    onClick={() => handleDeleteKey(key.id, service.service)}
-                                                                    disabled={deleteKeyMutation.isPending}
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            ) : (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => {
-                                                                        setSelectedService(service.service)
-                                                                        setIsAddDialogOpen(true)
-                                                                    }}
-                                                                    disabled={!service.active}
-                                                                    className="flex items-center gap-1 h-8 px-2"
-                                                                >
-                                                                    <Plus className="w-4 h-4" />
-                                                                    <span className="hidden sm:inline">Add Key</span>
-                                                                </Button>
-                                                            )}
+                                                            <div className="text-sm text-muted-foreground">
+                                                                Encrypted & Secure
+                                                            </div>
                                                         </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-5">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <div className="p-1.5 bg-muted rounded-full">
+                                                            <Clock className="w-3 h-3 text-muted-foreground" />
+                                                        </div>
+                                                        <span className="text-muted-foreground">
+                                                            {new Date(key.created_at).toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right py-5 px-6">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        onClick={() => handleDeleteKey(key.id, key.name)}
+                                                        disabled={deleteKeyMutation.isPending}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
                                     </TableBody>
                                 </Table>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>

@@ -75,7 +75,10 @@ async def get_material_list():
                 "doc": scanner["doc"],
                 "inputs": scanner["inputs"],
                 "outputs": scanner["outputs"],
-                "type": "scanner"
+                "type": "scanner",
+                "params": scanner["params"],
+                "params_schema": scanner["params_schema"],
+                "requires_key": scanner["requires_key"]
             }
             for scanner in scanner_list
         ]
@@ -180,7 +183,7 @@ async def launch_transform(
             edges
         )
         serializable_branches = [branch.dict() for branch in transform_branches]
-        task = celery.send_task("run_transform", args=[serializable_branches, payload.values, payload.sketch_id])
+        task = celery.send_task("run_transform", args=[serializable_branches, payload.values, payload.sketch_id, str(current_user.id)])
         return {"id": task.id}
 
     except Exception as e:
@@ -283,9 +286,10 @@ def compute_transform_branches(initial_value: Any, nodes: List[Node], edges: Lis
             key=lambda e: calculate_path_length(e.target)
         )
 
-    def create_step(node_id: str, branch_id: str, depth: int, input_data: Dict[str, Any], is_input_node: bool, outputs: Dict[str, Any]) -> FlowStep:
+    def create_step(node_id: str, branch_id: str, depth: int, input_data: Dict[str, Any], is_input_node: bool, outputs: Dict[str, Any], node_params: Optional[Dict[str, Any]] = None) -> FlowStep:
         return FlowStep(
             nodeId=node_id,
+            params=node_params,
             inputs={} if is_input_node else input_data,
             outputs=outputs,
             type="type" if is_input_node else "scanner",
@@ -320,8 +324,11 @@ def compute_transform_branches(initial_value: Any, nodes: List[Node], edges: Lis
                 # Store the outputs for future use
                 scanner_outputs[current_node_id] = current_outputs
 
+        # Extract node parameters
+        node_params = current_node.data.get("params", {})
+
         # Create and add current step
-        current_step = create_step(current_node_id, branch_id, depth, input_data, is_input_node, current_outputs)
+        current_step = create_step(current_node_id, branch_id, depth, input_data, is_input_node, current_outputs, node_params)
         steps.append(current_step)
         path.append(current_node_id)
         branch_visited.add(current_node_id)

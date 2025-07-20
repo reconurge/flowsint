@@ -124,7 +124,7 @@ class DomainToWebsiteScanner(Scanner):
                 for i, redirect_url in enumerate(website.redirects):
                     next_url = website.redirects[i + 1] if i + 1 < len(website.redirects) else str(website.url)
                     redirect_payload = {
-                        "message": f"Redirect: {redirect_url} -> {next_url}"
+                        "message": f"Redirect: {str(redirect_url)} -> {str(next_url)}"
                     }
                     Logger.info(self.sketch_id, redirect_payload)
             

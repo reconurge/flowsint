@@ -17,6 +17,8 @@ import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
 import NewActions from './new-actions'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
+const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
+
 const Graph = lazy(() => import('./graph'))
 
 const NODE_COUNT_THRESHOLD = 500;
@@ -136,12 +138,14 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     <>{view === "table" && <NodesTable />}
                         {["force", "hierarchy"].includes(view) && <Graph />}
                         {view === "map" && <MapPanel />}
+                        {view === "relationships" && <RelationshipsTable />}
                     </>
                 ) : (<>
                     {view === "force" && <GraphReactForce />}
                     {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />}
                     {view === "table" && <NodesTable />}
                     {view === "map" && <MapPanel />}
+                    {view === "relationships" && <RelationshipsTable />}
                 </>)}
             </Suspense>
             {/* <Graph /> */}

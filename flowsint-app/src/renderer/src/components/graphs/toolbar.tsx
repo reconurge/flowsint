@@ -15,7 +15,8 @@ import {
     GitFork,
     Waypoints,
     Table,
-    MapPin
+    MapPin,
+    List
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { sketchService } from "@/api/sketch-service"
@@ -121,6 +122,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         setView("map")
     }, [setView])
 
+    const handleRelationshipsLayout = useCallback(() => {
+        setView("relationships")
+    }, [setView])
+
     const handleDagreLayoutTB = useCallback(() => {
         setView("hierarchy")
         onLayout && onLayout("dagre-tb")
@@ -196,11 +201,15 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     onClick={handleTableLayout}
                 />
                 <ToolbarButton
+                    icon={<List className="h-4 w-4 opacity-70" />}
+                    tooltip={"Relationships view"}
+                    onClick={handleRelationshipsLayout}
+                />
+                <ToolbarButton
                     icon={<MapPin className="h-4 w-4 opacity-70" />}
                     tooltip={"Map view"}
                     onClick={handleMapLayout}
                 />
-
                 {/* <ToolbarButton
                     icon={<Rotate3D className="h-4 w-4 opacity-70" />}
                     tooltip={"3D Graph"}

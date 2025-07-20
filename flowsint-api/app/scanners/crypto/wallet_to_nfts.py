@@ -1,21 +1,60 @@
 import os
 import socket
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Dict, Any, Optional, TypeAlias, Union
 from pydantic import TypeAdapter
 import requests
 from app.scanners.base import Scanner
 from app.types.wallet import CryptoWallet, CryptoNFT
 from app.utils import resolve_type
 from app.core.logger import Logger
+from app.core.graph_db import Neo4jConnection
 InputType: TypeAlias = List[CryptoWallet]
 OutputType: TypeAlias = List[CryptoNFT]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
-ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
-class WalletAddressToNFTs(Scanner):
+class CryptoWalletAddressToNFTs(Scanner):
     """Resolve NFTs for a wallet address (ETH)."""
+    def __init__(
+            self,
+            sketch_id: Optional[str] = None,
+            scan_id: Optional[str] = None,
+            neo4j_conn: Optional[Neo4jConnection] = None,
+            vault=None,
+            params: Optional[Dict[str, Any]] = None
+        ):
+            super().__init__(
+                sketch_id=sketch_id,
+                scan_id=scan_id,
+                neo4j_conn=neo4j_conn,
+                params_schema=self.get_params_schema(),
+                vault=vault,
+                params=params
+            )
 
+    @classmethod
+    def requires_key(cls) -> bool:
+        return True
+    
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this scanner"""
+        return [
+            {
+                "name": "ETHERSCAN_API_KEY",
+                "type": "vaultSecret",
+                "description": "The Etherscan API key to use for the transaction lookup.",
+                "required": True
+            },
+            {
+                "name": "ETHERSCAN_API_URL",
+                "type": "url",
+                "description": "The Etherscan API URL to use for the transaction lookup.",
+                "required": False,
+                "default": ETHERSCAN_API_URL
+            }
+        ]
+    
     @classmethod
     def name(cls) -> str:
         return "wallet_to_nfts"
@@ -70,15 +109,23 @@ class WalletAddressToNFTs(Scanner):
 
     def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
+        results: OutputType = []
+        params = self.get_params()
+        Logger.warn(self.sketch_id, {"message": f"{str(params)}"})
+        api_key = params["ETHERSCAN_API_KEY"]
+        api_url = params["ETHERSCAN_API_URL"]
+        if not api_key:
+            Logger.error(self.sketch_id, {"message": "ETHERSCAN_API_KEY is required"})
+            raise ValueError("ETHERSCAN_API_KEY is required")
         for d in data:
             try:
-                nfts = self._get_nfts(d.address)
+                nfts = self._get_nfts(d.address, api_key, api_url)
                 results.append(nfts)
             except Exception as e:
                 print(f"Error resolving nfts for {d.address}: {e}")
         return results
     
-    def _get_nfts(self, address: str) -> List[CryptoNFT]:
+    def _get_nfts(self, address: str, api_key: str, api_url: str) -> List[CryptoNFT]:
         nfts = []
         """Get nfts for a wallet address."""
         params = {
@@ -90,9 +137,9 @@ class WalletAddressToNFTs(Scanner):
         "page": 1,
         "offset": 10000,
         "sort": "asc",
-        "apikey": ETHERSCAN_API_KEY
+        "apikey": api_key
     }
-        response = requests.get(ETHERSCAN_API_URL, params=params)
+        response = requests.get(api_url, params=params)
         data = response.json()
         results = data["result"]
         for tx in results:

@@ -19,7 +19,8 @@ import {
 import "@xyflow/react/dist/style.css"
 import { TrashIcon, Play, Pause, SkipForward, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import ScannerNode, { type ScannerNodeData } from "./scanner-node"
+import ScannerNode from "./scanner-node"
+import { type ScannerNodeData } from "@/types/transform"
 import { categoryColors } from "./scanner-data"
 import { FlowControls } from "./controls"
 import { getDagreLayoutedElements } from "@/lib/utils"
@@ -38,6 +39,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useTheme } from "../theme-provider"
+import ParamsDialog from "./params-dialog"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
@@ -153,6 +155,9 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                     inputs: scannerData.inputs,
                     outputs: scannerData.outputs,
                     doc: scannerData.doc,
+                    requires_key: scannerData.requires_key,
+                    params: scannerData.params,
+                    params_schema: scannerData.params_schema
                 },
             }
             const updatedNodes = [...nodes, newNode]
@@ -260,11 +265,11 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         [nodes, edges, transformId, router, setLoading],
     )
 
-    const handleSaveTransform = useCallback(() => {
+    const handleSaveTransform = useCallback(async () => {
         if (!transformId) {
             setShowModal(true)
         } else {
-            saveTransform(transform?.name || "", transform?.description || "")
+            await saveTransform(transform?.name || "", transform?.description || "")
         }
     }, [transformId, saveTransform, transform])
 
@@ -551,6 +556,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                         isSaved={Boolean(transformId)}
                     />
                     <Background bgColor="var(--background)" />
+                    <ParamsDialog />
                     <MiniMap className="bg-background" position="bottom-left" pannable zoomable />
                     {selectedNode && (
                         <NodePanel node={selectedNode} onDelete={handleDeleteNode} />

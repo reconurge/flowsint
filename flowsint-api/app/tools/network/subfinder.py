@@ -50,8 +50,10 @@ class SubfinderTool(DockerTool):
     def is_installed(self) -> bool:
         return super().is_installed()
 
-    def launch(self, domain: str, args:List[str]) -> Any:
+    def launch(self, domain: str, args: List[str] = None) -> Any:
         subdomains: set[str] = set()
+        if args is None:
+            args = []
         command = f"-d {domain} {' '.join(args)}"
         result =  super().launch(command)
         for sub in result.split("\n"):

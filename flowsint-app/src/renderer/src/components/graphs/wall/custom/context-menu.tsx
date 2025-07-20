@@ -6,12 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileCode2, Search, Info, Star } from 'lucide-react';
 import { Transform } from '@/types';
-import { GraphNode, useGraphStore } from '@/stores/graph-store';
+import { GraphNode } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
-import { useConfirm } from '@/components/use-confirm-dialog';
-import { useLayoutStore } from '@/stores/layout-store';
 import NodeActions from '../../node-actions';
 
 export default function ContextMenu({
@@ -114,7 +112,7 @@ export default function ContextMenu({
             {...props}
         >
             {/* Header with title and action buttons */}
-            <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
+            <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between flex-shrink-0">
                 <div className='flex text-xs items-center gap-1 truncate'>
                     <span className='block truncate'>{node.data.label}</span> - <span className='block'>{node.data.type}</span>
                 </div>

@@ -12,8 +12,8 @@ export const sketchService = {
             method: 'GET',
         });
     },
-    getGraphDataById: async (sketchId: string): Promise<any> => {
-        return fetchWithAuth(`/api/sketches/${sketchId}/graph`, {
+    getGraphDataById: async (sketchId: string, inline: boolean = false): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}/graph?format=${inline ? 'inline' : ''}`, {
             method: 'GET',
         });
     },

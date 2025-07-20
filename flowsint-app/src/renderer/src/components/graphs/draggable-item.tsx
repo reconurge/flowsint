@@ -60,7 +60,7 @@ export const DraggableItem = memo(function DraggableItem({
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                         className={cn(
-                            "px-0 py-1 group flex flex-col items-center w-full justify-center gap-1 rounded-md relative overflow-hidden",
+                            "px-3 py-2 group flex items-center w-full gap-3 text-ellipsis rounded-md relative overflow-hidden  border-1 border-l-3 transition-all hover:bg-accent/50",
                             {
                                 "opacity-50": isDragging || disabled,
                                 "cursor-not-allowed": disabled,
@@ -69,11 +69,12 @@ export const DraggableItem = memo(function DraggableItem({
                         )}
                         style={{ borderLeftColor: colorStr }}
                     >
-                        <div className="flex justify-center items-center bg-background w-full text-left h-20 border rounded-lg">
-                            <IconComponent size={24} color={colorStr} type={type} />
+                        <div className="flex justify-center items-center w-8 h-8 rounded-md bg-background border">
+                            <IconComponent size={16} color="#6b7280" type={type} />
                         </div>
-                        <div className="space-y-1 truncate flex-1">
-                            <h3 className="text-xs font-normal opacity-60 truncate">{label}</h3>
+                        <div className="w-full p-1 text-left flex-1 min-w-0">
+                            <h3 className="text-sm font-medium truncate w-full">{label}</h3>
+                            <p className="text-xs opacity-60 truncate w-full">{description}</p>
                         </div>
                     </button>
                 </TooltipTrigger>

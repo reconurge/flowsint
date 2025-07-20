@@ -18,6 +18,7 @@ neo4j
 faker
 sqlalchemy
 psycopg2-binary
+asyncpg
 alembic==1.13.0
 passlib[bcrypt]
 sse-starlette
@@ -31,3 +32,4 @@ docker
 git+https://github.com/soxoj/maigret
 git+https://github.com/reconurge/recontrack.git
 git+https://github.com/reconurge/reconcrawl.git
+pytest-asyncio

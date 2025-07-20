@@ -2,7 +2,7 @@ import { useChat } from '@/hooks/use-chat'
 import { memo, useEffect, useState, useRef } from 'react'
 import { ChatPanel, ContextList } from './chat-prompt'
 import { Button } from '../ui/button'
-import { Sparkles, X, Plus, History } from 'lucide-react'
+import { X, Plus, History } from 'lucide-react'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import { Card } from '../ui/card'
 import { useLayoutStore } from '@/stores/layout-store'
@@ -127,7 +127,7 @@ function FloatingChat() {
                                 <>
                                     <div className="flex items-center justify-between p-3 border-b">
                                         <div className="flex w-full items-center justify-between gap-1">
-                                            <div className='flex items-center gap-2'>
+                                            <div className='flex items-center gap-2  truncate text-ellipsis'>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -138,7 +138,7 @@ function FloatingChat() {
                                                 >
                                                     <Plus className="h-3 w-3" />
                                                 </Button>
-                                                <span className='text-sm opacity-60'>{chat?.title}</span>
+                                                <span className='text-sm opacity-60 truncate text-ellipsis'>{chat?.title}</span>
                                             </div>
                                             <div className='flex items-center gap-2'>
                                                 <Button

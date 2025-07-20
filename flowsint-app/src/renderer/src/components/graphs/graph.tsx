@@ -71,7 +71,7 @@ CosmographLoader.displayName = "CosmographLoader"
 const GRAPH_CONFIG = {
     // simulationCenter: 0.2,
     useQuadtree: true,
-    simulationDecay: 150,
+    simulationDecay: 100,
     simulationGravity: 0.25,
     // simulationLinkSpring: 2,
     simulationRepulsion: 2,

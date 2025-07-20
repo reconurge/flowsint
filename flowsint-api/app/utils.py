@@ -7,10 +7,8 @@ from urllib.parse import urlparse
 import re
 import ssl
 import socket
-from typing import Dict, Any, Type
-
-from typing import Any, Dict
-from pydantic import BaseModel
+from typing import Dict, Any, List, Optional, Type
+from pydantic import BaseModel, ValidationError, Field, create_model
 
 def is_valid_ip(address: str) -> bool:
     try:
@@ -254,3 +252,38 @@ def flatten(data_dict, prefix=""):
             key = f"{prefix}{key}"
             flattened[key] = value 
     return flattened
+
+ 
+def get_inline_relationships(nodes: List[Any], edges: List[Any]) -> List[str]:
+    """
+    Get the inline relationships for a list of nodes and edges.
+    """
+    relationships = []
+    for edge in edges:
+        source = next((node for node in nodes if node["id"] == edge["source"]), None)
+        target = next((node for node in nodes if node["id"] == edge["target"]), None)
+        if source and target:
+            relationships.append({"source":source, "edge":edge, "target":target})
+    return relationships
+
+def to_json_serializable(obj):
+    """Convert any object to a JSON-serializable format."""
+    import json
+    from pydantic import BaseModel
+    
+    try:
+        # Test if already JSON serializable
+        json.dumps(obj)
+        return obj
+    except (TypeError, ValueError):
+        # Handle common cases
+        if isinstance(obj, BaseModel):
+            # Use mode='json' to ensure all Pydantic types are properly serialized
+            return obj.model_dump(mode='json') if hasattr(obj, 'model_dump') else obj.dict()
+        elif isinstance(obj, (list, tuple)):
+            return [to_json_serializable(item) for item in obj]
+        elif isinstance(obj, dict):
+            return {key: to_json_serializable(value) for key, value in obj.items()}
+        else:
+            # Convert anything else to string
+            return str(obj)

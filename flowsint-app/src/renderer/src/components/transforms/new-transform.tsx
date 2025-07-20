@@ -16,8 +16,8 @@ const NewTransform = ({ children }: { children: ReactNode }) => {
                 setNodes([])
                 setEdges([])
                 const response = await transformService.create(JSON.stringify({
-                    name: "New Transform",
-                    description: "A new transform",
+                    name: "New flow",
+                    description: "A new example flow.",
                     category: [],
                     transform_schema: {}
                 }))

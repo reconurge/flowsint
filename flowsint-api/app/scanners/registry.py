@@ -13,7 +13,7 @@ from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
 from app.scanners.organizations.org_to_asn import OrgToAsnScanner
 from app.scanners.domains.domain_to_asn import DomainToAsnScanner
 from app.scanners.crypto.wallet_to_transactions import CryptoWalletAddressToTransactions
-from app.scanners.crypto.wallet_to_nfts import WalletAddressToNFTs
+from app.scanners.crypto.wallet_to_nfts import CryptoWalletAddressToNFTs
 from app.scanners.domains.to_website import DomainToWebsiteScanner
 from app.scanners.websites.to_crawler import WebsiteToCrawler
 from app.scanners.websites.to_domain import WebsiteToDomainScanner
@@ -53,6 +53,8 @@ class ScannerRegistry:
         "module": scanner.__module__,
         "doc": scanner.__doc__,
         "key": scanner.key(),
+        "params": scanner.get_params_schema(),
+        "requires_key": scanner.requires_key(),
     }
     for name, scanner in cls._scanners.items()
         }
@@ -72,6 +74,9 @@ class ScannerRegistry:
                 "category": category,
                 "inputs": scanner.input_schema(),
                 "outputs": scanner.output_schema(),
+                "params": {},
+                "params_schema": scanner.get_params_schema(),
+                "requires_key": scanner.requires_key(),
             })
         return scanners_by_category
     
@@ -88,7 +93,7 @@ ScannerRegistry.register(CidrToIpsScanner)
 ScannerRegistry.register(OrgToAsnScanner)
 ScannerRegistry.register(DomainToAsnScanner)
 ScannerRegistry.register(CryptoWalletAddressToTransactions)
-ScannerRegistry.register(WalletAddressToNFTs)
+ScannerRegistry.register(CryptoWalletAddressToNFTs)
 ScannerRegistry.register(DomainToWebsiteScanner)
 ScannerRegistry.register(WebsiteToCrawler)
 ScannerRegistry.register(WebsiteToDomainScanner)

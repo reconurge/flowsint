@@ -2,14 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type GraphControlsStore = {
-    view: 'force' | 'hierarchy' | 'table' | 'map';
+    view: 'force' | 'hierarchy' | 'table' | 'map' | 'relationships';
     zoomToFit: () => void;
     zoomIn: () => void;
     zoomOut: () => void;
     onLayout: (layout: any) => void;
     setActions: (actions: Partial<GraphControlsStore>) => void;
     refetchGraph: () => void;
-    setView: (view: 'force' | 'hierarchy' | 'table' | 'map') => void;
+    setView: (view: 'force' | 'hierarchy' | 'table' | 'map' | 'relationships') => void;
 };
 
 export const useGraphControls = create<GraphControlsStore>()(

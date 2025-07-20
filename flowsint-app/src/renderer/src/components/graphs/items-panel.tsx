@@ -48,19 +48,19 @@ export const ItemsPanel = memo(function LeftPanel() {
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="flex flex-col gap-3">
                 {isLoading ? <SkeletonList rowCount={8} /> :
                     actionItems?.map((item: ActionItem) => {
                         if (item.children && item.children.length > 0) {
                             return (
-                                <div key={item.id} className="@container">
+                                <div key={item.id}>
                                     <div className="py-1 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-2">
                                             <span>{item.label} ({item.children.length})</span>
                                             {item.comingSoon && <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>}
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 @xs:grid-cols-3 @sm:grid-cols-4 @md:grid-cols-5 gap-2">
+                                    <div className="flex flex-col gap-2">
                                         {item.children.map((childItem) => (
                                             <DraggableItem
                                                 key={childItem.id}

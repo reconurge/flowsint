@@ -12,39 +12,40 @@ import {
     applyEdgeChanges
 } from "@xyflow/react"
 import { toast } from "sonner"
+import { type ScannerNodeData } from "@/types/transform"
 
-export interface NodeData {
-    class_name: string
-    module: string
-    key: string
-    doc?: string | null
-    computationState?: 'pending' | 'processing' | 'completed' | 'error'
-    name?: string
-    category?: string
-    type?: string
-    inputs?: { type: string; properties: Array<{ name: string; type: string }> }
-    outputs?: { type: string; properties: Array<{ name: string; type: string }> }
-    color?: string
-    [key: string]: unknown
-}
+export type NodeData = ScannerNodeData
 
 export type TransformNode = Node<NodeData>
 export type TransformEdge = Edge
 
 export interface TransformState {
+    // Node State
     nodes: TransformNode[]
-    edges: TransformEdge[]
     selectedNode: TransformNode | null
+    // Edge State
+    edges: TransformEdge[]
+    // UI State
     loading: boolean
+    openParamsDialog: boolean
+    // Node Actions
     setNodes: (nodes: TransformNode[] | ((prev: TransformNode[]) => TransformNode[])) => void
-    setEdges: (edges: TransformEdge[] | ((prev: TransformEdge[]) => TransformEdge[])) => void
     onNodesChange: OnNodesChange
+    setSelectedNode: (node: TransformNode | null) => void
+    deleteNode: (nodeId: string) => void
+    updateNode: (node: TransformNode) => void
+    // Edge Actions
+    setEdges: (edges: TransformEdge[] | ((prev: TransformEdge[]) => TransformEdge[])) => void
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
-    setSelectedNode: (node: TransformNode | null) => void
+    // UI Actions
     setLoading: (loading: boolean) => void
-    deleteNode: (nodeId: string) => void
+    setOpenParamsDialog: (openParamsDialog: boolean, node?: TransformNode) => void
 }
+
+// ================================
+// DEFAULT STYLES & CONFIGURATION
+// ================================
 
 const defaultEdgeStyle = { stroke: "#64748b" }
 const defaultMarkerEnd: EdgeMarker = {
@@ -54,18 +55,49 @@ const defaultMarkerEnd: EdgeMarker = {
     color: "#64748b",
 }
 
+// ================================
+// TRANSFORM STORE IMPLEMENTATION
+// ================================
+
 export const useTransformStore = create<TransformState>((set, get) => ({
+    // ================================
+    // STATE INITIALIZATION
+    // ================================
+    // Node State
     nodes: [] as TransformNode[],
-    edges: [] as TransformEdge[],
     selectedNode: null,
+    // Edge State
+    edges: [] as TransformEdge[],
+    // UI State
     loading: false,
+    openParamsDialog: false,
+    // ================================
+    // NODE ACTIONS
+    // ================================
     setNodes: (nodes) => set({ nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes }),
-    setEdges: (edges) => set({ edges: typeof edges === 'function' ? edges(get().edges) : edges }),
     onNodesChange: (changes) => {
         set({
             nodes: applyNodeChanges(changes, get().nodes) as TransformNode[],
         })
     },
+    setSelectedNode: (node) => set({ selectedNode: node }),
+    deleteNode: (nodeId) => {
+        const { nodes, edges } = get()
+        set({
+            nodes: nodes.filter((node) => node.id !== nodeId),
+            edges: edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+            selectedNode: nodes.find((node) => node.id === nodeId) ? null : get().selectedNode
+        })
+    },
+    updateNode: (node) => {
+        set({
+            nodes: get().nodes.map((n) => n.id === node.id ? node : n),
+        })
+    },
+    // ================================
+    // EDGE ACTIONS
+    // ================================
+    setEdges: (edges) => set({ edges: typeof edges === 'function' ? edges(get().edges) : edges }),
     onEdgesChange: (changes) => {
         set({
             edges: applyEdgeChanges(changes, get().edges),
@@ -76,7 +108,6 @@ export const useTransformStore = create<TransformState>((set, get) => ({
             toast.error(`Cannot connect ${connection.sourceHandle} to ${connection.targetHandle}.`)
             return
         }
-
         const edge: TransformEdge = {
             id: `${connection.source}-${connection.target}`,
             source: connection.source!,
@@ -90,14 +121,19 @@ export const useTransformStore = create<TransformState>((set, get) => ({
             edges: [...get().edges, edge],
         })
     },
-    setSelectedNode: (node) => set({ selectedNode: node }),
+    // ================================
+    // UI ACTIONS
+    // ================================
     setLoading: (loading) => set({ loading }),
-    deleteNode: (nodeId) => {
-        const { nodes, edges } = get()
-        set({
-            nodes: nodes.filter((node) => node.id !== nodeId),
-            edges: edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
-            selectedNode: nodes.find((node) => node.id === nodeId) ? null : get().selectedNode
-        })
+    setOpenParamsDialog: (openParamsDialog, node) => {
+        // Only allow opening the dialog if there's a selected node
+        if (node) {
+            set({ selectedNode: node })
+        }
+        if (openParamsDialog && !get().selectedNode) {
+            toast.error("Please select a node first to configure its parameters.")
+            return
+        }
+        set({ openParamsDialog })
     },
-})) 
+}))

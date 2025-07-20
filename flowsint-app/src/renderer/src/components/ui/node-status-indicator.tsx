@@ -21,17 +21,20 @@ const nodeStatusIndicatorVariants = cva(
 interface NodeStatusIndicatorProps extends VariantProps<typeof nodeStatusIndicatorVariants> {
   className?: string
   children?: React.ReactNode
+  showStatus: boolean
 }
 
 export function NodeStatusIndicator({
   className,
   variant,
   children,
+  showStatus = true
 }: NodeStatusIndicatorProps) {
   return (
     <div className="relative">
       {children}
-      <div className={cn(nodeStatusIndicatorVariants({ variant }), className)} />
+      {showStatus &&
+        <div className={cn(nodeStatusIndicatorVariants({ variant }), className)} />}
     </div>
   )
 } 

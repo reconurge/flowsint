@@ -33,10 +33,10 @@ export function StatusBar() {
                         <span>Vault</span>
                     </Button>
                 </Link>
-                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
+                {/* <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
                     <Trash strokeWidth={1.4} className="h-3 w-3 opacity-60" />
                     <span>Trash</span>
-                </Button>
+                </Button> */}
                 <Legend />
                 <InfoDialog />
                 <ModeToggle />

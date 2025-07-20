@@ -194,16 +194,16 @@ class ChatMessage(Base):
         Index("idx_messages_chat_id", "chat_id"),
     )
 
-class ThirdPartyKey(Base):
-    __tablename__ = "third_party_keys"
+class Key(Base):
+    __tablename__ = "keys"
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    service = mapped_column(String, nullable=False)
+    name = mapped_column(String, nullable=False)
     owner_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
     encrypted_key = mapped_column(String, nullable=False)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
         Index("idx_keys_owner_id", "owner_id"),
-        Index("idx_keys_service", "service"),
+        Index("idx_keys_service", "name"),
     )

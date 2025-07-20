@@ -51,16 +51,16 @@ function TransformsPage() {
                 <div className="max-w-7xl mx-auto p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <h1 className="text-3xl font-bold text-foreground">Transforms</h1>
+                            <h1 className="text-3xl font-bold text-foreground">Flows</h1>
                             <p className="text-muted-foreground">
-                                Create and manage your transforms.
+                                Create and manage your transform flows.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
                             <NewTransform>
                                 <Button size="sm">
                                     <PlusIcon className="w-4 h-4 mr-2" />
-                                    New Transform
+                                    New flow
                                 </Button>
                             </NewTransform>
                         </div>

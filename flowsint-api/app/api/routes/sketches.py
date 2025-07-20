@@ -75,8 +75,28 @@ def delete_sketch(id: UUID, db: Session = Depends(get_db), current_user: Profile
     db.commit()
 
 @router.get("/{id}/graph")
-async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    sketch = db.query(Sketch).filter(Sketch.id == id, Sketch.owner_id == current_user.id).first()
+async def get_sketch_nodes(
+    id: str, 
+    format: str = None,
+    db: Session = Depends(get_db), 
+    # current_user: Profile = Depends(get_current_user)
+):
+    """
+    Get the nodes and relationships for a sketch.
+    Args:
+        id: The ID of the sketch
+        format: Optional format parameter. If "inline", returns inline relationships
+        db: The database session
+        current_user: The current user
+    Returns:
+        A dictionary containing the nodes and relationships for the sketch
+        nds: []
+        rls: []
+        Or if format=inline: List of inline relationship strings
+    """
+    sketch = db.query(Sketch).filter(Sketch.id == id, 
+                                    #  Sketch.owner_id == current_user.id
+                                     ).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Graph not found")
     import random
@@ -123,10 +143,14 @@ async def get_sketch_nodes(id: str, db: Session = Depends(get_db), current_user:
             "target": str(record["target"]),
             "data": record["data"],
             "caption": record["type"],
-            # "label": record["type"].lower(),
+            "label": record["type"].lower(),
         }
         for record in rels_result
     ]
+
+    if format == "inline":
+        from app.utils import get_inline_relationships
+        return get_inline_relationships(nodes, rels)
 
     return {"nds": nodes, "rls": rels}
 

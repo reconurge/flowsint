@@ -39,12 +39,26 @@ def get_logs_by_sketch(
         
     logs = query.limit(limit).all()
     
-    results = [Event(
-        id=str(log.id),
-        sketch_id=str(log.sketch_id) if log.sketch_id else None,
-        type=log.type,
-        payload=log.content
-    ) for log in logs]
+    results = []
+    for log in logs:
+        # Ensure payload is always a dictionary
+        if isinstance(log.content, dict):
+            payload = log.content
+        elif isinstance(log.content, str):
+            payload = {"message": log.content}
+        elif log.content is None:
+            payload = {}
+        else:
+            # Handle other types by converting to string and wrapping
+            payload = {"content": str(log.content)}
+        
+        results.append(Event(
+            id=str(log.id),
+            sketch_id=str(log.sketch_id) if log.sketch_id else None,
+            type=log.type,
+            payload=payload
+        ))
+    
 
     return results
 

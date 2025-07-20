@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
-import ScannerItem, { type Scanner } from "./scanner-item"
+import ScannerItem from "./scanner-item"
+import { type Scanner } from "@/types/transform"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { transformService } from "@/api/transfrom-service"

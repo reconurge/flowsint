@@ -17,6 +17,7 @@ class Edge(BaseModel):
 
 class FlowStep(BaseModel):
     nodeId: str = Field(..., description="ID of the associated node", title="Node ID")
+    params: Optional[Dict[str, Any]] = Field(None, description="Parameters for the step", title="Parameters")
     type: Literal["type", "scanner"] = Field(..., description="Type of step - either type transformation or scanner", title="Step Type")
     inputs: Dict[str, Any] = Field(..., description="Input data for this step", title="Inputs")
     outputs: Dict[str, Any] = Field(..., description="Output data from this step", title="Outputs")

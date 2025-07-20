@@ -3,37 +3,12 @@
 import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, GripVertical } from "lucide-react"
+import { Info, GripVertical, KeySquare } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-
-// Types for the scanner based on the new structure
-export interface ScannerProperty {
-  name: string
-  type: string
-}
-
-export interface ScannerIO {
-  type: string
-  properties: ScannerProperty[]
-}
-
-export interface Scanner {
-  class_name: string
-  category: string
-  name: string
-  module: string
-  doc: string | null
-  inputs: ScannerIO
-  outputs: ScannerIO
-  type: string
-}
-
-interface ScannerItemProps {
-  scanner: Scanner
-  category: string
-}
+import { Badge } from "../ui/badge"
+import { type Scanner, type ScannerItemProps } from "@/types/transform"
 
 // Custom equality function for ScannerItem
 function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
@@ -101,6 +76,10 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
               </DialogTrigger>
             </div>
           </div>
+          {scanner.requires_key &&
+            <div className="absolute bottom-3 right-3">
+              <KeySquare className="h-4 w-4 text-yellow-500" />
+            </div>}
         </div>
         <DialogContent className="sm:max-w-[725px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -110,6 +89,11 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {scanner.requires_key &&
+              <Badge variant={"outline"} className=" top-3 right-3">
+                Key required <KeySquare className="h-4 w-4 text-yellow-500" />
+              </Badge>
+            }
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Description</h4>
               <p className="text-sm text-muted-foreground">{scanner.doc || "No description available"}</p>
@@ -139,6 +123,9 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="space-y-2">
+              {JSON.stringify(scanner)}
             </div>
           </div>
         </DialogContent>

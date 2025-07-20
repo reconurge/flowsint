@@ -29,7 +29,7 @@ export function Sidebar() {
         { icon: Home, label: "Dashboard", href: "/dashboard/" },
         { icon: Fingerprint, label: "Cases", href: "/dashboard/investigations" },
         // { icon: BrickWall, label: "Walls", href: "/dashboard/investigations/wall" },
-        { icon: Workflow, label: "Transforms", href: "/dashboard/transforms" },
+        { icon: Workflow, label: "Flows", href: "/dashboard/transforms" },
     ]
 
     const commonClasses =

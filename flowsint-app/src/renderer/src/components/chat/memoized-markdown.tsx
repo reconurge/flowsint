@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '@/lib/utils';
+import { CopyButton } from '../copy';
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
     const tokens = marked.lexer(markdown);
@@ -18,14 +19,19 @@ const MemoizedMarkdownBlock = memo(
                 code({ node, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
                     return match ? (
-                        <SyntaxHighlighter
-                            children={String(children).replace(/\n$/, '')}
-                            style={dracula}
-                            language={match[1]}
-                            PreTag="div"
-                            className="rounded border border-border bg-muted px-1 py-0.5 text-sm"
-                            {...props}
-                        />
+                        <div className='relative'>
+                            <SyntaxHighlighter
+                                children={String(children).replace(/\n$/, '')}
+                                style={dracula}
+                                language={match[1]}
+                                PreTag="div"
+                                className="rounded border border-border bg-muted px-1 py-0.5 text-sm"
+                                {...props}
+                            />
+                            <div className='absolute top-2 right-2'>
+                                <CopyButton content={String(children).replace(/\n$/, '')} />
+                            </div>
+                        </div>
                     ) : (
                         <code className={cn("rounded border border-border bg-muted px-1 py-0.5 text-sm", className)} {...props}>
                             {children}

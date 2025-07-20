@@ -1,18 +1,20 @@
 import os
 import uuid
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Optional
 
 from celery import states
 from app.core.celery import celery
 from app.scanners.orchestrator import TransformOrchestrator
 from app.core.postgre_db import SessionLocal, get_db
 from app.core.graph_db import Neo4jConnection
+from app.core.vault import Vault
 from app.types.transform import FlowBranch
 from app.models.models import Scan
 from sqlalchemy.orm import Session
 from app.core.logger import Logger
 from app.core.enums import EventLevel
+from app.utils import to_json_serializable
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
@@ -25,7 +27,7 @@ db: Session = next(get_db())
 logger = Logger()
 
 @celery.task(name="run_transform", bind=True)
-def run_scan(self, transform_branches, values: List[str], sketch_id: str | None):
+def run_scan(self, transform_branches, values: List[str], sketch_id: str | None, owner_id: Optional[str] = None):
     session = SessionLocal()
 
     try:
@@ -42,19 +44,28 @@ def run_scan(self, transform_branches, values: List[str], sketch_id: str | None)
         session.add(scan)
         session.commit()
 
+        # Create vault instance if owner_id is provided
+        vault = None
+        if owner_id:
+            try:
+                vault = Vault(session, uuid.UUID(owner_id))
+            except Exception as e:
+                Logger.error(sketch_id, {"message": f"Failed to create vault: {str(e)}"})
+
         transform_branches = [FlowBranch(**branch) for branch in transform_branches]
         scanner = TransformOrchestrator(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             transform_branches=transform_branches,
             neo4j_conn=neo4j_connection,
+            vault=vault,
         )
         
         # Use the synchronous scan method which internally handles the async operations
         results = scanner.scan(values=values)
 
         scan.status = EventLevel.COMPLETED
-        scan.results = scanner.results_to_json(results)
+        scan.results = to_json_serializable(results)
         session.commit()
 
         return {"result": scan.results}

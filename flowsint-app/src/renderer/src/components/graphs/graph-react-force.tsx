@@ -12,7 +12,19 @@ interface GraphReactForceProps {
     style?: React.CSSProperties;
 }
 
+interface LabelBounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    nodeId: string;
+    nodeSize: number;
+}
+
 const NODE_COUNT_THRESHOLD = 10;
+const ZOOM_MIN = 0.3;
+const ZOOM_INTERVAL = 2;
+const ZOOM_MAX = 10;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useGraphStore(s => s.nodes) as GraphNode[];
@@ -22,12 +34,11 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const colors = useNodesDisplaySettings(s => s.colors) as Record<ItemType, string>;
     const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection);
     const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes);
-    // const currentNode = useGraphStore(s => s.currentNode);
     const setActions = useGraphControls(s => s.setActions);
     const [menu, setMenu] = useState<any>(null);
     const [currentZoom, setCurrentZoom] = useState(1);
+
     const shouldUseSimpleRendering = useMemo(() => {
-        // Use simple rendering for large node counts or when zoomed out
         return nodes.length > NODE_COUNT_THRESHOLD || currentZoom < 2.5;
     }, [nodes.length, currentZoom]);
 
@@ -40,7 +51,8 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
             let nodeLabel = node.data.label;
             if (!nodeLabel && 'caption' in node) nodeLabel = (node as any).caption;
             if (!nodeLabel) nodeLabel = node.id;
-
+            const randMin = ZOOM_MIN + Math.random() * (ZOOM_MAX - ZOOM_MIN - 1);
+            const randMax = randMin + ZOOM_INTERVAL;
             return {
                 ...node,
                 nodeLabel: nodeLabel,
@@ -48,8 +60,10 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                 nodeSize: size,
                 nodeType: type,
                 val: size,
+                randMin: randMin,
+                randMax: randMax
             };
-        });
+        }).sort((a, b) => b.nodeSize - a.nodeSize); // Sort by size, largest first
 
         const edgeGroups = new Map();
         rawEdges.forEach(edge => {
@@ -91,7 +105,6 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         setMenu(null)
     }, [clearSelectedNodes, setMenu]);
 
-
     const handleZoomIn = useCallback((graph: any) => {
         const zoom = graph.zoom();
         graph.zoom(zoom * 1.5);
@@ -106,57 +119,207 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         graph.zoomToFit(400);
     }, []);
 
-    const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-        const size = node.nodeSize;
-        const type = node.nodeType as ItemType;
+    // Helper functions for rendering
+    const drawNodeCircle = useCallback((ctx: CanvasRenderingContext2D, node: any, size: number) => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, size * 0.65, 0, 2 * Math.PI);
+        ctx.fillStyle = node.nodeColor;
+        ctx.fill();
+    }, []);
 
-        // Use simple rendering for large node counts
-        if (shouldUseSimpleRendering) {
-            // Simple circle rendering for large node counts
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, size * .65, 0, 2 * Math.PI);
-            ctx.fillStyle = node.nodeColor;
-            ctx.fill();
-        } else {
-            // Full rendering with icon and label
-            ctx.beginPath();
-            // ctx.arc(node.x, node.y, size / 2, 0, 2 * Math.PI);
-            ctx.fillStyle = node.nodeColor;
-            ctx.fill();
-            const img = new Image();
-            img.src = `/icons/${type}.svg`;
-            // Draw icon if available
-            ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
+    const drawNodeIcon = useCallback((ctx: CanvasRenderingContext2D, node: any, size: number, type: ItemType) => {
+        const img = new Image();
+        img.src = `/icons/${type}.svg`;
+        ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
+    }, []);
 
-            if (globalScale > 3) {
-                const label = node.nodeLabel || node.label || node.id;
-                if (label) {
-                    const fontSize = Math.max(2, size * 0.4);
-                    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-                    const textWidth = ctx.measureText(label).width;
-                    const padding = 2;
+    const shouldShowLabel = useCallback((globalScale: number, randMin: number, randMax: number) => {
+        return globalScale >= randMin && globalScale <= randMax;
+    }, []);
 
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
-                    ctx.lineWidth = 0.2;
-                    const bgWidth = textWidth + padding * 2;
-                    const bgHeight = fontSize + padding;
-                    const bgX = node.x - bgWidth / 2;
-                    const bgY = node.y + size / 2 + 1;
+    // Check if two rectangles overlap
+    const doLabelsOverlap = useCallback((bounds1: LabelBounds, bounds2: LabelBounds) => {
+        return !(bounds1.x + bounds1.width < bounds2.x ||
+            bounds2.x + bounds2.width < bounds1.x ||
+            bounds1.y + bounds1.height < bounds2.y ||
+            bounds2.y + bounds2.height < bounds1.y);
+    }, []);
 
-                    ctx.beginPath();
-                    ctx.roundRect(bgX, bgY, bgWidth, bgHeight, .75);
-                    ctx.fill();
-                    ctx.stroke();
+    const drawLabelBackground = useCallback((ctx: CanvasRenderingContext2D, node: any, label: string, fontSize: number) => {
+        const textWidth = ctx.measureText(label).width;
+        const padding = 6;
+        const bgWidth = textWidth + padding * 2;
+        const bgHeight = fontSize + padding;
+        const bgX = node.x - bgWidth / 2;
+        const bgY = node.y + node.nodeSize / 2 + 1;
 
-                    ctx.fillStyle = theme === "dark" ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(label, node.x, bgY + bgHeight / 2);
+        ctx.fillStyle = 'rgba(149, 149, 149, 0.56)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.lineWidth = 0.2;
+
+        ctx.beginPath();
+        ctx.roundRect(bgX, bgY, bgWidth, bgHeight, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        return { bgX, bgY, bgHeight, bgWidth };
+    }, []);
+
+    const drawLabel = useCallback((ctx: CanvasRenderingContext2D, node: any, label: string, fontSize: number, bgY: number, bgHeight: number) => {
+        ctx.fillStyle = theme === "dark" ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, node.x, bgY + bgHeight / 2);
+    }, [theme]);
+
+    // Efficient collision detection using spatial partitioning
+    const collisionGridRef = React.useRef<Map<string, LabelBounds[]>>(new Map());
+    const renderedLabelsRef = React.useRef<Set<string>>(new Set());
+    const gridSize = 50;
+
+    // Get all grid keys that a label bounds might overlap
+    const getOverlappingGridKeys = useCallback((bounds: LabelBounds) => {
+        const keys = new Set<string>();
+        const startX = Math.floor(bounds.x / gridSize);
+        const endX = Math.floor((bounds.x + bounds.width) / gridSize);
+        const startY = Math.floor(bounds.y / gridSize);
+        const endY = Math.floor((bounds.y + bounds.height) / gridSize);
+
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                keys.add(`${x},${y}`);
+            }
+        }
+        return Array.from(keys);
+    }, []);
+
+    // Check for collisions using spatial partitioning with size-based priority
+    const checkCollision = useCallback((newBounds: LabelBounds) => {
+        const gridKeys = getOverlappingGridKeys(newBounds);
+
+        for (const key of gridKeys) {
+            const boundsInGrid = collisionGridRef.current.get(key) || [];
+            for (const existingBounds of boundsInGrid) {
+                if (doLabelsOverlap(newBounds, existingBounds)) {
+                    // If the new label is from a larger node, it takes priority
+                    if (newBounds.nodeSize > existingBounds.nodeSize) {
+                        // Remove the smaller node's label from the grid
+                        const updatedBounds = boundsInGrid.filter(b => b.nodeId !== existingBounds.nodeId);
+                        collisionGridRef.current.set(key, updatedBounds);
+                        renderedLabelsRef.current.delete(existingBounds.nodeId);
+                        continue; // Check other bounds in this grid
+                    } else {
+                        // New label is from a smaller node, so it gets rejected
+                        return true;
+                    }
                 }
             }
         }
-    }, [shouldUseSimpleRendering, theme]);
+        return false;
+    }, [getOverlappingGridKeys, doLabelsOverlap]);
+
+    // Add bounds to spatial grid
+    const addBoundsToGrid = useCallback((bounds: LabelBounds) => {
+        const gridKeys = getOverlappingGridKeys(bounds);
+        for (const key of gridKeys) {
+            if (!collisionGridRef.current.has(key)) {
+                collisionGridRef.current.set(key, []);
+            }
+            collisionGridRef.current.get(key)!.push(bounds);
+        }
+    }, [getOverlappingGridKeys]);
+
+    // Custom renderer with efficient collision detection
+    const renderNodeWithCollisionDetection = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        const type = node.nodeType as ItemType;
+        const label = node.nodeLabel || node.label || node.id;
+
+        // Always render the node itself
+        if (shouldUseSimpleRendering) {
+            drawNodeCircle(ctx, node, node.nodeSize);
+        } else {
+            drawNodeIcon(ctx, node, node.nodeSize, type);
+        }
+
+        // Check if we should show a label
+        if (!shouldShowLabel(globalScale, node.randMin, node.randMax)) return;
+
+        // Determine font size based on zoom level
+        let fontSize: number;
+        if (shouldUseSimpleRendering) {
+            fontSize = Math.max(8, 14 / globalScale);
+        } else {
+            if (globalScale > 3) {
+                fontSize = Math.max(2, node.nodeSize * 0.4);
+            } else {
+                fontSize = Math.max(8, 14 / globalScale);
+            }
+        }
+
+        // Set font for measurement
+        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
+        // Measure text to check for collisions
+        const textWidth = ctx.measureText(label).width;
+        const padding = 2;
+        const bgWidth = textWidth + padding * 2;
+        const bgHeight = fontSize + padding;
+        const bgX = node.x - bgWidth / 2;
+        const bgY = node.y + node.nodeSize / 2 + 1;
+
+        const newLabelBounds: LabelBounds = {
+            x: bgX,
+            y: bgY,
+            width: bgWidth,
+            height: bgHeight,
+            nodeId: node.id,
+            nodeSize: node.nodeSize
+        };
+
+        // Check if this label was previously rendered
+        const wasPreviouslyRendered = renderedLabelsRef.current.has(node.id);
+
+        // If not previously rendered, check for collisions
+        if (!wasPreviouslyRendered) {
+            if (checkCollision(newLabelBounds)) {
+                return; // Don't render this label
+            }
+            // Add this label to the spatial grid
+            addBoundsToGrid(newLabelBounds);
+            // Mark as rendered
+            renderedLabelsRef.current.add(node.id);
+        }
+
+        // Render the label background and text
+        if (shouldUseSimpleRendering || globalScale > 3) {
+            // Draw background for detailed labels
+            const { bgY: finalBgY, bgHeight: finalBgHeight } = drawLabelBackground(ctx, node, label, fontSize);
+            drawLabel(ctx, node, label, fontSize, finalBgY, finalBgHeight);
+        } else {
+            // Draw simple label without background
+            ctx.fillStyle = theme === "dark" ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, node.x, node.y);
+        }
+    }, [shouldUseSimpleRendering, drawNodeCircle, drawNodeIcon, shouldShowLabel, checkCollision, addBoundsToGrid, drawLabelBackground, drawLabel, theme]);
+
+    // Reset collision grid and rendered labels only when nodes change
+    useEffect(() => {
+        collisionGridRef.current.clear();
+        renderedLabelsRef.current.clear();
+    }, [nodes.length, nodes.map(n => n.id).join(',')]); // Also reset when node IDs change
+
+    // Reset only when zoom changes significantly
+    const lastZoomRef = React.useRef(currentZoom);
+    useEffect(() => {
+        const zoomDiff = Math.abs(currentZoom - lastZoomRef.current);
+        if (zoomDiff > 0.5) {
+            collisionGridRef.current.clear();
+            renderedLabelsRef.current.clear();
+            lastZoomRef.current = currentZoom;
+        }
+    }, [currentZoom]);
 
     // Set actions in store
     useEffect(() => {
@@ -194,19 +357,15 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         (data: any, event: MouseEvent) => {
             if (!containerRef.current) return;
             const pane = containerRef.current.getBoundingClientRect();
-            // Use the mouse event coordinates instead of node position
             const relativeX = event.clientX - pane.left;
             const relativeY = event.clientY - pane.top;
-            // Calculate available space in each direction
-            const menuWidth = 320; // Default menu width
-            const menuHeight = 250; // Use a more reasonable height for overflow calculation
-            const padding = 20; // Minimum padding from edges
+            const menuWidth = 320;
+            const menuHeight = 250;
+            const padding = 20;
 
-            // Determine if menu would overflow in each direction
             const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
             const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
 
-            // Calculate final position
             let finalTop = 0;
             let finalLeft = 0;
             let finalRight = 0;
@@ -244,6 +403,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
 
     return (
         <div className="relative h-full grow w-full bg-background">
+            {/* {currentZoom} */}
             <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 300, minWidth: 300 }}>
                 <ForceGraph2D
                     ref={graphRef}
@@ -253,6 +413,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     nodeLabel="label"
                     nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : "#00000000"}
                     nodeRelSize={6}
+                    enableNodeDrag={false}
                     linkDirectionalArrowLength={3.5}
                     linkDirectionalArrowRelPos={1}
                     cooldownTicks={100}
@@ -270,7 +431,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     }}
                     d3AlphaDecay={0.02}
                     d3VelocityDecay={0.3}
-                    nodeCanvasObject={renderNode}
+                    nodeCanvasObject={renderNodeWithCollisionDetection}
                     onNodeHover={(node: any) => {
                         if (node) {
                             graphData.nodes.forEach((n: any) => {
@@ -295,6 +456,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
                     backgroundColor="transparent"
                     onZoom={(zoom) => setCurrentZoom(zoom.k)}
                 />
+
                 {menu && <ContextMenu
                     onClick={handleBackgroundClick}
                     {...menu}

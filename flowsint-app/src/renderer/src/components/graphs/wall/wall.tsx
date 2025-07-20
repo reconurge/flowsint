@@ -35,9 +35,9 @@ const nodeTypes = {
     custom: CustomNode,
 };
 
-const edgeTypes = {
-    custom: SimpleFloatingEdge,
-};
+// const edgeTypes = {
+//     custom: SimpleFloatingEdge,
+// };
 
 const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
@@ -47,6 +47,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     const setActions = useGraphControls(state => state.setActions)
     // Memoize store selectors
     const nodes = useGraphStore(state => state.nodes)
+    const toggleNodeSelection = useGraphStore(state => state.toggleNodeSelection)
     const currentNode = useGraphStore(state => state.currentNode)
     const setCurrentNode = useGraphStore(state => state.setCurrentNode)
     const clearSelectedNodes = useGraphStore(state => state.clearSelectedNodes)
@@ -140,7 +141,11 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     )
 
     const onNodeClick: NodeMouseHandler = useCallback(
-        (_: React.MouseEvent, node: Node) => {
+        (e: React.MouseEvent, node: Node) => {
+            if (e.shiftKey) {
+                toggleNodeSelection(node as GraphNode, true)
+                return
+            }
             const typedNode = node as GraphNode
             setCurrentNode(typedNode)
             setActiveTab("entities")

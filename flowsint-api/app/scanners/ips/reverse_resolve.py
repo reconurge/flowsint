@@ -28,6 +28,10 @@ class ReverseResolveScanner(Scanner):
         return "Ip"
 
     @classmethod
+    def key(cls) -> str:
+        return "address"
+
+    @classmethod
     def input_schema(cls) -> Dict[str, Any]:
         adapter = TypeAdapter(InputType)
         schema = adapter.json_schema()

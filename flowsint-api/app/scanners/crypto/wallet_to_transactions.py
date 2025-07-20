@@ -1,23 +1,63 @@
 import os
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Dict, Any, Optional, TypeAlias, Union
 from pydantic import TypeAdapter
 import requests
+import requests.exceptions
 from datetime import datetime
 from app.scanners.base import Scanner
 from app.types.wallet import CryptoWallet, CryptoWalletTransaction
 from app.utils import resolve_type
 from app.core.logger import Logger
+from app.core.graph_db import Neo4jConnection
+
 InputType: TypeAlias = List[CryptoWallet]
 OutputType: TypeAlias = List[CryptoWalletTransaction]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
-ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 def wei_to_eth(wei_str):
     return int(wei_str) / 10**18
 
 class CryptoWalletAddressToTransactions(Scanner):
-    """Resolve transactions for a wallet address (ETH)."""
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params
+        )
+
+    @classmethod
+    def requires_key(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this scanner"""
+        return [
+            {
+                "name": "ETHERSCAN_API_KEY",
+                "type": "vaultSecret",
+                "description": "The Etherscan API key to use for the transaction lookup.",
+                "required": True
+            },
+            {
+                "name": "ETHERSCAN_API_URL",
+                "type": "url",
+                "description": "The Etherscan API URL to use for the transaction lookup.",
+                "required": False,
+                "default": ETHERSCAN_API_URL
+            }
+        ]
 
     @classmethod
     def name(cls) -> str:
@@ -71,17 +111,23 @@ class CryptoWalletAddressToTransactions(Scanner):
                 cleaned.append(wallet_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
+        params = self.get_params()
+        api_key = params["ETHERSCAN_API_KEY"]
+        api_url = params["ETHERSCAN_API_URL"]
+        if not api_key:
+            Logger.error(self.sketch_id, {"message": "ETHERSCAN_API_KEY is required"})
+            raise ValueError("ETHERSCAN_API_KEY is required")
         for d in data:
             try:
-                transactions = self._get_transactions(d.address)
+                transactions = await self._get_transactions(d.address, api_key, api_url)
                 results.append(transactions)
             except Exception as e:
                 Logger.error(self.sketch_id, {"message": f"Error resolving transactions for {d.address}: {e}"})
         return results
     
-    def _get_transactions(self, address: str) -> List[CryptoWalletTransaction]:
+    async def _get_transactions(self, address: str, api_key: str, api_url: str) -> List[CryptoWalletTransaction]:
         transactions = []
         """Get transactions for a wallet address."""
         params = {
@@ -93,19 +139,45 @@ class CryptoWalletAddressToTransactions(Scanner):
         "page": 1,
         "offset": 100,
         "sort": "asc",
-        "apikey": ETHERSCAN_API_KEY
+        "apikey": api_key
     }
-        response = requests.get(ETHERSCAN_API_URL, params=params)
-        data = response.json()
-        results = data["result"]
+        try:
+            response = requests.get(api_url, params=params)
+            
+            # Raise an exception for HTTP errors (4xx or 5xx status codes)
+            response.raise_for_status()
+            
+        except requests.exceptions.ConnectionError as e:
+            raise ValueError(f"An error occurred connecting to {api_url}: Connection failed - {str(e)}")
+        except requests.exceptions.Timeout as e:
+            raise ValueError(f"An error occurred fetching {api_url}: Request timeout - {str(e)}")
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"An error occurred fetching {api_url}: {str(e)}")
+        
+        try:
+            data = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            raise ValueError(f"An error occurred fetching {api_url}: Invalid JSON response - {str(e)}")
+        
+        # Check if the API returned an error
+        if data.get("status") != "1":
+            error_message = data.get("message", "Unknown API error")
+            raise ValueError(f"An error occurred fetching {api_url}: {error_message}")
+        
+        results = data.get("result", [])
         for tx in results:
-            if tx["to"] !=None:
-                target = CryptoWallet(address=tx["to"])
+            # Properly determine source and target based on transaction data
+            source_address = tx["from"]
+            
+            if tx["to"] is not None:
+                target_address = tx["to"]
             else:
-                target = CryptoWallet(address=tx["contractAddress"])
+                # Contract creation transaction
+                target_address = tx["contractAddress"] if tx["contractAddress"] else address
+            
             transactions.append(CryptoWalletTransaction(
-                source=CryptoWallet(address=address),
-                target=target,
+                source=CryptoWallet(address=source_address),
+                target=CryptoWallet(address=target_address),
                 hash=tx["hash"],
                 value=wei_to_eth(tx["value"]),
                 timestamp=tx["timeStamp"],
@@ -136,7 +208,11 @@ class CryptoWalletAddressToTransactions(Scanner):
                 SET source.sketch_id = $sketch_id,
                     source.label = $source_address,
                     source.caption = $source_address,
-                    source.type = "cryptowallet"
+                    source.type = "cryptowallet",
+                    target.sketch_id = $sketch_id,
+                    target.label = $target_address,
+                    target.caption = $target_address,
+                    target.type = "cryptowallet"
                 """
                 self.neo4j_conn.query(wallets_query, {
                     "source_address": tx.source.address,
@@ -146,8 +222,8 @@ class CryptoWalletAddressToTransactions(Scanner):
 
                 # Create transaction as an edge between wallets
                 tx_query = """
-                MATCH (source:cryptowallet {cryptowallet: $source})
-                MATCH (target:cryptowallet {cryptowallet: $target})
+                MATCH (source:cryptowallet {wallet: $source})
+                MATCH (target:cryptowallet {wallet: $target})
                 MERGE (source)-[tx:TRANSACTION {hash: $hash}]->(target)
                 SET tx.value = $value,
                     tx.timestamp = $timestamp,

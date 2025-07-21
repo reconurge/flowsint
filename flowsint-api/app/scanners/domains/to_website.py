@@ -98,7 +98,7 @@ class DomainToWebsiteScanner(Scanner):
         except requests.RequestException:
             return False, url, []
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """To website"""
         results: OutputType = []
         for d in data:

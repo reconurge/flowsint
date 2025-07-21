@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Document(BaseModel):
+    """Represents a document with metadata, security, and content information."""
     title: str = Field(..., description="Document title", title="Title")
     type: Optional[str] = Field(None, description="Type of document (PDF, DOC, etc.)", title="Document Type")
     file_size: Optional[int] = Field(None, description="File size in bytes", title="File Size")

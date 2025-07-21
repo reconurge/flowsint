@@ -1,4 +1,3 @@
-"use client"
 import { toast } from "sonner"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { transformService } from "@/api/transfrom-service"

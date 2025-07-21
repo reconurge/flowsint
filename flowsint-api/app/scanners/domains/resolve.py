@@ -68,7 +68,7 @@ class ResolveScanner(Scanner):
                 cleaned.append(domain_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for d in data:
             try:

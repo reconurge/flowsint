@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class File(BaseModel):
+    """Represents a file with metadata, type information, and security assessment."""
     filename: str = Field(..., description="File name", title="Filename")
     file_type: Optional[str] = Field(None, description="File type or extension", title="File Type")
     file_size: Optional[int] = Field(None, description="File size in bytes", title="File Size")

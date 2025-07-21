@@ -107,7 +107,7 @@ class CryptoWalletAddressToNFTs(Scanner):
                 cleaned.append(wallet_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         results: OutputType = []
         params = self.get_params()

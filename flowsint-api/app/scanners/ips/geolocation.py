@@ -19,6 +19,10 @@ class GeolocationScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Ip"
+    
+    @classmethod
+    def key(cls) -> str:
+        return "address"
 
     @classmethod
     def input_schema(cls) -> Dict[str, Any]:
@@ -60,7 +64,7 @@ class GeolocationScanner(Scanner):
                 cleaned.append(ip_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for ip in data:
             try:

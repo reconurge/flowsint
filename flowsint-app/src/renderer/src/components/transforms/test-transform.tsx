@@ -1,4 +1,3 @@
-"use client"
 
 import { memo } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog"

@@ -73,7 +73,7 @@ class OrgToAsnScanner(Scanner):
                 cleaned.append(org_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find ASN information for organizations using asnmap."""
         asns: OutputType = []
 

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Script(BaseModel):
+    """Represents a script or code file with analysis and security information."""
     script_id: str = Field(..., description="Unique script identifier", title="Script ID")
     name: Optional[str] = Field(None, description="Script name", title="Name")
     language: Optional[str] = Field(None, description="Programming language", title="Language")

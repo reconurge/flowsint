@@ -11,6 +11,21 @@ import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import NodeActions from '../../node-actions';
+import BaseContextMenu from '@/components/xyflow/context-menu';
+
+interface GraphContextMenuProps {
+    node: GraphNode;
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
+    wrapperWidth: number;
+    wrapperHeight: number;
+    onEdit?: () => void;
+    onDelete?: () => void;
+    setMenu: (menu: any | null) => void;
+    [key: string]: any;
+}
 
 export default function ContextMenu({
     node,
@@ -24,19 +39,7 @@ export default function ContextMenu({
     onDelete,
     setMenu,
     ...props
-}: {
-    node: GraphNode;
-    top: number;
-    left: number;
-    right: number;
-    bottom: number;
-    wrapperWidth: number;
-    wrapperHeight: number;
-    onEdit?: () => void;
-    onDelete?: () => void;
-    setMenu: (menu: any | null) => void;
-    [key: string]: any;
-}) {
+}: GraphContextMenuProps) {
     const { id: sketchId } = useParams({ strict: false })
     const [searchQuery, setSearchQuery] = useState('');
     const { launchTransform } = useLaunchTransform(false);
@@ -54,50 +57,6 @@ export default function ContextMenu({
         return matchesName || matchesDescription;
     }) || [];
 
-    // Calculate dynamic dimensions based on available space
-    const maxWidth = 320; // Default width (w-80)
-    const maxHeight = 500; // Default height (h-96)
-    const minWidth = 280; // Minimum width
-    const minHeight = 200; // Minimum height
-
-    // Calculate available space based on menu position and wrapper dimensions
-    let availableWidth = maxWidth;
-    let availableHeight = maxHeight;
-
-    if (left > 0) {
-        // Menu is positioned from left, so available width is from left to right edge
-        availableWidth = wrapperWidth - left - 20; // 20px padding from right edge
-    } else if (right > 0) {
-        // Menu is positioned from right, so available width is from left edge to right position
-        availableWidth = wrapperWidth - right - 20; // 20px padding from left edge
-    }
-
-    if (top > 0) {
-        // Menu is positioned from top, so available height is from top to bottom edge
-        availableHeight = wrapperHeight - top - 20; // 20px padding from bottom edge
-    } else if (bottom > 0) {
-        // Menu is positioned from bottom, so available height is from top edge to bottom position
-        availableHeight = wrapperHeight - bottom - 20; // 20px padding from top edge
-    }
-
-    // Determine dynamic dimensions
-    const dynamicWidth = Math.min(maxWidth, Math.max(minWidth, availableWidth));
-    const dynamicHeight = Math.min(maxHeight, Math.max(minHeight, availableHeight));
-
-    // Calculate dynamic styles
-    const dynamicStyles = {
-        width: `${dynamicWidth}px`,
-        maxHeight: `${dynamicHeight}px`,
-        top: top > 0 ? `${top}px` : 'auto',
-        left: left > 0 ? `${left}px` : 'auto',
-        right: right > 0 ? `${right}px` : 'auto',
-        bottom: bottom > 0 ? `${bottom}px` : 'auto',
-    };
-
-    const handleMenuClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-    };
-
     const handleTransformClick = (e: React.MouseEvent, transformId: string) => {
         e.stopPropagation();
         launchTransform([node.data.label], transformId, sketchId)
@@ -105,10 +64,14 @@ export default function ContextMenu({
     };
 
     return (
-        <div
-            style={dynamicStyles}
-            className="bg-background/90 backdrop-blur-sm border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
-            onClick={handleMenuClick}
+        <BaseContextMenu
+            node={node}
+            top={top}
+            left={left}
+            right={right}
+            bottom={bottom}
+            wrapperWidth={wrapperWidth}
+            wrapperHeight={wrapperHeight}
             {...props}
         >
             {/* Header with title and action buttons */}
@@ -138,7 +101,7 @@ export default function ContextMenu({
             </div>
 
             {/* Transforms list */}
-            <div className="flex-1 overflow-auto min-h-0">
+            <div className="flex-1 grow overflow-auto min-h-0">
                 {isLoading ? (
                     <div className="p-2 space-y-2">
                         {[...Array(3)].map((_, i) => (
@@ -188,7 +151,7 @@ export default function ContextMenu({
                     </div>
                 )}
             </div>
-        </div>
+        </BaseContextMenu>
     );
 }
 

@@ -1,4 +1,3 @@
-"use client"
 
 import { ScrollArea } from "../ui/scroll-area"
 import { Badge } from "../ui/badge"

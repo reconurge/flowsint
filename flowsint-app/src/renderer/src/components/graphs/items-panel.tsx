@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { PlusIcon, Search } from "lucide-react"
 import { memo, useCallback, useState } from "react"

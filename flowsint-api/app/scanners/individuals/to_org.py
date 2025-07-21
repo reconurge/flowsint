@@ -85,7 +85,7 @@ class IndividualToOrgScanner(Scanner):
             Logger.error(self.sketch_id, {"message": "[INDIVIDUAL_TO_ORG] The input type did not match."})
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         
         results: OutputType = []
         for indiv in data:

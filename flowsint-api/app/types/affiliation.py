@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Affiliation(BaseModel):
+    """Represents an organizational affiliation or employment relationship."""
     organization: str = Field(..., description="Organization or group name", title="Organization")
     role: Optional[str] = Field(None, description="Role or position within organization", title="Role")
     start_date: Optional[str] = Field(None, description="Start date of affiliation", title="Start Date")

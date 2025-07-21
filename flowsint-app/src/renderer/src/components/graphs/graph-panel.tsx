@@ -23,8 +23,6 @@ const Graph = lazy(() => import('./graph'))
 
 const NODE_COUNT_THRESHOLD = 500;
 
-
-
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
     <div

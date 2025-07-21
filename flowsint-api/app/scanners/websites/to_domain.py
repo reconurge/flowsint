@@ -86,7 +86,7 @@ class WebsiteToDomainScanner(Scanner):
         except Exception:
             return ""
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Extract domain from website."""
         results: OutputType = []
         for website in data:

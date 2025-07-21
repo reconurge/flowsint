@@ -47,7 +47,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         const transformedNodes = nodes.map(node => {
             const type = node.data?.type as ItemType;
             const color = colors[type] || '#0074D9';
-            const size = getSize(type);
+            const size = getSize(type)-2;
             let nodeLabel = node.data.label;
             if (!nodeLabel && 'caption' in node) nodeLabel = (node as any).caption;
             if (!nodeLabel) nodeLabel = node.id;

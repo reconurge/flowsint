@@ -34,7 +34,7 @@ class HibpScanner(Scanner):
     def output_schema(self) -> Dict[str, str]:
         return ["email", "breaches", "adobe", "data", "pastes", "password", "hashes"]
 
-    def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
+    async def scan(self, emails: List[str]) -> List[Dict[str, Any]]:
         """Performs a search on HaveIBeenPwned for a list of emails."""
         results = []
         for email in emails:

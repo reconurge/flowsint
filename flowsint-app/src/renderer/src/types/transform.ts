@@ -25,6 +25,7 @@ export interface ScannerParamSchemaItem {
 }
 
 export interface Scanner {
+    id: string
     class_name: string
     category: string
     name: string

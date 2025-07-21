@@ -68,7 +68,7 @@ class IpToAsnScanner(Scanner):
                 cleaned.append(ip_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find ASN information for IP addresses using asnmap."""
         asns: OutputType = []
 

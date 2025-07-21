@@ -22,6 +22,7 @@ from app.scanners.emails.to_leaks import EmailToBreachesScanner
 from app.scanners.individuals.to_org import IndividualToOrgScanner
 from app.scanners.organizations.to_infos import OrgToInfosScanner
 from app.scanners.websites.to_webtrackers import WebsiteToWebtrackersScanner
+from app.scanners.n8n.connector import N8nConnector
 
 class ScannerRegistry:
     
@@ -47,20 +48,22 @@ class ScannerRegistry:
     def list(cls) -> Dict[str, Dict[str, str]]:
         return {
     name: {
-        "class_name": scanner.__name__,
+       "class_name": scanner.__name__,
         "name": scanner.name(),
-        "category": scanner.category(),
         "module": scanner.__module__,
         "doc": scanner.__doc__,
-        "key": scanner.key(),
-        "params": scanner.get_params_schema(),
+        "category": scanner.category(),
+        "inputs": scanner.input_schema(),
+        "outputs": scanner.output_schema(),
+        "params": {},
+        "params_schema": scanner.get_params_schema(),
         "requires_key": scanner.requires_key(),
     }
     for name, scanner in cls._scanners.items()
         }
     
     @classmethod
-    def list_by_category(cls) -> Dict[str, Dict[str, str]]:
+    def list_by_categories(cls) -> Dict[str, Dict[str, str]]:
         scanners_by_category = {}
         for _, scanner in cls._scanners.items():
             category = scanner.category()
@@ -80,6 +83,35 @@ class ScannerRegistry:
             })
         return scanners_by_category
     
+    @classmethod
+    def list_by_input_type(cls, input_type: str) -> Dict[str, Dict[str, str]]:
+        if input_type.lower() == "any":
+            return [{
+                "class_name": scanner.__name__,
+                "name": scanner.name(),
+                "module": scanner.__module__,
+                "doc": scanner.__doc__,
+                "category": scanner.category(),
+                "inputs": scanner.input_schema(),
+                "outputs": scanner.output_schema(),
+                "params": {},
+                "params_schema": scanner.get_params_schema(),
+                "requires_key": scanner.requires_key(),
+            } for _, scanner in cls._scanners.items()]
+            
+        return [{
+            "class_name": scanner.__name__,
+            "name": scanner.name(),
+            "module": scanner.__module__,
+            "doc": scanner.__doc__,
+            "category": scanner.category(),
+            "inputs": scanner.input_schema(),
+            "outputs": scanner.output_schema(),
+            "params": {},
+            "params_schema": scanner.get_params_schema(),
+            "requires_key": scanner.requires_key(),
+        } for _, scanner in cls._scanners.items() if scanner.input_schema()["type"].lower() in ["any", input_type.lower()]]
+
 ScannerRegistry.register(ReverseResolveScanner)
 ScannerRegistry.register(ResolveScanner)
 ScannerRegistry.register(SubdomainScanner)
@@ -103,4 +135,5 @@ ScannerRegistry.register(IndividualToOrgScanner)
 ScannerRegistry.register(OrgToInfosScanner)
 ScannerRegistry.register(IndividualToOrgScanner)
 ScannerRegistry.register(WebsiteToWebtrackersScanner)
+ScannerRegistry.register(N8nConnector)
 

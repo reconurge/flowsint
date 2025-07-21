@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Message(BaseModel):
+    """Represents a message with content, metadata, and security analysis."""
     message_id: str = Field(..., description="Unique message identifier", title="Message ID")
     content: str = Field(..., description="Message content", title="Content")
     sender: Optional[str] = Field(None, description="Message sender", title="Sender")

@@ -7,6 +7,7 @@ from app.utils import extract_input_schema_transform
 from app.scanners.registry import ScannerRegistry
 from app.core.celery import celery
 from app.types.domain import Domain
+from app.types.phrase import Phrase
 from app.types.ip import Ip
 from app.types.social import SocialProfile
 from app.types.organization import Organization
@@ -64,8 +65,8 @@ def get_transforms(
 # Returns the "raw_materials" for the transform editor
 @router.get("/raw_materials")
 async def get_material_list():
-    scanners = ScannerRegistry.list_by_category()
-    flattened_scanners = {
+    scanners = ScannerRegistry.list_by_categories()
+    scanner_categories = {
         category: [
             {
                 "class_name": scanner["class_name"],
@@ -85,8 +86,8 @@ async def get_material_list():
         for category, scanner_list in scanners.items()
     }
 
-    # Ajoute les types comme des "scanners" spéciaux de type 'type'
     object_inputs = [
+        extract_input_schema_transform(Phrase),
         extract_input_schema_transform(Organization),
         extract_input_schema_transform(Individual),
         extract_input_schema_transform(Domain),
@@ -100,9 +101,19 @@ async def get_material_list():
         extract_input_schema_transform(CryptoWalletTransaction),
         extract_input_schema_transform(CryptoNFT)
     ]
-    flattened_scanners["types"] = object_inputs
+    
+    # Put types first, then add all scanner categories
+    flattened_scanners = {"types": object_inputs}
+    flattened_scanners.update(scanner_categories)
 
     return {"items": flattened_scanners}
+
+# Returns the "raw_materials" for the transform editor
+@router.get("/input_type/{input_type}")
+async def get_material_list(input_type:str):
+    scanners = ScannerRegistry.list_by_input_type(input_type)
+    return {"items": scanners}
+
 
 
 # Create a new transform

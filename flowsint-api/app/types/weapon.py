@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional, List
 
 class Weapon(BaseModel):
+    """Represents a weapon with detailed specifications and forensic information."""
     name: str = Field(..., description="Weapon name or identifier", title="Name")
     type: Optional[Literal["firearm", "melee", "explosive", "bladed", "blunt", "chemical", "biological", "radiological", "nuclear", "other"]] = Field(None, description="Weapon category (handgun, rifle, shotgun, knife, etc.)", title="Category")
     description: Optional[str] = Field(None, description="Weapon description", title="Description")

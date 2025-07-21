@@ -28,6 +28,7 @@ export interface TransformState {
     // UI State
     loading: boolean
     openParamsDialog: boolean
+    openTransformSheet: boolean
     // Node Actions
     setNodes: (nodes: TransformNode[] | ((prev: TransformNode[]) => TransformNode[])) => void
     onNodesChange: OnNodesChange
@@ -41,6 +42,7 @@ export interface TransformState {
     // UI Actions
     setLoading: (loading: boolean) => void
     setOpenParamsDialog: (openParamsDialog: boolean, node?: TransformNode) => void
+    setOpenTransformSheet: (openTransformSheet: boolean, node?: TransformNode) => void
 }
 
 // ================================
@@ -71,6 +73,7 @@ export const useTransformStore = create<TransformState>((set, get) => ({
     // UI State
     loading: false,
     openParamsDialog: false,
+    openTransformSheet: false,
     // ================================
     // NODE ACTIONS
     // ================================
@@ -104,7 +107,7 @@ export const useTransformStore = create<TransformState>((set, get) => ({
         })
     },
     onConnect: (connection: Connection) => {
-        if (connection.sourceHandle !== connection.targetHandle) {
+        if ([connection.targetHandle, "Any"].includes(connection.sourceHandle)) {
             toast.error(`Cannot connect ${connection.sourceHandle} to ${connection.targetHandle}.`)
             return
         }
@@ -136,4 +139,15 @@ export const useTransformStore = create<TransformState>((set, get) => ({
         }
         set({ openParamsDialog })
     },
+    setOpenTransformSheet: (openTransformSheet, node) => {
+        // Only allow opening the dialog if there's a selected node
+        if (node) {
+            set({ selectedNode: node })
+        }
+        if (openTransformSheet && !get().selectedNode) {
+            toast.error("Please select a node first to add a connector.")
+            return
+        }
+        set({ openTransformSheet })
+    }
 }))

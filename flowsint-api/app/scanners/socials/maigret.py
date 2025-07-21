@@ -132,7 +132,7 @@ class MaigretScanner(Scanner):
 
         return results
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for ms in data:
             if not ms.username:

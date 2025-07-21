@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class BankAccount(BaseModel):
+    """Represents a bank account with financial and security information."""
     account_number: str = Field(..., description="Bank account number", title="Account Number")
     bank_name: Optional[str] = Field(None, description="Bank name", title="Bank Name")
     account_type: Optional[str] = Field(None, description="Type of account (checking, savings, etc.)", title="Account Type")

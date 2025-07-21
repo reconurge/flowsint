@@ -32,9 +32,10 @@ from app.types.weapon import Weapon
 from app.types.bank_account import BankAccount
 from app.types.credit_card import CreditCard
 from app.types.web_tracker import WebTracker
-from app.types.script import Script
-from app.types.reputation_score import ReputationScore
-from app.types.risk_profile import RiskProfile
+from app.types.phrase import Phrase
+# from app.types.script import Script
+# from app.types.reputation_score import ReputationScore
+# from app.types.risk_profile import RiskProfile
 
 router = APIRouter()
 
@@ -44,6 +45,17 @@ async def get_types_list():
     types = [
         {
             "id": uuid4(),
+            "type": "global",
+            "key": "global_category",
+            "icon": "phrase",
+            "label": "Global",
+            "fields": [],
+            "children": [
+                extract_input_schema(Phrase, label_key="text"),
+            ],
+        },
+        {
+            "id": uuid4(),
             "type": "person",
             "key": "person_category",
             "icon": "individual",
@@ -51,9 +63,9 @@ async def get_types_list():
             "fields": [],
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
-                extract_input_schema(SocialProfile, label_key="username", icon="username"),
+                extract_input_schema(SocialProfile, label_key="username", icon="socialprofile"),
                 extract_input_schema(Organization, label_key="name"),
-                extract_input_schema(Username, label_key="username", icon="username"),
+                extract_input_schema(Username, label_key="username", icon="socialprofile"),
                 # extract_input_schema(Alias, label_key="alias", icon="alias"),
                 # extract_input_schema(Affiliation, label_key="organization", icon="affiliation"),
             ],
@@ -79,7 +91,7 @@ async def get_types_list():
             "children": [
                 extract_input_schema(Phone, label_key="number"),
                 extract_input_schema(Email, label_key="email"),
-                extract_input_schema(SocialProfile, label_key="username", icon="username"),
+                extract_input_schema(SocialProfile, label_key="username", icon="socialprofile"),
                 extract_input_schema(Message, label_key="content", icon="message"),
             ],
         },

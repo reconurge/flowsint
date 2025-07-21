@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, List
 
 class Gravatar(BaseModel):
+    """Represents a Gravatar profile with image and user information."""
     src: HttpUrl = Field(..., description="Gravatar image URL", title="Image URL")
     hash: str = Field(..., description="Gravatar hash", title="Hash")
     size: Optional[int] = Field(None, description="Image size in pixels", title="Image Size")

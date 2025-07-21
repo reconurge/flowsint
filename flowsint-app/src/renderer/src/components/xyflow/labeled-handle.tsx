@@ -2,7 +2,7 @@ import { forwardRef, ReactNode, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { type HandleProps } from "@xyflow/react";
 
-import { BaseHandle } from "@/components/ui/base-handle";
+import { BaseHandle } from "@/components/xyflow/base-handle";
 import { Badge } from "@/components/ui/badge";
 
 const flexDirections = {

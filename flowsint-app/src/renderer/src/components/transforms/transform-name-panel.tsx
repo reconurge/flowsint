@@ -1,4 +1,3 @@
-"use client"
 
 import { useState, useEffect, type KeyboardEvent, useRef } from "react"
 import { Panel } from "@xyflow/react"

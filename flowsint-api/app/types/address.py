@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class PhysicalAddress(BaseModel):
+    """Represents a physical address with geographical coordinates."""
     address: str = Field(..., description="Street address", title="Street Address")
     city: str = Field(..., description="City name", title="City")
     country: str = Field(..., description="Country name", title="Country")

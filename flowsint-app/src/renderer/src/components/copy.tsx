@@ -1,4 +1,3 @@
-"use client"
 
 import { useState, useCallback } from "react"
 import { CheckIcon, CopyIcon } from "lucide-react"

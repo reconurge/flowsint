@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class DNSRecord(BaseModel):
+    """Represents a DNS record with type, value, and security information."""
     record_type: str = Field(..., description="Type of DNS record (A, AAAA, CNAME, MX, etc.)", title="Record Type")
     name: str = Field(..., description="Domain name", title="Domain Name")
     value: str = Field(..., description="Record value", title="Record Value")

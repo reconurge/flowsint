@@ -1,0 +1,80 @@
+import React from 'react';
+import type { Node } from '@xyflow/react';
+
+interface ContextMenuProps<T extends Node = Node> {
+    node: T;
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
+    wrapperWidth: number;
+    wrapperHeight: number;
+    children: React.ReactNode;
+}
+
+export default function ContextMenu<T extends Node = Node>({
+    node,
+    top,
+    left,
+    right,
+    bottom,
+    wrapperWidth,
+    wrapperHeight,
+    children,
+    ...props
+}: ContextMenuProps<T>) {
+    // Calculate dynamic dimensions based on available space
+    const maxWidth = 320; // Default width (w-80)
+    const maxHeight = 500; // Default height (h-96)
+    const minWidth = 280; // Minimum width
+    const minHeight = 200; // Minimum height
+
+    // Calculate available space based on menu position and wrapper dimensions
+    let availableWidth = maxWidth;
+    let availableHeight = maxHeight;
+
+    if (left > 0) {
+        // Menu is positioned from left, so available width is from left to right edge
+        availableWidth = wrapperWidth - left - 20; // 20px padding from right edge
+    } else if (right > 0) {
+        // Menu is positioned from right, so available width is from left edge to right position
+        availableWidth = wrapperWidth - right - 20; // 20px padding from left edge
+    }
+
+    if (top > 0) {
+        // Menu is positioned from top, so available height is from top to bottom edge
+        availableHeight = wrapperHeight - top - 20; // 20px padding from bottom edge
+    } else if (bottom > 0) {
+        // Menu is positioned from bottom, so available height is from top edge to bottom position
+        availableHeight = wrapperHeight - bottom - 20; // 20px padding from top edge
+    }
+
+    // Determine dynamic dimensions
+    const dynamicWidth = Math.min(maxWidth, Math.max(minWidth, availableWidth));
+    const dynamicHeight = Math.min(maxHeight, Math.max(minHeight, availableHeight));
+
+    // Calculate dynamic styles
+    const dynamicStyles = {
+        width: `${dynamicWidth}px`,
+        maxHeight: `${dynamicHeight}px`,
+        top: top > 0 ? `${top}px` : 'auto',
+        left: left > 0 ? `${left}px` : 'auto',
+        right: right > 0 ? `${right}px` : 'auto',
+        bottom: bottom > 0 ? `${bottom}px` : 'auto',
+    };
+
+    const handleMenuClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
+
+    return (
+        <div
+            style={dynamicStyles}
+            className="bg-background/90 backdrop-blur-sm border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
+            onClick={handleMenuClick}
+            {...props}
+        >
+            {children}
+        </div>
+    );
+}

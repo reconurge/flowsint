@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class WebTracker(BaseModel):
+    """Represents a web tracking technology with privacy and compliance information."""
     tracker_id: str = Field(..., description="Unique tracker identifier", title="Tracker ID")
     name: Optional[str] = Field(None, description="Tracker name", title="Name")
     type: Optional[str] = Field(None, description="Type of tracker (analytics, advertising, etc.)", title="Type")

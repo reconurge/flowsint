@@ -1,14 +1,14 @@
-"use client"
 
 import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, GripVertical, KeySquare } from "lucide-react"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { Info, GripVertical, KeySquare, TriangleAlert } from "lucide-react"
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { Badge } from "../ui/badge"
 import { type Scanner, type ScannerItemProps } from "@/types/transform"
+import { useIcon } from "@/hooks/use-icon"
 
 // Custom equality function for ScannerItem
 function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
@@ -26,6 +26,8 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
   const colors = useNodesDisplaySettings(s => s.colors)
   const borderInputColor = colors[scanner.inputs.type.toLowerCase()]
   const borderOutputColor = colors[scanner.outputs.type.toLowerCase()]
+  const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : null
+
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -38,6 +40,8 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
     },
     [scanner, category],
   )
+
+  const isConfigurationRequired = scanner.requires_key
 
   return (
     <TooltipProvider>
@@ -54,7 +58,11 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
                 <GripVertical className="h-5 w-5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
               </div>
               <div className="space-y-1 truncate">
-                <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                <div className="flex items-center gap-2 truncate text-ellipsis">
+                  {Icon && <Icon size={24} />}
+                  <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                </div>
+                <p className="text-xs font-normal truncate text-ellipsis opacity-60">{scanner.doc}</p>
                 {scanner.type !== "type" &&
                   <div className="mt-2 text-xs">
                     <div className="flex items-center gap-1">
@@ -76,9 +84,16 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
               </DialogTrigger>
             </div>
           </div>
-          {scanner.requires_key &&
+          {isConfigurationRequired &&
             <div className="absolute bottom-3 right-3">
-              <KeySquare className="h-4 w-4 text-yellow-500" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TriangleAlert className="h-4 w-4 text-yellow-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Configuration required</p>
+                </TooltipContent>
+              </Tooltip>
             </div>}
         </div>
         <DialogContent className="sm:max-w-[725px] max-h-[90vh] overflow-y-auto">
@@ -89,11 +104,12 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {scanner.requires_key &&
-              <Badge variant={"outline"} className=" top-3 right-3">
-                Key required <KeySquare className="h-4 w-4 text-yellow-500" />
-              </Badge>
-            }
+            {isConfigurationRequired &&
+              <div>
+                <Badge variant={"outline"} className=" top-3 right-3">
+                  Configuration required <TriangleAlert className="h-4 w-4 text-orange-500" />
+                </Badge>
+              </div>}
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Description</h4>
               <p className="text-sm text-muted-foreground">{scanner.doc || "No description available"}</p>
@@ -105,7 +121,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Input Properties</h4>
               <div className="space-y-1">
-                {scanner.inputs.properties.map((prop, index) => (
+                {scanner?.inputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
                     <span className="font-medium">{prop.name}:</span>{" "}
                     <span className="text-muted-foreground">{prop.type}</span>
@@ -116,16 +132,13 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderOutputColor }}>Output Properties</h4>
               <div className="space-y-1">
-                {scanner.outputs.properties.map((prop, index) => (
+                {scanner?.outputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
                     <span className="font-medium">{prop.name}:</span>{" "}
                     <span className="text-muted-foreground">{prop.type}</span>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="space-y-2">
-              {JSON.stringify(scanner)}
             </div>
           </div>
         </DialogContent>

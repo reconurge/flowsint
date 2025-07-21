@@ -77,7 +77,7 @@ class OrgToInfosScanner(Scanner):
                 cleaned.append(item)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         
         results: OutputType = []
         for org in data:

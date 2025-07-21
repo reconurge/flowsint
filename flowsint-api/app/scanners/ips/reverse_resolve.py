@@ -71,7 +71,7 @@ class ReverseResolveScanner(Scanner):
                 cleaned.append(ip_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for ip in data:
             try:

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class RiskProfile(BaseModel):
+    """Represents a comprehensive risk assessment profile for an entity."""
     entity_id: str = Field(..., description="Entity identifier", title="Entity ID")
     entity_type: Optional[str] = Field(None, description="Type of entity", title="Entity Type")
     overall_risk_score: Optional[float] = Field(None, description="Overall risk score (0-100)", title="Overall Risk Score")

@@ -13,7 +13,7 @@ export default function RawMaterial() {
 
     const { data: materials, isLoading, error } = useQuery({
         queryKey: ["raw_material"],
-        queryFn: transformService.getRawMaterial,
+        queryFn: () => transformService.getRawMaterial(),
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 

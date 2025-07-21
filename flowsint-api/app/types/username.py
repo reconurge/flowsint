@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Username(BaseModel):
+    """Represents a username or handle on a platform with associated profile information."""
     username: str = Field(..., description="Username or handle", title="Username")
     platform: Optional[str] = Field(None, description="Platform or service where username is used", title="Platform")
     display_name: Optional[str] = Field(None, description="Display name associated with username", title="Display Name")

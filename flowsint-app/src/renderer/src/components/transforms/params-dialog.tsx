@@ -60,19 +60,17 @@ const ParamsDialog = () => {
         <Dialog open={openParamsDialog} onOpenChange={setOpenParamsDialog}>
             <DialogContent className="sm:max-w-[725px]">
                 <DialogHeader>
-                    <DialogTitle>Configure Transform</DialogTitle>
-                    <DialogDescription>Configure parameters and settings for your transform.</DialogDescription>
+                    <DialogTitle>Configure <span className="text-primary">{selectedNode.data.class_name}</span></DialogTitle>
+                    <DialogDescription>{selectedNode.data.doc}</DialogDescription>
                 </DialogHeader>
-                
                 <Tabs defaultValue="parameters" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="parameters">Parameters</TabsTrigger>
                         <TabsTrigger value="settings">Settings</TabsTrigger>
                     </TabsList>
-                    
                     <TabsContent value="parameters" className="space-y-4 mt-4">
                         <div className="grid gap-4">
-                            {selectedNode.data.params_schema.map((param: ScannerParamSchemaItem) => (
+                            {selectedNode?.data?.params_schema?.map((param: ScannerParamSchemaItem) => (
                                 <div className="space-y-2" key={param.name}>
                                     <div className="flex items-start flex-col">
                                         <Label htmlFor={param.name} className="text-sm font-medium">

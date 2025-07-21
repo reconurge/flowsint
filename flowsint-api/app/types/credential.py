@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Credential(BaseModel):
+    """Represents user credentials with compromise and usage information."""
     username: str = Field(..., description="Username or identifier", title="Username")
     service: Optional[str] = Field(None, description="Service or platform where credential is used", title="Service")
     type: Optional[str] = Field(None, description="Type of credential (password, token, key, etc.)", title="Credential Type")

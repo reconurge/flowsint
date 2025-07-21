@@ -47,4 +47,9 @@ export const transformService = {
             method: 'GET',
         });
     },
+    getRawMaterialForType: async (type: string): Promise<any> => {
+        return fetchWithAuth(`/api/transforms/input_type/${type}`, {
+            method: 'GET',
+        });
+    },
 };

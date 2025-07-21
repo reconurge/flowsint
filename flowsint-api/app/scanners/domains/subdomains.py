@@ -68,7 +68,7 @@ class SubdomainScanner(Scanner):
         return cleaned
       
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
         domains: OutputType = []
         use_subfinder = self.__is_subfinder_installed()

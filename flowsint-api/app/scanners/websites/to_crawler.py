@@ -81,7 +81,7 @@ class WebsiteToCrawler(Scanner):
                 cleaned.append(website_obj)
         return cleaned
    
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Crawl websites to extract emails and phone numbers."""
         results = []
         

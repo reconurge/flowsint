@@ -68,7 +68,7 @@ class AsnToCidrsScanner(Scanner):
                 continue
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find CIDR from ASN using asnmap."""
         cidrs: OutputType = []
         self._asn_to_cidrs_map = []  # Store mapping for postprocess

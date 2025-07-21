@@ -65,7 +65,7 @@ class CryptoWalletAddressToTransactions(Scanner):
 
     @classmethod
     def category(cls) -> str:
-        return "CryptoCryptoWallet"
+        return "CryptoWallet"
     
     @classmethod
     def key(cls) -> str:

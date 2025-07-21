@@ -1,4 +1,3 @@
-"use client"
 
 import type React from "react"
 import { useState, useCallback, useRef, useEffect, memo } from "react"
@@ -17,9 +16,10 @@ import {
     MiniMap,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { TrashIcon, Play, Pause, SkipForward, RefreshCw } from "lucide-react"
+import { Play, Pause, SkipForward, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ScannerNode from "./scanner-node"
+import TypeNode from "./type-node"
 import { type ScannerNodeData } from "@/types/transform"
 import { categoryColors } from "./scanner-data"
 import { FlowControls } from "./controls"
@@ -40,9 +40,12 @@ import {
 } from "@/components/ui/select"
 import { useTheme } from "../theme-provider"
 import ParamsDialog from "./params-dialog"
+import TransformSheet from "./transform-sheet"
+import ContextMenu from "./context-menu"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
+    type: TypeNode,
 }
 
 interface TransformEditorProps {
@@ -80,7 +83,6 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     // #### Transform Store State ####
     const nodes = useTransformStore(state => state.nodes)
     const edges = useTransformStore(state => state.edges)
-    const selectedNode = useTransformStore(state => state.selectedNode)
     const loading = useTransformStore(state => state.loading)
     const setNodes = useTransformStore(state => state.setNodes)
     const setEdges = useTransformStore(state => state.setEdges)
@@ -89,7 +91,17 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
     const onConnect = useTransformStore(state => state.onConnect)
     const setSelectedNode = useTransformStore(state => state.setSelectedNode)
     const setLoading = useTransformStore(state => state.setLoading)
-    const deleteNode = useTransformStore(state => state.deleteNode)
+
+    const [menu, setMenu] = useState<{
+        node: TransformNode;
+        top: number;
+        left: number;
+        right: number;
+        bottom: number;
+        wrapperWidth: number;
+        wrapperHeight: number;
+        setMenu: (menu: any | null) => void;
+    } | null>(null);
 
     // #### Initialization Effects ####
     // Initialize store with initial data
@@ -101,18 +113,72 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         }
     }, [initialNodes, initialEdges, setNodes, setEdges])
 
+    const onNodeContextMenu = useCallback(
+        (event: React.MouseEvent, node: Node) => {
+            // Prevent native context menu from showing
+            event.preventDefault();
+
+            // Calculate position of the context menu. We want to make sure it
+            // doesn't get positioned off-screen.
+            if (!reactFlowWrapper.current) return;
+
+            const pane = reactFlowWrapper.current.getBoundingClientRect();
+            const relativeX = event.clientX - pane.left;
+            const relativeY = event.clientY - pane.top;
+
+            // Calculate available space in each direction
+            const menuWidth = 320; // Default menu width
+            const menuHeight = 250; // Use a more reasonable height for overflow calculation
+            const padding = 20; // Minimum padding from edges
+
+            // Determine if menu would overflow in each direction
+            const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
+            const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
+
+            // Calculate final position
+            let finalTop = 0;
+            let finalLeft = 0;
+            let finalRight = 0;
+            let finalBottom = 0;
+
+            if (wouldOverflowRight) {
+                finalRight = pane.width - relativeX;
+            } else {
+                finalLeft = relativeX;
+            }
+
+            if (wouldOverflowBottom) {
+                finalBottom = pane.height - relativeY;
+            } else {
+                finalTop = relativeY;
+            }
+
+            setMenu({
+                node: node as TransformNode,
+                top: finalTop,
+                left: finalLeft,
+                right: finalRight,
+                bottom: finalBottom,
+                wrapperWidth: pane.width,
+                wrapperHeight: pane.height,
+                setMenu: setMenu,
+            });
+        },
+        [setMenu],
+    );
+
     // Center view on selected node
-    useEffect(() => {
-        if (selectedNode && reactFlowInstance) {
-            const nodeWidth = selectedNode.measured?.width ?? 0
-            const nodeHeight = selectedNode.measured?.height ?? 0
-            setCenter(
-                selectedNode.position.x + nodeWidth / 2,
-                selectedNode.position.y + nodeHeight / 2 + 20,
-                { duration: 500, zoom: 1.5 }
-            )
-        }
-    }, [selectedNode, reactFlowInstance, setCenter])
+    // useEffect(() => {
+    //     if (selectedNode && reactFlowInstance) {
+    //         const nodeWidth = selectedNode.measured?.width ?? 0
+    //         const nodeHeight = selectedNode.measured?.height ?? 0
+    //         setCenter(
+    //             selectedNode.position.x + nodeWidth / 2,
+    //             selectedNode.position.y + nodeHeight / 2 + 20,
+    //             { duration: 500, zoom: 1.5 }
+    //         )
+    //     }
+    // }, [selectedNode, reactFlowInstance, setCenter])
 
     // #### Drag and Drop Handlers ####
     const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -142,10 +208,11 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             })
             const newNode: TransformNode = {
                 id: `${scannerData.name}-${Date.now()}`,
-                type: "scanner",
+                type: scannerData.type === "type" ? "type" : "scanner",
                 position,
                 data: {
-                    class_name: scannerData.name,
+                    id: scannerData.id,
+                    class_name: scannerData.class_name,
                     module: scannerData.module || "",
                     key: scannerData.name,
                     color: categoryColors[scannerData.category] || "#94a3b8",
@@ -177,19 +244,20 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         (_: React.MouseEvent, node: Node) => {
             const typedNode = node as TransformNode
             setSelectedNode(typedNode)
-            const nodeWidth = typedNode.measured?.width ?? 0
-            const nodeHeight = typedNode.measured?.height ?? 0
-            setCenter(typedNode.position.x + nodeWidth / 2, typedNode.position.y + nodeHeight / 2 + 20, {
-                duration: 500,
-                zoom: 1.5,
-            })
+            // const nodeWidth = typedNode.measured?.width ?? 0
+            // const nodeHeight = typedNode.measured?.height ?? 0
+            // setCenter(typedNode.position.x + nodeWidth / 2, typedNode.position.y + nodeHeight / 2 + 20, {
+            //     duration: 500,
+            //     zoom: 1.5,
+            // })
         },
         [setCenter, setSelectedNode],
     )
 
     const onPaneClick = useCallback(() => {
         setSelectedNode(null)
-    }, [setSelectedNode])
+        setMenu(null)
+    }, [setSelectedNode, setMenu])
 
     // #### Layout and Node Management ####
     const onLayout = useCallback(() => {
@@ -217,12 +285,6 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             })
         }, 100)
     }, [nodes, edges, setNodes, setEdges, fitView])
-
-    const handleDeleteNode = useCallback(() => {
-        if (selectedNode) {
-            deleteNode(selectedNode.id)
-        }
-    }, [selectedNode, deleteNode])
 
     // #### Transform CRUD Operations ####
     const saveTransform = useCallback(
@@ -392,11 +454,11 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         } else {
             // End of simulation
             fitView({ duration: 500 })
-            setIsSimulating(false)
+            resetSimulation()
         }
 
         return () => clearTimeout(timer)
-    }, [isSimulating, currentStepIndex, simulationSpeed, loading, transformBranches, updateNodeState])
+    }, [isSimulating, currentStepIndex, simulationSpeed, loading, transformBranches, updateNodeState, setCurrentStepIndex])
 
     // #### Simulation Control Functions ####
     const startSimulation = () => {
@@ -507,6 +569,7 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                     onDragOver={onDragOver}
                     onNodeClick={onNodeClick}
                     onPaneClick={onPaneClick}
+                    onNodeContextMenu={onNodeContextMenu}
                     nodeTypes={nodeTypes}
                     fitView
                     proOptions={{ hideAttribution: true }}
@@ -557,12 +620,18 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                     />
                     <Background bgColor="var(--background)" />
                     <ParamsDialog />
+                    {menu && <ContextMenu
+                        {...menu}
+                    >
+                        <div>
+
+                            fdff</div>
+                    </ContextMenu>}
                     <MiniMap className="bg-background" position="bottom-left" pannable zoomable />
-                    {selectedNode && (
-                        <NodePanel node={selectedNode} onDelete={handleDeleteNode} />
-                    )}
+
                 </ReactFlow>
             </div>
+            <TransformSheet onLayout={onLayout} />
             <TransformModal open={showModal} onOpenChange={setShowModal} onSave={saveTransform} isLoading={loading} />
         </>
     )
@@ -598,31 +667,6 @@ function TransformEditor({
     )
 }
 
-// #### Node Panel Component ####
-const NodePanel = memo(({ node, onDelete }: { node: TransformNode; onDelete: () => void }) => (
-    <Panel position="bottom-right" className="bg-card p-3 rounded-md shadow-md border w-72">
-        <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium">{node.data.name}</h3>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDelete}>
-                <TrashIcon className="h-4 w-4" />
-            </Button>
-        </div>
-        <div className="text-sm space-y-2">
-            <p>
-                <span className="font-medium">Module:</span> {node.data.module}
-            </p>
-            <p>
-                <span className="font-medium">Key:</span> {node.data.key}
-            </p>
-            {node.data.doc && (
-                <p>
-                    <span className="font-medium">Description:</span> {node.data.doc}
-                </p>
-            )}
-        </div>
-    </Panel>
-))
 
-NodePanel.displayName = "NodePanel"
 
 export default TransformEditor

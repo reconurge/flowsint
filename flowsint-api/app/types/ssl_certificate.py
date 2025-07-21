@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class SSLCertificate(BaseModel):
+    """Represents an SSL/TLS certificate with validation and security details."""
     subject: str = Field(..., description="Certificate subject (domain name)", title="Subject")
     issuer: Optional[str] = Field(None, description="Certificate authority that issued the certificate", title="Issuer")
     serial_number: Optional[str] = Field(None, description="Certificate serial number", title="Serial Number")

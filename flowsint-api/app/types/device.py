@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Device(BaseModel):
+    """Represents a device with hardware, software, and network information."""
     device_id: str = Field(..., description="Unique device identifier", title="Device ID")
     type: Optional[str] = Field(None, description="Type of device (mobile, desktop, server, etc.)", title="Device Type")
     manufacturer: Optional[str] = Field(None, description="Device manufacturer", title="Manufacturer")

@@ -79,7 +79,7 @@ class EmailToGravatarScanner(Scanner):
                 cleaned.append(email_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Fetch gravatar from email."""
         results: OutputType = []
         for email in data:

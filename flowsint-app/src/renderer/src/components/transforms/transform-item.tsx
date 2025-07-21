@@ -1,4 +1,3 @@
-"use client"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { hexToRgba } from "@/lib/utils"

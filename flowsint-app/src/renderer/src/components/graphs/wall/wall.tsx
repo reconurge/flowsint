@@ -1,4 +1,3 @@
-"use client"
 
 import type React from "react"
 import { useState, useCallback, useRef, useEffect, memo, useMemo } from "react"
@@ -14,7 +13,6 @@ import {
     BackgroundVariant,
     // EdgeTypes,
     MarkerType,
-    EdgeTypes,
     ConnectionMode,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
@@ -29,7 +27,6 @@ import { useGraphControls } from "@/stores/graph-controls-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import ContextMenu from './custom/context-menu';
 import { useLayoutStore } from "@/stores/layout-store"
-import SimpleFloatingEdge from './custom/floating-edge';
 
 const nodeTypes = {
     custom: CustomNode,
@@ -317,7 +314,6 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
                 <ReactFlow {...reactFlowProps}>
                     <Background variant={"dots" as BackgroundVariant} bgColor="var(--background)" />
                     {menu && <ContextMenu
-                        onClick={onPaneClick}
                         {...menu}
                     />}
                     <MiniMap nodeBorderRadius={80} nodeClassName={"h-16 w-16 text-center"} nodeColor={(node) => colors[node.data.type as keyof typeof colors]} className="bg-background" position="bottom-right" pannable zoomable />

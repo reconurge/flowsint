@@ -69,7 +69,7 @@ class SherlockScanner(Scanner):
                 cleaned.append(obj)
         return cleaned
 
-    def scan(self, usernames: List[str]) -> Dict[str, Any]:
+    async def scan(self, usernames: List[str]) -> Dict[str, Any]:
         """Performs the scan using Sherlock on the list of usernames."""
         results_list = []  # List to store scan results for each username
         

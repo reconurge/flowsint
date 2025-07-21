@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class SocialProfile(BaseModel):
+    """Represents a social media profile with engagement metrics."""
     username: str = Field(..., description="Username on the social platform", title="Username")
     profile_url: Optional[str] = Field(None, description="URL to the user's profile page", title="Profile URL")
     platform: Optional[str] = Field(None, description="Name of the social media platform", title="Platform")

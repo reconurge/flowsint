@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class CreditCard(BaseModel):
+    """Represents a credit card with financial details and security status."""
     card_number: str = Field(..., description="Credit card number", title="Card Number")
     card_type: Optional[str] = Field(None, description="Type of card (Visa, Mastercard, etc.)", title="Card Type")
     issuer: Optional[str] = Field(None, description="Card issuer bank", title="Issuer")

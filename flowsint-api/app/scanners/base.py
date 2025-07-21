@@ -52,16 +52,15 @@ class Scanner(ABC):
         self.ParamsModel = build_params_model(self.params_schema)
         self.params: Dict[str, Any] = params or {}
         # Params is filled synchronously by the constructor. This params is generally constructed of 
-        # ApiKey references, not the key directly. The idea is that the real key values are resolved after calling
+        # vaultSecret references, not the key directly. The idea is that the real key values are resolved after calling
         # async_init(), right before the execution.
 
     async def async_init(self):
         self.ParamsModel = build_params_model(self.params_schema)
-        Logger.warn(self.sketch_id, {"message": f"Params raw: {str(self.params)}"})
         # Resolve parameters (e.g. replace vaultSecret by real secrets)
         if self.params:
             resolved_params = self.resolve_params()
-            Logger.warn(self.sketch_id, {"message": f"Resolved params: {str(resolved_params)}"})
+            Logger.debug(self.sketch_id, {"message": f"Resolved params: {str(resolved_params)}"})
         else:
             resolved_params = {}
         # Strict validation after resolution
@@ -81,11 +80,25 @@ class Scanner(ABC):
             Logger.warn(self.sketch_id, {"message": f"Param {i}: {str(param)}"})
             i += 1
             if param["type"] == "vaultSecret":
-                resolved[param["name"]] = self.vault.get_secret(self.params[param["name"]])
+                # Check if the vault secret parameter is provided
+                if param["name"] in self.params and self.params[param["name"]]:
+                    if self.vault is not None:
+                        secret = self.vault.get_secret(self.params[param["name"]])
+                        if secret is not None:
+                            resolved[param["name"]] = secret
+                        else:
+                            # If secret not found in vault, keep the original parameter value
+                            resolved[param["name"]] = self.params[param["name"]]
+                    else:
+                        # If vault is not available, use the parameter value as-is
+                        resolved[param["name"]] = self.params[param["name"]]
+                elif param.get("default") is not None:
+                    resolved[param["name"]] = param["default"]
+                # If not provided and no default, skip (optional parameter)
             else:
-                if self.params[param["name"]]:
+                if param["name"] in self.params and self.params[param["name"]]:
                     resolved[param["name"]] = self.params[param["name"]]
-                elif param["default"] is not None:
+                elif param.get("default") is not None:
                     resolved[param["name"]] = param["default"]
                 else:
                     continue

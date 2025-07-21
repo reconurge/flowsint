@@ -65,7 +65,7 @@ class CidrToIpsScanner(Scanner):
                 continue
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find IP addresses from CIDR using dnsx."""
         ips: OutputType = []
         for cidr in data:

@@ -68,7 +68,7 @@ class DomainToAsnScanner(Scanner):
                 cleaned.append(domain_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Find ASN information for domain name using asnmap."""
         asns: OutputType = []
         for domain in data:

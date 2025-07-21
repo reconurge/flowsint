@@ -86,7 +86,7 @@ class EmailToBreachesScanner(Scanner):
                 cleaned.append(email_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Fetch breaches from email using HaveIBeenPwned API."""
         results: OutputType = []
         if not HIBP_API_KEY:

@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
 class Breach(BaseModel):
+    """Represents a data breach incident with affected accounts and details."""
     name: str = Field(..., description="The name of the breach or service", title="Breach Name")
     title: Optional[str] = Field(None, description="Title of the breach", title="Breach Title")
     domain: Optional[str] = Field(None, description="Domain of the breached service", title="Domain")

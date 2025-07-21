@@ -70,7 +70,7 @@ class WhoisScanner(Scanner):
                 cleaned.append(domain_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Extract WHOIS data for each domain."""
         results: OutputType = []
         for d in data:

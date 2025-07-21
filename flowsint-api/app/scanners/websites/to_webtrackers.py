@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Dict, Any, TypeAlias, Union, Optional
 from app.utils import resolve_type
 from app.scanners.base import Scanner
 from app.types.website import Website
@@ -6,6 +6,8 @@ from app.types.domain import Domain
 from app.types.web_tracker import WebTracker
 from pydantic import TypeAdapter
 from app.core.logger import Logger
+from app.core.graph_db import Neo4jConnection
+from app.core.vault import VaultProtocol
 from recontrack import TrackingCodeExtractor
 
 
@@ -16,8 +18,16 @@ OutputType: TypeAlias = List[WebTracker]
 class WebsiteToWebtrackersScanner(Scanner):
     """From website to webtrackers."""
 
-    def __init__(self, sketch_id: str, scan_id: str, neo4j_conn=None):
-        super().__init__(sketch_id, scan_id, neo4j_conn)
+    def __init__(
+        self,
+        sketch_id: str,
+        scan_id: str,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        params_schema: Optional[List[Dict[str, Any]]] = None,
+        vault: Optional[VaultProtocol] = None,
+        params: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(sketch_id, scan_id, neo4j_conn, params_schema, vault, params)
         self.tracker_website_mapping: List[tuple[WebTracker, Website]] = []
 
     @classmethod
@@ -80,7 +90,7 @@ class WebsiteToWebtrackersScanner(Scanner):
                 cleaned.append(website_obj)
         return cleaned
 
-    def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: InputType) -> OutputType:
         """Extract domain from website."""
         results: OutputType = []
         # Clear the mapping for this scan

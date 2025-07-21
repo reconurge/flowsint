@@ -1,15 +1,16 @@
 import { memo, useCallback } from "react"
 import { Position } from "@xyflow/react"
-import { LabeledHandle } from "../ui/labeled-handle"
 import { Badge } from "../ui/badge"
-import { BaseNodeSchema } from "../ui/base-node"
-import { NodeStatusIndicator } from "../ui/node-status-indicator"
+import { BaseNode } from "../xyflow/base-node"
+import { NodeStatusIndicator } from "../xyflow/node-status-indicator"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-import { useIcon } from "@/hooks/use-icon"
 import { cn } from "@/lib/utils"
-import { KeySquare } from "lucide-react"
+import { Plus, TriangleAlert } from "lucide-react"
 import { type ScannerNodeProps } from "@/types/transform"
 import { TransformNode, useTransformStore } from "@/stores/transform-store"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import { Button } from "../ui/button"
+import { ButtonHandle } from "../xyflow/button-handle"
 
 // Custom equality function to prevent unnecessary re-renders
 function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
@@ -41,20 +42,17 @@ const getStateColor = (state?: string) => {
     }
 }
 
-// Memoized scanner node component with custom equality check
+// Scanner node component for transform/scanner nodes only
 const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     const inputColor = colors[data.inputs.type.toLowerCase()]
     const outputColor = colors[data.outputs.type.toLowerCase()]
     const opacity = data.computationState === "pending" ? 0.5 : 1
-    const InputIconComponent = useIcon(data.inputs.type.toLowerCase() as string, null);
-    const OutputIconComponent = useIcon(data.outputs.type.toLowerCase() as string, null);
-    const setOpenParamsDialog = useTransformStore(s => s.setOpenParamsDialog)
+    const setOpenTransformSheet = useTransformStore(state => state.setOpenTransformSheet)
 
-    const handleOpenParamsModal = useCallback(() => {
-        setOpenParamsDialog(true, data as unknown as TransformNode)
-    }, [setOpenParamsDialog, data])
-
+    const handleAddConnector = useCallback(() => {
+        setOpenTransformSheet(true, data as unknown as TransformNode)
+    }, [setOpenTransformSheet, data])
 
     const getStatusVariant = (state?: string) => {
         switch (state) {
@@ -70,63 +68,102 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                 return undefined
         }
     }
+    const isConfigurationRequired = data.requires_key
 
     return (
-        <NodeStatusIndicator variant={getStatusVariant(data.computationState)} showStatus={data.type !== "type"}>
-            <BaseNodeSchema
-                className={cn("shadow-md relative p-0 bg-background ", data.type === "type" ? "rounded-full !max-w-[240px]" : "rounded-md !max-w-[340px]")}
-                style={{ borderLeftWidth: 5, borderRightWidth: 5, borderLeftColor: inputColor ?? outputColor, borderRightColor: outputColor, cursor: "grab", opacity }}
-                selected={selected}
+        <NodeStatusIndicator variant={getStatusVariant(data.computationState)} showStatus={true}>
+            <BaseNode
+                className={cn("shadow-md relative p-0 bg-background rounded-md !w-[300px]")}
+                style={{
+                    borderLeftWidth: 5,
+                    borderRightWidth: 5,
+                    borderLeftColor: inputColor ?? outputColor,
+                    borderRightColor: outputColor,
+                    cursor: "grab",
+                    opacity
+                }}
+            // selected={selected}
             >
-                {data.type !== "type" &&
-                    <div className="p-3 bg-card rounded-t-md">
-                        <div className="flex flex-col items-start gap-1 relative">
-                            <div className="absolute top-0 right-0 flex items-center gap-2">
-                                {data.computationState && data.type !== "type" && (
-                                    <Badge className={getStateColor(data.computationState)}>
-                                        {data.computationState}
-                                    </Badge>
-                                )}
-                            </div>
-                            <div className="font-semibold text-sm">{data.class_name}</div>
-                            <p className="text-xs text-muted-foreground mt-2">{data.doc}</p>
+                <div className="p-3 bg-card rounded-t-md">
+                    <div className="flex flex-col items-start gap-1 relative">
+                        <div className="absolute top-0 right-0 flex items-center gap-2">
+                            {data.computationState && (
+                                <Badge className={getStateColor(data.computationState)}>
+                                    {data.computationState}
+                                </Badge>
+                            )}
                         </div>
+                        <div className="font-semibold text-sm">{data.class_name}</div>
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{data.doc}</p>
                     </div>
-                }
+                </div>
                 <div>
-                    <div className={cn("grid grid-cols-2 py-1", data.type === "type" ? "grid-cols-1 p-2" : "grid-cols-2")}>
+                    <div className="grid grid-cols-2 py-1">
                         <div className="pl-0 pr-6">
-                            {data.inputs.properties.length > 0 && (
-                                <LabeledHandle
+                            {data?.inputs?.properties?.length > 0 && (
+                                <ButtonHandle
+                                    connectionCount={1}
+                                    showButton={false}
                                     isConnectable={isConnectable}
                                     id={data.inputs.type}
-                                    label={<span className="flex items-center gap-1">{data.inputs.type}<InputIconComponent size={12} /></span>}
-                                    description={`${data.inputs.properties.length} properties`}
+                                    label={data.inputs.type}
                                     type="target"
                                     position={Position.Left}
-                                />
+                                >
+                                    <Button
+                                        onClick={handleAddConnector}
+                                        size="icon"
+                                        variant="secondary"
+                                        className="rounded-full"
+                                    >
+                                        <Plus size={10} />
+                                    </Button>
+                                </ButtonHandle>
                             )}
                         </div>
                         <div className="pr-0">
-                            {data.outputs.properties.length > 0 && (
-                                <LabeledHandle
+                            {data?.outputs?.properties?.length > 0 && (
+                                <ButtonHandle
+                                    showButton={!data.computationState}
                                     isConnectable={isConnectable}
                                     id={data.outputs.type}
-                                    label={<span className="flex items-center gap-1"><OutputIconComponent size={12} />{data.outputs.type}</span>}
-                                    description={`${data.inputs.properties.length} properties`}
+                                    label={data.outputs.type}
                                     type="source"
                                     position={Position.Right}
-                                />
+                                >
+                                    <Button
+                                        onClick={handleAddConnector}
+                                        size="icon"
+                                        variant="secondary"
+                                        className="rounded-full"
+                                    >
+                                        <Plus size={10} />
+                                    </Button>
+                                </ButtonHandle>
                             )}
                         </div>
                     </div>
-                    {data.requires_key &&
-                        <Badge onClick={handleOpenParamsModal} variant={"outline"} className="absolute top-3 right-3">
-                            Key required <KeySquare className="h-4 w-4 text-yellow-500" />
-                        </Badge>
-                    }
+                    <div className="flex items-center justify-between px-3 gap-1 py-1">
+                        {data?.inputs?.properties?.length > 0 && (
+                            <Badge variant="outline">{data.inputs.type}</Badge>
+                        )}
+                        {data?.outputs?.properties?.length > 0 && (
+                            <Badge variant="outline">{data.outputs.type}</Badge>
+                        )}
+                    </div>
+                    {isConfigurationRequired &&
+                        <div className="absolute top-3 right-3">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <TriangleAlert className="h-4 w-4 text-yellow-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Configuration required</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>}
                 </div>
-            </BaseNodeSchema>
+            </BaseNode>
         </NodeStatusIndicator>
     )
 }, areEqual)

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Session(BaseModel):
+    """Represents a user session with device and activity information."""
     session_id: str = Field(..., description="Unique session identifier", title="Session ID")
     user_id: Optional[str] = Field(None, description="User identifier", title="User ID")
     service: Optional[str] = Field(None, description="Service or platform", title="Service")

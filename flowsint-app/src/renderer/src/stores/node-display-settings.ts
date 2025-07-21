@@ -1,4 +1,3 @@
-"use client"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -55,6 +54,7 @@ export type ItemType =
     | "creditcard"
     | "alias"
     | "affiliation"
+    | "phrase"
 
 export const ITEM_TYPES: ItemType[] = [
     "individual",
@@ -108,7 +108,8 @@ export const ITEM_TYPES: ItemType[] = [
     "bank",
     "creditcard",
     "alias",
-    "affiliation"
+    "affiliation",
+    "phrase"
 ]
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
@@ -163,7 +164,8 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     bank: "#F7D154",            // gold
     creditcard: "#0253A4",      // warm yellow
     alias: "#D4A5D4",           // dusty violet
-    affiliation: "#A6D0BF"      // sage
+    affiliation: "#A6D0BF",     // sage
+    phrase: "#D4A5D4"           // warm beige
 }
 
 // Définition des icônes par défaut pour chaque type d'élément
@@ -219,7 +221,8 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     bank: "🏦",
     creditcard: "💳",
     alias: "👤",
-    affiliation: "🤝"
+    affiliation: "🤝",
+    phrase: "��"
 };
 
 const DEFAULT_SIZES: Record<ItemType, number> = {
@@ -274,7 +277,8 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     bank: 7,
     creditcard: 7,
     alias: 7,
-    affiliation: 7
+    affiliation: 7,
+    phrase: 7
 }
 
 interface NodesDisplaySettingsState {

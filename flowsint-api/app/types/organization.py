@@ -4,6 +4,7 @@ from .individual import Individual
 from .address import PhysicalAddress
 
 class Organization(BaseModel):
+    """Represents an organization with detailed business and administrative information."""
     # Basic information
     name: str = Field(..., description="Organization name", title="Organization Name")
     siren: Optional[str] = Field(None, description="SIREN number", title="SIREN Number")

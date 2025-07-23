@@ -222,9 +222,10 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                     inputs: scannerData.inputs,
                     outputs: scannerData.outputs,
                     doc: scannerData.doc,
-                    requires_key: scannerData.requires_key,
+                    required_params: scannerData.required_params,
                     params: scannerData.params,
-                    params_schema: scannerData.params_schema
+                    params_schema: scannerData.params_schema,
+                    icon: scannerData.icon
                 },
             }
             const updatedNodes = [...nodes, newNode]

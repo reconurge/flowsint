@@ -1,8 +1,6 @@
 import pytest
 from app.scanners.registry import ScannerRegistry
 from app.scanners.base import Scanner
-from unittest.mock import Mock
-
 
 class TestScannerRegistry:
     """Test suite for ScannerRegistry functionality"""
@@ -28,7 +26,7 @@ class TestScannerRegistry:
             assert "outputs" in scanner_info
             assert "params" in scanner_info
             assert "params_schema" in scanner_info
-            assert "requires_key" in scanner_info
+            assert "required_params" in scanner_info
             
             # Check that name matches the key
             assert scanner_info["name"] == name
@@ -55,7 +53,8 @@ class TestScannerRegistry:
         # Test with a known input type
         domain_scanners = ScannerRegistry.list_by_input_type("Domain")
         
-        for name, scanner_info in domain_scanners.items():
+        assert isinstance(domain_scanners, list)
+        for scanner_info in domain_scanners:
             input_type = scanner_info["inputs"]["type"]
             assert input_type in ["Any", "Domain"]
 
@@ -103,7 +102,6 @@ class TestScannerRegistry:
             "domain_subdomains_scanner", 
             "to_whois",
             "ip_geolocation_scanner",
-            "holehe_scanner",
             "maigret_scanner"
         ]
         
@@ -126,11 +124,6 @@ class TestScannerRegistry:
         """Test that all scanners have valid categories"""
         scanners = ScannerRegistry.list()
         
-        valid_categories = {
-            "Domain", "IP", "Email", "Social", "Organization", 
-            "Website", "Crypto", "Individual", "ASN", "CIDR"
-        }
-        
         for name, scanner_info in scanners.items():
             category = scanner_info["category"]
             assert isinstance(category, str), f"Scanner '{name}' has invalid category type: {type(category)}"
@@ -141,7 +134,7 @@ class TestScannerRegistry:
         """Test that all scanners have input and output schemas"""
         scanners = ScannerRegistry.list()
         
-        for name, scanner_info in scanners.items():
+        for _, scanner_info in scanners.items():
             # Check input schema
             input_schema = scanner_info["inputs"]
             assert isinstance(input_schema, dict)
@@ -154,10 +147,10 @@ class TestScannerRegistry:
             assert "type" in output_schema
             assert "properties" in output_schema
 
-    def test_scanner_requires_key_is_boolean(self):
-        """Test that requires_key returns a boolean for all scanners"""
+    def test_scanner_required_params_is_boolean(self):
+        """Test that required_params returns a boolean for all scanners"""
         scanners = ScannerRegistry.list()
         
         for name, scanner_info in scanners.items():
-            requires_key = scanner_info["requires_key"]
-            assert isinstance(requires_key, bool), f"Scanner '{name}' requires_key is not boolean: {type(requires_key)}" 
+            required_params = scanner_info["required_params"]
+            assert isinstance(required_params, bool), f"Scanner '{name}' required_params is not boolean: {type(required_params)}" 

@@ -1,19 +1,18 @@
 import json
 import socket
 import subprocess
-from typing import List, Dict, Any, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Union
 from app.scanners.base import Scanner
 from app.types.organization import Organization
 from app.types.asn import ASN
-from app.utils import resolve_type
 from app.core.logger import Logger
-
-InputType: TypeAlias = List[Organization]
-OutputType: TypeAlias = List[ASN]
 
 class OrgToAsnScanner(Scanner):
     """Takes an organization and returns its corresponding ASN."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Organization]
+    OutputType = List[ASN]
 
     @classmethod
     def name(cls) -> str:
@@ -26,38 +25,6 @@ class OrgToAsnScanner(Scanner):
     @classmethod
     def key(cls) -> str:
         return "name"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        # Find the Organization type in $defs
-        organization_def = schema["$defs"].get("Organization")
-        if not organization_def:
-            raise ValueError("Organization type not found in schema")
-        return {
-            "type": "Organization",
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in organization_def["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        # Find the ASN type in $defs
-        asn_def = schema["$defs"].get("ASN")
-        if not asn_def:
-            raise ValueError("ASN type not found in schema")
-        return {
-            "type": "ASN",
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in asn_def["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -172,3 +139,7 @@ class OrgToAsnScanner(Scanner):
                 Logger.graph_append(self.sketch_id, {"message": f"Found for {input_org.name} -> ASN {result_asn.number}"})
 
         return results
+
+# Make types available at module level for easy access
+InputType = OrgToAsnScanner.InputType
+OutputType = OrgToAsnScanner.OutputType

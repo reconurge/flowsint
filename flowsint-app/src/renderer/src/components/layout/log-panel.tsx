@@ -140,11 +140,17 @@ export function LogPanel() {
             <ScrollArea className="flex-1 h-full" ref={scrollAreaRef}>
                 <div className="text-sm h-full">
                     {logs.length === 0 ? (
-                        <div className="text-center text-gray-500 h-full py-8">
-                            <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p>No logs to display</p>
+                        <div className="text-center text-muted-foreground h-full py-8 flex flex-col items-center justify-center">
+                            {/* <div className="flex items-center gap-2 mb-4">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+                            </div> */}
+                            <p className="text-lg font-medium mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-primary animate-pulse" /> Waiting for investigation activity</p>
+                            <p className="text-sm opacity-70">Events will appear here as they happen</p>
                         </div>
                     ) : (
+
                         logs.map((log, i) => {
                             const config = logLevelConfig[log.type] || defaultConfig
                             const Icon = config.icon

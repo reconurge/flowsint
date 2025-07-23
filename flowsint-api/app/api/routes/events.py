@@ -29,7 +29,7 @@ def get_logs_by_sketch(
         raise HTTPException(status_code=404, detail=f"Sketch with id {sketch_id} not found")
 
     print(f"[EventEmitter] Fetching logs for sketch {sketch_id} (limit: {limit}, since: {since})")
-    query = db.query(Log).filter(Log.sketch_id == sketch_id).order_by(Log.created_at.asc())
+    query = db.query(Log).filter(Log.sketch_id == sketch_id).order_by(Log.created_at.desc())
     
     if since:
         query = query.filter(Log.created_at > since)
@@ -38,6 +38,9 @@ def get_logs_by_sketch(
         query = query.filter(Log.created_at > datetime.utcnow() - timedelta(days=1))
         
     logs = query.limit(limit).all()
+    
+    # Reverse to show chronologically (oldest to newest)
+    logs = list(reversed(logs))
     
     results = []
     for log in logs:

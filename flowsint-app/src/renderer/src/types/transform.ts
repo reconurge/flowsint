@@ -34,10 +34,11 @@ export interface Scanner {
     inputs: ScannerIO
     outputs: ScannerIO
     type: string
-    requires_key: boolean
+    required_params: boolean
     params: Record<string, string>
     params_schema: ScannerParamSchemaItem[]
     settings?: Record<string, string>
+    icon: string | null
 }
 
 // ================================

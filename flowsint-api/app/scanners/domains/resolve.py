@@ -1,5 +1,5 @@
 import socket
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Dict, Any, Union
 from pydantic import TypeAdapter
 from app.scanners.base import Scanner
 from app.types.domain import Domain
@@ -9,11 +9,12 @@ import uuid
 from app.types.transform import Node, Edge
 from app.core.logger import Logger
 
-InputType: TypeAlias = List[Domain]
-OutputType: TypeAlias = List[Ip]
-
 class ResolveScanner(Scanner):
     """Resolve domain names to IP addresses."""
+    
+    # Define the input and output types as class attributes
+    InputType = List[Domain]
+    OutputType = List[Ip]
 
     @classmethod
     def name(cls) -> str:
@@ -26,32 +27,6 @@ class ResolveScanner(Scanner):
     @classmethod
     def key(cls) -> str:
         return "domain"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -130,3 +105,7 @@ class ResolveScanner(Scanner):
 
 
         return results
+
+# Make types available at module level for easy access
+InputType = ResolveScanner.InputType
+OutputType = ResolveScanner.OutputType

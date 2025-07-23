@@ -11,6 +11,7 @@ import { TransformNode, useTransformStore } from "@/stores/transform-store"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { Button } from "../ui/button"
 import { ButtonHandle } from "../xyflow/button-handle"
+import { useIcon } from "@/hooks/use-icon"
 
 // Custom equality function to prevent unnecessary re-renders
 function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
@@ -49,6 +50,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
     const outputColor = colors[data.outputs.type.toLowerCase()]
     const opacity = data.computationState === "pending" ? 0.5 : 1
     const setOpenTransformSheet = useTransformStore(state => state.setOpenTransformSheet)
+    const Icon = data.type === "type" ? useIcon(data.outputs.type.toLowerCase() as string, null) : data.icon ? useIcon(data.icon, null) : null
 
     const handleAddConnector = useCallback(() => {
         setOpenTransformSheet(true, data as unknown as TransformNode)
@@ -68,7 +70,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                 return undefined
         }
     }
-    const isConfigurationRequired = data.requires_key
+    const isConfigurationRequired = data.required_params
 
     return (
         <NodeStatusIndicator variant={getStatusVariant(data.computationState)} showStatus={true}>
@@ -93,7 +95,10 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                                 </Badge>
                             )}
                         </div>
-                        <div className="font-semibold text-sm">{data.class_name}</div>
+                        <div className="flex items-center gap-2 truncate text-ellipsis">
+                            {Icon && <Icon size={24} />}
+                            <div className="font-semibold text-sm">{data.class_name}</div>
+                        </div>
                         <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{data.doc}</p>
                     </div>
                 </div>

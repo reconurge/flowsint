@@ -1,20 +1,18 @@
-from typing import List, Dict, Any, TypeAlias, Union, Set
+from typing import List, Dict, Any, Union, Set
 from urllib.parse import urlparse
-from app.utils import resolve_type
 from app.scanners.base import Scanner
 from app.types.website import Website
 from app.types.phone import Phone
 from app.types.email import Email
-from pydantic import TypeAdapter
 from app.core.logger import Logger
 from app.tools.network.reconcrawl import ReconCrawlTool
 
-InputType: TypeAlias = List[Website]
-OutputType: TypeAlias = List[Dict[str, Union[Website, List[Phone], List[Email]]]]
-
-
 class WebsiteToCrawler(Scanner):
     """From website to crawler."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Website]
+    OutputType = List[Dict[str, Any]]  # Simplified output type
 
     @classmethod
     def name(cls) -> str:
@@ -27,36 +25,6 @@ class WebsiteToCrawler(Scanner):
     @classmethod
     def key(cls) -> str:
         return "url"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        # Find the Website type in $defs
-        website_def = schema["$defs"].get("Website")
-        if not website_def:
-            raise ValueError("Website type not found in schema")
-        return {
-            "type": "Website",
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in website_def["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        # For complex output types, we need to create a custom schema
-        return {
-            "type": "WebsiteResult",
-            "properties": [
-                {"name": "website", "type": "Website"},
-                {"name": "emails", "type": "Email[]"},
-                {"name": "phones", "type": "Phone[]"},
-            ]
-        }
 
     def is_same_domain(self, url: str, base_domain: str) -> bool:
         """Check if URL belongs to the same domain."""
@@ -192,3 +160,6 @@ class WebsiteToCrawler(Scanner):
                     Logger.graph_append(self.sketch_id, {"message": f"Found phone {phone.number} for website {website_url}"})
 
         return results
+    
+InputType = WebsiteToCrawler.InputType
+OutputType = WebsiteToCrawler.OutputType

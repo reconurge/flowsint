@@ -21,10 +21,11 @@ interface LabelBounds {
     nodeSize: number;
 }
 
-const NODE_COUNT_THRESHOLD = 10;
+const NODE_COUNT_THRESHOLD = 1000;
 const ZOOM_MIN = 0.3;
 const ZOOM_INTERVAL = 2;
 const ZOOM_MAX = 10;
+const ZOOM_THRESHOLD = 4;
 
 const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const nodes = useGraphStore(s => s.nodes) as GraphNode[];
@@ -39,7 +40,7 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
     const [currentZoom, setCurrentZoom] = useState(1);
 
     const shouldUseSimpleRendering = useMemo(() => {
-        return nodes.length > NODE_COUNT_THRESHOLD || currentZoom < 2.5;
+        return nodes.length > NODE_COUNT_THRESHOLD || currentZoom < ZOOM_THRESHOLD;
     }, [nodes.length, currentZoom]);
 
     // Transform data for Force Graph
@@ -125,9 +126,22 @@ const GraphReactForce: React.FC<GraphReactForceProps> = () => {
         ctx.arc(node.x, node.y, size * 0.65, 0, 2 * Math.PI);
         ctx.fillStyle = node.nodeColor;
         ctx.fill();
+        
+        // Add border with same color
+        ctx.strokeStyle = node.nodeColor;
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
     }, []);
 
     const drawNodeIcon = useCallback((ctx: CanvasRenderingContext2D, node: any, size: number, type: ItemType) => {
+        // Draw circular border first
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, size * 0.70, 0, 2 * Math.PI);
+        ctx.strokeStyle = node.nodeColor;
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
+        
+        // Draw icon on top
         const img = new Image();
         img.src = `/icons/${type}.svg`;
         ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);

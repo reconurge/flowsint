@@ -1,17 +1,16 @@
-from typing import List, Dict, Any, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Union
 from app.scanners.base import Scanner
 from app.types.organization import Organization
-from app.utils import resolve_type
 from app.core.logger import Logger
 from app.tools.organizations.sirene import SireneTool
 
 
-InputType: TypeAlias = List[Organization]
-OutputType: TypeAlias = List[Organization]
-
 class OrgToInfosScanner(Scanner):
     """Enrich Organization with data from SIRENE (France only)."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Organization]
+    OutputType = List[Organization]
 
     @classmethod
     def name(cls) -> str:
@@ -25,51 +24,12 @@ class OrgToInfosScanner(Scanner):
     def key(cls) -> str:
         return "name"
 
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        # Find the Organization type in $defs
-        organization_def = schema["$defs"].get("Organization")
-        if not organization_def:
-            raise ValueError("Organization type not found in schema")
-        return {
-            "type": "Organization",
-            "properties": [
-                {"name": "name", "type": "string"}
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        # the items property contains the Organization type reference
-        items_schema = schema.get("items", {})
-        if "$ref" in items_schema:
-            # Extract the type name from the $ref (e.g., "#/$defs/Organization" -> "Organization")
-            ref_path = items_schema["$ref"]
-            type_name = ref_path.split("/")[-1]
-            organization_def = schema["$defs"].get(type_name)
-            if not organization_def:
-                raise ValueError(f"Type {type_name} not found in schema")
-            return {
-                "type": type_name,
-                "properties": [
-                    {"name": prop, "type": resolve_type(info, schema)}
-                    for prop, info in organization_def["properties"].items()
-                ]
-            }
-        else:
-            raise ValueError("Expected $ref in items schema for List type")
-
-
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
         cleaned: InputType = []
         for item in data:
-            if isinstance(item, str) and str!="":
+            if isinstance(item, str) and item != "":
                 cleaned.append(Organization(name=item))
             elif isinstance(item, dict) and "name" in item and item["name"] != "":
                 cleaned.append(Organization(**item))
@@ -90,7 +50,7 @@ class OrgToInfosScanner(Scanner):
                         if enriched_org is not None:
                             results.append(enriched_org)
             except Exception as e:
-                print(f"Error enriching organization {org.name}: {e}")
+                Logger.error(self.sketch_id, {"message": f"Error enriching organization {org.name}: {e}"})
         return results
 
     def enrich_org(self, company: Dict) -> Organization:
@@ -421,5 +381,9 @@ class OrgToInfosScanner(Scanner):
                 Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}"})
 
         return results
+
+# Make types available at module level for easy access
+InputType = OrgToInfosScanner.InputType
+OutputType = OrgToInfosScanner.OutputType
 
 

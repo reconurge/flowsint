@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
-from pydantic import ValidationError, BaseModel, Field, create_model
+from typing import List, Dict, Any, Optional, get_origin, get_args
+from pydantic import ValidationError, BaseModel, Field, create_model, TypeAdapter
 from pydantic.config import ConfigDict
-
 from app.core.graph_db import Neo4jConnection
 from app.core.logger import Logger
 from app.core.vault import VaultProtocol
-
+from app.utils import resolve_type
 
 class InvalidScannerParams(Exception):
     pass
-
 
 def build_params_model(params_schema: list) -> BaseModel:
     """
@@ -21,10 +19,10 @@ def build_params_model(params_schema: list) -> BaseModel:
 
     for param in params_schema:
         name = param["name"]
-        typ = str  # You can later enhance this to support int, bool, etc.
+        type = str  # You can later enhance this to support int, bool, etc.
         required = param.get("required", False)
         default = ... if required else param.get("default")
-        fields[name] = (Optional[typ], Field(default=default, description=param.get("description", "")))
+        fields[name] = (Optional[type], Field(default=default, description=param.get("description", "")))
 
     model = create_model(
         "ParamsModel",
@@ -35,6 +33,64 @@ def build_params_model(params_schema: list) -> BaseModel:
     return model
 
 class Scanner(ABC):
+    """
+    Abstract base class for all scanners.
+    
+    ## InputType and OutputType Pattern
+    
+    Scanners only need to define InputType and OutputType as class attributes.
+    The base class automatically handles schema generation:
+    
+    ```python
+    from typing import List
+    from app.types.domain import Domain
+    from app.types.ip import Ip
+    
+    class MyScanner(Scanner):
+        # Define types as class attributes
+        InputType = List[Domain]
+        OutputType = List[Ip]
+        
+        @classmethod
+        def name(cls):
+            return "my_scanner"
+            
+        @classmethod
+        def category(cls):
+            return "Domain"
+            
+        @classmethod
+        def key(cls):
+            return "domain"
+        
+        def preprocess(self, data: InputType) -> InputType:
+            cleaned: InputType = []
+            # ... implementation
+            return cleaned
+            
+        async def scan(self, data: InputType) -> OutputType:
+            results: OutputType = []
+            # ... implementation
+            return results
+    
+    # Make types available at module level for easy access
+    InputType = MyScanner.InputType
+    OutputType = MyScanner.OutputType
+    ```
+    
+    The base class automatically provides:
+    - input_schema() method using InputType
+    - output_schema() method using OutputType
+    - Error handling for missing type definitions
+    - Consistent schema generation across all scanners
+    
+    Subclasses can override input_schema() or output_schema() if needed for special cases.
+    """
+    
+    # Abstract type aliases that must be defined in subclasses for runtime use
+    InputType = NotImplemented
+    OutputType = NotImplemented
+    
     def __init__(
         self,
         sketch_id: Optional[str] = None,
@@ -106,13 +162,17 @@ class Scanner(ABC):
 
 
     @classmethod
-    def requires_key(self) -> bool:
+    def required_params(self) -> bool:
        return False
 
     @classmethod
     @abstractmethod
     def name(cls) -> str:
         pass
+    
+    @classmethod
+    def icon(cls) -> str | None:
+        return None
 
     @classmethod
     @abstractmethod
@@ -126,9 +186,12 @@ class Scanner(ABC):
         pass
 
     @classmethod
-    @abstractmethod
     def input_schema(cls) -> Dict[str, Any]:
-        pass
+        """
+        Generate input schema from InputType class attribute.
+        Subclasses don't need to override this unless they have special requirements.
+        """
+        return cls.generate_input_schema()
 
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
@@ -136,9 +199,92 @@ class Scanner(ABC):
         return []
 
     @classmethod
-    @abstractmethod
     def output_schema(cls) -> Dict[str, Any]:
-        pass
+        """
+        Generate output schema from OutputType class attribute.
+        Subclasses don't need to override this unless they have special requirements.
+        """
+        return cls.generate_output_schema()
+    
+    @classmethod
+    def generate_input_schema(cls) -> Dict[str, Any]:
+        """
+        Helper method to generate input schema from InputType class attribute.
+        
+        Raises:
+            NotImplementedError: If InputType is not defined in the subclass
+        """
+        if cls.InputType is NotImplemented:
+            raise NotImplementedError(f"InputType must be defined in {cls.__name__}")
+            
+        adapter = TypeAdapter(cls.InputType)
+        schema = adapter.json_schema()
+        
+        # Handle different schema structures
+        if "$defs" in schema and schema["$defs"]:
+            # Follow the $ref in items to get the correct type (not just the first one)
+            items_ref = schema.get("items", {}).get("$ref")
+            if items_ref:
+                # Extract type name from $ref like "#/$defs/Website" -> "Website"
+                type_name = items_ref.split("/")[-1]
+                details = schema["$defs"][type_name]
+            else:
+                # Fallback: get the first type definition (for backward compatibility)
+                type_name, details = list(schema["$defs"].items())[0]
+            
+            return {
+                "type": type_name,
+                "properties": [
+                    {"name": prop, "type": resolve_type(info, schema)}
+                    for prop, info in details["properties"].items()
+                ]
+            }
+        else:
+            # Handle simpler schemas
+            return {
+                "type": schema.get("title", "Any"),
+                "properties": [{"name": "value", "type": "object"}]
+            }
+    
+    @classmethod 
+    def generate_output_schema(cls) -> Dict[str, Any]:
+        """
+        Helper method to generate output schema from OutputType class attribute.
+        
+        Raises:
+            NotImplementedError: If OutputType is not defined in the subclass
+        """
+        if cls.OutputType is NotImplemented:
+            raise NotImplementedError(f"OutputType must be defined in {cls.__name__}")
+            
+        adapter = TypeAdapter(cls.OutputType)
+        schema = adapter.json_schema()
+        
+        # Handle different schema structures
+        if "$defs" in schema and schema["$defs"]:
+            # Follow the $ref in items to get the correct type (not just the first one)
+            items_ref = schema.get("items", {}).get("$ref")
+            if items_ref:
+                # Extract type name from $ref like "#/$defs/Website" -> "Website"
+                type_name = items_ref.split("/")[-1]
+                details = schema["$defs"][type_name]
+            else:
+                # Fallback: get the first type definition (for backward compatibility)
+                type_name, details = list(schema["$defs"].items())[0]
+            
+            return {
+                "type": type_name,
+                "properties": [
+                    {"name": prop, "type": resolve_type(info, schema)}
+                    for prop, info in details["properties"].items()
+                ]
+            }
+        else:
+            # Handle simpler schemas
+            return {
+                "type": schema.get("title", "Any"),
+                "properties": [{"name": "value", "type": "object"}]
+            }
 
     @abstractmethod
     async def scan(self, values: List[str]) -> List[Dict[str, Any]]:
@@ -159,7 +305,6 @@ class Scanner(ABC):
     async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         if self.name() != "transform_orchestrator":
             Logger.info(self.sketch_id, {"message": f"Scanner {self.name()} started."})
-
         try:
             await self.async_init()
             preprocessed = self.preprocess(values)

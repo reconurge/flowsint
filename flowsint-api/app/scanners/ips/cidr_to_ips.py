@@ -1,17 +1,16 @@
 import subprocess
-from typing import List, Dict, Any, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Union
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
 from app.types.ip import Ip
-from app.utils import resolve_type
 from app.core.logger import Logger
-
-InputType: TypeAlias = List[CIDR]
-OutputType: TypeAlias = List[Ip]
 
 class CidrToIpsScanner(Scanner):
     """Takes a CIDR and returns its corresponding IP addresses."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[CIDR]
+    OutputType = List[Ip]
 
     @classmethod
     def name(cls) -> str:
@@ -20,32 +19,6 @@ class CidrToIpsScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Cidr"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -128,4 +101,8 @@ class CidrToIpsScanner(Scanner):
                     "ip_address": ip.address,
                     "sketch_id": self.sketch_id,
                 })
-        return results 
+        return results
+
+# Make types available at module level for easy access
+InputType = CidrToIpsScanner.InputType
+OutputType = CidrToIpsScanner.OutputType 

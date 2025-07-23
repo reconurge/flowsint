@@ -2,14 +2,12 @@ import {
     Link,
     Outlet,
     createFileRoute,
-    useNavigate,
 } from '@tanstack/react-router'
 
 import { requireAuth } from '@/lib/auth-utils'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, Home, RefreshCw, ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertTriangle, Home } from 'lucide-react'
 
 export const Route = createFileRoute('/_auth')({
     beforeLoad: ({ location }) => {

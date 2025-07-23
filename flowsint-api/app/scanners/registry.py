@@ -6,7 +6,6 @@ from app.scanners.domains.resolve import ResolveScanner
 from app.scanners.ips.reverse_resolve import ReverseResolveScanner
 from app.scanners.ips.geolocation import GeolocationScanner
 from app.scanners.socials.maigret import MaigretScanner
-from app.scanners.emails.holehe import HoleheScanner
 from app.scanners.ips.ip_to_asn import IpToAsnScanner
 from app.scanners.ips.asn_to_cidrs import AsnToCidrsScanner
 from app.scanners.ips.cidr_to_ips import CidrToIpsScanner
@@ -57,7 +56,8 @@ class ScannerRegistry:
         "outputs": scanner.output_schema(),
         "params": {},
         "params_schema": scanner.get_params_schema(),
-        "requires_key": scanner.requires_key(),
+        "required_params": scanner.required_params(),
+        "icon": scanner.icon(),
     }
     for name, scanner in cls._scanners.items()
         }
@@ -79,7 +79,8 @@ class ScannerRegistry:
                 "outputs": scanner.output_schema(),
                 "params": {},
                 "params_schema": scanner.get_params_schema(),
-                "requires_key": scanner.requires_key(),
+                "required_params": scanner.required_params(),
+                "icon": scanner.icon(),
             })
         return scanners_by_category
     
@@ -96,7 +97,8 @@ class ScannerRegistry:
                 "outputs": scanner.output_schema(),
                 "params": {},
                 "params_schema": scanner.get_params_schema(),
-                "requires_key": scanner.requires_key(),
+                "required_params": scanner.required_params(),
+                "icon": scanner.icon(),
             } for _, scanner in cls._scanners.items()]
             
         return [{
@@ -109,7 +111,8 @@ class ScannerRegistry:
             "outputs": scanner.output_schema(),
             "params": {},
             "params_schema": scanner.get_params_schema(),
-            "requires_key": scanner.requires_key(),
+            "required_params": scanner.required_params(),
+            "icon": scanner.icon(),
         } for _, scanner in cls._scanners.items() if scanner.input_schema()["type"].lower() in ["any", input_type.lower()]]
 
 ScannerRegistry.register(ReverseResolveScanner)
@@ -118,7 +121,6 @@ ScannerRegistry.register(SubdomainScanner)
 ScannerRegistry.register(WhoisScanner)
 ScannerRegistry.register(GeolocationScanner)
 ScannerRegistry.register(MaigretScanner)
-ScannerRegistry.register(HoleheScanner)
 ScannerRegistry.register(IpToAsnScanner)
 ScannerRegistry.register(AsnToCidrsScanner)
 ScannerRegistry.register(CidrToIpsScanner)

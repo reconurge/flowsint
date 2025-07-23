@@ -1,20 +1,20 @@
 import json
 import socket
 import subprocess
-from typing import List, Dict, Any, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Union
 from app.scanners.base import Scanner
 from app.types.cidr import CIDR
 from app.types.ip import Ip
 from app.types.asn import ASN
-from app.utils import is_valid_asn, parse_asn, resolve_type
+from app.utils import is_valid_asn, parse_asn
 from app.core.logger import Logger
-
-InputType: TypeAlias = List[ASN]
-OutputType: TypeAlias = List[CIDR]
 
 class AsnToCidrsScanner(Scanner):
     """Takes an ASN and returns its corresponding CIDRs."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[ASN]
+    OutputType = List[CIDR]
 
     @classmethod
     def name(cls) -> str:
@@ -23,32 +23,6 @@ class AsnToCidrsScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Asn"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[int], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -206,3 +180,7 @@ class AsnToCidrsScanner(Scanner):
                         "sketch_id": self.sketch_id,
                     })
         return results
+
+# Make types available at module level for easy access
+InputType = AsnToCidrsScanner.InputType
+OutputType = AsnToCidrsScanner.OutputType

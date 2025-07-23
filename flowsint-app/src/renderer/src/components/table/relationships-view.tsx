@@ -193,7 +193,7 @@ export default function RelationshipsTable() {
 
     if (!relationships || relationships.length === 0) {
         return (
-            <div className="w-full pt-18 flex items-center justify-center h-96">
+            <div className="w-full pt-18 flex items-center justify-center h-full">
                 <div className="text-center space-y-4">
                     <Link className="mx-auto h-12 w-12 text-muted-foreground" />
                     <div>

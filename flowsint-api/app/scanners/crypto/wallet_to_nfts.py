@@ -1,20 +1,21 @@
 import os
 import socket
-from typing import List, Dict, Any, Optional, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Optional, Union
 import requests
 from app.scanners.base import Scanner
 from app.types.wallet import CryptoWallet, CryptoNFT
-from app.utils import resolve_type
 from app.core.logger import Logger
 from app.core.graph_db import Neo4jConnection
-InputType: TypeAlias = List[CryptoWallet]
-OutputType: TypeAlias = List[CryptoNFT]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 
 class CryptoWalletAddressToNFTs(Scanner):
     """Resolve NFTs for a wallet address (ETH)."""
+    
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[CryptoWallet]
+    OutputType = List[CryptoNFT]
+    
     def __init__(
             self,
             sketch_id: Optional[str] = None,
@@ -33,7 +34,7 @@ class CryptoWalletAddressToNFTs(Scanner):
             )
 
     @classmethod
-    def requires_key(cls) -> bool:
+    def required_params(cls) -> bool:
         return True
     
     @classmethod
@@ -67,32 +68,6 @@ class CryptoWalletAddressToNFTs(Scanner):
     def key(cls) -> str:
         return "address"
 
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
         for item in data:
@@ -109,11 +84,10 @@ class CryptoWalletAddressToNFTs(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        results: OutputType = []
         params = self.get_params()
-        Logger.warn(self.sketch_id, {"message": f"{str(params)}"})
-        api_key = params["ETHERSCAN_API_KEY"]
-        api_url = params["ETHERSCAN_API_URL"]
+        Logger.debug(self.sketch_id, {"message": f"{str(params)}"})
+        api_key = params.get("ETHERSCAN_API_KEY", None)
+        api_url = params.get("ETHERSCAN_API_URL", None)
         if not api_key:
             Logger.error(self.sketch_id, {"message": "ETHERSCAN_API_KEY is required"})
             raise ValueError("ETHERSCAN_API_KEY is required")
@@ -213,3 +187,7 @@ class CryptoWalletAddressToNFTs(Scanner):
 
 
         return results
+
+# Make types available at module level for easy access
+InputType = CryptoWalletAddressToNFTs.InputType
+OutputType = CryptoWalletAddressToNFTs.OutputType

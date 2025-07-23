@@ -1,21 +1,21 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Dict, Any, Union
 
-from app.utils import is_valid_username, resolve_type
+from app.utils import is_valid_username
 from app.scanners.base import Scanner
 from app.types.social import SocialProfile
-from pydantic import TypeAdapter
 from app.core.logger import Logger
-
-InputType: TypeAlias = List[SocialProfile]
-OutputType: TypeAlias = List[SocialProfile]
 
 false_positives = ["LeagueOfLegends"]
 
 class MaigretScanner(Scanner):
     """Scans usernames for associated social accounts using Maigret."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[SocialProfile]
+    OutputType = List[SocialProfile]
 
     @classmethod
     def name(cls) -> str:
@@ -28,32 +28,6 @@ class MaigretScanner(Scanner):
     @classmethod
     def key(cls) -> str:
         return "username"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -80,7 +54,7 @@ class MaigretScanner(Scanner):
                 timeout=100
             )
         except Exception as e:
-            print(f"[FAILED] Maigret execution failed for {username}: {e}")
+            Logger.error(self.sketch_id, {"message": f"Maigret execution failed for {username}: {e}"})
         return output_file
     
     def parse_maigret_output(self, username: str, output_file: Path) -> List[SocialProfile]:
@@ -92,7 +66,7 @@ class MaigretScanner(Scanner):
             with open(output_file, "r") as f:
                 raw_data = json.load(f)
         except Exception as e:
-            print(f"[FAILED] Failed to load output file for {username}: {e}")
+            Logger.error(self.sketch_id, {"message": f"Failed to load output file for {username}: {e}"})
             return results
 
         for platform, profile in raw_data.items():
@@ -134,14 +108,13 @@ class MaigretScanner(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        for ms in data:
-            if not ms.username:
+        for profile in data:
+            if not profile.username:
                 continue
-            output_file = self.run_maigret(ms.username)
-            parsed = self.parse_maigret_output(ms.username, output_file)
+            output_file = self.run_maigret(profile.username)
+            parsed = self.parse_maigret_output(profile.username, output_file)
             results.extend(parsed)
         return results
-
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         if not self.neo4j_conn:
@@ -183,5 +156,8 @@ class MaigretScanner(Scanner):
                 "sketch_id": self.sketch_id
             })
 
-
         return results
+
+# Make types available at module level for easy access
+InputType = MaigretScanner.InputType
+OutputType = MaigretScanner.OutputType

@@ -12,6 +12,11 @@ OutputType: TypeAlias = List[Ip]
 class GeolocationScanner(Scanner):
     """Get geolocation data for IP addresses."""
 
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Ip]
+    OutputType = List[Ip]
+
     @classmethod
     def name(cls) -> str:
         return "ip_geolocation_scanner"
@@ -128,3 +133,6 @@ class GeolocationScanner(Scanner):
         except Exception as e:
             print(f"Failed to geolocate {address}: {e}")
             return {}
+
+InputType = GeolocationScanner.InputType
+OutputType = GeolocationScanner.OutputType

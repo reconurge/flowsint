@@ -69,17 +69,18 @@ async def get_material_list():
     scanner_categories = {
         category: [
             {
-                "class_name": scanner["class_name"],
-                "category": scanner["category"],
-                "name": scanner["name"],
-                "module": scanner["module"],
-                "doc": scanner["doc"],
-                "inputs": scanner["inputs"],
-                "outputs": scanner["outputs"],
+                "class_name": scanner.get("class_name"),
+                "category": scanner.get("category"),
+                "name": scanner.get("name"),
+                "module": scanner.get("module"),
+                "doc": scanner.get("doc"),
+                "inputs": scanner.get("inputs"),
+                "outputs": scanner.get("outputs"),
                 "type": "scanner",
-                "params": scanner["params"],
-                "params_schema": scanner["params_schema"],
-                "requires_key": scanner["requires_key"]
+                "params": scanner.get("params"),
+                "params_schema": scanner.get("params_schema"),
+                "required_params": scanner.get("required_params"),
+                "icon": scanner.get("icon")
             }
             for scanner in scanner_list
         ]

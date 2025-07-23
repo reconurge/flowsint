@@ -11,6 +11,10 @@ class SireneTool(Tool):
         return "sirene"
     
     @classmethod
+    def version(cls) -> str:
+        return "1.0.0"
+    
+    @classmethod
     def description(cls) -> str:
         return "The Sirene API allows you to query the Sirene directory of businesses and establishments, managed by Insee."
 

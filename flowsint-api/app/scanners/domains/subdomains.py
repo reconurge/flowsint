@@ -1,18 +1,18 @@
 import shutil
 import requests
-import subprocess
-from typing import List, Dict, Any, TypeAlias, Union
+from typing import List, Union
 from app.scanners.base import Scanner
-from app.types.domain import Domain, Domain
-from app.utils import is_valid_domain, resolve_type
-from pydantic import TypeAdapter
+from app.types.domain import Domain
+from app.utils import is_valid_domain
 from app.core.logger import Logger
 from app.tools.network.subfinder import SubfinderTool
-InputType: TypeAlias = List[Domain]
-OutputType: TypeAlias = List[Domain]
 
 class SubdomainScanner(Scanner):
     """Scanner to find subdomains associated with a domain."""
+    
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Domain | str]
+    OutputType = List[Domain]
 
     @classmethod
     def name(cls) -> str:
@@ -25,32 +25,6 @@ class SubdomainScanner(Scanner):
     @classmethod
     def key(cls) -> str:
         return "domain"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
@@ -146,3 +120,7 @@ class SubdomainScanner(Scanner):
             Logger.graph_append(self.sketch_id, {"message":f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."})
 
         return output
+
+
+InputType = SubdomainScanner.InputType
+OutputType = SubdomainScanner.OutputType

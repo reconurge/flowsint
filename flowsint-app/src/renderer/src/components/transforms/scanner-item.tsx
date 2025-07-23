@@ -2,12 +2,12 @@
 import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, GripVertical, KeySquare, TriangleAlert } from "lucide-react"
+import { Info, GripVertical, TriangleAlert } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { Badge } from "../ui/badge"
-import { type Scanner, type ScannerItemProps } from "@/types/transform"
+import { type ScannerItemProps } from "@/types/transform"
 import { useIcon } from "@/hooks/use-icon"
 
 // Custom equality function for ScannerItem
@@ -26,8 +26,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
   const colors = useNodesDisplaySettings(s => s.colors)
   const borderInputColor = colors[scanner.inputs.type.toLowerCase()]
   const borderOutputColor = colors[scanner.outputs.type.toLowerCase()]
-  const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : null
-
+  const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : scanner.icon ? useIcon(scanner.icon, null) : null
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -41,7 +40,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
     [scanner, category],
   )
 
-  const isConfigurationRequired = scanner.requires_key
+  const isConfigurationRequired = scanner.required_params
 
   return (
     <TooltipProvider>

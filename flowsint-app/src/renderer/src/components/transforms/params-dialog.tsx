@@ -10,6 +10,8 @@ import { type Key } from '@/types/key'
 import { useQuery } from "@tanstack/react-query"
 import { KeyService } from "@/api/key-service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs'
+import { MemoizedMarkdown } from '../chat/memoized-markdown'
+import { cn } from '@/lib/utils'
 
 const ParamsDialog = () => {
     const openParamsDialog = useTransformStore(s => s.openParamsDialog)
@@ -42,13 +44,13 @@ const ParamsDialog = () => {
 
     const handleSave = useCallback(async () => {
         if (!selectedNode) return
-        const updatedNode = { 
-            ...selectedNode, 
-            data: { 
-                ...selectedNode.data, 
+        const updatedNode = {
+            ...selectedNode,
+            data: {
+                ...selectedNode.data,
                 params,
-                settings 
-            } 
+                settings
+            }
         }
         updateNode(updatedNode)
         setOpenParamsDialog(false)
@@ -61,7 +63,17 @@ const ParamsDialog = () => {
             <DialogContent className="sm:max-w-[725px]">
                 <DialogHeader>
                     <DialogTitle>Configure <span className="text-primary">{selectedNode.data.class_name}</span></DialogTitle>
-                    <DialogDescription>{selectedNode.data.doc}</DialogDescription>
+                    {/* <DialogDescription className='break-words w-full'> */}
+                    <div className={cn("justify-start",
+                        "flex w-full",
+                    )}>
+                        <div className={cn("w-full",
+                            "p-3 rounded-xl max-w-full",
+                            "flex flex-col gap-2"
+                        )}>
+                            <MemoizedMarkdown id={selectedNode.id} content={selectedNode?.data.doc?.toString() ?? ""} />
+                        </div>
+                    </div>
                 </DialogHeader>
                 <Tabs defaultValue="parameters" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
@@ -97,7 +109,7 @@ const ParamsDialog = () => {
                             ))}
                         </div>
                     </TabsContent>
-                    
+
                     <TabsContent value="settings" className="space-y-4 mt-4">
                         <div className="grid gap-4">
                             <div className="space-y-2">
@@ -115,7 +127,7 @@ const ParamsDialog = () => {
                                     onChange={(e) => setSettings({ ...settings, duration: e.target.value })}
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-start flex-col">
                                     <Label htmlFor="retry" className="text-sm font-medium">
@@ -131,7 +143,7 @@ const ParamsDialog = () => {
                                     onChange={(e) => setSettings({ ...settings, retry: e.target.value })}
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-start flex-col">
                                     <Label htmlFor="timeout" className="text-sm font-medium">
@@ -147,7 +159,7 @@ const ParamsDialog = () => {
                                     onChange={(e) => setSettings({ ...settings, timeout: e.target.value })}
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-start flex-col">
                                     <Label htmlFor="priority" className="text-sm font-medium">
@@ -179,7 +191,7 @@ const ParamsDialog = () => {
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }
 

@@ -1,17 +1,12 @@
 import os
-from typing import List, Dict, Any, Optional, TypeAlias, Union
-from pydantic import TypeAdapter
+from typing import List, Dict, Any, Optional, Union
 import requests
 import requests.exceptions
 from datetime import datetime
 from app.scanners.base import Scanner
 from app.types.wallet import CryptoWallet, CryptoWalletTransaction
-from app.utils import resolve_type
 from app.core.logger import Logger
 from app.core.graph_db import Neo4jConnection
-
-InputType: TypeAlias = List[CryptoWallet]
-OutputType: TypeAlias = List[CryptoWalletTransaction]
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 
@@ -19,6 +14,11 @@ def wei_to_eth(wei_str):
     return int(wei_str) / 10**18
 
 class CryptoWalletAddressToTransactions(Scanner):
+    
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[CryptoWallet]
+    OutputType = List[CryptoWalletTransaction]
+    
     def __init__(
         self,
         sketch_id: Optional[str] = None,
@@ -37,8 +37,12 @@ class CryptoWalletAddressToTransactions(Scanner):
         )
 
     @classmethod
-    def requires_key(cls) -> bool:
+    def required_params(cls) -> bool:
         return True
+    
+    @classmethod
+    def icon(cls) -> str | None:
+        return "cryptowallet"
 
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
@@ -70,32 +74,6 @@ class CryptoWalletAddressToTransactions(Scanner):
     @classmethod
     def key(cls) -> str:
         return "address"
-
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -263,3 +241,7 @@ class CryptoWalletAddressToTransactions(Scanner):
                 Logger.graph_append(self.sketch_id, {"message": f"Transaction on {datetime.fromtimestamp(int(tx.timestamp)).strftime('%Y-%m-%d %H:%M:%S') if tx.timestamp else 'Unknown time'}: {tx.source.address} -> {tx.target.address}"})
 
         return results
+
+# Make types available at module level for easy access
+InputType = CryptoWalletAddressToTransactions.InputType
+OutputType = CryptoWalletAddressToTransactions.OutputType

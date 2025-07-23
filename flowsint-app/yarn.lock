@@ -1599,6 +1599,20 @@
   resolved "https://registry.yarnpkg.com/@react-sigma/core/-/core-5.0.4.tgz#8207e340c2103a3aad7871be5a6d31b27d198072"
   integrity sha512-C0hjr069x9oLlVe7t+Y1vE8Qi9UV1dhvrwxNi96TWxrFcTSHO5ntduj5yKTGnUF4SiIszAz6Xmjga8SHT/836Q==
 
+"@react-sigma/layout-core@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@react-sigma/layout-core/-/layout-core-5.0.4.tgz#c8c9603d833416c509144c5936f48c0269500280"
+  integrity sha512-R9Mm59CTwSla6vHXnN+m1TQlJTeyDaeD4agUqJahg/cgWD16oPvvKN5Yhv3Kn+SfZdaTiv5gcoryg0t8/zGX+A==
+  dependencies:
+    "@react-sigma/core" "^5.0.4"
+
+"@react-sigma/layout-forceatlas2@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@react-sigma/layout-forceatlas2/-/layout-forceatlas2-5.0.4.tgz#b9338ca3ff960d49e5548bcaf7466c38f245960e"
+  integrity sha512-OLIvSl1lU0nNemWR6iw/56oIDZEOBTd3bJlyIA9Bh2GXA2UhDzdSaksd+GH4gFQ4jYJpuL+VgWGFND2pO6zYbg==
+  dependencies:
+    "@react-sigma/layout-core" "^5.0.4"
+
 "@remirror/core-constants@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@remirror/core-constants/-/core-constants-3.0.0.tgz#96fdb89d25c62e7b6a5d08caf0ce5114370e3b8f"

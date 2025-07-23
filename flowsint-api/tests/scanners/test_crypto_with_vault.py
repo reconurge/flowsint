@@ -156,7 +156,7 @@ class TestCryptoWalletAddressToTransactions:
         """Test scanner static properties"""
         assert CryptoWalletAddressToTransactions.name() == "wallet_to_transactions"
         assert CryptoWalletAddressToTransactions.category() == "CryptoWallet"
-        assert isinstance(CryptoWalletAddressToTransactions.requires_key(), bool)
+        assert isinstance(CryptoWalletAddressToTransactions.required_params(), bool)
 
 
 class TestCryptoWalletAddressToNFTs:
@@ -202,7 +202,7 @@ class TestCryptoWalletAddressToNFTs:
         """Test scanner static properties"""
         assert CryptoWalletAddressToNFTs.name() == "wallet_to_nfts"
         assert CryptoWalletAddressToNFTs.category() == "CryptoWallet"
-        assert isinstance(CryptoWalletAddressToNFTs.requires_key(), bool)
+        assert isinstance(CryptoWalletAddressToNFTs.required_params(), bool)
 
 
 class TestBothCryptoScannersIntegration:

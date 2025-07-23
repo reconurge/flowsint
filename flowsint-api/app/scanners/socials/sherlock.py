@@ -1,58 +1,30 @@
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, List, TypeAlias, Union
+from typing import Dict, Any, List, Union
 from app.utils import is_valid_username
-from app.types.social import Social, Social
+from app.types.social import Social
 from app.scanners.base import Scanner
-from pydantic import TypeAdapter
-from app.utils import is_valid_username, resolve_type
-from app.core.logger import logger
-
-
-InputType: TypeAlias = List[Social]
-OutputType: TypeAlias = List[Social]
+from app.core.logger import Logger
 
 
 class SherlockScanner(Scanner):
     """Scans the usernames for associated social accounts using Sherlock."""
 
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Social]
+    OutputType = List[Social]
+
     @classmethod
-    def name(self) -> str:
+    def name(cls) -> str:
         return "sherlock_scanner"
     
     @classmethod
-    def category(self) -> str:
+    def category(cls) -> str:
         return "social_account"
     
     @classmethod
-    def key(self) -> str:
+    def key(cls) -> str:
         return "username"
-    
-    @classmethod
-    def input_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(InputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
-
-    @classmethod
-    def output_schema(cls) -> Dict[str, Any]:
-        adapter = TypeAdapter(OutputType)
-        schema = adapter.json_schema()
-        type_name, details = list(schema["$defs"].items())[0]
-        return {
-            "type": type_name,
-            "properties": [
-                {"name": prop, "type": resolve_type(info, schema)}
-                for prop, info in details["properties"].items()
-            ]
-        }
         
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -69,12 +41,13 @@ class SherlockScanner(Scanner):
                 cleaned.append(obj)
         return cleaned
 
-    async def scan(self, usernames: List[str]) -> Dict[str, Any]:
+    async def scan(self, data: InputType) -> OutputType:
         """Performs the scan using Sherlock on the list of usernames."""
-        results_list = []  # List to store scan results for each username
+        results: OutputType = []
         
-        for username in usernames:
-            output_file = Path(f"/tmp/sherlock_{username}.txt")  # Output file path
+        for social in data:
+            username = social.username
+            output_file = Path(f"/tmp/sherlock_{username}.txt")
             try:
                 # Running the Sherlock command to perform the scan
                 result = subprocess.run(
@@ -85,15 +58,11 @@ class SherlockScanner(Scanner):
                 )
 
                 if result.returncode != 0:
-                    results_list.append({
-                        "error": f"Sherlock failed for {username}: {result.stderr.strip()}"
-                    })
+                    Logger.error(self.sketch_id, {"message": f"Sherlock failed for {username}: {result.stderr.strip()}"})
                     continue
 
                 if not output_file.exists():
-                    results_list.append({
-                        "error": f"Sherlock did not produce any output file for {username}."
-                    })
+                    Logger.error(self.sketch_id, {"message": f"Sherlock did not produce any output file for {username}."})
                     continue
 
                 found_accounts = {}
@@ -104,18 +73,46 @@ class SherlockScanner(Scanner):
                             platform = line.split("/")[2]  # Example: twitter.com
                             found_accounts[platform] = line
 
-                results_list.append({
-                    "username": username,
-                    "output": found_accounts
-                })
+                # Create Social objects for each found account
+                for platform, url in found_accounts.items():
+                    results.append(Social(
+                        username=username,
+                        platform=platform,
+                        url=url
+                    ))
 
             except subprocess.TimeoutExpired:
-                results_list.append({"error": f"Sherlock scan for {username} timed out."})
+                Logger.error(self.sketch_id, {"message": f"Sherlock scan for {username} timed out."})
             except Exception as e:
-                results_list.append({"error": f"Unexpected error in Sherlock scan for {username}: {str(e)}"})
+                Logger.error(self.sketch_id, {"message": f"Unexpected error in Sherlock scan for {username}: {str(e)}"})
 
-        return results_list
+        return results
 
-    def postprocess(self, results: Dict[str, Any]) -> Dict[str, Any]:
-        """Adds additional metadata to the results."""
-        return {"output": results}
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        """Create Neo4j relationships for found social accounts."""
+        if not self.neo4j_conn:
+            return results
+
+        for social in results:
+            # Create or update social account node
+            social_query = """
+            MERGE (social:social {username: $username, platform: $platform})
+            SET social.url = $url,
+                social.sketch_id = $sketch_id,
+                social.label = $username,
+                social.caption = $platform,
+                social.type = "social"
+            """
+            self.neo4j_conn.query(social_query, {
+                "username": social.username,
+                "platform": social.platform,
+                "url": social.url,
+                "sketch_id": self.sketch_id
+            })
+            Logger.graph_append(self.sketch_id, {"message": f"Found social account: {social.username} on {social.platform}"})
+
+        return results
+
+# Make types available at module level for easy access
+InputType = SherlockScanner.InputType
+OutputType = SherlockScanner.OutputType

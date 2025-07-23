@@ -296,7 +296,7 @@ const ChatMessageComponent = ({ message }: { message: ChatMessage }) => {
                 )}>
                     <MemoizedMarkdown id={message.id} content={message.content} />
                 </div>
-            </div >
+            </div>
         )
 
     return (

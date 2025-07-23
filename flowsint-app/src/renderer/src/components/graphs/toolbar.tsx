@@ -11,7 +11,7 @@ import {
     ZoomIn,
     RotateCw,
     GitPullRequestCreate,
-    GitFork,
+    // GitFork,
     Waypoints,
     Table,
     MapPin,
@@ -22,7 +22,7 @@ import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
+// import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -72,7 +72,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const { confirm } = useConfirm()
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
     const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
-    const nodesLength = useGraphStore((s) => s.getNodesLength())
+    // const nodesLength = useGraphStore((s) => s.getNodesLength())
 
     const handleRefresh = useCallback(() => {
         try {
@@ -106,7 +106,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     }, [selectedNodes, confirm, removeNodes, clearSelectedNodes, sketchId])
     const isMoreThanZero = selectedNodes.length > 0
     const isTwo = selectedNodes.length == 2
-    const isGraphOnly = nodesLength > 500
+    // const isGraphOnly = nodesLength > 500
     // const isCosmoOnly = nodesLength > 3000
 
     const handleForceLayout = useCallback(() => {
@@ -125,21 +125,21 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         setView("relationships")
     }, [setView])
 
-    const handleDagreLayoutTB = useCallback(() => {
-        setView("hierarchy")
-        onLayout && onLayout("dagre-tb")
-    }, [onLayout, setView])
+    // const handleDagreLayoutTB = useCallback(() => {
+    //     setView("hierarchy")
+    //     onLayout && onLayout("dagre-tb")
+    // }, [onLayout, setView])
 
-    const handleDagreLayoutLR = useCallback(() => {
-        setView("hierarchy")
-        onLayout && onLayout("dagre-lr")
-    }, [onLayout, setView])
+    // const handleDagreLayoutLR = useCallback(() => {
+    //     setView("hierarchy")
+    //     onLayout && onLayout("dagre-lr")
+    // }, [onLayout, setView])
 
-    const { isMac } = useKeyboardShortcut({
-        key: "y",
-        ctrlOrCmd: true,
-        callback: handleDagreLayoutTB
-    })
+    // const { isMac } = useKeyboardShortcut({
+    //     key: "y",
+    //     ctrlOrCmd: true,
+    //     callback: handleDagreLayoutTB
+    // })
 
     return (
         <div className="flex justify-start gap-2 items-center">
@@ -176,7 +176,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                             onClick={zoomToFit}
                         />
                     </>}
-                <ToolbarButton
+                {/* <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-90" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayoutLR}
@@ -187,7 +187,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayoutTB}
                     disabled={isGraphOnly}
-                />
+                /> */}
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
                     tooltip={"Graph view"}

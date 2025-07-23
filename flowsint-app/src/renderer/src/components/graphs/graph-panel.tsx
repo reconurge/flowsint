@@ -7,7 +7,7 @@ import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
 import GraphLoader from './graph-loader'
 import Loader from '../loader'
-import WallEditor from './wall/wall'
+// import WallEditor from './wall/wall'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './node-editor-modal'
 import NodesTable from '../table'
@@ -18,10 +18,11 @@ import MapPanel from '../map/map-panel'
 import NewActions from './new-actions'
 const GraphReactForce = lazy(() => import('./graph-react-force'))
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
+// const GraphReactSigma = lazy(() => import('./graph-react-sigma'))
 
-const Graph = lazy(() => import('./graph'))
+// const Graph = lazy(() => import('./graph'))
 
-const NODE_COUNT_THRESHOLD = 500;
+const NODE_COUNT_THRESHOLD = 1000;
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -131,16 +132,15 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
                     </div>
                 </div>
             }>
-                {/* <Graph /> */}
                 {nodes?.length > NODE_COUNT_THRESHOLD ? (
                     <>{view === "table" && <NodesTable />}
-                        {["force", "hierarchy"].includes(view) && <Graph />}
+                        {["force", "hierarchy"].includes(view) && <GraphReactForce />}
                         {view === "map" && <MapPanel />}
                         {view === "relationships" && <RelationshipsTable />}
                     </>
                 ) : (<>
                     {view === "force" && <GraphReactForce />}
-                    {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />}
+                    {/* {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />} */}
                     {view === "table" && <NodesTable />}
                     {view === "map" && <MapPanel />}
                     {view === "relationships" && <RelationshipsTable />}

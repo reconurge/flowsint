@@ -17,6 +17,7 @@ import { transformService } from "@/api/transfrom-service"
 import { Input } from "../ui/input"
 import { Alert, AlertDescription } from "../ui/alert"
 import { categoryColors } from "./scanner-data"
+import { useIcon } from "@/hooks/use-icon"
 
 const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
     const openTransformSheet = useTransformStore(state => state.openTransformSheet)
@@ -69,9 +70,10 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
                 inputs: scanner.inputs,
                 outputs: scanner.outputs,
                 doc: scanner.doc,
-                requires_key: scanner.requires_key,
+                required_params: scanner.required_params,
                 params: scanner.params,
-                params_schema: scanner.params_schema
+                params_schema: scanner.params_schema,
+                icon: scanner.icon
             },
         }
         setNodes((prev) => ([...prev, newNode]))
@@ -93,10 +95,10 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
             <Sheet open={openTransformSheet} onOpenChange={setOpenTransformSheet}>
                 <SheetContent className="sm:max-w-xl">
                     <SheetHeader>
-                        <SheetTitle>Add connector to {selectedNode?.data.name}</SheetTitle>
+                        <SheetTitle>Add connector to <span className="text-primary">{selectedNode?.data.class_name}</span></SheetTitle>
                         <SheetDescription>Choose a transform to launch from the list below.</SheetDescription>
                     </SheetHeader>
-                    <div className="p-4 grow overflow-auto">
+                    <div className="p-4 grow overflow-auto border-t">
                         <Input
                             placeholder="Search transforms..."
                             value={searchTerm}
@@ -158,6 +160,7 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
     const colors = useNodesDisplaySettings(s => s.colors)
     const borderInputColor = colors[scanner.inputs.type.toLowerCase()]
     const borderOutputColor = colors[scanner.outputs.type.toLowerCase()]
+    const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : scanner.icon ? useIcon(scanner.icon, null) : null
 
     return (
         <TooltipProvider>
@@ -169,7 +172,10 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
                 <div className="flex justify-between grow items-start">
                     <div className="flex items-start gap-2 grow truncate text-ellipsis">
                         <div className="space-y-1 truncate text-left">
-                            <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                            <div className="flex items-center gap-2 truncate text-ellipsis">
+                                {Icon && <Icon size={24} />}
+                                <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                            </div>
                             <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{scanner.doc}</p>
                             <div className="mt-2 flex items-center gap-2 text-xs">
                                 <div className="flex items-center gap-1">
@@ -185,7 +191,7 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
                         </div>
                     </div>
                 </div>
-                {scanner.requires_key &&
+                {scanner.required_params &&
                     <div className="absolute bottom-3 right-3">
                         <Tooltip>
                             <TooltipTrigger asChild>

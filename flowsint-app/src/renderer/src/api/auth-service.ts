@@ -1,19 +1,18 @@
 import { useAuthStore } from '@/stores/auth-store';
 import { fetchWithAuth } from './api';
-import { useBoundStore } from '@/stores/use-bound-store';
 
-interface RegisterData {
+export interface RegisterData {
     username: string;
     email: string;
     password: string;
 }
 
-interface LoginData {
+export interface LoginData {
     username: string;
     password: string;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
     access_token: string;
     token_type: string;
     user: {
@@ -46,7 +45,6 @@ export const authService = {
         });
     },
     logout: () => {
-        useBoundStore.getState().tabs.clearTabs()
         useAuthStore.getState().logout()
     },
 

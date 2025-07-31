@@ -87,7 +87,7 @@ def test_schemas():
 
 
 class TestResolveInputOutputTypes:
-    """Test the new InputType/OutputType functionality for ResolveScanner"""
+    """Test the InputType/OutputType functionality for ResolveScanner"""
     
     def test_input_output_types_are_defined(self):
         """Test that InputType and OutputType are properly defined"""

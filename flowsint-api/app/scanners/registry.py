@@ -1,4 +1,5 @@
-from typing import Dict, Type
+import inspect
+from typing import Dict, Type, List
 from app.scanners.base import Scanner
 from app.scanners.domains.subdomains import SubdomainScanner
 from app.scanners.domains.whois import WhoisScanner
@@ -15,6 +16,7 @@ from app.scanners.crypto.wallet_to_transactions import CryptoWalletAddressToTran
 from app.scanners.crypto.wallet_to_nfts import CryptoWalletAddressToNFTs
 from app.scanners.domains.to_website import DomainToWebsiteScanner
 from app.scanners.websites.to_crawler import WebsiteToCrawler
+from app.scanners.websites.to_links import WebsiteToLinks
 from app.scanners.websites.to_domain import WebsiteToDomainScanner
 from app.scanners.emails.to_gravatar import EmailToGravatarScanner
 from app.scanners.emails.to_leaks import EmailToBreachesScanner
@@ -33,79 +35,23 @@ class ScannerRegistry:
     
     @classmethod
     def scanner_exists(cls, name: str) -> bool:
-        if name not in cls._scanners:
-            return False
-        return True
+        return name in cls._scanners
     
     @classmethod
-    def get_scanner(cls, name: str, sketch_id:str, scan_id: str, **kwargs) -> Scanner:
+    def get_scanner(cls, name: str, sketch_id: str, scan_id: str, **kwargs) -> Scanner:
         if name not in cls._scanners:
             raise Exception(f"Scanner '{name}' not found")
         return cls._scanners[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
 
     @classmethod
-    def list(cls) -> Dict[str, Dict[str, str]]:
+    def _create_scanner_metadata(cls, scanner: Type[Scanner]) -> Dict[str, str]:
+        """Helper method to create scanner metadata dictionary."""
         return {
-    name: {
-       "class_name": scanner.__name__,
-        "name": scanner.name(),
-        "module": scanner.__module__,
-        "doc": scanner.__doc__,
-        "category": scanner.category(),
-        "inputs": scanner.input_schema(),
-        "outputs": scanner.output_schema(),
-        "params": {},
-        "params_schema": scanner.get_params_schema(),
-        "required_params": scanner.required_params(),
-        "icon": scanner.icon(),
-    }
-    for name, scanner in cls._scanners.items()
-        }
-    
-    @classmethod
-    def list_by_categories(cls) -> Dict[str, Dict[str, str]]:
-        scanners_by_category = {}
-        for _, scanner in cls._scanners.items():
-            category = scanner.category()
-            if category not in scanners_by_category:
-                scanners_by_category[category] = []
-            scanners_by_category[category].append({
-                "class_name": scanner.__name__,
-                "name": scanner.name(),
-                "module": scanner.__module__,
-                "doc": scanner.__doc__,
-                "category": category,
-                "inputs": scanner.input_schema(),
-                "outputs": scanner.output_schema(),
-                "params": {},
-                "params_schema": scanner.get_params_schema(),
-                "required_params": scanner.required_params(),
-                "icon": scanner.icon(),
-            })
-        return scanners_by_category
-    
-    @classmethod
-    def list_by_input_type(cls, input_type: str) -> Dict[str, Dict[str, str]]:
-        if input_type.lower() == "any":
-            return [{
-                "class_name": scanner.__name__,
-                "name": scanner.name(),
-                "module": scanner.__module__,
-                "doc": scanner.__doc__,
-                "category": scanner.category(),
-                "inputs": scanner.input_schema(),
-                "outputs": scanner.output_schema(),
-                "params": {},
-                "params_schema": scanner.get_params_schema(),
-                "required_params": scanner.required_params(),
-                "icon": scanner.icon(),
-            } for _, scanner in cls._scanners.items()]
-            
-        return [{
             "class_name": scanner.__name__,
             "name": scanner.name(),
             "module": scanner.__module__,
-            "doc": scanner.__doc__,
+            "description": scanner.__doc__,
+            "documentation": inspect.cleandoc(scanner.documentation()),
             "category": scanner.category(),
             "inputs": scanner.input_schema(),
             "outputs": scanner.output_schema(),
@@ -113,8 +59,39 @@ class ScannerRegistry:
             "params_schema": scanner.get_params_schema(),
             "required_params": scanner.required_params(),
             "icon": scanner.icon(),
-        } for _, scanner in cls._scanners.items() if scanner.input_schema()["type"].lower() in ["any", input_type.lower()]]
+        }
 
+    @classmethod
+    def list(cls) -> Dict[str, Dict[str, str]]:
+        return {
+            name: cls._create_scanner_metadata(scanner)
+            for name, scanner in cls._scanners.items()
+        }
+    
+    @classmethod
+    def list_by_categories(cls) -> Dict[str, List[Dict[str, str]]]:
+        scanners_by_category = {}
+        for _, scanner in cls._scanners.items():
+            category = scanner.category()
+            if category not in scanners_by_category:
+                scanners_by_category[category] = []
+            scanners_by_category[category].append(cls._create_scanner_metadata(scanner))
+        return scanners_by_category
+    
+    @classmethod
+    def list_by_input_type(cls, input_type: str) -> List[Dict[str, str]]:
+        input_type_lower = input_type.lower()
+        
+        if input_type_lower == "any":
+            return [cls._create_scanner_metadata(scanner) for scanner in cls._scanners.values()]
+            
+        return [
+            cls._create_scanner_metadata(scanner)
+            for scanner in cls._scanners.values()
+            if scanner.input_schema()["type"].lower() in ["any", input_type_lower]
+        ]
+
+# Register all scanners
 ScannerRegistry.register(ReverseResolveScanner)
 ScannerRegistry.register(ResolveScanner)
 ScannerRegistry.register(SubdomainScanner)
@@ -130,12 +107,12 @@ ScannerRegistry.register(CryptoWalletAddressToTransactions)
 ScannerRegistry.register(CryptoWalletAddressToNFTs)
 ScannerRegistry.register(DomainToWebsiteScanner)
 ScannerRegistry.register(WebsiteToCrawler)
+ScannerRegistry.register(WebsiteToLinks)
 ScannerRegistry.register(WebsiteToDomainScanner)
 ScannerRegistry.register(EmailToGravatarScanner)
 ScannerRegistry.register(EmailToBreachesScanner)
 ScannerRegistry.register(IndividualToOrgScanner)
 ScannerRegistry.register(OrgToInfosScanner)
-ScannerRegistry.register(IndividualToOrgScanner)
 ScannerRegistry.register(WebsiteToWebtrackersScanner)
 ScannerRegistry.register(N8nConnector)
 

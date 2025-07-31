@@ -23,6 +23,10 @@ class AsnToCidrsScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Asn"
+    
+    @classmethod
+    def key(cls) -> str:
+        return 'network'
 
     def preprocess(self, data: Union[List[str], List[int], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
@@ -120,65 +124,37 @@ class AsnToCidrsScanner(Scanner):
                     if str(cidr.network) == "0.0.0.0/0":
                         continue  # Skip default CIDR for unknown ASN
                     if self.neo4j_conn:
-                        query = """
-                        MERGE (asn:asn {number: $asn_number})
-                        SET asn.sketch_id = $sketch_id,
-                            asn.name = $asn_name,
-                            asn.country = $asn_country,
-                            asn.label = $asn_label,
-                            asn.caption = $asn_caption,
-                            asn.type = "asn"
+                        self.create_node('asn', 'number', asn.number,
+                                       name=asn.name or "Unknown",
+                                       country=asn.country or "Unknown",
+                                       label=f"AS{asn.number}",
+                                       caption=f"AS{asn.number} - {asn.name or 'Unknown'}",
+                                       type='asn')
                         
-                        MERGE (cidr:cidr {network: $cidr_network})
-                        SET cidr.sketch_id = $sketch_id,
-                            cidr.label = $cidr_network,
-                            cidr.caption = $cidr_network,
-                            cidr.type = "cidr"
+                        self.create_node('cidr', 'network', str(cidr.network),
+                                       caption=str(cidr.network), type='cidr')
                         
-                        MERGE (asn)-[:ANNOUNCES {sketch_id: $sketch_id}]->(cidr)
-                        """
-                        self.neo4j_conn.query(query, {
-                            "asn_number": asn.number,
-                            "asn_name": asn.name or "Unknown",
-                            "asn_country": asn.country or "Unknown",
-                            "asn_label": f"AS{asn.number}",
-                            "asn_caption": f"AS{asn.number} - {asn.name or 'Unknown'}",
-                            "cidr_network": str(cidr.network),
-                            "sketch_id": self.sketch_id,
-                        })
+                        self.create_relationship('asn', 'number', asn.number,
+                                               'cidr', 'network', str(cidr.network), 'ANNOUNCES')
         else:
             # Fallback: original behavior (one-to-one zip)
             for asn, cidr in zip(original_input, results):
                 if str(cidr.network) == "0.0.0.0/0":
                     continue  # Skip default CIDR for unknown ASN
-                Logger.graph_append(self.sketch_id, {"message": f"ASN {asn.number} -> {cidr.network}"})
+                self.log_graph_message(f"ASN {asn.number} -> {cidr.network}")
                 if self.neo4j_conn:
-                    query = """
-                    MERGE (asn:ASN {number: $asn_number})
-                    SET asn.sketch_id = $sketch_id,
-                        asn.name = $asn_name,
-                        asn.country = $asn_country,
-                        asn.label = $asn_label,
-                        asn.caption = $asn_caption,
-                        asn.type = "asn"
+                    self.create_node('ASN', 'number', asn.number,
+                                   name=asn.name or "Unknown",
+                                   country=asn.country or "Unknown",
+                                   label=f"AS{asn.number}",
+                                   caption=f"AS{asn.number} - {asn.name or 'Unknown'}",
+                                   type='asn')
                     
-                    MERGE (cidr:CIDR {network: $cidr_network})
-                    SET cidr.sketch_id = $sketch_id,
-                        cidr.label = $cidr_network,
-                        cidr.caption = $cidr_network,
-                        cidr.type = "cidr"
+                    self.create_node('CIDR', 'network', str(cidr.network),
+                                   caption=str(cidr.network), type='cidr')
                     
-                    MERGE (asn)-[:ANNOUNCES {sketch_id: $sketch_id}]->(cidr)
-                    """
-                    self.neo4j_conn.query(query, {
-                        "asn_number": asn.number,
-                        "asn_name": asn.name or "Unknown",
-                        "asn_country": asn.country or "Unknown",
-                        "asn_label": f"AS{asn.number}",
-                        "asn_caption": f"AS{asn.number} - {asn.name or 'Unknown'}",
-                        "cidr_network": str(cidr.network),
-                        "sketch_id": self.sketch_id,
-                    })
+                    self.create_relationship('ASN', 'number', asn.number,
+                                           'CIDR', 'network', str(cidr.network), 'ANNOUNCES')
         return results
 
 # Make types available at module level for easy access

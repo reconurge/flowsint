@@ -179,26 +179,13 @@ class CryptoWalletAddressToTransactions(Scanner):
 
         for transactions in results:
             for tx in transactions:
-                # Create or update both wallet nodes in a single operation
-                wallets_query = """
-                MERGE (source:cryptowallet {wallet: $source_address})
-                MERGE (target:cryptowallet {wallet: $target_address})
-                SET source.sketch_id = $sketch_id,
-                    source.label = $source_address,
-                    source.caption = $source_address,
-                    source.type = "cryptowallet",
-                    target.sketch_id = $sketch_id,
-                    target.label = $target_address,
-                    target.caption = $target_address,
-                    target.type = "cryptowallet"
-                """
-                self.neo4j_conn.query(wallets_query, {
-                    "source_address": tx.source.address,
-                    "target_address": tx.target.address,
-                    "sketch_id": self.sketch_id
-                })
+                # Create or update both wallet nodes
+                self.create_node('cryptowallet', 'wallet', tx.source.address,
+                               caption=tx.source.address, type="cryptowallet")
+                self.create_node('cryptowallet', 'wallet', tx.target.address,
+                               caption=tx.target.address, type="cryptowallet")
 
-                # Create transaction as an edge between wallets
+                # Create transaction as an edge between wallets (keeping complex query for transaction properties)
                 tx_query = """
                 MATCH (source:cryptowallet {wallet: $source})
                 MATCH (target:cryptowallet {wallet: $target})
@@ -238,7 +225,9 @@ class CryptoWalletAddressToTransactions(Scanner):
                     "contract_address": tx.contract_address,
                     "sketch_id": self.sketch_id
                 })
-                Logger.graph_append(self.sketch_id, {"message": f"Transaction on {datetime.fromtimestamp(int(tx.timestamp)).strftime('%Y-%m-%d %H:%M:%S') if tx.timestamp else 'Unknown time'}: {tx.source.address} -> {tx.target.address}"})
+                
+                timestamp_str = datetime.fromtimestamp(int(tx.timestamp)).strftime('%Y-%m-%d %H:%M:%S') if tx.timestamp else 'Unknown time'
+                self.log_graph_message(f"Transaction on {timestamp_str}: {tx.source.address} -> {tx.target.address}")
 
         return results
 

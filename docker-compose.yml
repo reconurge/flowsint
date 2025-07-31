@@ -9,14 +9,14 @@ services:
       - "--api.insecure=true"
       - "--providers.docker"
       - "--entrypoints.ws.address=:80"
-      - "--providers.file.watch=true"
-      - "--entryPoints.websecure.address=:443"
+      - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls.certresolver=myresolver"
       - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--providers.file.watch=true"
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
+      - "8080:8080" # Dashboard Traefik
     restart: unless-stopped
     volumes:
       - ./certs:/etc/traefik/certs
@@ -24,6 +24,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik
+
   # PostgreSQL database
   postgres:
     image: postgres:15
@@ -34,36 +35,37 @@ services:
       POSTGRES_PASSWORD: flowsint
       POSTGRES_DB: flowsint
     ports:
-      - "5433:5432"
+      - "5433:5432" # 5433 sur l'hôte pour éviter conflit local
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
       - traefik
 
+  # Frontend Electron/Vite
+  # web:
+  #   build:
+  #     context: flowsint-app
+  #     dockerfile: Dockerfile
+  #   container_name: flowsint-app
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - traefik
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.web.rule=Host(`app.flowsint.localhost`)"
+  #     - "traefik.http.services.web.loadbalancer.server.port=3000"
+  #     - "traefik.http.routers.web.entrypoints=websecure"
 
-  # Next.js application
-  web:
-    build:
-      context: flowsint-web
-      dockerfile: Dockerfile
-    container_name: flowsint-web
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`app.flowsint.localhost`)"
-      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
-      - "traefik.http.routers.nextjs.entrypoints=websecure"
-
-  # FastAPI application with Celery
+  # FastAPI backend
   api:
     build:
       context: flowsint-api
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     container_name: flowsint-api
     ports:
       - "5000:5000"
@@ -79,14 +81,17 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`api.flowsint.localhost`)"
-      - "traefik.http.services.app.loadbalancer.server.port=5000"
-      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.api.rule=Host(`api.flowsint.localhost`)"
+      - "traefik.http.services.api.loadbalancer.server.port=5000"
+      - "traefik.http.routers.api.entrypoints=websecure"
 
+  # Celery worker
   celery:
     build:
       context: flowsint-api
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     container_name: celery-worker
     depends_on:
       - redis
@@ -100,14 +105,16 @@ services:
     networks:
       - traefik
 
+  # Redis for Celery & cache
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
     container_name: redis-cache
     ports:
       - "6379:6379"
     networks:
       - traefik
 
+  # Neo4j graph database
   neo4j:
     image: neo4j:5
     container_name: flowsint-neo4j
@@ -134,16 +141,14 @@ services:
       - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
       - "traefik.http.routers.neo4j.entrypoints=websecure"
 
-
 networks:
   traefik:
     name: traefik
     driver: bridge
 
 volumes:
-  db-config:
+  pg_data:
   neo4j_data:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
-  pg_data:

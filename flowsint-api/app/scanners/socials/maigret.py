@@ -121,40 +121,28 @@ class MaigretScanner(Scanner):
             return results
 
         for profile in results:
-            Logger.graph_append(self.sketch_id, {"message": f"{profile.username} -> account found on {profile.platform}"})
-            self.neo4j_conn.query("""
-                MERGE (p:social_profile {profile_url: $profile_url})
-                SET p.username = $username,
-                    p.platform = $platform,
-                    p.profile_picture_url = $picture,
-                    p.bio = $bio,
-                    p.followers_count = $followers,
-                    p.following_count = $following,
-                    p.posts_count = $posts,
-                    p.label = $label,
-                    p.caption = $caption,
-                    p.color = $color,
-                    p.type = $type,
-                    p.sketch_id = $sketch_id
-
-                MERGE (i:username {username: $username})
-                SET i.sketch_id = $sketch_id
-                MERGE (i)-[:HAS_SOCIAL_ACCOUNT {sketch_id: $sketch_id}]->(p)
-            """, {
-                "profile_url": profile.profile_url,
-                "username": profile.username,
-                "platform": profile.platform,
-                "picture": profile.profile_picture_url,
-                "bio": profile.bio,
-                "followers": profile.followers_count,
-                "following": profile.following_count,
-                "posts": profile.posts_count,
-                "label": f"{profile.platform}:{profile.username}",
-                "caption": f"{profile.platform}:{profile.username}",
-                "color": "#1DA1F2",
-                "type": "social_profile",
-                "sketch_id": self.sketch_id
-            })
+            # Create social profile node
+            self.create_node('social_profile', 'profile_url', profile.profile_url,
+                           username=profile.username,
+                           platform=profile.platform,
+                           profile_picture_url=profile.profile_picture_url,
+                           bio=profile.bio,
+                           followers_count=profile.followers_count,
+                           following_count=profile.following_count,
+                           posts_count=profile.posts_count,
+                           label=f"{profile.platform}:{profile.username}",
+                           caption=f"{profile.platform}:{profile.username}",
+                           color="#1DA1F2",
+                           type="social_profile")
+            
+            # Create username node
+            self.create_node('username', 'username', profile.username, type='username')
+            
+            # Create relationship
+            self.create_relationship('username', 'username', profile.username,
+                                   'social_profile', 'profile_url', profile.profile_url, 'HAS_SOCIAL_ACCOUNT')
+            
+            self.log_graph_message(f"{profile.username} -> account found on {profile.platform}")
 
         return results
 

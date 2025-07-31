@@ -9,8 +9,6 @@ import { Input } from "../ui/input"
 import { cn } from "@/lib/utils"
 import { Link, useParams } from "@tanstack/react-router"
 import { SkeletonList } from "../shared/skeleton-list"
-import { useSketchNavigation } from "@/hooks/use-sketch-navigation"
-import { TabLink } from "../tab-link"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { toast } from "sonner"
@@ -18,11 +16,8 @@ import { sketchService } from "@/api/sketch-service"
 import { useState, useMemo } from "react"
 
 export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: Sketch, investigationId: string, refetch: () => void }) => {
-    const { navigateToSketch } = useSketchNavigation({
-        sketchId: sketch.id,
-        investigationId,
-    });
     const { confirm } = useConfirm();
+
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -45,11 +40,14 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
     };
 
     return (
-        <TabLink
+        <Link
+            to="/dashboard/investigations/$investigationId/$type/$id"
+            params={{
+                investigationId: investigationId,
+                type: "graph",
+                id: sketch.id
+            }}
             id={sketch.id}
-            type="graph"
-            investigationId={investigationId}
-            onNavigate={navigateToSketch}
         >
             {({ isActive }) => (
                 <div className={cn(
@@ -75,7 +73,7 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
                     </DropdownMenu>
                 </div>
             )}
-        </TabLink>
+        </Link>
     );
 };
 

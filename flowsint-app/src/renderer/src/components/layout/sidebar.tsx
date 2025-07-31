@@ -1,8 +1,9 @@
 import {
-    ChevronsRightIcon,
     Fingerprint,
     Home,
+    Lock,
     type LucideIcon,
+    PanelLeft,
     Workflow
 } from "lucide-react"
 import { Link } from "@tanstack/react-router"
@@ -23,13 +24,12 @@ interface NavItem {
 
 export function Sidebar() {
     const togglePanel = useLayoutStore(s => s.togglePanel)
-    const isOpenPanel = useLayoutStore(s => s.isOpenPanel)
 
     const navItems: NavItem[] = [
         { icon: Home, label: "Dashboard", href: "/dashboard/" },
-        { icon: Fingerprint, label: "Cases", href: "/dashboard/investigations" },
-        // { icon: BrickWall, label: "Walls", href: "/dashboard/investigations/wall" },
         { icon: Workflow, label: "Flows", href: "/dashboard/transforms" },
+        { icon: Lock, label: "Vault", href: "/dashboard/vault" },
+
     ]
 
     const commonClasses =
@@ -79,8 +79,8 @@ export function Sidebar() {
             <div className="grow"></div>
             <div className="flex justify-center items-center p-3">
                 <Button variant={"ghost"} onClick={togglePanel}>
-                    <ChevronsRightIcon
-                        className={`h-12 w-12 transition-transform duration-200 ${isOpenPanel ? 'rotate-180' : 'rotate-0'}`}
+                    <PanelLeft
+                        className={`h-12 w-12 transition-transform duration-200`}
                     />
                 </Button>
             </div>

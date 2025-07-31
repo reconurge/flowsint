@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query"
 import { useParams } from "@tanstack/react-router"
 import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useAnalysisPanelStore } from "@/stores/analysis-panel-store"
 import { AnalysisEditor } from "./analysis-editor"
 import { useEffect } from "react"
+import AnalysisSkeleton from "./analysis-skeleton"
 
 export const AnalysisPanel = () => {
     const { investigationId } = useParams({ strict: false }) as { investigationId: string }
@@ -53,7 +53,7 @@ export const AnalysisPanel = () => {
     }
 
     if (isLoadingAnalyses) {
-        return <Skeleton className="h-full w-full" />
+        return <AnalysisSkeleton />
     }
 
     if (isError) {

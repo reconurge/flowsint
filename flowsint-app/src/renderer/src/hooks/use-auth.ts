@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth-store';
 
 export const SESSION_QUERY_KEY = ['session'];
 
+
 export const useRegister = () => {
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);

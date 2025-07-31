@@ -4,14 +4,14 @@ import { useState, useCallback, useRef, useEffect, memo, useMemo } from "react"
 import {
     ReactFlow,
     ReactFlowProvider,
-    Background,
+    // Background,
     type Node,
     useReactFlow,
     type NodeMouseHandler,
     type ColorMode,
     MiniMap,
-    BackgroundVariant,
-    // EdgeTypes,
+    // BackgroundVariant,
+    EdgeTypes,
     MarkerType,
     ConnectionMode,
 } from "@xyflow/react"
@@ -21,20 +21,21 @@ import { useTheme } from "@/components/theme-provider"
 import { useGraphStore, type GraphNode, type GraphEdge } from "@/stores/graph-store"
 import { CustomNode } from "./custom/custom-node"
 // import FloatingEdge from "./custom/floating-edge"
-import FloatingConnectionLine from "./custom/connection-line"
+// import FloatingConnectionLine from "./custom/connection-line"
 import GraphLoader from "../graph-loader"
 import { useGraphControls } from "@/stores/graph-controls-store"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-import ContextMenu from './custom/context-menu';
+import ContextMenu from '../context-menu';
 import { useLayoutStore } from "@/stores/layout-store"
+import CustomEdge from "./custom/custom-edge"
 
 const nodeTypes = {
     custom: CustomNode,
 };
 
-// const edgeTypes = {
-//     custom: SimpleFloatingEdge,
-// };
+const edgeTypes = {
+    custom: CustomEdge,
+};
 
 const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) => {
     const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
@@ -59,10 +60,12 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
 
     const [menu, setMenu] = useState<{
         node: GraphNode;
-        top: number;
-        left: number;
-        right: number;
-        bottom: number;
+        top?: number;
+        left?: number;
+        right?: number;
+        bottom?: number;
+        rawTop?: number;
+        rawLeft?: number;
         wrapperWidth: number;
         wrapperHeight: number;
         setMenu: (menu: any | null) => void;
@@ -227,39 +230,10 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
             const relativeX = event.clientX - pane.left;
             const relativeY = event.clientY - pane.top;
 
-            // Calculate available space in each direction
-            const menuWidth = 320; // Default menu width
-            const menuHeight = 250; // Use a more reasonable height for overflow calculation
-            const padding = 20; // Minimum padding from edges
-
-            // Determine if menu would overflow in each direction
-            const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
-            const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
-
-            // Calculate final position
-            let finalTop = 0;
-            let finalLeft = 0;
-            let finalRight = 0;
-            let finalBottom = 0;
-
-            if (wouldOverflowRight) {
-                finalRight = pane.width - relativeX;
-            } else {
-                finalLeft = relativeX;
-            }
-
-            if (wouldOverflowBottom) {
-                finalBottom = pane.height - relativeY;
-            } else {
-                finalTop = relativeY;
-            }
-
             setMenu({
                 node: node as GraphNode,
-                top: finalTop,
-                left: finalLeft,
-                right: finalRight,
-                bottom: finalBottom,
+                rawTop: relativeY,
+                rawLeft: relativeX,
                 wrapperWidth: pane.width,
                 wrapperHeight: pane.height,
                 setMenu: setMenu,
@@ -273,7 +247,7 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         nodes: visibleNodes,
         edges: visibleEdges,
         nodeTypes,
-        // edgeTypes: edgeTypes as EdgeTypes,
+        edgeTypes: edgeTypes as EdgeTypes,
         onInit: setReactFlowInstance,
         onNodeContextMenu,
         onDrop,
@@ -284,7 +258,6 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
         onNodesChange,
         onEdgesChange,
         onConnect,
-        connectionLineComponent: FloatingConnectionLine,
         fitView: true,
         proOptions: { hideAttribution: true },
         colorMode: theme,
@@ -311,8 +284,10 @@ const Wall = memo(({ theme, edges }: { theme: ColorMode, edges: GraphEdge[] }) =
     return (
         <>
             <div ref={reactFlowWrapper} className="w-full h-full bg-background">
-                <ReactFlow {...reactFlowProps}>
-                    <Background variant={"dots" as BackgroundVariant} bgColor="var(--background)" />
+                <ReactFlow {...reactFlowProps} className="!bg-background">
+                    {/* <Background
+                        variant={"dots" as BackgroundVariant}
+                        bgColor="var(--background)" /> */}
                     {menu && <ContextMenu
                         {...menu}
                     />}

@@ -1,10 +1,35 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Container Queries */
+@container (min-width: 640px) {
+  .cq-sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
+@container (min-width: 768px) {
+  .cq-md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@container (min-width: 1024px) {
+  .cq-lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@container (min-width: 1280px) {
+  .cq-xl\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* Electron title bar draggable region */
+.-webkit-app-region-drag {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.-webkit-app-region-no-drag {
+  -webkit-app-region: no-drag;
+}
 
 body {
   @apply m-0;
@@ -693,7 +718,7 @@ html {
   --font-sans: Inter, sans-serif;
   --font-serif: Source Serif 4, serif;
   --font-mono: JetBrains Mono, monospace;
-  --radius: .875rem;
+  --radius: .275rem;
   --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
   --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
@@ -711,7 +736,7 @@ html {
   --foreground: oklch(0.9219 0 0);
   --card: oklch(0.2186 0 0);
   --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.2686 0 0);
+  --popover: oklch(0.2186 0 0);
   --popover-foreground: oklch(0.9219 0 0);
   --primary: oklch(0.6612 0.2003 37.74);
   --primary-foreground: oklch(0 0 0);
@@ -742,7 +767,7 @@ html {
   --font-sans: Inter, sans-serif;
   --font-serif: Source Serif 4, serif;
   --font-mono: JetBrains Mono, monospace;
-  --radius: .875rem;
+  --radius: .275rem;
   --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
   --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
@@ -912,4 +937,17 @@ th,
   transform-origin: bottom right;
 }
 
+
+body {
+  letter-spacing: var(--tracking-normal);
+}
+
+code,
+pre {
+  @apply p-0;
+}
+
+.react-flow__minimap {
+  @apply rounded-2xl overflow-hidden bg-background border border-border;
+}
 

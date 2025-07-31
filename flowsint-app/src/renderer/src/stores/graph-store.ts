@@ -15,8 +15,8 @@ import { type ActionItem } from "@/lib/action-items"
 export type GraphNode = Node<NodeData> & {
     collapsed?: boolean;
     hidden?: boolean;
-    targetPosition?: "left" | "right" | "top" | "bottom";
-    sourcePosition?: "left" | "right" | "top" | "bottom";
+    x?: number;
+    y?: number;
 }
 export type GraphEdge = Edge<EdgeData>
 
@@ -32,6 +32,7 @@ interface GraphState {
     removeEdges: (edgeIds: string[]) => void
     updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
     updateNode: (nodeId: string, updates: Partial<NodeData>) => void
+    updateEdge: (edgeId: string, updates: Partial<EdgeData>) => void
     onNodesChange: OnNodesChange
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
@@ -134,6 +135,15 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
                 : node
         )
         set({ nodes: updatedNodes })
+    },
+    updateEdge: (edgeId, updates) => {
+        const { edges } = get()
+        const updatedEdges = edges.map(edge =>
+            edge.id === edgeId
+                ? { ...edge, data: { ...edge.data, ...updates } as EdgeData }
+                : edge
+        )
+        set({ edges: updatedEdges })
     },
     onNodesChange: (changes) => {
         set({

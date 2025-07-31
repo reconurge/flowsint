@@ -18,12 +18,16 @@ export async function initializeMainWindow() {
     height: 770,
     show: false,
     autoHideMenuBar: true,
-    titleBarOverlay: true,
+    titleBarOverlay: {
+      color: '#292524',
+      symbolColor: '#ffffff',
+      height: 48
+    },
     frame: false,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: {
-      x: 9,
-      y: 9
+      x: 12,
+      y: 14
     },
     backgroundColor: '#292524',
     webPreferences: {

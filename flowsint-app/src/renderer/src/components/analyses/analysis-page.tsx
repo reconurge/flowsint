@@ -1,13 +1,16 @@
 import { useParams } from "@tanstack/react-router"
 import type { Analysis } from "@/types"
-import { Skeleton } from "@/components/ui/skeleton"
 import { AnalysisEditor } from "./analysis-editor"
+import AnalysisSkeleton from "./analysis-skeleton"
 
 export const AnalysisPage = ({ analysis, isLoading, isError, refetch }: { analysis: Analysis, isLoading: boolean, isError: boolean, refetch: () => void }) => {
     const { investigationId } = useParams({ strict: false }) as { investigationId: string, id: string }
 
     if (isLoading) {
-        return <Skeleton className="h-full w-full" />
+        return (
+            <div className="w-full flex gap-3 max-w-4xl mx-auto flex-col items-start justify-start h-full overflow-hidden p-20">
+                <AnalysisSkeleton />
+            </div>)
     }
 
     if (isError) {

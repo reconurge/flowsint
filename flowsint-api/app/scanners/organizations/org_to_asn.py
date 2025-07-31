@@ -108,35 +108,24 @@ class OrgToAsnScanner(Scanner):
             if result_asn.number == 0:
                 continue
                 
-            query = """
-            MERGE (org:organization {name: $org_name})
-            SET org.sketch_id = $sketch_id,
-                org.label = $org_name,
-                org.caption = $org_name,
-                org.type = "organization"
-            
-            MERGE (asn:asn {number: $asn_number})
-            SET asn.sketch_id = $sketch_id,
-                asn.name = $asn_name,
-                asn.country = $asn_country,
-                asn.label = $asn_label,
-                asn.caption = $asn_caption,
-                asn.type = "asn"
-            
-            MERGE (org)-[:BELONGS_TO {sketch_id: $sketch_id}]->(asn)
-            """
-            
             if self.neo4j_conn:
-                self.neo4j_conn.query(query, {
-                    "org_name": input_org.name,
-                    "asn_number": result_asn.number,
-                    "asn_name": result_asn.name,
-                    "asn_country": result_asn.country,
-                    "asn_label": f"AS{result_asn.number}",
-                    "asn_caption": f"AS{result_asn.number} - {result_asn.name}",
-                    "sketch_id": self.sketch_id,
-                })
-                Logger.graph_append(self.sketch_id, {"message": f"Found for {input_org.name} -> ASN {result_asn.number}"})
+                # Create organization node
+                self.create_node('organization', 'name', input_org.name,
+                               caption=input_org.name, type="organization")
+                
+                # Create ASN node
+                self.create_node('asn', 'number', result_asn.number,
+                               name=result_asn.name,
+                               country=result_asn.country,
+                               label=f"AS{result_asn.number}",
+                               caption=f"AS{result_asn.number} - {result_asn.name}",
+                               type="asn")
+                
+                # Create relationship
+                self.create_relationship('organization', 'name', input_org.name,
+                                       'asn', 'number', result_asn.number, 'BELONGS_TO')
+                
+                self.log_graph_message(f"Found for {input_org.name} -> ASN {result_asn.number}")
 
         return results
 

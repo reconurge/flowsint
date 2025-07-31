@@ -97,24 +97,14 @@ class IgnorantScanner(Scanner):
 
         for result in results:
             if "error" not in result and "platforms" in result:
-                # Create phone number node
-                phone_query = """
-                MERGE (phone:phone {number: $number})
-                SET phone.sketch_id = $sketch_id,
-                    phone.label = $number,
-                    phone.caption = $number,
-                    phone.type = "phone"
-                """
-                self.neo4j_conn.query(phone_query, {
-                    "number": result["number"],
-                    "sketch_id": self.sketch_id
-                })
+                self.create_node('phone', 'number', result["number"], 
+                               caption=result["number"], type='phone')
                 
                 # Create platform relationships
                 for platform_result in result["platforms"]:
                     if platform_result and isinstance(platform_result, dict):
                         platform_name = platform_result.get("platform", "unknown")
-                        Logger.graph_append(self.sketch_id, {"message": f"Phone {result['number']} found on {platform_name}"})
+                        self.log_graph_message(f"Phone {result['number']} found on {platform_name}")
 
         return results
 

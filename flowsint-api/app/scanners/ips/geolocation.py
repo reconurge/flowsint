@@ -91,25 +91,10 @@ class GeolocationScanner(Scanner):
         """Update IP nodes in Neo4j with geolocation information."""
         if self.neo4j_conn:
             for ip in results:
-                Logger.graph_append(self.sketch_id, {"message": f"Geolocated {ip.address} to {ip.city}, {ip.country} (lat: {ip.latitude}, lon: {ip.longitude})"})
-                query = """
-                MATCH (ip:ip {address: $ip_address})
-                SET ip.latitude = $latitude,
-                    ip.longitude = $longitude,
-                    ip.country = $country,
-                    ip.city = $city,
-                    ip.isp = $isp,
-                    ip.sketch_id = $sketch_id
-                """
-                self.neo4j_conn.query(query, {
-                    "ip_address": ip.address,
-                    "latitude": ip.latitude,
-                    "longitude": ip.longitude,
-                    "country": ip.country,
-                    "city": ip.city,
-                    "isp": ip.isp,
-                    "sketch_id": self.sketch_id
-                })
+                self.create_node('ip', 'address', ip.address,
+                               latitude=ip.latitude, longitude=ip.longitude,
+                               country=ip.country, city=ip.city, isp=ip.isp, type='ip')
+                self.log_graph_message(f"Geolocated {ip.address} to {ip.city}, {ip.country} (lat: {ip.latitude}, lon: {ip.longitude})")
         return results
 
     def get_location_data(self, address: str) -> Dict[str, Any]:

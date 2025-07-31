@@ -1,6 +1,6 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { app } from 'electron'
-import { initializeMainWindow } from './main-window'
+import { app, ipcMain } from 'electron'
+import { initializeMainWindow, getMainWindow } from './main-window'
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
@@ -18,5 +18,16 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+
+// IPC handlers for window state
+ipcMain.handle('get-window-state', () => {
+  const mainWindow = getMainWindow()
+  if (!mainWindow) return { isFullscreen: false, isMaximized: false }
+  
+  return {
+    isFullscreen: mainWindow.isFullScreen(),
+    isMaximized: mainWindow.isMaximized()
   }
 })

@@ -186,6 +186,16 @@ class Scanner(ABC):
         pass
 
     @classmethod
+    def documentation(cls) -> str:
+        """
+        Return formatted markdown documentation for this scanner.
+        Override this method to provide custom documentation.
+        Falls back to cleaned docstring if not overridden.
+        """
+        import inspect
+        return inspect.cleandoc(cls.__doc__ or "No documentation available.")
+
+    @classmethod
     def input_schema(cls) -> Dict[str, Any]:
         """
         Generate input schema from InputType class attribute.
@@ -320,4 +330,43 @@ class Scanner(ABC):
             if self.name() != "transform_orchestrator":
                 Logger.error(self.sketch_id, {"message": f"Scanner {self.name()} errored: '{str(e)}'."})
             return []
+
+    def create_node(self, node_type: str, key_prop: str, key_value: str, **properties) -> None:
+        """Simple helper to create a single Neo4j node."""
+        if not self.neo4j_conn:
+            return
+            
+        properties['sketch_id'] = self.sketch_id
+        properties['label'] = properties.get('label', key_value)
+        
+        set_clauses = [f"n.{prop} = ${prop}" for prop in properties.keys()]
+        params = {key_prop: key_value, **properties}
+        
+        query = f"""
+        MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
+        SET {', '.join(set_clauses)}
+        """
+        self.neo4j_conn.query(query, params)
+    
+    def create_relationship(self, from_type: str, from_key: str, from_value: str, 
+                          to_type: str, to_key: str, to_value: str, rel_type: str) -> None:
+        """Simple helper to create a relationship between two nodes."""
+        if not self.neo4j_conn:
+            return
+            
+        query = f"""
+        MATCH (from:{from_type} {{{from_key}: $from_value}})
+        MATCH (to:{to_type} {{{to_key}: $to_value}})
+        MERGE (from)-[:{rel_type} {{sketch_id: $sketch_id}}]->(to)
+        """
+        
+        self.neo4j_conn.query(query, {
+            'from_value': from_value,
+            'to_value': to_value,
+            'sketch_id': self.sketch_id
+        })
+    
+    def log_graph_message(self, message: str) -> None:
+        """Simple helper to log a graph message."""
+        Logger.graph_append(self.sketch_id, {"message": message})
 

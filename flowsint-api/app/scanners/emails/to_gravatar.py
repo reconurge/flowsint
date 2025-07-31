@@ -56,10 +56,10 @@ class EmailToGravatarScanner(Scanner):
                     profile_response = requests.get(profile_url, timeout=10)
                     
                     gravatar_data = {
-                        "email": email.email,
+                        "src": gravatar_url,
                         "hash": email_hash,
-                        "avatar_url": gravatar_url,
-                        "profile_url": profile_url
+                        "profile_url": profile_url,
+                        "exists": True
                     }
                     
                     if profile_response.status_code == 200:
@@ -69,7 +69,7 @@ class EmailToGravatarScanner(Scanner):
                             gravatar_data.update({
                                 "display_name": entry.get("displayName"),
                                 "about_me": entry.get("aboutMe"),
-                                "current_location": entry.get("currentLocation")
+                                "location": entry.get("currentLocation")
                             })
                     
                     gravatar = Gravatar(**gravatar_data)
@@ -81,7 +81,32 @@ class EmailToGravatarScanner(Scanner):
                 
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        for email_obj, gravatar_obj in zip(original_input, results):
+            if not self.neo4j_conn:
+                continue
+            
+            # Create email node
+            self.create_node('email', 'email', email_obj.email, type='email')
+            
+            # Create gravatar node
+            gravatar_key = f"{email_obj.email}_{self.sketch_id}"
+            self.create_node('gravatar', 'gravatar_id', gravatar_key,
+                           email=email_obj.email,
+                           hash=gravatar_obj.hash,
+                           src=str(gravatar_obj.src),
+                           display_name=gravatar_obj.display_name,
+                           location=gravatar_obj.location,
+                           about_me=gravatar_obj.about_me,
+                           exists=gravatar_obj.exists,
+                           label="Gravatar", type="gravatar")
+            
+            # Create relationship between email and gravatar
+            self.create_relationship('email', 'email', email_obj.email,
+                                   'gravatar', 'gravatar_id', gravatar_key, 'HAS_GRAVATAR')
+            
+            self.log_graph_message(f"Gravatar found for email {email_obj.email} -> hash: {gravatar_obj.hash}")
+            
         return results
 
 # Make types available at module level for easy access

@@ -99,7 +99,7 @@ export const MinimalTiptapEditor = React.forwardRef<
       {/* <Toolbar editor={editor} /> */}
       <EditorContent
         editor={editor}
-        className={cn("minimal-tiptap-editor p-8 w-full max-w-4xl mx-auto", editorContentClassName)}
+        className={cn("minimal-tiptap-editor prose dark:prose-invert p-8 w-full max-w-4xl mx-auto", editorContentClassName)}
       />
       <LinkBubbleMenu editor={editor} />
     </MeasuredContainer>

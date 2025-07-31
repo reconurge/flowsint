@@ -25,7 +25,7 @@ export function CreateRelationDialog() {
         const newEdge = {
             source: selectedNodes[0],
             target: selectedNodes[1],
-            type: direction,
+            type: "custom",
             label: relationType,
             sketch_id: sketchId
         }

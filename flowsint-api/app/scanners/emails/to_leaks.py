@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 import requests
 from urllib.parse import urljoin
 from app.scanners.base import Scanner
@@ -7,6 +7,7 @@ from app.core.logger import Logger
 from app.types.email import Email
 from app.types.breach import Breach
 from dotenv import load_dotenv
+from app.core.graph_db import Neo4jConnection
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +18,24 @@ class EmailToBreachesScanner(Scanner):
     """From email to breaches using Have I Been Pwned API."""
 
     InputType = List[Email]
-    OutputType = List[Breach]
+    OutputType = List[tuple]  # List of (email, breach) tuples
+    
+    def __init__(
+            self,
+            sketch_id: Optional[str] = None,
+            scan_id: Optional[str] = None,
+            neo4j_conn: Optional[Neo4jConnection] = None,
+            vault=None,
+            params: Optional[Dict[str, Any]] = None
+        ):
+            super().__init__(
+                sketch_id=sketch_id,
+                scan_id=scan_id,
+                neo4j_conn=neo4j_conn,
+                params_schema=self.get_params_schema(),
+                vault=vault,
+                params=params
+            )
 
     @classmethod
     def name(cls) -> str:
@@ -70,8 +88,9 @@ class EmailToBreachesScanner(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        api_key = self.resolve_params()["HIBP_API_KEY"]
-        api_url = self.resolve_params()["HIBP_API_URL"]
+        print(self.get_params())
+        api_key = self.get_params().get("HIBP_API_KEY", None)
+        api_url = self.get_params().get("HIBP_API_URL", None)
         if not api_key:
             Logger.error(self.sketch_id, {"message": "A valid HIBP_API_KEY is required to scan for breaches."})
         if not api_url:
@@ -80,35 +99,38 @@ class EmailToBreachesScanner(Scanner):
             "hibp-api-key": api_key,
             "User-Agent": "FlowsInt-Scanner"
         }
-        Logger.info(self.sketch_id, {"message": f"HIBP API key: {api_key}"})
         Logger.info(self.sketch_id, {"message": f"HIBP API URL: {api_url}"})
         for email in data:
             try:
                 # Query Have I Been Pwned API
-                full_url = urljoin(api_url, email.email)
+                full_url = urljoin(api_url, f"{email.email}?truncateResponse=false")
+                Logger.error(self.sketch_id, {"message": f"full url: {full_url}"})
                 response = requests.get(full_url, headers=headers, timeout=10)
                 Logger.info(self.sketch_id, {"message": f"HIBP API response: {response.json()}"})
                 if response.status_code == 200:
                     breaches_data = response.json()
+                    Logger.info(self.sketch_id, {"message": f"Found {len(breaches_data)} breaches for {email.email}"})
                     for breach_data in breaches_data:
                         breach = Breach(
                             name=breach_data.get("Name", ""),
                             title=breach_data.get("Title", ""),
                             domain=breach_data.get("Domain", ""),
-                            breach_date=breach_data.get("BreachDate", ""),
-                            added_date=breach_data.get("AddedDate", ""),
-                            modified_date=breach_data.get("ModifiedDate", ""),
-                            pwn_count=breach_data.get("PwnCount", 0),
+                            breachdate=breach_data.get("BreachDate", ""),
+                            addeddate=breach_data.get("AddedDate", ""),
+                            modifieddate=breach_data.get("ModifiedDate", ""),
+                            pwncount=breach_data.get("PwnCount", 0),
                             description=breach_data.get("Description", ""),
-                            data_classes=breach_data.get("DataClasses", []),
-                            is_verified=breach_data.get("IsVerified", False),
-                            is_fabricated=breach_data.get("IsFabricated", False),
-                            is_sensitive=breach_data.get("IsSensitive", False),
-                            is_retired=breach_data.get("IsRetired", False),
-                            is_spam_list=breach_data.get("IsSpamList", False),
-                            logo_path=breach_data.get("LogoPath", "")
+                            dataclasses=breach_data.get("DataClasses", []),
+                            isverified=breach_data.get("IsVerified", False),
+                            isfabricated=breach_data.get("IsFabricated", False),
+                            issensitive=breach_data.get("IsSensitive", False),
+                            isretired=breach_data.get("IsRetired", False),
+                            isspamlist=breach_data.get("IsSpamList", False),
+                            logopath=breach_data.get("LogoPath", "")
                         )
-                        results.append(breach)
+                        # Store email and breach as a tuple
+                        results.append((email.email, breach))
+                        Logger.info(self.sketch_id, {"message": f"Added breach: {breach.name} for email: {email.email}"})
                         
                 elif response.status_code == 404:
                     # No breaches found for this email
@@ -123,9 +145,39 @@ class EmailToBreachesScanner(Scanner):
                 Logger.error(self.sketch_id, {"message": f"Error checking breaches for email {email.email}: {e}"})
                 continue
                 
+        Logger.info(self.sketch_id, {"message": f"Scan completed. Total results: {len(results)}"})
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        Logger.info(self.sketch_id, {"message": f"Postprocess started. Results count: {len(results)}, Original input count: {len(original_input)}"})
+        
+        # Create email nodes first
+        for email_obj in original_input:
+            if not self.neo4j_conn:
+                continue
+            # Create email node
+            self.create_node('email', 'email', email_obj.email, type='email')
+            Logger.info(self.sketch_id, {"message": f"Created email node: {email_obj.email}"})
+        
+        # Process all breaches
+        for email_address, breach_obj in results:
+            if not self.neo4j_conn:
+                continue
+            
+            # Create breach node
+            breach_key = f"{breach_obj.name}_{self.sketch_id}"
+            self.create_node(
+            'breach', 'breach_id', breach_key,
+            **breach_obj.dict(),
+            label=breach_obj.name, type="breach"
+            )
+            Logger.info(self.sketch_id, {"message": f"Created breach node: {breach_key}"})
+            
+            # Create relationship between the specific email and this breach
+            self.create_relationship('email', 'email', email_address,
+                                   'breach', 'breach_id', breach_key, 'FOUND_IN_BREACH')
+            self.log_graph_message(f"Breach found for email {email_address} -> {breach_obj.name} ({breach_obj.title})")
+            
         return results
 
 # Make types available at module level for easy access

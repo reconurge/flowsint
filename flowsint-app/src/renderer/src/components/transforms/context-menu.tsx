@@ -1,17 +1,17 @@
-import React, { memo, useCallback, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Info, Pencil, Star, Trash } from 'lucide-react';
+import { useCallback } from 'react';
+import { Pencil, Trash } from 'lucide-react';
 import { GraphNode } from '@/stores/graph-store';
-import { cn } from '@/lib/utils';
 import BaseContextMenu from '@/components/xyflow/context-menu';
 import { TransformNode, useTransformStore } from '@/stores/transform-store';
 
 interface GraphContextMenuProps {
     node: GraphNode | TransformNode;
-    top: number;
-    left: number;
-    right: number;
-    bottom: number;
+    top?: number;
+    left?: number;
+    right?: number;
+    bottom?: number;
+    rawTop?: number;
+    rawLeft?: number;
     wrapperWidth: number;
     wrapperHeight: number;
     onEdit?: () => void;

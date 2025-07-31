@@ -19,7 +19,8 @@ function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
         prevProps.data.class_name === nextProps.data.class_name &&
         prevProps.data.name === nextProps.data.name &&
         prevProps.data.module === nextProps.data.module &&
-        prevProps.data.doc === nextProps.data.doc &&
+        prevProps.data.documentation === nextProps.data.documentation &&
+        prevProps.data.description === nextProps.data.description &&
         prevProps.data.key === nextProps.data.key &&
         prevProps.data.category === nextProps.data.category &&
         prevProps.data.color === nextProps.data.color &&
@@ -44,7 +45,7 @@ const getStateColor = (state?: string) => {
 }
 
 // Scanner node component for transform/scanner nodes only
-const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) => {
+const ScannerNode = memo(({ data, isConnectable }: ScannerNodeProps) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     const inputColor = colors[data.inputs.type.toLowerCase()]
     const outputColor = colors[data.outputs.type.toLowerCase()]
@@ -99,7 +100,7 @@ const ScannerNode = memo(({ data, selected, isConnectable }: ScannerNodeProps) =
                             {Icon && <Icon size={24} />}
                             <div className="font-semibold text-sm">{data.class_name}</div>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{data.doc}</p>
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{data.description}</p>
                     </div>
                 </div>
                 <div>

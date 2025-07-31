@@ -3,13 +3,16 @@ import type { Node } from '@xyflow/react';
 
 interface ContextMenuProps<T extends Node = Node> {
     node: T;
-    top: number;
-    left: number;
-    right: number;
-    bottom: number;
+    top?: number;
+    left?: number;
+    right?: number;
+    bottom?: number;
     wrapperWidth: number;
     wrapperHeight: number;
     children: React.ReactNode;
+    // Raw position for overflow calculation
+    rawTop?: number;
+    rawLeft?: number;
 }
 
 export default function ContextMenu<T extends Node = Node>({
@@ -20,9 +23,46 @@ export default function ContextMenu<T extends Node = Node>({
     bottom,
     wrapperWidth,
     wrapperHeight,
+    rawTop,
+    rawLeft,
     children,
     ...props
 }: ContextMenuProps<T>) {
+    // If raw position is provided, calculate overflow and adjust position
+    let finalTop = top;
+    let finalLeft = left;
+    let finalRight = right;
+    let finalBottom = bottom;
+
+    if (rawTop !== undefined && rawLeft !== undefined) {
+        // Calculate available space in each direction
+        const menuWidth = 320; // Default menu width
+        const menuHeight = 250; // Use a more reasonable height for overflow calculation
+        const padding = 20; // Minimum padding from edges
+
+        // Determine if menu would overflow in each direction
+        const wouldOverflowRight = rawLeft + menuWidth + padding > wrapperWidth;
+        const wouldOverflowBottom = rawTop + menuHeight + padding > wrapperHeight;
+
+        // Calculate final position
+        finalTop = 0;
+        finalLeft = 0;
+        finalRight = 0;
+        finalBottom = 0;
+
+        if (wouldOverflowRight) {
+            finalRight = wrapperWidth - rawLeft;
+        } else {
+            finalLeft = rawLeft;
+        }
+
+        if (wouldOverflowBottom) {
+            finalBottom = wrapperHeight - rawTop;
+        } else {
+            finalTop = rawTop;
+        }
+    }
+
     // Calculate dynamic dimensions based on available space
     const maxWidth = 320; // Default width (w-80)
     const maxHeight = 500; // Default height (h-96)
@@ -33,20 +73,20 @@ export default function ContextMenu<T extends Node = Node>({
     let availableWidth = maxWidth;
     let availableHeight = maxHeight;
 
-    if (left > 0) {
+    if (finalLeft && finalLeft > 0) {
         // Menu is positioned from left, so available width is from left to right edge
-        availableWidth = wrapperWidth - left - 20; // 20px padding from right edge
-    } else if (right > 0) {
+        availableWidth = wrapperWidth - finalLeft - 20; // 20px padding from right edge
+    } else if (finalRight && finalRight > 0) {
         // Menu is positioned from right, so available width is from left edge to right position
-        availableWidth = wrapperWidth - right - 20; // 20px padding from left edge
+        availableWidth = wrapperWidth - finalRight - 20; // 20px padding from left edge
     }
 
-    if (top > 0) {
+    if (finalTop && finalTop > 0) {
         // Menu is positioned from top, so available height is from top to bottom edge
-        availableHeight = wrapperHeight - top - 20; // 20px padding from bottom edge
-    } else if (bottom > 0) {
+        availableHeight = wrapperHeight - finalTop - 20; // 20px padding from bottom edge
+    } else if (finalBottom && finalBottom > 0) {
         // Menu is positioned from bottom, so available height is from top edge to bottom position
-        availableHeight = wrapperHeight - bottom - 20; // 20px padding from top edge
+        availableHeight = wrapperHeight - finalBottom - 20; // 20px padding from top edge
     }
 
     // Determine dynamic dimensions
@@ -57,10 +97,10 @@ export default function ContextMenu<T extends Node = Node>({
     const dynamicStyles = {
         width: `${dynamicWidth}px`,
         maxHeight: `${dynamicHeight}px`,
-        top: top > 0 ? `${top}px` : 'auto',
-        left: left > 0 ? `${left}px` : 'auto',
-        right: right > 0 ? `${right}px` : 'auto',
-        bottom: bottom > 0 ? `${bottom}px` : 'auto',
+        top: finalTop && finalTop > 0 ? `${finalTop}px` : 'auto',
+        left: finalLeft && finalLeft > 0 ? `${finalLeft}px` : 'auto',
+        right: finalRight && finalRight > 0 ? `${finalRight}px` : 'auto',
+        bottom: finalBottom && finalBottom > 0 ? `${finalBottom}px` : 'auto',
     };
 
     const handleMenuClick = (e: React.MouseEvent) => {

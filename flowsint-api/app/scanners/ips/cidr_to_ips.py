@@ -79,28 +79,20 @@ class CidrToIpsScanner(Scanner):
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
         for cidr, ip in zip(original_input, results):
-            Logger.graph_append(self.sketch_id, {"message": f"Found {len(results)} IPs for CIDR {cidr.network}"})
             if self.neo4j_conn:
-                query = """
-                MERGE (cidr:cidr {network: $cidr_network})
-                SET cidr.sketch_id = $sketch_id,
-                    cidr.label = $cidr_network,
-                    cidr.caption = $cidr_network,
-                    cidr.type = "cidr"
+                # Create CIDR node
+                self.create_node('cidr', 'network', str(cidr.network),
+                               caption=str(cidr.network), type="cidr")
                 
-                MERGE (ip:ip {address: $ip_address})
-                SET ip.sketch_id = $sketch_id,
-                    ip.label = $ip_address,
-                    ip.caption = $ip_address,
-                    ip.type = "ip"
+                # Create IP node
+                self.create_node('ip', 'address', ip.address,
+                               caption=ip.address, type="ip")
                 
-                MERGE (cidr)-[:CONTAINS {sketch_id: $sketch_id}]->(ip)
-                """
-                self.neo4j_conn.query(query, {
-                    "cidr_network": str(cidr.network),
-                    "ip_address": ip.address,
-                    "sketch_id": self.sketch_id,
-                })
+                # Create relationship
+                self.create_relationship('cidr', 'network', str(cidr.network),
+                                       'ip', 'address', ip.address, 'CONTAINS')
+            
+            self.log_graph_message(f"Found {len(results)} IPs for CIDR {cidr.network}")
         return results
 
 # Make types available at module level for easy access

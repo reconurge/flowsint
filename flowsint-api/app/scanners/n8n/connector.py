@@ -8,17 +8,6 @@ from app.core.graph_db import Neo4jConnection
 class N8nConnector(Scanner):
     """
     Connect to your custom n8n workflows to process data through webhooks.
-    
-    ## Setup instructions:
-    1. In your n8n workflow, add a **Webhook** trigger node as the starting node
-    2. In the Webhook node, set **Respond** to `"Using 'Respond to Webhook' node"`
-    3. Add a **Respond to Webhook** node at the end of your workflow to return processed data
-    4. Use the webhook URL from your n8n workflow in the `webhook_url` parameter
-    
-    The connector will send your input data as JSON to the webhook and expect JSON response.
-    Types are not validated by this connector, so ensure your n8n workflow handles the expected data types correctly.
-    
-    For more details on webhook responses, see: [Respond to Webhook documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook/)
     """
     
     # Define types as class attributes - base class handles schema generation automatically
@@ -41,6 +30,187 @@ class N8nConnector(Scanner):
                 vault=vault,
                 params=params
             )
+
+    @classmethod
+    def documentation(cls) -> str:
+        """Return formatted markdown documentation for the n8n connector."""
+        return """
+# n8n Connector
+
+Connect to your custom n8n workflows to process data through webhooks. This connector allows you to leverage n8n's powerful automation capabilities within your FlowSint investigations.
+
+## Setup Instructions
+
+### 1. Configure n8n Workflow
+
+Create a new workflow in n8n with the following structure:
+
+```
+[Webhook Trigger] → [Your Processing Nodes] → [Respond to Webhook]
+```
+
+### 2. Configure Webhook Trigger Node
+
+In your n8n workflow, add a **Webhook** trigger node as the starting node:
+
+```json
+{
+  "httpMethod": "POST",
+  "path": "your-webhook-path",
+  "responseMode": "responseNode"
+}
+```
+
+**Important**: Set **Respond** to `"Using 'Respond to Webhook' node"`
+
+### 3. Add Processing Logic
+
+Add your custom processing nodes between the webhook trigger and response node. Your workflow will receive the following JSON payload:
+
+```json
+{
+  "sketch_id": "sketch-uuid",
+  "type": "input-data-type",
+  "inputs": [
+    // Your input data array
+  ]
+}
+```
+
+### 4. Configure Respond to Webhook Node
+
+Add a **Respond to Webhook** node at the end of your workflow to return processed data:
+
+```json
+{
+  "respondWith": "json",
+  "responseBody": "{{ $json.processedData }}"
+}
+```
+
+## Configuration Parameters
+
+### Required Parameters
+
+- **webhook_url** (url): The n8n webhook URL to send data to
+  ```
+  Example: https://your-n8n-instance.com/webhook/your-webhook-id
+  ```
+
+### Optional Parameters
+
+- **auth_token** (vaultSecret): Authentication token for the webhook
+  ```
+  Used as: Authorization: Bearer <token>
+  ```
+
+- **extra_payload** (string): Additional JSON data to include in the payload
+  ```json
+  {
+    "custom_field": "value",
+    "metadata": {
+      "source": "flowsint"
+    }
+  }
+  ```
+
+## Input/Output Types
+
+- **Input**: `List[Any]` - Array of data to be processed
+- **Output**: `List[Any]` - Array of processed results from n8n
+
+## Example Usage
+
+### Basic Setup
+
+```json
+{
+  "webhook_url": "https://n8n.example.com/webhook/abc123"
+}
+```
+
+### With Authentication
+
+```json
+{
+  "webhook_url": "https://n8n.example.com/webhook/abc123",
+  "auth_token": "your-secret-token"
+}
+```
+
+### With Extra Payload
+
+```json
+{
+  "webhook_url": "https://n8n.example.com/webhook/abc123",
+  "extra_payload": "{\"priority\": \"high\", \"source\": \"investigation\"}"
+}
+```
+
+## Sample n8n Workflow Response
+
+Your n8n workflow should return data in this format:
+
+```json
+[
+  {
+    "id": "processed-item-1",
+    "result": "processed data",
+    "metadata": {
+      "processed_at": "2024-01-01T12:00:00Z"
+    }
+  }
+]
+```
+
+## Error Handling
+
+The connector handles various error scenarios:
+
+- **Non-200 HTTP responses**: Logs error and raises exception
+- **Invalid JSON responses**: Returns error object with raw response
+- **Network errors**: Logs error and re-raises exception
+
+Example error response:
+```json
+[
+  {
+    "raw_response": "Server Error",
+    "error": "Response was not valid JSON"
+  }
+]
+```
+
+## Security Considerations
+
+- Use HTTPS URLs for webhook endpoints
+- Store sensitive tokens in the vault system
+- Validate and sanitize data in your n8n workflow
+- Consider rate limiting in your n8n instance
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Webhook not responding**: Check n8n workflow is active and webhook URL is correct
+2. **Authentication errors**: Verify auth_token is valid and properly stored in vault
+3. **JSON parsing errors**: Ensure n8n workflow returns valid JSON
+
+### Debug Logging
+
+The connector provides detailed logging:
+- Request payload sent to webhook
+- Response status and content
+- Processing results
+
+Check FlowSint logs for detailed debugging information.
+
+## Resources
+
+- [n8n Webhook Documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
+- [Respond to Webhook Documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook/)
+- [n8n HTTP Request Node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/)
+"""
 
     @classmethod
     def icon(cls) -> str | None:

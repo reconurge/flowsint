@@ -16,7 +16,8 @@ function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
     prevProps.scanner.class_name === nextProps.scanner.class_name &&
     prevProps.scanner.name === nextProps.scanner.name &&
     prevProps.scanner.module === nextProps.scanner.module &&
-    prevProps.scanner.doc === nextProps.scanner.doc &&
+    prevProps.scanner.documentation === nextProps.scanner.documentation &&
+    prevProps.scanner.description === nextProps.scanner.description &&
     prevProps.category === nextProps.category
   )
 }
@@ -61,7 +62,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
                   {Icon && <Icon size={24} />}
                   <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
                 </div>
-                <p className="text-xs font-normal truncate text-ellipsis opacity-60">{scanner.doc}</p>
+                <p className="text-xs font-normal truncate text-ellipsis opacity-60">{scanner.description}</p>
                 {scanner.type !== "type" &&
                   <div className="mt-2 text-xs">
                     <div className="flex items-center gap-1">
@@ -111,7 +112,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
               </div>}
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Description</h4>
-              <p className="text-sm text-muted-foreground">{scanner.doc || "No description available"}</p>
+              <p className="text-sm text-muted-foreground">{scanner.description || "No description available"}</p>
             </div>
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Module</h4>

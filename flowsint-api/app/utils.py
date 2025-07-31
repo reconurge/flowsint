@@ -7,8 +7,11 @@ from urllib.parse import urlparse
 import re
 import ssl
 import socket
-from typing import Dict, Any, List, Optional, Type
-from pydantic import BaseModel, ValidationError, Field, create_model
+from typing import Dict, Any, List, Type
+from pydantic import BaseModel
+import inspect
+from typing import Any, Dict, Type
+from pydantic import BaseModel, TypeAdapter
 
 def is_valid_ip(address: str) -> bool:
     try:
@@ -146,7 +149,7 @@ def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
         "class_name": model.__name__,
         "name": model.__name__,
         "module": model.__module__,
-        "doc": model.__doc__ or "",
+        "description": inspect.cleandoc(model.__doc__ or ""),
         "outputs": {
             "type": type_name,
             "properties": [

@@ -105,59 +105,25 @@ class WebsiteToCrawler(Scanner):
             website_url = str(input_website.url)
             
             # Create website node
-            website_query = """
-            MERGE (website:website {url: $website_url})
-            SET website.sketch_id = $sketch_id,
-                website.label = $website_url,
-                website.caption = $website_url,
-                website.type = "website"
-            """
-            
             if self.neo4j_conn:
-                self.neo4j_conn.query(website_query, {
-                    "website_url": website_url,
-                    "sketch_id": self.sketch_id,
-                })
+                self.create_node('website', 'url', website_url,
+                               caption=website_url, type='website')
                 
                 # Create email nodes and relationships
                 for email in result["emails"]:
-                    email_query = """
-                    MERGE (email:email {email: $email_address})
-                    SET email.sketch_id = $sketch_id,
-                        email.label = $email_address,
-                        email.caption = $email_address,
-                        email.type = "email"
-                    
-                    MERGE (website:website {url: $website_url})
-                    MERGE (website)-[:HAS_EMAIL {sketch_id: $sketch_id}]->(email)
-                    """
-                    
-                    self.neo4j_conn.query(email_query, {
-                        "email_address": email.email,
-                        "website_url": website_url,
-                        "sketch_id": self.sketch_id,
-                    })
-                    Logger.graph_append(self.sketch_id, {"message": f"Found email {email.email} for website {website_url}"})
+                    self.create_node('email', 'email', email.email,
+                                   caption=email.email, type='email')
+                    self.create_relationship('website', 'url', website_url,
+                                           'email', 'email', email.email, 'HAS_EMAIL')
+                    self.log_graph_message(f"Found email {email.email} for website {website_url}")
                 
                 # Create phone nodes and relationships
                 for phone in result["phones"]:
-                    phone_query = """
-                    MERGE (phone:phone {number: $phone_number})
-                    SET phone.sketch_id = $sketch_id,
-                        phone.label = $phone_number,
-                        phone.caption = $phone_number,
-                        phone.type = "phone"
-                    
-                    MERGE (website:website {url: $website_url})
-                    MERGE (website)-[:HAS_PHONE {sketch_id: $sketch_id}]->(phone)
-                    """
-                    
-                    self.neo4j_conn.query(phone_query, {
-                        "phone_number": phone.number,
-                        "website_url": website_url,
-                        "sketch_id": self.sketch_id,
-                    })
-                    Logger.graph_append(self.sketch_id, {"message": f"Found phone {phone.number} for website {website_url}"})
+                    self.create_node('phone', 'number', phone.number,
+                                   caption=phone.number, type='phone')
+                    self.create_relationship('website', 'url', website_url,
+                                           'phone', 'number', phone.number, 'HAS_PHONE')
+                    self.log_graph_message(f"Found phone {phone.number} for website {website_url}")
 
         return results
     

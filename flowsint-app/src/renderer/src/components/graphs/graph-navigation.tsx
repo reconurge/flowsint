@@ -3,16 +3,16 @@ import NodesPanel from "./nodes-panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserPlus, Users } from "lucide-react"
 import { ItemsPanel } from "./items-panel"
-import DetailsPanel from "./details-panel"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable"
 import { useLayoutStore } from "@/stores/layout-store"
+import SelectedItemsPanel from "./selected-items-panel"
 
 const GraphNavigation = () => {
     const nodes = useGraphStore((s) => s.nodes)
-    const currentNode = useGraphStore((s) => s.currentNode)
     const activeTab = useLayoutStore((s) => s.activeTab)
     const setActiveTab = useLayoutStore((s) => s.setActiveTab)
-
+    const selectedNodes = useGraphStore(s => s.selectedNodes)
+    const selectedNodesSome = selectedNodes.length > 0
     return (
         <div className="h-full w-full min-h-0">
             <Tabs
@@ -34,7 +34,7 @@ const GraphNavigation = () => {
                         direction="vertical"
                         className="flex-1 min-h-0 flex w-full flex-col"
                     >
-                        {currentNode && (
+                        {selectedNodesSome && (
                             <>
                                 <ResizablePanel
                                     order={2}
@@ -42,7 +42,7 @@ const GraphNavigation = () => {
                                     defaultSize={30}
                                     className="flex flex-col w-full overflow-hidden min-h-0 min-w-0"
                                 >
-                                    <DetailsPanel node={currentNode} />
+                                    <SelectedItemsPanel />
                                 </ResizablePanel>
                                 <ResizableHandle />
                             </>

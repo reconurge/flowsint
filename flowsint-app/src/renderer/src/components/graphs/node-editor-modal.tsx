@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Edit3, Save, X, Hash, Type, FileText, Check, Loader2, User } from "lucide-react"
+import { Edit3, Save, X, Hash, Type, FileText, Check, Loader2 } from "lucide-react"
 import type { NodeData } from "@/types"
 import { useGraphStore } from "@/stores/graph-store"
 import { MapFromAddress } from "../map/map"
@@ -146,7 +146,7 @@ export const NodeEditorModal: React.FC = () => {
             case 'core-properties':
                 return (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="label" className="text-sm opacity-60 font-medium flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
@@ -289,21 +289,37 @@ export const NodeEditorModal: React.FC = () => {
             case 'preview':
                 return (
                     <div className="p-4 rounded-lg bg-background border">
-                        <div className="flex items-center gap-3">
-                            {currentNode.data.src ? (
-                                <Avatar className="rounded-md h-14 w-14">
-                                    <AvatarImage className="rounded-none object-contain" src={currentNode.data.src} />
-                                    <AvatarFallback>{currentNode.data.label[0]}</AvatarFallback>
-                                </Avatar>
-                            ) : (
-                                <IconComponent />
-                            )}
-                            <div className="flex-1">
-                                <div className="font-medium text-sm">
+                        <div className="flex items-center gap-4">
+                            {/* Large Profile Image/Icon */}
+                            <div className="relative flex-shrink-0">
+                                {currentNode.data.src ? (
+                                    <Avatar className="rounded-lg h-20 w-20 border-2 border-muted">
+                                        <AvatarImage className="rounded-lg object-cover" src={currentNode.data.src} />
+                                        <AvatarFallback className="text-lg font-semibold rounded-lg">
+                                            {formData.label?.[0]?.toUpperCase() || "?"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                ) : (
+                                    <div className="h-30 w-30 rounded-lg border-2 border-muted bg-muted/30 flex items-center justify-center">
+                                        <IconComponent className="h-15 w-15 text-muted-foreground" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Main Information */}
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-semibold text-foreground mb-1">
                                     {formData.label || "No label"}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                    {formData.type || "No type"} • {formData.caption || "No caption"}
+                                </h3>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-primary">
+                                        {formData.type || "No type"}
+                                    </p>
+                                    {formData.caption && (
+                                        <p className="text-sm text-muted-foreground line-clamp-2">
+                                            {formData.caption}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -317,7 +333,7 @@ export const NodeEditorModal: React.FC = () => {
                 return (
                     <div className="overflow-hidden rounded-lg bg-background border">
                         {isLocation ? (
-                            <MapFromAddress 
+                            <MapFromAddress
                                 locations={[
                                     {
                                         lat: formData.latitude,
@@ -325,7 +341,7 @@ export const NodeEditorModal: React.FC = () => {
                                         address: formData.label as string,
                                         label: formData.label as string
                                     }
-                                ]} 
+                                ]}
                             />
                         ) : (
                             <div className="p-4 text-center text-muted-foreground">

@@ -38,6 +38,10 @@ class CryptoWalletAddressToNFTs(Scanner):
         return True
     
     @classmethod
+    def icon(cls) -> str | None:
+        return "cryptowallet"
+    
+    @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
         """Declare required parameters for this scanner"""
         return [
@@ -136,55 +140,24 @@ class CryptoWalletAddressToNFTs(Scanner):
         for nfts in results:
             for nft in nfts:
                 # Create or update wallet node
-                wallet_query = """
-                MERGE (cryptowallet:cryptowallet {wallet: $wallet_address})
-                SET cryptowallet.sketch_id = $sketch_id,
-                    cryptowallet.label = $wallet_address,
-                    cryptowallet.caption = $wallet_address,
-                    cryptowallet.type = "cryptowallet"
-                """
-                self.neo4j_conn.query(wallet_query, {
-                    "wallet_address": nft.wallet.address,
-                    "sketch_id": self.sketch_id
-                })
+                self.create_node('cryptowallet', 'wallet', nft.wallet.address,
+                               caption=nft.wallet.address, type='cryptowallet')
 
-                # Create or update NFT node
-                nft_query = """
-                MERGE (nft:nft {contract_address: $contract_address, token_id: $token_id})
-                SET nft.collection_name = $collection_name,
-                    nft.metadata_url = $metadata_url,
-                    nft.image_url = $image_url,
-                    nft.name = $name,
-                    nft.sketch_id = $sketch_id,
-                    nft.label = $name,
-                    nft.caption = $name,
-                    nft.type = "nft"
-                """
-                self.neo4j_conn.query(nft_query, {
-                    "contract_address": nft.contract_address,
-                    "token_id": nft.token_id,
-                    "collection_name": nft.collection_name,
-                    "metadata_url": nft.metadata_url,
-                    "image_url": nft.image_url,
-                    "name": nft.name,
-                    "sketch_id": self.sketch_id
-                })
+                # Create or update NFT node  
+                nft_key = f"{nft.contract_address}_{nft.token_id}"
+                self.create_node('nft', 'nft_id', nft_key,
+                               contract_address=nft.contract_address,
+                               token_id=nft.token_id,
+                               collection_name=nft.collection_name,
+                               metadata_url=nft.metadata_url,
+                               image_url=nft.image_url,
+                               name=nft.name,
+                               caption=nft.name, type='nft')
 
                 # Create relationship from wallet to NFT
-                owns_query = """
-                MATCH (wallet:wallet {wallet: $wallet_address})
-                MATCH (nft:nft {contract_address: $contract_address, token_id: $token_id})
-                MERGE (wallet)-[r:OWNS]->(nft)
-                SET r.sketch_id = $sketch_id
-                """
-                self.neo4j_conn.query(owns_query, {
-                    "wallet_address": nft.wallet.address,
-                    "contract_address": nft.contract_address,
-                    "token_id": nft.token_id,
-                    "sketch_id": self.sketch_id
-                })
-                Logger.graph_append(self.sketch_id, {"message": f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}"})
-
+                self.create_relationship('cryptowallet', 'wallet', nft.wallet.address,
+                                       'nft', 'nft_id', nft_key, 'OWNS')
+                self.log_graph_message(f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}")
 
         return results
 

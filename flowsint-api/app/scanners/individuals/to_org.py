@@ -227,29 +227,18 @@ class IndividualToOrgScanner(Scanner):
 
         for org in results:
             # Create or update the organization node with all SIRENE properties
-            self.neo4j_conn.query("""
-                MERGE (o:Organization {name: $name, country: $country})
-                SET o.siren = $siren,
-                    o.siege_siret = $siret,
-                    o.nom_complet = $nom_complet,
-                    o.nom_raison_sociale = $nom_raison_sociale,
-                    o.sigle = $sigle,
-                    o.sketch_id = $sketch_id,
-                    o.label = $name,
-                    o.caption = $name,
-                    o.type = 'organization'
-            """, {
-                "name": org.name,
-                "country": "FR",
-                "siren": org.siren,
-                "siret": org.siege_siret,
-                "nom_complet": org.nom_complet,
-                "nom_raison_sociale": org.nom_raison_sociale,
-                "sigle": org.sigle,
-                "sketch_id": self.sketch_id,
-            })
+            org_key = f"{org.name}_FR"
+            self.create_node('Organization', 'org_id', org_key,
+                           name=org.name,
+                           country="FR",
+                           siren=org.siren,
+                           siege_siret=org.siege_siret,
+                           nom_complet=org.nom_complet,
+                           nom_raison_sociale=org.nom_raison_sociale,
+                           sigle=org.sigle,
+                           caption=org.name, type='organization')
 
-            Logger.graph_append(self.sketch_id, {"message": f"Found organization: {org.name}"})
+            self.log_graph_message(f"Found organization: {org.name}")
 
         return results
 

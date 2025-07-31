@@ -2,7 +2,7 @@ import { chatCRUDService } from '@/api/chat-service';
 import { useQuery } from '@tanstack/react-query';
 import { SkeletonList } from '../shared/skeleton-list';
 import { Button } from '../ui/button';
-import { ArrowLeft, Trash, MessageSquare, Sparkles } from 'lucide-react';
+import { ArrowLeft, Trash, Sparkles } from 'lucide-react';
 import { Chat } from '@/types';
 import { useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';

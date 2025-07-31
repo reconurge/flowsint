@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 interface LayoutStore {
     isOpenConsole: boolean
     isOpenPanel: boolean
+    isOpenDetails: boolean
     isOpenChat: boolean
     isOpenAnalysis: boolean
     chatWidth: number
@@ -11,6 +12,7 @@ interface LayoutStore {
     toggleConsole: () => void
     togglePanel: () => void
     toggleChat: () => void
+    toggleDetails: () => void
     toggleAnalysis: () => void
     closePanel: () => void
     openPanel: () => void
@@ -30,6 +32,7 @@ export const useLayoutStore = create<LayoutStore>()(
         (set) => ({
             isOpenConsole: false,
             isOpenPanel: true,
+            isOpenDetails: false,
             isOpenChat: false,
             isOpenAnalysis: false,
             chatWidth: 500,
@@ -38,6 +41,7 @@ export const useLayoutStore = create<LayoutStore>()(
             activeTransformTab: "transforms",
             toggleConsole: () => set((state) => ({ isOpenConsole: !state.isOpenConsole })),
             togglePanel: () => set((state) => ({ isOpenPanel: !state.isOpenPanel })),
+            toggleDetails: () => set((state) => ({ isOpenDetails: !state.isOpenDetails })),
             toggleChat: () => set((state) => ({ isOpenChat: !state.isOpenChat })),
             toggleAnalysis: () => set((state) => ({ isOpenAnalysis: !state.isOpenAnalysis })),
             closePanel: () => set({ isOpenPanel: false }),
@@ -55,6 +59,7 @@ export const useLayoutStore = create<LayoutStore>()(
             partialize: (state) => ({
                 isOpenPanel: state.isOpenPanel,
                 isOpenAnalysis: state.isOpenAnalysis,
+                isOpenDetails: state.isOpenDetails,
                 chatWidth: state.chatWidth,
                 chatHeight: state.chatHeight,
                 activeTab: state.activeTab,

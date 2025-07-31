@@ -164,7 +164,7 @@ function FloatingChat() {
                                     </div>
 
                                     {/* Content */}
-                                    <div className="flex flex-col prose flex-1 overflow-auto">
+                                    <div className="flex flex-col flex-1 overflow-auto">
                                         {isLoading ? (
                                             <ChatSkeleton />
                                         ) : hasMessages ? (

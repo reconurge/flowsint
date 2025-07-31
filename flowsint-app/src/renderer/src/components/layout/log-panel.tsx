@@ -5,7 +5,6 @@ import { logService } from "@/api/log-service"
 import { useConfirm } from "../use-confirm-dialog"
 import { useParams } from "@tanstack/react-router"
 import {
-    Terminal,
     Info,
     AlertTriangle,
     AlertCircle,
@@ -136,11 +135,11 @@ export function LogPanel() {
     }
 
     return (
-        <div className="h-full bg-background overflow-hidden flex flex-col relative">
-            <ScrollArea className="flex-1 h-full" ref={scrollAreaRef}>
+        <div className="h-full bg-card overflow-hidden flex flex-col relative">
+            <div className={cn("flex-1 h-full", logs.length === 0 ? "overflow-hidden" : "overflow-y-auto")} ref={scrollAreaRef} >
                 <div className="text-sm h-full">
                     {logs.length === 0 ? (
-                        <div className="text-center text-muted-foreground h-full py-8 flex flex-col items-center justify-center">
+                        <div className="text-center text-muted-foreground h-full py-8 flex !overflow-hidden flex-col items-center justify-center">
                             {/* <div className="flex items-center gap-2 mb-4">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
                                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
@@ -182,7 +181,7 @@ export function LogPanel() {
                     )}
                     <div ref={bottomRef} />
                 </div>
-            </ScrollArea>
+            </div>
             <div className="absolute top-1 right-1">
                 <Button variant="ghost" size="icon" onClick={refetch}>
                     <RotateCcw strokeWidth={1.5} className="w-4 h-4 opacity-60" />

@@ -7,7 +7,6 @@ import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
 import GraphLoader from './graph-loader'
 import Loader from '../loader'
-// import WallEditor from './wall/wall'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './node-editor-modal'
 import NodesTable from '../table'
@@ -16,13 +15,13 @@ import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
 import NewActions from './new-actions'
-const GraphReactForce = lazy(() => import('./graph-react-force'))
+import GraphSettings from './graph-settings'
+import GraphMain from './graph-main'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
-// const GraphReactSigma = lazy(() => import('./graph-react-sigma'))
+const Graph = lazy(() => import('./graph'))
+const Wall = lazy(() => import('./wall/wall'))
 
-// const Graph = lazy(() => import('./graph'))
-
-const NODE_COUNT_THRESHOLD = 1000;
+const NODE_COUNT_THRESHOLD = 2000;
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -45,9 +44,8 @@ interface GraphPanelProps {
     isRefetching: boolean;
 }
 
-const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => {
+const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     const graphPanelRef = useRef<HTMLDivElement>(null)
-    const [loading, setLoading] = useState(isLoading)
     const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
     const nodes = useGraphStore(s => s.nodes)
     const view = useGraphControls((s) => s.view)
@@ -62,9 +60,8 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
         updateGraphData([], [])
         if (graphData?.nds && graphData?.rls) {
             updateGraphData(graphData.nds, graphData.rls)
-            setLoading(false)
         }
-    }, [graphData?.nds, graphData?.rls, setLoading])
+    }, [graphData?.nds, graphData?.rls])
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -134,20 +131,21 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
             }>
                 {nodes?.length > NODE_COUNT_THRESHOLD ? (
                     <>{view === "table" && <NodesTable />}
-                        {["force", "hierarchy"].includes(view) && <GraphReactForce />}
+                        {["force", "hierarchy"].includes(view) && <Graph />}
                         {view === "map" && <MapPanel />}
                         {view === "relationships" && <RelationshipsTable />}
                     </>
-                ) : (<>
-                    {view === "force" && <GraphReactForce />}
-                    {/* {view === "hierarchy" && <WallEditor isRefetching={isRefetching} isLoading={loading} />} */}
-                    {view === "table" && <NodesTable />}
-                    {view === "map" && <MapPanel />}
-                    {view === "relationships" && <RelationshipsTable />}
-                </>)}
+                ) : (
+                    <>
+                        {view === "hierarchy" && <Wall isLoading={false} isRefetching={false} />}
+                        {view === "force" && <GraphMain />}
+                        {/* {["force", "hierarchy"].includes(view) && <GraphMain />} */}
+                        {view === "table" && <NodesTable />}
+                        {view === "map" && <MapPanel />}
+                        {view === "relationships" && <RelationshipsTable />}
+                    </>
+                )}
             </Suspense>
-            {/* <Graph /> */}
-            {/* <GraphSigma /> */}
             <DragOverlay isDragging={isDraggingOver} />
             <div className='absolute z-21 left-3 top-3'>
                 <Toolbar isLoading={isLoading} />
@@ -155,6 +153,7 @@ const GraphPanel = ({ graphData, isLoading, isRefetching }: GraphPanelProps) => 
             <NewActions />
             <CreateRelationDialog />
             <NodeEditorModal />
+            <GraphSettings />
         </div>
     )
 }

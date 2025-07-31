@@ -1,5 +1,5 @@
 import { useTransformStore } from '@/stores/transform-store'
-import { DialogHeader, DialogFooter, Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog'
+import { DialogHeader, DialogFooter, Dialog, DialogContent, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { useCallback, useState, useEffect } from 'react'
 import { ScannerParamSchemaItem } from '@/types'
@@ -60,25 +60,21 @@ const ParamsDialog = () => {
 
     return (
         <Dialog open={openParamsDialog} onOpenChange={setOpenParamsDialog}>
-            <DialogContent className="sm:max-w-[725px]">
+            <DialogContent className="!w-[90vw] !max-w-[900px] h-[90vh] overflow-y-auto flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Configure <span className="text-primary">{selectedNode.data.class_name}</span></DialogTitle>
-                    {/* <DialogDescription className='break-words w-full'> */}
-                    <div className={cn("justify-start",
-                        "flex w-full",
-                    )}>
-                        <div className={cn("w-full",
-                            "p-3 rounded-xl max-w-full",
-                            "flex flex-col gap-2"
-                        )}>
-                            <MemoizedMarkdown id={selectedNode.id} content={selectedNode?.data.doc?.toString() ?? ""} />
+                    <div className={cn("justify-start", "flex w-full")}>
+                        <div className={cn("w-full", "p-3 rounded-xl max-w-full", "flex flex-col gap-2")}>
+                            <div className="max-w-none">
+                                {selectedNode?.data.description?.toString()}
+                            </div>
                         </div>
                     </div>
                 </DialogHeader>
                 <Tabs defaultValue="parameters" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="parameters">Parameters</TabsTrigger>
-                        <TabsTrigger value="settings">Settings</TabsTrigger>
+                        <TabsTrigger value="documentation">Documentation</TabsTrigger>
                     </TabsList>
                     <TabsContent value="parameters" className="space-y-4 mt-4">
                         <div className="grid gap-4">
@@ -109,80 +105,16 @@ const ParamsDialog = () => {
                             ))}
                         </div>
                     </TabsContent>
-
-                    <TabsContent value="settings" className="space-y-4 mt-4">
+                    <TabsContent value="documentation" className="space-y-4 mt-4">
                         <div className="grid gap-4">
-                            <div className="space-y-2">
-                                <div className="flex items-start flex-col">
-                                    <Label htmlFor="duration" className="text-sm font-medium">
-                                        Duration (seconds)
-                                    </Label>
-                                    <p className='text-sm opacity-60'>Maximum execution time for this transform</p>
-                                </div>
-                                <Input
-                                    id="duration"
-                                    type="number"
-                                    placeholder="30"
-                                    value={settings.duration || ""}
-                                    onChange={(e) => setSettings({ ...settings, duration: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-start flex-col">
-                                    <Label htmlFor="retry" className="text-sm font-medium">
-                                        Retry Attempts
-                                    </Label>
-                                    <p className='text-sm opacity-60'>Number of retry attempts on failure</p>
-                                </div>
-                                <Input
-                                    id="retry"
-                                    type="number"
-                                    placeholder="3"
-                                    value={settings.retry || ""}
-                                    onChange={(e) => setSettings({ ...settings, retry: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-start flex-col">
-                                    <Label htmlFor="timeout" className="text-sm font-medium">
-                                        Timeout (seconds)
-                                    </Label>
-                                    <p className='text-sm opacity-60'>Connection timeout for network requests</p>
-                                </div>
-                                <Input
-                                    id="timeout"
-                                    type="number"
-                                    placeholder="60"
-                                    value={settings.timeout || ""}
-                                    onChange={(e) => setSettings({ ...settings, timeout: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-start flex-col">
-                                    <Label htmlFor="priority" className="text-sm font-medium">
-                                        Priority
-                                    </Label>
-                                    <p className='text-sm opacity-60'>Execution priority level</p>
-                                </div>
-                                <select
-                                    id="priority"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={settings.priority || "medium"}
-                                    onChange={(e) => setSettings({ ...settings, priority: e.target.value })}
-                                >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
+                            <div className={cn("w-full", "p-3 rounded-xl max-w-full", "flex flex-col gap-2")}>
+                                <MemoizedMarkdown id={selectedNode.id} content={selectedNode?.data.documentation?.toString() ?? ""} />
                             </div>
                         </div>
                     </TabsContent>
                 </Tabs>
 
-                <DialogFooter>
+                <DialogFooter className="mt-auto">
                     <Button variant="outline" onClick={() => setOpenParamsDialog(false)}>
                         Cancel
                     </Button>

@@ -103,21 +103,16 @@ class SubdomainScanner(Scanner):
             for subdomain in domain_obj["subdomains"]:
                 output.append(Domain(domain=subdomain))
                 Logger.info(self.sketch_id, {"message": f"{domain_obj['domain']} -> {subdomain}"})
-                self.neo4j_conn.query("""
-                    MERGE (sub:domain {domain: $subdomain})
-                    SET sub.sketch_id = $sketch_id,
-                        sub.label = $label,
-                        sub.type = $type
-                    MERGE (d:domain {domain: $domain})
-                    MERGE (d)-[:HAS_SUBDOMAIN {sketch_id: $sketch_id}]->(sub)
-                """, {
-                    "domain": domain_obj["domain"],
-                    "subdomain": subdomain,
-                    "sketch_id": self.sketch_id,
-                    "label": subdomain,
-                    "type": "subdomain"
-                })
-            Logger.graph_append(self.sketch_id, {"message":f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."})
+                
+                # Create subdomain node
+                self.create_node('domain', 'domain', subdomain, 
+                               type='domain')
+                
+                # Create relationship from parent domain to subdomain
+                self.create_relationship('domain', 'domain', domain_obj["domain"],
+                                       'domain', 'domain', subdomain, 'HAS_SUBDOMAIN')
+            
+            self.log_graph_message(f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found.")
 
         return output
 

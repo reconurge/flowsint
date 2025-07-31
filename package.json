@@ -9,5 +9,8 @@
   "scripts": {
     "dev": "docker compose up -d",
     "compose:start": "docker compose -f docker-compose.yml up -d"
+  },
+  "dependencies": {
+    "babel-plugin-react-compiler": "^19.1.0-rc.2"
   }
 }

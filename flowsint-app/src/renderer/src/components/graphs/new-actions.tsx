@@ -88,7 +88,7 @@ export default function ActionDialog() {
                 // Add edge to local state
                 if (addEdge) {
                     const newEdgeObject = {
-                        type: "straight",
+                        type: "custom",
                         label: newEdge.label,
                         source: newEdge.source.id,
                         target: newEdge.target.id
@@ -146,8 +146,7 @@ export default function ActionDialog() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-1 pb-2"
-                >
+                    className="grid grid-cols-3 cq-sm:grid-cols-4 cq-md:grid-cols-5 cq-lg:grid-cols-6 cq-xl:grid-cols-6 gap-3 p-1 pb-2"                >
                     {items.map((item) => (
                         <ActionCard
                             key={item.id}
@@ -191,9 +190,9 @@ export default function ActionDialog() {
                         }
                     </DialogDescription>
 
-                    <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow">
+                    <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow @container">
                         {isLoading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-1 pb-2">
+                            <div className="grid grid-cols-3 cq-sm:grid-cols-4 cq-md:grid-cols-5 cq-lg:grid-cols-6 cq-xl:grid-cols-6 gap-3 p-1 pb-2">
                                 {Array.from({ length: 6 }).map((_, index) => (
                                     <Card key={index} className="h-full">
                                         <CardContent className="p-2 relative flex flex-col items-center text-center h-full">

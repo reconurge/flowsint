@@ -1,10 +1,9 @@
-from typing import List, Dict, Any, Union
+from typing import List, Union
 import requests
-from app.utils import is_valid_domain, resolve_type
+from app.utils import is_valid_domain
 from app.scanners.base import Scanner
 from app.types.domain import Domain
 from app.types.website import Website
-from pydantic import TypeAdapter
 from app.core.logger import Logger
 
 class DomainToWebsiteScanner(Scanner):
@@ -51,7 +50,7 @@ class DomainToWebsiteScanner(Scanner):
                     https_url = f"https://{domain.domain}"
                     response = requests.head(https_url, timeout=10, allow_redirects=True)
                     if response.status_code < 400:
-                        results.append(Website(url=https_url))
+                        results.append(Website(url=https_url, domain=domain))
                         continue
                 except requests.RequestException:
                     pass
@@ -61,18 +60,18 @@ class DomainToWebsiteScanner(Scanner):
                     http_url = f"http://{domain.domain}"
                     response = requests.head(http_url, timeout=10, allow_redirects=True)
                     if response.status_code < 400:
-                        results.append(Website(url=http_url))
+                        results.append(Website(url=http_url, domain=domain))
                         continue
                 except requests.RequestException:
                     pass
                     
                 # If both fail, still add HTTPS URL as default
-                results.append(Website(url=f"https://{domain.domain}"))
+                results.append(Website(url=f"https://{domain.domain}", domain=domain))
                     
             except Exception as e:
                 Logger.error(self.sketch_id, {"message": f"Error converting domain {domain.domain} to website: {e}"})
                 # Add HTTPS URL as fallback
-                results.append(Website(url=f"https://{domain.domain}"))
+                results.append(Website(url=f"https://{domain.domain}", domain=domain))
         
         return results
 
@@ -87,36 +86,25 @@ class DomainToWebsiteScanner(Scanner):
                     }
                     Logger.info(self.sketch_id, redirect_payload)
             
-            query = """
-            MERGE (d:domain {domain: $domain})
-            SET d.sketch_id = $sketch_id,
-                d.label = $domain,
-                d.type = "domain"
-            MERGE (w:website {url: $url})
-            SET w.sketch_id = $sketch_id,
-                w.label = $label,
-                w.active = $active,
-                w.redirects = $redirects,
-                w.type = "website"
-            MERGE (d)-[:HAS_WEBSITE {sketch_id: $sketch_id}]->(w)
-            """
             if self.neo4j_conn:
-                self.neo4j_conn.query(query, {
-                    "domain": website.domain.domain,
-                    "sketch_id": self.sketch_id,
-                    "label": str(website.url),
-                    "active": website.active,
-                    "url": str(website.url),
-                    "redirects": [str(redirect) for redirect in website.redirects] if website.redirects else [],
-                })
+                # Create domain node
+                self.create_node('domain', 'domain', website.domain.domain, type="domain")
+                
+                # Create website node
+                self.create_node('website', 'url', str(website.url),
+                               active=website.active,
+                               redirects=[str(redirect) for redirect in website.redirects] if website.redirects else [],
+                               type="website")
+                
+                # Create relationship
+                self.create_relationship('domain', 'domain', website.domain.domain,
+                                       'website', 'url', str(website.url), 'HAS_WEBSITE')
           
             is_active_str = "active" if website.active else "inactive"
             redirects_str = f" (redirects: {len(website.redirects)})" if website.redirects else ""
-            payload:Dict = {
-                "message": f"{website.domain.domain} -> {str(website.url)} ({is_active_str}){redirects_str}"
-                }
-            Logger.graph_append(self.sketch_id, payload)
-            
+            self.log_graph_message(f"{website.domain.domain} -> {str(website.url)} ({is_active_str}){redirects_str}")
+
+        return results
 
 
 # Make types available at module level for easy access

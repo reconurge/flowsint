@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 export function InvestigationSkeleton() {
     return (
         <div className="h-full w-full px-4 py-12 bg-background overflow-auto">
-            <div className='max-w-4xl mx-auto flex flex-col gap-12 items-center justify-start'>
+            <div className='max-w-4xl mx-auto flex flex-col gap-12 items-center justify-start' style={{ containerType: 'inline-size' }}>
                 {/* Recent Investigations Skeleton */}
                 <div className="w-full space-y-4">
                     <div className="flex items-center justify-between">
                         <Skeleton className="h-7 w-48" />
                         <Skeleton className="h-9 w-28" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                         {[...Array(2)].map((_, i) => (
                             <Card key={i} className="p-4">
                                 <div className="space-y-3">
@@ -34,7 +34,7 @@ export function InvestigationSkeleton() {
                 {/* Get Started Section Skeleton */}
                 <div className="w-full space-y-4">
                     <Skeleton className="h-7 w-48" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                         {[...Array(3)].map((_, i) => (
                             <Card key={i}>
                                 <CardHeader className="flex flex-row items-center gap-3 pb-2">
@@ -53,7 +53,7 @@ export function InvestigationSkeleton() {
                 {/* Discover Section Skeleton */}
                 <div className="w-full space-y-4">
                     <Skeleton className="h-7 w-48" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                         {[...Array(2)].map((_, i) => (
                             <Card key={i}>
                                 <CardHeader className="flex flex-row items-center gap-3 pb-2">
@@ -72,7 +72,7 @@ export function InvestigationSkeleton() {
                 {/* Useful Resources Skeleton */}
                 <div className="w-full space-y-4">
                     <Skeleton className="h-7 w-48" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                         {[...Array(2)].map((_, i) => (
                             <Card key={i}>
                                 <CardHeader className="flex flex-row items-center gap-3 pb-2">

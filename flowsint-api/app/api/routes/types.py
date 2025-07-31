@@ -188,7 +188,6 @@ async def get_types_list():
 def extract_input_schema(model: Type[BaseModel], label_key:str, icon: Optional[str]=None) -> Dict[str, Any]:
     
     adapter = TypeAdapter(model)
-    print(model.__name__)
     schema = adapter.json_schema()
     # Use the main schema properties, not the $defs
     type_name = model.__name__

@@ -226,59 +226,59 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
 };
 
 const DEFAULT_SIZES: Record<ItemType, number> = {
-    individual: 10,
-    phone: 8,
-    location: 7,
-    email: 7,
-    ip: 7,
-    socialprofile: 7,
-    organization: 10,
-    vehicle: 7,
-    car: 7,
-    motorcycle: 7,
-    boat: 7,
-    plane: 7,
-    website: 7,
-    domain: 8,
-    subdomain: 7,
-    document: 7,
-    financial: 7,
-    event: 7,
-    device: 7,
-    media: 7,
-    education: 7,
-    relationship: 7,
-    online_activity: 7,
-    digital_footprint: 7,
-    biometric: 7,
-    credential: 7,
-    username: 8,
-    siret: 5,
-    siren: 5,
-    cryptowallet: 7,
-    cryptotransaction: 7,
-    cryptonft: 7,
-    asn: 11,
-    cidr: 10,
-    whois: 6,
-    gravatar: 7,
-    breach: 8,
-    webtracker: 7,
-    session: 7,
-    dns: 7,
-    ssl: 7,
-    message: 7,
-    malware: 8,
-    weapon: 8,
-    script: 7,
-    reputation: 7,
-    risk: 8,
-    file: 7,
-    bank: 7,
-    creditcard: 7,
-    alias: 7,
-    affiliation: 7,
-    phrase: 7
+    individual: 24,        // Large - key entities
+    phone: 16,             // Medium-large
+    location: 14,          // Medium
+    email: 14,             // Medium
+    ip: 16,                // Medium-large
+    socialprofile: 14,     // Medium
+    organization: 28,      // Very large - important entities
+    vehicle: 12,           // Small-medium
+    car: 12,               // Small-medium
+    motorcycle: 12,        // Small-medium
+    boat: 12,              // Small-medium
+    plane: 12,             // Small-medium
+    website: 14,           // Medium
+    domain: 20,            // Large
+    subdomain: 16,         // Medium-large
+    document: 12,          // Small-medium
+    financial: 18,         // Medium-large
+    event: 12,             // Small-medium
+    device: 12,            // Small-medium
+    media: 12,             // Small-medium
+    education: 12,         // Small-medium
+    relationship: 10,      // Small
+    online_activity: 10,   // Small
+    digital_footprint: 10, // Small
+    biometric: 14,         // Medium
+    credential: 16,        // Medium-large
+    username: 14,          // Medium
+    siret: 8,              // Very small
+    siren: 8,              // Very small
+    cryptowallet: 18,      // Medium-large
+    cryptotransaction: 14, // Medium
+    cryptonft: 14,         // Medium
+    asn: 32,               // Largest - network infrastructure
+    cidr: 28,              // Very large - network ranges
+    whois: 10,             // Small
+    gravatar: 10,          // Small
+    breach: 20,            // Large - security important
+    webtracker: 12,        // Small-medium
+    session: 10,           // Small
+    dns: 16,               // Medium-large
+    ssl: 16,               // Medium-large
+    message: 12,           // Small-medium
+    malware: 24,           // Large - security critical
+    weapon: 22,            // Large - high importance
+    script: 12,            // Small-medium
+    reputation: 14,        // Medium
+    risk: 20,              // Large - important for analysis
+    file: 12,              // Small-medium
+    bank: 22,              // Large - financial importance
+    creditcard: 18,        // Medium-large
+    alias: 12,             // Small-medium
+    affiliation: 14,       // Medium
+    phrase: 10             // Small
 }
 
 interface NodesDisplaySettingsState {
@@ -326,7 +326,7 @@ export const useNodesDisplaySettings = create<NodesDisplaySettingsState>()(
                 return get().icons[itemType] || ""
             },
             getSize: (itemType) => {
-                return get().sizes[itemType]
+                return get().sizes[itemType] * 0.4
             }
         }),
         {

@@ -1,19 +1,39 @@
 import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
-import { Check, Rocket, X } from "lucide-react"
+import { Check, Rocket, X, MousePointer } from "lucide-react"
 import LaunchTransform from "./launch-transform"
 import NodeActions from "./node-actions"
 import { GraphNode } from "@/stores/graph-store"
 import { Button } from "../ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { useIcon } from "@/hooks/use-icon"
+import { useParams } from "@tanstack/react-router"
+import NeighborsGraph from "./neighbors"
 
-export default function DetailsPanel({ node }: { node: GraphNode }) {
+export default function DetailsPanel({ node }: { node: GraphNode | null }) {
+    const { id: sketchId } = useParams({ strict: false })
+    if (!node) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <MousePointer className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                    No Node Selected
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                    Click on any node in the graph to view its details and properties
+                </p>
+            </div>
+        )
+    }
 
     return (
-        <div className="overflow-y-auto overflow-x-hidden w-full min-w-0 h-full min-h-0">
-            <div className="flex items-center sticky w-full bg-card top-0 border-b justify-start px-4 py-2 gap-2 z-50">
-                <h1 className="text-md font-semibold truncate">{node.data?.label}</h1>
+        <div className="overflow-y-auto bg-card overflow-x-hidden w-full min-w-0 h-full min-h-0">
+            <ItemHero node={node} />
+            <div className="flex items-center sticky w-full top-0 border-b justify-start px-4 py-2 gap-2 z-50">
+                <p className="text-md font-semibold truncate">{node.data?.label}</p>
                 <div className="grow" />
                 <div className="flex items-center">
                     <TooltipProvider>
@@ -48,6 +68,9 @@ export default function DetailsPanel({ node }: { node: GraphNode }) {
                 </div>
             )}
             <KeyValueDisplay data={node.data} />
+            <div className="h-[340px] p-3">
+                <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
+            </div>
         </div>
     )
 }
@@ -101,3 +124,16 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
 }
 
 export const MemoizedKeyValueDisplay = memo(KeyValueDisplay)
+
+const ItemHero = ({ node }: { node: GraphNode }) => {
+    const ItemIcon = useIcon(node.data.type, node.data.src)
+    return (
+        <div className="flex bg-card border-b items-center w-full justify-between p-4 gap-4">
+            <div className="truncate">
+                <p className="text-xl font-semibold truncate text-ellipsis">{node.data.label}</p>
+                <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{node.data.type}</p>
+            </div>
+            <ItemIcon size={70} />
+        </div>
+    )
+}

@@ -28,7 +28,7 @@ function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
 }
 
 // Type node component for data types (domains, websites, IPs, etc.)
-const TypeNode = memo(({ data, selected }: ScannerNodeProps) => {
+const TypeNode = memo(({ data }: ScannerNodeProps) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     const outputColor = colors[data.outputs.type.toLowerCase()]
     const Icon = useIcon(data.outputs.type.toLowerCase() as string, null)

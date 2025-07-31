@@ -19,7 +19,7 @@ const Legend = () => {
                         </Button>
                     </div>
                 </DialogTrigger>
-                <DialogContent className='sm:max-w-md'>
+                <DialogContent className='sm:max-w-md max-h-[90vh] overflow-y-auto'>
                     <div className='p-2'>
                         <ul className='grid grid-cols-2 items-center gap-1'>
                             {entries.map(([key, value]) => (

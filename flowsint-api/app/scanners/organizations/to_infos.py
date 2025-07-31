@@ -221,164 +221,99 @@ class OrgToInfosScanner(Scanner):
 
         for org in results:
             # Create or update the organization node with all SIRENE properties
-            self.neo4j_conn.query("""
-                MERGE (o:Organization {name: $name, country: $country})
-                SET o.siren = $siren,
-                    o.siege_siret = $siret,
-                    o.nom_complet = $nom_complet,
-                    o.nom_raison_sociale = $nom_raison_sociale,
-                    o.sigle = $sigle,
-                    o.nombre_etablissements = $nombre_etablissements,
-                    o.nombre_etablissements_ouverts = $nombre_etablissements_ouverts,
-                    o.activite_principale = $activite_principale,
-                    o.section_activite_principale = $section_activite_principale,
-                    o.categorie_entreprise = $categorie_entreprise,
-                    o.annee_categorie_entreprise = $annee_categorie_entreprise,
-                    o.caractere_employeur = $caractere_employeur,
-                    o.tranche_effectif_salarie = $tranche_effectif_salarie,
-                    o.annee_tranche_effectif_salarie = $annee_tranche_effectif_salarie,
-                    o.date_creation = $date_creation,
-                    o.date_fermeture = $date_fermeture,
-                    o.date_mise_a_jour = $date_mise_a_jour,
-                    o.date_mise_a_jour_insee = $date_mise_a_jour_insee,
-                    o.date_mise_a_jour_rne = $date_mise_a_jour_rne,
-                    o.nature_juridique = $nature_juridique,
-                    o.etat_administratif = $etat_administratif,
-                    o.statut_diffusion = $statut_diffusion,
-                    o.sketch_id = $sketch_id,
-                    o.label = $name,
-                    o.caption = $name,
-                    o.type = 'organization'
-            """, {
-                "name": org.name,
-                "country": "FR",
-                "siren": org.siren,
-                "siret": org.siege_siret,
-                "nom_complet": org.nom_complet,
-                "nom_raison_sociale": org.nom_raison_sociale,
-                "sigle": org.sigle,
-                "nombre_etablissements": org.nombre_etablissements,
-                "nombre_etablissements_ouverts": org.nombre_etablissements_ouverts,
-                "activite_principale": org.activite_principale,
-                "section_activite_principale": org.section_activite_principale,
-                "categorie_entreprise": org.categorie_entreprise,
-                "annee_categorie_entreprise": org.annee_categorie_entreprise,
-                "caractere_employeur": org.caractere_employeur,
-                "tranche_effectif_salarie": org.tranche_effectif_salarie,
-                "annee_tranche_effectif_salarie": org.annee_tranche_effectif_salarie,
-                "date_creation": org.date_creation,
-                "date_fermeture": org.date_fermeture,
-                "date_mise_a_jour": org.date_mise_a_jour,
-                "date_mise_a_jour_insee": org.date_mise_a_jour_insee,
-                "date_mise_a_jour_rne": org.date_mise_a_jour_rne,
-                "nature_juridique": org.nature_juridique,
-                "etat_administratif": org.etat_administratif,
-                "statut_diffusion": org.statut_diffusion,
-                "sketch_id": self.sketch_id,
-            })
+            org_key = f"{org.name}_FR"
+            self.create_node('Organization', 'org_id', org_key,
+                           name=org.name,
+                           country="FR",
+                           siren=org.siren,
+                           siege_siret=org.siege_siret,
+                           nom_complet=org.nom_complet,
+                           nom_raison_sociale=org.nom_raison_sociale,
+                           sigle=org.sigle,
+                           nombre_etablissements=org.nombre_etablissements,
+                           nombre_etablissements_ouverts=org.nombre_etablissements_ouverts,
+                           activite_principale=org.activite_principale,
+                           section_activite_principale=org.section_activite_principale,
+                           categorie_entreprise=org.categorie_entreprise,
+                           annee_categorie_entreprise=org.annee_categorie_entreprise,
+                           caractere_employeur=org.caractere_employeur,
+                           tranche_effectif_salarie=org.tranche_effectif_salarie,
+                           annee_tranche_effectif_salarie=org.annee_tranche_effectif_salarie,
+                           date_creation=org.date_creation,
+                           date_fermeture=org.date_fermeture,
+                           date_mise_a_jour=org.date_mise_a_jour,
+                           date_mise_a_jour_insee=org.date_mise_a_jour_insee,
+                           date_mise_a_jour_rne=org.date_mise_a_jour_rne,
+                           nature_juridique=org.nature_juridique,
+                           etat_administratif=org.etat_administratif,
+                           statut_diffusion=org.statut_diffusion,
+                           caption=org.name, type='organization')
 
             if org.siren:
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: SIREN {org.siren} -> {org.name}"})
+                self.log_graph_message(f"{org.name}: SIREN {org.siren} -> {org.name}")
 
             # Add SIRET as identifier if available
             if org.siege_siret:
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: SIRET {org.siege_siret} -> {org.name}"})
+                self.log_graph_message(f"{org.name}: SIRET {org.siege_siret} -> {org.name}")
 
             # Add dirigeants (leaders) as Individual nodes with relationships
             if org.dirigeants:
                 for dirigeant in org.dirigeants:
-                    self.neo4j_conn.query("""
-                        MERGE (i:Individual {full_name: $full_name})
-                        SET i.first_name = $first_name,
-                            i.last_name = $last_name,
-                            i.birth_date = $birth_date,
-                            i.gender = $gender,
-                            i.sketch_id = $sketch_id,
-                            i.label = $full_name,
-                            i.caption = $full_name,
-                            i.type = 'individual'
-                        WITH i
-                        MATCH (o:Organization {name: $org_name, country: $org_country})
-                        MERGE (o)-[:HAS_LEADER {sketch_id: $sketch_id}]->(i)
-                    """, {
-                        "full_name": dirigeant.full_name,
-                        "first_name": dirigeant.first_name,
-                        "last_name": dirigeant.last_name,
-                        "birth_date": dirigeant.birth_date,
-                        "gender": dirigeant.gender,
-                        "sketch_id": self.sketch_id,
-                        "org_name": org.name,
-                        "org_country": "FR",
-                    })
-                    Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_LEADER -> {dirigeant.full_name}"})
+                    self.create_node('Individual', 'full_name', dirigeant.full_name,
+                                   first_name=dirigeant.first_name,
+                                   last_name=dirigeant.last_name,
+                                   birth_date=dirigeant.birth_date,
+                                   gender=dirigeant.gender,
+                                   caption=dirigeant.full_name, type='individual')
+                    
+                    self.create_relationship('Organization', 'org_id', org_key,
+                                           'Individual', 'full_name', dirigeant.full_name, 'HAS_LEADER')
+                    self.log_graph_message(f"{org.name}: HAS_LEADER -> {dirigeant.full_name}")
 
             # Add siege address as PhysicalAddress node if available
             if org.siege_geo_adresse:
                 address = org.siege_geo_adresse
-                self.neo4j_conn.query("""
-                    MERGE (a:PhysicalAddress {address: $address, city: $city, country: $country})
-                    SET a.zip = $zip,
-                        a.latitude = $latitude,
-                        a.longitude = $longitude,
-                        a.sketch_id = $sketch_id,
-                        a.label = $label,
-                        a.caption = $caption,
-                        a.type = 'location'
-                    WITH a
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:HAS_ADDRESS {sketch_id: $sketch_id}]->(a)
-                """, {
-                    "address": address.address,
-                    "city": address.city,
-                    "country": address.country,
-                    "zip": address.zip,
-                    "latitude": address.latitude,
-                    "longitude": address.longitude,
-                    "sketch_id": self.sketch_id,
-                    "label": f"{address.address}, {address.city}",
-                    "caption": f"{address.address}, {address.city}",
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}"})
+                address_key = f"{address.address}_{address.city}_{address.country}"
+                self.create_node('PhysicalAddress', 'address_id', address_key,
+                               address=address.address,
+                               city=address.city,
+                               country=address.country,
+                               zip=address.zip,
+                               latitude=address.latitude,
+                               longitude=address.longitude,
+                               label=f"{address.address}, {address.city}",
+                               caption=f"{address.address}, {address.city}",
+                               type='location')
+                
+                self.create_relationship('Organization', 'org_id', org_key,
+                                       'PhysicalAddress', 'address_id', address_key, 'HAS_ADDRESS')
+                self.log_graph_message(f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}")
 
             # Add siege location as Location node if coordinates are available but no PhysicalAddress
             elif org.siege_latitude and org.siege_longitude:
-                self.neo4j_conn.query("""
-                    MERGE (l:Location {latitude: $latitude, longitude: $longitude})
-                    SET l.address = $address,
-                        l.city = $city,
-                        l.country = $country,
-                        l.zip = $zip,
-                        l.sketch_id = $sketch_id,
-                        l.label = $label,
-                        l.caption = $caption,
-                        l.type = 'location'
-                    WITH l
-                    MATCH (o:Organization {name: $org_name, country: $org_country})
-                    MERGE (o)-[:LOCATED_AT {sketch_id: $sketch_id}]->(l)
-                """, {
-                    "latitude": float(org.siege_latitude),
-                    "longitude": float(org.siege_longitude),
-                    "address": org.siege_adresse,
-                    "city": org.siege_libelle_commune,
-                    "country": "FR",
-                    "zip": org.siege_code_postal,
-                    "sketch_id": self.sketch_id,
-                    "label": f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    "caption": f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    "org_name": org.name,
-                    "org_country": "FR",
-                })
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: LOCATED_AT -> {org.siege_libelle_commune or 'Unknown'}"})
+                location_key = f"{org.siege_latitude}_{org.siege_longitude}"
+                self.create_node('Location', 'location_id', location_key,
+                               latitude=float(org.siege_latitude),
+                               longitude=float(org.siege_longitude),
+                               address=org.siege_adresse,
+                               city=org.siege_libelle_commune,
+                               country="FR",
+                               zip=org.siege_code_postal,
+                               label=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
+                               caption=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
+                               type='location')
+                
+                self.create_relationship('Organization', 'org_id', org_key,
+                                       'Location', 'location_id', location_key, 'LOCATED_AT')
+                self.log_graph_message(f"{org.name}: LOCATED_AT -> {org.siege_libelle_commune or 'Unknown'}")
 
             # Add activity codes as Activity nodes
             if org.activite_principale:
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}"})
+                self.log_graph_message(f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}")
 
             # Add legal nature as LegalNature node
             if org.nature_juridique:
-                Logger.graph_append(self.sketch_id, {"message": f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}"})
+                self.log_graph_message(f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}")
 
         return results
 

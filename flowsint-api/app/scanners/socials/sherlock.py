@@ -94,22 +94,10 @@ class SherlockScanner(Scanner):
             return results
 
         for social in results:
-            # Create or update social account node
-            social_query = """
-            MERGE (social:social {username: $username, platform: $platform})
-            SET social.url = $url,
-                social.sketch_id = $sketch_id,
-                social.label = $username,
-                social.caption = $platform,
-                social.type = "social"
-            """
-            self.neo4j_conn.query(social_query, {
-                "username": social.username,
-                "platform": social.platform,
-                "url": social.url,
-                "sketch_id": self.sketch_id
-            })
-            Logger.graph_append(self.sketch_id, {"message": f"Found social account: {social.username} on {social.platform}"})
+            self.create_node('social', 'username', social.username, 
+                           platform=social.platform, url=social.url, 
+                           caption=social.platform, type='social')
+            self.log_graph_message(f"Found social account: {social.username} on {social.platform}")
 
         return results
 

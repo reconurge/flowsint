@@ -11,7 +11,7 @@ interface SkeletonListProps {
 export function SkeletonList({ rowCount, className, mode = 'list' }: SkeletonListProps) {
     if (mode === 'card') {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
                 {Array.from({ length: rowCount }).map((_, i) => (
                     <Card key={i} className="group">
                         <CardHeader className="pb-2">

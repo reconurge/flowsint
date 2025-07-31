@@ -94,10 +94,12 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
 
     const [menu, setMenu] = useState<{
         node: TransformNode;
-        top: number;
-        left: number;
-        right: number;
-        bottom: number;
+        top?: number;
+        left?: number;
+        right?: number;
+        bottom?: number;
+        rawTop?: number;
+        rawLeft?: number;
         wrapperWidth: number;
         wrapperHeight: number;
         setMenu: (menu: any | null) => void;
@@ -126,39 +128,10 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
             const relativeX = event.clientX - pane.left;
             const relativeY = event.clientY - pane.top;
 
-            // Calculate available space in each direction
-            const menuWidth = 320; // Default menu width
-            const menuHeight = 250; // Use a more reasonable height for overflow calculation
-            const padding = 20; // Minimum padding from edges
-
-            // Determine if menu would overflow in each direction
-            const wouldOverflowRight = relativeX + menuWidth + padding > pane.width;
-            const wouldOverflowBottom = relativeY + menuHeight + padding > pane.height;
-
-            // Calculate final position
-            let finalTop = 0;
-            let finalLeft = 0;
-            let finalRight = 0;
-            let finalBottom = 0;
-
-            if (wouldOverflowRight) {
-                finalRight = pane.width - relativeX;
-            } else {
-                finalLeft = relativeX;
-            }
-
-            if (wouldOverflowBottom) {
-                finalBottom = pane.height - relativeY;
-            } else {
-                finalTop = relativeY;
-            }
-
             setMenu({
                 node: node as TransformNode,
-                top: finalTop,
-                left: finalLeft,
-                right: finalRight,
-                bottom: finalBottom,
+                rawTop: relativeY,
+                rawLeft: relativeX,
                 wrapperWidth: pane.width,
                 wrapperHeight: pane.height,
                 setMenu: setMenu,
@@ -221,7 +194,8 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                     type: scannerData.type,
                     inputs: scannerData.inputs,
                     outputs: scannerData.outputs,
-                    doc: scannerData.doc,
+                    documentation: scannerData.documentation,
+                    description: scannerData.description,
                     required_params: scannerData.required_params,
                     params: scannerData.params,
                     params_schema: scannerData.params_schema,

@@ -46,7 +46,7 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
                 scanner.module.toLowerCase().includes(term) ||
                 scanner.inputs.type.toLowerCase().includes(term) ||
                 scanner.outputs.type.toLowerCase().includes(term) ||
-                (scanner.doc && scanner.doc.toLowerCase().includes(term))
+                (scanner.documentation && scanner.documentation.toLowerCase().includes(term))
             )
         })
     }, [searchTerm, materials?.items, selectedNode])
@@ -69,7 +69,8 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
                 type: scanner.type,
                 inputs: scanner.inputs,
                 outputs: scanner.outputs,
-                doc: scanner.doc,
+                documentation: scanner.documentation,
+                description: scanner.description,
                 required_params: scanner.required_params,
                 params: scanner.params,
                 params_schema: scanner.params_schema,
@@ -151,7 +152,7 @@ function areEqual(prevProps: { scanner: Scanner }, nextProps: { scanner: Scanner
         prevProps.scanner.class_name === nextProps.scanner.class_name &&
         prevProps.scanner.name === nextProps.scanner.name &&
         prevProps.scanner.module === nextProps.scanner.module &&
-        prevProps.scanner.doc === nextProps.scanner.doc
+        prevProps.scanner.documentation === nextProps.scanner.documentation
     )
 }
 
@@ -176,7 +177,7 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
                                 {Icon && <Icon size={24} />}
                                 <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
                             </div>
-                            <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{scanner.doc}</p>
+                            <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{scanner.description}</p>
                             <div className="mt-2 flex items-center gap-2 text-xs">
                                 <div className="flex items-center gap-1">
                                     <span className="text-muted-foreground">Takes</span>

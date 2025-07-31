@@ -23,4 +23,17 @@ export type EdgeData = {
 export type InvestigationGraph = {
   nodes: Node[];
   edges: Edge[];
-}; 
+};
+
+export type Setting = {
+  value: any,
+  min?: number,
+  max?: number,
+  step?: number,
+  type?: string,
+  description?: string,
+}
+
+export type Settings = {
+  [key: string]: Setting,
+}

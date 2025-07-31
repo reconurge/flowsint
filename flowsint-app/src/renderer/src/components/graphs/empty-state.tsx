@@ -78,7 +78,7 @@ const EmptyState = memo(() => {
                     className="h-10 px-6 font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                     size="default"
                 >
-                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <PlusIcon className="w-4 h-4" />
                     Add your first item
                 </Button>
                 <p className="text-xs text-muted-foreground">

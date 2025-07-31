@@ -134,7 +134,7 @@ export const ChatPanel = ({
 export const ContextList = memo(({ context }: { context: any }) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     return (
-        <div className="flex flex-nowrap overflow-x-auto hide-scrollbar gap-1.5 items-center">
+        <div className="flex flex-nowrap overflow-x-auto hide-scrollbar gap-1.5 items-center px-1">
             {context.map((item: any, index: number) => {
                 const color = colors[item?.data?.type || item?.type]
                 return (

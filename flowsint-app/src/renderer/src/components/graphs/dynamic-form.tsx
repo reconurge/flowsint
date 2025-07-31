@@ -40,7 +40,7 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                         schemaMap[field.name] = field.required
                             ? z
                                 .string()
-                                .min(1, { message: `${field.label} est requis` })
+                                .min(1, { message: `${field.label} is required` })
                                 .email({ message: "Email invalide" })
                             : z.string().email({ message: "Email invalide" }).optional()
                         break
@@ -48,7 +48,7 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                         schemaMap[field.name] = field.required
                             ? z
                                 .string()
-                                .min(1, { message: `${field.label} est requis` })
+                                .min(1, { message: `${field.label} is required` })
                                 .url({ message: "URL invalide" })
                             : z.string().url({ message: "URL invalide" }).optional()
                         break
@@ -56,7 +56,7 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                         schemaMap[field.name] = field.required
                             ? z
                                 .string()
-                                .min(1, { message: `${field.label} est requis` })
+                                .min(1, { message: `${field.label} is required` })
                                 .refine((val) => !isNaN(Number(val)), {
                                     message: "Doit être un nombre valide",
                                 })
@@ -73,7 +73,7 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                             schemaMap[field.name] = field.required
                                 ? z
                                     .string()
-                                    .min(1, { message: `${field.label} est requis` })
+                                    .min(1, { message: `${field.label} is required` })
                                     .refine((val) => validValues.includes(val), {
                                         message: "Valeur non valide",
                                     })
@@ -85,13 +85,13 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                                     .optional()
                         } else {
                             schemaMap[field.name] = field.required
-                                ? z.string().min(1, { message: `${field.label} est requis` })
+                                ? z.string().min(1, { message: `${field.label} is required` })
                                 : z.string().optional()
                         }
                         break
                     case "date":
                         schemaMap[field.name] = field.required
-                            ? z.string().min(1, { message: `${field.label} est requis` })
+                            ? z.string().min(1, { message: `${field.label} is required` })
                             : z.string().optional()
                         break
                     case "hidden":
@@ -99,19 +99,19 @@ export function DynamicForm({ currentNodeType, initialData = {}, onSubmit, isFor
                         break
                     case "textarea":
                         schemaMap[field.name] = field.required
-                            ? z.string().min(1, { message: `${field.label} est requis` })
+                            ? z.string().min(1, { message: `${field.label} is required` })
                             : z.string().optional()
                         break
                     case "metadata":
                         schemaMap[field.name] = field.required
                             ? z.record(z.string(), z.string()).refine((val) => Object.keys(val).length > 0, {
-                                message: "Au moins une métadonnée est requise",
+                                message: "Au moins une métadonnée is requirede",
                             })
                             : z.record(z.string(), z.string()).optional()
                         break
                     default:
                         schemaMap[field.name] = field.required
-                            ? z.string().min(1, { message: `${field.label} est requis` })
+                            ? z.string().min(1, { message: `${field.label} is required` })
                             : z.string().optional()
                 }
             })

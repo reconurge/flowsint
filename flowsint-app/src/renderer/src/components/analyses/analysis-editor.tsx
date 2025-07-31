@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MinimalTiptapEditor } from "@/components/analyses/editor"
 import { analysisService } from "@/api/analysis-service"
@@ -72,6 +72,29 @@ export const AnalysisEditor = ({
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
 
+    // Debounced save function
+    const debouncedSave = useCallback(
+        debounce(() => {
+            if (analysis && editorValue) {
+                saveMutation.mutate({})
+            }
+        }, 1000), // 1 second delay
+        [analysis, editorValue]
+    )
+
+    // Debounce function
+    function debounce(func: Function, wait: number) {
+        let timeout: NodeJS.Timeout
+        return function executedFunction(...args: any[]) {
+            const later = () => {
+                clearTimeout(timeout)
+                func(...args)
+            }
+            clearTimeout(timeout)
+            timeout = setTimeout(later, wait)
+        }
+    }
+
     // Mutations
     const createMutation = useMutation({
         mutationFn: async () => {
@@ -103,7 +126,11 @@ export const AnalysisEditor = ({
             }))
         },
         onSuccess: async (data) => {
-            queryClient.invalidateQueries({ queryKey: ["analyses", investigationId] })
+            // Use more specific query invalidation
+            queryClient.setQueryData(["analyses", investigationId], (oldData: Analysis[] | undefined) => {
+                if (!oldData) return oldData
+                return oldData.map(item => item.id === data.id ? data : item)
+            })
             onAnalysisUpdate?.(data)
             toast.success("Analysis saved !")
         },
@@ -135,7 +162,11 @@ export const AnalysisEditor = ({
             }))
         },
         onSuccess: async (data) => {
-            queryClient.invalidateQueries({ queryKey: ["analyses", investigationId] })
+            // Use more specific query invalidation
+            queryClient.setQueryData(["analyses", investigationId], (oldData: Analysis[] | undefined) => {
+                if (!oldData) return oldData
+                return oldData.map(item => item.id === data.id ? data : item)
+            })
             onAnalysisUpdate?.(data)
             toast.success("Title updated")
         },
@@ -213,10 +244,10 @@ export const AnalysisEditor = ({
     }
 
     return (
-        <div className={`flex flex-col h-full w-full overflow-y-auto ${className}`}>
+        <div className={`flex flex-col h-full w-full overflow-y-auto bg-card ${className}`}>
             {/* Header */}
             {showHeader && (
-                <div className="bg-background/70 sticky top-0 z-10 backdrop-blur-sm h-11 w-full flex items-center justify-between">
+                <div className="bg-card/70 sticky top-0 z-10 backdrop-blur-sm h-11 w-full flex items-center justify-between">
                     <div className="flex items-center justify-between p-3 w-full">
                         {/* Left section with navigation and title */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">

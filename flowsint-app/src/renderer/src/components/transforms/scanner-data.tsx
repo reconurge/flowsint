@@ -1,5 +1,3 @@
-import type { Scanner, ScansData, ScannerData } from "@/types/transform"
-
 // Default color for fallback cases
 export const DEFAULT_COLOR = "#94a3b8"
 

@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { sketchService } from "@/api/sketch-service";
-import { GraphNode } from "@/stores/graph-store";
+import { GraphNode, useGraphStore } from "@/stores/graph-store";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { CopyButton } from "../copy";
 
 export type RelationshipType = {
     source: GraphNode
@@ -24,63 +25,63 @@ export type RelationshipType = {
     edge: { label: string }
 }
 
-const ITEM_HEIGHT = 76; // Balanced spacing between items
+const ITEM_HEIGHT = 67; // Balanced spacing between items (55px card + 12px padding)
 
 // Separate component for relationship item to avoid hook order issues
 interface RelationshipItemProps {
     relationship: RelationshipType;
     style: React.CSSProperties;
+    onNodeClick: (node: GraphNode) => void
 }
 
-function RelationshipItem({ relationship, style }: RelationshipItemProps) {
+function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItemProps) {
     const SourceIcon = useIcon(relationship.source.data?.type, relationship.source.data?.src);
     const TargetIcon = useIcon(relationship.target.data?.type, relationship.target.data?.src);
 
+    const handleNodeClickSource = useCallback(() => {
+        onNodeClick(relationship.source)
+    }, [])
+    const handleNodeClickTarget = useCallback(() => {
+        onNodeClick(relationship.target)
+    }, [])
+
     return (
         <div style={style} className="px-4 pb-2">
-            <Card className="h-[64px] hover:shadow-md transition-shadow duration-200 p-0">
-                <CardContent className="p-3 h-[64px] flex items-center gap-2 min-w-0">
+            <Card className="h-[55px] hover:shadow-md transition-shadow duration-200 p-0">
+                <CardContent className="p-3 h-[55px] flex items-center gap-2 min-w-0">
                     {/* Source Node */}
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
                             <SourceIcon className="h-4 w-4" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate text-sm">
-                                {relationship.source.data?.label || relationship.source.id}
-                            </p>
-                            <Badge variant="outline" className="text-xs truncate max-w-full">
-                                <span className="truncate">
-                                    {relationship.source.data?.type || 'unknown'}
-                                </span>
-                            </Badge>
-                        </div>
+                        <button onClick={handleNodeClickSource} className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-left max-w-full">
+                            <span className="block truncate">
+                                {relationship.source.data?.label ?? relationship.source.id}
+                            </span>
+                        </button>
+                        <CopyButton content={relationship.source.data?.label ?? relationship.source.id} />
                     </div>
 
                     {/* Relationship Arrow */}
-                    <div className="flex items-center gap-2 px-2 flex-shrink-0 min-w-0 max-w-[200px]">
-                        <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-full min-w-0">
-                            <Badge variant="secondary" className="text-xs font-medium truncate max-w-[120px]">
+                    <div className="flex items-center gap-2 px-2 flex-shrink-0 min-w-0">
+                        <div className="flex items-center gap-2  px-2 py-1 rounded-full min-w-0">
+                            <Badge variant="secondary" className="text-xs font-medium truncate">
                                 <span className="truncate">
                                     {relationship.edge.label}
                                 </span>
+                                <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             </Badge>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         </div>
                     </div>
 
                     {/* Target Node */}
-                    <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
-                        <div className="flex-1 min-w-0 text-right">
-                            <p className="font-medium truncate text-sm">
+                    <div className="flex items-center gap-2 flex-1 justify-end min-w-0 truncate text-ellipsis">
+                        <CopyButton content={relationship.target.data?.label ?? relationship.target.id} />
+                        <button onClick={handleNodeClickTarget} className="font-medium text-sm hover:text-primary hover:underline cursor-pointer max-w-full text-right">
+                            <span className="block truncate">
                                 {relationship.target.data?.label || relationship.target.id}
-                            </p>
-                            <Badge variant="outline" className="text-xs truncate max-w-full">
-                                <span className="truncate">
-                                    {relationship.target.data?.type || 'unknown'}
-                                </span>
-                            </Badge>
-                        </div>
+                            </span>
+                        </button>
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
                             <TargetIcon className="h-4 w-4" />
                         </div>
@@ -102,6 +103,14 @@ export default function RelationshipsTable() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedType, setSelectedType] = useState<string>("all");
     const parentRef = useRef<HTMLDivElement>(null);
+    const setCurrentNode = useGraphStore(s => s.setCurrentNode)
+    const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
+
+    const onNodeClick = useCallback((node: GraphNode) => {
+        setCurrentNode(node)
+        setOpenNodeEditorModal(true)
+    }, [setCurrentNode, setOpenNodeEditorModal])
+
 
     // Filter relationships based on search and type
     const filteredRelationships = useMemo(() => {
@@ -141,7 +150,7 @@ export default function RelationshipsTable() {
 
     if (isLoading) {
         return (
-            <div className="w-full pt-18 space-y-4 p-12">
+            <div className="w-full p-4 px-6 space-y-4 pt-18">
                 {/* Header with stats */}
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -183,7 +192,7 @@ export default function RelationshipsTable() {
                 <div className="grow overflow-auto py-4 rounded-lg border">
                     <div className="space-y-2 px-4">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <Skeleton key={i} className="h-[64px] w-full" />
+                            <Skeleton key={i} className="h-[55px] w-full" />
                         ))}
                     </div>
                 </div>
@@ -268,6 +277,7 @@ export default function RelationshipsTable() {
                             <RelationshipItem
                                 key={virtualRow.index}
                                 relationship={relationship}
+                                onNodeClick={onNodeClick}
                                 style={{
                                     position: 'absolute',
                                     top: 0,

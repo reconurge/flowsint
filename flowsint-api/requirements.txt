@@ -32,4 +32,6 @@ docker
 git+https://github.com/soxoj/maigret
 git+https://github.com/reconurge/recontrack.git
 git+https://github.com/reconurge/reconcrawl.git
+git+https://github.com/reconurge/reconspread.git
 pytest-asyncio
+stix2

@@ -31,10 +31,9 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
                 />
             </div>
             <div
-                className="text-nowrap text-center max-w-[160px]  text-ellipsis truncate"
+                className="text-nowrap text-center max-w-[160px] text-ellipsis truncate"
                 style={{
-                    fontSize: 11,
-                    color: (selected || isCurrent(id)) ? "#f97316" : "#94a3b8",
+                    color: (selected || isCurrent(id)) ? "#f97316" : undefined,
                     marginTop: 2,
                     pointerEvents: "none",
                 }}
@@ -44,8 +43,8 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps) => {
             <div
                 className="text-nowrap text-center opacity-70"
                 style={{
-                    fontSize: 8,
-                    color: selected ? "#f97316" : "#94a3b8",
+                    fontSize: 10,
+                    color: selected ? "#f97316" : undefined,
                     marginTop: 1,
                     pointerEvents: "none",
                 }}

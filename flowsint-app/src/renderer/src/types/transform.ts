@@ -30,7 +30,8 @@ export interface Scanner {
     category: string
     name: string
     module: string
-    doc: string | null
+    documentation: string | null
+    description: string | null
     inputs: ScannerIO
     outputs: ScannerIO
     type: string

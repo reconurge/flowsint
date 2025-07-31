@@ -1,57 +1,58 @@
 // src/components/FormField.tsx
 import React, { type InputHTMLAttributes } from 'react';
 import { useFormContext, type RegisterOptions, type FieldError } from 'react-hook-form';
+import { Input } from '../ui/input';
 
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-    name: string;
-    label: string;
-    registerOptions?: RegisterOptions;
-    error?: FieldError;
-    type?: string;
-    placeholder?: string;
-    className?: string;
+  name: string;
+  label: string;
+  registerOptions?: RegisterOptions;
+  error?: FieldError;
+  type?: string;
+  placeholder?: string;
+  className?: string;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
-    name,
-    label,
-    registerOptions,
-    error,
-    type = 'text',
-    placeholder = '',
-    className = '',
-    ...rest
+  name,
+  label,
+  registerOptions,
+  error,
+  type = 'text',
+  placeholder = '',
+  className = '',
+  ...rest
 }) => {
-    // Si utilisé dans un FormProvider, on peut récupérer le registre ici
-    const formContext = useFormContext();
+  // Si utilisé dans un FormProvider, on peut récupérer le registre ici
+  const formContext = useFormContext();
 
-    // Détermine si on utilise le contexte ou des props directes
-    const register = formContext ? formContext.register : undefined;
-    const fieldError = error || (formContext ? formContext.formState.errors[name] : undefined);
+  // Détermine si on utilise le contexte ou des props directes
+  const register = formContext ? formContext.register : undefined;
+  const fieldError = error || (formContext ? formContext.formState.errors[name] : undefined);
 
-    return (
-        <div className={`space-y-1 ${className}`}>
-            <label htmlFor={name} className="block text-sm font-medium">
-                {label}
-            </label>
+  return (
+    <div className={`space-y-1 ${className}`}>
+      <label htmlFor={name} className="block text-sm font-medium">
+        {label}
+      </label>
 
-            <input
-                id={name}
-                type={type}
-                placeholder={placeholder}
-                className={`mt-1 block w-full px-3 py-2 border ${fieldError ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
-                {...(register ? register(name, registerOptions) : {})}
-                {...rest}
-            />
+      <Input
+        id={name}
+        type={type}
+        placeholder={placeholder}
+        className={`mt-1 block w-full px-3 py-2 border ${fieldError ? 'border-red-300' : 'border-border'
+          } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
+        {...(register ? register(name, registerOptions) : {})}
+        {...rest}
+      />
 
-            {fieldError && (
-                <p className="mt-1 text-sm text-red-600">
-                    {fieldError.message as string}
-                </p>
-            )}
-        </div>
-    );
+      {fieldError && (
+        <p className="mt-1 text-sm text-red-600">
+          {fieldError.message as string}
+        </p>
+      )}
+    </div>
+  );
 };
 
 export default FormField;
@@ -69,7 +70,7 @@ const MyForm = () => {
         <FormField
           name="username"
           label="Nom d'utilisateur"
-          registerOptions={{ required: 'Ce champ est requis' }}
+          registerOptions={{ required: 'Ce champ is required' }}
         />
         <button type="submit">Envoyer</button>
       </form>
@@ -90,7 +91,7 @@ const MyForm = () => {
       <FormField
         name="username"
         label="Nom d'utilisateur"
-        {...register("username", { required: 'Ce champ est requis' })}
+        {...register("username", { required: 'Ce champ is required' })}
         error={errors.username}
       />
       <button type="submit">Envoyer</button>

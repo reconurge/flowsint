@@ -67,7 +67,7 @@ function TransformsPage() {
                     </div>
                 </div>
             </div>
-            <div className="max-w-7xl mx-auto p-8 space-y-8">
+            <div className="max-w-7xl mx-auto p-8 space-y-8" style={{ containerType: 'inline-size' }}>
                 {isLoading ? (
                     <div className="p-2">
                         <SkeletonList rowCount={6} mode="card" />
@@ -104,7 +104,7 @@ function TransformsPage() {
 
                         {allCategories.map((category) => (
                             <TabsContent key={category} value={category} className="mt-0">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
                                     {transforms
                                         ?.filter(transform =>
                                             category === 'All'

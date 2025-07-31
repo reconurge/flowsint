@@ -82,37 +82,18 @@ class HibpScanner(Scanner):
                 email = result["email"]
                 
                 # Create email node
-                email_query = """
-                MERGE (email:email {address: $address})
-                SET email.sketch_id = $sketch_id,
-                    email.label = $address,
-                    email.caption = $address,
-                    email.type = "email"
-                """
-                self.neo4j_conn.query(email_query, {
-                    "address": email,
-                    "sketch_id": self.sketch_id
-                })
+                self.create_node('email', 'address', email, 
+                               caption=email, type='email')
                 
                 # Create breach relationships
                 for breach in result.get("breaches", []):
                     if breach and isinstance(breach, dict):
                         breach_name = breach.get("Name", "Unknown")
-                        self.neo4j_conn.query("""
-                            MERGE (breach:breach {name: $name})
-                            SET breach.sketch_id = $sketch_id,
-                                breach.label = $name,
-                                breach.caption = $name,
-                                breach.type = "breach"
-                            WITH breach
-                            MATCH (email:email {address: $email_address})
-                            MERGE (email)-[:FOUND_IN_BREACH {sketch_id: $sketch_id}]->(breach)
-                        """, {
-                            "name": breach_name,
-                            "email_address": email,
-                            "sketch_id": self.sketch_id
-                        })
-                        Logger.graph_append(self.sketch_id, {"message": f"Email {email} found in breach: {breach_name}"})
+                        self.create_node('breach', 'name', breach_name,
+                                       caption=breach_name, type='breach')
+                        self.create_relationship('email', 'address', email,
+                                               'breach', 'name', breach_name, 'FOUND_IN_BREACH')
+                        self.log_graph_message(f"Email {email} found in breach: {breach_name}")
 
         return results
 

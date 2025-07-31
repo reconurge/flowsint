@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "../theme-provider";
+import { MapPin } from "lucide-react";
 
 export type LocationPoint = {
     lat?: number;
@@ -173,17 +174,12 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     // Don't render if we don't have any valid coordinates
     if (validCoordinates.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center">
-                <div className="text-center space-y-3">
-                    <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto">
-                        <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
+            <div className="w-full pt-18 flex items-center justify-center h-full">
+                <div className="text-center space-y-4">
+                    <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
                     <div>
-                        <p className="font-medium text-foreground">No locations to display</p>
-                        <p className="text-sm text-muted-foreground">No valid coordinates provided.</p>
+                        <h3 className="text-lg font-semibold">No location to display</h3>
+                        <p className="text-muted-foreground">This sketch doesn't have any location yet.</p>
                     </div>
                 </div>
             </div>

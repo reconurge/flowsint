@@ -4,6 +4,7 @@ from app.types.email import Email
 
 class Whois(BaseModel):
     """Represents WHOIS domain registration information."""
+    domain: str = Field(..., description="Domain name", title="Domain")
     registrar: Optional[str] = Field(None, description="Domain registrar name", title="Registrar")
     org: Optional[str] = Field(None, description="Organization name associated with the domain", title="Organization")
     city: Optional[str] = Field(None, description="City where the domain is registered", title="City")

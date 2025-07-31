@@ -25,7 +25,7 @@ const MemoizedMarkdownBlock = memo(
                                 style={dracula}
                                 language={match[1]}
                                 PreTag="div"
-                                className="rounded border border-border bg-muted px-1 py-0.5 text-sm"
+                                className="rounded border border-border bg-muted px-1 py-0.5 !m-0 text-sm w-auto not-prose"
                                 {...props}
                             />
                             <div className='absolute top-2 right-2'>
@@ -33,13 +33,13 @@ const MemoizedMarkdownBlock = memo(
                             </div>
                         </div>
                     ) : (
-                        <code className={cn("rounded border border-border bg-muted px-1 py-0.5 text-sm", className)} {...props}>
+                        <code className={cn("rounded border border-border bg-muted text-primary font-normal w-full px-1 py-0.5 text-sm not-prose", className)} {...props}>
                             {children}
                         </code>
                     )
                 }
             }}
-            remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
+            remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     },
     (prevProps, nextProps) => {
         if (prevProps.content !== nextProps.content) return false;
@@ -53,9 +53,11 @@ export const MemoizedMarkdown = memo(
     ({ content, id }: { content: string; id: string }) => {
         const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
 
-        return blocks.map((block, index) => (
-            <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
-        ));
+        return (
+            <div className='prose max-w-none dark:prose-invert'>{blocks.map((block, index) => (
+                <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
+            ))}
+            </div>)
     },
 );
 

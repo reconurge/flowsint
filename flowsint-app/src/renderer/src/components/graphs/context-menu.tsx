@@ -10,15 +10,17 @@ import { GraphNode } from '@/stores/graph-store';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
-import NodeActions from '../../node-actions';
+import NodeActions from '@/components/graphs/node-actions';
 import BaseContextMenu from '@/components/xyflow/context-menu';
 
 interface GraphContextMenuProps {
     node: GraphNode;
-    top: number;
-    left: number;
-    right: number;
-    bottom: number;
+    top?: number;
+    left?: number;
+    right?: number;
+    bottom?: number;
+    rawTop?: number;
+    rawLeft?: number;
     wrapperWidth: number;
     wrapperHeight: number;
     onEdit?: () => void;

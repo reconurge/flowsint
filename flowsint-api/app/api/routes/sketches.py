@@ -138,12 +138,12 @@ async def get_sketch_nodes(
     rels = [
         {
             "id": str(record["id"]),
-            "type": "straight",
+            "type": "custom",
             "source": str(record["source"]),
             "target": str(record["target"]),
             "data": record["data"],
             "caption": record["type"],
-            "label": record["type"].lower(),
+            "label": record["type"],
         }
         for record in rels_result
     ]

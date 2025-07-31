@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Terminal, Trash, Unlock } from "lucide-react"
+import { Terminal, Unlock } from "lucide-react"
 import { ModeToggle } from "../mode-toggle"
 import { useLayoutStore } from "@/stores/layout-store"
 import Legend from "../graphs/legend"

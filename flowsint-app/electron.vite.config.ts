@@ -26,7 +26,12 @@ export default defineConfig({
         }),
         enforce: 'pre'
       },
-      react(),
+      react({
+        babel: {
+          // plugins: ["babel-plugin-react-compiler"]
+        }
+      }
+      ),
       tailwindcss()
     ],
     resolve: {

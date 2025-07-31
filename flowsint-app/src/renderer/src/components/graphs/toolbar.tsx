@@ -15,7 +15,10 @@ import {
     Waypoints,
     Table,
     MapPin,
-    List
+    List,
+    SlidersHorizontal,
+    GitFork,
+    ArrowRightLeft
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { sketchService } from "@/api/sketch-service"
@@ -23,6 +26,9 @@ import { useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 // import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
+import ForceControls from './force-controls'
+
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 // Tooltip wrapper component to avoid repetition
 const ToolbarButton = memo(function ToolbarButton({
@@ -125,10 +131,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         setView("relationships")
     }, [setView])
 
-    // const handleDagreLayoutTB = useCallback(() => {
-    //     setView("hierarchy")
-    //     onLayout && onLayout("dagre-tb")
-    // }, [onLayout, setView])
+    const handleDagreLayoutTB = useCallback(() => {
+        setView("hierarchy")
+        onLayout && onLayout("dagre-tb")
+    }, [onLayout, setView])
 
     // const handleDagreLayoutLR = useCallback(() => {
     //     setView("hierarchy")
@@ -144,7 +150,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     return (
         <div className="flex justify-start gap-2 items-center">
             <TooltipProvider>
-                <ToolbarButton
+                {/* <ToolbarButton
                     onClick={handleOpenRelationshipDialog}
                     icon={<GitPullRequestCreate className="h-4 w-4 opacity-70" />}
                     tooltip="Create relation"
@@ -156,38 +162,39 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     tooltip="Delete"
                     disabled={!isMoreThanZero}
                     badge={isMoreThanZero ? selectedNodes.length : null}
-                />
+                /> */}
                 {/* <ToolbarButton disabled icon={<Filter className="h-4 w-4 opacity-70" />} tooltip="Filter" /> */}
-                {view !== "table" &&
-                    <>
-                        < ToolbarButton
-                            icon={<ZoomIn className="h-4 w-4 opacity-70" />}
-                            tooltip="Zoom In"
-                            onClick={zoomIn}
-                        />
-                        <ToolbarButton
-                            icon={<Minus className="h-4 w-4 opacity-70" />}
-                            tooltip="Zoom Out"
-                            onClick={zoomOut}
-                        />
-                        <ToolbarButton
-                            icon={<Maximize className="h-4 w-4 opacity-70" />}
-                            tooltip="Fit to View"
-                            onClick={zoomToFit}
-                        />
-                    </>}
+                <>
+                    < ToolbarButton
+                        icon={<ZoomIn className="h-4 w-4 opacity-70" />}
+                        tooltip="Zoom In"
+                        onClick={zoomIn}
+                        disabled={["table", "relationships"].includes(view)}
+                    />
+                    <ToolbarButton
+                        icon={<Minus className="h-4 w-4 opacity-70" />}
+                        tooltip="Zoom Out"
+                        onClick={zoomOut}
+                        disabled={["table", "relationships"].includes(view)}
+                    />
+                    <ToolbarButton
+                        icon={<Maximize className="h-4 w-4 opacity-70" />}
+                        tooltip="Fit to View"
+                        onClick={zoomToFit}
+                        disabled={["table", "relationships"].includes(view)}
+                    />
+                </>
                 {/* <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-90" />}
                     tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayoutLR}
                     disabled={isGraphOnly}
-                />
+                /> */}
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                    tooltip={isGraphOnly ? "Graph is too large to render in hierarchy layout" : `Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                    tooltip={`Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
                     onClick={handleDagreLayoutTB}
-                    disabled={isGraphOnly}
-                /> */}
+                />
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
                     tooltip={"Graph view"}
@@ -195,12 +202,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 // disabled={isCosmoOnly}
                 />
                 <ToolbarButton
-                    icon={<Table className="h-4 w-4 opacity-70" />}
+                    icon={<List className="h-4 w-4 opacity-70" />}
                     tooltip={"Table view"}
                     onClick={handleTableLayout}
                 />
                 <ToolbarButton
-                    icon={<List className="h-4 w-4 opacity-70" />}
+                    icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
                     tooltip={"Relationships view"}
                     onClick={handleRelationshipsLayout}
                 />
@@ -222,6 +229,13 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     icon={<RotateCw className={cn("h-4 w-4 opacity-70", isLoading && "animate-spin")} />}
                     tooltip="Refresh Graph Data"
                 />
+                <ForceControls>
+                    <ToolbarButton
+                        disabled={isLoading}
+                        icon={<SlidersHorizontal className={cn("h-4 w-4 opacity-70")} />}
+                        tooltip="Settings"
+                    />
+                </ForceControls>
             </TooltipProvider>
         </div>
     )

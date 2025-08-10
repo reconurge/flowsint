@@ -1,15 +1,15 @@
 import uuid
 from datetime import datetime
-
 from sqlalchemy import (
     String, Text, DateTime, ForeignKey,
     Index, func, JSON, Column, Enum as SQLEnum
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .base import Base
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from app.core.enums import EventLevel
+
+class Base(DeclarativeBase):
+    pass
 
 
 class Feedback(Base):

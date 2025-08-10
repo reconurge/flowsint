@@ -6,6 +6,7 @@ import Loader from '@/components/loader'
 import { analysisService } from '@/api/analysis-service'
 import { AnalysisPage } from '@/components/analyses/analysis-page'
 import { useGraphControls } from '@/stores/graph-controls-store'
+import { useGraphStore } from '@/stores/graph-store'
 import { useEffect } from 'react'
 
 const services = {
@@ -15,6 +16,7 @@ const services = {
 
 const GraphPageContent = () => {
     const setActions = useGraphControls((s) => s.setActions)
+    const reset = useGraphStore((s) => s.reset)
     const { params: { type, id, investigationId }, sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
@@ -27,6 +29,11 @@ const GraphPageContent = () => {
         refetchOnWindowFocus: false,
         initialData: sketch
     })
+
+    // Reset graph store when sketchId changes or is null
+    useEffect(() => {
+        reset()
+    }, [id, reset])
 
     useEffect(() => {
         setActions({ refetchGraph: refetch })

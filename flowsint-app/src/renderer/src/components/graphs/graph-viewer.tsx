@@ -177,7 +177,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     const handleNodeClick = useCallback((node: any) => onNodeClick?.(node), [onNodeClick]);
     const handleNodeRightClick = useCallback((node: any, event: MouseEvent) => onNodeRightClick?.(node, event), [onNodeRightClick]);
     const handleBackgroundClick = useCallback(() => onBackgroundClick?.(), [onBackgroundClick]);
-    const handleOpenNewActionDialog = useCallback(() => setOpenMainDialog(true), [setOpenMainDialog]);
+    const handleOpenNewAddItemDialog = useCallback(() => setOpenMainDialog(true), [setOpenMainDialog]);
 
     // Optimized node rendering
     const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -207,7 +207,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 ctx.font = `${fontSize}px Sans-Serif`
                 const bgHeight = CONSTANTS.NODE_FONT_SIZE + 2;
                 const bgY = node.y + size / 2 + 1;
-
                 ctx.fillStyle = theme === "light" ? '#161616' : '#FFFFFF';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -326,7 +325,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                         <p><strong>Tip:</strong> Use the search bar to find entities or import data to get started</p>
                         <p><strong>Explore:</strong> Try searching for domains, emails, or other entities</p>
                     </div>
-                    <Button onClick={handleOpenNewActionDialog}>
+                    <Button onClick={handleOpenNewAddItemDialog}>
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
@@ -364,6 +363,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 linkCurvature={link => link.curve}
                 linkDirectionalParticles={link => link.__highlighted ? 2 : 0}
                 nodeCanvasObject={renderNode}
+                onNodeHover={(node => {
+
+                })}
                 onNodeDragEnd={(node => {
                     node.fx = node.x;
                     node.fy = node.y;

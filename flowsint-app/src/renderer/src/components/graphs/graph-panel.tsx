@@ -8,20 +8,20 @@ import { CreateRelationDialog } from './create-relation'
 import GraphLoader from './graph-loader'
 import Loader from '../loader'
 import { useGraphControls } from '@/stores/graph-controls-store'
-import { NodeEditorModal } from './node-editor-modal'
+import { NodeEditorModal } from './details-panel/node-editor-modal'
 import NodesTable from '../table'
 import { findActionItemByKey } from '@/lib/action-items'
 import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
-import NewActions from './new-actions'
+import NewActions from './add-item-dialog'
 import GraphSettings from './graph-settings'
 import GraphMain from './graph-main'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 const Graph = lazy(() => import('./graph'))
-const Wall = lazy(() => import('./wall/wall'))
+// const Wall = lazy(() => import('./wall/wall'))
 
-const NODE_COUNT_THRESHOLD = 2000;
+const NODE_COUNT_THRESHOLD = 1000;
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -57,7 +57,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     const [isDraggingOver, setIsDraggingOver] = useState(false)
 
     useEffect(() => {
-        updateGraphData([], [])
         if (graphData?.nds && graphData?.rls) {
             updateGraphData(graphData.nds, graphData.rls)
         }
@@ -137,9 +136,9 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
                     </>
                 ) : (
                     <>
-                        {view === "hierarchy" && <Wall isLoading={false} isRefetching={false} />}
-                        {view === "force" && <GraphMain />}
-                        {/* {["force", "hierarchy"].includes(view) && <GraphMain />} */}
+                        {/* {view === "hierarchy" && <Wall isLoading={false} isRefetching={false} />} */}
+                        {/* {view === "force" && <GraphMain />} */}
+                        {["force", "hierarchy"].includes(view) && <GraphMain />}
                         {view === "table" && <NodesTable />}
                         {view === "map" && <MapPanel />}
                         {view === "relationships" && <RelationshipsTable />}

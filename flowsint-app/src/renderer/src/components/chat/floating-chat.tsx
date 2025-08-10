@@ -228,32 +228,32 @@ function FloatingChat() {
                                                         </div> */}
                                                         <div className="space-y-2 max-w-sm">
                                                             <h3 className="text-lg font-semibold text-foreground">
-                                                                Start your conversation
+                                                                Start your conversation with <span className="text-primary">Flo</span>
                                                             </h3>
                                                             <p className="text-sm opacity-70">
                                                                 Ask me anything about your investigation. Here are some examples:
                                                             </p>
                                                         </div>
                                                         <div className="mt-6 space-y-3 max-w-md">
-                                                            <div className="text-xs opacity-60 space-y-1">
-                                                                <p className="font-medium">Analysis & Insights:</p>
-                                                                <ul className="space-y-1 text-left">
+                                                            <div className="text-xs space-y-1">
+                                                                <p className="font-medium text-left">Analysis & Insights</p>
+                                                                <ul className="space-y-1 text-left opacity-60">
                                                                     <li>• "Analyze the connections between these entities"</li>
                                                                     <li>• "What patterns do you see in this data?"</li>
                                                                     <li>• "Summarize the key findings from this investigation"</li>
                                                                 </ul>
                                                             </div>
-                                                            <div className="text-xs opacity-60 space-y-1">
+                                                            {/* <div className="text-xs opacity-60 space-y-1">
                                                                 <p className="font-medium">Data Exploration:</p>
                                                                 <ul className="space-y-1 text-left">
                                                                     <li>• "Find all IP addresses related to this domain"</li>
                                                                     <li>• "Show me all crypto wallets connected to this address"</li>
                                                                     <li>• "What social media accounts are linked to this email?"</li>
                                                                 </ul>
-                                                            </div>
-                                                            <div className="text-xs opacity-60 space-y-1">
-                                                                <p className="font-medium">Investigation Help:</p>
-                                                                <ul className="space-y-1 text-left">
+                                                            </div> */}
+                                                            <div className="text-xs space-y-1">
+                                                            <p className="font-medium text-left">Investigation Help</p>
+                                                            <ul className="space-y-1 text-left opacity-60">
                                                                     <li>• "Suggest next steps for this investigation"</li>
                                                                     <li>• "What should I look for next?"</li>
                                                                     <li>• "Help me organize this investigation"</li>

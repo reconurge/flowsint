@@ -18,12 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CopyButton } from "../copy";
-
-export type RelationshipType = {
-    source: GraphNode
-    target: GraphNode
-    edge: { label: string }
-}
+import { RelationshipType } from "@/types";
 
 const ITEM_HEIGHT = 67; // Balanced spacing between items (55px card + 12px padding)
 
@@ -104,12 +99,14 @@ export default function RelationshipsTable() {
     const [selectedType, setSelectedType] = useState<string>("all");
     const parentRef = useRef<HTMLDivElement>(null);
     const setCurrentNode = useGraphStore(s => s.setCurrentNode)
-    const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
+    // const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
 
     const onNodeClick = useCallback((node: GraphNode) => {
         setCurrentNode(node)
-        setOpenNodeEditorModal(true)
-    }, [setCurrentNode, setOpenNodeEditorModal])
+        // setOpenNodeEditorModal(true)
+    }, [setCurrentNode,
+        // setOpenNodeEditorModal
+    ])
 
 
     // Filter relationships based on search and type

@@ -6,9 +6,10 @@ import { memo } from "react"
 type TypeBadgeProps = {
     type: string
     className?: string
+    children?: React.ReactNode
 }
 
-function TypeBadgeComponent({ type, className }: TypeBadgeProps) {
+function TypeBadgeComponent({ type, children, className }: TypeBadgeProps) {
     const colors = useNodesDisplaySettings(s => s.colors)
     const color = colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-800/60"
     return (
@@ -17,7 +18,7 @@ function TypeBadgeComponent({ type, className }: TypeBadgeProps) {
             style={{ backgroundColor: hexToRgba(color, .5) }}
             className={cn("font-medium border-transparent", className)}
         >
-            {type}
+            {children ?? type}
         </Badge>
     )
 }

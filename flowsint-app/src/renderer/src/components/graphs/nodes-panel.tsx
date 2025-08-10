@@ -20,10 +20,8 @@ import {
 import type { GraphNode } from "@/stores/graph-store"
 import { Checkbox } from "@/components/ui/checkbox"
 
-// Hauteur fixe pour chaque item (en pixels)
 const ITEM_HEIGHT = 40
 
-// Function to extract all leaf-level node types from actionItems
 const getAllNodeTypes = (actionItems: any[]) => {
     const types: string[] = []
     actionItems.forEach(item => {

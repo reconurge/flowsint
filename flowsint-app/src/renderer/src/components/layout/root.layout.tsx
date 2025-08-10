@@ -1,4 +1,4 @@
-import { type ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import { Sidebar } from "./sidebar"
 import { TopNavbar } from "./top-navbar"
 import { StatusBar } from "./status-bar"
@@ -10,7 +10,7 @@ import { useLayoutStore } from "@/stores/layout-store"
 // import NotesPanel from "../analyses/notes-panel"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useParams } from "@tanstack/react-router"
-import DetailsPanel from "../graphs/details-panel"
+import DetailsPanel from "../graphs/details-panel/details-panel"
 import { useGraphStore } from "@/stores/graph-store"
 
 interface LayoutProps {
@@ -27,11 +27,18 @@ export default function RootLayout({ children }: LayoutProps) {
     const togglePanel = useLayoutStore(s => s.togglePanel)
     const closePanel = useLayoutStore(s => s.closePanel)
     const openPanel = useLayoutStore(s => s.openPanel)
-    const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
-    const closeAnalysis = useLayoutStore(s => s.closeAnalysis)
-    const openAnalysis = useLayoutStore(s => s.openAnalysis)
+    const closeDetails = useLayoutStore(s => s.closeDetails)
+    const openDetails = useLayoutStore(s => s.openDetails)
     const currentNode = useGraphStore((s) => s.currentNode)
-    const { investigationId, id } = useParams({ strict: false })
+    const { id } = useParams({ strict: false })
+
+    useEffect(() => {
+        if (!currentNode) {
+            closeDetails()
+            return
+        }
+        openDetails()
+    }, [currentNode])
 
 
     // Set up keyboard shortcut for chat panel
@@ -102,7 +109,7 @@ export default function RootLayout({ children }: LayoutProps) {
                                         <ResizablePanel className="h-full w-full" id="children" order={3}>
                                             {children}
                                         </ResizablePanel>
-                                        {isOpenDetails && id && (
+                                        {isOpenDetails && id && currentNode && (
                                             <>
                                                 <ResizableHandle withHandle />
                                                 <ResizablePanel
@@ -111,8 +118,8 @@ export default function RootLayout({ children }: LayoutProps) {
                                                     defaultSize={20}
                                                     minSize={16}
                                                     maxSize={40}
-                                                    onCollapse={closeAnalysis}
-                                                    onExpand={openAnalysis}
+                                                    onCollapse={closeDetails}
+                                                    onExpand={openDetails}
                                                     collapsible={true}
                                                     collapsedSize={2}
                                                 >

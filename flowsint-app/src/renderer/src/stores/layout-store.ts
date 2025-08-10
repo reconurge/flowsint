@@ -18,8 +18,8 @@ interface LayoutStore {
     openPanel: () => void
     closeChat: () => void
     openChat: () => void
-    openAnalysis: () => void
-    closeAnalysis: () => void
+    openDetails: () => void
+    closeDetails: () => void
     setChatDimensions: (width: number, height: number) => void
     activeTab: string
     activeTransformTab: string
@@ -48,8 +48,8 @@ export const useLayoutStore = create<LayoutStore>()(
             openPanel: () => set({ isOpenPanel: true }),
             closeChat: () => set({ isOpenChat: false }),
             openChat: () => set({ isOpenChat: true }),
-            closeAnalysis: () => set({ isOpenAnalysis: false }),
-            openAnalysis: () => set({ isOpenAnalysis: true }),
+            closeDetails: () => set({ isOpenAnalysis: false }),
+            openDetails: () => set({ isOpenAnalysis: true }),
             setChatDimensions: (width: number, height: number) => set({ chatWidth: width, chatHeight: height }),
             setActiveTab: (tab: string) => set({ activeTab: tab }),
             setActiveTransformTab: (tab: string) => set({ activeTransformTab: tab }),

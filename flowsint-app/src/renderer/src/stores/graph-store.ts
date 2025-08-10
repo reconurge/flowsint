@@ -18,7 +18,7 @@ export type GraphNode = Node<NodeData> & {
     x?: number;
     y?: number;
 }
-export type GraphEdge = Edge<EdgeData>
+export type GraphEdge = Edge<EdgeData> & { caption?: string }
 
 interface GraphState {
     // === Graph ===
@@ -36,6 +36,7 @@ interface GraphState {
     onNodesChange: OnNodesChange
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
+    reset: () => void
 
     // === Selection & Current ===
     currentNode: GraphNode | null
@@ -165,6 +166,21 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
         }
         set({
             edges: [...get().edges, edge],
+        })
+    },
+    reset: () => {
+        set({
+            // nodes: [],
+            // edges: [],
+            currentNode: null,
+            selectedNodes: [],
+            relatedNodeToAdd: null,
+            openMainDialog: false,
+            openFormDialog: false,
+            openAddRelationDialog: false,
+            openNodeEditorModal: false,
+            currentNodeType: null,
+            filters: {},
         })
     },
 

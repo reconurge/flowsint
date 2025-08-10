@@ -35,10 +35,17 @@ export default function ContextMenu({
 }: GraphContextMenuProps) {
 
     const setOpenParamsDialog = useTransformStore(s => s.setOpenParamsDialog)
+    const deleteNode = useTransformStore(s => s.deleteNode)
+
     const handleOpenParamsModal = useCallback(() => {
         setOpenParamsDialog(true, node as TransformNode)
         setMenu(null)
     }, [setOpenParamsDialog, node, setMenu])
+
+    const handleDeleteTransform = useCallback(() => {
+        deleteNode(node.id as string)
+        setMenu(null)
+    }, [deleteNode, node.id, setMenu])
 
     return (
         <BaseContextMenu
@@ -66,6 +73,7 @@ export default function ContextMenu({
                     <Pencil className="h-4 w-4 opacity-60" /> Edit
                 </button>
                 <button
+                    onClick={handleDeleteTransform}
                     className="w-full flex items-center gap-2 p-2 rounded-sm hover:bg-muted text-left transition-colors"
                 >
                     <Trash className="h-4 w-4 text-red-500 opacity-60" /> Delete

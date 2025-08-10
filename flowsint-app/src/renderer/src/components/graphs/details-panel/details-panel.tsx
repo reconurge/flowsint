@@ -2,14 +2,16 @@ import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { Check, Rocket, X, MousePointer } from "lucide-react"
-import LaunchTransform from "./launch-transform"
-import NodeActions from "./node-actions"
+import LaunchTransform from "../launch-transform"
+import NodeActions from "../node-actions"
 import { GraphNode } from "@/stores/graph-store"
-import { Button } from "../ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { Button } from "../../ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip"
 import { useIcon } from "@/hooks/use-icon"
 import { useParams } from "@tanstack/react-router"
 import NeighborsGraph from "./neighbors"
+import Relationships from "./relationships"
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../../ui/resizable"
 
 export default function DetailsPanel({ node }: { node: GraphNode | null }) {
     const { id: sketchId } = useParams({ strict: false })
@@ -30,9 +32,9 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
     }
 
     return (
-        <div className="overflow-y-auto bg-card overflow-x-hidden w-full min-w-0 h-full min-h-0">
+        <div className="flex flex-col h-full overflow-hidden bg-card">
             <ItemHero node={node} />
-            <div className="flex items-center sticky w-full top-0 border-b justify-start px-4 py-2 gap-2 z-50">
+            <div className="flex items-center bg-card sticky w-full top-0 border-b justify-start px-4 py-2 gap-2 z-1">
                 <p className="text-md font-semibold truncate">{node.data?.label}</p>
                 <div className="grow" />
                 <div className="flex items-center">
@@ -67,9 +69,24 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
                     />
                 </div>
             )}
-            <KeyValueDisplay data={node.data} />
-            <div className="h-[340px] p-3">
-                <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
+            <div className="flex-1 min-h-0">
+                <ResizablePanelGroup direction="vertical" className="h-full">
+                    <ResizablePanel defaultSize={30} minSize={20}>
+                        <div className="h-full overflow-auto">
+                            <KeyValueDisplay data={node.data} />
+                        </div>
+                    </ResizablePanel>
+                    <ResizableHandle />
+                    <ResizablePanel defaultSize={40} minSize={25}>
+                        <div className="h-full p-3">
+                            <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
+                        </div>
+                    </ResizablePanel>
+                    <ResizableHandle />
+                    <ResizablePanel defaultSize={30} minSize={20}>
+                        <Relationships sketchId={sketchId as string} nodeId={node.id} />
+                    </ResizablePanel>
+                </ResizablePanelGroup>
             </div>
         </div>
     )
@@ -133,7 +150,7 @@ const ItemHero = ({ node }: { node: GraphNode }) => {
                 <p className="text-xl font-semibold truncate text-ellipsis">{node.data.label}</p>
                 <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{node.data.type}</p>
             </div>
-            <ItemIcon size={70} />
+            <ItemIcon size={50} />
         </div>
     )
 }

@@ -11,12 +11,13 @@ export type NodeData = {
 };
 
 export type EdgeData = {
-  from: string,
-  to: string,
-  date: string,
+  from: string;
+  to: string;
+  date: string;
   id: string;
   label: string;
-  type: string,
+  caption?: string;
+  type: string;
   confidence_level?: number | string
 };
 

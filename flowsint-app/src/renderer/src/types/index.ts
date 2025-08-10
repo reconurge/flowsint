@@ -9,4 +9,3 @@ export * from "./sketch";
 export * from "./table";
 export * from "./tool";
 export * from "./transform";
-export * from "./tabs";

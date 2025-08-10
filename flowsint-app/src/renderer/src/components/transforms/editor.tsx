@@ -314,8 +314,8 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
         if (!transformId) return
         if (
             await confirm({
-                title: "Are you sure you want to delete this simulation?",
-                message: "This action is irreversible.",
+                title: "Are you sure you want to delete this flow ?",
+                message: "All of the transforms settings will be lost.",
             })
         ) {
             setLoading(true)
@@ -603,7 +603,6 @@ const TransformEditorFlow = memo(({ initialEdges, initialNodes, theme, transform
                             fdff</div>
                     </ContextMenu>}
                     <MiniMap className="bg-background" position="bottom-left" pannable zoomable />
-
                 </ReactFlow>
             </div>
             <TransformSheet onLayout={onLayout} />

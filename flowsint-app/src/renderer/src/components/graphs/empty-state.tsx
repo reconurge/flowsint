@@ -6,7 +6,7 @@ import { useGraphStore } from '@/stores/graph-store'
 const EmptyState = memo(() => {
     const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog)
 
-    const handleOpenNewActionDialog = useCallback(() => {
+    const handleOpenNewAddItemDialog = useCallback(() => {
         setOpenMainDialog(true)
     }, [setOpenMainDialog])
 
@@ -74,7 +74,7 @@ const EmptyState = memo(() => {
             {/* Call to action */}
             <div className="flex flex-col items-center gap-3">
                 <Button
-                    onClick={handleOpenNewActionDialog}
+                    onClick={handleOpenNewAddItemDialog}
                     className="h-10 px-6 font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                     size="default"
                 >

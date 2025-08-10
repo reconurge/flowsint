@@ -69,12 +69,14 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     const [selectedType, setSelectedType] = useState<string>("all");
     const parentRef = useRef<HTMLDivElement>(null);
     const setCurrentNode = useGraphStore(s => s.setCurrentNode)
-    const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
+    // const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
 
     const onNodeClick = useCallback((node: GraphNode) => {
         setCurrentNode(node)
-        setOpenNodeEditorModal(true)
-    }, [setCurrentNode, setOpenNodeEditorModal])
+        // setOpenNodeEditorModal(true)
+    }, [setCurrentNode, 
+        // setOpenNodeEditorModal
+    ])
 
 
     // Filter nodes based on search and type

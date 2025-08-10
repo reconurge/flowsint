@@ -16,7 +16,7 @@ export const ItemsPanel = memo(function LeftPanel() {
         setSearchQuery(e.target.value)
     }, [])
 
-    const handleOpenNewActionDialog = useCallback(() => {
+    const handleOpenNewAddItemDialog = useCallback(() => {
         setOpenMainDialog(true)
     }, [setOpenMainDialog])
 
@@ -27,7 +27,7 @@ export const ItemsPanel = memo(function LeftPanel() {
             <div className="flex items-center gap-2 mb-3">
                 <div>
                     <Button
-                        onClick={handleOpenNewActionDialog}
+                        onClick={handleOpenNewAddItemDialog}
                         className="h-7 !w-7"
                         size="icon"
                         variant={"ghost"}
@@ -68,7 +68,7 @@ export const ItemsPanel = memo(function LeftPanel() {
                                                 type={childItem.type}
                                                 color={childItem.color}
                                                 disabled={childItem.disabled}
-                                                description={childItem.fields.map((n) => n.name).join(", ")}
+                                                description={childItem.description}
                                             />
                                         ))}
                                     </div>

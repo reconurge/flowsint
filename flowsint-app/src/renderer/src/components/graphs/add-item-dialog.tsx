@@ -16,7 +16,7 @@ import { useIcon } from "@/hooks/use-icon"
 import { useLayoutStore } from "@/stores/layout-store"
 import { useActionItems } from "@/hooks/use-action-items"
 
-export default function ActionDialog() {
+export default function AddItemDialog() {
     const handleOpenFormModal = useGraphStore(state => state.handleOpenFormModal)
     const currentNodeType = useGraphStore(state => state.currentNodeType)
     const setCurrentNode = useGraphStore(state => state.setCurrentNode)
@@ -216,7 +216,7 @@ export default function ActionDialog() {
                             <>Add {currentNodeType.label.toLowerCase()}</>
                         )}
                     </DialogTitle>
-                    <DialogDescription>Fill the required data.</DialogDescription>
+                    <DialogDescription>{currentNodeType?.description}</DialogDescription>
                     {currentNodeType && (
                         <div className="grow overflow-y-auto">
                             <DynamicForm
@@ -256,7 +256,8 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
                     <IconComponent style={{ color: item.color }} className={cn("h-12 w-12", item.color ? "" : "text-primary")} />
                 </div>
                 <div className="font-medium text-sm">{item.label}</div>
-                {!item.children && <div className="text-sm mt-2 opacity-60">{item.fields.length} fields</div>}
+                {!item.children && <div className="text-sm mt-2 opacity-60">{item.description}</div>}
+                {!item.children && <Badge variant="outline" className="mt-2">{item.fields.length} fields</Badge>}
                 {item.disabled && (
                     <Badge variant="outline" className="mt-2 absolute top-2 left-2">
                         Soon

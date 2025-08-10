@@ -27,6 +27,7 @@ export interface ActionItem {
     disabled?: boolean
     comingSoon?: boolean
     children?: ActionItem[]
+    description: string
 }
 
 export function findActionItemByKey(key: string, actionItems: ActionItem[] | undefined): ActionItem | undefined {

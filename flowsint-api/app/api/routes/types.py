@@ -199,6 +199,7 @@ def extract_input_schema(model: Type[BaseModel], label_key:str, icon: Optional[s
                 "label_key": label_key,
                 "icon": icon or type_name.lower(),
                 "label": type_name,
+                "description": details.get("description",""),
                 "fields": [resolve_field(prop, details=info, schema=schema)  
                 for prop, info in details.get("properties", {}).items()
             ]

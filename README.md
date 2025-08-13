@@ -1,12 +1,14 @@
-# Flowsint Project
+# Flowsint
 
 A modular investigation and reconnaissance platform with clean separation of concerns.
 
-## Project Structure
+<img width="1439" height="899" alt="Capture d’écran 2025-08-01 à 12 10 16" src="https://github.com/user-attachments/assets/c94b91f8-625e-4195-aae4-40c89646ac3c" />
+
+## Project structure
 
 The project is organized into autonomous modules:
 
-### Core Modules
+### Core modules
 
 - **flowsint-core**: Core utilities, orchestrator, vault, celery tasks, and base classes
 - **flowsint-types**: Pydantic models and type definitions
@@ -14,7 +16,7 @@ The project is organized into autonomous modules:
 - **flowsint-api**: FastAPI server, API routes, and schemas only
 - **flowsint-app**: Frontend application (unchanged)
 
-### Module Dependencies
+### Module dependencies
 
 ```
 flowsint-app (frontend)
@@ -28,7 +30,7 @@ flowsint-transforms (transforms & tools)
 flowsint-types (types)
 ```
 
-## Development Setup
+## Development setup
 
 ### Prerequisites
 
@@ -38,49 +40,21 @@ flowsint-types (types)
 
 ### Installation
 
-1. **Install Poetry** (if not already installed):
-   ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
-   ```
+1. Run the install script
 
-2. **Install dependencies for each module**:
-   ```bash
-   # Core module (must be installed first)
-   cd flowsint-core
-   poetry install
-   
-   # Types module
-   cd ../flowsint-types
-   poetry install
-   
-   # Transforms module
-   cd ../flowsint-transforms
-   poetry install
-   
-   # API module
-   cd ../flowsint-api
-   poetry install
-   ```
+```bash
+chmod +x ./install.sh
+```
 
-3. **Set up environment variables**:
-   Create `.env` files in each module directory as needed.
+### Run the services
 
-### Running the Application
+```bash
+chmod +x ./start.sh
+```
 
-1. **Start the API server**:
-   ```bash
-   cd flowsint-api
-   poetry run uvicorn app.main:app --reload
-   ```
+An electron app should start, frontend is also accessible at[http://localhost:5173](http://localhost:5173).
 
-2. **Start the frontend** (if needed):
-   ```bash
-   cd flowsint-app
-   npm install
-   npm start
-   ```
-
-## Module Details
+## Module details
 
 ### flowsint-core
 
@@ -128,7 +102,7 @@ FastAPI server providing:
 
 Frontend application (unchanged from original).
 
-## Development Workflow
+## Development workflow
 
 1. **Adding new types**: Add to `flowsint-types` module
 2. **Adding new transforms**: Add to `flowsint-transforms` module
@@ -163,7 +137,3 @@ poetry run pytest
 2. Use Poetry for dependency management
 3. Write tests for new functionality
 4. Update documentation as needed
-
-## License
-
-[Add your license information here] 

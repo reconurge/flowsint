@@ -4,7 +4,7 @@ from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from flowsint_core.utils import extract_input_schema_transform
-from flowsint_transforms.registry import ScannerRegistry
+from flowsint_core.core.registry import ScannerRegistry
 from flowsint_core.core.celery import celery
 from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Email
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch

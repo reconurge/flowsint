@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 from pydantic import ValidationError
 from .scanner_base import Scanner
-from flowsint_transforms.registry import ScannerRegistry
+from .registry import ScannerRegistry
 from .types import FlowBranch, FlowStep
 from .logger import Logger
 from ..utils import to_json_serializable

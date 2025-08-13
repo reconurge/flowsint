@@ -1,5 +1,5 @@
 import pytest
-from flowsint_transforms.registry import ScannerRegistry
+from flowsint_core.core.registry import ScannerRegistry
 from flowsint_core.core.scanner_base import Scanner
 
 class TestScannerRegistry:

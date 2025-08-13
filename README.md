@@ -52,7 +52,7 @@ chmod +x ./install.sh
 chmod +x ./start.sh
 ```
 
-An electron app should start, frontend is also accessible at[http://localhost:5173](http://localhost:5173).
+An electron app should start, frontend is also accessible at [http://localhost:5173](http://localhost:5173).
 
 ## Module details
 

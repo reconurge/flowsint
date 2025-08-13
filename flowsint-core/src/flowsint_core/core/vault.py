@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from .models import Key
 
+
 class VaultProtocol(Protocol):
-    def get_secret(self, vault_ref: str) -> Optional[str]:
-        ...
+    def get_secret(self, vault_ref: str) -> Optional[str]: ...
+
 
 class Vault(VaultProtocol):
     def __init__(self, db: Session, owner_id: uuid.UUID):

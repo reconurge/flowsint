@@ -3,18 +3,20 @@ from flowsint_types.domain import Domain
 
 scanner = WhoisScanner("sketch_123", "scan_123")
 
+
 def test_preprocess_valid_domains():
     domains = [
         Domain(domain="example.com"),
         Domain(domain="example2.com"),
     ]
     result = scanner.preprocess(domains)
-    
+
     result_domains = [d.domain for d in result]
     expected_domains = [d.domain for d in domains]
 
     assert result_domains == expected_domains
-    
+
+
 def test_unprocessed_valid_domains():
     domains = [
         "example.com",
@@ -23,8 +25,9 @@ def test_unprocessed_valid_domains():
     result = scanner.preprocess(domains)
     result_domains = [d for d in result]
     expected_domains = [Domain(domain=d) for d in domains]
-    assert result_domains == expected_domains 
-    
+    assert result_domains == expected_domains
+
+
 def test_preprocess_invalid_domains():
     domains = [
         Domain(domain="example.com"),
@@ -37,6 +40,7 @@ def test_preprocess_invalid_domains():
     assert "example.com" in result_domains
     assert "example.org" in result_domains
     assert "invalid_domain" not in result_domains
+
 
 def test_preprocess_multiple_formats():
     domains = [
@@ -53,6 +57,7 @@ def test_preprocess_multiple_formats():
     assert "invalid_domain" not in result_domains
     assert "example.io" not in result_domains
 
+
 def test_scan_returns_whois_objects(monkeypatch):
     # Patch `whois.whois` to avoid real network call
     mock_whois = lambda domain: {
@@ -62,7 +67,7 @@ def test_scan_returns_whois_objects(monkeypatch):
         "country": "MockCountry",
         "emails": ["admin@example.com"],
         "creation_date": "2020-01-01",
-        "expiration_date": "2030-01-01"
+        "expiration_date": "2030-01-01",
     }
 
     monkeypatch.setattr("whois.whois", mock_whois)
@@ -74,8 +79,25 @@ def test_scan_returns_whois_objects(monkeypatch):
     assert output[0].whois.org == "MockOrg"
     assert output[0].whois.email.email == "admin@example.com"
 
+
 def test_schemas():
     input_schema = scanner.input_schema()
     output_schema = scanner.output_schema()
-    assert input_schema == {'type': 'Domain', 'properties': [{'name': 'domain', 'type': 'string'}, {'name': 'subdomains', 'type': 'array | null'}, {'name': 'ips', 'type': 'array | null'}, {'name': 'whois', 'type': 'Whois | null'}]}
-    assert output_schema == {'type': 'Domain', 'properties': [{'name': 'domain', 'type': 'string'}, {'name': 'subdomains', 'type': 'array | null'}, {'name': 'ips', 'type': 'array | null'}, {'name': 'whois', 'type': 'Whois | null'}]}
+    assert input_schema == {
+        "type": "Domain",
+        "properties": [
+            {"name": "domain", "type": "string"},
+            {"name": "subdomains", "type": "array | null"},
+            {"name": "ips", "type": "array | null"},
+            {"name": "whois", "type": "Whois | null"},
+        ],
+    }
+    assert output_schema == {
+        "type": "Domain",
+        "properties": [
+            {"name": "domain", "type": "string"},
+            {"name": "subdomains", "type": "array | null"},
+            {"name": "ips", "type": "array | null"},
+            {"name": "whois", "type": "Whois | null"},
+        ],
+    }

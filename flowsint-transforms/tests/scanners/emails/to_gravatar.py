@@ -28,7 +28,9 @@ class TestEmailToGravatarScanner:
         assert schema["type"] == "Email"
         assert "properties" in schema
         # Check that email property is present
-        email_prop = next((prop for prop in schema["properties"] if prop["name"] == "email"), None)
+        email_prop = next(
+            (prop for prop in schema["properties"] if prop["name"] == "email"), None
+        )
         assert email_prop is not None
         assert email_prop["type"] == "string"
 
@@ -38,8 +40,12 @@ class TestEmailToGravatarScanner:
         assert schema["type"] == "Gravatar"
         assert "properties" in schema
         # Check that required properties are present
-        src_prop = next((prop for prop in schema["properties"] if prop["name"] == "src"), None)
-        hash_prop = next((prop for prop in schema["properties"] if prop["name"] == "hash"), None)
+        src_prop = next(
+            (prop for prop in schema["properties"] if prop["name"] == "src"), None
+        )
+        hash_prop = next(
+            (prop for prop in schema["properties"] if prop["name"] == "hash"), None
+        )
         assert src_prop is not None
         assert hash_prop is not None
 
@@ -114,7 +120,7 @@ class TestEmailToGravatarScanner:
         result = scanner.preprocess([])
         assert result == []
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_scan_successful_gravatar(self, mock_get):
         """Test successful gravatar retrieval"""
         # Mock successful response
@@ -130,7 +136,7 @@ class TestEmailToGravatarScanner:
         assert result[0].hash == hashlib.md5("test@example.com".encode()).hexdigest()
         assert "gravatar.com/avatar/" in str(result[0].src)
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_scan_failed_request(self, mock_get):
         """Test handling of failed HTTP requests"""
         # Mock failed response
@@ -143,7 +149,7 @@ class TestEmailToGravatarScanner:
 
         assert len(result) == 0
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_scan_request_exception(self, mock_get):
         """Test handling of request exceptions"""
         # Mock exception
@@ -154,7 +160,7 @@ class TestEmailToGravatarScanner:
 
         assert len(result) == 0
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_scan_multiple_emails(self, mock_get):
         """Test scanning multiple emails"""
         # Mock successful responses
@@ -173,9 +179,10 @@ class TestEmailToGravatarScanner:
         assert all(isinstance(gravatar, Gravatar) for gravatar in result)
         assert mock_get.call_count == 3
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_scan_mixed_success_failure(self, mock_get):
         """Test scanning with mixed success and failure"""
+
         # Mock mixed responses - check the actual URL being called
         def side_effect(url, *args, **kwargs):
             mock_response = Mock()
@@ -203,7 +210,9 @@ class TestEmailToGravatarScanner:
         """Test postprocessing with Neo4j connection"""
         # Mock Neo4j connection
         mock_neo4j = Mock()
-        scanner_with_neo4j = EmailToGravatarScanner("sketch_123", "scan_123", neo4j_conn=mock_neo4j)
+        scanner_with_neo4j = EmailToGravatarScanner(
+            "sketch_123", "scan_123", neo4j_conn=mock_neo4j
+        )
 
         gravatars = [
             Gravatar(src="https://www.gravatar.com/avatar/hash1", hash="hash1"),
@@ -218,7 +227,7 @@ class TestEmailToGravatarScanner:
 
         # Verify Neo4j queries were executed
         assert mock_neo4j.query.call_count == 2
-        
+
         # Check that results are returned unchanged
         assert result == gravatars
 
@@ -261,7 +270,7 @@ class TestEmailToGravatarScanner:
 
     def test_execute_full_workflow(self):
         """Test the complete execute workflow"""
-        with patch('requests.get') as mock_get:
+        with patch("requests.get") as mock_get:
             # Mock successful response
             mock_response = Mock()
             mock_response.status_code = 200
@@ -272,18 +281,20 @@ class TestEmailToGravatarScanner:
 
             assert len(result) == 1
             assert isinstance(result[0], Gravatar)
-            assert result[0].hash == hashlib.md5("test@example.com".encode()).hexdigest()
+            assert (
+                result[0].hash == hashlib.md5("test@example.com".encode()).hexdigest()
+            )
 
     def test_execute_with_invalid_input(self):
         """Test execute with invalid input"""
         emails = ["not-an-email", "also-invalid"]
-        
-        with patch('requests.get') as mock_get:
+
+        with patch("requests.get") as mock_get:
             # Mock successful response for any request
             mock_response = Mock()
             mock_response.status_code = 200
             mock_get.return_value = mock_response
-            
+
             result = scanner.execute(emails)
 
             # The scanner processes any string as an email, so it will create Email objects
@@ -295,8 +306,8 @@ class TestEmailToGravatarScanner:
         """Test that gravatar hash is calculated correctly"""
         email = "test@example.com"
         expected_hash = hashlib.md5(email.encode()).hexdigest()
-        
-        with patch('requests.get') as mock_get:
+
+        with patch("requests.get") as mock_get:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_get.return_value = mock_response
@@ -312,8 +323,8 @@ class TestEmailToGravatarScanner:
         email = "test@example.com"
         expected_hash = hashlib.md5(email.encode()).hexdigest()
         expected_url = f"https://www.gravatar.com/avatar/{expected_hash}"
-        
-        with patch('requests.get') as mock_get:
+
+        with patch("requests.get") as mock_get:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_get.return_value = mock_response
@@ -322,4 +333,4 @@ class TestEmailToGravatarScanner:
             result = scanner.scan(emails)
 
             assert len(result) == 1
-            assert str(result[0].src) == expected_url 
+            assert str(result[0].src) == expected_url

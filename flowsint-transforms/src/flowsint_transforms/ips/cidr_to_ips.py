@@ -5,6 +5,7 @@ from flowsint_types.cidr import CIDR
 from flowsint_types.ip import Ip
 from flowsint_core.core.logger import Logger
 
+
 class CidrToIpsScanner(Scanner):
     """Takes a CIDR and returns its corresponding IP addresses."""
 
@@ -49,31 +50,36 @@ class CidrToIpsScanner(Scanner):
                         ip = Ip(address=ip_str.strip())
                         ips.append(ip)
                     except Exception as e:
-                        Logger.error(self.sketch_id, {"message": f"Failed to parse IP {ip_str}: {str(e)}"})
+                        Logger.error(
+                            self.sketch_id,
+                            {"message": f"Failed to parse IP {ip_str}: {str(e)}"},
+                        )
             else:
-                Logger.warn(self.sketch_id, {"message": f"No IPs found for CIDR {cidr.network}"})
+                Logger.warn(
+                    self.sketch_id, {"message": f"No IPs found for CIDR {cidr.network}"}
+                )
         return ips
-    
+
     def __get_ips_from_cidr(self, cidr: str) -> List[str]:
         try:
             command = f"echo {cidr} | dnsx -ptr"
             result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=60
+                command, shell=True, capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
                 Logger.info(self.sketch_id, {"message": f"No IPs found for {cidr}."})
                 return []
-            
+
             # Split the output by newlines and filter out empty lines
-            ip_addresses = [ip.strip() for ip in result.stdout.split('\n') if ip.strip()]
+            ip_addresses = [
+                ip.strip() for ip in result.stdout.split("\n") if ip.strip()
+            ]
             return ip_addresses
 
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"dnsx exception for {cidr}: {str(e)}"})
+            Logger.error(
+                self.sketch_id, {"message": f"dnsx exception for {cidr}: {str(e)}"}
+            )
             return []
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -81,20 +87,34 @@ class CidrToIpsScanner(Scanner):
         for cidr, ip in zip(original_input, results):
             if self.neo4j_conn:
                 # Create CIDR node
-                self.create_node('cidr', 'network', str(cidr.network),
-                               caption=str(cidr.network), type="cidr")
-                
+                self.create_node(
+                    "cidr",
+                    "network",
+                    str(cidr.network),
+                    caption=str(cidr.network),
+                    type="cidr",
+                )
+
                 # Create IP node
-                self.create_node('ip', 'address', ip.address,
-                               caption=ip.address, type="ip")
-                
+                self.create_node(
+                    "ip", "address", ip.address, caption=ip.address, type="ip"
+                )
+
                 # Create relationship
-                self.create_relationship('cidr', 'network', str(cidr.network),
-                                       'ip', 'address', ip.address, 'CONTAINS')
-            
+                self.create_relationship(
+                    "cidr",
+                    "network",
+                    str(cidr.network),
+                    "ip",
+                    "address",
+                    ip.address,
+                    "CONTAINS",
+                )
+
             self.log_graph_message(f"Found {len(results)} IPs for CIDR {cidr.network}")
         return results
 
+
 # Make types available at module level for easy access
 InputType = CidrToIpsScanner.InputType
-OutputType = CidrToIpsScanner.OutputType 
+OutputType = CidrToIpsScanner.OutputType

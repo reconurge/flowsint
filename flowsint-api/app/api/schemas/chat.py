@@ -3,6 +3,7 @@ from pydantic import UUID4, BaseModel
 from typing import List, Optional, Any
 from datetime import datetime
 
+
 class ChatMessageRead(BaseModel):
     id: UUID4
     content: Optional[Any] = None
@@ -14,11 +15,13 @@ class ChatMessageRead(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ChatCreate(BaseModel):
     title: str
     description: Optional[str] = None
     owner_id: Optional[UUID4] = None
     investigation_id: Optional[UUID4] = None
+
 
 class ChatRead(ORMBase):
     id: UUID4
@@ -29,4 +32,3 @@ class ChatRead(ORMBase):
     owner_id: Optional[UUID4]
     investigation_id: Optional[UUID4]
     messages: List[ChatMessageRead]
-    

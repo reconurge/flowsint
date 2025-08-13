@@ -7,8 +7,10 @@ from .logger import Logger
 from .vault import VaultProtocol
 from ..utils import resolve_type
 
+
 class InvalidScannerParams(Exception):
     pass
+
 
 def build_params_model(params_schema: list) -> BaseModel:
     """
@@ -22,75 +24,75 @@ def build_params_model(params_schema: list) -> BaseModel:
         type = str  # You can later enhance this to support int, bool, etc.
         required = param.get("required", False)
         default = ... if required else param.get("default")
-        fields[name] = (Optional[type], Field(default=default, description=param.get("description", "")))
+        fields[name] = (
+            Optional[type],
+            Field(default=default, description=param.get("description", "")),
+        )
 
-    model = create_model(
-        "ParamsModel",
-        __config__=ConfigDict(extra="forbid"),
-        **fields
-    )
+    model = create_model("ParamsModel", __config__=ConfigDict(extra="forbid"), **fields)
 
     return model
+
 
 class Scanner(ABC):
     """
     Abstract base class for all scanners.
-    
+
     ## InputType and OutputType Pattern
-    
+
     Scanners only need to define InputType and OutputType as class attributes.
     The base class automatically handles schema generation:
-    
+
     ```python
     from typing import List
     from flowsint_types import Domain
     from flowsint_types import Ip
-    
+
     class MyScanner(Scanner):
         # Define types as class attributes
         InputType = List[Domain]
         OutputType = List[Ip]
-        
+
         @classmethod
         def name(cls):
             return "my_scanner"
-            
+
         @classmethod
         def category(cls):
             return "Domain"
-            
+
         @classmethod
         def key(cls):
             return "domain"
-        
+
         def preprocess(self, data: InputType) -> InputType:
             cleaned: InputType = []
             # ... implementation
             return cleaned
-            
+
         async def scan(self, data: InputType) -> OutputType:
             results: OutputType = []
             # ... implementation
             return results
-    
+
     # Make types available at module level for easy access
     InputType = MyScanner.InputType
     OutputType = MyScanner.OutputType
     ```
-    
+
     The base class automatically provides:
     - input_schema() method using InputType
     - output_schema() method using OutputType
     - Error handling for missing type definitions
     - Consistent schema generation across all scanners
-    
+
     Subclasses can override input_schema() or output_schema() if needed for special cases.
     """
-    
+
     # Abstract type aliases that must be defined in subclasses for runtime use
     InputType = NotImplemented
     OutputType = NotImplemented
-    
+
     def __init__(
         self,
         sketch_id: Optional[str] = None,
@@ -98,7 +100,7 @@ class Scanner(ABC):
         neo4j_conn: Optional[Neo4jConnection] = None,
         params_schema: Optional[List[Dict[str, Any]]] = None,
         vault: Optional[VaultProtocol] = None,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ):
         self.scan_id = scan_id or "default"
         self.sketch_id = sketch_id or "system"
@@ -107,7 +109,7 @@ class Scanner(ABC):
         self.params_schema = params_schema or []
         self.ParamsModel = build_params_model(self.params_schema)
         self.params: Dict[str, Any] = params or {}
-        # Params is filled synchronously by the constructor. This params is generally constructed of 
+        # Params is filled synchronously by the constructor. This params is generally constructed of
         # vaultSecret references, not the key directly. The idea is that the real key values are resolved after calling
         # async_init(), right before the execution.
 
@@ -116,7 +118,9 @@ class Scanner(ABC):
         # Resolve parameters (e.g. replace vaultSecret by real secrets)
         if self.params:
             resolved_params = self.resolve_params()
-            Logger.debug(self.sketch_id, {"message": f"Resolved params: {str(resolved_params)}"})
+            Logger.debug(
+                self.sketch_id, {"message": f"Resolved params: {str(resolved_params)}"}
+            )
         else:
             resolved_params = {}
         # Strict validation after resolution
@@ -124,13 +128,20 @@ class Scanner(ABC):
             validated = self.ParamsModel(**resolved_params)
             self.params = validated.model_dump()
         except ValidationError as e:
-            raise InvalidScannerParams(f"Scanner '{self.name()}' received invalid parameters: {e}")
+            raise InvalidScannerParams(
+                f"Scanner '{self.name()}' received invalid parameters: {e}"
+            )
 
     def resolve_params(self) -> Dict[str, Any]:
         resolved = {}
-        Logger.warn(self.sketch_id, {"message": f"Params schema: {str(self.params_schema)}"})
+        Logger.warn(
+            self.sketch_id, {"message": f"Params schema: {str(self.params_schema)}"}
+        )
         Logger.warn(self.sketch_id, {"message": f"Params: {str(self.params)}"})
-        Logger.warn(self.sketch_id, {"message": f"Params schema length: {len(self.params_schema)}"})
+        Logger.warn(
+            self.sketch_id,
+            {"message": f"Params schema length: {len(self.params_schema)}"},
+        )
         i = 1
         for param in self.params_schema:
             Logger.warn(self.sketch_id, {"message": f"Param {i}: {str(param)}"})
@@ -160,16 +171,15 @@ class Scanner(ABC):
                     continue
         return resolved
 
-
     @classmethod
     def required_params(self) -> bool:
-       return False
+        return False
 
     @classmethod
     @abstractmethod
     def name(cls) -> str:
         pass
-    
+
     @classmethod
     def icon(cls) -> str | None:
         return None
@@ -193,6 +203,7 @@ class Scanner(ABC):
         Falls back to cleaned docstring if not overridden.
         """
         import inspect
+
         return inspect.cleandoc(cls.__doc__ or "No documentation available.")
 
     @classmethod
@@ -215,21 +226,21 @@ class Scanner(ABC):
         Subclasses don't need to override this unless they have special requirements.
         """
         return cls.generate_output_schema()
-    
+
     @classmethod
     def generate_input_schema(cls) -> Dict[str, Any]:
         """
         Helper method to generate input schema from InputType class attribute.
-        
+
         Raises:
             NotImplementedError: If InputType is not defined in the subclass
         """
         if cls.InputType is NotImplemented:
             raise NotImplementedError(f"InputType must be defined in {cls.__name__}")
-            
+
         adapter = TypeAdapter(cls.InputType)
         schema = adapter.json_schema()
-        
+
         # Handle different schema structures
         if "$defs" in schema and schema["$defs"]:
             # Follow the $ref in items to get the correct type (not just the first one)
@@ -241,35 +252,35 @@ class Scanner(ABC):
             else:
                 # Fallback: get the first type definition (for backward compatibility)
                 type_name, details = list(schema["$defs"].items())[0]
-            
+
             return {
                 "type": type_name,
                 "properties": [
                     {"name": prop, "type": resolve_type(info, schema)}
                     for prop, info in details["properties"].items()
-                ]
+                ],
             }
         else:
             # Handle simpler schemas
             return {
                 "type": schema.get("title", "Any"),
-                "properties": [{"name": "value", "type": "object"}]
+                "properties": [{"name": "value", "type": "object"}],
             }
-    
-    @classmethod 
+
+    @classmethod
     def generate_output_schema(cls) -> Dict[str, Any]:
         """
         Helper method to generate output schema from OutputType class attribute.
-        
+
         Raises:
             NotImplementedError: If OutputType is not defined in the subclass
         """
         if cls.OutputType is NotImplemented:
             raise NotImplementedError(f"OutputType must be defined in {cls.__name__}")
-            
+
         adapter = TypeAdapter(cls.OutputType)
         schema = adapter.json_schema()
-        
+
         # Handle different schema structures
         if "$defs" in schema and schema["$defs"]:
             # Follow the $ref in items to get the correct type (not just the first one)
@@ -281,19 +292,19 @@ class Scanner(ABC):
             else:
                 # Fallback: get the first type definition (for backward compatibility)
                 type_name, details = list(schema["$defs"].items())[0]
-            
+
             return {
                 "type": type_name,
                 "properties": [
                     {"name": prop, "type": resolve_type(info, schema)}
                     for prop, info in details["properties"].items()
-                ]
+                ],
             }
         else:
             # Handle simpler schemas
             return {
                 "type": schema.get("title", "Any"),
-                "properties": [{"name": "value", "type": "object"}]
+                "properties": [{"name": "value", "type": "object"}],
             }
 
     @abstractmethod
@@ -309,7 +320,9 @@ class Scanner(ABC):
     def preprocess(self, values: List[str]) -> List[str]:
         return values
 
-    def postprocess(self, results: List[Dict[str, Any]], input_data: List[str] = None) -> List[Dict[str, Any]]:
+    def postprocess(
+        self, results: List[Dict[str, Any]], input_data: List[str] = None
+    ) -> List[Dict[str, Any]]:
         return results
 
     async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
@@ -322,51 +335,68 @@ class Scanner(ABC):
             processed = self.postprocess(results, preprocessed)
 
             if self.name() != "transform_orchestrator":
-                Logger.completed(self.sketch_id, {"message": f"Scanner {self.name()} finished."})
+                Logger.completed(
+                    self.sketch_id, {"message": f"Scanner {self.name()} finished."}
+                )
 
             return processed
 
         except Exception as e:
             if self.name() != "transform_orchestrator":
-                Logger.error(self.sketch_id, {"message": f"Scanner {self.name()} errored: '{str(e)}'."})
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Scanner {self.name()} errored: '{str(e)}'."},
+                )
             return []
 
-    def create_node(self, node_type: str, key_prop: str, key_value: str, **properties) -> None:
+    def create_node(
+        self, node_type: str, key_prop: str, key_value: str, **properties
+    ) -> None:
         """Simple helper to create a single Neo4j node."""
         if not self.neo4j_conn:
             return
-            
-        properties['sketch_id'] = self.sketch_id
-        properties['label'] = properties.get('label', key_value)
-        
+
+        properties["sketch_id"] = self.sketch_id
+        properties["label"] = properties.get("label", key_value)
+
         set_clauses = [f"n.{prop} = ${prop}" for prop in properties.keys()]
         params = {key_prop: key_value, **properties}
-        
+
         query = f"""
         MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
         SET {', '.join(set_clauses)}
         """
         self.neo4j_conn.query(query, params)
-    
-    def create_relationship(self, from_type: str, from_key: str, from_value: str, 
-                          to_type: str, to_key: str, to_value: str, rel_type: str) -> None:
+
+    def create_relationship(
+        self,
+        from_type: str,
+        from_key: str,
+        from_value: str,
+        to_type: str,
+        to_key: str,
+        to_value: str,
+        rel_type: str,
+    ) -> None:
         """Simple helper to create a relationship between two nodes."""
         if not self.neo4j_conn:
             return
-            
+
         query = f"""
         MATCH (from:{from_type} {{{from_key}: $from_value}})
         MATCH (to:{to_type} {{{to_key}: $to_value}})
         MERGE (from)-[:{rel_type} {{sketch_id: $sketch_id}}]->(to)
         """
-        
-        self.neo4j_conn.query(query, {
-            'from_value': from_value,
-            'to_value': to_value,
-            'sketch_id': self.sketch_id
-        })
-    
+
+        self.neo4j_conn.query(
+            query,
+            {
+                "from_value": from_value,
+                "to_value": to_value,
+                "sketch_id": self.sketch_id,
+            },
+        )
+
     def log_graph_message(self, message: str) -> None:
         """Simple helper to log a graph message."""
         Logger.graph_append(self.sketch_id, {"message": message})
-

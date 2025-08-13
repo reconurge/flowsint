@@ -71,19 +71,19 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
             )}
             <div className="flex-1 min-h-0">
                 <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={30} minSize={20}>
+                    <ResizablePanel defaultSize={20} minSize={20}>
                         <div className="h-full overflow-auto">
                             <KeyValueDisplay data={node.data} />
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={40} minSize={25}>
+                    <ResizablePanel defaultSize={35} minSize={25}>
                         <div className="h-full p-3">
                             <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={30} minSize={20}>
+                    <ResizablePanel defaultSize={45} minSize={20}>
                         <Relationships sketchId={sketchId as string} nodeId={node.id} />
                     </ResizablePanel>
                 </ResizablePanelGroup>

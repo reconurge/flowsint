@@ -5,7 +5,7 @@ EventLevel = Literal["info", "warn", "error", "success", "debug"]
 
 LEVEL_MAP = {
     "info": "INFO",
-    "warn": "WARN", 
+    "warn": "WARN",
     "error": "FAILED",
     "success": "SUCCESS",
     "debug": "DEBUG",
@@ -17,13 +17,15 @@ class TestLogger:
     def _format_message(type: str, message: str) -> str:
         """Format the log message with type prefix"""
         return f"[{type.upper()}] {message}"
-    
+
     @staticmethod
     def _create_log(sketch_id: Union[str, UUID], log_type: str, content: str) -> Any:
         """Create a dummy log object for testing"""
+
         class DummyLog:
             def __init__(self):
-                self.id = 'dummy_id'
+                self.id = "dummy_id"
+
         return DummyLog()
 
     @staticmethod

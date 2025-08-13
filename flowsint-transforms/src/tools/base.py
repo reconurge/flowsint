@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+
 class Tool(ABC):
     @classmethod
     @abstractmethod
@@ -11,12 +12,12 @@ class Tool(ABC):
     @abstractmethod
     def category(cls) -> str:
         pass
-    
+
     @classmethod
     @abstractmethod
     def description(cls) -> str:
         pass
-    
+
     @classmethod
     @abstractmethod
     def version(cls) -> str:

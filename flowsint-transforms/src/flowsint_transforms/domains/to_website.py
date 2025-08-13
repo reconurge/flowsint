@@ -6,6 +6,7 @@ from flowsint_types.domain import Domain
 from flowsint_types.website import Website
 from flowsint_core.core.logger import Logger
 
+
 class DomainToWebsiteScanner(Scanner):
     """From domain to website."""
 
@@ -20,7 +21,7 @@ class DomainToWebsiteScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Domain"
-    
+
     @classmethod
     def key(cls) -> str:
         return "domain"
@@ -48,13 +49,15 @@ class DomainToWebsiteScanner(Scanner):
                 # Try HTTPS first
                 try:
                     https_url = f"https://{domain.domain}"
-                    response = requests.head(https_url, timeout=10, allow_redirects=True)
+                    response = requests.head(
+                        https_url, timeout=10, allow_redirects=True
+                    )
                     if response.status_code < 400:
                         results.append(Website(url=https_url, domain=domain))
                         continue
                 except requests.RequestException:
                     pass
-                
+
                 # Try HTTP if HTTPS fails
                 try:
                     http_url = f"http://{domain.domain}"
@@ -64,15 +67,20 @@ class DomainToWebsiteScanner(Scanner):
                         continue
                 except requests.RequestException:
                     pass
-                    
+
                 # If both fail, still add HTTPS URL as default
                 results.append(Website(url=f"https://{domain.domain}", domain=domain))
-                    
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error converting domain {domain.domain} to website: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Error converting domain {domain.domain} to website: {e}"
+                    },
+                )
                 # Add HTTPS URL as fallback
                 results.append(Website(url=f"https://{domain.domain}", domain=domain))
-        
+
         return results
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -80,29 +88,54 @@ class DomainToWebsiteScanner(Scanner):
             # Log each redirect step
             if website.redirects:
                 for i, redirect_url in enumerate(website.redirects):
-                    next_url = website.redirects[i + 1] if i + 1 < len(website.redirects) else str(website.url)
+                    next_url = (
+                        website.redirects[i + 1]
+                        if i + 1 < len(website.redirects)
+                        else str(website.url)
+                    )
                     redirect_payload = {
                         "message": f"Redirect: {str(redirect_url)} -> {str(next_url)}"
                     }
                     Logger.info(self.sketch_id, redirect_payload)
-            
+
             if self.neo4j_conn:
                 # Create domain node
-                self.create_node('domain', 'domain', website.domain.domain, type="domain")
-                
+                self.create_node(
+                    "domain", "domain", website.domain.domain, type="domain"
+                )
+
                 # Create website node
-                self.create_node('website', 'url', str(website.url),
-                               active=website.active,
-                               redirects=[str(redirect) for redirect in website.redirects] if website.redirects else [],
-                               type="website")
-                
+                self.create_node(
+                    "website",
+                    "url",
+                    str(website.url),
+                    active=website.active,
+                    redirects=(
+                        [str(redirect) for redirect in website.redirects]
+                        if website.redirects
+                        else []
+                    ),
+                    type="website",
+                )
+
                 # Create relationship
-                self.create_relationship('domain', 'domain', website.domain.domain,
-                                       'website', 'url', str(website.url), 'HAS_WEBSITE')
-          
+                self.create_relationship(
+                    "domain",
+                    "domain",
+                    website.domain.domain,
+                    "website",
+                    "url",
+                    str(website.url),
+                    "HAS_WEBSITE",
+                )
+
             is_active_str = "active" if website.active else "inactive"
-            redirects_str = f" (redirects: {len(website.redirects)})" if website.redirects else ""
-            self.log_graph_message(f"{website.domain.domain} -> {str(website.url)} ({is_active_str}){redirects_str}")
+            redirects_str = (
+                f" (redirects: {len(website.redirects)})" if website.redirects else ""
+            )
+            self.log_graph_message(
+                f"{website.domain.domain} -> {str(website.url)} ({is_active_str}){redirects_str}"
+            )
 
         return results
 

@@ -13,6 +13,7 @@ import inspect
 from typing import Any, Dict, Type
 from pydantic import BaseModel, TypeAdapter
 
+
 def is_valid_ip(address: str) -> bool:
     try:
         ipaddress.ip_address(address)
@@ -20,10 +21,12 @@ def is_valid_ip(address: str) -> bool:
     except ValueError:
         return False
 
+
 def is_valid_username(username: str) -> bool:
     if not re.match(r"^[a-zA-Z0-9_-]{3,30}$", username):
         return False
     return True
+
 
 def is_valid_email(email: str) -> bool:
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
@@ -34,26 +37,29 @@ def is_valid_email(email: str) -> bool:
 def is_valid_domain(url_or_domain: str) -> str:
 
     try:
-        parsed = urlparse(url_or_domain if "://" in url_or_domain else "http://" + url_or_domain)
+        parsed = urlparse(
+            url_or_domain if "://" in url_or_domain else "http://" + url_or_domain
+        )
         hostname = parsed.hostname or url_or_domain
-    
+
         if not hostname or "." not in hostname:
             return False
-        
+
         if not re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", hostname):
             return False
-    
+
         return True
     except Exception as e:
         return False
 
+
 def is_root_domain(domain: str) -> bool:
     """
     Determine if a domain is a root domain or subdomain.
-    
+
     Args:
         domain: The domain string to check
-        
+
     Returns:
         True if it's a root domain (e.g., example.com), False if it's a subdomain (e.g., sub.example.com)
     """
@@ -62,26 +68,39 @@ def is_root_domain(domain: str) -> bool:
         if "://" in domain:
             parsed = urlparse(domain)
             domain = parsed.hostname or domain
-        
+
         # Split by dots
-        parts = domain.split('.')
-        
+        parts = domain.split(".")
+
         # Handle common country code TLDs that have 2 parts (e.g., .co.uk, .com.au, .org.uk)
-        common_cc_tlds = ['.co.uk', '.com.au', '.org.uk', '.net.uk', '.gov.uk', '.ac.uk', 
-                         '.co.nz', '.com.sg', '.co.jp', '.co.kr', '.com.br', '.com.mx']
-        
+        common_cc_tlds = [
+            ".co.uk",
+            ".com.au",
+            ".org.uk",
+            ".net.uk",
+            ".gov.uk",
+            ".ac.uk",
+            ".co.nz",
+            ".com.sg",
+            ".co.jp",
+            ".co.kr",
+            ".com.br",
+            ".com.mx",
+        ]
+
         # Check if the domain ends with a common country code TLD
         for cc_tld in common_cc_tlds:
             if domain.endswith(cc_tld):
                 # For country code TLDs, we need exactly 3 parts (e.g., example.co.uk)
                 return len(parts) == 3
-        
+
         # For regular TLDs, a root domain has 2 parts (e.g., example.com)
         # A subdomain has 3 or more parts (e.g., sub.example.com, www.sub.example.com)
         return len(parts) == 2
     except Exception:
         # If we can't parse it, assume it's not a root domain
         return False
+
 
 def is_valid_number(phone: str, region: str = "FR") -> None:
     """
@@ -94,18 +113,20 @@ def is_valid_number(phone: str, region: str = "FR") -> None:
             return False
     except NumberParseException:
         return False
-    
+
+
 def parse_asn(asn: str) -> int:
     if not is_valid_asn(asn):
         raise ValueError(f"Invalid ASN format: {asn}")
     return int(re.sub(r"(?i)^AS", "", asn))
 
-    
+
 def is_valid_asn(asn: str) -> bool:
     if not re.fullmatch(r"(AS)?\d+", asn, re.IGNORECASE):
         return False
     asn_num = int(re.sub(r"(?i)^AS", "", asn))
     return 0 <= asn_num <= 4294967295
+
 
 def resolve_type(details: dict, schema_context: dict = None) -> str:
     if "anyOf" in details:
@@ -121,21 +142,22 @@ def resolve_type(details: dict, schema_context: dict = None) -> str:
             else:
                 types.append(option.get("type", "unknown"))
         return " | ".join(types)
-    
+
     if "type" in details:
         if details["type"] == "array":
             item_type = resolve_type(details.get("items", {}), schema_context)
             return f"{item_type}[]"
         return details["type"]
-    
+
     # Handle $ref in array items or other contexts
     if "$ref" in details and schema_context:
         ref_path = details["$ref"]
         if ref_path.startswith("#/$defs/"):
             ref_name = ref_path.split("/")[-1]
             return ref_name
-    
+
     return "any"
+
 
 def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
@@ -153,21 +175,14 @@ def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
         "outputs": {
             "type": type_name,
             "properties": [
-                {
-                    "name": prop,
-                    "type": resolve_type(info, schema)
-                }
+                {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details.get("properties", {}).items()
-            ]
+            ],
         },
-        "inputs": {
-            "type": "",
-            "properties": []
-        },
+        "inputs": {"type": "", "properties": []},
         "type": "type",
         "category": model.__name__,
     }
-
 
 
 def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
@@ -176,14 +191,14 @@ def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
         with socket.create_connection((ip, port), timeout=3) as sock:
             with context.wrap_socket(sock, server_hostname=ip) as ssock:
                 cert = ssock.getpeercert()
-                subject = cert.get('subject', [])
+                subject = cert.get("subject", [])
                 for entry in subject:
-                    if entry[0][0] == 'commonName':
+                    if entry[0][0] == "commonName":
                         return entry[0][1]
                 # Alternative: check subjectAltName
-                san = cert.get('subjectAltName', [])
+                san = cert.get("subjectAltName", [])
                 for typ, val in san:
-                    if typ == 'DNS':
+                    if typ == "DNS":
                         return val
     except Exception as e:
         print(f"SSL extraction failed for {ip}: {e}")
@@ -208,12 +223,14 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
 
         scanner_node = node_lookup.get(target_id)
         if scanner_node and scanner_node["data"]["type"] == "scanner":
-            scanners.append({
-                "scanner_name": scanner_node["data"]["name"],
-                "module": scanner_node["data"]["module"],
-                "input": source_handle,
-                "output": target_handle
-            })
+            scanners.append(
+                {
+                    "scanner_name": scanner_node["data"]["name"],
+                    "module": scanner_node["data"]["module"],
+                    "input": source_handle,
+                    "output": target_handle,
+                }
+            )
 
     return {
         "input": {
@@ -221,25 +238,22 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
             "outputs": input_output,
         },
         "scanners": scanners,
-    "scanner_names" : [scanner["scanner_name"] for scanner in scanners]
+        "scanner_names": [scanner["scanner_name"] for scanner in scanners],
+    }
 
-    }
-    
+
 def get_label_color(label: str) -> str:
-    color_map = {
-        'subdomain': '#A5ABB6',
-        'domain': '#68BDF6',
-        'default': '#A5ABB6'
-    }
-    
+    color_map = {"subdomain": "#A5ABB6", "domain": "#68BDF6", "default": "#A5ABB6"}
+
     return color_map.get(label, color_map["default"])
+
 
 def flatten(data_dict, prefix=""):
     """
     Flattens a dictionary to contain only Neo4j-compatible property values.
     Neo4j supports primitive types (string, number, boolean) and arrays of those types.
     Args:
-        data_dict (dict): Dictionary to flatten   
+        data_dict (dict): Dictionary to flatten
     Returns:
         dict: Flattened dictionary with only Neo4j-compatible values
     """
@@ -250,13 +264,14 @@ def flatten(data_dict, prefix=""):
         if value is None:
             continue
         if isinstance(value, (str, int, float, bool)) or (
-            isinstance(value, list) and all(isinstance(item, (str, int, float, bool)) for item in value)
+            isinstance(value, list)
+            and all(isinstance(item, (str, int, float, bool)) for item in value)
         ):
             key = f"{prefix}{key}"
-            flattened[key] = value 
+            flattened[key] = value
     return flattened
 
- 
+
 def get_inline_relationships(nodes: List[Any], edges: List[Any]) -> List[str]:
     """
     Get the inline relationships for a list of nodes and edges.
@@ -266,14 +281,15 @@ def get_inline_relationships(nodes: List[Any], edges: List[Any]) -> List[str]:
         source = next((node for node in nodes if node["id"] == edge["source"]), None)
         target = next((node for node in nodes if node["id"] == edge["target"]), None)
         if source and target:
-            relationships.append({"source":source, "edge":edge, "target":target})
+            relationships.append({"source": source, "edge": edge, "target": target})
     return relationships
+
 
 def to_json_serializable(obj):
     """Convert any object to a JSON-serializable format."""
     import json
     from pydantic import BaseModel
-    
+
     try:
         # Test if already JSON serializable
         json.dumps(obj)
@@ -282,7 +298,11 @@ def to_json_serializable(obj):
         # Handle common cases
         if isinstance(obj, BaseModel):
             # Use mode='json' to ensure all Pydantic types are properly serialized
-            return obj.model_dump(mode='json') if hasattr(obj, 'model_dump') else obj.dict()
+            return (
+                obj.model_dump(mode="json")
+                if hasattr(obj, "model_dump")
+                else obj.dict()
+            )
         elif isinstance(obj, (list, tuple)):
             return [to_json_serializable(item) for item in obj]
         elif isinstance(obj, dict):

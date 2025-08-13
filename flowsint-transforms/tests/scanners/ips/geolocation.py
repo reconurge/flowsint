@@ -3,6 +3,7 @@ from flowsint_types.ip import Ip, Ip
 
 scanner = GeolocationScanner("sketch_123", "scan_123")
 
+
 def test_preprocess_valid_ips():
     ips = [
         Ip(address="8.8.8.8"),
@@ -13,6 +14,7 @@ def test_preprocess_valid_ips():
     expected_ips = [d.address for d in ips]
     assert result_ips == expected_ips
 
+
 def test_preprocess_string_ips():
     ips = [
         "8.8.8.8",
@@ -22,6 +24,7 @@ def test_preprocess_string_ips():
     result_ips = [d.address for d in result]
     expected_ips = [d for d in ips]
     assert [ip.address for ip in result] == expected_ips
+
 
 def test_preprocess_invalid_ips():
     ips = [
@@ -34,6 +37,7 @@ def test_preprocess_invalid_ips():
     assert "8.8.8.8" in result_ips
     assert "1.1.1.1" in result_ips
     assert "invalid_ip" not in result_ips
+
 
 def test_preprocess_multiple_formats():
     ips = [
@@ -48,6 +52,7 @@ def test_preprocess_multiple_formats():
     assert "1.1.1.1" in result_ips
     assert "1.2.3.4" not in result_ips
 
+
 def test_scan_returns_ip(monkeypatch):
     # Mock of get_location_data
     def mock_get_location_data(address):
@@ -56,7 +61,7 @@ def test_scan_returns_ip(monkeypatch):
             "longitude": -122.0838,
             "country": "US",
             "city": "Mountain View",
-            "isp": "Google LLC"
+            "isp": "Google LLC",
         }
 
     monkeypatch.setattr(scanner, "get_location_data", mock_get_location_data)
@@ -70,9 +75,29 @@ def test_scan_returns_ip(monkeypatch):
     assert output[0].country == "US"
     assert output[0].isp == "Google LLC"
 
+
 def test_schemas():
     input_schema = scanner.input_schema()
     output_schema = scanner.output_schema()
-    assert input_schema == {'type': 'Ip', 'properties': [{'name': 'address', 'type': 'string'}, {'name': 'latitude', 'type': 'number | null'}, {'name': 'longitude', 'type': 'number | null'}, {'name': 'country', 'type': 'string | null'}, {'name': 'city', 'type': 'string | null'}, {'name': 'isp', 'type': 'string | null'}]}
-    assert output_schema == {'type': 'Ip', 'properties': [{'name': 'address', 'type': 'string'}, {'name': 'latitude', 'type': 'number | null'}, {'name': 'longitude', 'type': 'number | null'}, {'name': 'country', 'type': 'string | null'}, {'name': 'city', 'type': 'string | null'}, {'name': 'isp', 'type': 'string | null'}]}
-
+    assert input_schema == {
+        "type": "Ip",
+        "properties": [
+            {"name": "address", "type": "string"},
+            {"name": "latitude", "type": "number | null"},
+            {"name": "longitude", "type": "number | null"},
+            {"name": "country", "type": "string | null"},
+            {"name": "city", "type": "string | null"},
+            {"name": "isp", "type": "string | null"},
+        ],
+    }
+    assert output_schema == {
+        "type": "Ip",
+        "properties": [
+            {"name": "address", "type": "string"},
+            {"name": "latitude", "type": "number | null"},
+            {"name": "longitude", "type": "number | null"},
+            {"name": "country", "type": "string | null"},
+            {"name": "city", "type": "string | null"},
+            {"name": "isp", "type": "string | null"},
+        ],
+    }

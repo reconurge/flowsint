@@ -8,7 +8,7 @@ celery = Celery(
     include=[
         "flowsint_core.tasks.event",
         "flowsint_core.tasks.transform",
-    ]
+    ],
 )
 
 celery.conf.update(
@@ -20,5 +20,5 @@ celery.conf.update(
     task_track_started=True,
     task_time_limit=3600,  # 1 hour
     worker_max_tasks_per_child=1000,
-    worker_prefetch_multiplier=1
+    worker_prefetch_multiplier=1,
 )

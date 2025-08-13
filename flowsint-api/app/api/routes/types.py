@@ -3,17 +3,43 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter
 from pydantic import BaseModel, TypeAdapter
 from flowsint_types import (
-    Domain, Ip, SocialProfile, Organization, Email, ASN, CIDR,
-    CryptoWallet, CryptoWalletTransaction, CryptoNFT, Website, Individual,
-    Phone, Leak, Username, Credential, Session,
-    DNSRecord, SSLCertificate, Device, Document, File, Message,
-    Malware, Weapon, BankAccount, CreditCard, WebTracker, Phrase
+    Domain,
+    Ip,
+    SocialProfile,
+    Organization,
+    Email,
+    ASN,
+    CIDR,
+    CryptoWallet,
+    CryptoWalletTransaction,
+    CryptoNFT,
+    Website,
+    Individual,
+    Phone,
+    Leak,
+    Username,
+    Credential,
+    Session,
+    DNSRecord,
+    SSLCertificate,
+    Device,
+    Document,
+    File,
+    Message,
+    Malware,
+    Weapon,
+    BankAccount,
+    CreditCard,
+    WebTracker,
+    Phrase,
 )
+
 # from flowsint_types.script import Script
 # from flowsint_types.reputation_score import ReputationScore
 # from flowsint_types.risk_profile import RiskProfile
 
 router = APIRouter()
+
 
 # Returns the "types" for the sketches
 @router.get("/")
@@ -39,9 +65,13 @@ async def get_types_list():
             "fields": [],
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
-                extract_input_schema(SocialProfile, label_key="username", icon="socialprofile"),
+                extract_input_schema(
+                    SocialProfile, label_key="username", icon="socialprofile"
+                ),
                 extract_input_schema(Organization, label_key="name"),
-                extract_input_schema(Username, label_key="username", icon="socialprofile"),
+                extract_input_schema(
+                    Username, label_key="username", icon="socialprofile"
+                ),
                 # extract_input_schema(Alias, label_key="alias", icon="alias"),
                 # extract_input_schema(Affiliation, label_key="organization", icon="affiliation"),
             ],
@@ -67,7 +97,9 @@ async def get_types_list():
             "children": [
                 extract_input_schema(Phone, label_key="number"),
                 extract_input_schema(Email, label_key="email"),
-                extract_input_schema(SocialProfile, label_key="username", icon="socialprofile"),
+                extract_input_schema(
+                    SocialProfile, label_key="username", icon="socialprofile"
+                ),
                 extract_input_schema(Message, label_key="content", icon="message"),
             ],
         },
@@ -97,7 +129,9 @@ async def get_types_list():
             "label": "Security & Access",
             "fields": [],
             "children": [
-                extract_input_schema(Credential, label_key="username", icon="credential"),
+                extract_input_schema(
+                    Credential, label_key="username", icon="credential"
+                ),
                 extract_input_schema(Session, label_key="session_id", icon="session"),
                 extract_input_schema(Device, label_key="device_id", icon="device"),
                 extract_input_schema(Malware, label_key="name", icon="malware"),
@@ -127,8 +161,12 @@ async def get_types_list():
             "label": "Financial Data",
             "fields": [],
             "children": [
-                extract_input_schema(BankAccount, label_key="account_number", icon="creditcard"),
-                extract_input_schema(CreditCard, label_key="card_number", icon="creditcard"),
+                extract_input_schema(
+                    BankAccount, label_key="account_number", icon="creditcard"
+                ),
+                extract_input_schema(
+                    CreditCard, label_key="card_number", icon="creditcard"
+                ),
             ],
         },
         {
@@ -150,41 +188,47 @@ async def get_types_list():
             "label": "Crypto",
             "fields": [],
             "children": [
-                extract_input_schema(CryptoWallet, label_key="address", icon="cryptowallet"),
-                extract_input_schema(CryptoWalletTransaction, label_key="hash", icon="cryptowallet"),
+                extract_input_schema(
+                    CryptoWallet, label_key="address", icon="cryptowallet"
+                ),
+                extract_input_schema(
+                    CryptoWalletTransaction, label_key="hash", icon="cryptowallet"
+                ),
                 extract_input_schema(CryptoNFT, label_key="name", icon="cryptowallet"),
             ],
-        }
+        },
     ]
 
     return types
 
 
+def extract_input_schema(
+    model: Type[BaseModel], label_key: str, icon: Optional[str] = None
+) -> Dict[str, Any]:
 
-def extract_input_schema(model: Type[BaseModel], label_key:str, icon: Optional[str]=None) -> Dict[str, Any]:
-    
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
     # Use the main schema properties, not the $defs
     type_name = model.__name__
     details = schema
     return {
-                "id": uuid4(),
-                "type": type_name,
-                "key": type_name.lower(),
-                "label_key": label_key,
-                "icon": icon or type_name.lower(),
-                "label": type_name,
-                "description": details.get("description",""),
-                "fields": [resolve_field(prop, details=info, schema=schema)  
-                for prop, info in details.get("properties", {}).items()
-            ]
+        "id": uuid4(),
+        "type": type_name,
+        "key": type_name.lower(),
+        "label_key": label_key,
+        "icon": icon or type_name.lower(),
+        "label": type_name,
+        "description": details.get("description", ""),
+        "fields": [
+            resolve_field(prop, details=info, schema=schema)
+            for prop, info in details.get("properties", {}).items()
+        ],
     }
 
 
-def resolve_field(prop:str, details: dict, schema: dict = None) -> Dict:
+def resolve_field(prop: str, details: dict, schema: dict = None) -> Dict:
     """_summary_
-    The fields can sometimes contain nested complex objects, like: 
+    The fields can sometimes contain nested complex objects, like:
     - Organization having Individual[] as dirigeants, so we want to skip those.
     Args:
         details (dict): _description_
@@ -193,28 +237,35 @@ def resolve_field(prop:str, details: dict, schema: dict = None) -> Dict:
     Returns:
         str: _description_
     """
-    field = { "name": prop,"label": details["title"], "description": details["description"], "type":"text"}
+    field = {
+        "name": prop,
+        "label": details["title"],
+        "description": details["description"],
+        "type": "text",
+    }
     if has_enum(details):
-        field["type"] =  "select"
-        field["options"]= [
-        { "label": label, "value": label } for label in get_enum_values(details)
+        field["type"] = "select"
+        field["options"] = [
+            {"label": label, "value": label} for label in get_enum_values(details)
         ]
     field["required"] = is_required(details)
-                    
+
     return field
 
 
 def has_enum(schema: dict) -> bool:
-    any_of = schema.get('anyOf', [])
-    return any(isinstance(entry, dict) and 'enum' in entry for entry in any_of)
+    any_of = schema.get("anyOf", [])
+    return any(isinstance(entry, dict) and "enum" in entry for entry in any_of)
+
 
 def is_required(schema: dict) -> bool:
-    any_of = schema.get('anyOf', [])
-    return not any(entry == {'type': 'null'} for entry in any_of)
-   
+    any_of = schema.get("anyOf", [])
+    return not any(entry == {"type": "null"} for entry in any_of)
+
+
 def get_enum_values(schema: dict) -> list:
     enum_values = []
-    for entry in schema.get('anyOf', []):
-        if isinstance(entry, dict) and 'enum' in entry:
-            enum_values.extend(entry['enum'])
+    for entry in schema.get("anyOf", []):
+        if isinstance(entry, dict) and "enum" in entry:
+            enum_values.extend(entry["enum"])
     return enum_values

@@ -6,10 +6,12 @@ from flowsint_types.domain import Domain
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 from tools.network.subfinder import SubfinderTool
+from flowsint_core.core.logger import Logger
+
 
 class SubdomainScanner(Scanner):
     """Scanner to find subdomains associated with a domain."""
-    
+
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Domain | str]
     OutputType = List[Domain]
@@ -26,7 +28,6 @@ class SubdomainScanner(Scanner):
     def key(cls) -> str:
         return "domain"
 
-
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
         for item in data:
@@ -40,7 +41,6 @@ class SubdomainScanner(Scanner):
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
         return cleaned
-      
 
     async def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
@@ -52,7 +52,10 @@ class SubdomainScanner(Scanner):
             if use_subfinder:
                 subdomains = self.__get_subdomains_from_subfinder(d.domain)
                 if not subdomains:
-                    Logger.warn(self.sketch_id, f"subfinder failed for {d.domain}, falling back to crt.sh")
+                    Logger.warn(
+                        self.sketch_id,
+                        f"subfinder failed for {d.domain}, falling back to crt.sh",
+                    )
                     subdomains = self.__get_subdomains_from_crtsh(d.domain)
             else:
                 Logger.info(self.sketch_id, "subfinder not found, using crt.sh only")
@@ -69,8 +72,7 @@ class SubdomainScanner(Scanner):
         subdomains: set[str] = set()
         try:
             response = requests.get(
-                f"https://crt.sh/?q=%25.{domain}&output=json",
-                timeout=60
+                f"https://crt.sh/?q=%25.{domain}&output=json", timeout=60
             )
             if response.ok:
                 entries = response.json()
@@ -78,7 +80,12 @@ class SubdomainScanner(Scanner):
                     name_value = entry.get("name_value", "")
                     for sub in name_value.split("\n"):
                         sub = sub.strip().lower()
-                        if "*" not in sub and is_valid_domain(sub) and sub.endswith(domain) and sub != domain:
+                        if (
+                            "*" not in sub
+                            and is_valid_domain(sub)
+                            and sub.endswith(domain)
+                            and sub != domain
+                        ):
                             subdomains.add(sub)
                         elif "*" in sub:
                             continue
@@ -102,17 +109,28 @@ class SubdomainScanner(Scanner):
                 continue
             for subdomain in domain_obj["subdomains"]:
                 output.append(Domain(domain=subdomain))
-                Logger.info(self.sketch_id, {"message": f"{domain_obj['domain']} -> {subdomain}"})
-                
+                Logger.info(
+                    self.sketch_id,
+                    {"message": f"{domain_obj['domain']} -> {subdomain}"},
+                )
+
                 # Create subdomain node
-                self.create_node('domain', 'domain', subdomain, 
-                               type='domain')
-                
+                self.create_node("domain", "domain", subdomain, type="domain")
+
                 # Create relationship from parent domain to subdomain
-                self.create_relationship('domain', 'domain', domain_obj["domain"],
-                                       'domain', 'domain', subdomain, 'HAS_SUBDOMAIN')
-            
-            self.log_graph_message(f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found.")
+                self.create_relationship(
+                    "domain",
+                    "domain",
+                    domain_obj["domain"],
+                    "domain",
+                    "domain",
+                    subdomain,
+                    "HAS_SUBDOMAIN",
+                )
+
+            self.log_graph_message(
+                f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."
+            )
 
         return output
 

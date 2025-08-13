@@ -2,17 +2,18 @@ import json
 from typing import Any, Literal
 from ..dockertool import DockerTool
 
+
 class AsnmapTool(DockerTool):
     image = "projectdiscovery/asnmap"
     default_tag = "latest"
-    
+
     def __init__(self):
         super().__init__(self.image, self.default_tag)
-        
+
     @classmethod
     def name(cls) -> str:
         return "asnmap"
-    
+
     @classmethod
     def description(cls) -> str:
         return "ASN mapping and network reconnaissance tool."
@@ -31,16 +32,17 @@ class AsnmapTool(DockerTool):
                 command="--version",
                 remove=True,
                 stderr=True,
-                stdout=True
+                stdout=True,
             )
             output_str = output.decode()
             import re
-            match = re.search(r'(v[\d\.]+)', output_str)
+
+            match = re.search(r"(v[\d\.]+)", output_str)
             version = match.group(1) if match else "unknown"
             return version
         except Exception as e:
             return f"unknown (error: {str(e)})"
-        
+
     def update(self) -> None:
         # Pull the latest image
         self.install()
@@ -48,15 +50,14 @@ class AsnmapTool(DockerTool):
     def is_installed(self) -> bool:
         return super().is_installed()
 
-    def launch(self, item: str, type: Literal["domain", "organization", "ip", "asn"] = "domain") -> Any:
-        flags = {
-            "domain" : '-d',
-            'org':  '-org',
-            'ip' : '-i',
-            'asn': '-a'
-            }
+    def launch(
+        self, item: str, type: Literal["domain", "organization", "ip", "asn"] = "domain"
+    ) -> Any:
+        flags = {"domain": "-d", "org": "-org", "ip": "-i", "asn": "-a"}
         if type not in flags:
-            raise ValueError(f"Invalid type: '{type}'. Valid types are: {list(flags.keys())}")
+            raise ValueError(
+                f"Invalid type: '{type}'. Valid types are: {list(flags.keys())}"
+            )
         flag = flags[type]
         try:
             # Use the -target argument as asnmap expects
@@ -69,5 +70,6 @@ class AsnmapTool(DockerTool):
             raise RuntimeError(f"Failed to parse JSON output from asnmap: {str(e)}")
         except Exception as e:
             # Try to get more info from the container logs
-            raise RuntimeError(f"Error running asnmap: {str(e)}. Output: {getattr(e, 'output', 'No output')}")
-    
+            raise RuntimeError(
+                f"Error running asnmap: {str(e)}. Output: {getattr(e, 'output', 'No output')}"
+            )

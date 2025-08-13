@@ -8,38 +8,39 @@ from flowsint_core.core.graph_db import Neo4jConnection
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 
+
 class CryptoWalletAddressToNFTs(Scanner):
     """Resolve NFTs for a wallet address (ETH)."""
-    
+
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[CryptoWallet]
     OutputType = List[CryptoNFT]
-    
+
     def __init__(
-            self,
-            sketch_id: Optional[str] = None,
-            scan_id: Optional[str] = None,
-            neo4j_conn: Optional[Neo4jConnection] = None,
-            vault=None,
-            params: Optional[Dict[str, Any]] = None
-        ):
-            super().__init__(
-                sketch_id=sketch_id,
-                scan_id=scan_id,
-                neo4j_conn=neo4j_conn,
-                params_schema=self.get_params_schema(),
-                vault=vault,
-                params=params
-            )
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
 
     @classmethod
     def required_params(cls) -> bool:
         return True
-    
+
     @classmethod
     def icon(cls) -> str | None:
         return "cryptowallet"
-    
+
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
         """Declare required parameters for this scanner"""
@@ -48,17 +49,17 @@ class CryptoWalletAddressToNFTs(Scanner):
                 "name": "ETHERSCAN_API_KEY",
                 "type": "vaultSecret",
                 "description": "The Etherscan API key to use for the transaction lookup.",
-                "required": True
+                "required": True,
             },
             {
                 "name": "ETHERSCAN_API_URL",
                 "type": "url",
                 "description": "The Etherscan API URL to use for the transaction lookup.",
                 "required": False,
-                "default": ETHERSCAN_API_URL
-            }
+                "default": ETHERSCAN_API_URL,
+            },
         ]
-    
+
     @classmethod
     def name(cls) -> str:
         return "wallet_to_nfts"
@@ -66,7 +67,7 @@ class CryptoWalletAddressToNFTs(Scanner):
     @classmethod
     def category(cls) -> str:
         return "CryptoWallet"
-    
+
     @classmethod
     def key(cls) -> str:
         return "address"
@@ -101,36 +102,37 @@ class CryptoWalletAddressToNFTs(Scanner):
             except Exception as e:
                 print(f"Error resolving nfts for {d.address}: {e}")
         return results
-    
+
     def _get_nfts(self, address: str, api_key: str, api_url: str) -> List[CryptoNFT]:
         nfts = []
         """Get nfts for a wallet address."""
         params = {
-        "module": "account",
-        "action": "tokennfttx",
-        "address": address,
-        "startblock": 0,
-        "endblock": 99999999,
-        "page": 1,
-        "offset": 10000,
-        "sort": "asc",
-        "apikey": api_key
-    }
+            "module": "account",
+            "action": "tokennfttx",
+            "address": address,
+            "startblock": 0,
+            "endblock": 99999999,
+            "page": 1,
+            "offset": 10000,
+            "sort": "asc",
+            "apikey": api_key,
+        }
         response = requests.get(api_url, params=params)
         data = response.json()
         results = data["result"]
         for tx in results:
-            nfts.append(CryptoNFT(
-                wallet=CryptoWallet(address=address),
-                contract_address=tx["contractAddress"],
-                token_id=tx["tokenID"],
-                collection_name=tx["collectionName"],
-                metadata_url=tx["metadataURL"],
-                image_url=tx["imageURL"],
-                name=tx["name"],
-            ))
+            nfts.append(
+                CryptoNFT(
+                    wallet=CryptoWallet(address=address),
+                    contract_address=tx["contractAddress"],
+                    token_id=tx["tokenID"],
+                    collection_name=tx["collectionName"],
+                    metadata_url=tx["metadataURL"],
+                    image_url=tx["imageURL"],
+                    name=tx["name"],
+                )
+            )
         return nfts
-        
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         if not self.neo4j_conn:
@@ -139,26 +141,46 @@ class CryptoWalletAddressToNFTs(Scanner):
         for nfts in results:
             for nft in nfts:
                 # Create or update wallet node
-                self.create_node('cryptowallet', 'wallet', nft.wallet.address,
-                               caption=nft.wallet.address, type='cryptowallet')
+                self.create_node(
+                    "cryptowallet",
+                    "wallet",
+                    nft.wallet.address,
+                    caption=nft.wallet.address,
+                    type="cryptowallet",
+                )
 
-                # Create or update NFT node  
+                # Create or update NFT node
                 nft_key = f"{nft.contract_address}_{nft.token_id}"
-                self.create_node('nft', 'nft_id', nft_key,
-                               contract_address=nft.contract_address,
-                               token_id=nft.token_id,
-                               collection_name=nft.collection_name,
-                               metadata_url=nft.metadata_url,
-                               image_url=nft.image_url,
-                               name=nft.name,
-                               caption=nft.name, type='nft')
+                self.create_node(
+                    "nft",
+                    "nft_id",
+                    nft_key,
+                    contract_address=nft.contract_address,
+                    token_id=nft.token_id,
+                    collection_name=nft.collection_name,
+                    metadata_url=nft.metadata_url,
+                    image_url=nft.image_url,
+                    name=nft.name,
+                    caption=nft.name,
+                    type="nft",
+                )
 
                 # Create relationship from wallet to NFT
-                self.create_relationship('cryptowallet', 'wallet', nft.wallet.address,
-                                       'nft', 'nft_id', nft_key, 'OWNS')
-                self.log_graph_message(f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}")
+                self.create_relationship(
+                    "cryptowallet",
+                    "wallet",
+                    nft.wallet.address,
+                    "nft",
+                    "nft_id",
+                    nft_key,
+                    "OWNS",
+                )
+                self.log_graph_message(
+                    f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}"
+                )
 
         return results
+
 
 # Make types available at module level for easy access
 InputType = CryptoWalletAddressToNFTs.InputType

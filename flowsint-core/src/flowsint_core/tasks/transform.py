@@ -14,10 +14,11 @@ from sqlalchemy.orm import Session
 from ..core.logger import Logger
 from ..core.enums import EventLevel
 from flowsint_core.utils import to_json_serializable
+
 load_dotenv()
 
 URI = os.getenv("NEO4J_URI_BOLT")
-URI="bolt://localhost:7687"
+URI = "bolt://localhost:7687"
 USERNAME = os.getenv("NEO4J_USERNAME")
 PASSWORD = os.getenv("NEO4J_PASSWORD")
 
@@ -25,8 +26,15 @@ neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
 logger = Logger()
 
+
 @celery.task(name="run_transform", bind=True)
-def run_transform(self, transform_branches, values: List[str], sketch_id: str | None, owner_id: Optional[str] = None):
+def run_transform(
+    self,
+    transform_branches,
+    values: List[str],
+    sketch_id: str | None,
+    owner_id: Optional[str] = None,
+):
     session = SessionLocal()
 
     try:
@@ -49,7 +57,9 @@ def run_transform(self, transform_branches, values: List[str], sketch_id: str | 
             try:
                 vault = Vault(session, uuid.UUID(owner_id))
             except Exception as e:
-                Logger.error(sketch_id, {"message": f"Failed to create vault: {str(e)}"})
+                Logger.error(
+                    sketch_id, {"message": f"Failed to create vault: {str(e)}"}
+                )
 
         transform_branches = [FlowBranch(**branch) for branch in transform_branches]
         scanner = TransformOrchestrator(
@@ -59,7 +69,7 @@ def run_transform(self, transform_branches, values: List[str], sketch_id: str | 
             neo4j_conn=neo4j_connection,
             vault=vault,
         )
-        
+
         # Use the synchronous scan method which internally handles the async operations
         results = scanner.scan(values=values)
 

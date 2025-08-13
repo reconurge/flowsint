@@ -5,9 +5,10 @@ from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
 from flowsint_core.utils import is_valid_domain, is_root_domain
 
+
 class ResolveScanner(Scanner):
     """Resolve domain names to IP addresses."""
-    
+
     # Define the input and output types as class attributes
     InputType = List[Domain]
     OutputType = List[Ip]
@@ -19,7 +20,7 @@ class ResolveScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Domain"
-    
+
     @classmethod
     def key(cls) -> str:
         return "domain"
@@ -263,10 +264,14 @@ Check FlowSint logs for detailed resolution information.
             if isinstance(item, str):
                 domain_obj = Domain(domain=item, root=is_root_domain(item))
             elif isinstance(item, dict) and "domain" in item:
-                domain_obj = Domain(domain=item["domain"], root=is_root_domain(item["domain"]))
+                domain_obj = Domain(
+                    domain=item["domain"], root=is_root_domain(item["domain"])
+                )
             elif isinstance(item, Domain):
                 # If the Domain object already exists, update its root field
-                domain_obj = Domain(domain=item.domain, root=is_root_domain(item.domain))
+                domain_obj = Domain(
+                    domain=item.domain, root=is_root_domain(item.domain)
+                )
             if domain_obj and is_valid_domain(domain_obj.domain):
                 cleaned.append(domain_obj)
         return cleaned
@@ -283,11 +288,27 @@ Check FlowSint logs for detailed resolution information.
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for domain_obj, ip_obj in zip(original_input, results):
-            self.create_node('domain', 'domain', domain_obj.domain, type='domain' if domain_obj.root else 'subdomain')
-            self.create_node('ip', 'address', ip_obj.address, type='ip')
-            self.create_relationship('domain', 'domain', domain_obj.domain, 'ip', 'address', ip_obj.address, 'RESOLVES_TO')
-            self.log_graph_message(f"IP found for domain {domain_obj.domain} -> {ip_obj.address}")
+            self.create_node(
+                "domain",
+                "domain",
+                domain_obj.domain,
+                type="domain" if domain_obj.root else "subdomain",
+            )
+            self.create_node("ip", "address", ip_obj.address, type="ip")
+            self.create_relationship(
+                "domain",
+                "domain",
+                domain_obj.domain,
+                "ip",
+                "address",
+                ip_obj.address,
+                "RESOLVES_TO",
+            )
+            self.log_graph_message(
+                f"IP found for domain {domain_obj.domain} -> {ip_obj.address}"
+            )
         return results
+
 
 # Make types available at module level for easy access
 InputType = ResolveScanner.InputType

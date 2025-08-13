@@ -8,6 +8,7 @@ from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 
+
 class DomainToAsnScanner(Scanner):
     """Takes a domain and returns its corresponding ASN."""
 
@@ -22,7 +23,7 @@ class DomainToAsnScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Domain"
-    
+
     @classmethod
     def key(cls) -> str:
         return "Domain"
@@ -49,36 +50,42 @@ class DomainToAsnScanner(Scanner):
             try:
                 # First resolve domain to IP
                 ip = socket.gethostbyname(domain.domain)
-                
+
                 # Use asnmap to get ASN info
                 result = subprocess.run(
                     ["asnmap", "-a", ip, "-json"],
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
-                
+
                 if result.returncode == 0:
                     output = result.stdout.strip()
                     if output:
                         asn_data = json.loads(output)
-                        if asn_data and 'as_number' in asn_data:
+                        if asn_data and "as_number" in asn_data:
                             asn = ASN(
-                                asn=str(asn_data['as_number']),
-                                name=asn_data.get('as_name', ''),
-                                org=asn_data.get('as_org', ''),
-                                country=asn_data.get('as_country', '')
+                                asn=str(asn_data["as_number"]),
+                                name=asn_data.get("as_name", ""),
+                                org=asn_data.get("as_org", ""),
+                                country=asn_data.get("as_country", ""),
                             )
                             results.append(asn)
-                            
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error getting ASN for domain {domain.domain}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Error getting ASN for domain {domain.domain}: {e}"},
+                )
                 continue
-                
+
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(
+        self, results: OutputType, input_data: InputType = None
+    ) -> OutputType:
         return results
+
 
 # Make types available at module level for easy access
 InputType = DomainToAsnScanner.InputType

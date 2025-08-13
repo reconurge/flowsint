@@ -10,6 +10,7 @@ from flowsint_core.utils import is_valid_ip
 
 PTR_BLACKLIST = re.compile(r"^ip\d+\.ip-\d+-\d+-\d+-\d+\.")
 
+
 class ReverseResolveScanner(Scanner):
     """Resolve IP addresses to domain names using PTR, Certificate Transparency and optional API calls."""
 
@@ -47,7 +48,7 @@ class ReverseResolveScanner(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        
+
         for ip in data:
             try:
                 # Try PTR lookup
@@ -59,7 +60,7 @@ class ReverseResolveScanner(Scanner):
                         continue
                 except socket.herror:
                     pass
-                
+
                 # Try Certificate Transparency logs
                 try:
                     ct_url = f"https://crt.sh/?q={ip.address}&output=json"
@@ -74,15 +75,21 @@ class ReverseResolveScanner(Scanner):
                                 break
                 except Exception:
                     pass
-                    
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error reverse resolving IP {ip.address}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Error reverse resolving IP {ip.address}: {e}"},
+                )
                 continue
-                
+
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(
+        self, results: OutputType, input_data: InputType = None
+    ) -> OutputType:
         return results
+
 
 # Make types available at module level for easy access
 InputType = ReverseResolveScanner.InputType

@@ -7,6 +7,7 @@ from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_core.core.vault import VaultProtocol
 from recontrack import TrackingCodeExtractor
 
+
 class WebsiteToWebtrackersScanner(Scanner):
     """From website to webtrackers."""
 
@@ -21,7 +22,7 @@ class WebsiteToWebtrackersScanner(Scanner):
         neo4j_conn: Optional[Neo4jConnection] = None,
         params_schema: Optional[List[Dict[str, Any]]] = None,
         vault: Optional[VaultProtocol] = None,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(sketch_id, scan_id, neo4j_conn, params_schema, vault, params)
         self.tracker_website_mapping: List[tuple[WebTracker, Website]] = []
@@ -33,7 +34,7 @@ class WebsiteToWebtrackersScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Website"
-    
+
     @classmethod
     def key(cls) -> str:
         return "website"
@@ -55,30 +56,38 @@ class WebsiteToWebtrackersScanner(Scanner):
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         extractor = TrackingCodeExtractor()
-        
+
         for website in data:
             try:
                 # Extract tracking codes from the website
                 tracking_data = extractor.extract(str(website.url))
-                
+
                 for tracker_info in tracking_data:
                     tracker = WebTracker(
                         name=tracker_info.get("name", ""),
                         tracker_id=tracker_info.get("id", ""),
                         category=tracker_info.get("category", ""),
-                        website_url=str(website.url)
+                        website_url=str(website.url),
                     )
                     results.append(tracker)
                     self.tracker_website_mapping.append((tracker, website))
-                    
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error extracting web trackers from {website.url}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Error extracting web trackers from {website.url}: {e}"
+                    },
+                )
                 continue
-                
+
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(
+        self, results: OutputType, input_data: InputType = None
+    ) -> OutputType:
         return results
+
 
 # Make types available at module level for easy access
 InputType = WebsiteToWebtrackersScanner.InputType

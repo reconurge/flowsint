@@ -2,7 +2,7 @@
 
 A modular investigation and reconnaissance platform with clean separation of concerns.
 
-<img width="1439" height="899" alt="Capture d’écran 2025-08-01 à 12 10 16" src="https://github.com/user-attachments/assets/c94b91f8-625e-4195-aae4-40c89646ac3c" />
+<img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/29b42698-18ab-4389-b070-b231f4ba257c" />
 
 ## Project structure
 

@@ -1,17 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Dict, Any, Literal
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
-from app.utils import flatten
+from flowsint_core.utils import flatten
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from app.models.models import Sketch, Profile
 from sqlalchemy.orm import Session
 from uuid import UUID
-from app.core.graph_db import neo4j_connection
-from app.core.postgre_db import get_db
+from flowsint_core.core.graph_db import neo4j_connection
+from flowsint_core.core.postgre_db import get_db
 from app.api.deps import get_current_user
 
 router = APIRouter()
@@ -149,7 +149,7 @@ async def get_sketch_nodes(
     ]
 
     if format == "inline":
-        from app.utils import get_inline_relationships
+        from flowsint_core.utils import get_inline_relationships
         return get_inline_relationships(nodes, rels)
 
     return {"nds": nodes, "rls": rels}

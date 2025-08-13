@@ -2,40 +2,16 @@ from typing import Any, Dict, Optional, Type
 from uuid import UUID, uuid4
 from fastapi import APIRouter
 from pydantic import BaseModel, TypeAdapter
-from app.core.celery import celery
-from app.types.domain import Domain
-from app.types.ip import Ip
-from app.types.social import SocialProfile
-from app.types.organization import Organization
-from app.types.email import Email
-from app.types.asn import ASN
-from app.types.cidr import CIDR
-from app.types.wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
-from app.types.website import Website
-from app.types.individual import Individual
-from app.types.phone import Phone
-from app.types.leak import Leak
-# New types imports
-from app.types.username import Username
-from app.types.alias import Alias
-from app.types.affiliation import Affiliation
-from app.types.credential import Credential
-from app.types.session import Session
-from app.types.dns_record import DNSRecord
-from app.types.ssl_certificate import SSLCertificate
-from app.types.device import Device
-from app.types.document import Document
-from app.types.file import File
-from app.types.message import Message
-from app.types.malware import Malware
-from app.types.weapon import Weapon
-from app.types.bank_account import BankAccount
-from app.types.credit_card import CreditCard
-from app.types.web_tracker import WebTracker
-from app.types.phrase import Phrase
-# from app.types.script import Script
-# from app.types.reputation_score import ReputationScore
-# from app.types.risk_profile import RiskProfile
+from flowsint_types import (
+    Domain, Ip, SocialProfile, Organization, Email, ASN, CIDR,
+    CryptoWallet, CryptoWalletTransaction, CryptoNFT, Website, Individual,
+    Phone, Leak, Username, Credential, Session,
+    DNSRecord, SSLCertificate, Device, Document, File, Message,
+    Malware, Weapon, BankAccount, CreditCard, WebTracker, Phrase
+)
+# from flowsint_types.script import Script
+# from flowsint_types.reputation_score import ReputationScore
+# from flowsint_types.risk_profile import RiskProfile
 
 router = APIRouter()
 

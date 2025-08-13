@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "flowsint-core"
+version = "0.1.0"
+description = "Core utilities and base classes for flowsint modules"
+authors = ["EliottElek <dexxterrmorgan@proton.me>"]
+packages = [{ include = "flowsint_core", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+pydantic = {extras = ["email"], version = "^2.11.7"}
+flowsint-transforms = { path = "../flowsint-transforms", develop = true }
+neo4j = "^5.0"
+sqlalchemy = "^2.0"
+psycopg2-binary = "^2.9"
+asyncpg = "^0.29"
+redis = "^5.0"
+celery = "^5.3"
+python-dotenv = "^1.0"
+requests = "^2.31"
+docker = "^6.1"
+networkx = "^2.6.3"
+passlib = {extras = ["bcrypt"], version = "^1.7"}
+python-jose = {extras = ["cryptography"], version = "^3.3"}
+sse-starlette = "^1.8"
+alembic = "1.13.0"
+phonenumbers = "^9.0.8"
+python-multipart = "^0.0.20"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+pytest-asyncio = "^0.21"
+black = "^23.0"
+isort = "^5.12"
+flake8 = "^6.0"
+mypy = "^1.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true 

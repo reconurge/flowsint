@@ -2,7 +2,6 @@ from typing import List, Optional, Any
 from .base import ORMBase
 from pydantic import UUID4, BaseModel
 from typing import Optional
-from datetime import datetime
 
 class ScanCreate(BaseModel):
     values: Optional[List[str]] = None

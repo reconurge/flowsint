@@ -3,26 +3,17 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
-from app.utils import extract_input_schema_transform
-from app.scanners.registry import ScannerRegistry
-from app.core.celery import celery
-from app.types.domain import Domain
-from app.types.phrase import Phrase
-from app.types.ip import Ip
-from app.types.social import SocialProfile
-from app.types.organization import Organization
-from app.types.email import Email
-from app.types.transform import Node, Edge, FlowStep, FlowBranch
+from flowsint_core.utils import extract_input_schema_transform
+from flowsint_transforms.registry import ScannerRegistry
+from flowsint_core.core.celery import celery
+from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Email
+from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
-from app.core.postgre_db import get_db
+from flowsint_core.core.postgre_db import get_db
 from app.models.models import Transform, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.transform import TransformRead, TransformCreate, TransformUpdate
-from app.types.asn import ASN
-from app.types.cidr import CIDR
-from app.types.wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
-from app.types.website import Website
-from app.types.individual import Individual
+from flowsint_types import ASN, CIDR, CryptoWallet, CryptoWalletTransaction, CryptoNFT, Website, Individual
 
 class FlowComputationRequest(BaseModel):
     nodes: List[Node]
@@ -185,7 +176,6 @@ async def launch_transform(
 ):
     try:
         transform = db.query(Transform).filter(Transform.id == transform_id).first()
-        print(transform)
         if transform is None:
             raise HTTPException(status_code=404, detail="Transform not found")
         nodes = [Node(**node) for node in transform.transform_schema["nodes"]]
@@ -195,7 +185,7 @@ async def launch_transform(
             nodes, 
             edges
         )
-        serializable_branches = [branch.dict() for branch in transform_branches]
+        serializable_branches = [branch.model_dump() for branch in transform_branches]
         task = celery.send_task("run_transform", args=[serializable_branches, payload.values, payload.sketch_id, str(current_user.id)])
         return {"id": task.id}
 

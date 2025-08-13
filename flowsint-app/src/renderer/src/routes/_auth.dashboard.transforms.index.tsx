@@ -77,9 +77,9 @@ function TransformsPage() {
                         <div className="rounded-full bg-muted/50 p-4 mb-4">
                             <FileX className="w-8 h-8 text-muted-foreground" />
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">No transforms yet</h3>
+                        <h3 className="text-xl font-semibold mb-2">No flow yet</h3>
                         <p className="text-muted-foreground mb-6 max-w-md">
-                            Get started by creating your first transform. You can use transforms to process and manipulate your data in powerful ways.
+                            Get started by creating your first flow. You can use transforms to process and manipulate your data in powerful ways.
                         </p>
                         <NewTransform>
                             <Button>

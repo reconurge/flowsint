@@ -32,13 +32,12 @@ export default function RootLayout({ children }: LayoutProps) {
     const currentNode = useGraphStore((s) => s.currentNode)
     const { id } = useParams({ strict: false })
 
-    useEffect(() => {
-        if (!currentNode) {
-            closeDetails()
-            return
-        }
-        openDetails()
-    }, [currentNode])
+    // useEffect(() => {
+    //     if (!currentNode) {
+    //         return
+    //     }
+    //     openDetails()
+    // }, [currentNode, openDetails])
 
 
     // Set up keyboard shortcut for chat panel

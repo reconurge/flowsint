@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "flowsint-transforms"
+version = "0.1.0"
+description = "Transform modules for flowsint"
+authors = ["EliottElek <dexxterrmorgan@proton.me>"]
+packages = [{ include = "tools", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+flowsint-types = { path = "../flowsint-types", develop = true }
+flowsint-core = { path = "../flowsint-core", develop = true }
+holehe = "^1.61"
+sherlock-project = "^0.15.0"
+requests = "^2.31"
+python-whois = "^0.9.5"
+httpx = "^0.28.0"
+pydig = "^0.4"
+ignorant = "^1.2"
+hibpwned = "^1.3.9"
+phonenumbers = "^9.0.8"
+pydantic = "^2.11.7"
+
+requests-random-user-agent = "^2023.10.25"
+spacy = "^3.7"
+docker = "^6.1"
+maigret = { git = "https://github.com/soxoj/maigret" }
+recontrack = { git = "https://github.com/reconurge/recontrack.git" }
+reconcrawl = { git = "https://github.com/reconurge/reconcrawl.git" }
+reconspread = { git = "https://github.com/reconurge/reconspread.git" }
+dnspython = "^2.4"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+pytest-asyncio = "^0.21"
+black = "^25.0"
+isort = "^6.0"
+flake8 = "^7.0"
+mypy = "^1.17"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true 

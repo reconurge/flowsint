@@ -307,7 +307,7 @@ const ChatMessageComponent = ({ message }: { message: ChatMessage }) => {
                 "p-1 rounded-lg",
                 "flex flex-col items-end overflow-x-hidden"
             )}>
-                {message?.context && message.context.length > 0 && <div className='flex items-center w-full overflow-x-auto justify-end mb-2'><ContextList context={message.context} /></div>}
+                {/* {message?.context && message.context.length > 0 && <div className='flex items-center w-full overflow-x-auto justify-end mb-2'><ContextList context={message.context} /></div>} */}
                 <span className='px-3'><MemoizedMarkdown id={message.id} content={message.content} /></span>
             </div>
         </div >)

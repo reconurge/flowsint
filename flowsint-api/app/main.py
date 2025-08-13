@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.core.graph_db import Neo4jConnection
+from flowsint_core.core.graph_db import Neo4jConnection
 import os
 from typing import List
 from dotenv import load_dotenv

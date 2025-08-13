@@ -2,8 +2,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from app.core.auth import ALGORITHM
-from app.core.postgre_db import get_db
+from flowsint_core.core.auth import ALGORITHM
+from flowsint_core.core.postgre_db import get_db
 from app.models.models import Profile
 
 import os

@@ -6,7 +6,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from app.core.enums import EventLevel
+from flowsint_core.core.enums import EventLevel
 
 class Base(DeclarativeBase):
     pass

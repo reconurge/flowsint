@@ -3,12 +3,12 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from datetime import datetime
 from sqlalchemy.orm import Session, selectinload
-from app.core.postgre_db import get_db
+from flowsint_core.core.postgre_db import get_db
 from app.models.models import Analysis, Investigation, Profile, Sketch
 from app.api.deps import get_current_user
 from app.api.schemas.investigation import InvestigationRead, InvestigationCreate, InvestigationUpdate
 from app.api.schemas.sketch import SketchRead
-from app.core.graph_db import neo4j_connection
+from flowsint_core.core.graph_db import neo4j_connection
 
 router = APIRouter()
 

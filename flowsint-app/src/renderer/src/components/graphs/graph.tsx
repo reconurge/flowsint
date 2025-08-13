@@ -16,7 +16,7 @@ const CosmographTimeline = lazy(() =>
 // Hook pour tracker l'état de chargement de Cosmograph
 const useCosmographLoader = (nodes: any[], edges: any[]) => {
     const [isCosmographReady, setIsCosmographReady] = useState(true)
-    const [loadingStage, setLoadingStage] = useState<'importing' | 'simulating' | 'rendering' | 'ready'>('ready')
+    const [loadingStage, setLoadingStage] = useState<'importing' | 'rendering' | 'ready'>('ready')
     const cosmograph = useCosmograph()
     const dataVersionRef = useRef(0)
 
@@ -36,12 +36,12 @@ const useCosmographLoader = (nodes: any[], edges: any[]) => {
             setLoadingStage('ready')
             return
         }
-        setLoadingStage('simulating')
+        setLoadingStage('rendering')
     }, [cosmograph?.cosmograph, nodes.length, edges.length])
 
     const handleSimulationStart = useCallback(() => {
         if (edges.length > 0) {
-            setLoadingStage('simulating')
+            setLoadingStage('rendering')
             setIsCosmographReady(false)
         }
     }, [edges.length])

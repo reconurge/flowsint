@@ -1,11 +1,10 @@
-import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from app.core.postgre_db import get_db
+from flowsint_core.core.postgre_db import get_db
 from app.models.models import Log, Sketch
-from app.core.events import event_emitter
+from flowsint_core.core.events import event_emitter
 from sse_starlette.sse import EventSourceResponse
-from app.core.types import Event
+from flowsint_core.core.types import Event
 from app.api.deps import get_current_user
 from app.models.models import Profile, Sketch
 import json
@@ -90,7 +89,7 @@ async def stream_events(request: Request, sketch_id: str,
                     
                 data = await event_emitter.get_message(channel)
                 if data is None:
-                    await asyncio.sleep(0.1)  # avoid tight loop on None
+                    await asyncio.sleep(.1)  # avoid tight loop on None
                     continue
                                     
                 # Handle different types of events
@@ -100,6 +99,7 @@ async def stream_events(request: Request, sketch_id: str,
                 else:
                     # Send regular log event
                     yield json.dumps({'event': 'log', 'data': data})
+                await asyncio.sleep(.1)
 
         except asyncio.CancelledError:
             print(f"[EventEmitter] Client disconnected from sketch_id: {sketch_id}")

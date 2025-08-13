@@ -21,7 +21,7 @@ const RelationshipsTable = lazy(() => import('@/components/table/relationships-v
 const Graph = lazy(() => import('./graph'))
 // const Wall = lazy(() => import('./wall/wall'))
 
-const NODE_COUNT_THRESHOLD = 1000;
+const NODE_COUNT_THRESHOLD = 500;
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (

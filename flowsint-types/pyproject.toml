@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "flowsint-types"
+version = "0.1.0"
+description = "Pydantic models for flowsint"
+authors = ["EliottElek <dexxterrmorgan@proton.me>"]
+packages = [{ include = "flowsint_types", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+pydantic = "^2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+black = "^23.0"
+isort = "^5.12"
+flake8 = "^6.0"
+mypy = "^1.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true 

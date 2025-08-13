@@ -39,7 +39,7 @@ const Relationships = ({ sketchId, nodeId }: { sketchId: string, nodeId: string 
         overscan: 5,
     });
 
-    if (isLoading) return <div className='flex items-center'><Loader /></div>
+    if (isLoading) return <div className='flex items-center justify-center grow h-full'><Loader /></div>
 
     return (
         <div ref={parentRef} className="h-full overflow-auto py-3">

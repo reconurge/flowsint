@@ -1,0 +1,89 @@
+import re
+import socket
+import requests
+from typing import List, Union
+from flowsint_core.core.logger import Logger
+from flowsint_core.core.scanner_base import Scanner
+from flowsint_types.domain import Domain
+from flowsint_types.ip import Ip
+from flowsint_core.utils import is_valid_ip
+
+PTR_BLACKLIST = re.compile(r"^ip\d+\.ip-\d+-\d+-\d+-\d+\.")
+
+class ReverseResolveScanner(Scanner):
+    """Resolve IP addresses to domain names using PTR, Certificate Transparency and optional API calls."""
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = List[Ip]
+    OutputType = List[Domain]
+
+    @classmethod
+    def name(cls) -> str:
+        return "ip_reverse_resolve_scanner"
+
+    @classmethod
+    def category(cls) -> str:
+        return "Ip"
+
+    @classmethod
+    def key(cls) -> str:
+        return "address"
+
+    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+        cleaned: InputType = []
+        for item in data:
+            ip_obj = None
+            if isinstance(item, str):
+                if is_valid_ip(item):
+                    ip_obj = Ip(address=item)
+            elif isinstance(item, dict) and "address" in item:
+                if is_valid_ip(item["address"]):
+                    ip_obj = Ip(address=item["address"])
+            elif isinstance(item, Ip):
+                ip_obj = item
+            if ip_obj:
+                cleaned.append(ip_obj)
+        return cleaned
+
+    async def scan(self, data: InputType) -> OutputType:
+        results: OutputType = []
+        
+        for ip in data:
+            try:
+                # Try PTR lookup
+                try:
+                    hostname = socket.gethostbyaddr(ip.address)[0]
+                    if hostname and not PTR_BLACKLIST.match(hostname):
+                        domain = Domain(domain=hostname)
+                        results.append(domain)
+                        continue
+                except socket.herror:
+                    pass
+                
+                # Try Certificate Transparency logs
+                try:
+                    ct_url = f"https://crt.sh/?q={ip.address}&output=json"
+                    response = requests.get(ct_url, timeout=10)
+                    if response.status_code == 200:
+                        ct_data = response.json()
+                        for entry in ct_data[:5]:  # Limit to first 5 results
+                            name_value = entry.get("name_value", "")
+                            if name_value and name_value != ip.address:
+                                domain = Domain(domain=name_value)
+                                results.append(domain)
+                                break
+                except Exception:
+                    pass
+                    
+            except Exception as e:
+                Logger.error(self.sketch_id, {"message": f"Error reverse resolving IP {ip.address}: {e}"})
+                continue
+                
+        return results
+
+    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+        return results
+
+# Make types available at module level for easy access
+InputType = ReverseResolveScanner.InputType
+OutputType = ReverseResolveScanner.OutputType

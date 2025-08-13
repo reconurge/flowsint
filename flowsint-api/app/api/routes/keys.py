@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.orm import Session
-from app.core.postgre_db import get_db
+from flowsint_core.core.postgre_db import get_db
 from app.models.models import Profile, Key
 from app.api.deps import get_current_user
 from app.api.schemas.key import KeyRead, KeyCreate

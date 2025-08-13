@@ -4,12 +4,13 @@ from pydantic import TypeAdapter
 from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.ip import Ip, Ip
 from flowsint_core.utils import resolve_type, is_valid_ip
+
 InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[Ip]
 
+
 class GeolocationScanner(Scanner):
     """Get geolocation data for IP addresses."""
-
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Ip]
@@ -22,7 +23,7 @@ class GeolocationScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Ip"
-    
+
     @classmethod
     def key(cls) -> str:
         return "address"
@@ -37,7 +38,7 @@ class GeolocationScanner(Scanner):
             "properties": [
                 {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
-            ]
+            ],
         }
 
     @classmethod
@@ -50,7 +51,7 @@ class GeolocationScanner(Scanner):
             "properties": [
                 {"name": prop, "type": resolve_type(info, schema)}
                 for prop, info in details["properties"].items()
-            ]
+            ],
         }
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
@@ -89,10 +90,20 @@ class GeolocationScanner(Scanner):
         """Update IP nodes in Neo4j with geolocation information."""
         if self.neo4j_conn:
             for ip in results:
-                self.create_node('ip', 'address', ip.address,
-                               latitude=ip.latitude, longitude=ip.longitude,
-                               country=ip.country, city=ip.city, isp=ip.isp, type='ip')
-                self.log_graph_message(f"Geolocated {ip.address} to {ip.city}, {ip.country} (lat: {ip.latitude}, lon: {ip.longitude})")
+                self.create_node(
+                    "ip",
+                    "address",
+                    ip.address,
+                    latitude=ip.latitude,
+                    longitude=ip.longitude,
+                    country=ip.country,
+                    city=ip.city,
+                    isp=ip.isp,
+                    type="ip",
+                )
+                self.log_graph_message(
+                    f"Geolocated {ip.address} to {ip.city}, {ip.country} (lat: {ip.latitude}, lon: {ip.longitude})"
+                )
         return results
 
     def get_location_data(self, address: str) -> Dict[str, Any]:
@@ -112,10 +123,13 @@ class GeolocationScanner(Scanner):
                     "isp": data.get("isp"),
                 }
             else:
-                raise ValueError(f"Geolocation failed for {address}: {data.get('message')}")
+                raise ValueError(
+                    f"Geolocation failed for {address}: {data.get('message')}"
+                )
         except Exception as e:
             print(f"Failed to geolocate {address}: {e}")
             return {}
+
 
 InputType = GeolocationScanner.InputType
 OutputType = GeolocationScanner.OutputType

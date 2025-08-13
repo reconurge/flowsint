@@ -7,6 +7,7 @@ from uuid import UUID
 import redis.asyncio as redis
 import os
 
+
 class EventEmitter:
     def __init__(self):
         self.id = uuid.uuid4()
@@ -31,12 +32,14 @@ class EventEmitter:
         """Get the next message from Redis for a specific channel"""
         if channel not in self.pubsubs:
             return None
-            
-        message = await self.pubsubs[channel].get_message(ignore_subscribe_messages=True)
+
+        message = await self.pubsubs[channel].get_message(
+            ignore_subscribe_messages=True
+        )
         if message is None:
             await asyncio.sleep(0.1)
             return None
-            
+
         if message:
             data = message["data"]
             if isinstance(data, bytes):
@@ -57,8 +60,10 @@ class EventEmitter:
         except ValueError:
             return False
 
+
 event_emitter = EventEmitter()
+
 
 def init_events(app: FastAPI):
     """Initialize the event system in the FastAPI app"""
-    print("[EventEmitter] Events initialized in FastAPI app") 
+    print("[EventEmitter] Events initialized in FastAPI app")

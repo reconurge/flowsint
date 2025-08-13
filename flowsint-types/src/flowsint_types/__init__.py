@@ -44,7 +44,7 @@ __author__ = "EliottElek <dexxterrmorgan@proton.me>"
 
 __all__ = [
     "PhysicalAddress",
-    "Affiliation", 
+    "Affiliation",
     "Alias",
     "ASN",
     "BankAccount",

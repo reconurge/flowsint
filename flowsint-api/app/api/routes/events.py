@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 
 router = APIRouter()
 
+
 @router.get("/sketch/{sketch_id}/logs")
 def get_logs_by_sketch(
     sketch_id: str,
@@ -20,27 +21,33 @@ def get_logs_by_sketch(
     since: datetime | None = None,
     db: Session = Depends(get_db),
     # current_user: Profile = Depends(get_current_user)
-):  
+):
     """Get historical logs for a specific sketch with optional filtering"""
     # Check if sketch exists
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
-        raise HTTPException(status_code=404, detail=f"Sketch with id {sketch_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Sketch with id {sketch_id} not found"
+        )
 
-    print(f"[EventEmitter] Fetching logs for sketch {sketch_id} (limit: {limit}, since: {since})")
-    query = db.query(Log).filter(Log.sketch_id == sketch_id).order_by(Log.created_at.desc())
-    
+    print(
+        f"[EventEmitter] Fetching logs for sketch {sketch_id} (limit: {limit}, since: {since})"
+    )
+    query = (
+        db.query(Log).filter(Log.sketch_id == sketch_id).order_by(Log.created_at.desc())
+    )
+
     if since:
         query = query.filter(Log.created_at > since)
     else:
         # Default to last 24 hours if no since parameter
         query = query.filter(Log.created_at > datetime.utcnow() - timedelta(days=1))
-        
+
     logs = query.limit(limit).all()
-    
+
     # Reverse to show chronologically (oldest to newest)
     logs = list(reversed(logs))
-    
+
     results = []
     for log in logs:
         # Ensure payload is always a dictionary
@@ -53,53 +60,58 @@ def get_logs_by_sketch(
         else:
             # Handle other types by converting to string and wrapping
             payload = {"content": str(log.content)}
-        
-        results.append(Event(
-            id=str(log.id),
-            sketch_id=str(log.sketch_id) if log.sketch_id else None,
-            type=log.type,
-            payload=payload
-        ))
-    
+
+        results.append(
+            Event(
+                id=str(log.id),
+                sketch_id=str(log.sketch_id) if log.sketch_id else None,
+                type=log.type,
+                payload=payload,
+            )
+        )
 
     return results
 
 
 @router.get("/sketch/{sketch_id}/stream")
-async def stream_events(request: Request, sketch_id: str,
-                      db: Session = Depends(get_db), 
-                    #   current_user: Profile = Depends(get_current_user)
-                      ):
+async def stream_events(
+    request: Request,
+    sketch_id: str,
+    db: Session = Depends(get_db),
+    #   current_user: Profile = Depends(get_current_user)
+):
     """Stream events for a specific scan in real-time"""
 
     # Check if sketch exists
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
-        raise HTTPException(status_code=404, detail=f"Sketch with id {sketch_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Sketch with id {sketch_id} not found"
+        )
 
     async def event_generator():
         channel = sketch_id
         await event_emitter.subscribe(channel)
         try:
             # Initial connection message
-            yield "data: {\"event\": \"connected\", \"data\": \"Connected to log stream\"}\n\n"
+            yield 'data: {"event": "connected", "data": "Connected to log stream"}\n\n'
             while True:
                 if await request.is_disconnected():
                     break
-                    
+
                 data = await event_emitter.get_message(channel)
                 if data is None:
-                    await asyncio.sleep(.1)  # avoid tight loop on None
+                    await asyncio.sleep(0.1)  # avoid tight loop on None
                     continue
-                                    
+
                 # Handle different types of events
-                if isinstance(data, dict) and data.get('type') == 'scanner_complete':
+                if isinstance(data, dict) and data.get("type") == "scanner_complete":
                     # Send scanner completion event
-                    yield json.dumps({'event': 'scanner_complete', 'data': data})
+                    yield json.dumps({"event": "scanner_complete", "data": data})
                 else:
                     # Send regular log event
-                    yield json.dumps({'event': 'log', 'data': data})
-                await asyncio.sleep(.1)
+                    yield json.dumps({"event": "log", "data": data})
+                await asyncio.sleep(0.1)
 
         except asyncio.CancelledError:
             print(f"[EventEmitter] Client disconnected from sketch_id: {sketch_id}")
@@ -114,16 +126,17 @@ async def stream_events(request: Request, sketch_id: str,
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )
+
 
 @router.delete("/sketch/{sketch_id}/logs")
 def delete_scan_logs(
-    sketch_id:str, 
+    sketch_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user)
-                     ):
+    current_user: Profile = Depends(get_current_user),
+):
     """Delete all logs for a specific scan"""
     try:
         db.query(Log).filter(Log.sketch_id == sketch_id).delete()
@@ -133,9 +146,9 @@ def delete_scan_logs(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete logs: {str(e)}")
 
+
 @router.get("/status/scan/{scan_id}/stream")
-async def stream_status(request: Request, scan_id: str,
-                      db: Session = Depends(get_db)):
+async def stream_status(request: Request, scan_id: str, db: Session = Depends(get_db)):
     """Stream status updates for a specific scan in real-time"""
 
     async def status_generator():
@@ -143,7 +156,7 @@ async def stream_status(request: Request, scan_id: str,
         await event_emitter.subscribe(f"scan_{scan_id}_status")
         try:
             # Initial connection message
-            yield "data: {\"event\": \"connected\", \"data\": \"Connected to status stream\"}\n\n"
+            yield 'data: {"event": "connected", "data": "Connected to status stream"}\n\n'
 
             while True:
                 data = await event_emitter.get_message(f"scan_{scan_id}_status")
@@ -154,7 +167,9 @@ async def stream_status(request: Request, scan_id: str,
                 yield f"data: {data}\n\n"
 
         except asyncio.CancelledError:
-            print(f"[EventEmitter] Client disconnected from status stream for scan_id: {scan_id}")
+            print(
+                f"[EventEmitter] Client disconnected from status stream for scan_id: {scan_id}"
+            )
         finally:
             await event_emitter.unsubscribe(f"scan_{scan_id}_status")
 
@@ -164,6 +179,6 @@ async def stream_status(request: Request, scan_id: str,
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )

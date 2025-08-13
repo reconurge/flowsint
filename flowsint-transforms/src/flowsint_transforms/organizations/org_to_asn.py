@@ -6,6 +6,7 @@ from flowsint_types.organization import Organization
 from flowsint_types.asn import ASN
 from flowsint_core.core.logger import Logger
 
+
 class OrgToAsnScanner(Scanner):
     """Takes an organization and returns its corresponding ASN."""
 
@@ -20,7 +21,7 @@ class OrgToAsnScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Organization"
-    
+
     @classmethod
     def key(cls) -> str:
         return "name"
@@ -46,24 +47,26 @@ class OrgToAsnScanner(Scanner):
         for org in data:
             asn_data = self.__get_asn_from_asnmap(org.name)
             if asn_data:
-                asns.append(ASN(
-                    number=int(asn_data["as_number"].lstrip("AS")),
-                    name=asn_data["as_name"],
-                    country=asn_data["as_country"],
-                    cidrs=[]
-                ))
+                asns.append(
+                    ASN(
+                        number=int(asn_data["as_number"].lstrip("AS")),
+                        name=asn_data["as_name"],
+                        country=asn_data["as_country"],
+                        cidrs=[],
+                    )
+                )
             else:
-                Logger.info(self.sketch_id, {"message": f"No ASN found for org {org.name}."})
+                Logger.info(
+                    self.sketch_id, {"message": f"No ASN found for org {org.name}."}
+                )
         return asns
-    
+
     def __get_asn_from_asnmap(self, name: str) -> Dict[str, Any]:
         try:
             # Properly run the shell pipeline using shell=True
             command = f"echo {name} | asnmap -silent -json | jq -s"
             result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True, text=True, timeout=60
+                command, shell=True, capture_output=True, text=True, timeout=60
             )
             if not result.stdout.strip():
                 return None
@@ -77,7 +80,7 @@ class OrgToAsnScanner(Scanner):
                     "as_range": [],
                     "as_name": None,
                     "as_country": None,
-                    "as_number": None
+                    "as_number": None,
                 }
 
                 for data in data_array:
@@ -93,11 +96,19 @@ class OrgToAsnScanner(Scanner):
                 return combined_data if combined_data["as_number"] else None
 
             except json.JSONDecodeError as e:
-                Logger.error(self.sketch_id, {"message": f"An error occurred while parsing the JSON output from asnmap: {str(e)}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"An error occurred while parsing the JSON output from asnmap: {str(e)}"
+                    },
+                )
                 return None
 
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"An error occurred while running asnmap: {str(e)}"})
+            Logger.error(
+                self.sketch_id,
+                {"message": f"An error occurred while running asnmap: {str(e)}"},
+            )
             return None
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -106,27 +117,46 @@ class OrgToAsnScanner(Scanner):
             # Skip if no valid ASN was found
             if result_asn.number == 0:
                 continue
-                
+
             if self.neo4j_conn:
                 # Create organization node
-                self.create_node('organization', 'name', input_org.name,
-                               caption=input_org.name, type="organization")
-                
+                self.create_node(
+                    "organization",
+                    "name",
+                    input_org.name,
+                    caption=input_org.name,
+                    type="organization",
+                )
+
                 # Create ASN node
-                self.create_node('asn', 'number', result_asn.number,
-                               name=result_asn.name,
-                               country=result_asn.country,
-                               label=f"AS{result_asn.number}",
-                               caption=f"AS{result_asn.number} - {result_asn.name}",
-                               type="asn")
-                
+                self.create_node(
+                    "asn",
+                    "number",
+                    result_asn.number,
+                    name=result_asn.name,
+                    country=result_asn.country,
+                    label=f"AS{result_asn.number}",
+                    caption=f"AS{result_asn.number} - {result_asn.name}",
+                    type="asn",
+                )
+
                 # Create relationship
-                self.create_relationship('organization', 'name', input_org.name,
-                                       'asn', 'number', result_asn.number, 'BELONGS_TO')
-                
-                self.log_graph_message(f"Found for {input_org.name} -> ASN {result_asn.number}")
+                self.create_relationship(
+                    "organization",
+                    "name",
+                    input_org.name,
+                    "asn",
+                    "number",
+                    result_asn.number,
+                    "BELONGS_TO",
+                )
+
+                self.log_graph_message(
+                    f"Found for {input_org.name} -> ASN {result_asn.number}"
+                )
 
         return results
+
 
 # Make types available at module level for easy access
 InputType = OrgToAsnScanner.InputType

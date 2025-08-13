@@ -4,12 +4,14 @@ from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
+
 class SketchCreate(BaseModel):
     title: str
     description: str
     owner_id: Optional[UUID4] = None
     investigation_id: UUID4
     status: Optional[str] = "active"
+
 
 class SketchRead(ORMBase):
     id: UUID4
@@ -21,10 +23,12 @@ class SketchRead(ORMBase):
     last_updated_at: datetime
     status: str
 
+
 class SketchProfileCreate(BaseModel):
     sketch_id: UUID4
     profile_id: UUID4
     role: Optional[str] = "editor"
+
 
 class SketchProfileRead(ORMBase):
     id: int
@@ -32,7 +36,8 @@ class SketchProfileRead(ORMBase):
     sketch_id: UUID4
     profile_id: UUID4
     role: str
-    
+
+
 class SketchUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -40,11 +45,10 @@ class SketchUpdate(BaseModel):
     status: Optional[str] = None
     investigation_id: Optional[UUID] = None
 
-    
+
 class SketchIn(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     owner_id: Optional[UUID] = None
     status: Optional[str] = "active"
     investigation_id: UUID  # requis
-

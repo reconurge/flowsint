@@ -3,18 +3,20 @@ from flowsint_types.domain import Domain, Domain
 
 scanner = SubdomainScanner("sketch_123", "scan_123")
 
+
 def test_preprocess_valid_domains():
     domains = [
         Domain(domain="example.com"),
         Domain(domain="example2.com"),
     ]
     result = scanner.preprocess(domains)
-    
+
     result_domains = [d.domain for d in result]
     expected_domains = [d.domain for d in domains]
 
     assert result_domains == expected_domains
-    
+
+
 def test_unprocessed_valid_domains():
     domains = [
         "example.com",
@@ -23,8 +25,9 @@ def test_unprocessed_valid_domains():
     result = scanner.preprocess(domains)
     result_domains = [d for d in result]
     expected_domains = [Domain(domain=d) for d in domains]
-    assert result_domains == expected_domains 
-    
+    assert result_domains == expected_domains
+
+
 def test_preprocess_invalid_domains():
     domains = [
         Domain(domain="example.com"),
@@ -37,6 +40,7 @@ def test_preprocess_invalid_domains():
     assert "example.com" in result_domains
     assert "example.org" in result_domains
     assert "invalid_domain" not in result_domains
+
 
 def test_preprocess_multiple_formats():
     domains = [
@@ -83,13 +87,9 @@ def test_scan_extracts_subdomains(monkeypatch):
     input_data = [Domain(domain="example.com")]
     domains = scanner.execute(input_data)
     assert isinstance(domains, list)
-    for sub in domains:  
+    for sub in domains:
         print(sub)
         assert isinstance(sub, Domain)
-    expected = sorted([
-        "mail.example.com",
-        "www.example.com",
-        "api.example.com"
-    ])
+    expected = sorted(["mail.example.com", "www.example.com", "api.example.com"])
     print(domains)
     # assert domains[0].subdomains == expected

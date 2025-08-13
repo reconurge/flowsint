@@ -4,6 +4,7 @@ import os
 from typing import List
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+
 # Routes to be included
 from app.api.routes import auth
 from app.api.routes import investigations
@@ -53,7 +54,9 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(sketches.router, prefix="/api/sketches", tags=["sketches"])
-app.include_router(investigations.router, prefix="/api/investigations", tags=["investigations"])
+app.include_router(
+    investigations.router, prefix="/api/investigations", tags=["investigations"]
+)
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
 app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])

@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class EventLevel(str, Enum):
     # Standard log levels
     INFO = "INFO"

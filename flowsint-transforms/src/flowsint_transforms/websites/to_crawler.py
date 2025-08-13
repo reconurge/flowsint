@@ -8,6 +8,7 @@ from flowsint_core.core.logger import Logger
 from tools.network.reconcrawl import ReconCrawlTool
 from pydantic import BaseModel
 
+
 class ReturnType(BaseModel):
     website: Website
     emails: Optional[Email]
@@ -28,7 +29,7 @@ class WebsiteToCrawler(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Website"
-    
+
     @classmethod
     def key(cls) -> str:
         return "url"
@@ -55,53 +56,94 @@ class WebsiteToCrawler(Scanner):
             if website_obj:
                 cleaned.append(website_obj)
         return cleaned
-   
+
     async def scan(self, data: InputType) -> OutputType:
         """Crawl websites to extract emails and phone numbers."""
         results = []
-        
+
         for website in data:
             try:
-                Logger.info(self.sketch_id, {"message": f"Starting comprehensive crawl of {str(website.url)}"})
+                Logger.info(
+                    self.sketch_id,
+                    {"message": f"Starting comprehensive crawl of {str(website.url)}"},
+                )
                 crawler = ReconCrawlTool()
-                crawl_result = crawler.launch(website.url, {"recursive": True, "verify_ssl": True, "max_pages": 500, "timeout": 10, "delay": 1.0, "verbose": False})
+                crawl_result = crawler.launch(
+                    website.url,
+                    {
+                        "recursive": True,
+                        "verify_ssl": True,
+                        "max_pages": 500,
+                        "timeout": 10,
+                        "delay": 1.0,
+                        "verbose": False,
+                    },
+                )
                 website_result = {
-                    "website": str(website.url),  # Store as string instead of Website object
+                    "website": str(
+                        website.url
+                    ),  # Store as string instead of Website object
                     "emails": [],
                     "phones": [],
                 }
                 for item in crawl_result:
-                    Logger.info(self.sketch_id, {"message": f"{item.type}: {item.value}"})
+                    Logger.info(
+                        self.sketch_id, {"message": f"{item.type}: {item.value}"}
+                    )
                     if item.source_url:
-                        Logger.info(self.sketch_id, {"message": f"  Found on: {item.source_url}"})
+                        Logger.info(
+                            self.sketch_id,
+                            {"message": f"  Found on: {item.source_url}"},
+                        )
                     if item.type == "email":
                         website_result["emails"].append(Email(email=item.value))
                     if item.type == "phone":
                         website_result["phones"].append(Phone(number=item.value))
 
                 # Log results
-                Logger.info(self.sketch_id, {
-                    "message": f"Crawl completed for {str(website.url)}: {len(website_result['emails'])} emails, {len(website_result['phones'])} phones found."
-                })
-                
+                Logger.info(
+                    self.sketch_id,
+                    {
+                        "message": f"Crawl completed for {str(website.url)}: {len(website_result['emails'])} emails, {len(website_result['phones'])} phones found."
+                    },
+                )
+
                 if not website_result["emails"] and not website_result["phones"]:
-                    Logger.info(self.sketch_id, {"message": f"No emails or phones found for website {str(website.url)}."})
+                    Logger.info(
+                        self.sketch_id,
+                        {
+                            "message": f"No emails or phones found for website {str(website.url)}."
+                        },
+                    )
                 elif not website_result["emails"]:
-                    Logger.info(self.sketch_id, {"message": f"No emails found for website {str(website.url)}"})
+                    Logger.info(
+                        self.sketch_id,
+                        {"message": f"No emails found for website {str(website.url)}"},
+                    )
                 elif not website_result["phones"]:
-                    Logger.info(self.sketch_id, {"message": f"No phones found for website {str(website.url)}"})
-                
+                    Logger.info(
+                        self.sketch_id,
+                        {"message": f"No phones found for website {str(website.url)}"},
+                    )
+
                 results.append(website_result)
-                    
+
             except Exception as e:
                 # Log error but continue with other websites
-                Logger.error(self.sketch_id, {"message": f"Error crawling {str(website.url)}: {str(e)}"})
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Error crawling {str(website.url)}: {str(e)}"},
+                )
                 # Add empty result for failed website
-                results.append({
-                    "website": str(website.url),  # Store as string instead of Website object
-                    "emails": [],
-                    "phones": [],
-                })
+                results.append(
+                    {
+                        "website": str(
+                            website.url
+                        ),  # Store as string instead of Website object
+                        "emails": [],
+                        "phones": [],
+                    }
+                )
                 continue
 
         return results
@@ -110,29 +152,55 @@ class WebsiteToCrawler(Scanner):
         # Create Neo4j relationships between websites and their corresponding emails and phones
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)
-            
+
             # Create website node
             if self.neo4j_conn:
-                self.create_node('website', 'url', website_url,
-                               caption=website_url, type='website')
-                
+                self.create_node(
+                    "website", "url", website_url, caption=website_url, type="website"
+                )
+
                 # Create email nodes and relationships
                 for email in result["emails"]:
-                    self.create_node('email', 'email', email.email,
-                                   caption=email.email, type='email')
-                    self.create_relationship('website', 'url', website_url,
-                                           'email', 'email', email.email, 'HAS_EMAIL')
-                    self.log_graph_message(f"Found email {email.email} for website {website_url}")
-                
+                    self.create_node(
+                        "email", "email", email.email, caption=email.email, type="email"
+                    )
+                    self.create_relationship(
+                        "website",
+                        "url",
+                        website_url,
+                        "email",
+                        "email",
+                        email.email,
+                        "HAS_EMAIL",
+                    )
+                    self.log_graph_message(
+                        f"Found email {email.email} for website {website_url}"
+                    )
+
                 # Create phone nodes and relationships
                 for phone in result["phones"]:
-                    self.create_node('phone', 'number', phone.number,
-                                   caption=phone.number, type='phone')
-                    self.create_relationship('website', 'url', website_url,
-                                           'phone', 'number', phone.number, 'HAS_PHONE')
-                    self.log_graph_message(f"Found phone {phone.number} for website {website_url}")
+                    self.create_node(
+                        "phone",
+                        "number",
+                        phone.number,
+                        caption=phone.number,
+                        type="phone",
+                    )
+                    self.create_relationship(
+                        "website",
+                        "url",
+                        website_url,
+                        "phone",
+                        "number",
+                        phone.number,
+                        "HAS_PHONE",
+                    )
+                    self.log_graph_message(
+                        f"Found phone {phone.number} for website {website_url}"
+                    )
 
         return results
-    
+
+
 InputType = WebsiteToCrawler.InputType
 OutputType = WebsiteToCrawler.OutputType

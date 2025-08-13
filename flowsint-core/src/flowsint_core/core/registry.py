@@ -1,61 +1,47 @@
 import inspect
-from typing import Dict, Type, List, Optional
-from .scanner_base import Scanner
+from typing import Dict, Type, List
+from flowsint_core.core.scanner_base import Scanner
+from flowsint_transforms.domains.subdomains import SubdomainScanner
+from flowsint_transforms.domains.whois import WhoisScanner
+from flowsint_transforms.domains.resolve import ResolveScanner
+from flowsint_transforms.ips.reverse_resolve import ReverseResolveScanner
+from flowsint_transforms.ips.geolocation import GeolocationScanner
+from flowsint_transforms.socials.maigret import MaigretScanner
+from flowsint_transforms.ips.ip_to_asn import IpToAsnScanner
+from flowsint_transforms.ips.asn_to_cidrs import AsnToCidrsScanner
+from flowsint_transforms.ips.cidr_to_ips import CidrToIpsScanner
+from flowsint_transforms.organizations.org_to_asn import OrgToAsnScanner
+from flowsint_transforms.domains.domain_to_asn import DomainToAsnScanner
+from flowsint_transforms.crypto.wallet_to_transactions import (
+    CryptoWalletAddressToTransactions,
+)
+from flowsint_transforms.crypto.wallet_to_nfts import CryptoWalletAddressToNFTs
+from flowsint_transforms.domains.to_website import DomainToWebsiteScanner
+from flowsint_transforms.websites.to_crawler import WebsiteToCrawler
+from flowsint_transforms.websites.to_links import WebsiteToLinks
+from flowsint_transforms.websites.to_domain import WebsiteToDomainScanner
+from flowsint_transforms.emails.to_gravatar import EmailToGravatarScanner
+from flowsint_transforms.emails.to_leaks import EmailToBreachesScanner
+from flowsint_transforms.individuals.to_org import IndividualToOrgScanner
+from flowsint_transforms.organizations.to_infos import OrgToInfosScanner
+from flowsint_transforms.websites.to_webtrackers import WebsiteToWebtrackersScanner
+from flowsint_transforms.n8n.connector import N8nConnector
 
 
 class ScannerRegistry:
-    """
-    Registry for managing scanner discovery and instantiation.
-    Uses a dynamic discovery system to avoid circular dependencies.
-    """
-    
+
     _scanners: Dict[str, Type[Scanner]] = {}
-    _scanner_modules: List[str] = []
-    
+
     @classmethod
     def register(cls, scanner_class: Type[Scanner]) -> None:
-        """Register a scanner class in the registry."""
-        if not issubclass(scanner_class, Scanner):
-            raise ValueError(f"Class {scanner_class.__name__} must inherit from Scanner")
-        
-        scanner_name = scanner_class.name()
-        cls._scanners[scanner_name] = scanner_class
-    
-    @classmethod
-    def register_module(cls, module_path: str) -> None:
-        """Register a module path for dynamic scanner discovery."""
-        if module_path not in cls._scanner_modules:
-            cls._scanner_modules.append(module_path)
-    
-    @classmethod
-    def discover_scanners(cls) -> None:
-        """Dynamically discover and register scanners from registered modules."""
-        import importlib
-        import pkgutil
-        
-        for module_path in cls._scanner_modules:
-            try:
-                module = importlib.import_module(module_path)
-                
-                # Walk through the module to find scanner classes
-                for name, obj in inspect.getmembers(module):
-                    if (inspect.isclass(obj) and 
-                        issubclass(obj, Scanner) and 
-                        obj != Scanner and
-                        hasattr(obj, 'name')):
-                        cls.register(obj)
-                        
-            except ImportError as e:
-                print(f"Warning: Could not import module {module_path}: {e}")
-    
+        cls._scanners[scanner_class.name()] = scanner_class
+
     @classmethod
     def scanner_exists(cls, name: str) -> bool:
-        """Check if a scanner with the given name exists."""
         return name in cls._scanners
-    
+
     @classmethod
     def get_scanner(cls, name: str, sketch_id: str, scan_id: str, **kwargs) -> Scanner:
-        """Get a scanner instance by name."""
         if name not in cls._scanners:
             raise Exception(f"Scanner '{name}' not found")
         return cls._scanners[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
@@ -80,15 +66,13 @@ class ScannerRegistry:
 
     @classmethod
     def list(cls) -> Dict[str, Dict[str, str]]:
-        """List all registered scanners with their metadata."""
         return {
             name: cls._create_scanner_metadata(scanner)
             for name, scanner in cls._scanners.items()
         }
-    
+
     @classmethod
     def list_by_categories(cls) -> Dict[str, List[Dict[str, str]]]:
-        """List scanners grouped by category."""
         scanners_by_category = {}
         for _, scanner in cls._scanners.items():
             category = scanner.category()
@@ -96,23 +80,45 @@ class ScannerRegistry:
                 scanners_by_category[category] = []
             scanners_by_category[category].append(cls._create_scanner_metadata(scanner))
         return scanners_by_category
-    
+
     @classmethod
     def list_by_input_type(cls, input_type: str) -> List[Dict[str, str]]:
-        """List scanners that accept a specific input type."""
         input_type_lower = input_type.lower()
-        
+
         if input_type_lower == "any":
-            return [cls._create_scanner_metadata(scanner) for scanner in cls._scanners.values()]
-            
+            return [
+                cls._create_scanner_metadata(scanner)
+                for scanner in cls._scanners.values()
+            ]
+
         return [
             cls._create_scanner_metadata(scanner)
             for scanner in cls._scanners.values()
             if scanner.input_schema()["type"].lower() in ["any", input_type_lower]
         ]
-    
-    @classmethod
-    def clear(cls) -> None:
-        """Clear all registered scanners (mainly for testing)."""
-        cls._scanners.clear()
-        cls._scanner_modules.clear()
+
+
+# Register all scanners
+ScannerRegistry.register(ReverseResolveScanner)
+ScannerRegistry.register(ResolveScanner)
+ScannerRegistry.register(SubdomainScanner)
+ScannerRegistry.register(WhoisScanner)
+ScannerRegistry.register(GeolocationScanner)
+ScannerRegistry.register(MaigretScanner)
+ScannerRegistry.register(IpToAsnScanner)
+ScannerRegistry.register(AsnToCidrsScanner)
+ScannerRegistry.register(CidrToIpsScanner)
+ScannerRegistry.register(OrgToAsnScanner)
+ScannerRegistry.register(DomainToAsnScanner)
+ScannerRegistry.register(CryptoWalletAddressToTransactions)
+ScannerRegistry.register(CryptoWalletAddressToNFTs)
+ScannerRegistry.register(DomainToWebsiteScanner)
+ScannerRegistry.register(WebsiteToCrawler)
+ScannerRegistry.register(WebsiteToLinks)
+ScannerRegistry.register(WebsiteToDomainScanner)
+ScannerRegistry.register(EmailToGravatarScanner)
+ScannerRegistry.register(EmailToBreachesScanner)
+ScannerRegistry.register(IndividualToOrgScanner)
+ScannerRegistry.register(OrgToInfosScanner)
+ScannerRegistry.register(WebsiteToWebtrackersScanner)
+ScannerRegistry.register(N8nConnector)

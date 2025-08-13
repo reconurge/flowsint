@@ -6,17 +6,19 @@ from tests.logger import TestLogger
 logger = TestLogger()
 scanner = CidrToIpsScanner("sketch_123", "scan_123", logger)
 
+
 def test_preprocess_valid_cidrs():
     cidrs = [
         CIDR(network="8.8.8.0/24"),
         CIDR(network="1.1.1.0/24"),
     ]
     result = scanner.preprocess(cidrs)
-    
+
     result_networks = [cidr.network for cidr in result]
     expected_networks = [cidr.network for cidr in cidrs]
 
     assert result_networks == expected_networks
+
 
 def test_preprocess_unprocessed_valid_cidrs():
     cidrs = [
@@ -27,6 +29,7 @@ def test_preprocess_unprocessed_valid_cidrs():
     result_cidrs = [c for c in result]
     expected_cidrs = [CIDR(network=c) for c in cidrs]
     assert result_cidrs == expected_cidrs
+
 
 def test_preprocess_invalid_cidrs():
     cidrs = [
@@ -39,6 +42,7 @@ def test_preprocess_invalid_cidrs():
     assert "8.8.8.0/24" in result_networks
     assert "invalid-cidr" not in result_networks
     assert "not-a-cidr" not in result_networks
+
 
 def test_preprocess_multiple_formats():
     cidrs = [
@@ -53,6 +57,7 @@ def test_preprocess_multiple_formats():
     assert "9.9.9.0/24" in result_networks
     assert "1.1.1.0/24" not in result_networks
     assert "InvalidCIDR" not in result_networks
+
 
 def test_scan_extracts_ips(monkeypatch):
     mock_dnsx_output = """8.35.200.12
@@ -75,20 +80,16 @@ def test_scan_extracts_ips(monkeypatch):
 
     input_data = [CIDR(network="8.35.200.0/24")]
     ips = scanner.scan(input_data)
-    
+
     assert isinstance(ips, list)
     assert len(ips) == 4
-    
-    expected_ips = [
-        "8.35.200.12",
-        "8.35.200.112",
-        "8.35.200.16",
-        "8.35.200.170"
-    ]
-    
+
+    expected_ips = ["8.35.200.12", "8.35.200.112", "8.35.200.16", "8.35.200.170"]
+
     for ip in ips:
         assert isinstance(ip, Ip)
         assert ip.address in expected_ips
+
 
 def test_scan_handles_empty_output(monkeypatch):
     class MockSubprocessResult:
@@ -103,9 +104,10 @@ def test_scan_handles_empty_output(monkeypatch):
 
     input_data = [CIDR(network="8.8.8.0/24")]
     ips = scanner.scan(input_data)
-    
+
     assert isinstance(ips, list)
     assert len(ips) == 0
+
 
 def test_scan_handles_subprocess_exception(monkeypatch):
     def mock_subprocess_run(cmd, shell, capture_output, text, timeout):
@@ -115,6 +117,6 @@ def test_scan_handles_subprocess_exception(monkeypatch):
 
     input_data = [CIDR(network="8.8.8.0/24")]
     ips = scanner.scan(input_data)
-    
+
     assert isinstance(ips, list)
-    assert len(ips) == 0 
+    assert len(ips) == 0

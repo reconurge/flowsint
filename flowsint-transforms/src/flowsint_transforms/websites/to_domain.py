@@ -5,6 +5,7 @@ from flowsint_types.website import Website
 from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 
+
 class WebsiteToDomainScanner(Scanner):
     """From website to domain."""
 
@@ -19,7 +20,7 @@ class WebsiteToDomainScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Website"
-    
+
     @classmethod
     def key(cls) -> str:
         return "website"
@@ -44,27 +45,35 @@ class WebsiteToDomainScanner(Scanner):
             try:
                 parsed_url = urlparse(website.url)
                 domain_name = parsed_url.netloc
-                
+
                 # Remove port if present
-                if ':' in domain_name:
-                    domain_name = domain_name.split(':')[0]
-                
+                if ":" in domain_name:
+                    domain_name = domain_name.split(":")[0]
+
                 # Remove www. prefix if present
-                if domain_name.startswith('www.'):
+                if domain_name.startswith("www."):
                     domain_name = domain_name[4:]
-                
+
                 if domain_name:
                     domain_obj = Domain(domain=domain_name)
                     results.append(domain_obj)
-                    
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error extracting domain from website {website.url}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Error extracting domain from website {website.url}: {e}"
+                    },
+                )
                 continue
-                
+
         return results
 
-    def postprocess(self, results: OutputType, input_data: InputType = None) -> OutputType:
+    def postprocess(
+        self, results: OutputType, input_data: InputType = None
+    ) -> OutputType:
         return results
+
 
 # Make types available at module level for easy access
 InputType = WebsiteToDomainScanner.InputType

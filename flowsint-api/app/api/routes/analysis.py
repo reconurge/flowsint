@@ -10,15 +10,25 @@ from app.api.schemas.analysis import AnalysisRead, AnalysisCreate, AnalysisUpdat
 
 router = APIRouter()
 
+
 # Get the list of all analyses for the current user
 @router.get("", response_model=List[AnalysisRead])
-def get_analyses(db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+def get_analyses(
+    db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
+):
     analyses = db.query(Analysis).filter(Analysis.owner_id == current_user.id).all()
     return analyses
 
+
 # Create a new analysis
-@router.post("/create", response_model=AnalysisRead, status_code=status.HTTP_201_CREATED)
-def create_analysis(payload: AnalysisCreate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
+@router.post(
+    "/create", response_model=AnalysisRead, status_code=status.HTTP_201_CREATED
+)
+def create_analysis(
+    payload: AnalysisCreate,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
     new_analysis = Analysis(
         id=uuid4(),
         title=payload.title,
@@ -34,31 +44,55 @@ def create_analysis(payload: AnalysisCreate, db: Session = Depends(get_db), curr
     db.refresh(new_analysis)
     return new_analysis
 
+
 # Get an analysis by ID
 @router.get("/{analysis_id}", response_model=AnalysisRead)
-def get_analysis_by_id(analysis_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+def get_analysis_by_id(
+    analysis_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    analysis = (
+        db.query(Analysis)
+        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .first()
+    )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return analysis
+
 
 # Get analyses by investigation ID
 @router.get("/investigation/{investigation_id}", response_model=List[AnalysisRead])
 def get_analyses_by_investigation(
     investigation_id: UUID,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user),
 ):
-    analyses = db.query(Analysis).filter(
-        Analysis.investigation_id == investigation_id,
-        Analysis.owner_id == current_user.id
-    ).all()
+    analyses = (
+        db.query(Analysis)
+        .filter(
+            Analysis.investigation_id == investigation_id,
+            Analysis.owner_id == current_user.id,
+        )
+        .all()
+    )
     return analyses
+
 
 # Update an analysis by ID
 @router.put("/{analysis_id}", response_model=AnalysisRead)
-def update_analysis(analysis_id: UUID, payload: AnalysisUpdate, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+def update_analysis(
+    analysis_id: UUID,
+    payload: AnalysisUpdate,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    analysis = (
+        db.query(Analysis)
+        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .first()
+    )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     if payload.title is not None:
@@ -74,12 +108,21 @@ def update_analysis(analysis_id: UUID, payload: AnalysisUpdate, db: Session = De
     db.refresh(analysis)
     return analysis
 
+
 # Delete an analysis by ID
 @router.delete("/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_analysis(analysis_id: UUID, db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)):
-    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+def delete_analysis(
+    analysis_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    analysis = (
+        db.query(Analysis)
+        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .first()
+    )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     db.delete(analysis)
     db.commit()
-    return None 
+    return None

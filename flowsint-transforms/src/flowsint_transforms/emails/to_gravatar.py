@@ -6,6 +6,7 @@ from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.gravatar import Gravatar
 
+
 class EmailToGravatarScanner(Scanner):
     """From md5 hash of email to gravatar."""
 
@@ -19,7 +20,7 @@ class EmailToGravatarScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Email"
-    
+
     @classmethod
     def key(cls) -> str:
         return "email"
@@ -40,74 +41,96 @@ class EmailToGravatarScanner(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        
+
         for email in data:
             try:
                 # Generate MD5 hash of email
                 email_hash = hashlib.md5(email.email.lower().encode()).hexdigest()
-                
+
                 # Query Gravatar API
                 gravatar_url = f"https://www.gravatar.com/avatar/{email_hash}?d=404"
                 response = requests.head(gravatar_url, timeout=10)
-                
+
                 if response.status_code == 200:
                     # Gravatar found, get profile info
                     profile_url = f"https://www.gravatar.com/{email_hash}.json"
                     profile_response = requests.get(profile_url, timeout=10)
-                    
+
                     gravatar_data = {
                         "src": gravatar_url,
                         "hash": email_hash,
                         "profile_url": profile_url,
-                        "exists": True
+                        "exists": True,
                     }
-                    
+
                     if profile_response.status_code == 200:
                         profile_data = profile_response.json()
                         if "entry" in profile_data and profile_data["entry"]:
                             entry = profile_data["entry"][0]
-                            gravatar_data.update({
-                                "display_name": entry.get("displayName"),
-                                "about_me": entry.get("aboutMe"),
-                                "location": entry.get("currentLocation")
-                            })
-                    
+                            gravatar_data.update(
+                                {
+                                    "display_name": entry.get("displayName"),
+                                    "about_me": entry.get("aboutMe"),
+                                    "location": entry.get("currentLocation"),
+                                }
+                            )
+
                     gravatar = Gravatar(**gravatar_data)
                     results.append(gravatar)
-                    
+
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error checking Gravatar for email {email.email}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Error checking Gravatar for email {email.email}: {e}"
+                    },
+                )
                 continue
-                
+
         return results
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         for email_obj, gravatar_obj in zip(original_input, results):
             if not self.neo4j_conn:
                 continue
-            
+
             # Create email node
-            self.create_node('email', 'email', email_obj.email, type='email')
-            
+            self.create_node("email", "email", email_obj.email, type="email")
+
             # Create gravatar node
             gravatar_key = f"{email_obj.email}_{self.sketch_id}"
-            self.create_node('gravatar', 'gravatar_id', gravatar_key,
-                           email=email_obj.email,
-                           hash=gravatar_obj.hash,
-                           src=str(gravatar_obj.src),
-                           display_name=gravatar_obj.display_name,
-                           location=gravatar_obj.location,
-                           about_me=gravatar_obj.about_me,
-                           exists=gravatar_obj.exists,
-                           label="Gravatar", type="gravatar")
-            
+            self.create_node(
+                "gravatar",
+                "gravatar_id",
+                gravatar_key,
+                email=email_obj.email,
+                hash=gravatar_obj.hash,
+                src=str(gravatar_obj.src),
+                display_name=gravatar_obj.display_name,
+                location=gravatar_obj.location,
+                about_me=gravatar_obj.about_me,
+                exists=gravatar_obj.exists,
+                label="Gravatar",
+                type="gravatar",
+            )
+
             # Create relationship between email and gravatar
-            self.create_relationship('email', 'email', email_obj.email,
-                                   'gravatar', 'gravatar_id', gravatar_key, 'HAS_GRAVATAR')
-            
-            self.log_graph_message(f"Gravatar found for email {email_obj.email} -> hash: {gravatar_obj.hash}")
-            
+            self.create_relationship(
+                "email",
+                "email",
+                email_obj.email,
+                "gravatar",
+                "gravatar_id",
+                gravatar_key,
+                "HAS_GRAVATAR",
+            )
+
+            self.log_graph_message(
+                f"Gravatar found for email {email_obj.email} -> hash: {gravatar_obj.hash}"
+            )
+
         return results
+
 
 # Make types available at module level for easy access
 InputType = EmailToGravatarScanner.InputType

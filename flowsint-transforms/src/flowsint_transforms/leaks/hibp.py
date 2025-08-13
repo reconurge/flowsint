@@ -10,6 +10,7 @@ load_dotenv()
 
 HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
+
 class HibpScanner(Scanner):
     """Queries HaveIBeenPwned for potential leaks."""
 
@@ -20,11 +21,11 @@ class HibpScanner(Scanner):
     @classmethod
     def name(cls) -> str:
         return "hibp_scanner"
-    
+
     @classmethod
     def category(cls) -> str:
         return "leaks"
-    
+
     @classmethod
     def key(cls) -> str:
         return "email"
@@ -62,12 +63,17 @@ class HibpScanner(Scanner):
                 }
                 results.append(email_result)
             except Exception as e:
-                results.append({
-                    "email": email,
-                    "error": f"Error during scan: {str(e)}",
-                })
-                Logger.error(self.sketch_id, {"message": f"Error scanning email {email}: {str(e)}"})
-        
+                results.append(
+                    {
+                        "email": email,
+                        "error": f"Error during scan: {str(e)}",
+                    }
+                )
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Error scanning email {email}: {str(e)}"},
+                )
+
         return results
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
@@ -78,22 +84,36 @@ class HibpScanner(Scanner):
         for result in results:
             if "error" not in result:
                 email = result["email"]
-                
+
                 # Create email node
-                self.create_node('email', 'address', email, 
-                               caption=email, type='email')
-                
+                self.create_node("email", "address", email, caption=email, type="email")
+
                 # Create breach relationships
                 for breach in result.get("breaches", []):
                     if breach and isinstance(breach, dict):
                         breach_name = breach.get("Name", "Unknown")
-                        self.create_node('breach', 'name', breach_name,
-                                       caption=breach_name, type='breach')
-                        self.create_relationship('email', 'address', email,
-                                               'breach', 'name', breach_name, 'FOUND_IN_BREACH')
-                        self.log_graph_message(f"Email {email} found in breach: {breach_name}")
+                        self.create_node(
+                            "breach",
+                            "name",
+                            breach_name,
+                            caption=breach_name,
+                            type="breach",
+                        )
+                        self.create_relationship(
+                            "email",
+                            "address",
+                            email,
+                            "breach",
+                            "name",
+                            breach_name,
+                            "FOUND_IN_BREACH",
+                        )
+                        self.log_graph_message(
+                            f"Email {email} found in breach: {breach_name}"
+                        )
 
         return results
+
 
 # Make types available at module level for easy access
 InputType = HibpScanner.InputType

@@ -11,11 +11,20 @@ import asyncio
 import json
 import os
 
+
 class TransformOrchestrator(Scanner):
     """
     Orchestrator for running a list of scanners.
     """
-    def __init__(self, sketch_id: str, scan_id: str, transform_branches: List[FlowBranch], neo4j_conn=None, vault=None):
+
+    def __init__(
+        self,
+        sketch_id: str,
+        scan_id: str,
+        transform_branches: List[FlowBranch],
+        neo4j_conn=None,
+        vault=None,
+    ):
         super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn, vault=vault)
         self.transform_branches = transform_branches
         self.scanners = {}  # Map of nodeId -> scanner instance
@@ -31,14 +40,14 @@ class TransformOrchestrator(Scanner):
             # Create a directory for storing transform files if it doesn't exist
             transform_dir = "transform_logs"
             os.makedirs(transform_dir, exist_ok=True)
-            
+
             # Create filename with sketch_id and scan_id
             filename = f"transform_execution_{self.sketch_id}_{self.scan_id}.json"
             self.execution_log_file = os.path.join(transform_dir, filename)
-            
+
             # Serialize the transform branches
             serialized_branches = to_json_serializable(self.transform_branches)
-            
+
             # Create initial log structure
             initial_log = {
                 "sketch_id": self.sketch_id,
@@ -52,11 +61,11 @@ class TransformOrchestrator(Scanner):
                     "total_steps": 0,
                     "completed_steps": 0,
                     "failed_steps": 0,
-                    "total_execution_time_ms": 0
+                    "total_execution_time_ms": 0,
                 },
-                "final_results": {}
+                "final_results": {},
             }
-            
+
             # Count total steps
             total_steps = 0
             for branch in self.transform_branches:
@@ -64,55 +73,68 @@ class TransformOrchestrator(Scanner):
                     if step.type != "type":
                         total_steps += 1
             initial_log["summary"]["total_steps"] = total_steps
-            
+
             # Save initial log file
-            with open(self.execution_log_file, 'w', encoding='utf-8') as f:
+            with open(self.execution_log_file, "w", encoding="utf-8") as f:
                 json.dump(initial_log, f, indent=2, ensure_ascii=False)
-            
-            Logger.info(self.sketch_id, {"message": f"Transform execution log created at {self.execution_log_file}"})
-            
+
+            Logger.info(
+                self.sketch_id,
+                {
+                    "message": f"Transform execution log created at {self.execution_log_file}"
+                },
+            )
+
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"Failed to create execution log: {str(e)}"})
+            Logger.error(
+                self.sketch_id, {"message": f"Failed to create execution log: {str(e)}"}
+            )
             self.execution_log_file = None
 
-    def _update_execution_log(self, step_entry: Dict[str, Any], status: str = None) -> None:
+    def _update_execution_log(
+        self, step_entry: Dict[str, Any], status: str = None
+    ) -> None:
         """
         Update the execution log file with a new step entry or status update.
         """
         if not self.execution_log_file:
             return
-            
+
         try:
             # Read current log
-            with open(self.execution_log_file, 'r', encoding='utf-8') as f:
+            with open(self.execution_log_file, "r", encoding="utf-8") as f:
                 log_data = json.load(f)
-            
+
             # Update timestamp
             log_data["updated_at"] = datetime.now().isoformat()
-            
+
             # Update status if provided
             if status:
                 log_data["status"] = status
-            
+
             # Add step entry if provided
             if step_entry:
                 log_data["execution_log"].append(step_entry)
-                
+
                 # Update summary
                 if step_entry["status"] == "completed":
                     log_data["summary"]["completed_steps"] += 1
                 elif step_entry["status"] == "error":
                     log_data["summary"]["failed_steps"] += 1
-                
+
                 if "execution_time_ms" in step_entry:
-                    log_data["summary"]["total_execution_time_ms"] += step_entry["execution_time_ms"]
-            
+                    log_data["summary"]["total_execution_time_ms"] += step_entry[
+                        "execution_time_ms"
+                    ]
+
             # Write updated log
-            with open(self.execution_log_file, 'w', encoding='utf-8') as f:
+            with open(self.execution_log_file, "w", encoding="utf-8") as f:
                 json.dump(log_data, f, indent=2, ensure_ascii=False)
-                
+
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"Failed to update execution log: {str(e)}"})
+            Logger.error(
+                self.sketch_id, {"message": f"Failed to update execution log: {str(e)}"}
+            )
 
     def _finalize_execution_log(self, final_results: Dict[str, Any]) -> None:
         """
@@ -120,25 +142,33 @@ class TransformOrchestrator(Scanner):
         """
         if not self.execution_log_file:
             return
-            
+
         try:
             # Read current log
-            with open(self.execution_log_file, 'r', encoding='utf-8') as f:
+            with open(self.execution_log_file, "r", encoding="utf-8") as f:
                 log_data = json.load(f)
-            
+
             # Update final data
             log_data["updated_at"] = datetime.now().isoformat()
             log_data["status"] = "completed"
             log_data["final_results"] = to_json_serializable(final_results)
-            
+
             # Write final log
-            with open(self.execution_log_file, 'w', encoding='utf-8') as f:
+            with open(self.execution_log_file, "w", encoding="utf-8") as f:
                 json.dump(log_data, f, indent=2, ensure_ascii=False)
-                
-            Logger.info(self.sketch_id, {"message": f"Transform execution log finalized at {self.execution_log_file}"})
-                
+
+            Logger.info(
+                self.sketch_id,
+                {
+                    "message": f"Transform execution log finalized at {self.execution_log_file}"
+                },
+            )
+
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"Failed to finalize execution log: {str(e)}"})
+            Logger.error(
+                self.sketch_id,
+                {"message": f"Failed to finalize execution log: {str(e)}"},
+            )
 
     def _save_transform_branches(self) -> None:
         """
@@ -148,27 +178,37 @@ class TransformOrchestrator(Scanner):
             # Create a directory for storing transform files if it doesn't exist
             transform_dir = "transform_logs"
             os.makedirs(transform_dir, exist_ok=True)
-            
+
             # Create filename with sketch_id and scan_id
             filename = f"transform_branches_{self.sketch_id}_{self.scan_id}.json"
             filepath = os.path.join(transform_dir, filename)
-            
+
             # Serialize the transform branches
             serialized_branches = to_json_serializable(self.transform_branches)
-            
+
             # Save to JSON file
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump({
-                    "sketch_id": self.sketch_id,
-                    "scan_id": self.scan_id,
-                    "timestamp": datetime.now().isoformat(),
-                    "transform_branches": serialized_branches
-                }, f, indent=2, ensure_ascii=False)
-            
-            Logger.info(self.sketch_id, {"message": f"Transform branches saved to {filepath}"})
-            
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "sketch_id": self.sketch_id,
+                        "scan_id": self.scan_id,
+                        "timestamp": datetime.now().isoformat(),
+                        "transform_branches": serialized_branches,
+                    },
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
+                )
+
+            Logger.info(
+                self.sketch_id, {"message": f"Transform branches saved to {filepath}"}
+            )
+
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"Failed to save transform branches: {str(e)}"})
+            Logger.error(
+                self.sketch_id,
+                {"message": f"Failed to save transform branches: {str(e)}"},
+            )
 
     def _load_scanners(self) -> None:
         if not self.transform_branches:
@@ -181,29 +221,31 @@ class TransformOrchestrator(Scanner):
                 if step.type == "type":
                     continue
                 scanner_nodes.append(step)
-        
+
         if not scanner_nodes:
             raise ValueError("No scanner nodes found in transform branches")
-        
+
         # Create scanner instances for each node
         for node in scanner_nodes:
             node_id = node.nodeId
-            
+
             # Extract scanner name from nodeId (assuming format like "scanner_name-1234567890")
-            scanner_name = node_id.split('-')[0]
-            
+            scanner_name = node_id.split("-")[0]
+
             if not ScannerRegistry.scanner_exists(scanner_name):
                 raise ValueError(f"Scanner '{scanner_name}' not found in registry")
 
             # Pass the step params to the scanner instance
-            scanner_params = node.params if hasattr(node, 'params') and node.params else {}
+            scanner_params = (
+                node.params if hasattr(node, "params") and node.params else {}
+            )
             scanner = ScannerRegistry.get_scanner(
-                scanner_name, 
-                self.sketch_id, 
-                self.scan_id, 
+                scanner_name,
+                self.sketch_id,
+                self.scan_id,
                 neo4j_conn=self.neo4j_conn,
                 vault=self.vault,
-                params=scanner_params
+                params=scanner_params,
             )
             self.scanners[node_id] = scanner
 
@@ -216,13 +258,15 @@ class TransformOrchestrator(Scanner):
             return results_mapping[ref_value]
         return None
 
-    def prepare_scanner_inputs(self, step: FlowStep, results_mapping: Dict[str, Any], initial_values: List[str]) -> List[Any]:
+    def prepare_scanner_inputs(
+        self, step: FlowStep, results_mapping: Dict[str, Any], initial_values: List[str]
+    ) -> List[Any]:
         """
         Prepare the inputs for a scanner based on the references and previous results.
         Handles single references, lists, and direct values.
         """
         inputs = {}
-        
+
         for input_key, input_ref in step.inputs.items():
             # Cas 1 : une seule référence (string)
             if isinstance(input_ref, str):
@@ -251,10 +295,15 @@ class TransformOrchestrator(Scanner):
                 primary_key = scanner.key()
                 return {primary_key: initial_values}
         else:
-            scanner = self.scanners.get(step.nodeId)        
+            scanner = self.scanners.get(step.nodeId)
         return inputs[input_key]
 
-    def update_results_mapping(self, outputs: Dict[str, Any], step_outputs: Dict[str, str], results_mapping: Dict[str, Any]) -> None:
+    def update_results_mapping(
+        self,
+        outputs: Dict[str, Any],
+        step_outputs: Dict[str, str],
+        results_mapping: Dict[str, Any],
+    ) -> None:
         """
         Update the results mapping with new outputs from a scanner.
         """
@@ -280,10 +329,7 @@ class TransformOrchestrator(Scanner):
 
     @classmethod
     def output_schema(cls) -> Dict[str, str]:
-        return {
-            "branches": "array",
-            "results": "dict"
-        }
+        return {"branches": "array", "results": "dict"}
 
     def scan(self, values: List[str]) -> Dict[str, Any]:
         """
@@ -303,54 +349,49 @@ class TransformOrchestrator(Scanner):
         """
         # Update execution log to indicate scan has started
         self._update_execution_log(None, "running")
-        
-        results = {
-            "initial_values": values,
-            "branches": [],
-            "results": {}
-        }
+
+        results = {"initial_values": values, "branches": [], "results": {}}
         Logger.pending(self.sketch_id, {"message": "Starting transform..."})
-        
+
         # Global mapping of output references to actual values
         results_mapping = {}
         # Cache for scanner results to avoid recomputation
         scanner_results_cache = {}
-        
+
         total_steps = sum(len(branch.steps) for branch in self.transform_branches)
         completed_steps = 0
-        
+
         # Process each branch
         for branch in self.transform_branches:
             branch_id = branch.id
             branch_name = branch.name
-            branch_results = {
-                "id": branch_id,
-                "name": branch_name,
-                "steps": []
-            }
-            
+            branch_results = {"id": branch_id, "name": branch_name, "steps": []}
+
             # Process each step in the branch
             scanner_inputs = values
             for step in branch.steps:
                 if step.type == "type":
                     continue
-                    
+
                 node_id = step.nodeId
                 scanner = self.scanners.get(node_id)
-                
+
                 if not scanner:
-                    Logger.error(self.sketch_id, {"message": f"Scanner not found for node {node_id}"})
+                    Logger.error(
+                        self.sketch_id,
+                        {"message": f"Scanner not found for node {node_id}"},
+                    )
                     continue
-                
+
                 scanner_name = scanner.name()
                 step_start_time = time.time()
-                
+
                 step_result = {
                     "nodeId": node_id,
                     "scanner": scanner_name,
-                    "status": "error"  # Default to error, will update on success
+                    "status": "error",  # Default to error, will update on success
                 }
-                
+
                 # Create execution log entry
                 log_entry = {
                     "step_id": f"{branch_id}_{node_id}",
@@ -363,9 +404,9 @@ class TransformOrchestrator(Scanner):
                     "status": "running",
                     "error": None,
                     "timestamp": datetime.now().isoformat(),
-                    "execution_time_ms": 0
+                    "execution_time_ms": 0,
                 }
-                
+
                 try:
                     # Update status for current step
                     completed_steps += 1
@@ -374,11 +415,13 @@ class TransformOrchestrator(Scanner):
                         step_result["error"] = error_msg
                         log_entry["status"] = "error"
                         log_entry["error"] = error_msg
-                        log_entry["execution_time_ms"] = int((time.time() - step_start_time) * 1000)
+                        log_entry["execution_time_ms"] = int(
+                            (time.time() - step_start_time) * 1000
+                        )
                         self._update_execution_log(log_entry)
                         branch_results["steps"].append(step_result)
                         continue
-                                        
+
                     # Check if we already have results for this scanner with these inputs
                     cache_key = f"{node_id}:{str(scanner_inputs)}"
                     if cache_key in scanner_results_cache:
@@ -388,20 +431,24 @@ class TransformOrchestrator(Scanner):
                         # Execute the scanner
                         outputs = await scanner.execute(scanner_inputs)
                         if not isinstance(outputs, (dict, list)):
-                            raise ValueError(f"Scanner '{scanner_name}' returned unsupported output format")
+                            raise ValueError(
+                                f"Scanner '{scanner_name}' returned unsupported output format"
+                            )
                         # Cache the results
                         scanner_results_cache[cache_key] = outputs
                         log_entry["cache_hit"] = False
-                    
+
                     # Store the outputs in the step result (serialize to avoid JSON issues)
                     step_result["outputs"] = to_json_serializable(outputs)
                     step_result["status"] = "completed"
-                    
+
                     # Update log entry with success
                     log_entry["outputs"] = to_json_serializable(outputs)
                     log_entry["status"] = "completed"
-                    log_entry["execution_time_ms"] = int((time.time() - step_start_time) * 1000)
-                    
+                    log_entry["execution_time_ms"] = int(
+                        (time.time() - step_start_time) * 1000
+                    )
+
                     # Update the global results mapping with the outputs
                     self.update_results_mapping(outputs, step.outputs, results_mapping)
                     # Also store the raw outputs in the main results
@@ -414,35 +461,40 @@ class TransformOrchestrator(Scanner):
                     step_result["error"] = error_msg
                     log_entry["status"] = "error"
                     log_entry["error"] = error_msg
-                    log_entry["execution_time_ms"] = int((time.time() - step_start_time) * 1000)
+                    log_entry["execution_time_ms"] = int(
+                        (time.time() - step_start_time) * 1000
+                    )
                     results["results"][node_id] = {"error": error_msg}
                     self._update_execution_log(log_entry)
                     return results
-                
+
                 except Exception as e:
                     error_msg = f"Error during scan: {str(e)}"
-                    Logger.error(self.sketch_id, {"message":error_msg})
+                    Logger.error(self.sketch_id, {"message": error_msg})
                     step_result["error"] = error_msg
                     log_entry["status"] = "error"
                     log_entry["error"] = error_msg
-                    log_entry["execution_time_ms"] = int((time.time() - step_start_time) * 1000)
+                    log_entry["execution_time_ms"] = int(
+                        (time.time() - step_start_time) * 1000
+                    )
                     results["results"][node_id] = {"error": error_msg}
                     self._update_execution_log(log_entry)
                     return results
-                
+
                 # Update execution log with this step
                 self._update_execution_log(log_entry)
                 branch_results["steps"].append(step_result)
-            
+
             results["branches"].append(branch_results)
-        
-        Logger.completed(self.sketch_id, {"message": "Transform completed successfully."})
-        
+
+        Logger.completed(
+            self.sketch_id, {"message": "Transform completed successfully."}
+        )
+
         # Include the final reference mapping for debugging
         results["reference_mapping"] = results_mapping
-        
+
         # Finalize execution log
         self._finalize_execution_log(results)
-        
+
         return results
-    

@@ -10,13 +10,17 @@ from flowsint_core.core.postgre_db import get_db
 
 router = APIRouter()
 
+
 @router.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     user = db.query(Profile).filter(Profile.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "user_id": user.id, "token_type": "bearer"}
+
 
 @router.post("/register", status_code=201)
 def register(user: ProfileCreate, db: Session = Depends(get_db)):
@@ -30,6 +34,5 @@ def register(user: ProfileCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
 
     return {"message": "User registered successfully", "email": new_user.email}

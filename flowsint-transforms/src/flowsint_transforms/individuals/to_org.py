@@ -6,6 +6,7 @@ from flowsint_types.individual import Individual
 from flowsint_core.core.logger import Logger
 from tools.organizations.sirene import SireneTool
 
+
 class IndividualToOrgScanner(Scanner):
     """Find organization from a person with data from SIRENE (France only)."""
 
@@ -20,7 +21,7 @@ class IndividualToOrgScanner(Scanner):
     @classmethod
     def category(cls) -> str:
         return "Individual"
-    
+
     @classmethod
     def key(cls) -> str:
         return "fullname"
@@ -35,29 +36,45 @@ class IndividualToOrgScanner(Scanner):
                 if len(parts) >= 2:
                     firstname = parts[0]
                     lastname = " ".join(parts[1:])
-                    cleaned.append(Individual(first_name=firstname, last_name=lastname, full_name=item))
-            elif isinstance(item, dict) and item.get("first_name") and item.get("last_name"):
+                    cleaned.append(
+                        Individual(
+                            first_name=firstname, last_name=lastname, full_name=item
+                        )
+                    )
+            elif (
+                isinstance(item, dict)
+                and item.get("first_name")
+                and item.get("last_name")
+            ):
                 cleaned.append(Individual(**item))
             elif isinstance(item, Individual):
                 cleaned.append(item)
-        if(len(cleaned)==0):
-            Logger.error(self.sketch_id, {"message": "[INDIVIDUAL_TO_ORG] The input type did not match."})
+        if len(cleaned) == 0:
+            Logger.error(
+                self.sketch_id,
+                {"message": "[INDIVIDUAL_TO_ORG] The input type did not match."},
+            )
         return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
-        
+
         results: OutputType = []
         for individual in data:
             try:
                 sirene = SireneTool()
                 raw_orgs = sirene.launch(individual.full_name, limit=25)
-                if len(raw_orgs)> 0:
+                if len(raw_orgs) > 0:
                     for org_dict in raw_orgs:
                         enriched_org = self.enrich_org(org_dict)
                         if enriched_org is not None:
                             results.append(enriched_org)
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"Error finding organization for {individual.full_name}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Error finding organization for {individual.full_name}: {e}"
+                    },
+                )
         return results
 
     def enrich_org(self, company: Dict) -> Organization:
@@ -68,15 +85,16 @@ class IndividualToOrgScanner(Scanner):
             siege_geo_adresse = None
             if siege.get("latitude") and siege.get("longitude"):
                 from flowsint_types.address import PhysicalAddress
+
                 siege_geo_adresse = PhysicalAddress(
                     address=siege.get("adresse", ""),
                     city=siege.get("libelle_commune", ""),
                     country="FR",  # SIRENE is French registry
                     zip=siege.get("code_postal", ""),
                     latitude=float(siege.get("latitude", 0)),
-                    longitude=float(siege.get("longitude", 0))
+                    longitude=float(siege.get("longitude", 0)),
                 )
-            
+
             # Extract dirigeants and convert to Individual objects
             dirigeants = []
             for dirigeant_data in company.get("dirigeants", []):
@@ -85,17 +103,20 @@ class IndividualToOrgScanner(Scanner):
                     last_name=dirigeant_data.get("nom", ""),
                     full_name=f"{dirigeant_data.get('prenoms', '')} {dirigeant_data.get('nom', '')}".strip(),
                     birth_date=dirigeant_data.get("date_de_naissance"),
-                    gender=None  # Not available in SIRENE data
+                    gender=None,  # Not available in SIRENE data
                 )
                 dirigeants.append(dirigeant)
-            
+
             name = company.get("nom_raison_sociale") or company.get("nom_complet")
-            
+
             # Ensure we have a valid name
             if not name:
-                Logger.error(self.sketch_id, {"message": f"Organization has no valid name: {company}"})
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Organization has no valid name: {company}"},
+                )
                 return None
-            
+
             return Organization(
                 # Basic information
                 name=name,
@@ -103,40 +124,41 @@ class IndividualToOrgScanner(Scanner):
                 nom_complet=company.get("nom_complet"),
                 nom_raison_sociale=company.get("nom_raison_sociale"),
                 sigle=company.get("sigle"),
-                
                 # Establishment information
                 nombre_etablissements=company.get("nombre_etablissements"),
-                nombre_etablissements_ouverts=company.get("nombre_etablissements_ouverts"),
-                
+                nombre_etablissements_ouverts=company.get(
+                    "nombre_etablissements_ouverts"
+                ),
                 # Activity information
                 activite_principale=company.get("activite_principale"),
                 section_activite_principale=company.get("section_activite_principale"),
-                
                 # Company category
                 categorie_entreprise=company.get("categorie_entreprise"),
                 annee_categorie_entreprise=company.get("annee_categorie_entreprise"),
-                
                 # Employment information
                 caractere_employeur=company.get("caractere_employeur"),
                 tranche_effectif_salarie=company.get("tranche_effectif_salarie"),
-                annee_tranche_effectif_salarie=company.get("annee_tranche_effectif_salarie"),
-                
+                annee_tranche_effectif_salarie=company.get(
+                    "annee_tranche_effectif_salarie"
+                ),
                 # Dates
                 date_creation=company.get("date_creation"),
                 date_fermeture=company.get("date_fermeture"),
                 date_mise_a_jour=company.get("date_mise_a_jour"),
                 date_mise_a_jour_insee=company.get("date_mise_a_jour_insee"),
                 date_mise_a_jour_rne=company.get("date_mise_a_jour_rne"),
-                
                 # Legal information
                 nature_juridique=company.get("nature_juridique"),
                 etat_administratif=company.get("etat_administratif"),
                 statut_diffusion=company.get("statut_diffusion"),
-                
                 # Siege (Headquarters) information
                 siege_activite_principale=siege.get("activite_principale"),
-                siege_activite_principale_registre_metier=siege.get("activite_principale_registre_metier"),
-                siege_annee_tranche_effectif_salarie=siege.get("annee_tranche_effectif_salarie"),
+                siege_activite_principale_registre_metier=siege.get(
+                    "activite_principale_registre_metier"
+                ),
+                siege_annee_tranche_effectif_salarie=siege.get(
+                    "annee_tranche_effectif_salarie"
+                ),
                 siege_adresse=siege.get("adresse"),
                 siege_caractere_employeur=siege.get("caractere_employeur"),
                 siege_cedex=siege.get("cedex"),
@@ -168,7 +190,9 @@ class IndividualToOrgScanner(Scanner):
                 siege_liste_finess=siege.get("liste_finess"),
                 siege_liste_id_bio=siege.get("liste_id_bio"),
                 siege_liste_idcc=siege.get("liste_idcc"),
-                siege_liste_id_organisme_formation=siege.get("liste_id_organisme_formation"),
+                siege_liste_id_organisme_formation=siege.get(
+                    "liste_id_organisme_formation"
+                ),
                 siege_liste_rge=siege.get("liste_rge"),
                 siege_liste_uai=siege.get("liste_uai"),
                 siege_longitude=siege.get("longitude"),
@@ -176,51 +200,85 @@ class IndividualToOrgScanner(Scanner):
                 siege_numero_voie=siege.get("numero_voie"),
                 siege_region=siege.get("region"),
                 siege_siret=siege.get("siret"),
-                siege_statut_diffusion_etablissement=siege.get("statut_diffusion_etablissement"),
+                siege_statut_diffusion_etablissement=siege.get(
+                    "statut_diffusion_etablissement"
+                ),
                 siege_tranche_effectif_salarie=siege.get("tranche_effectif_salarie"),
                 siege_type_voie=siege.get("type_voie"),
-                
                 # Dirigeants (Leaders)
                 dirigeants=dirigeants if dirigeants else None,
-                
                 # Matching establishments
                 matching_etablissements=company.get("matching_etablissements"),
-                
                 # Financial information
                 finances=company.get("finances"),
-                
                 # Complements (Additional information)
-                complements_collectivite_territoriale=company.get("complements", {}).get("collectivite_territoriale"),
-                complements_convention_collective_renseignee=company.get("complements", {}).get("convention_collective_renseignee"),
+                complements_collectivite_territoriale=company.get(
+                    "complements", {}
+                ).get("collectivite_territoriale"),
+                complements_convention_collective_renseignee=company.get(
+                    "complements", {}
+                ).get("convention_collective_renseignee"),
                 complements_liste_idcc=company.get("complements", {}).get("liste_idcc"),
-                complements_egapro_renseignee=company.get("complements", {}).get("egapro_renseignee"),
-                complements_est_achats_responsables=company.get("complements", {}).get("est_achats_responsables"),
-                complements_est_alim_confiance=company.get("complements", {}).get("est_alim_confiance"),
-                complements_est_association=company.get("complements", {}).get("est_association"),
+                complements_egapro_renseignee=company.get("complements", {}).get(
+                    "egapro_renseignee"
+                ),
+                complements_est_achats_responsables=company.get("complements", {}).get(
+                    "est_achats_responsables"
+                ),
+                complements_est_alim_confiance=company.get("complements", {}).get(
+                    "est_alim_confiance"
+                ),
+                complements_est_association=company.get("complements", {}).get(
+                    "est_association"
+                ),
                 complements_est_bio=company.get("complements", {}).get("est_bio"),
-                complements_est_entrepreneur_individuel=company.get("complements", {}).get("est_entrepreneur_individuel"),
-                complements_est_entrepreneur_spectacle=company.get("complements", {}).get("est_entrepreneur_spectacle"),
+                complements_est_entrepreneur_individuel=company.get(
+                    "complements", {}
+                ).get("est_entrepreneur_individuel"),
+                complements_est_entrepreneur_spectacle=company.get(
+                    "complements", {}
+                ).get("est_entrepreneur_spectacle"),
                 complements_est_ess=company.get("complements", {}).get("est_ess"),
                 complements_est_finess=company.get("complements", {}).get("est_finess"),
-                complements_est_organisme_formation=company.get("complements", {}).get("est_organisme_formation"),
-                complements_est_qualiopi=company.get("complements", {}).get("est_qualiopi"),
-                complements_liste_id_organisme_formation=company.get("complements", {}).get("liste_id_organisme_formation"),
+                complements_est_organisme_formation=company.get("complements", {}).get(
+                    "est_organisme_formation"
+                ),
+                complements_est_qualiopi=company.get("complements", {}).get(
+                    "est_qualiopi"
+                ),
+                complements_liste_id_organisme_formation=company.get(
+                    "complements", {}
+                ).get("liste_id_organisme_formation"),
                 complements_est_rge=company.get("complements", {}).get("est_rge"),
-                complements_est_service_public=company.get("complements", {}).get("est_service_public"),
+                complements_est_service_public=company.get("complements", {}).get(
+                    "est_service_public"
+                ),
                 complements_est_l100_3=company.get("complements", {}).get("est_l100_3"),
                 complements_est_siae=company.get("complements", {}).get("est_siae"),
-                complements_est_societe_mission=company.get("complements", {}).get("est_societe_mission"),
+                complements_est_societe_mission=company.get("complements", {}).get(
+                    "est_societe_mission"
+                ),
                 complements_est_uai=company.get("complements", {}).get("est_uai"),
-                complements_est_patrimoine_vivant=company.get("complements", {}).get("est_patrimoine_vivant"),
-                complements_bilan_ges_renseigne=company.get("complements", {}).get("bilan_ges_renseigne"),
-                complements_identifiant_association=company.get("complements", {}).get("identifiant_association"),
-                complements_statut_entrepreneur_spectacle=company.get("complements", {}).get("statut_entrepreneur_spectacle"),
-                complements_type_siae=company.get("complements", {}).get("type_siae")
+                complements_est_patrimoine_vivant=company.get("complements", {}).get(
+                    "est_patrimoine_vivant"
+                ),
+                complements_bilan_ges_renseigne=company.get("complements", {}).get(
+                    "bilan_ges_renseigne"
+                ),
+                complements_identifiant_association=company.get("complements", {}).get(
+                    "identifiant_association"
+                ),
+                complements_statut_entrepreneur_spectacle=company.get(
+                    "complements", {}
+                ).get("statut_entrepreneur_spectacle"),
+                complements_type_siae=company.get("complements", {}).get("type_siae"),
             )
         except Exception as e:
-            Logger.error(self.sketch_id, {"message": f"Error enriching organization: {e}"})
+            Logger.error(
+                self.sketch_id, {"message": f"Error enriching organization: {e}"}
+            )
             return None
-            
+
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         if not self.neo4j_conn:
             return results
@@ -228,22 +286,26 @@ class IndividualToOrgScanner(Scanner):
         for org in results:
             # Create or update the organization node with all SIRENE properties
             org_key = f"{org.name}_FR"
-            self.create_node('Organization', 'org_id', org_key,
-                           name=org.name,
-                           country="FR",
-                           siren=org.siren,
-                           siege_siret=org.siege_siret,
-                           nom_complet=org.nom_complet,
-                           nom_raison_sociale=org.nom_raison_sociale,
-                           sigle=org.sigle,
-                           caption=org.name, type='organization')
+            self.create_node(
+                "Organization",
+                "org_id",
+                org_key,
+                name=org.name,
+                country="FR",
+                siren=org.siren,
+                siege_siret=org.siege_siret,
+                nom_complet=org.nom_complet,
+                nom_raison_sociale=org.nom_raison_sociale,
+                sigle=org.sigle,
+                caption=org.name,
+                type="organization",
+            )
 
             self.log_graph_message(f"Found organization: {org.name}")
 
         return results
 
+
 # Make types available at module level for easy access
 InputType = IndividualToOrgScanner.InputType
 OutputType = IndividualToOrgScanner.OutputType
-
-

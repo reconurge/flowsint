@@ -4,16 +4,16 @@ import ScannerItem from "./scanner-item"
 import { type Scanner } from "@/types/transform"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
-import { transformService } from "@/api/transfrom-service"
 import { useQuery } from "@tanstack/react-query"
 import { SkeletonList } from "../shared/skeleton-list"
+import { flowService } from "@/api/flow-service"
 
 
 export default function RawMaterial() {
 
     const { data: materials, isLoading, error } = useQuery({
         queryKey: ["raw_material"],
-        queryFn: () => transformService.getRawMaterial(),
+        queryFn: () => flowService.getRawMaterial(),
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 

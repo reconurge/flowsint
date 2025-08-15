@@ -11,12 +11,12 @@ import { Link } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { investigationService } from "@/api/investigation-service"
 import { sketchService } from "@/api/sketch-service"
-import { transformService } from "@/api/transfrom-service"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Home } from "lucide-react"
+import { flowService } from "@/api/flow-service"
 
 export function PathBreadcrumb() {
-    const { investigationId, id, type, transformId } = useParams({ strict: false })
+    const { investigationId, id, type, flowId } = useParams({ strict: false })
     const location = useLocation()
 
     const { data: investigation, isLoading: isInvestigationLoading } = useQuery({
@@ -31,13 +31,13 @@ export function PathBreadcrumb() {
         enabled: !!id && type === "graph",
     })
 
-    const { data: transform, isLoading: isTransformLoading } = useQuery({
-        queryKey: ["transform", transformId],
-        queryFn: () => transformService.getById(transformId!),
-        enabled: !!transformId,
+    const { data: flow, isLoading: isFlowLoading } = useQuery({
+        queryKey: ["flow", flowId],
+        queryFn: () => flowService.getById(flowId!),
+        enabled: !!flowId,
     })
 
-    const isTransformsPage = location.pathname.includes('/transforms')
+    const isFlowPage = location.pathname.includes('/flows')
 
     return (
         <div className="w-full overflow-hidden">
@@ -50,25 +50,25 @@ export function PathBreadcrumb() {
                             </Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
-                    {isTransformsPage ? (
+                    {isFlowPage ? (
                         <>
                             <BreadcrumbSeparator className="flex-shrink-0" />
                             <BreadcrumbItem className="min-w-0">
                                 <BreadcrumbLink asChild>
-                                    <Link to="/dashboard/transforms" className="truncate block font-medium">
-                                        Transforms
+                                    <Link to="/dashboard/flows" className="truncate block font-medium">
+                                        Flows
                                     </Link>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
-                            {transformId && (
+                            {flowId && (
                                 <>
                                     <BreadcrumbSeparator className="flex-shrink-0" />
                                     <BreadcrumbItem className="min-w-0 flex-1">
                                         <BreadcrumbPage className="truncate block text-muted-foreground">
-                                            {isTransformLoading ? (
+                                            {isFlowLoading ? (
                                                 <Skeleton className="h-4 w-24" />
                                             ) : (
-                                                transform?.name || "(Unnamed transform)"
+                                                flow?.name || "(Unnamed flow)"
                                             )}
                                         </BreadcrumbPage>
                                     </BreadcrumbItem>

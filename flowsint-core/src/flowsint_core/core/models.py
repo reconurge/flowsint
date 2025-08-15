@@ -50,6 +50,7 @@ class Investigation(Base):
     sketches = relationship("Sketch", back_populates="investigation")
     analyses = relationship("Analysis", back_populates="investigation")
     chats = relationship("Chat", back_populates="investigation")
+    owner = relationship("Profile", foreign_keys=[owner_id])
     __table_args__ = (
         Index("idx_investigations_id", "id"),
         Index("idx_investigations_owner_id", "owner_id"),
@@ -203,7 +204,7 @@ class Transform(Base):
     name = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
     category = mapped_column(ARRAY(Text), nullable=True)
-    transform_schema = mapped_column(JSON, nullable=True)
+    flow_schema = mapped_column(JSON, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
 

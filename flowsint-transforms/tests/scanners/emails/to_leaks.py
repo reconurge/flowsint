@@ -7,7 +7,7 @@ from flowsint_types.breach import Breach
 scanner = EmailToBreachesScanner("sketch_123", "scan_123")
 
 
-def test_scanner_name():
+def test_transform_name():
     assert EmailToBreachesScanner.name() == "to_leaks"
 
 

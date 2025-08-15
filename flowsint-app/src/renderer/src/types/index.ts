@@ -2,6 +2,7 @@ export * from "./analysis";
 export * from "./chat";
 export * from "./common";
 export * from "./event";
+export * from "./flow";
 export * from "./graph";
 export * from "./investigation";
 export * from "./profile";

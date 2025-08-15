@@ -8,6 +8,7 @@ celery = Celery(
     include=[
         "flowsint_core.tasks.event",
         "flowsint_core.tasks.transform",
+        "flowsint_core.tasks.flow",
     ],
 )
 

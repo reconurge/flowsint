@@ -1,12 +1,15 @@
 import React, { memo, useCallback, useState } from 'react';
 import { transformService } from '@/api/transfrom-service';
+import { flowService } from '@/api/flow-service';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileCode2, Search, Info, Star } from 'lucide-react';
-import { Transform } from '@/types';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { FileCode2, Search, Info, Star, Zap } from 'lucide-react';
+import { Transform, Flow } from '@/types';
 import { GraphNode } from '@/stores/graph-store';
+import { useLaunchFlow } from '@/hooks/use-launch-flow';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
@@ -43,25 +46,47 @@ export default function ContextMenu({
     ...props
 }: GraphContextMenuProps) {
     const { id: sketchId } = useParams({ strict: false })
-    const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState('transforms');
+    const [transformsSearchQuery, setTransformsSearchQuery] = useState('');
+    const [flowsSearchQuery, setFlowsSearchQuery] = useState('');
+    const { launchFlow } = useLaunchFlow(false);
     const { launchTransform } = useLaunchTransform(false);
 
-    const { data: transforms, isLoading } = useQuery({
+    const { data: transforms, isLoading: isLoadingTransforms } = useQuery({
         queryKey: ["transforms", node.data.type],
         queryFn: () => transformService.get(capitalizeFirstLetter(node.data.type)),
     });
 
+    const { data: flows, isLoading: isLoadingFlows } = useQuery({
+        queryKey: ["flows", node.data.type],
+        queryFn: () => flowService.get(capitalizeFirstLetter(node.data.type)),
+    });
+
     const filteredTransforms = transforms?.filter((transform: Transform) => {
-        if (!searchQuery.trim()) return true;
-        const query = searchQuery.toLowerCase().trim();
+        if (!transformsSearchQuery.trim()) return true;
+        const query = transformsSearchQuery.toLowerCase().trim();
         const matchesName = transform.name?.toLowerCase().includes(query);
         const matchesDescription = transform.description?.toLowerCase().includes(query);
         return matchesName || matchesDescription;
     }) || [];
 
-    const handleTransformClick = (e: React.MouseEvent, transformId: string) => {
+    const filteredFlows = flows?.filter((flow: Flow) => {
+        if (!flowsSearchQuery.trim()) return true;
+        const query = flowsSearchQuery.toLowerCase().trim();
+        const matchesName = flow.name?.toLowerCase().includes(query);
+        const matchesDescription = flow.description?.toLowerCase().includes(query);
+        return matchesName || matchesDescription;
+    }) || [];
+
+    const handleFlowClick = (e: React.MouseEvent, flowId: string) => {
         e.stopPropagation();
-        launchTransform([node.data.label], transformId, sketchId)
+        launchFlow([node.data.label], flowId, sketchId)
+        setMenu(null)
+    };
+
+    const handleTransformClick = (e: React.MouseEvent, transformName: string) => {
+        e.stopPropagation();
+        launchTransform([node.data.label], transformName, sketchId)
         setMenu(null)
     };
 
@@ -84,75 +109,176 @@ export default function ContextMenu({
                 <NodeActions node={node} setMenu={setMenu} />
             </div>
 
-            {/* Search bar */}
+            {/* Tabs */}
             <div className="px-3 py-2 border-b border-border flex-shrink-0">
-                <div className="relative">
-                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search transforms..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            e.stopPropagation();
-                            setSearchQuery(e.target.value);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="h-7 pl-7 text-xs"
-                    />
-                </div>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="w-full">
+                        <TabsTrigger
+                            value="transforms"
+                            className="flex-1"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Zap className="h-3 w-3 mr-1" />
+                            Transforms
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="flows"
+                            className="flex-1"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <FileCode2 className="h-3 w-3 mr-1" />
+                            Flows
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
-            {/* Transforms list */}
-            <div className="flex-1 grow overflow-auto min-h-0">
-                {isLoading ? (
-                    <div className="p-2 space-y-2">
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="flex items-center gap-2 p-2 rounded-md">
-                                <Skeleton className="h-4 w-4" />
-                                <div className="flex-1 space-y-1">
-                                    <Skeleton className="h-3 w-3/4" />
-                                    <Skeleton className="h-2 w-1/2" />
-                                </div>
+            {/* Tab Content */}
+            <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
+                {/* Transforms Tab */}
+                <TabsContent value="transforms" className="flex-1 flex flex-col min-h-0 mt-0">
+                    {/* Transforms Search */}
+                    <div className="px-3 py-2 border-b border-border flex-shrink-0">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search transforms..."
+                                value={transformsSearchQuery}
+                                onChange={(e) => {
+                                    e.stopPropagation();
+                                    setTransformsSearchQuery(e.target.value);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-7 pl-7 text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Transforms List */}
+                    <div className="flex-1 grow overflow-auto min-h-0">
+                        {isLoadingTransforms ? (
+                            <div className="p-2 space-y-2">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="flex items-center gap-2 p-2 rounded-md">
+                                        <Skeleton className="h-4 w-4" />
+                                        <div className="flex-1 space-y-1">
+                                            <Skeleton className="h-3 w-3/4" />
+                                            <Skeleton className="h-2 w-1/2" />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : filteredTransforms.length > 0 ? (
+                            <div className="p-1">
+                                {filteredTransforms.map((transform: Transform) => (
+                                    <button
+                                        key={transform.id}
+                                        className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
+                                        onClick={(e) => handleTransformClick(e, transform.name)}
+                                    >
+                                        <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">
+                                                {transform.name || "(Unnamed transform)"}
+                                            </p>
+                                            {transform.description && (
+                                                <p className="text-xs text-muted-foreground truncate">
+                                                    {transform.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className='flex items-center gap-1'>
+                                            <FavoriteButton isFavorite={false} />
+                                            <Button className='w-5 h-5' variant='ghost' size={"icon"}>
+                                                <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
+                                            </Button>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-4 text-center">
+                                <p className="text-sm text-muted-foreground">
+                                    {transformsSearchQuery ? 'No transforms found' : 'No transforms available'}
+                                </p>
+                            </div>
+                        )}
                     </div>
-                ) : filteredTransforms.length > 0 ? (
-                    <div className="p-1">
-                        {filteredTransforms.map((transform: Transform) => (
-                            <button
-                                key={transform.id}
-                                className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
-                                onClick={(e) => handleTransformClick(e, transform.id)}
-                            >
-                                <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">
-                                        {transform.name || "(Unnamed transform)"}
-                                    </p>
-                                    {transform.description && (
-                                        <p className="text-xs text-muted-foreground truncate">
-                                            {transform.description}
-                                        </p>
-                                    )}
+                </TabsContent>
 
-                                </div>
-                                <div className='flex items-center gap-1'>
-                                    <FavoriteButton isFavorite={false} />
-                                    <Button className='w-5 h-5' variant='ghost' size={"icon"}>
-                                        <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
-                                    </Button>
-                                </div>
-                            </button>
-                        ))}
+                {/* Flows Tab */}
+                <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
+                    {/* Flows Search */}
+                    <div className="px-3 py-2 border-b border-border flex-shrink-0">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search flows..."
+                                value={flowsSearchQuery}
+                                onChange={(e) => {
+                                    e.stopPropagation();
+                                    setFlowsSearchQuery(e.target.value);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-7 pl-7 text-xs"
+                            />
+                        </div>
                     </div>
-                ) : (
-                    <div className="p-4 text-center">
-                        <p className="text-sm text-muted-foreground">
-                            {searchQuery ? 'No transforms found' : 'No transforms available'}
-                        </p>
+
+                    {/* Flows List */}
+                    <div className="flex-1 grow overflow-auto min-h-0">
+                        {isLoadingFlows ? (
+                            <div className="p-2 space-y-2">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="flex items-center gap-2 p-2 rounded-md">
+                                        <Skeleton className="h-4 w-4" />
+                                        <div className="flex-1 space-y-1">
+                                            <Skeleton className="h-3 w-3/4" />
+                                            <Skeleton className="h-2 w-1/2" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : filteredFlows.length > 0 ? (
+                            <div className="p-1">
+                                {filteredFlows.map((flow: Flow) => (
+                                    <button
+                                        key={flow.id}
+                                        className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
+                                        onClick={(e) => handleFlowClick(e, flow.id)}
+                                    >
+                                        <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">
+                                                {flow.name || "(Unnamed flow)"}
+                                            </p>
+                                            {flow.description && (
+                                                <p className="text-xs text-muted-foreground truncate">
+                                                    {flow.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className='flex items-center gap-1'>
+                                            <FavoriteButton isFavorite={false} />
+                                            <Button className='w-5 h-5' variant='ghost' size={"icon"}>
+                                                <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
+                                            </Button>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-4 text-center">
+                                <p className="text-sm text-muted-foreground">
+                                    {flowsSearchQuery ? 'No flows found' : 'No flows available'}
+                                </p>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </TabsContent>
+            </Tabs>
         </BaseContextMenu>
     );
 }

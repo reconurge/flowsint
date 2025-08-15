@@ -2,7 +2,7 @@ import { memo } from "react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy"
 import { Check, Rocket, X, MousePointer } from "lucide-react"
-import LaunchTransform from "../launch-transform"
+import LaunchFlow from "../launch-transform"
 import NodeActions from "../node-actions"
 import { GraphNode } from "@/stores/graph-store"
 import { Button } from "../../ui/button"
@@ -33,7 +33,7 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-card">
-            <ItemHero node={node} />
+            {/* <ItemHero node={node} /> */}
             <div className="flex items-center bg-card sticky w-full top-0 border-b justify-start px-4 py-2 gap-2 z-1">
                 <p className="text-md font-semibold truncate">{node.data?.label}</p>
                 <div className="grow" />
@@ -42,7 +42,7 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div>
-                                    <LaunchTransform values={[node.data.label]} type={node.data?.type}>
+                                    <LaunchFlow values={[node.data.label]} type={node.data?.type}>
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -50,7 +50,7 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
                                         >
                                             <Rocket className="h-3 w-3" strokeWidth={2} />
                                         </Button>
-                                    </LaunchTransform>
+                                    </LaunchFlow>
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>

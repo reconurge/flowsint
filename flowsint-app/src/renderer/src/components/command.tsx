@@ -209,7 +209,7 @@ export function Command() {
                                             </Link>
                                         </CommandItem>
                                         <CommandItem asChild>
-                                            <Link onClick={() => setOpen(false)} to="/dashboard/transforms">
+                                            <Link onClick={() => setOpen(false)} to="/dashboard/flows">
                                                 <Workflow className="h-4 w-4" />
                                                 <span>Transforms</span>
                                             </Link>

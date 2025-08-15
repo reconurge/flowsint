@@ -159,7 +159,7 @@ def resolve_type(details: dict, schema_context: dict = None) -> str:
     return "any"
 
 
-def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
+def extract_input_schema_flow(model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
 
@@ -225,7 +225,7 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
         if scanner_node and scanner_node["data"]["type"] == "scanner":
             scanners.append(
                 {
-                    "scanner_name": scanner_node["data"]["name"],
+                    "transform_name": scanner_node["data"]["name"],
                     "module": scanner_node["data"]["module"],
                     "input": source_handle,
                     "output": target_handle,
@@ -238,7 +238,7 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
             "outputs": input_output,
         },
         "scanners": scanners,
-        "scanner_names": [scanner["scanner_name"] for scanner in scanners],
+        "transform_names": [scanner["transform_name"] for scanner in scanners],
     }
 
 

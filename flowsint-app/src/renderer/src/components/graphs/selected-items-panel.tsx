@@ -15,7 +15,7 @@ import {
 import { useLayoutStore } from '@/stores/layout-store';
 import { useNodesDisplaySettings } from '@/stores/node-display-settings';
 import { Badge } from '../ui/badge';
-import LaunchTransform from './launch-transform';
+import LaunchFlow from './launch-transform';
 import { TypeBadge } from '../type-badge';
 const SelectedItemsPanel = () => {
     const selectedNodes = useGraphStore(s => s.selectedNodes)
@@ -150,7 +150,7 @@ const ActionBar = () => {
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className='ml-2'>
-                            <LaunchTransform values={values} type={type}>
+                            <LaunchFlow values={values} type={type}>
                                 <Button
                                     disabled={!shareSameType}
                                     size={"sm"}
@@ -158,7 +158,7 @@ const ActionBar = () => {
                                 >
                                     Launch ({selectedNodes.length}) <Rocket className="h-3 w-3" strokeWidth={2} />
                                 </Button>
-                            </LaunchTransform>
+                            </LaunchFlow>
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>

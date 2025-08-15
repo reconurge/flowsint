@@ -23,7 +23,10 @@ def get_investigations(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
     investigations = (
-        db.query(Investigation).filter(Investigation.owner_id == current_user.id).all()
+        db.query(Investigation)
+        .options(selectinload(Investigation.sketches), selectinload(Investigation.analyses), selectinload(Investigation.owner))
+        .filter(Investigation.owner_id == current_user.id)
+        .all()
     )
     return investigations
 
@@ -61,7 +64,7 @@ def get_investigation_by_id(
 ):
     investigation = (
         db.query(Investigation)
-        .options(selectinload(Investigation.sketches))
+        .options(selectinload(Investigation.sketches), selectinload(Investigation.analyses), selectinload(Investigation.owner))
         .filter(Investigation.id == investigation_id)
         .filter(Investigation.owner_id == current_user.id)
         .first()

@@ -1,48 +1,49 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { investigationService } from '@/api/investigation-service'
-import { InvestigationSketches } from '@/components/dashboard/investigation-sketches'
-import { InvestigationAnalyses } from '@/components/dashboard/investigation-analyses'
+import { analysisService } from '@/api/analysis-service'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Plus, Calendar, User, FileText, BarChart3, Clock, ArrowRight } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { formatDistanceToNow } from 'date-fns'
 
 function InvestigationSkeleton() {
     return (
         <div className="h-full w-full bg-background overflow-y-auto">
-            <div className="max-w-7xl mx-auto p-8 space-y-12" style={{ containerType: 'inline-size' }}>
-                {/* Investigation Cards Skeleton */}
+            <div className="max-w-7xl mx-auto p-8 space-y-8">
+                {/* Header Skeleton */}
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-muted rounded animate-pulse" />
-                            <div className="w-48 h-6 bg-muted rounded animate-pulse" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-24 h-8 bg-muted rounded animate-pulse" />
-                            <div className="w-32 h-8 bg-muted rounded animate-pulse" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="w-full h-32 bg-muted rounded-lg animate-pulse" />
-                        ))}
+                    <div className="w-64 h-8 bg-muted rounded animate-pulse" />
+                    <div className="w-96 h-4 bg-muted rounded animate-pulse" />
+                    <div className="flex items-center gap-4">
+                        <div className="w-20 h-6 bg-muted rounded animate-pulse" />
+                        <div className="w-24 h-6 bg-muted rounded animate-pulse" />
+                        <div className="w-32 h-6 bg-muted rounded animate-pulse" />
                     </div>
                 </div>
 
-                {/* Analysis Cards Skeleton */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-muted rounded animate-pulse" />
+                {/* Stats Cards Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="h-24 bg-muted rounded-lg animate-pulse" />
+                    ))}
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="space-y-4">
                             <div className="w-48 h-6 bg-muted rounded animate-pulse" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {Array.from({ length: 4 }).map((_, j) => (
+                                    <div key={j} className="h-32 bg-muted rounded-lg animate-pulse" />
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-24 h-8 bg-muted rounded animate-pulse" />
-                            <div className="w-32 h-8 bg-muted rounded animate-pulse" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="w-full h-32 bg-muted rounded-lg animate-pulse" />
-                        ))}
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>
@@ -61,16 +62,314 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
 
 function InvestigationPage() {
     const { investigation } = Route.useLoaderData()
+    const navigate = useNavigate()
+    const queryClient = useQueryClient()
+
+    const createAnalysisMutation = useMutation({
+        mutationFn: async () => {
+            const newAnalysis = {
+                title: "Untitled Analysis",
+                investigation_id: investigation.id,
+                content: {},
+            }
+            return analysisService.create(JSON.stringify(newAnalysis))
+        },
+        onSuccess: async (data) => {
+            queryClient.invalidateQueries({ queryKey: ["analyses", "investigation", investigation.id] })
+            toast.success("New analysis created")
+            // Navigate to the new analysis page
+            navigate({
+                to: "/dashboard/investigations/$investigationId/$type/$id",
+                params: { 
+                    investigationId: investigation.id, 
+                    type: "analysis", 
+                    id: data.id 
+                }
+            })
+        },
+        onError: (error) => {
+            toast.error("Failed to create analysis: " + (error instanceof Error ? error.message : "Unknown error"))
+        }
+    })
+
+    const sketchCount = investigation.sketches?.length || 0
+    const analysisCount = investigation.analyses?.length || 0
+    const lastUpdated = formatDistanceToNow(new Date(investigation.last_updated_at), { addSuffix: true })
 
     return (
         <div className="h-full w-full bg-background overflow-y-auto">
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto p-8 space-y-12" style={{ containerType: 'inline-size' }}>
-                {/* Investigation Sketches */}
-                <InvestigationSketches title={investigation.name} investigationId={investigation.id} />
+            <div className="max-w-7xl mx-auto p-8 space-y-8">
+                {/* Header Section */}
+                <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                            <h1 className="text-3xl font-bold tracking-tight">{investigation.name}</h1>
+                            <p className="text-lg text-muted-foreground max-w-2xl">
+                                {investigation.description || "No description provided"}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                onClick={() => createAnalysisMutation.mutate()}
+                                disabled={createAnalysisMutation.isPending}
+                                className="gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                New Analysis
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>Created {formatDistanceToNow(new Date(investigation.created_at), { addSuffix: true })}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Updated {lastUpdated}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>{investigation.owner ? `${investigation.owner.first_name || ''} ${investigation.owner.last_name || ''}`.trim() || 'Unknown' : "Unknown"}</span>
+                        </div>
+                        <Badge variant={investigation.status === 'active' ? 'default' : 'secondary'}>
+                            {investigation.status}
+                        </Badge>
+                    </div>
+                </div>
 
-                {/* Investigation Analyses */}
-                <InvestigationAnalyses investigationId={investigation.id} />
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Sketches</CardTitle>
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{sketchCount}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Visual data representations
+                            </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{analysisCount}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Documented findings
+                            </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Last Activity</CardTitle>
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{lastUpdated}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Since last update
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <Separator />
+
+                {/* Content Sections */}
+                <div className="space-y-12">
+                    {/* Sketches Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <BarChart3 className="h-6 w-6 text-muted-foreground" />
+                                <h2 className="text-xl font-semibold">Sketches</h2>
+                                <Badge variant="outline" className="ml-2">{sketchCount}</Badge>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate({
+                                    to: "/dashboard/investigations/$investigationId",
+                                    params: { investigationId: investigation.id }
+                                })}
+                                className="gap-2"
+                            >
+                                View All
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        
+                        {sketchCount === 0 ? (
+                            <Card className="border-dashed">
+                                <CardContent className="flex flex-col items-center justify-center py-8">
+                                    <BarChart3 className="h-12 w-12 text-muted-foreground mb-3" />
+                                    <h3 className="text-lg font-semibold mb-2">No sketches yet</h3>
+                                    <p className="text-muted-foreground mb-4 text-center max-w-md">
+                                        Create your first sketch to start visualizing your investigation data and building relationships between entities.
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate({
+                                            to: "/dashboard/investigations/$investigationId",
+                                            params: { investigationId: investigation.id }
+                                        })}
+                                        className="gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Create Sketch
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {investigation.sketches?.slice(0, 8).map((sketch: any) => (
+                                    <Card 
+                                        key={sketch.id} 
+                                        className="group py-2 relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/20 hover:from-blue-100 hover:to-indigo-200 dark:hover:from-blue-900/40 dark:hover:to-indigo-900/30"
+                                        onClick={() => navigate({
+                                            to: "/dashboard/investigations/$investigationId/$type/$id",
+                                            params: { 
+                                                investigationId: investigation.id, 
+                                                type: "graph",
+                                                id: sketch.id 
+                                            }
+                                        })}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <CardContent className="p-6 relative">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                                                    <BarChart3 className="h-5 w-5 text-white" />
+                                                </div>
+                                                <Badge variant="secondary" className="text-xs font-medium bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                                                    {sketch.status || "active"}
+                                                </Badge>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                                                    {sketch.title}
+                                                </h4>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                    {sketch.description || "No description provided"}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-blue-800/30">
+                                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        {formatDistanceToNow(new Date(sketch.last_updated_at), { addSuffix: true })}
+                                                    </span>
+                                                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Analyses Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-6 w-6 text-muted-foreground" />
+                                <h2 className="text-xl font-semibold">Analyses</h2>
+                                <Badge variant="outline" className="ml-2">{analysisCount}</Badge>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate({
+                                    to: "/dashboard/investigations/$investigationId",
+                                    params: { investigationId: investigation.id }
+                                })}
+                                className="gap-2"
+                            >
+                                View All
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        
+                        {analysisCount === 0 ? (
+                            <Card className="border-dashed">
+                                <CardContent className="flex flex-col items-center justify-center py-8">
+                                    <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+                                    <h3 className="text-lg font-semibold mb-2">No analyses yet</h3>
+                                    <p className="text-muted-foreground mb-4 text-center max-w-md">
+                                        Create your first analysis to start documenting your findings, observations, and investigative notes.
+                                    </p>
+                                    <Button
+                                        onClick={() => createAnalysisMutation.mutate()}
+                                        disabled={createAnalysisMutation.isPending}
+                                        className="gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Create Analysis
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {investigation.analyses?.slice(0, 8).map((analysis: any) => (
+                                    <Card 
+                                        key={analysis.id} 
+                                        className="group py-2 relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-0 bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-950/30 dark:to-teal-950/20 hover:from-emerald-100 hover:to-teal-200 dark:hover:from-emerald-900/40 dark:hover:to-teal-900/30"
+                                        onClick={() => navigate({
+                                            to: "/dashboard/investigations/$investigationId/$type/$id",
+                                            params: { 
+                                                investigationId: investigation.id, 
+                                                type: "analysis",
+                                                id: analysis.id 
+                                            }
+                                        })}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <CardContent className="p-6 relative">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                                                    <FileText className="h-5 w-5 text-white" />
+                                                </div>
+                                                <Badge variant="secondary" className="text-xs font-medium bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                                                    Analysis
+                                                </Badge>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                                                    {analysis.title}
+                                                </h4>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                    {analysis.description || "No description provided"}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="mt-4 pt-4 border-t border-emerald-200/50 dark:border-emerald-800/30">
+                                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        {formatDistanceToNow(new Date(analysis.last_updated_at), { addSuffix: true })}
+                                                    </span>
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

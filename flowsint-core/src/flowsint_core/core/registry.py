@@ -26,9 +26,10 @@ from flowsint_transforms.individuals.to_org import IndividualToOrgScanner
 from flowsint_transforms.organizations.to_infos import OrgToInfosScanner
 from flowsint_transforms.websites.to_webtrackers import WebsiteToWebtrackersScanner
 from flowsint_transforms.n8n.connector import N8nConnector
+from flowsint_transforms.domains.to_root_domain import DomainToRootDomain
 
 
-class ScannerRegistry:
+class TransformRegistry:
 
     _scanners: Dict[str, Type[Scanner]] = {}
 
@@ -37,7 +38,7 @@ class ScannerRegistry:
         cls._scanners[scanner_class.name()] = scanner_class
 
     @classmethod
-    def scanner_exists(cls, name: str) -> bool:
+    def transform_exists(cls, name: str) -> bool:
         return name in cls._scanners
 
     @classmethod
@@ -99,26 +100,27 @@ class ScannerRegistry:
 
 
 # Register all scanners
-ScannerRegistry.register(ReverseResolveScanner)
-ScannerRegistry.register(ResolveScanner)
-ScannerRegistry.register(SubdomainScanner)
-ScannerRegistry.register(WhoisScanner)
-ScannerRegistry.register(GeolocationScanner)
-ScannerRegistry.register(MaigretScanner)
-ScannerRegistry.register(IpToAsnScanner)
-ScannerRegistry.register(AsnToCidrsScanner)
-ScannerRegistry.register(CidrToIpsScanner)
-ScannerRegistry.register(OrgToAsnScanner)
-ScannerRegistry.register(DomainToAsnScanner)
-ScannerRegistry.register(CryptoWalletAddressToTransactions)
-ScannerRegistry.register(CryptoWalletAddressToNFTs)
-ScannerRegistry.register(DomainToWebsiteScanner)
-ScannerRegistry.register(WebsiteToCrawler)
-ScannerRegistry.register(WebsiteToLinks)
-ScannerRegistry.register(WebsiteToDomainScanner)
-ScannerRegistry.register(EmailToGravatarScanner)
-ScannerRegistry.register(EmailToBreachesScanner)
-ScannerRegistry.register(IndividualToOrgScanner)
-ScannerRegistry.register(OrgToInfosScanner)
-ScannerRegistry.register(WebsiteToWebtrackersScanner)
-ScannerRegistry.register(N8nConnector)
+TransformRegistry.register(ReverseResolveScanner)
+TransformRegistry.register(ResolveScanner)
+TransformRegistry.register(SubdomainScanner)
+TransformRegistry.register(WhoisScanner)
+TransformRegistry.register(GeolocationScanner)
+TransformRegistry.register(MaigretScanner)
+TransformRegistry.register(IpToAsnScanner)
+TransformRegistry.register(AsnToCidrsScanner)
+TransformRegistry.register(CidrToIpsScanner)
+TransformRegistry.register(OrgToAsnScanner)
+TransformRegistry.register(DomainToAsnScanner)
+TransformRegistry.register(CryptoWalletAddressToTransactions)
+TransformRegistry.register(CryptoWalletAddressToNFTs)
+TransformRegistry.register(DomainToWebsiteScanner)
+TransformRegistry.register(WebsiteToCrawler)
+TransformRegistry.register(WebsiteToLinks)
+TransformRegistry.register(WebsiteToDomainScanner)
+TransformRegistry.register(EmailToGravatarScanner)
+TransformRegistry.register(EmailToBreachesScanner)
+TransformRegistry.register(IndividualToOrgScanner)
+TransformRegistry.register(OrgToInfosScanner)
+TransformRegistry.register(WebsiteToWebtrackersScanner)
+TransformRegistry.register(DomainToRootDomain)
+TransformRegistry.register(N8nConnector)

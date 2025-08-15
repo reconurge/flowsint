@@ -1,7 +1,7 @@
 import { useLocation, useParams } from "@tanstack/react-router"
 import InvestigationList from "../investigations/investigation-list"
 import GraphNavigation from "../graphs/graph-navigation"
-import TransformNavigation from "../transforms/transform-navigation"
+import TransformNavigation from "../flows/flow-navigation"
 import SketchList from "../investigations/sketch-list"
 import AnalysesList from "../analyses/analyses-list"
 
@@ -10,7 +10,7 @@ const SecondaryNavigation = () => {
     const { id, investigationId, type } = useParams({ strict: false })
     const { pathname } = useLocation()
 
-    if (!investigationId && !id && !pathname.startsWith("/dashboard/transforms")) {
+    if (!investigationId && !id && !pathname.startsWith("/dashboard/flows")) {
         return (
             <div className="grow w-full overflow-x-hidden">
                 <InvestigationList />
@@ -41,7 +41,7 @@ const SecondaryNavigation = () => {
     }
 
 
-    if (pathname.startsWith("/dashboard/transforms")) {
+    if (pathname.startsWith("/dashboard/flows")) {
         return (
             <div className="grow w-full h-full overflow-x-hidden">
                 <TransformNavigation />

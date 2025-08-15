@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from flowsint_core.core.graph_db import Neo4jConnection
 import os
-from typing import List
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,6 +9,7 @@ from app.api.routes import auth
 from app.api.routes import investigations
 from app.api.routes import sketches
 from app.api.routes import transforms
+from app.api.routes import flows
 from app.api.routes import events
 from app.api.routes import analysis
 from app.api.routes import chat
@@ -58,6 +58,7 @@ app.include_router(
     investigations.router, prefix="/api/investigations", tags=["investigations"]
 )
 app.include_router(transforms.router, prefix="/api/transforms", tags=["transforms"])
+app.include_router(flows.router, prefix="/api/flows", tags=["flows"])
 app.include_router(events.router, prefix="/api/events", tags=["events"])
 app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 app.include_router(chat.router, prefix="/api/chats", tags=["chats"])

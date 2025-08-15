@@ -3,6 +3,8 @@ from pydantic import UUID4, BaseModel
 from typing import Optional
 from datetime import datetime
 from .sketch import SketchRead
+from .analysis import AnalysisRead
+from .profile import ProfileRead
 
 
 class InvestigationCreate(BaseModel):
@@ -20,7 +22,9 @@ class InvestigationRead(ORMBase):
     owner_id: Optional[UUID4]
     last_updated_at: datetime
     status: str
+    owner: Optional[ProfileRead] = None
     sketches: list[SketchRead] = []
+    analyses: list[AnalysisRead] = []
 
 
 class InvestigationProfileCreate(BaseModel):

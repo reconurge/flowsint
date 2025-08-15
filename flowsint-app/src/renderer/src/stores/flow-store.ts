@@ -16,33 +16,33 @@ import { type ScannerNodeData } from "@/types/transform"
 
 export type NodeData = ScannerNodeData
 
-export type TransformNode = Node<NodeData>
-export type TransformEdge = Edge
+export type FlowNode = Node<NodeData>
+export type FlowEdge = Edge
 
 export interface TransformState {
     // Node State
-    nodes: TransformNode[]
-    selectedNode: TransformNode | null
+    nodes: FlowNode[]
+    selectedNode: FlowNode | null
     // Edge State
-    edges: TransformEdge[]
+    edges: FlowEdge[]
     // UI State
     loading: boolean
     openParamsDialog: boolean
-    openTransformSheet: boolean
+    openFlowSheet: boolean
     // Node Actions
-    setNodes: (nodes: TransformNode[] | ((prev: TransformNode[]) => TransformNode[])) => void
+    setNodes: (nodes: FlowNode[] | ((prev: FlowNode[]) => FlowNode[])) => void
     onNodesChange: OnNodesChange
-    setSelectedNode: (node: TransformNode | null) => void
+    setSelectedNode: (node: FlowNode | null) => void
     deleteNode: (nodeId: string) => void
-    updateNode: (node: TransformNode) => void
+    updateNode: (node: FlowNode) => void
     // Edge Actions
-    setEdges: (edges: TransformEdge[] | ((prev: TransformEdge[]) => TransformEdge[])) => void
+    setEdges: (edges: FlowEdge[] | ((prev: FlowEdge[]) => FlowEdge[])) => void
     onEdgesChange: OnEdgesChange
     onConnect: OnConnect
     // UI Actions
     setLoading: (loading: boolean) => void
-    setOpenParamsDialog: (openParamsDialog: boolean, node?: TransformNode) => void
-    setOpenTransformSheet: (openTransformSheet: boolean, node?: TransformNode) => void
+    setOpenParamsDialog: (openParamsDialog: boolean, node?: FlowNode) => void
+    setOpenFlowSheet: (openFlowSheet: boolean, node?: FlowNode) => void
 }
 
 // ================================
@@ -61,26 +61,26 @@ const defaultMarkerEnd: EdgeMarker = {
 // TRANSFORM STORE IMPLEMENTATION
 // ================================
 
-export const useTransformStore = create<TransformState>((set, get) => ({
+export const useFlowStore = create<TransformState>((set, get) => ({
     // ================================
     // STATE INITIALIZATION
     // ================================
     // Node State
-    nodes: [] as TransformNode[],
+    nodes: [] as FlowNode[],
     selectedNode: null,
     // Edge State
-    edges: [] as TransformEdge[],
+    edges: [] as FlowEdge[],
     // UI State
     loading: false,
     openParamsDialog: false,
-    openTransformSheet: false,
+    openFlowSheet: false,
     // ================================
     // NODE ACTIONS
     // ================================
     setNodes: (nodes) => set({ nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes }),
     onNodesChange: (changes) => {
         set({
-            nodes: applyNodeChanges(changes, get().nodes) as TransformNode[],
+            nodes: applyNodeChanges(changes, get().nodes) as FlowNode[],
         })
     },
     setSelectedNode: (node) => set({ selectedNode: node }),
@@ -111,7 +111,7 @@ export const useTransformStore = create<TransformState>((set, get) => ({
             toast.error(`Cannot connect ${connection.sourceHandle} to ${connection.targetHandle}.`)
             return
         }
-        const edge: TransformEdge = {
+        const edge: FlowEdge = {
             id: `${connection.source}-${connection.target}`,
             source: connection.source!,
             target: connection.target!,
@@ -139,15 +139,15 @@ export const useTransformStore = create<TransformState>((set, get) => ({
         }
         set({ openParamsDialog })
     },
-    setOpenTransformSheet: (openTransformSheet, node) => {
+    setOpenFlowSheet: (openFlowSheet, node) => {
         // Only allow opening the dialog if there's a selected node
         if (node) {
             set({ selectedNode: node })
         }
-        if (openTransformSheet && !get().selectedNode) {
+        if (openFlowSheet && !get().selectedNode) {
             toast.error("Please select a node first to add a connector.")
             return
         }
-        set({ openTransformSheet })
+        set({ openFlowSheet })
     }
 }))

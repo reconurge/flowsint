@@ -1,14 +1,14 @@
 import os
 import uuid
-import asyncio
 from dotenv import load_dotenv
 from typing import List, Optional
 from celery import states
-from flowsint_core.core.registry import TransformRegistry
 from ..core.celery import celery
+from ..core.orchestrator import TransformOrchestrator
 from ..core.postgre_db import SessionLocal, get_db
 from ..core.graph_db import Neo4jConnection
 from ..core.vault import Vault
+from ..core.types import FlowBranch
 from ..core.models import Scan
 from sqlalchemy.orm import Session
 from ..core.logger import Logger
@@ -27,10 +27,10 @@ db: Session = next(get_db())
 logger = Logger()
 
 
-@celery.task(name="run_transform", bind=True)
-def run_transform(
+@celery.task(name="run_flow", bind=True)
+def run_flow(
     self,
-    transform_name: str,
+    transform_branches,
     values: List[str],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
@@ -38,6 +38,8 @@ def run_transform(
     session = SessionLocal()
 
     try:
+        if not transform_branches:
+            raise ValueError("transform_branches not provided in the input transform")
 
         scan_id = uuid.UUID(self.request.id)
 
@@ -59,18 +61,17 @@ def run_transform(
                     sketch_id, {"message": f"Failed to create vault: {str(e)}"}
                 )
 
-        if not TransformRegistry.transform_exists(transform_name):
-            raise ValueError(f"Scanner '{transform_name}' not found in registry")
-
-        scanner = TransformRegistry.get_scanner(
-            name=transform_name,
+        transform_branches = [FlowBranch(**branch) for branch in transform_branches]
+        scanner = TransformOrchestrator(
             sketch_id=sketch_id,
-            scan_id=scan_id,
+            scan_id=str(scan_id),
+            transform_branches=transform_branches,
             neo4j_conn=neo4j_connection,
             vault=vault,
         )
 
-        results = asyncio.run(scanner.execute(values=values))
+        # Use the synchronous scan method which internally handles the async operations
+        results = scanner.scan(values=values)
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

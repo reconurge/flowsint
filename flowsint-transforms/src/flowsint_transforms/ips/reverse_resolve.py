@@ -86,8 +86,34 @@ class ReverseResolveScanner(Scanner):
         return results
 
     def postprocess(
-        self, results: OutputType, input_data: InputType = None
+        self, results: OutputType, original_input: InputType
     ) -> OutputType:
+        # Create nodes and relationships for each resolved domain
+        for ip_obj in original_input:
+            # Create IP node
+            self.create_node("ip", "address", ip_obj.address, type="ip")
+            
+            # Create domain nodes and relationships for each resolved domain
+            for domain_obj in results:
+                self.create_node(
+                    "domain",
+                    "domain",
+                    domain_obj.domain,
+                    type="domain" if "." not in domain_obj.domain.split(".")[1:] else "subdomain",
+                )
+                self.create_relationship(
+                    "ip",
+                    "address",
+                    ip_obj.address,
+                    "domain",
+                    "domain",
+                    domain_obj.domain,
+                    "REVERSE_RESOLVES_TO",
+                )
+                self.log_graph_message(
+                    f"Domain found for IP {ip_obj.address} -> {domain_obj.domain}"
+                )
+        
         return results
 
 

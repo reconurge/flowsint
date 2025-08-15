@@ -1,27 +1,27 @@
 import { toast } from "sonner"
 import { useConfirm } from "@/components/use-confirm-dialog"
-import { transformService } from "@/api/transfrom-service"
+import { flowService } from "@/api/flow-service"
 
-export function useLaunchTransform(askUser: boolean = false) {
+export function useLaunchFlow(askUser: boolean = false) {
     const { confirm } = useConfirm()
-    const launchTransform = async (values: string[], transformName: string, sketch_id: string | null | undefined) => {
+    const launchFlow = async (values: string[], flow_id: string, sketch_id: string | null | undefined) => {
         if (!sketch_id) return toast.error("Could not find the graph.")
         if (askUser) {
             const confirmed = await confirm({
-                title: `${transformName} scan`,
-                message: `You're about to launch ${transformName} transform on ${values.length} items.`,
+                title: `${flow_id} scan`,
+                message: `You're about to launch ${flow_id} flow on ${values.length} items.`,
             })
             if (!confirmed) return
         }
         const body = JSON.stringify({ values, sketch_id })
-        toast.promise(transformService.launch(transformName, body), {
+        toast.promise(flowService.launch(flow_id, body), {
             loading: "Loading...",
             success: () => `Scan on "${values.join(",")}" has been launched.`,
-            error: () => `An error occurred launching transform.`,
+            error: () => `An error occurred launching flow.`,
         })
         return
     }
     return {
-        launchTransform,
+        launchFlow,
     }
 }

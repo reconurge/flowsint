@@ -9,6 +9,7 @@ import { ArrowRight } from 'lucide-react';
 import { memo, useCallback, useRef } from 'react';
 
 type Relation = {
+    source: GraphNode,
     target: GraphNode,
     edge: { label: string }
 }
@@ -16,9 +17,10 @@ type Relation = {
 const getInlineRelationships = (nodes: GraphNode[], edges: GraphEdge[]): Relation[] => {
     const relationships: Relation[] = []
     edges.forEach((edge) => {
+        const source = nodes.find((n) => (n.id === edge.source))
         const target = nodes.find((n) => (n.id === edge.target))
-        if (!target) return
-        relationships.push({ target, edge: { label: String(edge.caption || 'RELATED_TO') } })
+        if (!target || !source) return
+        relationships.push({ source, target, edge: { label: String(edge.caption || 'RELATED_TO') } })
     })
     return relationships
 }
@@ -66,7 +68,9 @@ const Relationships = ({ sketchId, nodeId }: { sketchId: string, nodeId: string 
                             className="mb-1 px-3"
                         >
                             <Badge variant={"outline"} className='h-8 truncate justify-between text-ellipsis text-sm w-full'>
-                                <span className='opacity-60 truncate text-ellipsis'>{rel.edge.label}</span>
+                                <RelationshipItem node={rel.source} />
+                                <ArrowRight />
+                                <span className='opacity-60 text-xs truncate text-ellipsis'>{rel.edge.label}</span>
                                 <ArrowRight />
                                 <RelationshipItem node={rel.target} />
                             </Badge>
@@ -87,8 +91,8 @@ const RelationshipItem = memo(({ node }: { node: GraphNode }) => {
         setCurrentNode(node)
     }, [setCurrentNode])
     return (
-        <button onClick={handleClick}>
-            <TypeBadge className='hover:underline cursor-pointer' type={node.data.type}>{node.data.label}</TypeBadge>
+        <button className='truncate text-ellipsis' onClick={handleClick}>
+            <TypeBadge className='hover:underline cursor-pointer truncate text-ellipsis' type={node.data.type}>{node.data.label}</TypeBadge>
         </button>
     )
 })

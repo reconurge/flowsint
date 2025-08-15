@@ -2,10 +2,10 @@ import { useCallback } from 'react';
 import { Pencil, Trash } from 'lucide-react';
 import { GraphNode } from '@/stores/graph-store';
 import BaseContextMenu from '@/components/xyflow/context-menu';
-import { TransformNode, useTransformStore } from '@/stores/transform-store';
+import { FlowNode, useFlowStore } from '@/stores/flow-store';
 
 interface GraphContextMenuProps {
-    node: GraphNode | TransformNode;
+    node: GraphNode | FlowNode;
     top?: number;
     left?: number;
     right?: number;
@@ -34,15 +34,15 @@ export default function ContextMenu({
     ...props
 }: GraphContextMenuProps) {
 
-    const setOpenParamsDialog = useTransformStore(s => s.setOpenParamsDialog)
-    const deleteNode = useTransformStore(s => s.deleteNode)
+    const setOpenParamsDialog = useFlowStore(s => s.setOpenParamsDialog)
+    const deleteNode = useFlowStore(s => s.deleteNode)
 
     const handleOpenParamsModal = useCallback(() => {
-        setOpenParamsDialog(true, node as TransformNode)
+        setOpenParamsDialog(true, node as FlowNode)
         setMenu(null)
     }, [setOpenParamsDialog, node, setMenu])
 
-    const handleDeleteTransform = useCallback(() => {
+    const handleDeleteFlow = useCallback(() => {
         deleteNode(node.id as string)
         setMenu(null)
     }, [deleteNode, node.id, setMenu])
@@ -73,7 +73,7 @@ export default function ContextMenu({
                     <Pencil className="h-4 w-4 opacity-60" /> Edit
                 </button>
                 <button
-                    onClick={handleDeleteTransform}
+                    onClick={handleDeleteFlow}
                     className="w-full flex items-center gap-2 p-2 rounded-sm hover:bg-muted text-left transition-colors"
                 >
                     <Trash className="h-4 w-4 text-red-500 opacity-60" /> Delete

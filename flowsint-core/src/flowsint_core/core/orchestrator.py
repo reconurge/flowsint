@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 from pydantic import ValidationError
 from .scanner_base import Scanner
-from .registry import ScannerRegistry
+from .registry import TransformRegistry
 from .types import FlowBranch, FlowStep
 from .logger import Logger
 from ..utils import to_json_serializable
@@ -229,18 +229,18 @@ class TransformOrchestrator(Scanner):
         for node in scanner_nodes:
             node_id = node.nodeId
 
-            # Extract scanner name from nodeId (assuming format like "scanner_name-1234567890")
-            scanner_name = node_id.split("-")[0]
+            # Extract scanner name from nodeId (assuming format like "transform_name-1234567890")
+            transform_name = node_id.split("-")[0]
 
-            if not ScannerRegistry.scanner_exists(scanner_name):
-                raise ValueError(f"Scanner '{scanner_name}' not found in registry")
+            if not TransformRegistry.transform_exists(transform_name):
+                raise ValueError(f"Scanner '{transform_name}' not found in registry")
 
             # Pass the step params to the scanner instance
             scanner_params = (
                 node.params if hasattr(node, "params") and node.params else {}
             )
-            scanner = ScannerRegistry.get_scanner(
-                scanner_name,
+            scanner = TransformRegistry.get_scanner(
+                transform_name,
                 self.sketch_id,
                 self.scan_id,
                 neo4j_conn=self.neo4j_conn,
@@ -383,12 +383,12 @@ class TransformOrchestrator(Scanner):
                     )
                     continue
 
-                scanner_name = scanner.name()
+                transform_name = scanner.name()
                 step_start_time = time.time()
 
                 step_result = {
                     "nodeId": node_id,
-                    "scanner": scanner_name,
+                    "scanner": transform_name,
                     "status": "error",  # Default to error, will update on success
                 }
 
@@ -398,7 +398,7 @@ class TransformOrchestrator(Scanner):
                     "branch_id": branch_id,
                     "branch_name": branch_name,
                     "node_id": node_id,
-                    "scanner_name": scanner_name,
+                    "transform_name": transform_name,
                     "inputs": to_json_serializable(scanner_inputs),
                     "outputs": None,
                     "status": "running",
@@ -432,7 +432,7 @@ class TransformOrchestrator(Scanner):
                         outputs = await scanner.execute(scanner_inputs)
                         if not isinstance(outputs, (dict, list)):
                             raise ValueError(
-                                f"Scanner '{scanner_name}' returned unsupported output format"
+                                f"Scanner '{transform_name}' returned unsupported output format"
                             )
                         # Cache the results
                         scanner_results_cache[cache_key] = outputs

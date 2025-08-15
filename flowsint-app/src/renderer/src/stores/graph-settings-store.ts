@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS = {
         description: "Distance between different graph depths when using DAG (directed acyclic graph) layout mode"
     },
     linkDirectionalArrowRelPos: {
-        value: 0.99,
+        value: 1,
         min: 0,
         max: 1,
         step: 0.01,
@@ -170,7 +170,7 @@ export const useGraphSettingsStore = create<GraphSettingsStore>()(
             return flatSettings
         },
         resetSettings: () => set({ settings: DEFAULT_SETTINGS, currentPreset: null }),
-        
+
         // Force Presets Implementation
         getPresets: () => ({
             'Tight Clusters': {
@@ -210,12 +210,12 @@ export const useGraphSettingsStore = create<GraphSettingsStore>()(
                 collisionRadius: 12
             }
         }),
-        
+
         applyPreset: (presetName: string) => {
             const presets = get().getPresets();
             const preset = presets[presetName];
             if (!preset) return;
-            
+
             set((state) => {
                 const newSettings = { ...state.settings };
                 Object.entries(preset).forEach(([key, value]) => {
@@ -226,18 +226,18 @@ export const useGraphSettingsStore = create<GraphSettingsStore>()(
                         };
                     }
                 });
-                return { 
+                return {
                     settings: newSettings,
                     currentPreset: presetName
                 };
             });
         }
-    }    ),
+    }),
         {
             name: 'graph-controls-storage',
-            partialize: (state) => ({ 
+            partialize: (state) => ({
                 settings: state.settings,
-                currentPreset: state.currentPreset 
+                currentPreset: state.currentPreset
             }),
         }
     ));

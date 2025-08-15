@@ -2,12 +2,12 @@ import { transformService } from '@/api/transfrom-service'
 import { useCallback, ReactNode, cloneElement, isValidElement } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
-import { useTransformStore } from '@/stores/transform-store'
+import { useFlowStore } from '@/stores/flow-store'
 
-const NewTransform = ({ children }: { children: ReactNode }) => {
+const NewFlow = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate()
-    const setNodes = useTransformStore(state => state.setNodes)
-    const setEdges = useTransformStore(state => state.setEdges)
+    const setNodes = useFlowStore(state => state.setNodes)
+    const setEdges = useFlowStore(state => state.setEdges)
 
     const handleCreateTransform = useCallback(async () => {
         toast.promise(
@@ -19,9 +19,9 @@ const NewTransform = ({ children }: { children: ReactNode }) => {
                     name: "New flow",
                     description: "A new example flow.",
                     category: [],
-                    transform_schema: {}
+                    flow_schema: {}
                 }))
-                navigate({ to: `/dashboard/transforms/${response.id}` })
+                navigate({ to: `/dashboard/flows/${response.id}` })
                 return response
             })(),
             {
@@ -41,4 +41,4 @@ const NewTransform = ({ children }: { children: ReactNode }) => {
         onClick: handleCreateTransform
     })
 }
-export default NewTransform
+export default NewFlow

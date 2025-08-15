@@ -3,43 +3,43 @@ import { Button } from "@/components/ui/button"
 import { Panel } from "@xyflow/react"
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { TransformDetailsPanel } from "../transforms/transform-name-panel"
+import { FlowDetailsPanel } from "./flow-name-panel"
 
 interface FlowControlsProps {
     loading: boolean
-    handleSaveTransform: () => void
-    handleDeleteTransform: () => void
+    handleSaveFlow: () => void
+    handleDeleteFlow: () => void
     onLayout: () => void
     fitView: () => void
     zoomIn: () => void
     zoomOut: () => void
     isSaved: boolean,
-    transform?: any
+    flow?: any
 }
 
 export function FlowControls({
     loading,
-    handleSaveTransform,
-    handleDeleteTransform,
+    handleSaveFlow,
+    handleDeleteFlow,
     onLayout,
     fitView,
     zoomIn,
     zoomOut,
     isSaved,
-    transform
+    flow
 }: FlowControlsProps) {
     return (
         <TooltipProvider>
-            <TransformDetailsPanel transform={transform} />
+            <FlowDetailsPanel flow={flow} />
             <Panel position="bottom-right" className="flex gap-2 mt-28 mr-2 z-40">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" className="bg-card" onClick={handleSaveTransform} disabled={loading}>
+                        <Button variant="outline" size="icon" className="bg-card" onClick={handleSaveFlow} disabled={loading}>
                             <Save className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Save Transform</p>
+                        <p>Save flow</p>
                     </TooltipContent>
                 </Tooltip>
 
@@ -50,14 +50,14 @@ export function FlowControls({
                                 variant="outline"
                                 size="icon"
                                 className="bg-card"
-                                onClick={handleDeleteTransform}
+                                onClick={handleDeleteFlow}
                                 disabled={loading}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Delete Transform</p>
+                            <p>Delete flow</p>
                         </TooltipContent>
                     </Tooltip>
                 )}

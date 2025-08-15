@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { transformService } from '@/api/transfrom-service'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { PlusIcon, FileCode2, Clock, FileX } from 'lucide-react'
@@ -9,33 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import NewTransform from '@/components/transforms/new-transform'
+import NewFlow from '@/components/flows/new-flow'
+import { flowService } from '@/api/flow-service'
 
-interface Transform {
+interface Flow {
     id: string
     name: string
     description?: string
     category?: string[]
     created_at: string
     updated_at?: string
-    transform_schema?: any
+    flow_schema?: any
 }
 
-export const Route = createFileRoute('/_auth/dashboard/transforms/')({
-    component: TransformsPage,
+export const Route = createFileRoute('/_auth/dashboard/flows/')({
+    component: FlowPage,
 })
 
-function TransformsPage() {
+function FlowPage() {
     const navigate = useNavigate()
-    const { data: transforms, isLoading } = useQuery<Transform[]>({
-        queryKey: ["transforms"],
-        queryFn: () => transformService.get(),
+    const { data: flows, isLoading } = useQuery<Flow[]>({
+        queryKey: ["flow"],
+        queryFn: () => flowService.get(),
     })
 
     // Get all unique categories
-    const categories = transforms?.reduce((acc: string[], transform) => {
-        if (transform.category) {
-            transform.category.forEach(cat => {
+    const categories = flows?.reduce((acc: string[], flow) => {
+        if (flow.category) {
+            flow.category.forEach(cat => {
                 if (!acc.includes(cat)) acc.push(cat)
             })
         }
@@ -53,16 +53,16 @@ function TransformsPage() {
                         <div className="space-y-1">
                             <h1 className="text-3xl font-bold text-foreground">Flows</h1>
                             <p className="text-muted-foreground">
-                                Create and manage your transform flows.
+                                Create and manage your flow flows.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <NewTransform>
+                            <NewFlow>
                                 <Button size="sm">
                                     <PlusIcon className="w-4 h-4 mr-2" />
                                     New flow
                                 </Button>
-                            </NewTransform>
+                            </NewFlow>
                         </div>
                     </div>
                 </div>
@@ -72,21 +72,21 @@ function TransformsPage() {
                     <div className="p-2">
                         <SkeletonList rowCount={6} mode="card" />
                     </div>
-                ) : !transforms?.length ? (
+                ) : !flows?.length ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                         <div className="rounded-full bg-muted/50 p-4 mb-4">
                             <FileX className="w-8 h-8 text-muted-foreground" />
                         </div>
                         <h3 className="text-xl font-semibold mb-2">No flow yet</h3>
                         <p className="text-muted-foreground mb-6 max-w-md">
-                            Get started by creating your first flow. You can use transforms to process and manipulate your data in powerful ways.
+                            Get started by creating your first flow. You can use flows to process and manipulate your data in powerful ways.
                         </p>
-                        <NewTransform>
+                        <NewFlow>
                             <Button>
                                 <PlusIcon className="w-4 h-4 mr-2" />
-                                Create your first transform
+                                Create your first flow
                             </Button>
-                        </NewTransform>
+                        </NewFlow>
                     </div>
                 ) : (
                     <Tabs defaultValue="All" className="space-y-6">
@@ -105,39 +105,39 @@ function TransformsPage() {
                         {allCategories.map((category) => (
                             <TabsContent key={category} value={category} className="mt-0">
                                 <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
-                                    {transforms
-                                        ?.filter(transform =>
+                                    {flows
+                                        ?.filter(flow =>
                                             category === 'All'
                                                 ? true
                                                 : category === 'Uncategorized'
-                                                    ? !transform.category?.length
-                                                    : transform.category?.includes(category)
+                                                    ? !flow.category?.length
+                                                    : flow.category?.includes(category)
                                         )
-                                        .map((transform) => (
+                                        .map((flow) => (
                                             <Card
-                                                key={transform.id}
+                                                key={flow.id}
                                                 className="group hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
-                                                onClick={() => navigate({ to: `/dashboard/transforms/${transform.id}` })}
+                                                onClick={() => navigate({ to: `/dashboard/flows/${flow.id}` })}
                                             >
                                                 <CardHeader className="pb-2">
                                                     <div className="flex items-start justify-between">
                                                         <CardTitle className="text-lg font-medium group-hover:text-primary transition-colors">
-                                                            {transform.name || "(Unnamed transform)"}
+                                                            {flow.name || "(Unnamed flow)"}
                                                         </CardTitle>
                                                         <FileCode2 className="w-4 h-4 text-muted-foreground" />
                                                     </div>
                                                     <CardDescription className="line-clamp-2 mt-1">
-                                                        {transform.description || "No description provided"}
+                                                        {flow.description || "No description provided"}
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center text-sm text-muted-foreground">
                                                             <Clock className="w-4 h-4 mr-1" />
-                                                            {formatDistanceToNow(new Date(transform.updated_at || transform.created_at), { addSuffix: true })}
+                                                            {formatDistanceToNow(new Date(flow.updated_at || flow.created_at), { addSuffix: true })}
                                                         </div>
                                                         <div className="flex flex-wrap gap-2 justify-end">
-                                                            {transform.category?.map((cat) => (
+                                                            {flow.category?.map((cat) => (
                                                                 <Badge key={cat} variant="secondary">
                                                                     {cat}
                                                                 </Badge>

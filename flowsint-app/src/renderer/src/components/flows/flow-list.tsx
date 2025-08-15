@@ -1,4 +1,4 @@
-import { transformService } from "@/api/transfrom-service"
+import { flowService } from "@/api/flow-service"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { SkeletonList } from "../shared/skeleton-list"
@@ -7,73 +7,73 @@ import { useState, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Pencil, PlusIcon } from "lucide-react"
 import { Button } from "../ui/button"
-import NewTransform from "./new-transform"
+import NewFlow from "./new-flow"
 
-const TransformsList = () => {
-    const { data: transforms, isLoading } = useQuery({
-        queryKey: ["transforms"],
-        queryFn: () => transformService.get(),
+const FlowsList = () => {
+    const { data: flows, isLoading } = useQuery({
+        queryKey: ["flows"],
+        queryFn: () => flowService.get(),
     })
     const [searchQuery, setSearchQuery] = useState("")
 
-    const filteredTransforms = useMemo(() => {
-        if (!transforms) return []
-        if (!searchQuery.trim()) return transforms
+    const filteredflows = useMemo(() => {
+        if (!flows) return []
+        if (!searchQuery.trim()) return flows
 
         const query = searchQuery.toLowerCase().trim()
-        return transforms.filter((transform) => {
-            const matchesName = transform.name?.toLowerCase().includes(query)
-            const matchesCategory = transform.category
-                ? (Array.isArray(transform.category)
-                    ? transform.category.some(cat => cat.toLowerCase().includes(query))
-                    : transform.category.toLowerCase().includes(query))
+        return flows.filter((flow) => {
+            const matchesName = flow.name?.toLowerCase().includes(query)
+            const matchesCategory = flow.category
+                ? (Array.isArray(flow.category)
+                    ? flow.category.some(cat => cat.toLowerCase().includes(query))
+                    : flow.category.toLowerCase().includes(query))
                 : false
             return matchesName || matchesCategory
         })
-    }, [transforms, searchQuery])
+    }, [flows, searchQuery])
 
     if (isLoading) return <div className="p-2"><SkeletonList rowCount={10} /></div>
 
     return (
         <div className="flex flex-col h-full min-h-0 overflow-hidden bg-card">
             <div className="p-2 border-b flex items-center gap-1">
-                <NewTransform>
+                <NewFlow>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
                         <PlusIcon className="h-4 w-4" />
                     </Button>
-                </NewTransform>
+                </NewFlow>
                 <Input
                     type="search"
                     className="h-7"
-                    placeholder="Search transforms..."
+                    placeholder="Search flows..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
 
-            {filteredTransforms.length > 0 ? (
+            {filteredflows.length > 0 ? (
                 <ul className="flex-1 overflow-auto divide-y">
-                    {filteredTransforms.map((transform: any) => (
-                        <li key={transform.id}>
+                    {filteredflows.map((flow: any) => (
+                        <li key={flow.id}>
                             <Link
-                                to={`/dashboard/transforms/$transformId`}
-                                params={{ transformId: transform.id }}
+                                to={`/dashboard/flows/$flowId`}
+                                params={{ flowId: flow.id }}
                                 className="block px-4 py-3 hover:bg-muted cursor-pointer"
-                                title={transform.description || "No description"}
+                                title={flow.description || "No description"}
                             >
-                                <div className="font-semibold text-sm truncate">{transform.name || "(Unnamed transform)"}</div>
+                                <div className="font-semibold text-sm truncate">{flow.name || "(Unnamed flow)"}</div>
                                 <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                    {transform.category && (
+                                    {flow.category && (
                                         <span className="truncate">
-                                            {Array.isArray(transform.category) ? transform.category.join(", ") : transform.category}
+                                            {Array.isArray(flow.category) ? flow.category.join(", ") : flow.category}
                                         </span>
                                     )}
-                                    {transform.last_updated_at && (
+                                    {flow.last_updated_at && (
                                         <>
-                                            {Boolean(transform.category.length) && <span>•</span>}
+                                            {Boolean(flow.category.length) && <span>•</span>}
                                             <div className="flex items-center gap-1 whitespace-nowrap">
                                                 <Pencil className="h-3 w-3" />
-                                                {formatDistanceToNow(new Date(transform.last_updated_at), { addSuffix: true })}
+                                                {formatDistanceToNow(new Date(flow.last_updated_at), { addSuffix: true })}
                                             </div>
                                         </>
                                     )}
@@ -84,11 +84,11 @@ const TransformsList = () => {
                 </ul>
             ) : (
                 <div className="flex-1 flex items-center justify-center p-4 text-center text-muted-foreground">
-                    {searchQuery ? "No matching transforms found" : "No transforms found"}
+                    {searchQuery ? "No matching flows found" : "No flows found"}
                 </div>
             )}
         </div>
     )
 }
 
-export default TransformsList
+export default FlowsList

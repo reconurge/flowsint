@@ -55,18 +55,19 @@ class WebsiteToWebtrackersScanner(Scanner):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        extractor = TrackingCodeExtractor()
 
         for website in data:
             try:
                 # Extract tracking codes from the website
-                tracking_data = extractor.extract(str(website.url))
+                extractor = TrackingCodeExtractor(str(website.url))
+                extractor.fetch()
+                extractor.extract_codes()
+                tracking_codes = extractor.get_results()
 
-                for tracker_info in tracking_data:
+                for tracker_info in tracking_codes:
                     tracker = WebTracker(
-                        name=tracker_info.get("name", ""),
-                        tracker_id=tracker_info.get("id", ""),
-                        category=tracker_info.get("category", ""),
+                        name=tracker_info.source,
+                        tracker_id=tracker_info.code,
                         website_url=str(website.url),
                     )
                     results.append(tracker)
@@ -83,9 +84,46 @@ class WebsiteToWebtrackersScanner(Scanner):
 
         return results
 
-    def postprocess(
-        self, results: OutputType, input_data: InputType = None
-    ) -> OutputType:
+    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+        # Create Neo4j relationships between websites and their corresponding trackers
+        if self.neo4j_conn:
+            # Group trackers by website using the mapping we created during scan
+            website_trackers = {}
+            for tracker, website in self.tracker_website_mapping:
+                website_url = str(website.url)
+                if website_url not in website_trackers:
+                    website_trackers[website_url] = []
+                website_trackers[website_url].append(tracker)
+
+            # Create nodes and relationships for each website and its trackers
+            for website_url, trackers in website_trackers.items():
+                # Create website node
+                self.create_node(
+                    "website", "url", website_url, caption=website_url, type="website"
+                )
+
+                # Create tracker nodes and relationships
+                for tracker in trackers:
+                    self.create_node(
+                        "tracker", 
+                        "tracker_id", 
+                        tracker.tracker_id, 
+                        caption=tracker.name, 
+                        type="tracker"
+                    )
+                    self.create_relationship(
+                        "website",
+                        "url",
+                        website_url,
+                        "tracker",
+                        "tracker_id",
+                        tracker.tracker_id,
+                        "HAS_TRACKER",
+                    )
+                    self.log_graph_message(
+                        f"Found tracker {tracker.name} ({tracker.tracker_id}) for website {website_url}"
+                    )
+
         return results
 
 

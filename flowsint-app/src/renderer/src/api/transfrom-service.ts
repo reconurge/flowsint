@@ -1,6 +1,5 @@
 import { fetchWithAuth } from './api';
 
-
 export const transformService = {
     get: async (type?: string): Promise<any> => {
         const url = type ? `/api/transforms?category=${type}` : "/api/transforms"
@@ -8,48 +7,10 @@ export const transformService = {
             method: 'GET',
         });
     },
-    getById: async (transformId: string): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/${transformId}`, {
-            method: 'GET',
-        });
-    },
-    create: async (body: BodyInit): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/create`, {
+    launch: async (transformName: string, body: BodyInit): Promise<any> => {
+        return fetchWithAuth(`/api/transforms/${transformName}/launch`, {
             method: 'POST',
             body: body
-        });
-    },
-    update: async (transformId: string, body: BodyInit): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/${transformId}`, {
-            method: 'PUT',
-            body: body
-        });
-    },
-    compute: async (transformId: string, body: BodyInit): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/${transformId}/compute`, {
-            method: 'POST',
-            body: body
-        });
-    },
-    delete: async (transformId: string): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/${transformId}`, {
-            method: 'DELETE',
-        });
-    },
-    launch: async (transformId: string, body: BodyInit): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/${transformId}/launch`, {
-            method: 'POST',
-            body: body
-        });
-    },
-    getRawMaterial: async (): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/raw_materials`, {
-            method: 'GET',
-        });
-    },
-    getRawMaterialForType: async (type: string): Promise<any> => {
-        return fetchWithAuth(`/api/transforms/input_type/${type}`, {
-            method: 'GET',
         });
     },
 };

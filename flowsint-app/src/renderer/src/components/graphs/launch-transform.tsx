@@ -12,49 +12,77 @@ import {
 } from "@/components/ui/sheet"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
 import { useLaunchTransform } from "@/hooks/use-launch-transform"
+import { useLaunchFlow } from "@/hooks/use-launch-flow"
 import { formatDistanceToNow } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { transformService } from "@/api/transfrom-service"
+import { flowService } from '@/api/flow-service';
 import { useParams } from "@tanstack/react-router"
 import { capitalizeFirstLetter } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Search, FileCode2, Zap } from "lucide-react"
+import { Transform, Flow } from "@/types"
 
-interface Transform {
-    id: string
-    name: string
-    description: string
-    category: string
-    created_at: string
-    last_updated_at: string
-}
-
-const LaunchTransform = ({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
+const LaunchTransformOrFlowPanel = ({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
     const { launchTransform } = useLaunchTransform()
+    const { launchFlow } = useLaunchFlow()
     const { id: sketch_id } = useParams({ strict: false })
     const [isOpen, setIsOpen] = useState(false)
-    const [selectedTransform, setSelectedTransform] = useState<Transform | null>(null)
+    const [selectedTransform, setSelectedTransform] = useState<Transform | Flow | null>(null)
+    const [activeTab, setActiveTab] = useState('transforms')
+    const [transformsSearchQuery, setTransformsSearchQuery] = useState('')
+    const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
 
-    const { data: transforms, isLoading } = useQuery({
+    const { data: transforms, isLoading: isLoadingTransforms } = useQuery({
         queryKey: ["transforms", type],
         queryFn: () => transformService.get(capitalizeFirstLetter(type)),
-        // queryFn: () => transformService.get(),
     });
+
+    const { data: flows, isLoading: isLoadingFlows } = useQuery({
+        queryKey: ["flows", type],
+        queryFn: () => flowService.get(capitalizeFirstLetter(type)),
+    });
+
+    const filteredTransforms = transforms?.filter((transform: Transform) => {
+        if (!transformsSearchQuery.trim()) return true;
+        const query = transformsSearchQuery.toLowerCase().trim();
+        const matchesName = transform.name?.toLowerCase().includes(query);
+        const matchesDescription = transform.description?.toLowerCase().includes(query);
+        return matchesName || matchesDescription;
+    }) || [];
+
+    const filteredFlows = flows?.filter((transform: Flow) => {
+        if (!flowsSearchQuery.trim()) return true;
+        const query = flowsSearchQuery.toLowerCase().trim();
+        const matchesName = transform.name?.toLowerCase().includes(query);
+        const matchesDescription = transform.description?.toLowerCase().includes(query);
+        return matchesName || matchesDescription;
+    }) || [];
 
     const handleCloseModal = useCallback(() => {
         setIsOpen(false)
     }, [])
 
-    const handleSelectTransform = useCallback((transform: Transform) => {
+    const handleSelectTransform = useCallback((transform: Transform | Flow) => {
         setSelectedTransform(transform)
     }, [])
 
-    const handleLaunchTransform = useCallback(() => {
+    const handleLaunchPanel = useCallback(() => {
         if (selectedTransform) {
-            launchTransform(values, selectedTransform.id, sketch_id)
+            // Check if it's a Transform or Flow based on the active tab
+            if (activeTab === 'transforms') {
+                // For transforms, use name
+                launchTransform(values, (selectedTransform as Transform).name, sketch_id)
+            } else {
+                // For flows, use id
+                launchFlow(values, (selectedTransform as Flow).id, sketch_id)
+            }
             handleCloseModal()
         }
-    }, [selectedTransform, launchTransform, values, sketch_id])
+    }, [selectedTransform, activeTab, launchTransform, launchFlow, values, sketch_id])
 
     return (
         <div>
@@ -68,71 +96,200 @@ const LaunchTransform = ({ values, type, children }: { values: string[], type: s
                         <SheetDescription>Choose a transform to launch from the list below.</SheetDescription>
                     </SheetHeader>
 
-                    <div className="p-4 grow overflow-auto">
-                        <RadioGroup value={selectedTransform?.id} className="space-y-3">
-                            {isLoading ? (
-                                // Skeleton loading state
-                                Array.from({ length: 3 }).map((_, index) => (
-                                    <Card key={index} className="border py-1">
-                                        <CardHeader className="p-4">
-                                            <div className="flex flex-col space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <Skeleton className="h-4 w-4 rounded-full" />
-                                                    <Skeleton className="h-5 w-32" />
-                                                </div>
-                                                <div className="pl-7 space-y-2">
-                                                    <Skeleton className="h-4 w-full" />
-                                                    <Skeleton className="h-4 w-3/4" />
-                                                </div>
-                                                <div className="flex flex-col space-y-1 pl-7">
-                                                    <Skeleton className="h-3 w-24" />
-                                                    <Skeleton className="h-3 w-20" />
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                    </Card>
-                                ))
-                            ) : (
-                                transforms?.map((transform: Transform) => (
-                                    <Card
-                                        key={transform.id}
-                                        className={`cursor-pointer border py-1 transition-all ${selectedTransform?.id === transform.id
-                                            ? "border-primary bg-primary/5"
-                                            : "hover:border-primary/50"
-                                            }`}
-                                        onClick={() => handleSelectTransform(transform)}
-                                    >
-                                        <CardHeader className="p-4">
-                                            <div className="flex flex-col space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <RadioGroupItem value={transform.id} id={transform.id} />
-                                                    <CardTitle className="text-base">{transform.name}</CardTitle>
-                                                </div>
-
-                                                {transform.description && (
-                                                    <CardDescription className="text-sm pl-7">
-                                                        {transform.description || "No description available"}
-                                                    </CardDescription>
-                                                )}
-
-                                                <div className="flex flex-col space-y-1 text-xs text-muted-foreground pl-7">
-                                                    <div>Created {formatDistanceToNow(transform.created_at, { addSuffix: true })}</div>
-                                                    <div>Updated {formatDistanceToNow(transform.last_updated_at, { addSuffix: true })}</div>
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                    </Card>
-                                ))
-                            )}
-                        </RadioGroup>
+                    {/* Tabs */}
+                    <div className="px-4 py-2 border-b border-border">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsList className="w-full">
+                                <TabsTrigger
+                                    value="transforms"
+                                    className="flex-1"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Zap className="h-3 w-3 mr-1" />
+                                    Transforms
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="flows"
+                                    className="flex-1"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <FileCode2 className="h-3 w-3 mr-1" />
+                                    Flows
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
+
+                    {/* Tab Content */}
+                    <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
+                        {/* Transforms Tab */}
+                        <TabsContent value="transforms" className="flex-1 flex flex-col min-h-0 mt-0">
+                            {/* Transforms Search */}
+                            <div className="px-4 py-2 border-b border-border">
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Search transforms..."
+                                        value={transformsSearchQuery}
+                                        onChange={(e) => setTransformsSearchQuery(e.target.value)}
+                                        className="h-8 pl-7 text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Transforms List */}
+                            <div className="p-4 grow overflow-auto">
+                                <RadioGroup value={selectedTransform && 'name' in selectedTransform ? selectedTransform.name : undefined} className="space-y-3">
+                                    {isLoadingTransforms ? (
+                                        // Skeleton loading state
+                                        Array.from({ length: 3 }).map((_, index) => (
+                                            <Card key={index} className="border py-1">
+                                                <CardHeader className="p-4">
+                                                    <div className="flex flex-col space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Skeleton className="h-4 w-4 rounded-full" />
+                                                            <Skeleton className="h-5 w-32" />
+                                                        </div>
+                                                        <div className="pl-7 space-y-2">
+                                                            <Skeleton className="h-4 w-full" />
+                                                            <Skeleton className="h-4 w-3/4" />
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1 pl-7">
+                                                            <Skeleton className="h-3 w-24" />
+                                                            <Skeleton className="h-3 w-20" />
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                            </Card>
+                                        ))
+                                    ) : filteredTransforms.length > 0 ? (
+                                        filteredTransforms.map((transform: Transform) => (
+                                            <Card
+                                                key={transform.name}
+                                                className={`cursor-pointer border py-1 transition-all ${selectedTransform && 'name' in selectedTransform && selectedTransform.name === transform.name
+                                                    ? "border-primary bg-primary/5"
+                                                    : "hover:border-primary/50"
+                                                    }`}
+                                                onClick={() => handleSelectTransform(transform)}
+                                            >
+                                                <CardHeader className="p-4">
+                                                    <div className="flex flex-col space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <RadioGroupItem value={transform.name} id={transform.name} />
+                                                            <CardTitle className="text-base">{transform.name}</CardTitle>
+                                                        </div>
+
+                                                        {transform.description && (
+                                                            <CardDescription className="text-sm pl-7">
+                                                                {transform.description || "No description available"}
+                                                            </CardDescription>
+                                                        )}
+                                                    </div>
+                                                </CardHeader>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center">
+                                            <p className="text-sm text-muted-foreground">
+                                                {transformsSearchQuery ? 'No transforms found' : 'No transforms available'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </RadioGroup>
+                            </div>
+                        </TabsContent>
+
+                        {/* Flows Tab */}
+                        <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
+                            {/* Flows Search */}
+                            <div className="px-4 py-2 border-b border-border">
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Search flows..."
+                                        value={flowsSearchQuery}
+                                        onChange={(e) => setFlowsSearchQuery(e.target.value)}
+                                        className="h-8 pl-7 text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Flows List */}
+                            <div className="p-4 grow overflow-auto">
+                                <RadioGroup value={selectedTransform && 'id' in selectedTransform ? selectedTransform.id : undefined} className="space-y-3">
+                                    {isLoadingFlows ? (
+                                        // Skeleton loading state
+                                        Array.from({ length: 3 }).map((_, index) => (
+                                            <Card key={index} className="border py-1">
+                                                <CardHeader className="p-4">
+                                                    <div className="flex flex-col space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Skeleton className="h-4 w-4 rounded-full" />
+                                                            <Skeleton className="h-5 w-32" />
+                                                        </div>
+                                                        <div className="pl-7 space-y-2">
+                                                            <Skeleton className="h-4 w-full" />
+                                                            <Skeleton className="h-4 w-3/4" />
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1 pl-7">
+                                                            <Skeleton className="h-3 w-24" />
+                                                            <Skeleton className="h-3 w-20" />
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                            </Card>
+                                        ))
+                                    ) : filteredFlows.length > 0 ? (
+                                        filteredFlows.map((flow: Flow) => (
+                                            <Card
+                                                key={flow.id}
+                                                className={`cursor-pointer border py-1 transition-all ${selectedTransform && 'id' in selectedTransform && selectedTransform.id === flow.id
+                                                    ? "border-primary bg-primary/5"
+                                                    : "hover:border-primary/50"
+                                                    }`}
+                                                onClick={() => handleSelectTransform(flow)}
+                                            >
+                                                <CardHeader className="p-4">
+                                                    <div className="flex flex-col space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <RadioGroupItem value={flow.id} id={flow.id} />
+                                                            <CardTitle className="text-base">{flow.name}</CardTitle>
+                                                        </div>
+
+                                                        {flow.description && (
+                                                            <CardDescription className="text-sm pl-7">
+                                                                {flow.description || "No description available"}
+                                                            </CardDescription>
+                                                        )}
+
+                                                        <div className="flex flex-col space-y-1 text-xs text-muted-foreground pl-7">
+                                                            <div>Created {formatDistanceToNow(flow.created_at, { addSuffix: true })}</div>
+                                                            <div>Updated {formatDistanceToNow(flow.last_updated_at, { addSuffix: true })}</div>
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center">
+                                            <p className="text-sm text-muted-foreground">
+                                                {flowsSearchQuery ? 'No flows found' : 'No flows available'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </RadioGroup>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
 
                     <SheetFooter>
                         <Button variant="outline" onClick={handleCloseModal} className="mr-2">
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleLaunchTransform}
+                            onClick={handleLaunchPanel}
                             disabled={!selectedTransform}
                             className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary"
                         >
@@ -145,4 +302,4 @@ const LaunchTransform = ({ values, type, children }: { values: string[], type: s
     )
 }
 
-export default LaunchTransform
+export default LaunchTransformOrFlowPanel

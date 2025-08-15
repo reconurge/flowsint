@@ -16,6 +16,10 @@ class CidrToIpsScanner(Scanner):
     @classmethod
     def name(cls) -> str:
         return "cidr_to_ips_scanner"
+    
+    @classmethod
+    def key(cls) -> str:
+        return "network"
 
     @classmethod
     def category(cls) -> str:

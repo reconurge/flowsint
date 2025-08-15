@@ -7,7 +7,7 @@ import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { cn } from "@/lib/utils"
 import { Plus, TriangleAlert } from "lucide-react"
 import { type ScannerNodeProps } from "@/types/transform"
-import { TransformNode, useTransformStore } from "@/stores/transform-store"
+import { FlowNode, useFlowStore } from "@/stores/flow-store"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { Button } from "../ui/button"
 import { ButtonHandle } from "../xyflow/button-handle"
@@ -50,12 +50,12 @@ const ScannerNode = memo(({ data, isConnectable }: ScannerNodeProps) => {
     const inputColor = colors[data.inputs.type.toLowerCase()]
     const outputColor = colors[data.outputs.type.toLowerCase()]
     const opacity = data.computationState === "pending" ? 0.5 : 1
-    const setOpenTransformSheet = useTransformStore(state => state.setOpenTransformSheet)
+    const setOpenFlowSheet = useFlowStore(state => state.setOpenFlowSheet)
     const Icon = data.type === "type" ? useIcon(data.outputs.type.toLowerCase() as string, null) : data.icon ? useIcon(data.icon, null) : null
 
     const handleAddConnector = useCallback(() => {
-        setOpenTransformSheet(true, data as unknown as TransformNode)
-    }, [setOpenTransformSheet, data])
+        setOpenFlowSheet(true, data as unknown as FlowNode)
+    }, [setOpenFlowSheet, data])
 
     const getStatusVariant = (state?: string) => {
         switch (state) {

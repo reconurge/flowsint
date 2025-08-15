@@ -6,7 +6,7 @@ import {
     SheetDescription,
 
 } from "@/components/ui/sheet"
-import { TransformEdge, TransformNode, useTransformStore } from "@/stores/transform-store"
+import { FlowEdge, FlowNode, useFlowStore } from "@/stores/flow-store"
 import { memo, useCallback, useMemo, useState } from "react"
 import { TriangleAlert, Loader2, ArrowRight } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -19,17 +19,17 @@ import { Alert, AlertDescription } from "../ui/alert"
 import { categoryColors } from "./scanner-data"
 import { useIcon } from "@/hooks/use-icon"
 
-const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
-    const openTransformSheet = useTransformStore(state => state.openTransformSheet)
-    const setOpenTransformSheet = useTransformStore(state => state.setOpenTransformSheet)
-    const selectedNode = useTransformStore(state => state.selectedNode)
-    const setNodes = useTransformStore(state => state.setNodes)
-    const setEdges = useTransformStore(state => state.setEdges)
+const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
+    const openFlowSheet = useFlowStore(state => state.openFlowSheet)
+    const setOpenFlowSheet = useFlowStore(state => state.setOpenFlowSheet)
+    const selectedNode = useFlowStore(state => state.selectedNode)
+    const setNodes = useFlowStore(state => state.setNodes)
+    const setEdges = useFlowStore(state => state.setEdges)
 
     const { data: materials, isLoading, error } = useQuery({
         queryKey: ["raw_material", selectedNode?.data.outputs.type],
         enabled: !!selectedNode?.data.outputs.type,
-        queryFn: () => transformService.getRawMaterialForType(selectedNode?.data.outputs.type.toLowerCase() || ""),
+        queryFn: () => transformService.getFlowsRawMaterialForType(selectedNode?.data.outputs.type.toLowerCase() || ""),
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 
@@ -54,7 +54,7 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
     const handleClick = useCallback((scanner: Scanner) => {
         if (!selectedNode) return
         const position = { x: selectedNode.position.x + 350, y: selectedNode.position.y }
-        const newNode: TransformNode = {
+        const newNode: FlowNode = {
             id: `${scanner.name}-${Date.now()}`,
             type: scanner.type === "type" ? "type" : "scanner",
             position,
@@ -79,7 +79,7 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
         }
         setNodes((prev) => ([...prev, newNode]))
 
-        const connection: TransformEdge = {
+        const connection: FlowEdge = {
             id: `${selectedNode.id}-${newNode.id}`,
             source: selectedNode.id,
             target: newNode.id,
@@ -88,12 +88,12 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
         }
         setEdges((prev) => ([...prev, connection]))
         // onLayout && onLayout()
-        setOpenTransformSheet(false)
-    }, [selectedNode, setNodes, setEdges, onLayout, setOpenTransformSheet])
+        setOpenFlowSheet(false)
+    }, [selectedNode, setNodes, setEdges, onLayout, setOpenFlowSheet])
 
     return (
         <div>
-            <Sheet open={openTransformSheet} onOpenChange={setOpenTransformSheet}>
+            <Sheet open={openFlowSheet} onOpenChange={setOpenFlowSheet}>
                 <SheetContent className="sm:max-w-xl">
                     <SheetHeader>
                         <SheetTitle>Add connector to <span className="text-primary">{selectedNode?.data.class_name}</span></SheetTitle>
@@ -144,7 +144,7 @@ const TransformSheet = ({ onLayout }: { onLayout: () => void }) => {
 }
 
 
-export default TransformSheet
+export default FlowSheet
 
 // Custom equality function for ScannerItem
 function areEqual(prevProps: { scanner: Scanner }, nextProps: { scanner: Scanner }) {

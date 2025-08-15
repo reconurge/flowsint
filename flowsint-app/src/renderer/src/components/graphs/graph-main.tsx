@@ -6,7 +6,7 @@ import ContextMenu from './context-menu'
 const GraphMain = () => {
     const nodes = useGraphStore(s => s.nodes)
     const edges = useGraphStore(s => s.edges)
-    // const currentNode = useGraphStore(s => s.currentNode)
+    const currentNode = useGraphStore(s => s.currentNode)
     const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection)
     const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
 
@@ -14,12 +14,12 @@ const GraphMain = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const [menu, setMenu] = React.useState<any>(null)
 
-    // // Handle current node centering
-    // useEffect(() => {
-    //     if (!currentNode || !graphRef.current) return
-    //     graphRef.current.centerAt(currentNode.x, currentNode.y, 1000)
-    //     graphRef.current.zoom(5, 2000)
-    // }, [currentNode])
+    // Handle current node centering
+    useEffect(() => {
+        if (!currentNode || !graphRef.current) return
+        graphRef.current.centerAt(currentNode.x, currentNode.y, 500)
+        graphRef.current.zoom(5, 500)
+    }, [currentNode])
 
     const handleNodeClick = useCallback((node: any) => {
         toggleNodeSelection(node, false)

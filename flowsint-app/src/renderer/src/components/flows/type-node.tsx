@@ -15,7 +15,7 @@ import {
     NodeTooltipTrigger,
 } from "@/components/xyflow/node-tooltip";
 import { BaseNode, BaseNodeContent } from "@/components/xyflow/base-node";
-import { TransformNode, useTransformStore } from "@/stores/transform-store"
+import { FlowNode, useFlowStore } from "@/stores/flow-store"
 
 // Custom equality function to prevent unnecessary re-renders
 function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
@@ -32,12 +32,12 @@ const TypeNode = memo(({ data }: ScannerNodeProps) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     const outputColor = colors[data.outputs.type.toLowerCase()]
     const Icon = useIcon(data.outputs.type.toLowerCase() as string, null)
-    const setOpenTransformSheet = useTransformStore(state => state.setOpenTransformSheet)
+    const setOpenFlowSheet = useFlowStore(state => state.setOpenFlowSheet)
     const key = data.outputs.properties[0].name
 
     const handleAddConnector = useCallback(() => {
-        setOpenTransformSheet(true, data as unknown as TransformNode)
-    }, [setOpenTransformSheet, data])
+        setOpenFlowSheet(true, data as unknown as FlowNode)
+    }, [setOpenFlowSheet, data])
 
     return (
         <NodeTooltip>

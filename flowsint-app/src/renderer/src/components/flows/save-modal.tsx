@@ -14,14 +14,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 
-interface TransformModalProps {
+interface SaveModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSave: (name: string, description: string) => void
     isLoading: boolean
 }
 
-export function TransformModal({ open, onOpenChange, onSave, isLoading }: TransformModalProps) {
+export function SaveModal({ open, onOpenChange, onSave, isLoading }: SaveModalProps) {
     const [name, setName] = useState("My Transform")
     const [description, setDescription] = useState("")
     const [nameError, setNameError] = useState("")
@@ -36,7 +36,7 @@ export function TransformModal({ open, onOpenChange, onSave, isLoading }: Transf
 
     const handleSave = () => {
         if (!name.trim()) {
-            setNameError("Transform name is required")
+            setNameError("Flow name is required")
             return
         }
         onSave(name, description)
@@ -46,8 +46,8 @@ export function TransformModal({ open, onOpenChange, onSave, isLoading }: Transf
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Save Transform</DialogTitle>
-                    <DialogDescription>Give your transform a name and description before saving.</DialogDescription>
+                    <DialogTitle>Save Flow</DialogTitle>
+                    <DialogDescription>Give your flow a name and description before saving.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
@@ -62,7 +62,7 @@ export function TransformModal({ open, onOpenChange, onSave, isLoading }: Transf
                                 setName(e.target.value)
                                 if (e.target.value.trim()) setNameError("")
                             }}
-                            placeholder="Enter transform name"
+                            placeholder="Enter flow name"
                             className={nameError ? "border-destructive" : ""}
                         />
                     </div>
@@ -83,7 +83,7 @@ export function TransformModal({ open, onOpenChange, onSave, isLoading }: Transf
                         Cancel
                     </Button>
                     <Button onClick={handleSave} disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Save transform"}
+                        {isLoading ? "Saving..." : "Save flow"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

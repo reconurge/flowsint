@@ -15,10 +15,10 @@ export const TransformItem = memo(({ transform }: { transform: any }) => {
         })
         : null
 
-    const stepsCount = transform?.transform_schema?.edges?.length || 0
+    const stepsCount = transform?.flow_schema?.edges?.length || 0
 
     return (
-        <Link to={`/dashboard/transforms/$transformId`} className="block h-full transition-all" params={{ transformId: transform.id }}>
+        <Link to={`/dashboard/flows/$flowId`} className="block h-full transition-all" params={{ flowId: transform.id }}>
             <Card className="h-full border hover:border-primary/50 hover:shadow-md transition-all">
                 <CardHeader className="pb-2 relative">
                     <CardTitle className="text-lg w-full flex items-start justify-between font-medium">

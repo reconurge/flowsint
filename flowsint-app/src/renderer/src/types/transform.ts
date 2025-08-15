@@ -80,30 +80,36 @@ export interface ScannerNodeProps {
 }
 
 // ================================
-// ADDITIONAL TRANSFORM TYPES
+// TRANSFORM TYPE DEFINITIONS
 // ================================
-
-export type ScannerTree = {
-    id: string;
-    name: string,
-    items: ScannerTree[]
-    // Add other item properties
-};
 
 export interface Transform {
     id: string;
+    class_name: string;
     name: string;
-    description?: string;
-    nodes: NodeData[];
-    edges: EdgeData[];
-    created_at?: string;
-    updated_at?: string;
-    owner?: Profile;
+    module: string;
+    description: string;
+    documentation: string;
+    category: string;
 }
 
-export type NodesData = {
-    items: ScannerTree[];
-    initialEdges?: Edge[];
-    initialNodes?: Node[];
-    transform?: Transform;
-}; 
+// ================================
+// TRANSFORM DATA STRUCTURES
+// ================================
+
+export interface TransformsData {
+    [category: string]: Transform[];
+}
+
+export interface TransformData {
+    items: TransformsData;
+}
+
+// ================================
+// COMPONENT PROPS INTERFACES
+// ================================
+
+export interface TransformItemProps {
+    transform: Transform;
+    category: string;
+}

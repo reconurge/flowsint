@@ -102,6 +102,59 @@ def is_root_domain(domain: str) -> bool:
         return False
 
 
+def get_root_domain(domain: str) -> str:
+    """
+    Extract the root domain from a given domain string.
+
+    Args:
+        domain: The domain string (can be a subdomain or root domain)
+
+    Returns:
+        The root domain (e.g., "example.com" from "sub.example.com" or "www.sub.example.com")
+    """
+    try:
+        # Remove protocol if present
+        if "://" in domain:
+            parsed = urlparse(domain)
+            domain = parsed.hostname or domain
+
+        # Split by dots
+        parts = domain.split(".")
+
+        # Handle common country code TLDs that have 2 parts (e.g., .co.uk, .com.au, .org.uk)
+        common_cc_tlds = [
+            ".co.uk",
+            ".com.au",
+            ".org.uk",
+            ".net.uk",
+            ".gov.uk",
+            ".ac.uk",
+            ".co.nz",
+            ".com.sg",
+            ".co.jp",
+            ".co.kr",
+            ".com.br",
+            ".com.mx",
+        ]
+
+        # Check if the domain ends with a common country code TLD
+        for cc_tld in common_cc_tlds:
+            if domain.endswith(cc_tld):
+                # For country code TLDs, take the last 3 parts (e.g., example.co.uk)
+                if len(parts) >= 3:
+                    return ".".join(parts[-3:])
+                return domain
+
+        # For regular TLDs, take the last 2 parts (e.g., example.com)
+        if len(parts) >= 2:
+            return ".".join(parts[-2:])
+        
+        return domain
+    except Exception:
+        # If we can't parse it, return the original domain
+        return domain
+
+
 def is_valid_number(phone: str, region: str = "FR") -> None:
     """
     Validates a phone number. Raises InvalidPhoneNumberError if invalid.
@@ -159,7 +212,7 @@ def resolve_type(details: dict, schema_context: dict = None) -> str:
     return "any"
 
 
-def extract_input_schema_transform(model: Type[BaseModel]) -> Dict[str, Any]:
+def extract_input_schema_flow(model: Type[BaseModel]) -> Dict[str, Any]:
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
 
@@ -225,7 +278,7 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
         if scanner_node and scanner_node["data"]["type"] == "scanner":
             scanners.append(
                 {
-                    "scanner_name": scanner_node["data"]["name"],
+                    "transform_name": scanner_node["data"]["name"],
                     "module": scanner_node["data"]["module"],
                     "input": source_handle,
                     "output": target_handle,
@@ -238,7 +291,7 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
             "outputs": input_output,
         },
         "scanners": scanners,
-        "scanner_names": [scanner["scanner_name"] for scanner in scanners],
+        "transform_names": [scanner["transform_name"] for scanner in scanners],
     }
 
 

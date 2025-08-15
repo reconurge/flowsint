@@ -1,19 +1,19 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserPlus, Users } from "lucide-react"
 import RawMaterial from "./raw-material"
-import TransformsList from "./transforms-list"
+import TransformsList from "./flow-list"
 import { useLayoutStore } from "@/stores/layout-store"
 import { useParams } from "@tanstack/react-router"
 import { useEffect } from "react"
 
 const TransformNavigation = () => {
-    const { transformId } = useParams({ strict: false })
+    const { flowId } = useParams({ strict: false })
     const activeTransformTab = useLayoutStore((s) => s.activeTransformTab)
     const setActiveTransformTab = useLayoutStore((s) => s.setActiveTransformTab)
 
     useEffect(() => {
-        setActiveTransformTab(transformId ? "items" : "transforms")
-    }, [setActiveTransformTab, transformId])
+        setActiveTransformTab(flowId ? "items" : "transforms")
+    }, [setActiveTransformTab, flowId])
 
     return (
         <div className="h-full w-full bg-card flex flex-col min-h-0">
@@ -24,7 +24,7 @@ const TransformNavigation = () => {
                 className="w-full h-full flex flex-col gap-0 min-h-0">
                 <TabsList className="w-full p-0 rounded-none my-0 border-b flex-shrink-0">
                     <TabsTrigger value="transforms"><Users className="h-3 w-3 opacity-60" /> Transforms</TabsTrigger>
-                    {transformId && <TabsTrigger value="items"><UserPlus className="h-3 w-3 opacity-60" /> Items</TabsTrigger>}
+                    {flowId && <TabsTrigger value="items"><UserPlus className="h-3 w-3 opacity-60" /> Items</TabsTrigger>}
                 </TabsList>
                 <TabsContent
                     value="transforms"
@@ -32,7 +32,7 @@ const TransformNavigation = () => {
                 >
                     <TransformsList />
                 </TabsContent>
-                {transformId &&
+                {flowId &&
                     <TabsContent
                         value="items"
                         className="my-0 w-full flex-1 flex flex-col min-h-0 overflow-hidden"

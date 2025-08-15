@@ -1,4 +1,4 @@
-import { useTransformStore } from '@/stores/transform-store'
+import { useFlowStore } from '@/stores/flow-store'
 import { DialogHeader, DialogFooter, Dialog, DialogContent, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { useCallback, useState, useEffect } from 'react'
@@ -14,10 +14,10 @@ import { MemoizedMarkdown } from '../chat/memoized-markdown'
 import { cn } from '@/lib/utils'
 
 const ParamsDialog = () => {
-    const openParamsDialog = useTransformStore(s => s.openParamsDialog)
-    const setOpenParamsDialog = useTransformStore(s => s.setOpenParamsDialog)
-    const selectedNode = useTransformStore(s => s.selectedNode)
-    const updateNode = useTransformStore(s => s.updateNode)
+    const openParamsDialog = useFlowStore(s => s.openParamsDialog)
+    const setOpenParamsDialog = useFlowStore(s => s.setOpenParamsDialog)
+    const selectedNode = useFlowStore(s => s.selectedNode)
+    const updateNode = useFlowStore(s => s.updateNode)
     const [params, setParams] = useState<Record<string, string>>({})
     const [settings, setSettings] = useState<Record<string, string>>({
         duration: '30',

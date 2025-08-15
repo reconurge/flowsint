@@ -27,7 +27,7 @@ export function Sidebar() {
 
     const navItems: NavItem[] = [
         { icon: Home, label: "Dashboard", href: "/dashboard/" },
-        { icon: Workflow, label: "Flows", href: "/dashboard/transforms" },
+        { icon: Workflow, label: "Flows", href: "/dashboard/flows" },
         { icon: Lock, label: "Vault", href: "/dashboard/vault" },
 
     ]

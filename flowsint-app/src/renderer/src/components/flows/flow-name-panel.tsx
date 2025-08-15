@@ -3,10 +3,10 @@ import { useState, useEffect, type KeyboardEvent, useRef } from "react"
 import { Panel } from "@xyflow/react"
 import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
-import { transformService } from "@/api/transfrom-service"
+import { flowService } from "@/api/flow-service"
 
-interface TransformDetailsPanelProps {
-    transform?: {
+interface FlowDetailsPanelProps {
+    flow?: {
         id: string
         name: string
         description?: string
@@ -15,9 +15,9 @@ interface TransformDetailsPanelProps {
     disabled?: boolean
 }
 
-export function TransformDetailsPanel({ transform, onUpdate, disabled = false }: TransformDetailsPanelProps) {
-    const [name, setName] = useState<string>(transform?.name || "My Transform")
-    const [description, setDescription] = useState<string>(transform?.description || "")
+export function FlowDetailsPanel({ flow, onUpdate, disabled = false }: FlowDetailsPanelProps) {
+    const [name, setName] = useState<string>(flow?.name || "My Flow")
+    const [description, setDescription] = useState<string>(flow?.description || "")
     const [isEditingName, setIsEditingName] = useState<boolean>(false)
     const [isEditingDesc, setIsEditingDesc] = useState<boolean>(false)
     const [isSaving, setIsSaving] = useState<boolean>(false)
@@ -25,13 +25,13 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
     const descInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-        if (transform?.name) {
-            setName(transform.name)
+        if (flow?.name) {
+            setName(flow.name)
         }
-        if (transform?.description !== undefined) {
-            setDescription(transform.description)
+        if (flow?.description !== undefined) {
+            setDescription(flow.description)
         }
-    }, [transform?.name, transform?.description])
+    }, [flow?.name, flow?.description])
 
     useEffect(() => {
         if (isEditingName && nameInputRef.current) {
@@ -46,14 +46,14 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
     }, [isEditingDesc])
 
     const handleSaveField = async (field: "name" | "description", value: string) => {
-        if (!transform?.id) return
+        if (!flow?.id) return
 
         const trimmedValue = value.trim()
         if (field === "name" && trimmedValue === "") return
 
         if (
-            (field === "name" && trimmedValue === transform.name) ||
-            (field === "description" && trimmedValue === transform.description)
+            (field === "name" && trimmedValue === flow.name) ||
+            (field === "description" && trimmedValue === flow.description)
         ) {
             field === "name" ? setIsEditingName(false) : setIsEditingDesc(false)
             return
@@ -61,18 +61,17 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
         setIsSaving(true)
         try {
             const updates = { [field]: trimmedValue }
-            console.log(updates)
-            await transformService.update(transform.id, JSON.stringify(updates))
+            await flowService.update(flow.id, JSON.stringify(updates))
             if (onUpdate) {
                 onUpdate(updates)
             }
             toast.success(`${field === "name" ? "Name" : "Description"} updated.`)
         } catch (error) {
-            toast.error(`Failed to update transform ${field}`)
+            toast.error(`Failed to update flow ${field}`)
             if (field === "name") {
-                setName(transform.name)
+                setName(flow.name)
             } else {
-                setDescription(transform.description || "")
+                setDescription(flow.description || "")
             }
         } finally {
             setIsSaving(false)
@@ -87,10 +86,10 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
         } else if (e.key === "Escape") {
             if (field === "name") {
                 setIsEditingName(false)
-                setName(transform?.name || "My Transform")
+                setName(flow?.name || "My flow")
             } else {
                 setIsEditingDesc(false)
-                setDescription(transform?.description || "")
+                setDescription(flow?.description || "")
             }
         }
     }
@@ -108,14 +107,14 @@ export function TransformDetailsPanel({ transform, onUpdate, disabled = false }:
                         onKeyDown={(e) => handleKeyDown(e, "name", name)}
                         disabled={disabled || isSaving}
                         className="!text-xl font-semibold bg-transparent border-b border-gray-300 focus:border-primary focus:outline-none !px-1 !py-0.5 w-full"
-                        placeholder="Enter transform name"
+                        placeholder="Enter flow name"
                     />
                 ) : (
                     <h1
                         className="text-xl font-semibold cursor-pointer hover:bg-foreground/10 px-1 py-0.5 rounded-mdtransition-colors"
                         onClick={() => !disabled && setIsEditingName(true)}
                     >
-                        {name || "My Transform"}
+                        {name || "My flow"}
                     </h1>
                 )}
 

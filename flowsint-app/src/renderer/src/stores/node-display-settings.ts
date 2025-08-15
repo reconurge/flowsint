@@ -113,60 +113,61 @@ export const ITEM_TYPES: ItemType[] = [
 ]
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
-    individual: "#A9CCF4",      // medium blue
-    phone: "#A0D7CF",           // soft teal
-    location: "#EAAFAF",        // dusty rose
-    email: "#C4B9ED",           // lavender
-    ip: "#F0C19E",              // pale orange
-    socialprofile: "#D4A5D4",  // dusty violet
-    organization: "#D1C0AF",    // taupe
-    vehicle: "#E9CD89",         // wheat
-    car: "#D4C4A8",             // warm beige
-    motorcycle: "#C8B5A3",      // warm taupe
-    boat: "#B8D4E3",            // soft blue
-    plane: "#E2D1C3",           // light taupe
-    website: "#E7B8D2",         // dusty rose
-    domain: "#A6D0BF",          // sage
-    subdomain: "#9DCBE4",       // sky blue
-    document: "#C1C6CD",        // cool gray
-    financial: "#F4B8A8",       // coral
-    event: "#A2D4BF",           // mint
-    device: "#EAC597",          // peach
-    media: "#E4B1AD",           // terracotta
-    education: "#ABC0DA",       // steel blue
-    relationship: "#D9C2BC",    // dusty mauve
-    online_activity: "#B5D1A9", // sage
-    digital_footprint: "#D9B0B0", // brick
-    username: "#C7BEE4",        // periwinkle
-    credential: "#F7D154",      // medium gray
-    biometric: "#AEB3B9",       // slate gray
-    siret: "#ADB9C6",           // blue-gray
-    siren: "#9FAAB8",           // dark slate
-    cryptowallet: "#F7D154",    // gold
-    cryptotransaction: "#E6D4A0", // warm yellow
-    cryptonft: "#D4E6A0",       // soft lime
-    asn: "#EAAFAF",             // warm peach
-    cidr: "#B8E6B8",            // soft mint
-    whois: "#D4B5D4",           // dusty lavender
-    gravatar: "#A8D8E8",        // pale blue
-    breach: "#E6B8B8",          // soft rose
-    webtracker: "#F0E6A0",      // warm yellow
-    session: "#D4E6A0",         // soft lime
-    dns: "#B8E6B8",             // soft mint
-    ssl: "#E6D4A0",             // warm yellow
-    message: "#C4B9ED",         // lavender
-    malware: "#1DA7A8",         // soft rose
-    weapon: "#F4B8A8",          // coral
-    script: "#D4A5D4",          // dusty violet
-    reputation: "#A9CCF4",      // medium blue
-    risk: "#EAAFAF",            // dusty rose
-    file: "#C1C6CD",            // cool gray
-    bank: "#F7D154",            // gold
-    creditcard: "#0253A4",      // warm yellow
-    alias: "#D4A5D4",           // dusty violet
-    affiliation: "#A6D0BF",     // sage
-    phrase: "#D4A5D4"           // warm beige
-}
+    individual: "#E07A7A",      // stronger pastel blue
+    phone: "#5FC9B5",           // teal-green
+    location: "#E57373",        // warm rose
+    email: "#8E7CC3",           // lavender purple
+    ip: "#F4A261",              // orange
+    socialprofile: "#B569B9",   // purple pink
+    organization: "#BCA18A",    // taupe
+    vehicle: "#E1B84D",         // golden wheat
+    car: "#BFAF7A",             // olive beige
+    motorcycle: "#A78B6C",      // warm taupe
+    boat: "#6FB1C5",            // blue teal
+    plane: "#C1A78E",           // light brown
+    website: "#D279A6",         // dusty rose
+    domain: "#66A892",          // sage green
+    subdomain: "#5AA1C8",       // sky blue
+    document: "#8F9CA3",        // cool gray
+    financial: "#E98973",       // coral
+    event: "#6DBBA2",           // mint green
+    device: "#E3A857",          // peach orange
+    media: "#C97C73",           // terracotta
+    education: "#6C8CBF",       // steel blue
+    relationship: "#B18B84",    // mauve brown
+    online_activity: "#7EAD6F", // sage green
+    digital_footprint: "#B97777", // brick
+    username: "#8B83C1",        // periwinkle purple
+    credential: "#D4B030",      // gold
+    biometric: "#7F868D",       // slate gray
+    siret: "#7D8B99",           // blue-gray
+    siren: "#687684",           // dark slate
+    cryptowallet: "#D4B030",    // gold yellow
+    cryptotransaction: "#BFA750", // warm yellow
+    cryptonft: "#A5BF50",       // lime green
+    asn: "#D97474",             // warm peach
+    cidr: "#80BF80",            // mint green
+    whois: "#9B6F9B",           // lavender violet
+    gravatar: "#6CB7CA",        // pale cyan
+    breach: "#CC7A7A",          // warm rose
+    webtracker: "#C7BF50",      // warm yellow
+    session: "#A8BF50",         // lime green
+    dns: "#80BF9F",             // mint teal
+    ssl: "#BFAF80",             // warm sand
+    message: "#897FC9",         // lavender
+    malware: "#4AA29E",         // teal
+    weapon: "#E98973",          // coral brown
+    script: "#A36FA3",          // dusty violet
+    reputation: "#6FA8DC",      // steel blue
+    risk: "#D97474",            // dusty rose
+    file: "#8F9CA3",            // cool gray
+    bank: "#D4B030",            // gold
+    creditcard: "#285E8E",      // deep blue
+    alias: "#A36FA3",           // violet
+    affiliation: "#66A892",     // sage
+    phrase: "#BFA77A"           // warm beige
+};
+
 
 // Définition des icônes par défaut pour chaque type d'élément
 const DEFAULT_ICONS: Record<ItemType, string> = {

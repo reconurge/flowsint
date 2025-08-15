@@ -1,26 +1,29 @@
 from .base import ORMBase
 from pydantic import UUID4, BaseModel
 from typing import Optional
+from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 
-class TransformCreate(BaseModel):
+class FlowCreate(BaseModel):
     name: str
     description: Optional[str] = None
     category: Optional[List[str]] = None
+    flow_schema: Optional[Dict[str, Any]] = None
 
 
-class TransformRead(ORMBase):
+class FlowRead(ORMBase):
     id: UUID4
     name: str
-    class_name: str
     description: Optional[str]
     category: Optional[List[str]]
     flow_schema: Optional[Dict[str, Any]]
+    created_at: datetime
+    last_updated_at: datetime
 
 
-class TransformUpdate(BaseModel):
+class FlowUpdate(BaseModel):
     name: Optional[str] = None
-    class_name: str = None
     description: Optional[str] = None
     category: Optional[List[str]] = None
+    flow_schema: Optional[Dict[str, Any]] = None

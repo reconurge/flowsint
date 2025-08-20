@@ -39,9 +39,11 @@ def get_transforms(
     # current_user: Profile = Depends(get_current_user),
 ):
     if category is not None and category != "undefined":
-        transforms = TransformRegistry.list_by_input_type(category)
+        transforms = TransformRegistry.list_by_input_type(
+            category, exclude=["n8n_connector"]
+        )
     else:
-        transforms = TransformRegistry.list()
+        transforms = TransformRegistry.list(exclude=["n8n_conector"])
     return transforms
 
 

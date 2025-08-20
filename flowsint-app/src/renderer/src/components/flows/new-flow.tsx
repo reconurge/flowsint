@@ -1,8 +1,8 @@
-import { transformService } from '@/api/transfrom-service'
 import { useCallback, ReactNode, cloneElement, isValidElement } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import { useFlowStore } from '@/stores/flow-store'
+import { flowService } from '@/api/flow-service'
 
 const NewFlow = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate()
@@ -15,7 +15,7 @@ const NewFlow = ({ children }: { children: ReactNode }) => {
                 // Reset nodes and edges
                 setNodes([])
                 setEdges([])
-                const response = await transformService.create(JSON.stringify({
+                const response = await flowService.create(JSON.stringify({
                     name: "New flow",
                     description: "A new example flow.",
                     category: [],
@@ -27,7 +27,7 @@ const NewFlow = ({ children }: { children: ReactNode }) => {
             {
                 loading: 'Creating transform...',
                 success: 'Transform created successfully.',
-                error: 'Failed to create transform.'
+                error: 'Failed to create flow.'
             }
         )
 

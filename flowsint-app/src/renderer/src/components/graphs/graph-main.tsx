@@ -4,9 +4,9 @@ import GraphViewer from './graph-viewer'
 import ContextMenu from './context-menu'
 
 const GraphMain = () => {
-    const nodes = useGraphStore(s => s.nodes)
-    const edges = useGraphStore(s => s.edges)
-    const currentNode = useGraphStore(s => s.currentNode)
+    const filteredNodes = useGraphStore(s => s.filteredNodes)
+    const filteredEdges = useGraphStore(s => s.filteredEdges)
+    // const currentNode = useGraphStore(s => s.currentNode)
     const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection)
     const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
 
@@ -14,12 +14,13 @@ const GraphMain = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const [menu, setMenu] = React.useState<any>(null)
 
-    // Handle current node centering
-    useEffect(() => {
-        if (!currentNode || !graphRef.current) return
-        graphRef.current.centerAt(currentNode.x, currentNode.y, 500)
-        graphRef.current.zoom(5, 500)
-    }, [currentNode])
+
+    // // Handle current node centering
+    // useEffect(() => {
+    //     if (!currentNode || !graphRef.current) return
+    //     graphRef.current.centerAt(currentNode.position.x, currentNode.position.x, 500)
+    //     graphRef.current.zoom(5, 500)
+    // }, [currentNode])
 
     const handleNodeClick = useCallback((node: any) => {
         toggleNodeSelection(node, false)
@@ -59,8 +60,8 @@ const GraphMain = () => {
     return (
         <div ref={containerRef} className="relative h-full w-full bg-background">
             <GraphViewer
-                nodes={nodes}
-                edges={edges}
+                nodes={filteredNodes}
+                edges={filteredEdges}
                 onNodeClick={handleNodeClick}
                 onNodeRightClick={onNodeContextMenu}
                 onBackgroundClick={handleBackgroundClick}

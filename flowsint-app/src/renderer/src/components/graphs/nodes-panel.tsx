@@ -5,10 +5,10 @@ import { useGraphStore } from "@/stores/graph-store"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TypeBadge } from "@/components/type-badge"
-import { Search, FilterIcon, XIcon } from "lucide-react"
+import { Search, FunnelPlus, XIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useActionItems } from "@/hooks/use-action-items"
-import { cn } from "@/lib/utils"
+import { cn, getAllNodeTypes } from "@/lib/utils"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,22 +21,6 @@ import type { GraphNode } from "@/stores/graph-store"
 import { Checkbox } from "@/components/ui/checkbox"
 
 const ITEM_HEIGHT = 40
-
-const getAllNodeTypes = (actionItems: any[]) => {
-    const types: string[] = []
-    actionItems.forEach(item => {
-        if (item.children) {
-            item.children.forEach(child => {
-                if (child.type && !types.includes(child.type)) {
-                    types.push(child.type)
-                }
-            })
-        } else if (item.type && !types.includes(item.type)) {
-            types.push(item.type)
-        }
-    })
-    return types.sort()
-}
 // Mémoiser le composant NodeRenderer
 const NodeRenderer = memo(
     ({
@@ -106,7 +90,8 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
     const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
     const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
-    const [filters, setFilters] = useState<null | string[]>(null)
+    const filters = useGraphStore(s => s.filters);
+    const setFilters = useGraphStore(s => s.setFilters);
     const { actionItems } = useActionItems()
 
     // Ref pour le conteneur parent du virtualizer
@@ -139,13 +124,12 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         if (filter === null) {
             setFilters(null)
         } else {
-            setFilters((prev) => {
-                if (prev === null) return [filter]
-                const next = prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
-                return next.length === 0 ? null : next
-            })
+            const currentFilters = filters || []
+            const isChecked = currentFilters.includes(filter)
+            const newFilters = isChecked ? currentFilters.filter((f) => f !== filter) : [...currentFilters, filter.toLowerCase()]
+            setFilters(newFilters.length === 0 ? null : newFilters)
         }
-    }, [])
+    }, [filters, setFilters])
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value)
@@ -216,7 +200,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                             <DropdownMenuTrigger asChild>
                                 <div>
                                     <Button variant={"outline"} className="h-7 w-8 relative border-border border" size={"icon"}>
-                                        <FilterIcon className={cn("opacity-60 h-3 w-3", filters && "opacity-100")} />
+                                        <FunnelPlus className={cn("opacity-60 h-3 w-3", filters && "opacity-100")} />
                                         {filters && (
                                             <Badge className="absolute -top-2 -right-1 text-xs rounded-full h-4 w-4 text-white" variant={"default"}>
                                                 {filters.length}

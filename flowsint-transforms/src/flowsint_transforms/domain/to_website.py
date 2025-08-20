@@ -16,7 +16,7 @@ class DomainToWebsiteScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_website"
+        return "domain_to_website"
 
     @classmethod
     def category(cls) -> str:

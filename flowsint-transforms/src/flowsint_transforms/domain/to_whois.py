@@ -17,7 +17,7 @@ class WhoisScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_whois"
+        return "domain_to_whois"
 
     @classmethod
     def category(cls) -> str:

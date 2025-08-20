@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Type
-from uuid import UUID, uuid4
+from uuid import uuid4
 from fastapi import APIRouter
 from pydantic import BaseModel, TypeAdapter
 from flowsint_types import (

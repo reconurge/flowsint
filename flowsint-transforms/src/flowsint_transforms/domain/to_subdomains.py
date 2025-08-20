@@ -18,7 +18,7 @@ class SubdomainScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "domain_subdomains_scanner"
+        return "domain_to_subdomains"
 
     @classmethod
     def category(cls) -> str:
@@ -45,7 +45,7 @@ class SubdomainScanner(Scanner):
     async def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
         domains: OutputType = []
-        use_subfinder = self.__is_subfinder_installed()
+        use_subfinder = not self.__is_subfinder_installed()
 
         for md in data:
             d = Domain(domain=md.domain)

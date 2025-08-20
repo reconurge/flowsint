@@ -15,7 +15,7 @@ class WebsiteToLinks(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_links"
+        return "website_to_links"
 
     @classmethod
     def category(cls) -> str:

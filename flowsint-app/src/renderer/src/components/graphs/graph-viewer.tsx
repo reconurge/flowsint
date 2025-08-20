@@ -9,6 +9,12 @@ import { Button } from '../ui/button';
 import { useTheme } from '@/components/theme-provider'
 import { GRAPH_COLORS } from '../flows/scanner-data';
 
+function truncateText(text: string, limit: number = 16) {
+    if (text.length <= limit)
+        return text
+    return text.substring(0, limit) + "..."
+}
+
 interface GraphViewerProps {
     nodes: GraphNode[];
     edges: GraphEdge[];
@@ -388,7 +394,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
         // Optimized label rendering
         if (showLabels && globalScale > 3) {
-            const label = node.nodeLabel || node.label || node.id;
+            const label = truncateText(node.nodeLabel || node.label || node.id, 58);
             if (label) {
                 // Only show labels for highlighted nodes when there's any highlighting
                 // or show all labels when there's no highlighting

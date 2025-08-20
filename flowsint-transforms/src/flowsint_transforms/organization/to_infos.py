@@ -14,7 +14,7 @@ class OrgToInfosScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_infos"
+        return "org_to_infos"
 
     @classmethod
     def category(cls) -> str:

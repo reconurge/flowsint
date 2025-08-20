@@ -335,4 +335,18 @@ export function capitalizeFirstLetter(string: string) {
 }
 
 
-
+export const getAllNodeTypes = (actionItems: any[]) => {
+  const types: string[] = []
+  actionItems.forEach(item => {
+    if (item.children) {
+      item.children.forEach(child => {
+        if (child.type && !types.includes(child.type)) {
+          types.push(child.type)
+        }
+      })
+    } else if (item.type && !types.includes(item.type)) {
+      types.push(item.type)
+    }
+  })
+  return types.sort()
+}

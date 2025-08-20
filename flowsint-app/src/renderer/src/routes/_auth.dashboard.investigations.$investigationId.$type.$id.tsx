@@ -92,16 +92,16 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
                         </svg>
                     </div>
                 </div>
-                
+
                 <h2 className="text-xl font-semibold text-foreground mb-2">
                     Oops! Something went wrong
                 </h2>
-                
+
                 <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
-                    We couldn't load this investigation page. This might be due to a network issue, 
+                    We couldn't load this investigation page. This might be due to a network issue,
                     invalid investigation ID, or the resource may not exist.
                 </p>
-                
+
                 <div className="space-y-3">
                     <button
                         onClick={() => window.location.reload()}
@@ -124,7 +124,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
                         </svg>
                         Reload Page
                     </button>
-                    
+
                     <button
                         onClick={() => window.history.back()}
                         className="w-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground
@@ -133,7 +133,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
                         Go Back
                     </button>
                 </div>
-                
+
                 <div className="mt-6 pt-4 border-t">
                     <p className="text-xs text-muted-foreground">
                         If the problem persists, try:

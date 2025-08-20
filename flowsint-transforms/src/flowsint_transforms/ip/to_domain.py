@@ -20,7 +20,7 @@ class ReverseResolveScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "ip_reverse_resolve_scanner"
+        return "ip_to_domain_scanner"
 
     @classmethod
     def category(cls) -> str:

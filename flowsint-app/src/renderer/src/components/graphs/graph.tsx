@@ -236,8 +236,8 @@ GraphProvider.displayName = "GraphProvider"
 
 // Composant principal avec optimisations maximales
 const Graph = memo(() => {
-    const nodes = useGraphStore(s => s.nodes)
-    const edges = useGraphStore(s => s.edges)
+    const nodes = useGraphStore(s => s.filteredNodes)
+    const edges = useGraphStore(s => s.filteredEdges)
 
     if (!nodes.length) {
         return <EmptyState />

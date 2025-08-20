@@ -13,11 +13,11 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/comp
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { Scanner } from "@/types/transform"
 import { useQuery } from "@tanstack/react-query"
-import { transformService } from "@/api/transfrom-service"
 import { Input } from "../ui/input"
 import { Alert, AlertDescription } from "../ui/alert"
 import { categoryColors } from "./scanner-data"
 import { useIcon } from "@/hooks/use-icon"
+import { flowService } from "@/api/flow-service"
 
 const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
     const openFlowSheet = useFlowStore(state => state.openFlowSheet)
@@ -29,7 +29,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
     const { data: materials, isLoading, error } = useQuery({
         queryKey: ["raw_material", selectedNode?.data.outputs.type],
         enabled: !!selectedNode?.data.outputs.type,
-        queryFn: () => transformService.getFlowsRawMaterialForType(selectedNode?.data.outputs.type.toLowerCase() || ""),
+        queryFn: () => flowService.getRawMaterialForType(selectedNode?.data.outputs.type.toLowerCase() || ""),
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 

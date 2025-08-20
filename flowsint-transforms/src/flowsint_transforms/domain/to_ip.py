@@ -15,7 +15,7 @@ class ResolveScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "domain_resolve_scanner"
+        return "domain_to_ip"
 
     @classmethod
     def category(cls) -> str:
@@ -292,7 +292,7 @@ Check FlowSint logs for detailed resolution information.
                 "domain",
                 "domain",
                 domain_obj.domain,
-                type="domain" if domain_obj.root else "subdomain",
+                type="domain",
             )
             self.create_node("ip", "address", ip_obj.address, type="ip")
             self.create_relationship(

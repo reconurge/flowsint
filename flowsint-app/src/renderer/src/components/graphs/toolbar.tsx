@@ -12,17 +12,20 @@ import {
     List,
     SlidersHorizontal,
     GitFork,
-    ArrowRightLeft
+    ArrowRightLeft,
+    FunnelPlus
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import ForceControls from './force-controls'
+import Filters from "./filters"
+import { useGraphStore } from "@/stores/graph-store"
 
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 // Tooltip wrapper component to avoid repetition
-const ToolbarButton = memo(function ToolbarButton({
+export const ToolbarButton = memo(function ToolbarButton({
     icon,
     tooltip,
     onClick,
@@ -63,6 +66,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const onLayout = useGraphControls((s) => s.onLayout);
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
+    const filters = useGraphStore(s => s.filters)
 
     const handleRefresh = useCallback(() => {
         try {
@@ -97,7 +101,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     return (
         <div className="flex justify-start gap-2 items-center">
             <TooltipProvider>
-                < ToolbarButton
+                <ToolbarButton
                     icon={<ZoomIn className="h-4 w-4 opacity-70" />}
                     tooltip="Zoom In"
                     onClick={zoomIn}
@@ -119,26 +123,32 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
                     tooltip={`Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                    disabled={["hierarchy"].includes(view)}
                     onClick={handleDagreLayoutTB}
                 />
+
                 <ToolbarButton
                     icon={<Waypoints className="h-4 w-4 opacity-70" />}
+                    disabled={["force"].includes(view)}
                     tooltip={"Graph view"}
                     onClick={handleForceLayout}
                 />
                 <ToolbarButton
                     icon={<List className="h-4 w-4 opacity-70" />}
                     tooltip={"Table view"}
+                    disabled={["table"].includes(view)}
                     onClick={handleTableLayout}
                 />
                 <ToolbarButton
                     icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
                     tooltip={"Relationships view"}
+                    disabled={["relationships"].includes(view)}
                     onClick={handleRelationshipsLayout}
                 />
                 <ToolbarButton
                     icon={<MapPin className="h-4 w-4 opacity-70" />}
                     tooltip={"Map view"}
+                    disabled={["map"].includes(view)}
                     onClick={handleMapLayout}
                 />
                 <ToolbarButton
@@ -149,11 +159,19 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 />
                 <ForceControls>
                     <ToolbarButton
-                        disabled={isLoading}
+                        disabled={isLoading || !["force", "hierarchy"].includes(view)}
                         icon={<SlidersHorizontal className={cn("h-4 w-4 opacity-70")} />}
                         tooltip="Settings"
                     />
                 </ForceControls>
+                <Filters>
+                    <ToolbarButton
+                        disabled={isLoading}
+                        icon={<FunnelPlus className={cn("h-4 w-4 opacity-70")} />}
+                        tooltip="Filters"
+                        badge={filters && filters?.length > 0 ? filters?.length : null}
+                    />
+                </Filters>
             </TooltipProvider>
         </div>
     )

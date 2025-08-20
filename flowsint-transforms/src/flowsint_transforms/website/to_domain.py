@@ -15,7 +15,7 @@ class WebsiteToDomainScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_domain"
+        return "website_to_domain"
 
     @classmethod
     def category(cls) -> str:
@@ -43,7 +43,7 @@ class WebsiteToDomainScanner(Scanner):
         results: OutputType = []
         for website in data:
             try:
-                parsed_url = urlparse(website.url)
+                parsed_url = urlparse(str(website.url))
                 domain_name = parsed_url.netloc
 
                 # Remove port if present
@@ -62,7 +62,7 @@ class WebsiteToDomainScanner(Scanner):
                 Logger.error(
                     self.sketch_id,
                     {
-                        "message": f"Error extracting domain from website {website.url}: {e}"
+                        "message": f"Error extracting domain from website {str(website.url)}: {e}"
                     },
                 )
                 continue
@@ -72,6 +72,40 @@ class WebsiteToDomainScanner(Scanner):
     def postprocess(
         self, results: OutputType, input_data: InputType = None
     ) -> OutputType:
+        # Create Neo4j relationships between websites and their corresponding domains
+        if input_data and self.neo4j_conn:
+            for input_website, result in zip(input_data, results):
+                website_url = str(input_website.url)
+                domain_name = result.domain
+
+                self.create_node(
+                    "website",
+                    "url",
+                    website_url,
+                    caption=website_url,
+                    type="website",
+                )
+                
+                # Create relationship with the specific domain for this website
+                self.create_node(
+                    "domain",
+                    "domain",
+                    domain_name,
+                    caption=domain_name,
+                    type="domain",
+                )
+                self.create_relationship(
+                    "website",
+                    "url",
+                    website_url,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    "HAS_DOMAIN",
+                )
+                self.log_graph_message(
+                    f"Extracted domain {domain_name} from website {website_url}."
+                )
         return results
 
 

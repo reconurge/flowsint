@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { persist } from "zustand/middleware"
 import type { EdgeData, NodeData } from "@/types"
 import {
     type Node,
@@ -24,6 +25,8 @@ interface GraphState {
     // === Graph ===
     nodes: GraphNode[]
     edges: GraphEdge[]
+    filteredNodes: GraphNode[]
+    filteredEdges: GraphEdge[]
     setNodes: (nodes: GraphNode[]) => void
     setEdges: (edges: GraphEdge[]) => void
     addNode: (newNode: Partial<GraphNode>) => GraphNode
@@ -71,8 +74,8 @@ interface GraphState {
     handleEdit: (node: GraphNode) => void
 
     // === Filters ===
-    filters: Record<string, unknown>
-    setFilters: (filters: Record<string, unknown>) => void
+    filters: string[] | null
+    setFilters: (filters: string[] | null) => void
 
     // === Collapse/Expand logic ===
     toggleCollapse: (nodeId: string) => void
@@ -84,210 +87,289 @@ interface GraphState {
     getEdgesLength: () => number
 }
 
-export const useGraphStore = create<GraphState>()((set, get) => ({
-    // === Graph ===
-    nodes: [],
-    edges: [],
-    setNodes: (nodes) => set({ nodes }),
-    setEdges: (edges) => set({ edges }),
-    addNode: (newNode) => {
-        const { nodes } = get()
-        const nodeWithId: GraphNode = {
-            id: newNode.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-            position: {
-                x: 0,
-                y: 0,
-            },
-            ...newNode,
-        } as GraphNode
-        set({ nodes: [...nodes, nodeWithId], currentNode: nodeWithId })
-        return nodeWithId
-    },
-    addEdge: (newEdge) => {
-        const { edges } = get()
-        const edgeWithId: GraphEdge = {
-            id: newEdge.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-            ...newEdge,
-        } as GraphEdge
-        set({ edges: [...edges, edgeWithId] })
-        return edgeWithId
-    },
-    removeNodes: (nodeIds: string[]) => {
-        const { nodes, edges } = get();
-        const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
-        const newEdges = edges.filter(
-            (e) => !nodeIds.includes(e.source) && !nodeIds.includes(e.target)
-        );
-        set({ nodes: newNodes, edges: newEdges });
-    },
-    removeEdges: (edgeIds: string[]) => {
-        const { edges } = get()
-        const newEdges = edges.filter((e) => !edgeIds.includes(e.id))
-        set({ edges: newEdges })
-    },
-    updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => {
-        set({ nodes, edges })
-    },
-    updateNode: (nodeId, updates) => {
-        const { nodes } = get()
-        const updatedNodes = nodes.map(node =>
-            node.id === nodeId
-                ? { ...node, data: { ...node.data, ...updates } }
-                : node
-        )
-        set({ nodes: updatedNodes })
-    },
-    updateEdge: (edgeId, updates) => {
-        const { edges } = get()
-        const updatedEdges = edges.map(edge =>
-            edge.id === edgeId
-                ? { ...edge, data: { ...edge.data, ...updates } as EdgeData }
-                : edge
-        )
-        set({ edges: updatedEdges })
-    },
-    onNodesChange: (changes) => {
-        set({
-            nodes: applyNodeChanges(changes, get().nodes) as GraphNode[],
-        })
-    },
-    onEdgesChange: (changes) => {
-        set({
-            edges: applyEdgeChanges(changes, get().edges) as GraphEdge[],
-        })
-    },
-    onConnect: (connection: Connection) => {
-        const edge: GraphEdge = {
-            id: `${connection.source}-${connection.target}`,
-            source: connection.source!,
-            target: connection.target!,
-            sourceHandle: connection.sourceHandle,
-            targetHandle: connection.targetHandle,
+// --- Helpers ---
+const computeFilteredNodes = (nodes: GraphNode[], filters: string[] | null): GraphNode[] => {
+    if (!filters || Object.keys(filters).length === 0) return nodes
+    return nodes.filter((node) => {
+        if (filters && Array.isArray(filters)) {
+            return filters.includes(node.data.type)
         }
-        set({
-            edges: [...get().edges, edge],
-        })
-    },
-    reset: () => {
-        set({
-            // nodes: [],
-            // edges: [],
+        return true
+    })
+}
+
+const computeFilteredEdges = (edges: GraphEdge[], filteredNodes: GraphNode[]): GraphEdge[] => {
+    const nodeIds = new Set(filteredNodes.map(n => n.id))
+    return edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
+}
+
+// --- Store ---
+export const useGraphStore = create<GraphState>()(
+    persist(
+        (set, get) => ({
+            // === Graph ===
+            nodes: [],
+            edges: [],
+            filteredNodes: [],
+            filteredEdges: [],
+            getNodesLength: () => get().nodes.length,
+            getEdgesLength: () => get().edges.length,
+
+            setNodes: (nodes) => {
+                const { filters, edges } = get()
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ nodes, filteredNodes, filteredEdges })
+            },
+            setEdges: (edges) => {
+                const { filters, nodes } = get()
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ edges, filteredNodes, filteredEdges })
+            },
+
+            addNode: (newNode) => {
+                const { nodes, edges, filters } = get()
+                const nodeWithId: GraphNode = {
+                    id: newNode.id || `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                    position: { x: 0, y: 0 },
+                    ...newNode,
+                } as GraphNode
+                const newNodes = [...nodes, nodeWithId]
+                const filteredNodes = computeFilteredNodes(newNodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ nodes: newNodes, currentNode: nodeWithId, filteredNodes, filteredEdges })
+                return nodeWithId
+            },
+
+            addEdge: (newEdge) => {
+                const { edges, nodes, filters } = get()
+                const edgeWithId: GraphEdge = {
+                    id: newEdge.id || `edge-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                    ...newEdge,
+                } as GraphEdge
+                const newEdges = [...edges, edgeWithId]
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
+                set({ edges: newEdges, filteredNodes, filteredEdges })
+                return edgeWithId
+            },
+
+            removeNodes: (nodeIds: string[]) => {
+                const { nodes, edges, filters } = get()
+                const newNodes = nodes.filter(n => !nodeIds.includes(n.id))
+                const newEdges = edges.filter(e => !nodeIds.includes(e.source) && !nodeIds.includes(e.target))
+                const filteredNodes = computeFilteredNodes(newNodes, filters)
+                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
+                set({ nodes: newNodes, edges: newEdges, filteredNodes, filteredEdges })
+            },
+
+            removeEdges: (edgeIds: string[]) => {
+                const { edges, nodes, filters } = get()
+                const newEdges = edges.filter(e => !edgeIds.includes(e.id))
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
+                set({ edges: newEdges, filteredNodes, filteredEdges })
+            },
+
+            updateGraphData: (nodes, edges) => {
+                const { filters } = get()
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ nodes, edges, filteredNodes, filteredEdges })
+            },
+
+            updateNode: (nodeId, updates) => {
+                const { nodes, edges, filters } = get()
+                const updatedNodes = nodes.map(node =>
+                    node.id === nodeId ? { ...node, data: { ...node.data, ...updates } } : node
+                )
+                const filteredNodes = computeFilteredNodes(updatedNodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ nodes: updatedNodes, filteredNodes, filteredEdges })
+            },
+
+            updateEdge: (edgeId, updates) => {
+                const { edges, nodes, filters } = get()
+                const updatedEdges = edges.map(edge =>
+                    edge.id === edgeId ? { ...edge, data: { ...edge.data, ...updates } as EdgeData } : edge
+                )
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
+                set({ edges: updatedEdges, filteredNodes, filteredEdges })
+            },
+
+            onNodesChange: (changes) => {
+                const { nodes, edges, filters } = get()
+                const updatedNodes = applyNodeChanges(changes, nodes) as GraphNode[]
+                const filteredNodes = computeFilteredNodes(updatedNodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ nodes: updatedNodes, filteredNodes, filteredEdges })
+            },
+
+            onEdgesChange: (changes) => {
+                const { edges, nodes, filters } = get()
+                const updatedEdges = applyEdgeChanges(changes, edges) as GraphEdge[]
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
+                set({ edges: updatedEdges, filteredNodes, filteredEdges })
+            },
+
+            onConnect: (connection: Connection) => {
+                const { edges, nodes, filters } = get()
+                const edge: GraphEdge = {
+                    id: `${connection.source}-${connection.target}`,
+                    source: connection.source!,
+                    target: connection.target!,
+                    sourceHandle: connection.sourceHandle,
+                    targetHandle: connection.targetHandle,
+                }
+                const newEdges = [...edges, edge]
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
+                set({ edges: newEdges, filteredNodes, filteredEdges })
+            },
+
+            reset: () => {
+                set({
+                    currentNode: null,
+                    selectedNodes: [],
+                    relatedNodeToAdd: null,
+                    openMainDialog: false,
+                    openFormDialog: false,
+                    openAddRelationDialog: false,
+                    openNodeEditorModal: false,
+                    currentNodeType: null,
+                    // filters: {},
+                    filteredNodes: get().nodes,
+                    filteredEdges: get().edges,
+                })
+            },
+
+            // === Selection & Current ===
             currentNode: null,
             selectedNodes: [],
+            isCurrent: (nodeId) => get().currentNode?.id === nodeId,
+            isSelected: (nodeId) => {
+                const { selectedNodes, isCurrent } = get()
+                return selectedNodes.some((node) => node.id === nodeId) || isCurrent(nodeId)
+            },
+            setCurrentNode: (node) => set({ currentNode: node }),
+            setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
+            clearSelectedNodes: () => set({ selectedNodes: [], currentNode: null }),
+            toggleNodeSelection: (node, multiSelect = false) => {
+                const { selectedNodes, currentNode } = get()
+                const isSelected = selectedNodes.some((n) => n.id === node.id)
+                let newSelected: GraphNode[]
+
+                if (multiSelect) {
+                    newSelected = isSelected
+                        ? selectedNodes.filter((n) => n.id !== node.id)
+                        : [...selectedNodes, node]
+                } else {
+                    newSelected = isSelected && selectedNodes.length === 1 ? [] : [node]
+                }
+
+                set({
+                    selectedNodes: newSelected,
+                    currentNode: multiSelect ? currentNode : (isSelected ? null : node),
+                })
+            },
+
+            // === Relation ===
             relatedNodeToAdd: null,
+            setRelatedNodeToAdd: (node) => set({ relatedNodeToAdd: node }),
+
+            // === Dialogs ===
             openMainDialog: false,
             openFormDialog: false,
             openAddRelationDialog: false,
             openNodeEditorModal: false,
+            setOpenMainDialog: (open) => set({ openMainDialog: open }),
+            setOpenFormDialog: (open) => set({ openFormDialog: open }),
+            setOpenAddRelationDialog: (open) => set({ openAddRelationDialog: open }),
+            setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
+
+            // === Action Type for Edit form ===
+            handleEdit: (node) => set({ currentNode: node, openNodeEditorModal: true }),
+
+            // === Action Type for Form ===
             currentNodeType: null,
-            filters: {},
-        })
-    },
+            setCurrentNodeType: (nodeType) => set({ currentNodeType: nodeType }),
+            handleOpenFormModal: (selectedItem) => {
+                if (!selectedItem) return
+                set({
+                    currentNodeType: selectedItem,
+                    openMainDialog: false,
+                    openFormDialog: true,
+                })
+            },
 
-    // === Selection & Current ===
-    currentNode: null,
-    selectedNodes: [],
-    isCurrent: (nodeId) => get().currentNode?.id === nodeId,
-    isSelected: (nodeId) => {
-        const { selectedNodes, isCurrent } = get()
-        return selectedNodes.some((node) => node.id === nodeId) || isCurrent(nodeId)
-    },
-    setCurrentNode: (node) => set({ currentNode: node }),
-    setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
-    clearSelectedNodes: () => set({ selectedNodes: [], currentNode: null }),
-    toggleNodeSelection: (node, multiSelect = false) => {
-        const { selectedNodes, currentNode } = get()
-        const isSelected = selectedNodes.some((n) => n.id === node.id)
-        let newSelected: GraphNode[]
+            // === Filters ===
+            filters: [],
+            setFilters: (filters) => {
+                const { nodes, edges } = get()
+                const filteredNodes = computeFilteredNodes(nodes, filters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ filters, filteredNodes, filteredEdges })
+            },
 
-        if (multiSelect) {
-            newSelected = isSelected
-                ? selectedNodes.filter((n) => n.id !== node.id)
-                : [...selectedNodes, node]
-        } else {
-            newSelected = isSelected && selectedNodes.length === 1 ? [] : [node]
-        }
+            // === Collapse/Expand logic ===
+            toggleCollapse: (nodeId) => {
+                const { nodes, edges, filters } = get()
+                const node = nodes.find(n => n.id === nodeId)
+                if (!node) return
+                const isCollapsing = !node.collapsed
 
-        set({
-            selectedNodes: newSelected,
-            currentNode: multiSelect ? currentNode : (isSelected ? null : node),
-        })
-    },
-
-    // === Relation ===
-    relatedNodeToAdd: null,
-    setRelatedNodeToAdd: (node) => set({ relatedNodeToAdd: node }),
-
-    // === Dialogs ===
-    openMainDialog: false,
-    openFormDialog: false,
-    openAddRelationDialog: false,
-    openNodeEditorModal: false,
-    setOpenMainDialog: (open) => set({ openMainDialog: open }),
-    setOpenFormDialog: (open) => set({ openFormDialog: open }),
-    setOpenAddRelationDialog: (open) => set({ openAddRelationDialog: open }),
-    setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
-
-    // === Action Type for Edit form ===
-    handleEdit: (node) => set({ currentNode: node, openNodeEditorModal: true }),
-
-    // === Action Type for Form ===
-    currentNodeType: null,
-    setCurrentNodeType: (nodeType) => set({ currentNodeType: nodeType }),
-    handleOpenFormModal: (selectedItem) => {
-        if (!selectedItem) return
-        set({
-            currentNodeType: selectedItem,
-            openMainDialog: false,
-            openFormDialog: true,
-        })
-    },
-
-    // === Filters ===
-    filters: {},
-    setFilters: (filters) => set({ filters }),
-
-    // === Collapse/Expand logic ===
-    toggleCollapse: (nodeId) => {
-        const { nodes, edges } = get();
-        // Find the node
-        const node = nodes.find(n => n.id === nodeId);
-        if (!node) return;
-        const isCollapsing = !node.collapsed;
-        // Recursively find all descendants
-        const getDescendants = (parentId: string, accNodes: Set<string>, accEdges: Set<string>) => {
-            edges.forEach(edge => {
-                if (edge.source === parentId) {
-                    accEdges.add(edge.id);
-                    accNodes.add(edge.target);
-                    getDescendants(edge.target, accNodes, accEdges);
+                const getDescendants = (parentId: string, accNodes: Set<string>, accEdges: Set<string>) => {
+                    edges.forEach(edge => {
+                        if (edge.source === parentId) {
+                            accEdges.add(edge.id)
+                            accNodes.add(edge.target)
+                            getDescendants(edge.target, accNodes, accEdges)
+                        }
+                    })
                 }
-            });
-        };
-        const descendantNodeIds = new Set<string>();
-        const descendantEdgeIds = new Set<string>();
-        getDescendants(nodeId, descendantNodeIds, descendantEdgeIds);
-        // Update nodes and edges
-        set({
-            nodes: nodes.map(n =>
-                n.id === nodeId
-                    ? { ...n, collapsed: isCollapsing }
-                    : descendantNodeIds.has(n.id)
-                        ? { ...n, hidden: isCollapsing }
-                        : n
-            ),
-            edges: edges.map(e =>
-                descendantEdgeIds.has(e.id)
-                    ? { ...e, hidden: isCollapsing }
-                    : e
-            ),
-        });
-    },
 
-    // === Utils ===
-    nodesLength: 0,
-    edgesLength: 0,
+                const descendantNodeIds = new Set<string>()
+                const descendantEdgeIds = new Set<string>()
+                getDescendants(nodeId, descendantNodeIds, descendantEdgeIds)
 
-    getNodesLength: () => get().nodes.length,
-    getEdgesLength: () => get().edges.length,
-}))
+                const newNodes = nodes.map(n =>
+                    n.id === nodeId
+                        ? { ...n, collapsed: isCollapsing }
+                        : descendantNodeIds.has(n.id)
+                            ? { ...n, hidden: isCollapsing }
+                            : n
+                )
+                const newEdges = edges.map(e =>
+                    descendantEdgeIds.has(e.id)
+                        ? { ...e, hidden: isCollapsing }
+                        : e
+                )
+
+                const filteredNodes = computeFilteredNodes(newNodes, filters)
+                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
+                set({ nodes: newNodes, edges: newEdges, filteredNodes, filteredEdges })
+            },
+
+            // === Utils ===
+            nodesLength: 0,
+            edgesLength: 0,
+        }),
+        {
+            name: "graph-store",
+            partialize: (state) => ({ filters: state.filters }),
+            onRehydrateStorage: () => (state) => {
+                if (state) {
+                    // recalcul des nodes/edges filtrés après rehydratation
+                    const { nodes, edges, filters } = state
+                    const filteredNodes = computeFilteredNodes(nodes, filters)
+                    const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                    state.filteredNodes = filteredNodes
+                    state.filteredEdges = filteredEdges
+                }
+            },
+        }
+    )
+)

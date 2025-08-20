@@ -24,7 +24,7 @@ class WebsiteToCrawler(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_crawler"
+        return "website_to_crawler"
 
     @classmethod
     def category(cls) -> str:

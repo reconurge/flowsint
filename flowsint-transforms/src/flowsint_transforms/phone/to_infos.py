@@ -14,7 +14,7 @@ class IgnorantScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "ignorant_scanner"
+        return "phone_to_infos_scanner"
 
     @classmethod
     def category(cls) -> str:

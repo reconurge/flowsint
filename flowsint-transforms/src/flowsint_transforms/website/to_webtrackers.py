@@ -29,7 +29,7 @@ class WebsiteToWebtrackersScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_webtrackers"
+        return "website_to_webtrackers"
 
     @classmethod
     def category(cls) -> str:

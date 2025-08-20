@@ -18,7 +18,7 @@ class DomainToRootDomain(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_root_domain"
+        return "domain_to_root_domain"
 
     @classmethod
     def category(cls) -> str:

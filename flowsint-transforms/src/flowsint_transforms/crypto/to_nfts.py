@@ -90,7 +90,7 @@ class CryptoWalletAddressToNFTs(Scanner):
         results: OutputType = []
         params = self.get_params()
         Logger.debug(self.sketch_id, {"message": f"{str(params)}"})
-        api_key = params.get("ETHERSCAN_API_KEY", None)
+        api_key = params.get("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
         api_url = params.get("ETHERSCAN_API_URL", None)
         if not api_key:
             Logger.error(self.sketch_id, {"message": "ETHERSCAN_API_KEY is required"})

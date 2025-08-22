@@ -1,5 +1,5 @@
 import { useLoaderData } from '@tanstack/react-router'
-import { useEffect, useRef, memo, useState, lazy, Suspense, useMemo } from 'react'
+import { useEffect, useRef, memo, useState, lazy, Suspense } from 'react'
 import { useGraphStore, type GraphNode, type GraphEdge } from '@/stores/graph-store'
 import { Toolbar } from './toolbar'
 import { cn } from '@/lib/utils'
@@ -55,48 +55,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
     const [isDraggingOver, setIsDraggingOver] = useState(false)
-
-    // Determine which graph component to use based on node count with debouncing
-    const [stableGraphType, setStableGraphType] = useState<'cosmograph' | 'force-graph' | null>(null)
-
-    const shouldUseCosmograph = useMemo(() => {
-        if (!nodes || nodes.length === 0) return false
-        return nodes.length > NODE_COUNT_THRESHOLD
-    }, [nodes?.length])
-
-    // Debounce graph type changes to prevent rapid switching
-    useEffect(() => {
-        if (!nodes || nodes.length === 0) {
-            setStableGraphType(null)
-            return
-        }
-
-        const newType = shouldUseCosmograph ? 'cosmograph' : 'force-graph'
-
-        // Only update if the type actually changed
-        if (stableGraphType !== newType) {
-            const timer = setTimeout(() => {
-                setStableGraphType(newType)
-            }, 500) // 500ms delay to prevent rapid switching
-
-            return () => clearTimeout(timer)
-        }
-
-        // Return empty cleanup function for the case when type hasn't changed
-        return () => { }
-    }, [shouldUseCosmograph, stableGraphType, nodes?.length])
-
-    const graphComponentKey = stableGraphType || 'loading'
-
-    // Memoize the graph component to prevent unnecessary re-renders
-    const graphComponent = useMemo(() => {
-        if (stableGraphType === 'cosmograph') {
-            return <Graph />
-        } else if (stableGraphType === 'force-graph') {
-            return <GraphMain />
-        }
-        return null
-    }, [stableGraphType])
 
     useEffect(() => {
         if (graphData?.nds && graphData?.rls) {
@@ -170,28 +128,21 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
                     </div>
                 </div>
             }>
-                {/* Only render graph components when we have actual data */}
-                {nodes && nodes.length > 0 && stableGraphType ? (
-                    <div key={graphComponentKey} className="h-full w-full flex relative outline-2 outline-transparent bg-background"
-                    >
+                {nodes?.length > NODE_COUNT_THRESHOLD ? (
+                    <>{view === "table" && <NodesTable />}
+                        {["force", "hierarchy"].includes(view) && <Graph />}
+                        {view === "map" && <MapPanel />}
+                        {view === "relationships" && <RelationshipsTable />}
+                    </>
+                ) : (
+                    <>
+                        {/* {view === "hierarchy" && <Wall isLoading={false} isRefetching={false} />} */}
+                        {/* {view === "force" && <GraphMain />} */}
+                        {["force", "hierarchy"].includes(view) && <GraphMain />}
                         {view === "table" && <NodesTable />}
                         {view === "map" && <MapPanel />}
                         {view === "relationships" && <RelationshipsTable />}
-                        {["force", "hierarchy"].includes(view) && graphComponent}
-                    </div>
-                ) : (
-                    // Show loading state while waiting for data or graph type to stabilize
-                    <div className="h-full w-full flex items-center justify-center">
-                        <div className="text-center flex flex-col items-center gap-2">
-                            <Loader />
-                            <span className="text-muted-foreground">
-                                {!nodes || nodes.length === 0
-                                    ? 'Loading data...'
-                                    : 'Preparing data...'
-                                }
-                            </span>
-                        </div>
-                    </div>
+                    </>
                 )}
             </Suspense>
             <DragOverlay isDragging={isDraggingOver} />

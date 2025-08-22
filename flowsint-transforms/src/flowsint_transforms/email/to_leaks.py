@@ -40,7 +40,7 @@ class EmailToBreachesScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_breaches"
+        return "email_to_breaches"
 
     @classmethod
     def category(cls) -> str:

@@ -109,64 +109,65 @@ export const ITEM_TYPES: ItemType[] = [
     "creditcard",
     "alias",
     "affiliation",
-    "phrase"
+    "phrase",
 ]
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
-    individual: "#E07A7A",      // stronger pastel blue
-    phone: "#5FC9B5",           // teal-green
-    location: "#E57373",        // warm rose
-    email: "#8E7CC3",           // lavender purple
-    ip: "#F4A261",              // orange
-    socialprofile: "#B569B9",   // purple pink
-    organization: "#BCA18A",    // taupe
-    vehicle: "#E1B84D",         // golden wheat
+    individual: "#4C8EDA",      // bleu moyen
+    phone: "#4CB5AE",           // teal doux
+    location: "#E57373",        // rouge rosé
+    email: "#8E7CC3",           // violet pastel
+    ip: "#F4A261",              // orange chaud
+    socialprofile: "#A76DAA",   // mauve
+    organization: "#BCA18A",    // taupe clair
+    vehicle: "#E1B84D",         // jaune doux
     car: "#BFAF7A",             // olive beige
-    motorcycle: "#A78B6C",      // warm taupe
-    boat: "#6FB1C5",            // blue teal
-    plane: "#C1A78E",           // light brown
-    website: "#D279A6",         // dusty rose
-    domain: "#66A892",          // sage green
-    subdomain: "#5AA1C8",       // sky blue
-    document: "#8F9CA3",        // cool gray
-    financial: "#E98973",       // coral
-    event: "#6DBBA2",           // mint green
-    device: "#E3A857",          // peach orange
+    motorcycle: "#A78B6C",      // brun taupe
+    boat: "#6FB1C5",            // bleu teal
+    plane: "#C1A78E",           // brun clair
+    website: "#D279A6",         // rose pastel
+    domain: "#66A892",          // vert sauge
+    subdomain: "#5AA1C8",       // bleu ciel
+    document: "#8F9CA3",        // gris bleuté
+    financial: "#E98973",       // corail doux
+    event: "#6DBBA2",           // vert menthe
+    device: "#E3A857",          // orange sable
     media: "#C97C73",           // terracotta
-    education: "#6C8CBF",       // steel blue
-    relationship: "#B18B84",    // mauve brown
-    online_activity: "#7EAD6F", // sage green
-    digital_footprint: "#B97777", // brick
-    username: "#8B83C1",        // periwinkle purple
-    credential: "#D4B030",      // gold
-    biometric: "#7F868D",       // slate gray
-    siret: "#7D8B99",           // blue-gray
-    siren: "#687684",           // dark slate
-    cryptowallet: "#D4B030",    // gold yellow
-    cryptotransaction: "#BFA750", // warm yellow
-    cryptonft: "#A5BF50",       // lime green
-    asn: "#D97474",             // warm peach
-    cidr: "#80BF80",            // mint green
-    whois: "#9B6F9B",           // lavender violet
-    gravatar: "#6CB7CA",        // pale cyan
-    breach: "#CC7A7A",          // warm rose
-    webtracker: "#C7BF50",      // warm yellow
-    session: "#A8BF50",         // lime green
-    dns: "#80BF9F",             // mint teal
-    ssl: "#BFAF80",             // warm sand
-    message: "#897FC9",         // lavender
-    malware: "#4AA29E",         // teal
-    weapon: "#E98973",          // coral brown
-    script: "#A36FA3",          // dusty violet
-    reputation: "#6FA8DC",      // steel blue
-    risk: "#D97474",            // dusty rose
-    file: "#8F9CA3",            // cool gray
-    bank: "#D4B030",            // gold
-    creditcard: "#285E8E",      // deep blue
+    education: "#6C8CBF",       // bleu acier
+    relationship: "#B18B84",    // brun rosé
+    online_activity: "#7EAD6F", // vert sauge
+    digital_footprint: "#B97777", // brique
+    username: "#8B83C1",        // pervenche
+    credential: "#D4B030",      // doré doux
+    biometric: "#7F868D",       // gris ardoise
+    siret: "#7D8B99",           // gris bleu
+    siren: "#687684",           // gris foncé
+    cryptowallet: "#D4B030",    // or clair
+    cryptotransaction: "#BFA750", // or chaud
+    cryptonft: "#A5BF50",       // vert lime doux
+    asn: "#D97474",             // pêche rosée
+    cidr: "#80BF80",            // vert menthe
+    whois: "#9B6F9B",           // violet doux
+    gravatar: "#6CB7CA",        // cyan clair
+    breach: "#CC7A7A",          // rose chaud
+    webtracker: "#C7BF50",      // jaune doux
+    session: "#A8BF50",         // lime atténué
+    dns: "#80BF9F",             // vert teal clair
+    ssl: "#BFAF80",             // sable chaud
+    message: "#897FC9",         // violet lavande
+    malware: "#4AA29E",         // teal saturé
+    weapon: "#E98973",          // corail brun
+    script: "#A36FA3",          // violet doux
+    reputation: "#6FA8DC",      // bleu clair
+    risk: "#D97474",            // rouge doux
+    file: "#8F9CA3",            // gris bleuté
+    bank: "#D4B030",            // or clair
+    creditcard: "#285E8E",      // bleu profond
     alias: "#A36FA3",           // violet
-    affiliation: "#66A892",     // sage
-    phrase: "#BFA77A"           // warm beige
+    affiliation: "#66A892",     // vert sauge
+    phrase: "#BFA77A",          // beige chaud
 };
+
 
 
 // Définition des icônes par défaut pour chaque type d'élément
@@ -223,7 +224,7 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
     creditcard: "💳",
     alias: "👤",
     affiliation: "🤝",
-    phrase: "��"
+    phrase: "��",
 };
 
 const DEFAULT_SIZES: Record<ItemType, number> = {
@@ -279,7 +280,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
     creditcard: 18,        // Medium-large
     alias: 12,             // Small-medium
     affiliation: 14,       // Medium
-    phrase: 10             // Small
+    phrase: 10,             // Small
 }
 
 interface NodesDisplaySettingsState {

@@ -17,7 +17,7 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
     const { id: sketchId } = useParams({ strict: false })
     if (!node) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="flex p-12 rounded-xl border flex-col items-center justify-center h-full text-center p-8">
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                     <MousePointer className="h-8 w-8 text-muted-foreground" />
                 </div>

@@ -45,7 +45,7 @@ class SubdomainScanner(Scanner):
     async def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (if available) or fallback to crt.sh."""
         domains: OutputType = []
-        use_subfinder = not self.__is_subfinder_installed()
+        use_subfinder = self.__is_subfinder_installed()
 
         for md in data:
             d = Domain(domain=md.domain)
@@ -54,11 +54,16 @@ class SubdomainScanner(Scanner):
                 if not subdomains:
                     Logger.warn(
                         self.sketch_id,
-                        f"subfinder failed for {d.domain}, falling back to crt.sh",
+                        {
+                            "message": f"subfinder failed for {d.domain}, falling back to crt.sh"
+                        },
                     )
                     subdomains = self.__get_subdomains_from_crtsh(d.domain)
             else:
-                Logger.info(self.sketch_id, "subfinder not found, using crt.sh only")
+                Logger.info(
+                    self.sketch_id,
+                    {"message": "subfinder not found, using crt.sh only"},
+                )
                 subdomains = self.__get_subdomains_from_crtsh(d.domain)
 
             domains.append({"domain": d.domain, "subdomains": sorted(subdomains)})
@@ -90,7 +95,9 @@ class SubdomainScanner(Scanner):
                         elif "*" in sub:
                             continue
         except Exception as e:
-            Logger.error(self.sketch_id, f"crt.sh failed for {domain}: {e}")
+            Logger.error(
+                self.sketch_id, {"message": f"crt.sh failed for {domain}: {e}"}
+            )
         return subdomains
 
     def __get_subdomains_from_subfinder(self, domain: str) -> set[str]:
@@ -99,7 +106,9 @@ class SubdomainScanner(Scanner):
         try:
             subdomains = subfinder.launch(domain)
         except Exception as e:
-            Logger.error(self.sketch_id, f"subfinder exception for {domain}: {e}")
+            Logger.error(
+                self.sketch_id, {"message": f"subfinder exception for {domain}: {e}"}
+            )
         return subdomains
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:

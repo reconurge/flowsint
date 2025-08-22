@@ -22,7 +22,6 @@ pydantic = "^2.11.7"
 
 requests-random-user-agent = "^2023.10.25"
 spacy = "^3.7"
-docker = "^6.1"
 maigret = { git = "https://github.com/soxoj/maigret" }
 recontrack = { git = "https://github.com/reconurge/recontrack.git" }
 reconcrawl = { git = "https://github.com/reconurge/reconcrawl.git" }

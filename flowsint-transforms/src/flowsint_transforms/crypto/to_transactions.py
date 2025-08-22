@@ -3,10 +3,13 @@ from typing import List, Dict, Any, Optional, Union
 import requests
 import requests.exceptions
 from datetime import datetime
+from dotenv import load_dotenv
 from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.wallet import CryptoWallet, CryptoWalletTransaction
 from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_core.core.logger import Logger
+
+load_dotenv()
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 

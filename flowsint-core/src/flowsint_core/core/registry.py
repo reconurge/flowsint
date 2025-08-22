@@ -11,6 +11,8 @@ from flowsint_transforms.domain.to_root_domain import DomainToRootDomain
 from flowsint_transforms.domain.to_asn import DomainToAsnScanner
 
 # IP-related scanners
+from flowsint_transforms.email.to_domains import EmailToDomainsScanner
+from flowsint_transforms.individual.to_domains import IndividualToDomainsScanner
 from flowsint_transforms.ip.to_domain import ReverseResolveScanner
 from flowsint_transforms.ip.to_geolocation import GeolocationScanner
 
@@ -24,6 +26,7 @@ from flowsint_transforms.asn.to_cidrs import AsnToCidrsScanner
 from flowsint_transforms.cidr.to_ips import CidrToIpsScanner
 
 # Social media scanners
+from flowsint_transforms.organization.to_domains import OrgToDomainsScanner
 from flowsint_transforms.social.to_maigret import MaigretScanner
 
 # Organization-related scanners
@@ -155,7 +158,7 @@ TransformRegistry.register(MaigretScanner)
 # Organization-related scanners
 TransformRegistry.register(OrgToAsnScanner)
 TransformRegistry.register(OrgToInfosScanner)
-
+TransformRegistry.register(OrgToDomainsScanner)
 # Cryptocurrency scanners
 TransformRegistry.register(CryptoWalletAddressToTransactions)
 TransformRegistry.register(CryptoWalletAddressToNFTs)
@@ -170,9 +173,11 @@ TransformRegistry.register(WebsiteToText)
 # Email-related scanners
 TransformRegistry.register(EmailToGravatarScanner)
 TransformRegistry.register(EmailToBreachesScanner)
+TransformRegistry.register(EmailToDomainsScanner)
 
 # Individual-related scanners
 TransformRegistry.register(IndividualToOrgScanner)
+TransformRegistry.register(IndividualToDomainsScanner)
 
 # Integration scanners
 TransformRegistry.register(N8nConnector)

@@ -13,6 +13,7 @@ flowsint-transforms = { path = "./flowsint-transforms", develop = true }
 flowsint-api = { path = "./flowsint-api", develop = true }
 pydantic = {extras = ["email"], version = "^2.11.7"}
 python-multipart = "^0.0.20"
+docker = "^7.1.0"
 
 [build-system]
 requires = ["poetry-core"]

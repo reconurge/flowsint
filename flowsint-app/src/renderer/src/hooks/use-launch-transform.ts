@@ -14,9 +14,11 @@ export function useLaunchTransform(askUser: boolean = false) {
             if (!confirmed) return
         }
         const body = JSON.stringify({ values, sketch_id })
+        const sliced = values.slice(0, 2)
+        const left = values.length - sliced.length
         toast.promise(transformService.launch(transformName, body), {
             loading: "Loading...",
-            success: () => `Scan on "${values.join(",")}" has been launched.`,
+            success: () => `Transform ${transformName} has been launched on ${sliced.join(", ")}${left > 0 ? ` and ${left} others` : ""}.`,
             error: () => `An error occurred launching transform.`,
         })
         return

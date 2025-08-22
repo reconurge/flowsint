@@ -16,7 +16,7 @@ class IndividualToOrgScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_org"
+        return "individual_to_org"
 
     @classmethod
     def category(cls) -> str:

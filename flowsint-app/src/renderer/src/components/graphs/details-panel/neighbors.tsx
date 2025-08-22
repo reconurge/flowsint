@@ -27,6 +27,7 @@ const NeighborsGraph = ({ sketchId, nodeId }: { sketchId: string, nodeId: string
                         showIcons={true}
                         backgroundColor="transparent"
                         onGraphRef={() => { }}
+                        instanceId="neighbors"
                     />
                 </>}
         </div>

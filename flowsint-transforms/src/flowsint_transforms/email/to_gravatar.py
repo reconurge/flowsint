@@ -15,7 +15,7 @@ class EmailToGravatarScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "to_gravatar"
+        return "email_to_gravatar"
 
     @classmethod
     def category(cls) -> str:

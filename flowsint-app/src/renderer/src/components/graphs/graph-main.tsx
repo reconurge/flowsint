@@ -1,5 +1,5 @@
 import { useGraphStore } from '@/stores/graph-store'
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useRef, useCallback } from 'react'
 import GraphViewer from './graph-viewer'
 import ContextMenu from './context-menu'
 
@@ -14,13 +14,6 @@ const GraphMain = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const [menu, setMenu] = React.useState<any>(null)
 
-
-    // // Handle current node centering
-    // useEffect(() => {
-    //     if (!currentNode || !graphRef.current) return
-    //     graphRef.current.centerAt(currentNode.position.x, currentNode.position.x, 500)
-    //     graphRef.current.zoom(5, 500)
-    // }, [currentNode])
 
     const handleNodeClick = useCallback((node: any) => {
         toggleNodeSelection(node, false)

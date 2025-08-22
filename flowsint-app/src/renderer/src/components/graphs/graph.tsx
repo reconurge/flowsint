@@ -97,11 +97,12 @@ const GraphContent = memo(() => {
 
     const cosmograph = useCosmograph()
     const actionsSetRef = useRef(false)
+    const instanceId = useRef('cosmograph-main') // Add instance-specific ID
 
     const handleLabelClick = useCallback((node: any, event: MouseEvent) => {
         const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
         toggleNodeSelection(node, multiSelect)
-        cosmograph?.cosmograph?.zoomToNode(node)
+        // cosmograph?.cosmograph?.zoomToNode(node)
     }, [toggleNodeSelection, cosmograph?.cosmograph])
 
     //@ts-ignore
@@ -113,9 +114,9 @@ const GraphContent = memo(() => {
         if (event) {
             const multiSelect = event.ctrlKey || event.shiftKey || event.altKey
             toggleNodeSelection(clickedNode, multiSelect)
-            cosmograph?.cosmograph?.zoomToNode(clickedNode)
+            // cosmograph?.cosmograph?.zoomToNode(clickedNode)
         } else {
-            cosmograph?.cosmograph?.zoomToNode(clickedNode)
+            // cosmograph?.cosmograph?.zoomToNode(clickedNode)
         }
     }, [toggleNodeSelection, clearSelectedNodes, cosmograph?.cosmograph])
 
@@ -162,19 +163,31 @@ const GraphContent = memo(() => {
             cosmograph.cosmograph.restart()
             actionsSetRef.current = true
         }
-    }, [cosmograph?.cosmograph, setActions])
+
+        // Cleanup: reset actions when component unmounts
+        return () => {
+            if (actionsSetRef.current) {
+                setActions({
+                    zoomIn: () => {},
+                    zoomOut: () => {},
+                    zoomToFit: () => {},
+                })
+                actionsSetRef.current = false
+            }
+        }
+    }, [cosmograph?.cosmograph, setActions, instanceId.current])
 
     //@ts-ignore
-    useEffect(() => {
-        if (currentNode && cosmograph?.cosmograph && isCosmographReady) {
-            const timeoutId = setTimeout(() => {
-                cosmograph.cosmograph?.zoomToNode(currentNode)
-                cosmograph.cosmograph?.focusNode(currentNode)
-            }, 100)
+    // useEffect(() => {
+    //     if (currentNode && cosmograph?.cosmograph && isCosmographReady) {
+    //         const timeoutId = setTimeout(() => {
+    //             cosmograph.cosmograph?.zoomToNode(currentNode)
+    //             cosmograph.cosmograph?.focusNode(currentNode)
+    //         }, 100)
 
-            return () => clearTimeout(timeoutId)
-        }
-    }, [currentNode, cosmograph?.cosmograph, isCosmographReady])
+    //         return () => clearTimeout(timeoutId)
+    //     }
+    // }, [currentNode, cosmograph?.cosmograph, isCosmographReady])
 
     return (
         <div className="relative h-full w-full">

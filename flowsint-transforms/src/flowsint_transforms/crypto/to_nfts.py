@@ -5,6 +5,9 @@ from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.wallet import CryptoWallet, CryptoNFT
 from flowsint_core.core.logger import Logger
 from flowsint_core.core.graph_db import Neo4jConnection
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 

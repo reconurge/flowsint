@@ -23,6 +23,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Ellipsis } from "lucide-react"
+import { isMac } from "@/lib/utils"
 
 export const TopNavbar = memo(() => {
     const { investigationId, id, type } = useParams({ strict: false })
@@ -75,7 +76,7 @@ export const TopNavbar = memo(() => {
                     {type === "graph" &&
                         <>
                             <Switch checked={isOpenAnalysis} onCheckedChange={handleToggleAnalysis} id="notes" />
-                            <Label htmlFor="notes">Toggle notes</Label>
+                            <Label htmlFor="notes">Toggle notes<span className="text-[.7rem] -ml-1 opacity-60">({isMac ? '⌘' : 'ctrl'}L)</span></Label>
                         </>
                     }
                 </div>
@@ -96,19 +97,15 @@ export function InvestigationMenu() {
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="start">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
-                        Profile
-                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                        General
+                        <DropdownMenuShortcut>⌘G</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                        Billing
-                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        Settings
-                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                        Preferences
+                        <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                         Keyboard shortcuts
@@ -131,7 +128,7 @@ export function InvestigationMenu() {
                     </DropdownMenuSub>
                     <DropdownMenuItem>
                         New Team
-                        <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
+                        <DropdownMenuShortcut>⌘T</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -139,8 +136,8 @@ export function InvestigationMenu() {
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuItem disabled>API</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    Log out
+                <DropdownMenuItem variant="destructive">
+                    Delete
                     <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                 </DropdownMenuItem>
             </DropdownMenuContent>

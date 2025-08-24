@@ -350,3 +350,5 @@ export const getAllNodeTypes = (actionItems: any[]) => {
   })
   return types.sort()
 }
+
+export const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0

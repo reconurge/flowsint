@@ -4,10 +4,10 @@ import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
 import { useAnalysisPanelStore } from "@/stores/analysis-panel-store"
 import { AnalysisEditor } from "./analysis-editor"
-import { useEffect } from "react"
+import { useEffect, memo } from "react"
 import AnalysisSkeleton from "./analysis-skeleton"
 
-export const AnalysisPanel = () => {
+export const AnalysisPanel = memo(() => {
     const { investigationId } = useParams({ strict: false }) as { investigationId: string }
     const currentAnalysisId = useAnalysisPanelStore(s => s.currentAnalysisId)
     const setCurrentAnalysisId = useAnalysisPanelStore(s => s.setCurrentAnalysisId)
@@ -79,6 +79,6 @@ export const AnalysisPanel = () => {
             />
         </div>
     )
-}
+})
 
-export default AnalysisPanel
+export default memo(AnalysisPanel)

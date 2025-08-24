@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from "react"
+import { useCallback, useState, memo } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Sheet,
@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Search, FileCode2, Zap } from "lucide-react"
 import { Transform, Flow } from "@/types"
 
-const LaunchTransformOrFlowPanel = ({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
+const LaunchTransformOrFlowPanel = memo(({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
     const { launchTransform } = useLaunchTransform()
     const { launchFlow } = useLaunchFlow()
     const { id: sketch_id } = useParams({ strict: false })
@@ -300,6 +300,6 @@ const LaunchTransformOrFlowPanel = ({ values, type, children }: { values: string
             </Sheet>
         </div>
     )
-}
+})
 
 export default LaunchTransformOrFlowPanel

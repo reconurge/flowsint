@@ -16,6 +16,7 @@ import { ChatSkeleton } from './chat-skeleton'
 import { ResizableChat } from './resizable-chat'
 import ChatHistory from './chat-history'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { CopyButton } from '../copy'
 
 function FloatingChat() {
     const [editorValue, setEditorValue] = useState<any>("")
@@ -252,8 +253,8 @@ function FloatingChat() {
                                                                 </ul>
                                                             </div> */}
                                                             <div className="text-xs space-y-1">
-                                                            <p className="font-medium text-left">Investigation Help</p>
-                                                            <ul className="space-y-1 text-left opacity-60">
+                                                                <p className="font-medium text-left">Investigation Help</p>
+                                                                <ul className="space-y-1 text-left opacity-60">
                                                                     <li>• "Suggest next steps for this investigation"</li>
                                                                     <li>• "What should I look for next?"</li>
                                                                     <li>• "Help me organize this investigation"</li>
@@ -287,32 +288,46 @@ const ChatMessageComponent = ({ message }: { message: ChatMessage }) => {
 
     if (message.is_bot)
         return (
-            <div className={cn("justify-start",
-                "flex w-full",
-            )}>
-                <div className={cn("w-full",
-                    "p-3 rounded-xl max-w-full",
-                    "flex flex-col gap-2"
+            <MessageContainer copyContent={message.content}>
+                <div className={cn("justify-start",
+                    "flex w-full",
                 )}>
-                    <MemoizedMarkdown id={message.id} content={message.content} />
+                    <div className={cn("w-full",
+                        "p-3 rounded-xl max-w-full",
+                        "flex flex-col gap-2"
+                    )}>
+                        <MemoizedMarkdown id={message.id} content={message.content} />
+                    </div>
                 </div>
-            </div>
+            </MessageContainer>
         )
 
     return (
-        <div className={cn("items-end",
-            "flex w-full flex-col gap-2",
-        )}>
-            <div className={cn("bg-muted-foreground/5 max-w-[80%] border border-border",
-                "p-1 rounded-lg",
-                "flex flex-col items-end overflow-x-hidden"
+        <MessageContainer copyContent={message.content} >
+            <div className={cn("items-end",
+                "flex w-full flex-col gap-2",
             )}>
-                {/* {message?.context && message.context.length > 0 && <div className='flex items-center w-full overflow-x-auto justify-end mb-2'><ContextList context={message.context} /></div>} */}
-                <span className='px-3'><MemoizedMarkdown id={message.id} content={message.content} /></span>
-            </div>
-        </div >)
+                <div className={cn("bg-muted-foreground/5 max-w-[80%] border border-border",
+                    "p-1 rounded-lg",
+                    "flex flex-col items-end overflow-x-hidden"
+                )}>
+                    {/* {message?.context && message.context.length > 0 && <div className='flex items-center w-full overflow-x-auto justify-end mb-2'><ContextList context={message.context} /></div>} */}
+                    <span className='px-3'><MemoizedMarkdown id={message.id} content={message.content} /></span>
+                </div>
+            </div >
+        </MessageContainer>)
 }
 
+const MessageContainer = memo(({ children, copyContent }: { children: React.ReactNode, copyContent?: string }) => {
+    return (
+        <div className='relative group'>
+            {children}
+            <div className='-mt-1 group-hover:opacity-100 opacity-0 flex items-center justify-end z-1'>
+                <div className='border rounded-md bg-background '><CopyButton content={copyContent ?? ""} /></div>
+            </div>
+        </div>
+    )
+})
 
 const MemoizedFloatingChat = memo(FloatingChat)
 

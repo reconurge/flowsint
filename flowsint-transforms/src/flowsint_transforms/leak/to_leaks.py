@@ -20,7 +20,7 @@ class HibpScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "hibp_scanner"
+        return "to_hibp_leaks"
 
     @classmethod
     def category(cls) -> str:
@@ -86,7 +86,7 @@ class HibpScanner(Scanner):
                 email = result["email"]
 
                 # Create email node
-                self.create_node("email", "address", email, caption=email, type="email")
+                self.create_node("email", "address", email, email=email)
 
                 # Create breach relationships
                 for breach in result.get("breaches", []):

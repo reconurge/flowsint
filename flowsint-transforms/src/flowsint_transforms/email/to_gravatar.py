@@ -46,14 +46,21 @@ class EmailToGravatarScanner(Scanner):
             try:
                 # Generate MD5 hash of email
                 email_hash = hashlib.md5(email.email.lower().encode()).hexdigest()
-
                 # Query Gravatar API
                 gravatar_url = f"https://www.gravatar.com/avatar/{email_hash}?d=404"
+                Logger.warn(
+                    self.sketch_id,
+                    {"message": f"email url: {gravatar_url}"},
+                )
                 response = requests.head(gravatar_url, timeout=10)
 
                 if response.status_code == 200:
                     # Gravatar found, get profile info
                     profile_url = f"https://www.gravatar.com/{email_hash}.json"
+                    Logger.warn(
+                        self.sketch_id,
+                        {"message": f"Gravatar url: {profile_url}"},
+                    )
                     profile_response = requests.get(profile_url, timeout=10)
 
                     gravatar_data = {
@@ -95,23 +102,12 @@ class EmailToGravatarScanner(Scanner):
                 continue
 
             # Create email node
-            self.create_node("email", "email", email_obj.email, type="email")
+            self.create_node("email", "email", email_obj.email, **email_obj.__dict__)
 
             # Create gravatar node
             gravatar_key = f"{email_obj.email}_{self.sketch_id}"
             self.create_node(
-                "gravatar",
-                "gravatar_id",
-                gravatar_key,
-                email=email_obj.email,
-                hash=gravatar_obj.hash,
-                src=str(gravatar_obj.src),
-                display_name=gravatar_obj.display_name,
-                location=gravatar_obj.location,
-                about_me=gravatar_obj.about_me,
-                exists=gravatar_obj.exists,
-                label="Gravatar",
-                type="gravatar",
+                "gravatar", "gravatar_id", gravatar_key, **gravatar_obj.__dict__
             )
 
             # Create relationship between email and gravatar

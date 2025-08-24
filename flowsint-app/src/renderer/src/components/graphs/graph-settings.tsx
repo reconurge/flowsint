@@ -22,17 +22,9 @@ const GraphSettings = () => {
 
     // Categorize settings
     const categories = {
-        'Force Physics': [
-            'chargeStrength',
-            'linkStrength', 
-            'centerStrength',
-            'collisionRadius',
-            'collisionStrength'
-        ],
         'Simulation Control': [
             'd3AlphaDecay',
             'd3AlphaMin',
-            'd3AlphaTarget',
             'd3VelocityDecay',
             'cooldownTicks',
             'cooldownTime',

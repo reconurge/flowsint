@@ -177,6 +177,7 @@ export const AnalysisEditor = ({
 
     // Handle title update
     const handleTitleUpdate = (newTitle: string) => {
+        if (!analysis || newTitle === analysis.title) return
         setTitleValue(newTitle)
         updateTitleMutation.mutate(newTitle)
         setIsEditingTitle(false)

@@ -86,7 +86,7 @@ const GRAPH_CONFIG = {
 const GraphContent = memo(() => {
     const nodes = useGraphStore(s => s.nodes)
     const edges = useGraphStore(s => s.edges)
-    const currentNode = useGraphStore(s => s.currentNode)
+    // const currentNode = useGraphStore(s => s.currentNode)
     const { isCosmographReady, loadingStage, handleSimulationStart, handleSimulationEnd } = useCosmographLoader(nodes, edges)
     const clearSelectedNodes = useGraphStore(s => s.clearSelectedNodes)
     const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection)

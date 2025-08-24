@@ -18,7 +18,7 @@ class DomainToAsnScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "domain_to_asn_scanner"
+        return "domain_to_asn"
 
     @classmethod
     def category(cls) -> str:

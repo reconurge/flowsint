@@ -43,7 +43,7 @@ def get_transforms(
             category, exclude=["n8n_connector"]
         )
     else:
-        transforms = TransformRegistry.list(exclude=["n8n_conector"])
+        transforms = TransformRegistry.list(exclude=["n8n_connector"])
     return transforms
 
 

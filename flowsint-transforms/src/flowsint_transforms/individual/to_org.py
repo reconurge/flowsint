@@ -1,5 +1,5 @@
 import requests
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Set
 from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
@@ -8,7 +8,7 @@ from tools.organizations.sirene import SireneTool
 
 
 class IndividualToOrgScanner(Scanner):
-    """Find organization from a person with data from SIRENE (France only)."""
+    """[SIRENE] Find organization from a person with data from SIRENE (France only)."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Individual]
@@ -16,7 +16,7 @@ class IndividualToOrgScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "individual_to_org"
+        return "individual_to_organization"
 
     @classmethod
     def category(cls) -> str:
@@ -283,25 +283,59 @@ class IndividualToOrgScanner(Scanner):
         if not self.neo4j_conn:
             return results
 
+        # Track processed entities to avoid duplicates
+        processed_organizations: Set[str] = set()
+        processed_individuals: Set[str] = set()
+
+        # First, create all organization nodes
         for org in results:
-            # Create or update the organization node with all SIRENE properties
             org_key = f"{org.name}_FR"
+            if org_key in processed_organizations:
+                continue
+            processed_organizations.add(org_key)
+
             self.create_node(
                 "Organization",
                 "org_id",
                 org_key,
-                name=org.name,
-                country="FR",
-                siren=org.siren,
-                siege_siret=org.siege_siret,
-                nom_complet=org.nom_complet,
-                nom_raison_sociale=org.nom_raison_sociale,
-                sigle=org.sigle,
-                caption=org.name,
-                type="organization",
+                **org.__dict__,
             )
 
-            self.log_graph_message(f"Found organization: {org.name}")
+        # Then, create all individual nodes
+        for individual in original_input:
+            individual_id = individual.full_name
+            if individual_id in processed_individuals:
+                continue
+            processed_individuals.add(individual_id)
+
+            # Create individual node
+            self.create_node(
+                "Individual",
+                "full_name",
+                individual_id,
+                **individual.__dict__,
+            )
+
+        # Finally, create relationships between all individuals and all organizations
+        for individual in original_input:
+            individual_id = individual.full_name
+            for org in results:
+                org_key = f"{org.name}_FR"
+                
+                # Create relationship between individual and organization
+                self.create_relationship(
+                    "Individual",
+                    "full_name",
+                    individual_id,
+                    "Organization",
+                    "org_id",
+                    org_key,
+                    "WORKS_FOR",
+                )
+
+        self.log_graph_message(
+            f"Created {len(results)} organizations and {len(original_input)} individuals with relationships"
+        )
 
         return results
 

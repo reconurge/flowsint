@@ -2,8 +2,9 @@ import { sketchService } from "@/api/sketch-service";
 import { useQuery } from "@tanstack/react-query";
 import ForceGraphViewer from "../graph-viewer";
 import Loader from "@/components/loader";
+import { memo } from "react";
 
-const NeighborsGraph = ({ sketchId, nodeId }: { sketchId: string, nodeId: string }) => {
+const NeighborsGraph = memo(({ sketchId, nodeId }: { sketchId: string, nodeId: string }) => {
 
     const { data: neighborsData, isLoading } = useQuery({
         queryKey: ['neighbors', sketchId, nodeId],
@@ -32,6 +33,6 @@ const NeighborsGraph = ({ sketchId, nodeId }: { sketchId: string, nodeId: string
                 </>}
         </div>
     )
-}
+})
 
 export default NeighborsGraph

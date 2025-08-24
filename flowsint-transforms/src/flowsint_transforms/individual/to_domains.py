@@ -24,7 +24,7 @@ class IndividualToDomainsScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "individual_to_domains_scanner"
+        return "individual_to_domains"
 
     @classmethod
     def category(cls) -> str:
@@ -98,7 +98,9 @@ class IndividualToDomainsScanner(Scanner):
             else:
                 Logger.info(
                     self.sketch_id,
-                    {"message": f"[WHOXY] No domain found for individual {individual.full_name}."},
+                    {
+                        "message": f"[WHOXY] No domain found for individual {individual.full_name}."
+                    },
                 )
         return domains
 
@@ -238,8 +240,7 @@ class IndividualToDomainsScanner(Scanner):
                 "individual",
                 "full_name",
                 individual.full_name,
-                caption=individual.full_name,
-                type="individual",
+                **individual.__dict__,
             )
 
             # Create domain node
@@ -247,9 +248,7 @@ class IndividualToDomainsScanner(Scanner):
                 "domain",
                 "domain",
                 domain_name,
-                label=domain_name,
-                caption=domain_name,
-                type="domain",
+                **domain.__dict__,
             )
 
             # Create relationship between individual and domain
@@ -297,13 +296,13 @@ class IndividualToDomainsScanner(Scanner):
         """Process a contact and create all related entities and relationships."""
 
         # Extract individual
-        contact_individual = self.__extract_individual_from_contact(contact, contact_type)
+        contact_individual = self.__extract_individual_from_contact(
+            contact, contact_type
+        )
         if not contact_individual:
             return
 
-        individual_id = (
-            f"{contact_individual.first_name}_{contact_individual.last_name}_{contact_individual.full_name}"
-        )
+        individual_id = f"{contact_individual.first_name}_{contact_individual.last_name}_{contact_individual.full_name}"
         if individual_id in processed_individuals:
             return
 
@@ -314,8 +313,7 @@ class IndividualToDomainsScanner(Scanner):
             "individual",
             "full_name",
             contact_individual.full_name,
-            caption=contact_individual.full_name,
-            type="individual",
+            **contact_individual.__dict__,
         )
 
         # Create relationship between individual and domain
@@ -351,8 +349,7 @@ class IndividualToDomainsScanner(Scanner):
                         "email",
                         "email",
                         email,
-                        caption=email,
-                        type="email",
+                        email=email,
                     )
 
                     # Create relationship between individual and email
@@ -377,8 +374,7 @@ class IndividualToDomainsScanner(Scanner):
                         "phone",
                         "number",
                         phone,
-                        caption=phone,
-                        type="phone",
+                        number=phone,
                     )
 
                     # Create relationship between individual and phone
@@ -406,8 +402,7 @@ class IndividualToDomainsScanner(Scanner):
                     "location",
                     "address",
                     address.address,
-                    caption=f"{address.address}, {address.city}",
-                    type="location",
+                    address=address,
                 )
 
                 # Create relationship between individual and address

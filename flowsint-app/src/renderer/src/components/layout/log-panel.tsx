@@ -16,7 +16,7 @@ import {
     FileText,
     Trash2,
 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, memo } from "react"
 import { CopyButton } from "../copy"
 import { EventLevel } from "@/types"
 import { cn } from "@/lib/utils"
@@ -97,7 +97,7 @@ const defaultConfig = {
     emoji: "📝",
 }
 
-export function LogPanel() {
+export const LogPanel = memo(() => {
     const { id: sketch_id } = useParams({ strict: false })
     const { confirm } = useConfirm()
     const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -191,4 +191,4 @@ export function LogPanel() {
             </div>
         </div>
     )
-}
+})

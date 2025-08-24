@@ -13,7 +13,7 @@ import NeighborsGraph from "./neighbors"
 import Relationships from "./relationships"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../../ui/resizable"
 
-export default function DetailsPanel({ node }: { node: GraphNode | null }) {
+const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
     const { id: sketchId } = useParams({ strict: false })
     if (!node) {
         return (
@@ -61,36 +61,38 @@ export default function DetailsPanel({ node }: { node: GraphNode | null }) {
                     <NodeActions node={node} />
                 </div>
             </div>
-            {node.data?.description && (
-                <div className="px-4 py-3 border-b border-border">
-                    <div
-                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: node.data.description }}
-                    />
-                </div>
-            )}
             <div className="flex-1 min-h-0">
                 <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={20} minSize={20}>
+                    <ResizablePanel defaultSize={15} minSize={20}>
                         <div className="h-full overflow-auto">
-                            <KeyValueDisplay data={node.data} />
+                            {node.data?.description && (
+                                <div className="px-4 py-3 border-b border-border">
+                                    <div
+                                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: node.data.description }}
+                                    />
+                                </div>
+                            )}
+                            <MemoizedKeyValueDisplay data={node.data} />
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={35} minSize={25}>
+                    <ResizablePanel defaultSize={40} minSize={25}>
                         <div className="h-full p-3">
                             <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={45} minSize={20}>
+                    <ResizablePanel defaultSize={35} minSize={20}>
                         <Relationships sketchId={sketchId as string} nodeId={node.id} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>
         </div>
     )
-}
+})
+
+export default DetailsPanel
 
 interface KeyValueDisplayProps {
     data: Record<string, any>
@@ -141,16 +143,3 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
 }
 
 export const MemoizedKeyValueDisplay = memo(KeyValueDisplay)
-
-const ItemHero = ({ node }: { node: GraphNode }) => {
-    const ItemIcon = useIcon(node.data.type, node.data.src)
-    return (
-        <div className="flex bg-card border-b items-center w-full justify-between p-4 gap-4">
-            <div className="truncate">
-                <p className="text-xl font-semibold truncate text-ellipsis">{node.data.label}</p>
-                <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{node.data.type}</p>
-            </div>
-            <ItemIcon size={50} />
-        </div>
-    )
-}

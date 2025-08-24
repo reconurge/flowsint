@@ -294,7 +294,7 @@ Check FlowSint logs for detailed resolution information.
                 domain_obj.domain,
                 type="domain",
             )
-            self.create_node("ip", "address", ip_obj.address, type="ip")
+            self.create_node("ip", "address", ip_obj.address, **ip_obj.__dict__)
             self.create_relationship(
                 "domain",
                 "domain",

@@ -8,7 +8,7 @@ from flowsint_core.core.logger import Logger
 
 
 class SherlockScanner(Scanner):
-    """Scans the usernames for associated social accounts using Sherlock."""
+    """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[SocialProfile]
@@ -16,7 +16,7 @@ class SherlockScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "sherlock_scanner"
+        return "username_to_socials"
 
     @classmethod
     def category(cls) -> str:

@@ -74,7 +74,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     const onNodeClick = useCallback((node: GraphNode) => {
         setCurrentNode(node)
         // setOpenNodeEditorModal(true)
-    }, [setCurrentNode, 
+    }, [setCurrentNode,
         // setOpenNodeEditorModal
     ])
 

@@ -15,7 +15,7 @@ import {
 import { useLayoutStore } from '@/stores/layout-store';
 
 
-const NodeActions = ({ node, setMenu }: { node: GraphNode, setMenu?: (menu: any | null) => void }) => {
+const NodeActions = memo(({ node, setMenu }: { node: GraphNode, setMenu?: (menu: any | null) => void }) => {
     const { id: sketchId } = useParams({ strict: false })
     const { confirm } = useConfirm();
     const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog)
@@ -140,6 +140,6 @@ const NodeActions = ({ node, setMenu }: { node: GraphNode, setMenu?: (menu: any 
             </TooltipProvider>
         </div>
     )
-}
+})
 
-export default memo(NodeActions)
+export default NodeActions

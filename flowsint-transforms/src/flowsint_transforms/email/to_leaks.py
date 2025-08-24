@@ -16,7 +16,7 @@ HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
 
 class EmailToBreachesScanner(Scanner):
-    """From email to breaches using Have I Been Pwned API."""
+    """[HIBPWNED] From email to breaches using Have I Been Pwned API."""
 
     InputType = List[Email]
     OutputType = List[tuple]  # List of (email, breach) tuples
@@ -62,7 +62,8 @@ class EmailToBreachesScanner(Scanner):
                 "name": "HIBP_API_KEY",
                 "type": "vaultSecret",
                 "description": "The HIBP API key to use for breaches lookup.",
-                "required": True,
+                "required": False,
+                "default": HIBP_API_KEY,
             },
             {
                 "name": "HIBP_API_URL",
@@ -192,7 +193,7 @@ class EmailToBreachesScanner(Scanner):
             if not self.neo4j_conn:
                 continue
             # Create email node
-            self.create_node("email", "email", email_obj.email, type="email")
+            self.create_node("email", "email", email_obj.email, **email_obj.__dict__)
             Logger.info(
                 self.sketch_id, {"message": f"Created email node: {email_obj.email}"}
             )

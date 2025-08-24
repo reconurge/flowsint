@@ -24,7 +24,7 @@ class EmailToDomainsScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "email_to_domains_scanner"
+        return "email_to_domains"
 
     @classmethod
     def category(cls) -> str:

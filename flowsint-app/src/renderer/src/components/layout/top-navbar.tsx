@@ -1,15 +1,36 @@
-import { Button } from "@/components/ui/button"
-import { Settings } from "lucide-react"
 import { Command } from "../command"
 import { NavUser } from "../nav-user"
 import { Link, useParams } from "@tanstack/react-router"
 import InvestigationSelector from "./investigation-selector"
 import SketchSelector from "./sketch-selector"
-import { useEffect, useState } from "react"
+import { useEffect, useState, memo, useCallback } from "react"
+import { Switch } from "../ui/switch"
+import { Label } from "../ui/label"
+import { useLayoutStore } from "@/stores/layout-store"
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Ellipsis } from "lucide-react"
 
-export function TopNavbar() {
-    const { investigationId, id } = useParams({ strict: false })
+export const TopNavbar = memo(() => {
+    const { investigationId, id, type } = useParams({ strict: false })
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
+    const isOpenAnalysis = useLayoutStore(s => s.isOpenAnalysis)
+
+    const handleToggleAnalysis = useCallback(() => toggleAnalysis(), [toggleAnalysis])
 
     useEffect(() => {
         const checkWindowState = async () => {
@@ -18,7 +39,7 @@ export function TopNavbar() {
                 setIsFullscreen(windowState.isFullscreen)
             } catch (error) {
                 console.error('Failed to get window state:', error)
-                setIsFullscreen(false)
+                setIsFullscreen(true)
             }
         }
         checkWindowState()
@@ -49,12 +70,80 @@ export function TopNavbar() {
             <div className="grow flex items-center justify-center">
                 <Command />
             </div>
-            <div className="flex items-center gap-2 -webkit-app-region-no-drag">
-                <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5 opacity-60" />
-                </Button>
+            <div className="flex items-center gap-4 -webkit-app-region-no-drag">
+                <div className="flex items-center space-x-2">
+                    {type === "graph" &&
+                        <>
+                            <Switch checked={isOpenAnalysis} onCheckedChange={handleToggleAnalysis} id="notes" />
+                            <Label htmlFor="notes">Toggle notes</Label>
+                        </>
+                    }
+                </div>
+                <InvestigationMenu />
                 <NavUser />
             </div>
         </header>
+    )
+})
+
+
+export function InvestigationMenu() {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <div>
+                    <Button size="icon" variant="ghost"><Ellipsis /></Button>
+                </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        Profile
+                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        Billing
+                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        Settings
+                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        Keyboard shortcuts
+                        <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>Team</DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem>Email</DropdownMenuItem>
+                                <DropdownMenuItem>Message</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>More...</DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuItem>
+                        New Team
+                        <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>GitHub</DropdownMenuItem>
+                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem disabled>API</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Log out
+                    <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }

@@ -9,6 +9,8 @@ from flowsint_transforms.domain.to_ip import ResolveScanner
 from flowsint_transforms.domain.to_website import DomainToWebsiteScanner
 from flowsint_transforms.domain.to_root_domain import DomainToRootDomain
 from flowsint_transforms.domain.to_asn import DomainToAsnScanner
+from flowsint_transforms.domain.to_history import DomainToHistoryScanner
+
 
 # IP-related scanners
 from flowsint_transforms.email.to_domains import EmailToDomainsScanner
@@ -121,13 +123,14 @@ class TransformRegistry:
             return [
                 cls._create_scanner_metadata(scanner)
                 for scanner in cls._scanners.values()
+                if scanner.name() not in exclude
             ]
 
         return [
             cls._create_scanner_metadata(scanner)
             for scanner in cls._scanners.values()
             if scanner.input_schema()["type"].lower() in ["any", input_type_lower]
-            and scanner.name not in exclude
+            and scanner.name() not in exclude
         ]
 
 
@@ -141,6 +144,7 @@ TransformRegistry.register(WhoisScanner)
 TransformRegistry.register(DomainToWebsiteScanner)
 TransformRegistry.register(DomainToRootDomain)
 TransformRegistry.register(DomainToAsnScanner)
+TransformRegistry.register(DomainToHistoryScanner)
 
 # IP-related scanners
 TransformRegistry.register(GeolocationScanner)

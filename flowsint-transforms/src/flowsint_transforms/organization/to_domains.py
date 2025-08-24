@@ -26,7 +26,7 @@ class OrgToDomainsScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "org_to_domains_scanner"
+        return "org_to_domains"
 
     @classmethod
     def category(cls) -> str:

@@ -113,7 +113,7 @@ class WhoisScanner(Scanner):
                 continue
 
             # Create domain node
-            self.create_node("domain", "domain", whois_obj.domain, type="domain")
+            self.create_node("domain", "domain", whois_obj.domain, **whois_obj.__dict__)
 
             # Create whois node
             whois_key = f"{whois_obj.domain}_{self.sketch_id}"
@@ -173,7 +173,7 @@ class WhoisScanner(Scanner):
                 )
 
             if whois_obj.email:
-                self.create_node("email", "email", whois_obj.email.email, type="email")
+                self.create_node("email", "email", whois_obj.email.email, **whois_obj.email.__dict__)
                 self.create_relationship(
                     "whois",
                     "whois_id",

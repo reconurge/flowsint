@@ -8,7 +8,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { Button } from '../ui/button';
 import { useTheme } from '@/components/theme-provider'
 import { GRAPH_COLORS } from '../flows/scanner-data';
-import { Share2 } from 'lucide-react';
+import { Share2, Type } from 'lucide-react';
 
 function truncateText(text: string, limit: number = 16) {
     if (text.length <= limit)
@@ -23,7 +23,7 @@ interface GraphViewerProps {
     height?: number;
     nodeColors?: Record<string, string>;
     nodeSizes?: Record<string, number>;
-    onNodeClick?: (node: GraphNode) => void;
+    onNodeClick?: (node: GraphNode, event: MouseEvent) => void;
     onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void;
     onBackgroundClick?: () => void;
     showLabels?: boolean;
@@ -204,7 +204,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5
         , [nodes.length, currentZoom]);
 
-    // Optimized graph data transformation with proper memoization dependencies
+    // Memoized graph data transformation with proper memoization dependencies
     const graphData = useMemo(() => {
         // Transform nodes
         const transformedNodes = nodes.map(node => {
@@ -291,6 +291,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         };
     }, [nodes, edges, nodeColors, getSize, view]);
 
+
+
     // New function to determine which labels should be visible based on zoom and weight
     const getVisibleLabels = useMemo(() => {
         if (!showLabels) return new Set<string>();
@@ -317,32 +319,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         return new Set(visibleNodes.map(node => node.id));
     }, [graphData.nodes, currentZoom, showLabels]);
 
-    // Get current label layer info for display
-    const currentLabelLayer = useMemo(() => {
-        if (!showLabels) return null;
-        return CONSTANTS.LABEL_LAYERS.find(layer => currentZoom >= layer.minZoom);
-    }, [currentZoom, showLabels]);
-
-    // Get label count info for current layer
-    const labelInfo = useMemo(() => {
-        if (!currentLabelLayer || !showLabels) return null;
-
-        const totalNodes = graphData.nodes.length;
-        const visibleCount = getVisibleLabels.size;
-        const weightThreshold = currentLabelLayer.minWeight;
-
-        return {
-            visibleCount,
-            totalNodes,
-            weightThreshold,
-            zoomLevel: currentZoom,
-            layer: currentLabelLayer
-        };
-    }, [currentLabelLayer, showLabels, getVisibleLabels.size, graphData.nodes.length, currentZoom]);
-
     // Event handlers with proper memoization
-    const handleNodeClick = useCallback((node: any) => {
-        onNodeClick?.(node);
+    const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
+        onNodeClick?.(node, event);
     }, [onNodeClick]);
 
     const handleNodeRightClick = useCallback((node: any, event: MouseEvent) => {
@@ -408,6 +387,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         data: {
             label: string,
             connections: string
+            type: string
         } | null;
         visible: boolean;
     }>({
@@ -446,7 +426,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
                     // Adjust Y position if tooltip would go off-screen
                     if (y < tooltipHeight + 10) {
-                        y = screenCoords.y + 30; // Position below the node instead
+                        y = screenCoords.y + 100; // Position below the node instead
                     }
 
                     setTooltip({
@@ -454,6 +434,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                         y,
                         data: {
                             label,
+                            type: node.data.type,
                             connections: weight
                         },
                         visible: true
@@ -468,12 +449,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         }
         handleNodeHover(node);
     }, [handleNodeHover]);
-
-    // Remove mouse tracking since we don't need it anymore
-    // const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    // const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    //     setMousePosition({ x: event.clientX, y: event.clientY });
-    // }, []);
 
     const handleLinkHover = useCallback((link: any) => {
         // Throttle hover updates to max 60fps
@@ -835,9 +810,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 >
                     <div className="whitespace-pre-line truncate flex flex-col gap-1">
                         <span className='text-md font-semibold'>{tooltip.data?.label}</span>
-                        <span className='flex items-center gap-1'><Share2 className='h-3 w-3 opacity-60' /> connections: <span className='font-semibold'>{tooltip.data?.connections}</span></span>
+                        <span className='flex items-center gap-1'><span className='flex items-center gap-1 opacity-60'><Type className='h-3 w-3' /> type:</span> <span className='font-medium'>{tooltip.data?.type}</span></span>
+                        <span className='flex items-center gap-1'><span className='flex items-center gap-1 opacity-60'><Share2 className='h-3 w-3' /> connections:</span> <span className='font-medium'>{tooltip.data?.connections}</span></span>
                     </div>
-                </div>
+                </div >
             )}
             <ForceGraph2D
                 ref={graphRef}
@@ -870,7 +846,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 onNodeHover={handleNodeHoverWithTooltip}
                 onLinkHover={handleLinkHover}
             />
-        </div>
+        </div >
     );
 };
 

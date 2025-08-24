@@ -15,8 +15,9 @@ const GraphMain = () => {
     const [menu, setMenu] = React.useState<any>(null)
 
 
-    const handleNodeClick = useCallback((node: any) => {
-        toggleNodeSelection(node, false)
+    const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
+        const isMultiSelect = event.ctrlKey || event.shiftKey;
+        toggleNodeSelection(node, isMultiSelect)
     }, [toggleNodeSelection])
 
     const handleBackgroundClick = useCallback(() => {

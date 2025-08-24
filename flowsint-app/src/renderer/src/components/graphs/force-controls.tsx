@@ -20,18 +20,18 @@ const ForceControls = ({ children }: { children: React.ReactNode }) => {
 
     const quickControls = [
         {
-            key: 'chargeStrength',
-            label: 'Repulsion',
+            key: 'd3AlphaDecay',
+            label: 'Convergence',
             icon: <Zap className="w-3 h-3" />,
-        },
-        {
-            key: 'linkStrength',
-            label: 'Link Force',
-            icon: <Move className="w-3 h-3" />,
         },
         {
             key: 'd3VelocityDecay',
             label: 'Friction',
+            icon: <Move className="w-3 h-3" />,
+        },
+        {
+            key: 'cooldownTicks',
+            label: 'Simulation',
             icon: <Target className="w-3 h-3" />,
         }
     ];

@@ -65,7 +65,7 @@ class CryptoWalletAddressToNFTs(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "wallet_to_nfts"
+        return "cryptowallet_to_nfts"
 
     @classmethod
     def category(cls) -> str:

@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FileCode2, Search, Info, Star, Zap } from 'lucide-react';
 import { Transform, Flow } from '@/types';
 import { GraphNode } from '@/stores/graph-store';
@@ -190,9 +191,7 @@ export default function ContextMenu({
                                         </div>
                                         <div className='flex items-center gap-1'>
                                             <FavoriteButton isFavorite={false} />
-                                            <Button className='w-5 h-5' variant='ghost' size={"icon"}>
-                                                <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
-                                            </Button>
+                                            <InfoButton description={transform.description} />
                                         </div>
                                     </button>
                                 ))}
@@ -262,9 +261,7 @@ export default function ContextMenu({
                                         </div>
                                         <div className='flex items-center gap-1'>
                                             <FavoriteButton isFavorite={false} />
-                                            <Button className='w-5 h-5' variant='ghost' size={"icon"}>
-                                                <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
-                                            </Button>
+                                            <InfoButton description={flow.description} />
                                         </div>
                                     </button>
                                 ))}
@@ -298,3 +295,22 @@ const FavoriteButton = memo(({ isFavorite }: { isFavorite: boolean }) => {
         </Button>
     )
 })
+
+const InfoButton = ({ description }: { description?: string }) => {
+    if (!description) return null;
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div>
+                    <Button onClick={(e) => e.stopPropagation()} className='w-5 h-5' variant='ghost' size={"icon"}>
+                        <Info className='w-4 h-4 opacity-50' strokeWidth={1.5} />
+                    </Button>
+                </div>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p className="whitespace-pre-wrap">{description}</p>
+            </TooltipContent>
+        </Tooltip >
+    );
+};

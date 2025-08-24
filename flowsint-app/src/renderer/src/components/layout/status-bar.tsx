@@ -5,8 +5,9 @@ import { useLayoutStore } from "@/stores/layout-store"
 import Legend from "../graphs/legend"
 import { Link, useParams } from "@tanstack/react-router"
 import InfoDialog from "./info"
+import { memo } from "react"
 
-export function StatusBar() {
+export const StatusBar = memo(() => {
     const { id: sketch_id } = useParams({ strict: false })
     const isOpenConsole = useLayoutStore(s => s.isOpenConsole)
     const toggleConsole = useLayoutStore(s => s.toggleConsole)
@@ -43,4 +44,4 @@ export function StatusBar() {
             </div>
         </div >
     )
-}
+})

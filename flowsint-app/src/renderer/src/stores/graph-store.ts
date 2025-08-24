@@ -254,13 +254,20 @@ export const useGraphStore = create<GraphState>()(
                 const { selectedNodes, isCurrent } = get()
                 return selectedNodes.some((node) => node.id === nodeId) || isCurrent(nodeId)
             },
-            setCurrentNode: (node) => set({ currentNode: node }),
+            setCurrentNode: (node) => {
+                const { currentNode } = get()
+                // Only update if the node is actually different
+                if (currentNode?.id !== node?.id) {
+                    set({ currentNode: node })
+                }
+            },
             setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
             clearSelectedNodes: () => set({ selectedNodes: [], currentNode: null }),
             toggleNodeSelection: (node, multiSelect = false) => {
                 const { selectedNodes, currentNode } = get()
                 const isSelected = selectedNodes.some((n) => n.id === node.id)
                 let newSelected: GraphNode[]
+                let newCurrentNode = currentNode
 
                 if (multiSelect) {
                     newSelected = isSelected
@@ -268,12 +275,23 @@ export const useGraphStore = create<GraphState>()(
                         : [...selectedNodes, node]
                 } else {
                     newSelected = isSelected && selectedNodes.length === 1 ? [] : [node]
+                    // Only update currentNode if it's actually different
+                    if (!multiSelect) {
+                        newCurrentNode = isSelected ? null : node
+                    }
                 }
 
-                set({
-                    selectedNodes: newSelected,
-                    currentNode: multiSelect ? currentNode : (isSelected ? null : node),
-                })
+                // Only update if there are actual changes
+                const hasSelectionChanges = newSelected.length !== selectedNodes.length || 
+                    newSelected.some((n, i) => n.id !== selectedNodes[i]?.id)
+                const hasCurrentNodeChanges = newCurrentNode?.id !== currentNode?.id
+
+                if (hasSelectionChanges || hasCurrentNodeChanges) {
+                    set({
+                        selectedNodes: newSelected,
+                        currentNode: newCurrentNode,
+                    })
+                }
             },
 
             // === Relation ===
@@ -291,7 +309,16 @@ export const useGraphStore = create<GraphState>()(
             setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
 
             // === Action Type for Edit form ===
-            handleEdit: (node) => set({ currentNode: node, openNodeEditorModal: true }),
+            handleEdit: (node) => {
+                const { currentNode, openNodeEditorModal } = get()
+                // Only update if the node is actually different
+                if (currentNode?.id !== node.id) {
+                    set({ currentNode: node, openNodeEditorModal: true })
+                } else if (!openNodeEditorModal) {
+                    // Only open modal if it's not already open
+                    set({ openNodeEditorModal: true })
+                }
+            },
 
             // === Action Type for Form ===
             currentNodeType: null,

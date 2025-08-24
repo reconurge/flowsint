@@ -11,7 +11,7 @@ false_positives = ["LeagueOfLegends"]
 
 
 class MaigretScanner(Scanner):
-    """Scans usernames for associated social accounts using Maigret."""
+    """[MAIGRET] Scans usernames for associated social accounts using Maigret."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[SocialProfile]
@@ -19,7 +19,7 @@ class MaigretScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "maigret_scanner"
+        return "username_to_socials"
 
     @classmethod
     def category(cls) -> str:
@@ -159,7 +159,7 @@ class MaigretScanner(Scanner):
             )
 
             # Create username node
-            self.create_node("username", "username", profile.username, type="username")
+            self.create_node("username", "username", profile.username, username=profile.username)
 
             # Create relationship
             self.create_relationship(

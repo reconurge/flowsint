@@ -74,10 +74,10 @@ class DomainToRootDomain(Scanner):
                 continue
 
             # Create root domain node
-            self.create_node("domain", "domain", root_domain.domain, type="domain")
+            self.create_node("domain", "domain", root_domain.domain, **root_domain.__dict__)
 
             # Create original domain node
-            self.create_node("domain", "domain", original_domain.domain, type="domain")
+            self.create_node("domain", "domain", original_domain.domain, **original_domain.__dict__)
 
             # Create relationship from root domain to original domain
             self.create_relationship(

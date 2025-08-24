@@ -70,7 +70,7 @@ class CryptoWalletAddressToTransactions(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "wallet_to_transactions"
+        return "cryptowallet_to_transactions"
 
     @classmethod
     def category(cls) -> str:

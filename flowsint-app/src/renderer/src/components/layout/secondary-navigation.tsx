@@ -4,8 +4,9 @@ import GraphNavigation from "../graphs/graph-navigation"
 import TransformNavigation from "../flows/flow-navigation"
 import SketchList from "../investigations/sketch-list"
 import AnalysesList from "../analyses/analyses-list"
+import { memo } from "react"
 
-const SecondaryNavigation = () => {
+const SecondaryNavigation = memo(() => {
 
     const { id, investigationId, type } = useParams({ strict: false })
     const { pathname } = useLocation()
@@ -50,6 +51,6 @@ const SecondaryNavigation = () => {
     return (
         <div>secondary-navigation</div>
     )
-}
+})
 
 export default SecondaryNavigation

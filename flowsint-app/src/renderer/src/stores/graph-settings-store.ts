@@ -87,49 +87,7 @@ const DEFAULT_SETTINGS = {
         step: 1,
         description: "Number of simulation cycles to run in background before starting to render (improves initial layout)"
     },
-    // Additional Force Parameters
-    d3AlphaTarget: {
-        value: 0,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        description: "Target alpha value for the simulation (0 = stop, higher values = continuous motion)"
-    },
-    linkStrength: {
-        value: 1,
-        min: 0,
-        max: 2,
-        step: 0.1,
-        description: "Strength of the link force (higher = stronger connection between linked nodes)"
-    },
-    chargeStrength: {
-        value: -30,
-        min: -500,
-        max: 100,
-        step: 10,
-        description: "Strength of the charge force (negative = repulsion, positive = attraction)"
-    },
-    centerStrength: {
-        value: 1,
-        min: 0,
-        max: 2,
-        step: 0.1,
-        description: "Strength of the centering force (higher = stronger pull towards center)"
-    },
-    collisionRadius: {
-        value: 0,
-        min: 0,
-        max: 50,
-        step: 1,
-        description: "Collision radius for nodes (0 = no collision detection, higher = larger collision area)"
-    },
-    collisionStrength: {
-        value: 1,
-        min: 0,
-        max: 2,
-        step: 0.1,
-        description: "Strength of collision force (higher = stronger collision avoidance)"
-    }
+
 }
 
 type GraphSettingsStore = {
@@ -174,40 +132,34 @@ export const useGraphSettingsStore = create<GraphSettingsStore>()(
         // Force Presets Implementation
         getPresets: () => ({
             'Tight Clusters': {
-                chargeStrength: -10,
-                linkStrength: 2.5,
-                centerStrength: 1.5,
+                d3AlphaDecay: 0.1,
                 d3VelocityDecay: 0.8,
-                collisionRadius: 8
+                cooldownTicks: 300,
+                cooldownTime: 20000
             },
             'Compact Network': {
-                chargeStrength: -20,
-                linkStrength: 2.0,
-                centerStrength: 1.2,
+                d3AlphaDecay: 0.08,
                 d3VelocityDecay: 0.7,
-                collisionRadius: 5
+                cooldownTicks: 250,
+                cooldownTime: 18000
             },
             'Balanced Layout': {
-                chargeStrength: -40,
-                linkStrength: 1.5,
-                centerStrength: 1.0,
+                d3AlphaDecay: 0.06,
                 d3VelocityDecay: 0.6,
-                collisionRadius: 6
+                cooldownTicks: 200,
+                cooldownTime: 15000
             },
             'Loose Organic': {
-                chargeStrength: -80,
-                linkStrength: 1.0,
-                centerStrength: 0.8,
+                d3AlphaDecay: 0.04,
                 d3VelocityDecay: 0.4,
-                collisionRadius: 10
+                cooldownTicks: 150,
+                cooldownTime: 12000
             },
             'High Energy': {
-                chargeStrength: -60,
-                linkStrength: 1.2,
-                centerStrength: 0.5,
+                d3AlphaDecay: 0.02,
                 d3VelocityDecay: 0.3,
-                d3AlphaTarget: 0.1,
-                collisionRadius: 12
+                cooldownTicks: 100,
+                cooldownTime: 10000
             }
         }),
 

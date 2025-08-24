@@ -16,7 +16,7 @@ class OrgToAsnScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "org_to_asn_scanner"
+        return "org_to_asn"
 
     @classmethod
     def category(cls) -> str:

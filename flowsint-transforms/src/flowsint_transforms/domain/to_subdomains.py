@@ -124,7 +124,7 @@ class SubdomainScanner(Scanner):
                 )
 
                 # Create subdomain node
-                self.create_node("domain", "domain", subdomain, type="domain")
+                self.create_node("domain", "domain", subdomain, domain=subdomain)
 
                 # Create relationship from parent domain to subdomain
                 self.create_relationship(

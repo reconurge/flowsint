@@ -17,7 +17,7 @@ class AsnToCidrsScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "asn_to_cidrs_scanner"
+        return "asn_to_cidrs"
 
     @classmethod
     def category(cls) -> str:

@@ -18,7 +18,7 @@ class GeolocationScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "ip_to_geolocation_scanner"
+        return "ip_to_geolocation"
 
     @classmethod
     def category(cls) -> str:

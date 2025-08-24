@@ -105,17 +105,17 @@ class WebsiteToWebtrackersScanner(Scanner):
                 # Create tracker nodes and relationships
                 for tracker in trackers:
                     self.create_node(
-                        "tracker", 
+                        "webtracker", 
                         "tracker_id", 
                         tracker.tracker_id, 
                         caption=tracker.name, 
-                        type="tracker"
+                        type="webtracker"
                     )
                     self.create_relationship(
                         "website",
                         "url",
                         website_url,
-                        "tracker",
+                        "webtracker",
                         "tracker_id",
                         tracker.tracker_id,
                         "HAS_TRACKER",

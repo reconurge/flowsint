@@ -39,7 +39,7 @@ export default memo(SelectedItemsPanel)
 
 const SelectedNodeItem = memo(({ node, color }: { node: GraphNode, color: string }) => {
 
-    return (<Badge variant="secondary" className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5">
+    return (<Badge variant="outline" className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5">
         <span className='flex items-center gap-2 truncate text-ellipsis'>
             <span style={{ background: color }} className="w-2 h-2 rounded-full" />
             <span className='truncate text-ellipsis'>{node.data?.label || 'Unknown'}</span>
@@ -61,7 +61,7 @@ export const SelectedList = () => {
                     <SelectedNodeItem key={index} node={item} color={color} />
                 )
             })}
-            {remainingCount > 0 && <Badge variant="secondary" className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5">
+            {remainingCount > 0 && <Badge variant="outline" className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5">
                 <span className='flex items-center gap-2 truncate text-ellipsis'>
                     <span className='truncate text-ellipsis'>{remainingCount}+ other</span>
                 </span>

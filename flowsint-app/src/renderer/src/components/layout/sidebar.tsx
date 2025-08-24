@@ -15,6 +15,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "../ui/tooltip"
+import { memo } from "react"
 
 interface NavItem {
     icon: LucideIcon
@@ -22,7 +23,7 @@ interface NavItem {
     href?: string
 }
 
-export function Sidebar() {
+export const Sidebar = memo(() => {
     const togglePanel = useLayoutStore(s => s.togglePanel)
 
     const navItems: NavItem[] = [
@@ -86,4 +87,4 @@ export function Sidebar() {
             </div>
         </div>
     )
-}
+})

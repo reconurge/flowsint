@@ -134,17 +134,17 @@ class Scanner(ABC):
 
     def resolve_params(self) -> Dict[str, Any]:
         resolved = {}
-        Logger.warn(
+        Logger.debug(
             self.sketch_id, {"message": f"Params schema: {str(self.params_schema)}"}
         )
-        Logger.warn(self.sketch_id, {"message": f"Params: {str(self.params)}"})
-        Logger.warn(
+        Logger.debug(self.sketch_id, {"message": f"Params: {str(self.params)}"})
+        Logger.debug(
             self.sketch_id,
             {"message": f"Params schema length: {len(self.params_schema)}"},
         )
         i = 1
         for param in self.params_schema:
-            Logger.warn(self.sketch_id, {"message": f"Param {i}: {str(param)}"})
+            Logger.debug(self.sketch_id, {"message": f"Param {i}: {str(param)}"})
             i += 1
             if param["type"] == "vaultSecret":
                 # Check if the vault secret parameter is provided
@@ -356,17 +356,86 @@ class Scanner(ABC):
         if not self.neo4j_conn:
             return
 
-        properties["sketch_id"] = self.sketch_id
-        properties["label"] = properties.get("label", key_value)
+        # Serialize properties to handle nested Pydantic objects
+        serialized_properties = self._serialize_properties(properties)
 
-        set_clauses = [f"n.{prop} = ${prop}" for prop in properties.keys()]
-        params = {key_prop: key_value, **properties}
+        # Ensure all values are Neo4j-compatible primitive types
+        final_properties = {}
+        for key, value in serialized_properties.items():
+            if value is None:
+                final_properties[key] = ""
+            elif isinstance(value, (str, int, float, bool)):
+                final_properties[key] = "" if value == "None" else value
+            else:
+                # Convert any remaining complex types to strings
+                final_properties[key] = str(value)
+
+        final_properties["type"] = node_type.lower()
+        final_properties["sketch_id"] = self.sketch_id
+        final_properties["label"] = final_properties.get("label", key_value)
+
+        set_clauses = [f"n.{prop} = ${prop}" for prop in final_properties.keys()]
+        params = {key_prop: key_value, **final_properties}
 
         query = f"""
         MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
         SET {', '.join(set_clauses)}
         """
         self.neo4j_conn.query(query, params)
+
+    def _serialize_properties(self, properties: dict) -> dict:
+        """Convert properties to Neo4j-compatible values, handling nested Pydantic objects."""
+        serialized = {}
+
+        for key, value in properties.items():
+
+            if hasattr(value, "__dict__") and not isinstance(
+                value, (str, int, float, bool)
+            ):
+                # Handle Pydantic objects and other complex objects
+                if hasattr(value, "model_dump"):  # Pydantic v2
+                    # Flatten the Pydantic object into individual properties
+                    flattened = value.model_dump()
+                    for nested_key, nested_value in flattened.items():
+                        if nested_value is not None:
+                            serialized[f"{key}_{nested_key}"] = nested_value
+                elif hasattr(value, "dict"):  # Pydantic v1
+                    # Flatten the Pydantic object into individual properties
+                    flattened = value.dict()
+                    for nested_key, nested_value in flattened.items():
+                        if nested_value is not None:
+                            serialized[f"{key}_{nested_key}"] = nested_value
+                else:
+                    # For other objects, try to convert to dict or string
+                    try:
+                        flattened = value.__dict__
+                        for nested_key, nested_value in flattened.items():
+                            if nested_value is not None:
+                                serialized[f"{key}_{nested_key}"] = nested_value
+                    except:
+                        serialized[key] = str(value)
+            elif isinstance(value, list):
+                # Handle lists - convert all items to primitive types
+                serialized_list = []
+                for item in value:
+                    if hasattr(item, "__dict__") and not isinstance(
+                        item, (str, int, float, bool)
+                    ):
+                        # Convert complex objects to strings
+                        serialized_list.append(str(item))
+                    else:
+                        serialized_list.append(item)
+                serialized[key] = serialized_list
+            elif isinstance(value, dict):
+                # Handle dictionaries - flatten them
+                for dict_key, dict_value in value.items():
+                    if dict_value is not None:
+                        serialized[f"{key}_{dict_key}"] = dict_value
+            else:
+                # Keep primitive types as-is
+                serialized[key] = value
+
+        return serialized
 
     def create_relationship(
         self,

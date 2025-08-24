@@ -23,7 +23,7 @@ export default function RootLayout({ children }: LayoutProps) {
     const isOpenPanel = useLayoutStore(s => s.isOpenPanel)
     const isOpenAnalysis = useLayoutStore(s => s.isOpenAnalysis)
     const isOpenDetails = useLayoutStore(s => s.isOpenDetails)
-    const toggleDetails = useLayoutStore(s => s.toggleDetails)
+    const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
     const togglePanel = useLayoutStore(s => s.togglePanel)
     const closePanel = useLayoutStore(s => s.closePanel)
     const openPanel = useLayoutStore(s => s.openPanel)
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps) {
     useKeyboardShortcut({
         key: "l",
         ctrlOrCmd: true,
-        callback: toggleDetails
+        callback: toggleAnalysis
     })
     useKeyboardShortcut({
         key: "b",

@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils"
 import { useEffect, useState } from "react"
 
 type ShortcutOptions = {
@@ -8,13 +9,7 @@ type ShortcutOptions = {
     callback: () => void
 }
 export function useKeyboardShortcut(options: ShortcutOptions) {
-    const [isMac, setIsMac] = useState(false)
-    useEffect(() => {
-        // Détecte si l'utilisateur est sur Mac
-        if (typeof window !== "undefined") {
-            setIsMac(navigator.platform.toLowerCase().includes("mac"))
-        }
-    }, [])
+
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             const { key, ctrlKey, altKey, shiftKey, metaKey } = event

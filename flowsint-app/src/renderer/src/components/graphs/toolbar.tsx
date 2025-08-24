@@ -17,12 +17,10 @@ import {
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { cn, isMac } from "@/lib/utils"
 import ForceControls from './force-controls'
 import Filters from "./filters"
 import { useGraphStore } from "@/stores/graph-store"
-
-const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -122,7 +120,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
 
                 <ToolbarButton
                     icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                    tooltip={`Hierarchy (${isMac ? '⌘' : 'ctrl'}+Y)`}
+                    tooltip={`Hierarchy`}
                     disabled={["hierarchy"].includes(view)}
                     onClick={handleDagreLayoutTB}
                 />

@@ -7,7 +7,6 @@ import NodeActions from "../node-actions"
 import { GraphNode } from "@/stores/graph-store"
 import { Button } from "../../ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip"
-import { useIcon } from "@/hooks/use-icon"
 import { useParams } from "@tanstack/react-router"
 import NeighborsGraph from "./neighbors"
 import Relationships from "./relationships"
@@ -63,7 +62,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
             </div>
             <div className="flex-1 min-h-0">
                 <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={15} minSize={20}>
+                    <ResizablePanel defaultSize={30} minSize={20}>
                         <div className="h-full overflow-auto">
                             {node.data?.description && (
                                 <div className="px-4 py-3 border-b border-border">
@@ -83,7 +82,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={35} minSize={20}>
+                    <ResizablePanel defaultSize={30} minSize={20}>
                         <Relationships sketchId={sketchId as string} nodeId={node.id} />
                     </ResizablePanel>
                 </ResizablePanelGroup>

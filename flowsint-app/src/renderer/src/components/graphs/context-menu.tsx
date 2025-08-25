@@ -190,7 +190,7 @@ export default function ContextMenu({
                                             )}
                                         </div>
                                         <div className='flex items-center gap-1'>
-                                            <FavoriteButton isFavorite={false} />
+                                            {/* <FavoriteButton isFavorite={false} /> */}
                                             <InfoButton description={transform.description} />
                                         </div>
                                     </button>
@@ -260,7 +260,7 @@ export default function ContextMenu({
                                             )}
                                         </div>
                                         <div className='flex items-center gap-1'>
-                                            <FavoriteButton isFavorite={false} />
+                                            {/* <FavoriteButton isFavorite={false} /> */}
                                             <InfoButton description={flow.description} />
                                         </div>
                                     </button>

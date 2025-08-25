@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Union
 from flowsint_core.core.scanner_base import Scanner
 from flowsint_core.utils import is_valid_number
 from flowsint_core.core.logger import Logger
+from flowsint_types.phone import Phone
 import httpx
 
 
@@ -26,11 +27,16 @@ class IgnorantScanner(Scanner):
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
-        for item in data:
-            if isinstance(item, str):
-                cleaned.append(item)
-            elif isinstance(item, dict) and "number" in item:
-                cleaned.append(item["number"])
+        for number in data:
+            email_obj = None
+            if isinstance(number, str):
+                email_obj = Phone(number=number)
+            elif isinstance(number, dict) and "number" in number:
+                email_obj = Phone(number=number["number"])
+            elif isinstance(number, Phone):
+                email_obj = number
+            if email_obj:
+                cleaned.append(email_obj)
         return cleaned
 
     async def scan(self, data: InputType) -> OutputType:

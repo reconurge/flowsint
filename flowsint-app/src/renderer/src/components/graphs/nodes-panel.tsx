@@ -90,8 +90,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
     const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
     const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
-    const filters = useGraphStore(s => s.filters);
-    const setFilters = useGraphStore(s => s.setFilters);
+    const [filters, setFilters] = useState<string[] | null>(null)
     const { actionItems } = useActionItems()
 
     // Ref pour le conteneur parent du virtualizer

@@ -90,12 +90,12 @@ const ChatItem = ({ chat, confirm, deleteChatMutation, switchToChat }: { chat: C
         }
     }, [])
     return (
-        <button onClick={() => switchToChat(chat.id)} className='flex w-full cursor-pointer justify-between items-center bg-muted-foreground/5 backdrop-blur-sm rounded-xl p-2 px-4 hover:bg-muted-foreground/10 transition-all duration-300'>
-            <div className='flex items-start flex-col justify-between'>
-                <span className='font-semibold text-md'>{chat.title}</span>
+        <button onClick={() => switchToChat(chat.id)} className='flex w-full cursor-pointer justify-start items-center bg-muted-foreground/5 backdrop-blur-sm rounded-xl p-2 px-4 hover:bg-muted-foreground/10 transition-all duration-300'>
+            <div className='flex items-start flex-col justify-between min-w-0 flex-1 overflow-hidden'>
+                <span className='font-semibold text-md truncate text-left w-full'>{chat.title}</span>
                 <span className='font-normal text-xs'>{formatDistanceToNow(chat.last_updated_at, { addSuffix: true })}</span>
             </div>
-            <div className='flex items-center justify-between'>
+            <div className='flex items-center justify-between flex-shrink-0 ml-2'>
                 <Button variant="ghost" size="icon" className='h-6 w-6' onClick={handleDeleteChat}>
                     <Trash className='h-3 w-3' />
                 </Button>

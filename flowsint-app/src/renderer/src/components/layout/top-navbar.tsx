@@ -1,5 +1,4 @@
 import { Command } from "../command"
-import { NavUser } from "../nav-user"
 import { Link, useParams } from "@tanstack/react-router"
 import InvestigationSelector from "./investigation-selector"
 import SketchSelector from "./sketch-selector"
@@ -14,16 +13,13 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuPortal,
     DropdownMenuSeparator,
     DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Ellipsis } from "lucide-react"
 import { isMac } from "@/lib/utils"
+import { useGraphGeneralSettingsStore } from "@/stores/graph-general-store"
 
 export const TopNavbar = memo(() => {
     const { investigationId, id, type } = useParams({ strict: false })
@@ -80,8 +76,8 @@ export const TopNavbar = memo(() => {
                         </>
                     }
                 </div>
-                <InvestigationMenu />
-                <NavUser />
+                {id && <InvestigationMenu />}
+                {/* <NavUser /> */}
             </div>
         </header>
     )
@@ -89,6 +85,9 @@ export const TopNavbar = memo(() => {
 
 
 export function InvestigationMenu() {
+    const setSettingsModalOpen = useGraphGeneralSettingsStore(s => s.setSettingsModalOpen)
+    const setKeyboardShortcutsOpen = useGraphGeneralSettingsStore(s => s.setKeyboardShortcutsOpen)
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -99,20 +98,16 @@ export function InvestigationMenu() {
             <DropdownMenuContent className="w-56" align="start">
                 <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        General
+                    <DropdownMenuItem onClick={() => setSettingsModalOpen(true)}>
+                        Preferences
                         <DropdownMenuShortcut>⌘G</DropdownMenuShortcut>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        Preferences
-                        <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setKeyboardShortcutsOpen(true)}>
                         Keyboard shortcuts
                         <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem>Team</DropdownMenuItem>
                     <DropdownMenuSub>
@@ -130,10 +125,10 @@ export function InvestigationMenu() {
                         New Team
                         <DropdownMenuShortcut>⌘T</DropdownMenuShortcut>
                     </DropdownMenuItem>
-                </DropdownMenuGroup>
+                </DropdownMenuGroup> */}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>GitHub</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem><a href="https://github.com/reconurge">GitHub</a></DropdownMenuItem>
+                <DropdownMenuItem><a href="https://github.com/reconurge">Support</a></DropdownMenuItem>
                 <DropdownMenuItem disabled>API</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">

@@ -1,5 +1,5 @@
 import { createFileRoute, useLoaderData } from '@tanstack/react-router'
-import GraphPanel from '@/components/graphs/graph-panel'
+import GraphPanel from '@/components/graphs'
 import { sketchService } from '@/api/sketch-service'
 import { useQuery } from '@tanstack/react-query'
 import Loader from '@/components/loader'

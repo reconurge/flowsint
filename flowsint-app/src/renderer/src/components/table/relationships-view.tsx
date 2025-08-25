@@ -58,14 +58,13 @@ function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItem
                     </div>
 
                     {/* Relationship Arrow */}
-                    <div className="flex items-center gap-2 px-2 flex-shrink-0 min-w-0">
-                        <div className="flex items-center gap-2  px-2 py-1 rounded-full min-w-0">
-                            <Badge variant="secondary" className="text-xs font-medium truncate">
-                                <span className="truncate">
-                                    {relationship.edge.label}
-                                </span>
-                                <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            </Badge>
+                    <div className="flex items-center justify-center px-2 flex-shrink-0 min-w-0 grow">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="h-px bg-muted-foreground/30 flex-1"></div>
+                            <span className="px-2 py-1 bg-muted/50 rounded-sm truncate">
+                                {relationship.edge.label}
+                            </span>
+                            <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
                         </div>
                     </div>
 

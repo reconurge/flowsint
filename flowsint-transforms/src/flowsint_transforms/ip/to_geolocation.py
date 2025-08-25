@@ -10,7 +10,7 @@ OutputType: TypeAlias = List[Ip]
 
 
 class GeolocationScanner(Scanner):
-    """Get geolocation data for IP addresses."""
+    """[ip-api.com] Get geolocation data for IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Ip]

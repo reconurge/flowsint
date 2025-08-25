@@ -1,5 +1,4 @@
 import {
-    Fingerprint,
     Home,
     Lock,
     type LucideIcon,
@@ -16,6 +15,8 @@ import {
     TooltipTrigger,
 } from "../ui/tooltip"
 import { memo } from "react"
+import { isMac } from "@/lib/utils"
+import { NavUser } from "../nav-user"
 
 interface NavItem {
     icon: LucideIcon
@@ -78,12 +79,24 @@ export const Sidebar = memo(() => {
                 })}
             </div>
             <div className="grow"></div>
-            <div className="flex justify-center items-center p-3">
-                <Button variant={"ghost"} onClick={togglePanel}>
-                    <PanelLeft
-                        className={`h-12 w-12 transition-transform duration-200`}
-                    />
-                </Button>
+            <div className="flex flex-col justify-center items-center p-3 gap-4">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div>
+                                <Button variant={"ghost"} onClick={togglePanel}>
+                                    <PanelLeft
+                                        className={`h-12 w-12 transition-transform duration-200`}
+                                    />
+                                </Button>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                            Toggle panel<span className="text-[.7rem] ml-1 opacity-60">({isMac ? '⌘' : 'ctrl'}B)</span>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                <NavUser />
             </div>
         </div>
     )

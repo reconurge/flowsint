@@ -26,7 +26,7 @@ export type InvestigationGraph = {
   edges: Edge[];
 };
 
-export type Setting = {
+export type ForceGraphSetting = {
   value: any,
   min?: number,
   max?: number,
@@ -35,6 +35,12 @@ export type Setting = {
   description?: string,
 }
 
+export type GeneralSetting = {
+  value: any,
+  options?: any[]
+  description?: string,
+}
+
 export type Settings = {
-  [key: string]: Setting,
+  [key: string]: ForceGraphSetting | GeneralSetting,
 }

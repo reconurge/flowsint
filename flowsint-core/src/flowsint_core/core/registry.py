@@ -11,14 +11,11 @@ from flowsint_transforms.domain.to_root_domain import DomainToRootDomain
 from flowsint_transforms.domain.to_asn import DomainToAsnScanner
 from flowsint_transforms.domain.to_history import DomainToHistoryScanner
 
-
 # IP-related scanners
 from flowsint_transforms.email.to_domains import EmailToDomainsScanner
 from flowsint_transforms.individual.to_domains import IndividualToDomainsScanner
 from flowsint_transforms.ip.to_domain import ReverseResolveScanner
 from flowsint_transforms.ip.to_geolocation import GeolocationScanner
-
-
 from flowsint_transforms.ip.to_asn import IpToAsnScanner
 
 # ASN-related scanners
@@ -51,6 +48,9 @@ from flowsint_transforms.website.to_webtrackers import WebsiteToWebtrackersScann
 # Email-related scanners
 from flowsint_transforms.email.to_gravatar import EmailToGravatarScanner
 from flowsint_transforms.email.to_leaks import EmailToBreachesScanner
+
+# Phone-related scanners
+from flowsint_transforms.phone.to_leaks import PhoneToBreachesScanner
 
 # Individual-related scanners
 from flowsint_transforms.individual.to_org import IndividualToOrgScanner
@@ -178,6 +178,9 @@ TransformRegistry.register(WebsiteToText)
 TransformRegistry.register(EmailToGravatarScanner)
 TransformRegistry.register(EmailToBreachesScanner)
 TransformRegistry.register(EmailToDomainsScanner)
+
+# Phone-related scanners
+TransformRegistry.register(PhoneToBreachesScanner)
 
 # Individual-related scanners
 TransformRegistry.register(IndividualToOrgScanner)

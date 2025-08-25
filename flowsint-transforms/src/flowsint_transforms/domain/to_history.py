@@ -5,6 +5,7 @@ from typing import Any, List, Union, Dict, Set
 from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
+from flowsint_types.organization import Organization
 from flowsint_core.utils import is_valid_domain, is_root_domain
 from flowsint_types.address import PhysicalAddress
 from flowsint_core.core.logger import Logger
@@ -59,6 +60,7 @@ class DomainToHistoryScanner(Scanner):
         domains: OutputType = []
         self._extracted_data = []  # Store all extracted data for postprocess
         self._extracted_individuals = []  # Store extracted individuals for testing
+        self._extracted_organizations = []  # Store extracted organizations for testing
 
         for domain in data:
             infos_data = self.__get_infos_from_whoxy(domain.domain)
@@ -111,12 +113,12 @@ class DomainToHistoryScanner(Scanner):
         return domains
 
     def __process_contacts_during_scan(self, extracted_info: Dict[str, Any]):
-        """Process contacts and extract individuals during scan method."""
+        """Process contacts and extract individuals and organizations during scan method."""
         domain_name = extracted_info["domain"].domain
         contacts = extracted_info["contacts"]
 
         for contact_type, contact in contacts.items():
-            if contact and self.__has_non_redacted_info(contact):
+            if contact:
                 Logger.info(
                     self.sketch_id,
                     {
@@ -124,7 +126,7 @@ class DomainToHistoryScanner(Scanner):
                     },
                 )
 
-                # Extract individual
+                # Extract individual (if name is not redacted)
                 individual = self.__extract_individual_from_contact(
                     contact, contact_type
                 )
@@ -145,18 +147,36 @@ class DomainToHistoryScanner(Scanner):
                             "message": f"[WHOXY] Extracted individual: {individual.full_name} ({contact_type}) for {domain_name}"
                         },
                     )
-                else:
+
+                # Extract organization (if company name is not redacted)
+                organization = self.__extract_organization_from_contact(
+                    contact, contact_type
+                )
+                if organization:
+                    # Store the extracted organization for testing/debugging
+                    organization_info = {
+                        "organization": organization,
+                        "contact_type": contact_type,
+                        "domain_name": domain_name,
+                        "original_domain": extracted_info["original_domain"].domain,
+                        "contact_data": contact,
+                    }
+                    self._extracted_organizations.append(organization_info)
+
                     Logger.info(
                         self.sketch_id,
                         {
-                            "message": f"[WHOXY] Failed to extract individual from {contact_type} contact for {domain_name}"
+                            "message": f"[WHOXY] Extracted organization: {organization.name} ({contact_type}) for {domain_name}"
                         },
                     )
-            elif contact:
+
+                # Extract other non-redacted information (country, email, etc.)
+                self.__extract_additional_info_from_contact(contact, contact_type, domain_name, extracted_info["original_domain"].domain)
+            else:
                 Logger.info(
                     self.sketch_id,
                     {
-                        "message": f"[WHOXY] Skipping {contact_type} contact (all info redacted) for {domain_name}"
+                        "message": f"[WHOXY] No contact data for {contact_type} contact for {domain_name}"
                     },
                 )
 
@@ -193,30 +213,7 @@ class DomainToHistoryScanner(Scanner):
         # A record is valid if it has a domain name - we'll filter contacts individually later
         return True
 
-    def __has_non_redacted_info(self, contact: Dict[str, Any]) -> bool:
-        """Check if a contact has any non-redacted information."""
-        if not contact:
-            return False
 
-        # Check key fields for non-redacted information
-        fields_to_check = [
-            "full_name",
-            "email_address",
-            "phone_number",
-            "mailing_address",
-            "city_name",
-            "zip_code",
-            "country_name",
-        ]
-
-        for field in fields_to_check:
-            value = contact.get(field, "")
-            if value and not self.__is_redacted(value):
-                return True
-
-        return False
-
-        return False
 
     def __is_redacted(self, value: str) -> bool:
         """Check if a value is redacted."""
@@ -230,11 +227,11 @@ class DomainToHistoryScanner(Scanner):
         """Extract individual information from contact data."""
         full_name = contact.get("full_name", "")
 
-        # Skip if name is redacted
-        if self.__is_redacted(full_name):
+        # Skip if name is redacted - we can't create an individual without a name
+        if self.__is_redacted(full_name) or not full_name:
             Logger.info(
                 self.sketch_id,
-                {"message": f"[WHOXY] Skipping redacted contact: {full_name}"},
+                {"message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"},
             )
             return None
 
@@ -322,6 +319,69 @@ class DomainToHistoryScanner(Scanner):
             address=address, city=city, zip=zip_code, country=country
         )
 
+    def __extract_organization_from_contact(
+        self, contact: Dict[str, Any], contact_type: str
+    ) -> Organization:
+        """Extract organization information from contact data."""
+        company_name = contact.get("company_name", "")
+
+        # Skip if company name is redacted or empty
+        if not company_name or self.__is_redacted(company_name):
+            return None
+
+        # Create organization object
+        organization = Organization(name=company_name)
+
+        Logger.info(
+            self.sketch_id,
+            {
+                "message": f"[WHOXY] Extracted organization: {company_name} ({contact_type})"
+            },
+        )
+
+        return organization
+
+    def __extract_additional_info_from_contact(
+        self, contact: Dict[str, Any], contact_type: str, domain_name: str, original_domain: str
+    ):
+        """Extract additional non-redacted information from contact data."""
+        # Extract country information
+        country_name = contact.get("country_name", "")
+        country_code = contact.get("country_code", "")
+        
+        if country_name and not self.__is_redacted(country_name):
+            Logger.info(
+                self.sketch_id,
+                {
+                    "message": f"[WHOXY] Found country: {country_name} ({contact_type}) for {domain_name}"
+                },
+            )
+        
+        if country_code and not self.__is_redacted(country_code):
+            Logger.info(
+                self.sketch_id,
+                {
+                    "message": f"[WHOXY] Found country code: {country_code} ({contact_type}) for {domain_name}"
+                },
+            )
+
+        # Extract email (even if individual name is redacted)
+        email_raw = contact.get("email_address", "")
+        if email_raw and not self.__is_redacted(email_raw):
+            emails = []
+            email_list = [e.strip() for e in email_raw.split(",")]
+            for email in email_list:
+                if email and self.__is_valid_email(email):
+                    emails.append(email)
+            
+            if emails:
+                Logger.info(
+                    self.sketch_id,
+                    {
+                        "message": f"[WHOXY] Found emails: {emails} ({contact_type}) for {domain_name}"
+                    },
+                )
+
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
@@ -341,6 +401,7 @@ class DomainToHistoryScanner(Scanner):
         # Track processed entities to avoid duplicates
         processed_domains: Set[str] = set()
         processed_individuals: Set[str] = set()
+        processed_organizations: Set[str] = set()
         processed_emails: Set[str] = set()
         processed_phones: Set[str] = set()
         processed_addresses: Set[str] = set()
@@ -505,10 +566,83 @@ class DomainToHistoryScanner(Scanner):
                 f"Processed individual {individual.full_name} ({contact_type}) for domain {domain_name}"
             )
 
+        # Process extracted organizations
+        for organization_info in self._extracted_organizations:
+            organization = organization_info["organization"]
+            contact_type = organization_info["contact_type"]
+            domain_name = organization_info["domain_name"]
+            original_domain_name = organization_info["original_domain"]
+
+            Logger.info(
+                self.sketch_id,
+                {
+                    "message": f"[WHOXY] Processing organization: {organization.name} ({contact_type}) for {domain_name}"
+                },
+            )
+
+            # Create domain node if not already processed
+            if domain_name not in processed_domains:
+                processed_domains.add(domain_name)
+                Logger.info(
+                    self.sketch_id,
+                    {"message": f"[WHOXY] Creating domain node: {domain_name}"},
+                )
+                self.create_node(
+                    "domain",
+                    "domain",
+                    domain_name,
+                    label=domain_name,
+                    caption=domain_name,
+                    type="domain",
+                )
+
+                # Create relationship between original domain and found domain
+                self.create_relationship(
+                    "domain",
+                    "domain",
+                    original_domain_name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    "HAS_RELATED_DOMAIN",
+                )
+
+            # Create organization node if not already processed
+            if organization.name not in processed_organizations:
+                processed_organizations.add(organization.name)
+                Logger.info(
+                    self.sketch_id,
+                    {
+                        "message": f"[WHOXY] Creating organization node: {organization.name}"
+                    },
+                )
+                self.create_node(
+                    "organization",
+                    "name",
+                    organization.name,
+                    caption=organization.name,
+                    type="organization",
+                )
+
+                # Create relationship between organization and domain
+                self.create_relationship(
+                    "organization",
+                    "name",
+                    organization.name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    f"IS_{contact_type.upper()}_CONTACT",
+                )
+
+            self.log_graph_message(
+                f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"
+            )
+
         Logger.info(
             self.sketch_id,
             {
-                "message": f"[WHOXY] Postprocess completed. Processed {len(processed_individuals)} individuals"
+                "message": f"[WHOXY] Postprocess completed. Processed {len(processed_individuals)} individuals and {len(processed_organizations)} organizations"
             },
         )
 

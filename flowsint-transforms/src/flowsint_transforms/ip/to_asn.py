@@ -10,7 +10,7 @@ from flowsint_core.core.logger import Logger
 
 
 class IpToAsnScanner(Scanner):
-    """Takes an IP address and returns its corresponding ASN."""
+    """[ASNMAP] Takes an IP address and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Ip]

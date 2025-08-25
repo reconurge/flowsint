@@ -17,6 +17,7 @@ import MapPanel from '../map/map-panel'
 import NewActions from './add-item-dialog'
 import GraphSettings from './graph-settings'
 import GraphMain from './graph-main'
+import GlobalSettings, { KeyboardShortcuts } from './global-settings'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 const Graph = lazy(() => import('./graph'))
 // const Wall = lazy(() => import('./wall/wall'))
@@ -153,6 +154,8 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
             <CreateRelationDialog />
             <NodeEditorModal />
             <GraphSettings />
+            <GlobalSettings />
+            <KeyboardShortcuts />
         </div>
     )
 }

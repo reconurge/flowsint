@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MinimalTiptapEditor } from "@/components/analyses/editor"
 import { analysisService } from "@/api/analysis-service"
 import type { Analysis } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PlusIcon, Trash2, Save, ChevronDown, ChevronsRight, ExternalLink } from "lucide-react"
+import { PlusIcon, Trash2, Save, ChevronDown, ChevronsRight, ExternalLink, MoreVertical } from "lucide-react"
 import { toast } from "sonner"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { useConfirm } from "../use-confirm-dialog"
@@ -17,6 +17,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface AnalysisEditorProps {
     // Core data
@@ -71,16 +78,27 @@ export const AnalysisEditor = ({
     const [titleValue, setTitleValue] = useState("")
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
+    const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
 
     // Debounced save function
     const debouncedSave = useCallback(
         debounce(() => {
-            if (analysis && editorValue) {
+            if (analysis) {
+                setSaveStatus("saving")
                 saveMutation.mutate({})
             }
         }, 1000), // 1 second delay
-        [analysis, editorValue]
+        [analysis?.id]
     )
+
+    // Handle editor content changes
+    const handleEditorChange = useCallback((value: any) => {
+        setEditorValue(value)
+        if (analysis) {
+            setSaveStatus("unsaved")
+            debouncedSave()
+        }
+    }, [analysis?.id, debouncedSave])
 
     // Debounce function
     function debounce(func: Function, wait: number) {
@@ -132,10 +150,11 @@ export const AnalysisEditor = ({
                 return oldData.map(item => item.id === data.id ? data : item)
             })
             onAnalysisUpdate?.(data)
-            toast.success("Analysis saved !")
+            setSaveStatus("saved")
         },
         onError: (error) => {
             toast.error("Failed to save analysis: " + (error instanceof Error ? error.message : "Unknown error"))
+            setSaveStatus("unsaved")
         }
     })
 
@@ -194,6 +213,13 @@ export const AnalysisEditor = ({
         deleteMutation.mutate(analysis.id)
     }
 
+    const handleManualSave = () => {
+        if (analysis) {
+            setSaveStatus("saving")
+            saveMutation.mutate({})
+        }
+    }
+
     // Update editor content when analysis changes
     useEffect(() => {
         if (analysis) {
@@ -222,21 +248,25 @@ export const AnalysisEditor = ({
                 }
             }
             setTitleValue(analysis.title || "")
+            setSaveStatus("saved")
         } else {
             // Reset when no analysis is selected
             setEditorValue("")
             setTitleValue("")
+            setSaveStatus("saved")
             if (editor) {
                 editor.commands.setContent("")
             }
         }
     }, [analysis?.id, analysis?.content, analysis?.title, editor])
 
+
+
     useKeyboardShortcut({
         key: "s",
         ctrlOrCmd: true,
         callback: () => {
-            saveMutation.mutate({})
+            handleManualSave()
         },
     })
 
@@ -326,53 +356,75 @@ export const AnalysisEditor = ({
                         {/* Action buttons */}
                         {showActions && (
                             <div className="flex items-center gap-1">
-                                {analysis && type !== "analysis" && (
-                                    <Link to="/dashboard/investigations/$investigationId/$type/$id" params={{
-                                        investigationId: routeInvestigationId || investigationId,
-                                        type: "analysis",
-                                        id: analysis.id
-                                    }}>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            title="Open in Full Page"
-                                            className="h-8 w-8"
-                                        >
-                                            <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
-                                        </Button>
-                                    </Link>
-                                )}
-                                {type !== "analysis" &&
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        onClick={() => createMutation.mutate()}
-                                        disabled={createMutation.isPending}
-                                        title="New Analysis"
-                                        className="h-8 w-8"
-                                    >
-                                        <PlusIcon className="w-4 h-4" strokeWidth={1.5} />
-                                    </Button>}
                                 <Button
                                     size="icon"
                                     variant="ghost"
-                                    onClick={() => saveMutation.mutate({})}
+                                    onClick={handleManualSave}
                                     disabled={!analysis || saveMutation.isPending}
-                                    title="Save"
-                                    className="h-8 w-8"
+                                    title={saveStatus === "saved" ? "Saved" : saveStatus === "saving" ? "Saving..." : "Save"}
+                                    className="h-8 w-8 relative"
                                 >
                                     <Save className="w-4 h-4" strokeWidth={1.5} />
+                                    {saveStatus === "saved" && (
+                                        <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
+                                    )}
+                                    {saveStatus === "saving" && (
+                                        <div className="absolute top-1 right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                                    )}
+                                    {saveStatus === "unsaved" && (
+                                        <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                                    )}
                                 </Button>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={deleteAnalysis}
-                                    disabled={!analysis || deleteMutation.isPending}
-                                    title="Delete"
-                                    className="h-8 w-8"
-                                >
-                                    <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                                </Button>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <div>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-8 w-8"
+                                            >
+                                                <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                                            </Button>
+                                        </div>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {analysis && type !== "analysis" && (
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/dashboard/investigations/$investigationId/$type/$id" params={{
+                                                    investigationId: routeInvestigationId || investigationId,
+                                                    type: "analysis",
+                                                    id: analysis.id
+                                                }}>
+                                                    <ExternalLink className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                                                    Open in Full Page
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {type !== "analysis" && (
+                                            <DropdownMenuItem
+                                                onClick={() => createMutation.mutate()}
+                                                disabled={createMutation.isPending}
+                                            >
+                                                <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                                                New Analysis
+                                            </DropdownMenuItem>
+                                        )}
+                                        {analysis && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={deleteAnalysis}
+                                                    disabled={deleteMutation.isPending}
+                                                    variant="destructive"
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                                                    Delete Analysis
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         )}
                     </div>
@@ -387,7 +439,7 @@ export const AnalysisEditor = ({
                             key={analysis.id}
                             immediatelyRender={true}
                             value={editorValue}
-                            onChange={setEditorValue}
+                            onChange={handleEditorChange}
                             className="w-full h-full"
                             editorContentClassName="p-5 min-h-[300px]"
                             output="json"

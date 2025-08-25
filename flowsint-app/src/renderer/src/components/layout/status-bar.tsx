@@ -6,6 +6,7 @@ import Legend from "../graphs/legend"
 import { Link, useParams } from "@tanstack/react-router"
 import InfoDialog from "./info"
 import { memo } from "react"
+import { isMac } from "@/lib/utils"
 
 export const StatusBar = memo(() => {
     const { id: sketch_id } = useParams({ strict: false })
@@ -23,7 +24,7 @@ export const StatusBar = memo(() => {
                         onClick={toggleConsole}
                     >
                         <Terminal strokeWidth={1.4} className="h-3 w-3" />
-                        <span>Console {isOpenConsole ? '(Open)' : ''}</span>
+                        <span>Console {isOpenConsole ? '(Open)' : ''} <span className="text-[.7rem] opacity-60">({isMac ? '⌘' : 'ctrl'}D)</span></span>
                     </Button>}
             </div>
             <div className="flex-1"></div>

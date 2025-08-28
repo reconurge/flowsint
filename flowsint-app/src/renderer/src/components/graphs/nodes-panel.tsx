@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TypeBadge } from "@/components/type-badge"
 import { Search, FunnelPlus, XIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { useActionItems } from "@/hooks/use-action-items"
-import { cn, getAllNodeTypes } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,7 +16,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { GraphNode } from "@/stores/graph-store"
+import { GraphNode } from '@/types';
 import { Checkbox } from "@/components/ui/checkbox"
 
 const ITEM_HEIGHT = 40
@@ -28,11 +27,13 @@ const NodeRenderer = memo(
         setCurrentNode,
         onCheckboxChange,
         isNodeChecked,
+        isCurrent
     }: {
         node: any
         setCurrentNode: (node: GraphNode) => void
         onCheckboxChange: (node: GraphNode, checked: boolean) => void
         isNodeChecked: (nodeId: string) => boolean
+        isCurrent: (nodeId: string) => boolean
     }) => {
         const handleClick = useCallback(() => setCurrentNode(node), [node, setCurrentNode])
         const handleCheckboxChange = useCallback(
@@ -43,20 +44,19 @@ const NodeRenderer = memo(
         )
 
         return (
-            <div className="flex items-center overflow-hidden hover:bg-muted border-b h-full">
+            <div className={cn("flex items-center overflow-hidden hover:bg-muted/50 border-b h-full", isCurrent(node.id) && "bg-muted/70")}>
                 <div className="pl-2">
                     <Checkbox checked={isNodeChecked(node.id)} onCheckedChange={handleCheckboxChange} className="mr-1 border-border" />
                 </div>
-                <Button
-                    variant={"ghost"}
+                <button
                     className={cn(
-                        "flex-1 flex truncate mt-0 overflow-hidden items-center justify-start p-4 !py-5 rounded-none text-left border-l-2 border-l-transparent h-full",
+                        "flex-1 flex truncate mt-0 text-sm font-medium overflow-hidden duration-0 items-center justify-start p-4 !py-5 rounded-none text-left h-full",
                     )}
                     onClick={handleClick}
                 >
                     <div className="grow truncate text-ellipsis">{node?.data?.label}</div>
                     <TypeBadge type={node?.data?.type} />
-                </Button>
+                </button>
             </div>
         )
     },
@@ -67,17 +67,20 @@ const VirtualizedItem = memo(({
     node,
     setCurrentNode,
     onCheckboxChange,
-    isNodeChecked
+    isNodeChecked,
+    isCurrent
 }: {
     index: number
     node: GraphNode
     setCurrentNode: (node: GraphNode) => void
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
+    isCurrent: (nodeId: string) => boolean
 }) => {
     return (
         <NodeRenderer
             node={node}
+            isCurrent={isCurrent}
             setCurrentNode={setCurrentNode}
             onCheckboxChange={onCheckboxChange}
             isNodeChecked={isNodeChecked}
@@ -86,12 +89,14 @@ const VirtualizedItem = memo(({
 })
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?: boolean }) => {
+    const currentNode = useGraphStore((state) => state.currentNode)
     const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
     const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
     const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [filters, setFilters] = useState<string[] | null>(null)
-    const { actionItems } = useActionItems()
+
+    const types = useMemo(() => Array.from(new Set(nodes.map(n => n.data.type))), [nodes])
 
     // Ref pour le conteneur parent du virtualizer
     const parentRef = useRef<HTMLDivElement>(null)
@@ -143,6 +148,13 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
             return selectedNodes.some((node) => node.id === nodeId)
         },
         [selectedNodes],
+    )
+
+    const isCurrent = useCallback(
+        (nodeId: string) => {
+            return currentNode?.id === nodeId
+        },
+        [currentNode],
     )
 
     const handleCheckAll = useCallback(
@@ -226,7 +238,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                             <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>
                                 All
                             </DropdownMenuItem>
-                            {getAllNodeTypes(actionItems || []).map((type) => (
+                            {types.map((type: string) => (
                                 <DropdownMenuItem
                                     className={cn(filters?.includes(type) && "bg-primary/30")}
                                     key={type}
@@ -292,6 +304,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                                         <VirtualizedItem
                                             index={virtualItem.index}
                                             node={node}
+                                            isCurrent={isCurrent}
                                             setCurrentNode={setCurrentNode}
                                             onCheckboxChange={handleCheckboxChange}
                                             isNodeChecked={isNodeChecked}

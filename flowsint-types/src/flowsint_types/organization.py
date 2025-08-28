@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Any, Optional, List
 from .individual import Individual
-from .address import PhysicalAddress
+from .address import Location
 
 
 class Organization(BaseModel):
@@ -157,12 +157,12 @@ class Organization(BaseModel):
     siege_est_siege: Optional[bool] = Field(
         None, description="Siege is headquarters", title="Is Headquarters"
     )
-    siege_etat_adminiAnyatif: Optional[Any] = Field(
+    siege_etat_administratif: Optional[Any] = Field(
         None,
-        description="Siege adminiAnyative status",
-        title="Headquarters AdminiAnyative Status",
+        description="Siege administratif status",
+        title="Headquarters administratif Status",
     )
-    siege_geo_adresse: Optional[PhysicalAddress] = Field(
+    siege_geo_adresse: Optional[Location] = Field(
         None,
         description="Siege geocoded address",
         title="Headquarters Geocoded Address",

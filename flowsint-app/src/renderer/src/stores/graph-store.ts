@@ -1,25 +1,15 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { EdgeData, NodeData } from "@/types"
-import {
-    type Node,
-    type Edge,
-    type OnNodesChange,
-    type OnEdgesChange,
-    type OnConnect,
-    type Connection,
-    applyNodeChanges,
-    applyEdgeChanges
-} from "@xyflow/react"
+import type { GraphNode, GraphEdge, NodeData } from "@/types"
 import { type ActionItem } from "@/lib/action-items"
 
-export type GraphNode = Node<NodeData> & {
-    collapsed?: boolean;
-    hidden?: boolean;
-    x?: number;
-    y?: number;
+export type TypeFilter = {
+    type: string
+    checked: boolean
 }
-export type GraphEdge = Edge<EdgeData> & { caption?: string }
+export type Filters = {
+    types: TypeFilter[]
+}
 
 interface GraphState {
     // === Graph ===
@@ -35,17 +25,12 @@ interface GraphState {
     removeEdges: (edgeIds: string[]) => void
     updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
     updateNode: (nodeId: string, updates: Partial<NodeData>) => void
-    updateEdge: (edgeId: string, updates: Partial<EdgeData>) => void
-    onNodesChange: OnNodesChange
-    onEdgesChange: OnEdgesChange
-    onConnect: OnConnect
+    updateEdge: (edgeId: string, updates: Partial<GraphEdge>) => void
     reset: () => void
 
     // === Selection & Current ===
     currentNode: GraphNode | null
     selectedNodes: GraphNode[]
-    isCurrent: (nodeId: string) => boolean
-    isSelected: (nodeId: string) => boolean
     setCurrentNode: (node: GraphNode | null) => void
     setSelectedNodes: (nodes: GraphNode[]) => void
     clearSelectedNodes: () => void
@@ -74,8 +59,9 @@ interface GraphState {
     handleEdit: (node: GraphNode) => void
 
     // === Filters ===
-    filters: string[] | null
-    setFilters: (filters: string[] | null) => void
+    filters: Filters
+    setFilters: (filters: Filters) => void
+    toggleTypeFilter: (filter: TypeFilter) => void
 
     // === Collapse/Expand logic ===
     toggleCollapse: (nodeId: string) => void
@@ -88,14 +74,13 @@ interface GraphState {
 }
 
 // --- Helpers ---
-const computeFilteredNodes = (nodes: GraphNode[], filters: string[] | null): GraphNode[] => {
-    if (!filters || Object.keys(filters).length === 0) return nodes
-    return nodes.filter((node) => {
-        if (filters && Array.isArray(filters)) {
-            return filters.includes(node.data.type)
-        }
-        return true
-    })
+const computeFilteredNodes = (nodes: GraphNode[], filters: Filters): GraphNode[] => {
+    // types
+    const areAllToggled = filters.types.every(t => t.checked)
+    const areNoneToggled = filters.types.every(t => !t.checked)
+    if (areNoneToggled || areAllToggled) return nodes
+    const types = filters.types.filter(t => !t.checked).map(t => t.type)
+    return nodes.filter((node) => !types.includes(node.data.type))
 }
 
 const computeFilteredEdges = (edges: GraphEdge[], filteredNodes: GraphNode[]): GraphEdge[] => {
@@ -192,68 +177,16 @@ export const useGraphStore = create<GraphState>()(
             updateEdge: (edgeId, updates) => {
                 const { edges, nodes, filters } = get()
                 const updatedEdges = edges.map(edge =>
-                    edge.id === edgeId ? { ...edge, data: { ...edge.data, ...updates } as EdgeData } : edge
+                    edge.id === edgeId ? { ...edge, data: { ...edge, ...updates } as GraphEdge } : edge
                 )
                 const filteredNodes = computeFilteredNodes(nodes, filters)
                 const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
                 set({ edges: updatedEdges, filteredNodes, filteredEdges })
             },
 
-            onNodesChange: (changes) => {
-                const { nodes, edges, filters } = get()
-                const updatedNodes = applyNodeChanges(changes, nodes) as GraphNode[]
-                const filteredNodes = computeFilteredNodes(updatedNodes, filters)
-                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
-                set({ nodes: updatedNodes, filteredNodes, filteredEdges })
-            },
-
-            onEdgesChange: (changes) => {
-                const { edges, nodes, filters } = get()
-                const updatedEdges = applyEdgeChanges(changes, edges) as GraphEdge[]
-                const filteredNodes = computeFilteredNodes(nodes, filters)
-                const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
-                set({ edges: updatedEdges, filteredNodes, filteredEdges })
-            },
-
-            onConnect: (connection: Connection) => {
-                const { edges, nodes, filters } = get()
-                const edge: GraphEdge = {
-                    id: `${connection.source}-${connection.target}`,
-                    source: connection.source!,
-                    target: connection.target!,
-                    sourceHandle: connection.sourceHandle,
-                    targetHandle: connection.targetHandle,
-                }
-                const newEdges = [...edges, edge]
-                const filteredNodes = computeFilteredNodes(nodes, filters)
-                const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
-                set({ edges: newEdges, filteredNodes, filteredEdges })
-            },
-
-            reset: () => {
-                set({
-                    currentNode: null,
-                    selectedNodes: [],
-                    relatedNodeToAdd: null,
-                    openMainDialog: false,
-                    openFormDialog: false,
-                    openAddRelationDialog: false,
-                    openNodeEditorModal: false,
-                    currentNodeType: null,
-                    // filters: {},
-                    filteredNodes: get().nodes,
-                    filteredEdges: get().edges,
-                })
-            },
-
             // === Selection & Current ===
             currentNode: null,
             selectedNodes: [],
-            isCurrent: (nodeId) => get().currentNode?.id === nodeId,
-            isSelected: (nodeId) => {
-                const { selectedNodes, isCurrent } = get()
-                return selectedNodes.some((node) => node.id === nodeId) || isCurrent(nodeId)
-            },
             setCurrentNode: (node) => {
                 const { currentNode } = get()
                 // Only update if the node is actually different
@@ -282,7 +215,7 @@ export const useGraphStore = create<GraphState>()(
                 }
 
                 // Only update if there are actual changes
-                const hasSelectionChanges = newSelected.length !== selectedNodes.length || 
+                const hasSelectionChanges = newSelected.length !== selectedNodes.length ||
                     newSelected.some((n, i) => n.id !== selectedNodes[i]?.id)
                 const hasCurrentNodeChanges = newCurrentNode?.id !== currentNode?.id
 
@@ -333,12 +266,37 @@ export const useGraphStore = create<GraphState>()(
             },
 
             // === Filters ===
-            filters: [],
+            filters: {
+                types: [{
+                    type: "domain",
+                    checked: true
+                }, {
+                    type: "ip",
+                    checked: true
+                }, {
+                    type: "individual",
+                    checked: true
+                }]
+            },
             setFilters: (filters) => {
                 const { nodes, edges } = get()
                 const filteredNodes = computeFilteredNodes(nodes, filters)
                 const filteredEdges = computeFilteredEdges(edges, filteredNodes)
                 set({ filters, filteredNodes, filteredEdges })
+            },
+
+            toggleTypeFilter: (filter) => {
+                const { filters, nodes, edges } = get()
+                const newTypes = filters.types.map((f: TypeFilter) => {
+                    if (f.type === filter.type) return {
+                        type: f.type, checked: !f.checked
+                    }
+                    return f
+                })
+                const newFilters = { ...filters, types: newTypes }
+                const filteredNodes = computeFilteredNodes(nodes, newFilters)
+                const filteredEdges = computeFilteredEdges(edges, filteredNodes)
+                set({ filters: newFilters, filteredNodes, filteredEdges })
             },
 
             // === Collapse/Expand logic ===
@@ -380,23 +338,28 @@ export const useGraphStore = create<GraphState>()(
                 set({ nodes: newNodes, edges: newEdges, filteredNodes, filteredEdges })
             },
 
+            reset: () => {
+                set({
+                    currentNode: null,
+                    selectedNodes: [],
+                    relatedNodeToAdd: null,
+                    openMainDialog: false,
+                    openFormDialog: false,
+                    openAddRelationDialog: false,
+                    openNodeEditorModal: false,
+                    currentNodeType: null,
+                    filteredNodes: get().nodes,
+                    filteredEdges: get().edges,
+                })
+            },
+
             // === Utils ===
             nodesLength: 0,
             edgesLength: 0,
         }),
         {
             name: "graph-store",
-            partialize: (state) => ({ filters: state.filters }),
-            onRehydrateStorage: () => (state) => {
-                if (state) {
-                    // recalcul des nodes/edges filtrés après rehydratation
-                    const { nodes, edges, filters } = state
-                    const filteredNodes = computeFilteredNodes(nodes, filters)
-                    const filteredEdges = computeFilteredEdges(edges, filteredNodes)
-                    state.filteredNodes = filteredNodes
-                    state.filteredEdges = filteredEdges
-                }
-            },
+            partialize: (state) => ({ edgesLength: state.edgesLength }),
         }
     )
 )

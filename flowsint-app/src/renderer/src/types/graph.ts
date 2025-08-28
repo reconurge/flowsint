@@ -1,29 +1,38 @@
-import type { Edge, Node } from "@xyflow/react";
 
 export type NodeData = {
   id: string;
   type: string,
-  caption: string,
   label: string,
   created_at: string,
   // Allow any other properties
   [key: string]: any;
 };
 
-export type EdgeData = {
-  from: string;
-  to: string;
-  date: string;
+export type GraphNode = {
+  collapsed?: boolean;
+  hidden?: boolean;
+  x?: number;
+  y?: number;
+  nodeLabel?: string;
+  nodeColor?: string;
+  nodeSize?: number;
+  nodeType?: string;
+  val?: number;
+  neighbors?: any[];
+  links?: any[];
+  id: string;
+  data: NodeData
+}
+
+export type GraphEdge = {
+  source: string;
+  target: string;
+  date?: string;
   id: string;
   label: string;
   caption?: string;
-  type: string;
+  type?: string;
   confidence_level?: number | string
-};
-
-export type InvestigationGraph = {
-  nodes: Node[];
-  edges: Edge[];
 };
 
 export type ForceGraphSetting = {

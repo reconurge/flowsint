@@ -6,6 +6,7 @@ from flowsint_types.domain import Domain, Domain
 from flowsint_types.whois import Whois
 from flowsint_types.email import Email
 from flowsint_core.core.logger import Logger
+from datetime import datetime
 
 
 class WhoisScanner(Scanner):
@@ -117,6 +118,14 @@ class WhoisScanner(Scanner):
 
             # Create whois node
             whois_key = f"{whois_obj.domain}_{self.sketch_id}"
+            whois_label = f"Whois-{whois_obj.domain}"
+            # Creating unique label
+            date_format = "%Y-%m-%dT%H:%M:%S"
+            try:
+                year = datetime.strptime(whois_obj.creation_date, date_format).year
+                whois_label = f"{whois_label}-{year}"
+            except Exception:
+                continue
             self.create_node(
                 "whois",
                 "whois_id",
@@ -129,7 +138,7 @@ class WhoisScanner(Scanner):
                 creation_date=whois_obj.creation_date,
                 expiration_date=whois_obj.expiration_date,
                 email=whois_obj.email.email if whois_obj.email else None,
-                label="Whois",
+                label=whois_label,
                 type="whois",
             )
 
@@ -173,7 +182,9 @@ class WhoisScanner(Scanner):
                 )
 
             if whois_obj.email:
-                self.create_node("email", "email", whois_obj.email.email, **whois_obj.email.__dict__)
+                self.create_node(
+                    "email", "email", whois_obj.email.email, **whois_obj.email.__dict__
+                )
                 self.create_relationship(
                     "whois",
                     "whois_id",

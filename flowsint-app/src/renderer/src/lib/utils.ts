@@ -4,6 +4,7 @@ import Dagre from '@dagrejs/dagre';
 
 import { type Edge, Position, type Node } from '@xyflow/react';
 import * as d3 from "d3-force"
+import { GraphEdge, GraphNode } from '@/types';
 
 interface NodePosition {
   x: number;
@@ -196,8 +197,8 @@ export const getForceLayoutedElements = (
   }
 }
 
-export const getDagreLayoutedElements = (nodes: Node[],
-  edges: Edge[],
+export const getDagreLayoutedElements = (nodes: GraphNode[],
+  edges: GraphEdge[],
   options: LayoutOptions = {
     direction: "TB",
     strength: -300,
@@ -207,29 +208,21 @@ export const getDagreLayoutedElements = (nodes: Node[],
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: options.direction });
-
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
   nodes.forEach((node) =>
     g.setNode(node.id, {
       ...node,
-      targetPosition: options.direction === "LR" ? 'left' : 'top',
-      sourcePosition: options.direction === "LR" ? 'right' : 'bottom',
-      width: node.measured?.width ?? 0,
-      height: node.measured?.height ?? 0,
+      width: node.nodeSize ?? 0,
+      height: node.nodeSize ?? 0,
     }),
   );
-
   Dagre.layout(g);
-
   return {
     nodes: nodes.map((node) => {
       const position = g.node(node.id);
-      // We are shifting the dagre node position (anchor=center center) to the top left
-      // so it matches the React Flow node anchor point (top left).
-      const x = position.x - (node.measured?.width ?? 0) / 2;
-      const y = position.y - (node.measured?.height ?? 0) / 2;
-
-      return { ...node, position: { x, y } };
+      const x = position.x - (node.nodeSize ?? 0) / 2;
+      const y = position.y - (node.nodeSize ?? 0) / 2;
+      return { ...node, x, y };
     }),
     edges,
   };

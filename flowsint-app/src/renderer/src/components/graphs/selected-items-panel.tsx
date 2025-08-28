@@ -1,11 +1,12 @@
 import React, { memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, Sparkles, XIcon, Rocket } from 'lucide-react';
-import { GraphNode, useGraphStore } from '@/stores/graph-store';
+import { useGraphStore } from '@/stores/graph-store';
 import { useParams } from '@tanstack/react-router';
 import { useConfirm } from '@/components/use-confirm-dialog';
 import { toast } from 'sonner';
 import { sketchService } from '@/api/sketch-service';
+import { GraphNode } from '@/types';
 import {
     Tooltip,
     TooltipContent,
@@ -37,11 +38,10 @@ const SelectedItemsPanel = () => {
 export default memo(SelectedItemsPanel)
 
 
-const SelectedNodeItem = memo(({ node, color }: { node: GraphNode, color: string }) => {
+const SelectedNodeItem = memo(({ node }: { node: GraphNode, color: string }) => {
 
     return (<Badge variant="outline" className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5">
-        <span className='flex items-center gap-2 truncate text-ellipsis'>
-            <span style={{ background: color }} className="w-2 h-2 rounded-full" />
+        <span className='inline-flex items-center gap-2 truncate text-ellipsis'>
             <span className='truncate text-ellipsis'>{node.data?.label || 'Unknown'}</span>
         </span>
         <TypeBadge type={node?.data?.type} />
@@ -156,7 +156,7 @@ const ActionBar = () => {
                                     size={"sm"}
                                     className="rounded-full h-7"
                                 >
-                                    Launch ({selectedNodes.length}) <Rocket className="h-3 w-3" strokeWidth={2} />
+                                    <Rocket className="h-3 w-3" strokeWidth={2} />({selectedNodes.length})
                                 </Button>
                             </LaunchFlow>
                         </div>

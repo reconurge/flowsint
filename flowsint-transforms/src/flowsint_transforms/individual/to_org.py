@@ -81,12 +81,12 @@ class IndividualToOrgScanner(Scanner):
         try:
             # Extract siege data
             siege = company.get("siege", {})
-            # Create PhysicalAddress for siege_geo_adresse if coordinates exist
+            # Create Location for siege_geo_adresse if coordinates exist
             siege_geo_adresse = None
             if siege.get("latitude") and siege.get("longitude"):
-                from flowsint_types.address import PhysicalAddress
+                from flowsint_types.address import Location
 
-                siege_geo_adresse = PhysicalAddress(
+                siege_geo_adresse = Location(
                     address=siege.get("adresse", ""),
                     city=siege.get("libelle_commune", ""),
                     country="FR",  # SIRENE is French registry
@@ -149,7 +149,6 @@ class IndividualToOrgScanner(Scanner):
                 date_mise_a_jour_rne=company.get("date_mise_a_jour_rne"),
                 # Legal information
                 nature_juridique=company.get("nature_juridique"),
-                etat_administratif=company.get("etat_administratif"),
                 statut_diffusion=company.get("statut_diffusion"),
                 # Siege (Headquarters) information
                 siege_activite_principale=siege.get("activite_principale"),

@@ -1,0 +1,235 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Title of your investigation"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Include a clear title, your organization’s name, and the date."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 3
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Executive Summary"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "A snapshot of key findings and recommendations."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 3
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Introduction"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Define the scope and objectives."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 4
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Main Body"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        }
+                    ],
+                    "text": "Dive into the findings, broken into logical sections."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 4
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Analysis"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Highlight patterns, anomalies, and actionable insights."
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Conclusion and Recommendations"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Wrap up with a clear summary and next steps."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 4
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        },
+                        {
+                            "type": "bold"
+                        }
+                    ],
+                    "text": "Appendices"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "textStyle",
+                            "attrs": {
+                                "color": ""
+                            }
+                        }
+                    ],
+                    "text": "Include raw data or supporting documents if "
+                },
+                {
+                    "type": "text",
+                    "text": "needed."
+                }
+            ]
+        }
+    ]
+}

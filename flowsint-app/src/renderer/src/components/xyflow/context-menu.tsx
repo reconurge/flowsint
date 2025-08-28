@@ -1,8 +1,6 @@
 import React from 'react';
-import type { Node } from '@xyflow/react';
 
-interface ContextMenuProps<T extends Node = Node> {
-    node: T;
+interface ContextMenuProps {
     top?: number;
     left?: number;
     right?: number;
@@ -15,8 +13,8 @@ interface ContextMenuProps<T extends Node = Node> {
     rawLeft?: number;
 }
 
-export default function ContextMenu<T extends Node = Node>({
-    node,
+export default function ContextMenu({
+
     top,
     left,
     right,
@@ -27,7 +25,7 @@ export default function ContextMenu<T extends Node = Node>({
     rawLeft,
     children,
     ...props
-}: ContextMenuProps<T>) {
+}: ContextMenuProps) {
     // If raw position is provided, calculate overflow and adjust position
     let finalTop = top;
     let finalLeft = left;

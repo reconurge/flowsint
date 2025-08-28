@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, List
-from .address import PhysicalAddress
+from .address import Location
 
 
 class Individual(BaseModel):
@@ -30,7 +30,7 @@ class Individual(BaseModel):
     birth_date: Optional[str] = Field(
         None, description="Date of birth", title="Date of Birth"
     )
-    birth_place: Optional[PhysicalAddress] = Field(
+    birth_place: Optional[Location] = Field(
         None, description="Place of birth", title="Birth Place"
     )
     age: Optional[int] = Field(None, description="Current age", title="Age")
@@ -81,7 +81,7 @@ class Individual(BaseModel):
     death_date: Optional[str] = Field(
         None, description="Date of death (if applicable)", title="Death Date"
     )
-    death_place: Optional[PhysicalAddress] = Field(
+    death_place: Optional[Location] = Field(
         None, description="Place of death (if applicable)", title="Death Place"
     )
     cause_of_death: Optional[str] = Field(
@@ -102,10 +102,10 @@ class Individual(BaseModel):
     )
 
     # Location Information
-    current_address: Optional[PhysicalAddress] = Field(
+    current_address: Optional[Location] = Field(
         None, description="Current residential address", title="Current Address"
     )
-    previous_addresses: Optional[List[PhysicalAddress]] = Field(
+    previous_addresses: Optional[List[Location]] = Field(
         None, description="Previous known addresses", title="Previous Addresses"
     )
     nationality: Optional[str] = Field(
@@ -176,7 +176,7 @@ class Individual(BaseModel):
     employer: Optional[str] = Field(
         None, description="Current employer", title="Employer"
     )
-    employer_address: Optional[PhysicalAddress] = Field(
+    employer_address: Optional[Location] = Field(
         None, description="Employer's address", title="Employer Address"
     )
     job_title: Optional[str] = Field(

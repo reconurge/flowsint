@@ -1,69 +1,41 @@
-import { useCallback } from 'react';
 import { useGraphStore } from '@/stores/graph-store';
-import { useActionItems } from '@/hooks/use-action-items';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Button } from '../ui/button';
-import { XIcon } from 'lucide-react';
-import { cn, getAllNodeTypes } from '@/lib/utils';
-import { Badge } from '../ui/badge';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { Checkbox } from '../ui/checkbox';
+import { Separator } from '../ui/separator';
 
 const Filters = ({ children }: { children: React.ReactNode }) => {
     const filters = useGraphStore(s => s.filters);
-    const setFilters = useGraphStore(s => s.setFilters);
-    const { actionItems } = useActionItems()
-
-    const clearFilters = useCallback(() => {
-        setFilters(null)
-    }, [setFilters, filters])
-
-    const toggleFilter = useCallback((type: string | null) => {
-        if (type === null) {
-            clearFilters()
-        } else {
-            const currentTypeFilters = filters || []
-            const isChecked = currentTypeFilters.includes(type)
-            const newTypeFilters = isChecked ? currentTypeFilters.filter((t: string) => t !== type) : [...currentTypeFilters, type.toLowerCase()]
-            setFilters(newTypeFilters)
-        }
-    }, [setFilters, filters, clearFilters])
+    const toggleTypeFilter = useGraphStore(s => s.toggleTypeFilter);
 
     return (
-        <DropdownMenu>
-            <div>
-                <DropdownMenuTrigger asChild>
-                    <div>
-                        {children}
+        <Popover>
+            <PopoverTrigger asChild>
+                <div>
+                    {children}
+                </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                    <div className="space-y-2">
+                        <h4 className="leading-none font-medium">Filters</h4>
                     </div>
-                </DropdownMenuTrigger>
-            </div>
-            <DropdownMenuContent className="w-48 max-h-[50vh] space-y-1 overflow-y-auto">
-                <DropdownMenuLabel>
-                    {filters?.length ? (
-                        <Badge variant={"outline"} className="flex items-center gap-1 pr-1">
-                            {filters?.length} filter(s)
-                            <Button size={"icon"} variant={"ghost"} className="h-5 w-5 rounded-full" onClick={clearFilters}>
-                                <XIcon className="h-3 w-3" />
-                            </Button>
-                        </Badge>
-                    ) : (
-                        "filters"
-                    )}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className={cn(filters == null && "bg-primary")} onClick={() => toggleFilter(null)}>
-                    All
-                </DropdownMenuItem>
-                {getAllNodeTypes(actionItems || []).map((type) => (
-                    <DropdownMenuItem
-                        className={cn(filters?.includes(type.toLowerCase()) && "bg-primary/30")}
-                        key={type}
-                        onClick={() => toggleFilter(type)}
-                    >
-                        {type || "unknown"}
-                    </DropdownMenuItem>
-                ))}
-            </DropdownMenuContent>
-        </DropdownMenu>
+                    <Separator />
+                    <p className="text-muted-foreground text-sm">Filter by entity type</p>
+                    {filters.types.length === 0 ? <p className="text-muted-foreground text-sm">No filter to display.</p> :
+                        <ul className="grid grid-cols-2 gap-2">
+                            {filters.types.map((filter) => (
+                                <li>
+                                    <div className="flex items-center gap-1"><Checkbox checked={filter.checked} onCheckedChange={() => toggleTypeFilter(filter)} />{filter.type}</div>
+                                </li>
+                            ))}
+                        </ul>}
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 };
 

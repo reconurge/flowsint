@@ -1,6 +1,6 @@
 import { useLoaderData } from '@tanstack/react-router'
-import { useEffect, useRef, memo, useState, lazy, Suspense } from 'react'
-import { useGraphStore, type GraphNode, type GraphEdge } from '@/stores/graph-store'
+import { useEffect, memo, useState, lazy, Suspense } from 'react'
+import { useGraphStore } from '@/stores/graph-store'
 import { Toolbar } from './toolbar'
 import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
@@ -18,6 +18,7 @@ import NewActions from './add-item-dialog'
 import GraphSettings from './graph-settings'
 import GraphMain from './graph-main'
 import GlobalSettings, { KeyboardShortcuts } from './global-settings'
+import { type GraphNode, type GraphEdge } from '@/types'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 const Graph = lazy(() => import('./graph'))
 // const Wall = lazy(() => import('./wall/wall'))
@@ -46,11 +47,12 @@ interface GraphPanelProps {
 }
 
 const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
-    const graphPanelRef = useRef<HTMLDivElement>(null)
     const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
     const nodes = useGraphStore(s => s.nodes)
     const view = useGraphControls((s) => s.view)
     const updateGraphData = useGraphStore(s => s.updateGraphData)
+    const setFilters = useGraphStore(s => s.setFilters)
+    const filters = useGraphStore(s => s.filters)
     const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
     const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
@@ -60,8 +62,17 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     useEffect(() => {
         if (graphData?.nds && graphData?.rls) {
             updateGraphData(graphData.nds, graphData.rls)
+            const types = new Set(graphData.nds.map(n => n.data.type))
+            setFilters(
+                {
+                    ...filters, types: Array.from(types).map(t => ({
+                        type: t,
+                        checked: true
+                    }))
+                }
+            )
         }
-    }, [graphData?.nds, graphData?.rls])
+    }, [graphData?.nds, graphData?.rls, setFilters])
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -115,7 +126,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
 
     return (
         <div
-            ref={graphPanelRef}
             className="h-full w-full flex relative outline-2 outline-transparent bg-background"
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
@@ -147,7 +157,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
                 )}
             </Suspense>
             <DragOverlay isDragging={isDraggingOver} />
-            <div className='absolute z-21 left-3 top-3'>
+            <div className='absolute z-21 left-3 top-3 right-3'>
                 <Toolbar isLoading={isLoading} />
             </div>
             <NewActions />

@@ -13,11 +13,13 @@ import {
     SlidersHorizontal,
     GitFork,
     ArrowRightLeft,
-    FunnelPlus
+    FunnelPlus,
+    GitPullRequestArrow,
+    LassoSelect
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { toast } from "sonner"
-import { cn, isMac } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import ForceControls from './force-controls'
 import Filters from "./filters"
 import { useGraphStore } from "@/stores/graph-store"
@@ -28,13 +30,15 @@ export const ToolbarButton = memo(function ToolbarButton({
     tooltip,
     onClick,
     disabled = false,
-    badge = null
+    badge = null,
+    toggled = false
 }: {
     icon: React.ReactNode;
     tooltip: string | React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     badge?: number | null;
+    toggled?: boolean | null
 }) {
     return (
         <Tooltip>
@@ -45,7 +49,7 @@ export const ToolbarButton = memo(function ToolbarButton({
                         disabled={disabled}
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 relative shadow-none"
+                        className={cn("h-8 w-8 relative shadow-none", toggled && "bg-muted hover:bg-muted")}
                     >
                         {icon}
                         {badge && <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">{badge}</span>}
@@ -64,7 +68,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const zoomOut = useGraphControls((s) => s.zoomOut);
     const onLayout = useGraphControls((s) => s.onLayout);
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
-    const filters = useGraphStore(s => s.filters)
+    const isLassoActive = useGraphControls((s) => s.isLassoActive)
+    const setIsLassoActive = useGraphControls((s) => s.setIsLassoActive)
+    const selectedNodes = useGraphStore(s => s.selectedNodes)
+    const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
 
     const handleRefresh = useCallback(() => {
         try {
@@ -96,81 +103,114 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         onLayout && onLayout("dagre-tb")
     }, [onLayout, setView])
 
+    const handleOpenAddRelationDialog = useCallback(() => {
+        setOpenAddRelationDialog(true)
+    }, [setOpenAddRelationDialog])
+
+    const handleLassoSelect = useCallback(() => {
+        setIsLassoActive(!isLassoActive)
+    }, [setIsLassoActive, isLassoActive])
+
+    const areExactlyTwoSelected = selectedNodes.length === 2
+
     return (
-        <div className="flex justify-start gap-2 items-center">
-            <TooltipProvider>
-                <ToolbarButton
-                    icon={<ZoomIn className="h-4 w-4 opacity-70" />}
-                    tooltip="Zoom In"
-                    onClick={zoomIn}
-                    disabled={["table", "relationships"].includes(view)}
-                />
-                <ToolbarButton
-                    icon={<Minus className="h-4 w-4 opacity-70" />}
-                    tooltip="Zoom Out"
-                    onClick={zoomOut}
-                    disabled={["table", "relationships"].includes(view)}
-                />
-                <ToolbarButton
-                    icon={<Maximize className="h-4 w-4 opacity-70" />}
-                    tooltip="Fit to View"
-                    onClick={zoomToFit}
-                    disabled={["table", "relationships"].includes(view)}
-                />
-
-                <ToolbarButton
-                    icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                    tooltip={`Hierarchy`}
-                    disabled={["hierarchy"].includes(view)}
-                    onClick={handleDagreLayoutTB}
-                />
-
-                <ToolbarButton
-                    icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                    disabled={["force"].includes(view)}
-                    tooltip={"Graph view"}
-                    onClick={handleForceLayout}
-                />
-                <ToolbarButton
-                    icon={<List className="h-4 w-4 opacity-70" />}
-                    tooltip={"Table view"}
-                    disabled={["table"].includes(view)}
-                    onClick={handleTableLayout}
-                />
-                <ToolbarButton
-                    icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
-                    tooltip={"Relationships view"}
-                    disabled={["relationships"].includes(view)}
-                    onClick={handleRelationshipsLayout}
-                />
-                <ToolbarButton
-                    icon={<MapPin className="h-4 w-4 opacity-70" />}
-                    tooltip={"Map view"}
-                    disabled={["map"].includes(view)}
-                    onClick={handleMapLayout}
-                />
-                <ToolbarButton
-                    onClick={handleRefresh}
-                    disabled={isLoading}
-                    icon={<RotateCw className={cn("h-4 w-4 opacity-70", isLoading && "animate-spin")} />}
-                    tooltip="Refresh Graph Data"
-                />
-                <ForceControls>
+        <div className="flex w-full justify-between gap-2 items-center">
+            <div className="flex items-center gap-2">
+                <TooltipProvider>
                     <ToolbarButton
-                        disabled={isLoading || !["force", "hierarchy"].includes(view)}
-                        icon={<SlidersHorizontal className={cn("h-4 w-4 opacity-70")} />}
-                        tooltip="Settings"
+                        icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
+                        tooltip="Connect"
+                        onClick={handleOpenAddRelationDialog}
+                        disabled={!areExactlyTwoSelected}
+                        badge={areExactlyTwoSelected ? 2 : null}
+
                     />
-                </ForceControls>
-                <Filters>
                     <ToolbarButton
+                        icon={<ZoomIn className="h-4 w-4 opacity-70" />}
+                        tooltip="Zoom In"
+                        onClick={zoomIn}
+                        disabled={!["force", "hierarchy"].includes(view) || isLassoActive}
+                    />
+                    <ToolbarButton
+                        icon={<Minus className="h-4 w-4 opacity-70" />}
+                        tooltip="Zoom Out"
+                        onClick={zoomOut}
+                        disabled={!["force", "hierarchy"].includes(view) || isLassoActive}
+                    />
+                    <ToolbarButton
+                        icon={<Maximize className="h-4 w-4 opacity-70" />}
+                        tooltip="Fit to View"
+                        onClick={zoomToFit}
+                        disabled={!["force", "hierarchy"].includes(view) || isLassoActive}
+                    />
+                    <ToolbarButton
+                        icon={<LassoSelect className="h-4 w-4 opacity-70" />}
+                        tooltip={"Lasso select"}
+                        onClick={handleLassoSelect}
+                        toggled={isLassoActive}
+                        disabled={!["force", "hierarchy"].includes(view)}
+                    />
+                    <ForceControls>
+                        <ToolbarButton
+                            disabled={isLoading || !["force", "hierarchy"].includes(view)}
+                            icon={<SlidersHorizontal className={cn("h-4 w-4 opacity-70")} />}
+                            tooltip="Settings"
+                        />
+                    </ForceControls>
+                    <Filters>
+                        <ToolbarButton
+                            disabled={isLoading}
+                            icon={<FunnelPlus className={cn("h-4 w-4 opacity-70")} />}
+                            tooltip="Filters"
+                        />
+                    </Filters>
+                    <ToolbarButton
+                        onClick={handleRefresh}
                         disabled={isLoading}
-                        icon={<FunnelPlus className={cn("h-4 w-4 opacity-70")} />}
-                        tooltip="Filters"
-                        badge={filters && filters?.length > 0 ? filters?.length : null}
+                        icon={<RotateCw className={cn("h-4 w-4 opacity-70", isLoading && "animate-spin")} />}
+                        tooltip="Refresh"
                     />
-                </Filters>
-            </TooltipProvider>
+                </TooltipProvider>
+            </div>
+            <div className="flex items-center gap-2">
+                <TooltipProvider>
+                    <ToolbarButton
+                        icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
+                        tooltip={`Hierarchy`}
+                        toggled={["hierarchy"].includes(view)}
+                        disabled={["hierarchy"].includes(view)}
+                        onClick={handleDagreLayoutTB}
+                    />
+                    <ToolbarButton
+                        icon={<Waypoints className="h-4 w-4 opacity-70" />}
+                        disabled={["force"].includes(view)}
+                        tooltip={"Graph view"}
+                        toggled={["force"].includes(view)}
+                        onClick={handleForceLayout}
+                    />
+                    <ToolbarButton
+                        icon={<List className="h-4 w-4 opacity-70" />}
+                        tooltip={"Table view"}
+                        disabled={["table"].includes(view)}
+                        toggled={["table"].includes(view)}
+                        onClick={handleTableLayout}
+                    />
+                    <ToolbarButton
+                        icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
+                        tooltip={"Relationships view"}
+                        disabled={["relationships"].includes(view)}
+                        toggled={["relationships"].includes(view)}
+                        onClick={handleRelationshipsLayout}
+                    />
+                    <ToolbarButton
+                        icon={<MapPin className="h-4 w-4 opacity-70" />}
+                        tooltip={"Map view"}
+                        disabled={["map"].includes(view)}
+                        toggled={["map"].includes(view)}
+                        onClick={handleMapLayout}
+                    />
+                </TooltipProvider>
+            </div>
         </div>
     )
 })

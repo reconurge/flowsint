@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider"
 import { Label } from '../ui/label'
 import { memo, useCallback } from 'react'
 import { Button } from '../ui/button'
-import { type Setting } from '@/types'
+import { type ForceGraphSetting } from '@/types'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 
 const GraphSettings = () => {
@@ -51,7 +51,7 @@ const GraphSettings = () => {
                         Update the settings of your graph. Changes apply in real-time.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <Accordion type="multiple" defaultValue={['Force Physics', 'Simulation Control']} className="w-full">
                     {Object.entries(categories).map(([categoryName, settingKeys]) => (
                         <AccordionItem key={categoryName} value={categoryName}>
@@ -89,7 +89,7 @@ const GraphSettings = () => {
 export default GraphSettings
 
 type SettingItemProps = {
-    setting: Setting
+    setting: ForceGraphSetting
     label: string
     updateSetting: (key: string, value: number) => void
 }

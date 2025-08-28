@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { sketchService } from "@/api/sketch-service";
-import { GraphNode, useGraphStore } from "@/stores/graph-store";
+import { useGraphStore } from "@/stores/graph-store";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { CopyButton } from "../copy";
 import { RelationshipType } from "@/types";
+import { GraphNode } from '@/types';
+
 
 const ITEM_HEIGHT = 67; // Balanced spacing between items (55px card + 12px padding)
 

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { transformService } from '@/api/transfrom-service';
 import { flowService } from '@/api/flow-service';
 import { useQuery } from '@tanstack/react-query';
@@ -7,13 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { FileCode2, Search, Info, Star, Zap } from 'lucide-react';
-import { Transform, Flow } from '@/types';
-import { GraphNode } from '@/stores/graph-store';
+import { FileCode2, Search, Info, Zap } from 'lucide-react';
+import { Transform, Flow, GraphNode } from '@/types';
 import { useLaunchFlow } from '@/hooks/use-launch-flow';
 import { useLaunchTransform } from '@/hooks/use-launch-transform';
 import { useParams } from '@tanstack/react-router';
-import { capitalizeFirstLetter, cn } from '@/lib/utils';
+import { capitalizeFirstLetter } from '@/lib/utils';
 import NodeActions from '@/components/graphs/node-actions';
 import BaseContextMenu from '@/components/xyflow/context-menu';
 
@@ -93,7 +92,6 @@ export default function ContextMenu({
 
     return (
         <BaseContextMenu
-            node={node}
             top={top}
             left={left}
             right={right}
@@ -279,22 +277,6 @@ export default function ContextMenu({
         </BaseContextMenu>
     );
 }
-
-
-const FavoriteButton = memo(({ isFavorite }: { isFavorite: boolean }) => {
-    const [favorite, seFavorite] = useState(isFavorite);
-
-    const handleClick = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        seFavorite(!favorite);
-    }, [favorite]);
-
-    return (
-        <Button onClick={handleClick} className='w-5 h-5' variant='ghost' size={"icon"}>
-            <Star fill={favorite ? 'yellow' : 'none'} className={cn('w-4 h-4 opacity-50', favorite && 'text-yellow-500 opacity-100')} strokeWidth={1.5} />
-        </Button>
-    )
-})
 
 const InfoButton = ({ description }: { description?: string }) => {
     if (!description) return null;

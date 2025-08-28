@@ -4,13 +4,13 @@ import { CopyButton } from "@/components/copy"
 import { Check, Rocket, X, MousePointer } from "lucide-react"
 import LaunchFlow from "../launch-transform"
 import NodeActions from "../node-actions"
-import { GraphNode } from "@/stores/graph-store"
 import { Button } from "../../ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip"
 import { useParams } from "@tanstack/react-router"
 import NeighborsGraph from "./neighbors"
 import Relationships from "./relationships"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../../ui/resizable"
+import { GraphNode } from "@/types"
 
 const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
     const { id: sketchId } = useParams({ strict: false })
@@ -67,7 +67,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                             {node.data?.description && (
                                 <div className="px-4 py-3 border-b border-border">
                                     <div
-                                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                                        className="text-sm text-muted-foreground prose dark:prose-invert prose-sm max-w-none"
                                         dangerouslySetInnerHTML={{ __html: node.data.description }}
                                     />
                                 </div>
@@ -77,7 +77,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                     </ResizablePanel>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={40} minSize={25}>
-                        <div className="h-full p-3">
+                        <div className="h-full w-full p-3">
                             <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
                         </div>
                     </ResizablePanel>

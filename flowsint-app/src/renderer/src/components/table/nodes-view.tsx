@@ -1,4 +1,4 @@
-import { GraphNode, useGraphStore } from "@/stores/graph-store";
+import { useGraphStore } from "@/stores/graph-store";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CopyButton } from "../copy";
+import { GraphNode } from '@/types';
+
 
 export type RelationshipType = {
     source: GraphNode

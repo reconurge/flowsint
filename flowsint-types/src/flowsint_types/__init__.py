@@ -2,7 +2,7 @@
 Flowsint Types - Pydantic models for flowsint
 """
 
-from .address import PhysicalAddress
+from .address import Location
 from .affiliation import Affiliation
 from .alias import Alias
 from .asn import ASN
@@ -43,7 +43,7 @@ __version__ = "0.1.0"
 __author__ = "EliottElek <dexxterrmorgan@proton.me>"
 
 __all__ = [
-    "PhysicalAddress",
+    "Location",
     "Affiliation",
     "Alias",
     "ASN",

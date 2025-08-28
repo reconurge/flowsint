@@ -151,15 +151,8 @@ async def get_sketch_nodes(
     nodes = [
         {
             "id": str(record["id"]),
-            "labels": record["labels"],
             "data": record["data"],
             "label": record["data"].get("label", "Node"),
-            "type": "custom",
-            "caption": record["data"].get("label", "Node"),
-            "position": {
-                "x": random.random() * 1000,
-                "y": random.random() * 1000,
-            },
             "idx": idx,
         }
         for idx, record in enumerate(nodes_result)
@@ -168,11 +161,9 @@ async def get_sketch_nodes(
     rels = [
         {
             "id": str(record["id"]),
-            "type": "custom",
             "source": str(record["source"]),
             "target": str(record["target"]),
             "data": record["data"],
-            "caption": record["type"],
             "label": record["type"],
         }
         for record in rels_result

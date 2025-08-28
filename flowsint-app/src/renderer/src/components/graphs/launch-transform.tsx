@@ -20,10 +20,10 @@ import { formatDistanceToNow } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { transformService } from "@/api/transfrom-service"
 import { flowService } from '@/api/flow-service';
-import { useParams } from "@tanstack/react-router"
+import { Link, useParams } from "@tanstack/react-router"
 import { capitalizeFirstLetter } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search, FileCode2, Zap } from "lucide-react"
+import { Search, FileCode2, Zap, PlusIcon, GitBranch, FileX, Sparkles } from "lucide-react"
 import { Transform, Flow } from "@/types"
 
 const LaunchTransformOrFlowPanel = memo(({ values, type, children }: { values: string[], type: string, children?: React.ReactNode }) => {
@@ -190,10 +190,33 @@ const LaunchTransformOrFlowPanel = memo(({ values, type, children }: { values: s
                                             </Card>
                                         ))
                                     ) : (
-                                        <div className="p-4 text-center">
-                                            <p className="text-sm text-muted-foreground">
-                                                {transformsSearchQuery ? 'No transforms found' : 'No transforms available'}
-                                            </p>
+                                        <div className="p-8 text-center space-y-6">
+                                            <div className="flex justify-center">
+                                                <div className="p-4 rounded-full bg-muted/50">
+                                                    {transformsSearchQuery ? (
+                                                        <FileX className="h-8 w-8 text-muted-foreground" />
+                                                    ) : (
+                                                        <FileCode2 className="h-8 w-8 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h3 className="text-lg font-semibold">
+                                                    {transformsSearchQuery ? 'No transforms found' : 'No transforms available'}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                                    {transformsSearchQuery 
+                                                        ? 'Try adjusting your search terms or browse all available transforms.'
+                                                        : 'Transforms are automated data processing tools that can enrich your investigation data.'
+                                                    }
+                                                </p>
+                                            </div>
+                                            {!transformsSearchQuery && (
+                                                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                                                    <Sparkles className="h-3 w-3" />
+                                                    <span>Transforms will appear here when available</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </RadioGroup>
@@ -273,10 +296,41 @@ const LaunchTransformOrFlowPanel = memo(({ values, type, children }: { values: s
                                             </Card>
                                         ))
                                     ) : (
-                                        <div className="p-4 text-center">
-                                            <p className="text-sm text-muted-foreground">
-                                                {flowsSearchQuery ? 'No flows found' : 'No flows available'}
-                                            </p>
+                                        <div className="p-8 text-center space-y-6">
+                                            <div className="flex justify-center">
+                                                <div className="p-4 rounded-full bg-muted/50">
+                                                    {flowsSearchQuery ? (
+                                                        <FileX className="h-8 w-8 text-muted-foreground" />
+                                                    ) : (
+                                                        <GitBranch className="h-8 w-8 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h3 className="text-lg font-semibold">
+                                                    {flowsSearchQuery ? 'No flows found' : 'No flows available'}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                                    {flowsSearchQuery 
+                                                        ? 'Try adjusting your search terms or browse all available flows.'
+                                                        : 'Flows are custom automation sequences that combine multiple transforms and data sources.'
+                                                    }
+                                                </p>
+                                            </div>
+                                            {!flowsSearchQuery && (
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                                                        <Zap className="h-3 w-3" />
+                                                        <span>Create your first flow to get started</span>
+                                                    </div>
+                                                    <Link to="/dashboard/flows">
+                                                        <Button className="gap-2">
+                                                            <PlusIcon className="h-4 w-4" />
+                                                            Create your first flow
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </RadioGroup>

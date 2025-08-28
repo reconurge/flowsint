@@ -12,6 +12,7 @@ import { useConfirm } from "../use-confirm-dialog"
 import { Editor } from "@tiptap/core"
 import { Link, useParams } from "@tanstack/react-router"
 import { useLayoutStore } from "@/stores/layout-store"
+import default_content from './default_content.json'
 import {
     Popover,
     PopoverContent,
@@ -79,7 +80,6 @@ export const AnalysisEditor = ({
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
-
     // Debounced save function
     const debouncedSave = useCallback(
         debounce(() => {
@@ -119,7 +119,7 @@ export const AnalysisEditor = ({
             const newAnalysis: Partial<Analysis> = {
                 title: "Untitled Analysis",
                 investigation_id: investigationId,
-                content: {},
+                content: default_content,
             }
             const res = await analysisService.create(JSON.stringify(newAnalysis))
             return res

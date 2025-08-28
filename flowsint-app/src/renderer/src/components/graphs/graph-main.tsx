@@ -14,7 +14,6 @@ const GraphMain = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const [menu, setMenu] = React.useState<any>(null)
 
-
     const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
         const isMultiSelect = event.ctrlKey || event.shiftKey;
         toggleNodeSelection(node, isMultiSelect)
@@ -50,7 +49,6 @@ const GraphMain = () => {
     const handleGraphRef = useCallback((ref: any) => {
         graphRef.current = ref
     }, [])
-
     return (
         <div ref={containerRef} className="relative h-full w-full bg-background">
             <GraphViewer
@@ -62,6 +60,7 @@ const GraphMain = () => {
                 showLabels={true}
                 showIcons={true}
                 onGraphRef={handleGraphRef}
+                allowLasso
             />
             {menu && <ContextMenu onClick={handleBackgroundClick} {...menu} />}
         </div>

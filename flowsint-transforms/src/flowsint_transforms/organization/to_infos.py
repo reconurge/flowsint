@@ -60,12 +60,12 @@ class OrgToInfosScanner(Scanner):
         try:
             # Extract siege data
             siege = company.get("siege", {})
-            # Create PhysicalAddress for siege_geo_adresse if coordinates exist
+            # Create Location for siege_geo_adresse if coordinates exist
             siege_geo_adresse = None
             if siege.get("latitude") and siege.get("longitude"):
-                from flowsint_types.address import PhysicalAddress
+                from flowsint_types.address import Location
 
-                siege_geo_adresse = PhysicalAddress(
+                siege_geo_adresse = Location(
                     address=siege.get("adresse", ""),
                     city=siege.get("libelle_commune", ""),
                     country="FR",  # SIRENE is French registry
@@ -130,7 +130,6 @@ class OrgToInfosScanner(Scanner):
                 date_mise_a_jour_rne=company.get("date_mise_a_jour_rne"),
                 # Legal information
                 nature_juridique=company.get("nature_juridique"),
-                etat_administratif=company.get("etat_administratif"),
                 statut_diffusion=company.get("statut_diffusion"),
                 # Siege (Headquarters) information
                 siege_activite_principale=siege.get("activite_principale"),
@@ -293,9 +292,7 @@ class OrgToInfosScanner(Scanner):
                 date_mise_a_jour_insee=org.date_mise_a_jour_insee,
                 date_mise_a_jour_rne=org.date_mise_a_jour_rne,
                 nature_juridique=org.nature_juridique,
-                etat_administratif=org.etat_administratif,
                 statut_diffusion=org.statut_diffusion,
-                caption=org.name,
                 type="organization",
             )
 
@@ -312,7 +309,7 @@ class OrgToInfosScanner(Scanner):
             if org.dirigeants:
                 for dirigeant in org.dirigeants:
                     self.create_node(
-                        "Individual",
+                        "individual",
                         "full_name",
                         dirigeant.full_name,
                         first_name=dirigeant.first_name,
@@ -324,7 +321,7 @@ class OrgToInfosScanner(Scanner):
                     )
 
                     self.create_relationship(
-                        "Organization",
+                        "organization",
                         "org_id",
                         org_key,
                         "Individual",
@@ -336,12 +333,12 @@ class OrgToInfosScanner(Scanner):
                         f"{org.name}: HAS_LEADER -> {dirigeant.full_name}"
                     )
 
-            # Add siege address as PhysicalAddress node if available
+            # Add siege address as Location node if available
             if org.siege_geo_adresse:
                 address = org.siege_geo_adresse
                 address_key = f"{address.address}_{address.city}_{address.country}"
                 self.create_node(
-                    "PhysicalAddress",
+                    "location",
                     "address_id",
                     address_key,
                     address=address.address,
@@ -356,10 +353,10 @@ class OrgToInfosScanner(Scanner):
                 )
 
                 self.create_relationship(
-                    "Organization",
+                    "organization",
                     "org_id",
                     org_key,
-                    "PhysicalAddress",
+                    "location",
                     "address_id",
                     address_key,
                     "HAS_ADDRESS",
@@ -368,11 +365,11 @@ class OrgToInfosScanner(Scanner):
                     f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}"
                 )
 
-            # Add siege location as Location node if coordinates are available but no PhysicalAddress
+            # Add siege location as Location node if coordinates are available but no location
             elif org.siege_latitude and org.siege_longitude:
                 location_key = f"{org.siege_latitude}_{org.siege_longitude}"
                 self.create_node(
-                    "Location",
+                    "location",
                     "location_id",
                     location_key,
                     latitude=float(org.siege_latitude),
@@ -387,7 +384,7 @@ class OrgToInfosScanner(Scanner):
                 )
 
                 self.create_relationship(
-                    "Organization",
+                    "organization",
                     "org_id",
                     org_key,
                     "Location",

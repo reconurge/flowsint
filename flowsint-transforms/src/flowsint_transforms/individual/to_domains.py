@@ -5,7 +5,7 @@ from flowsint_core.core.scanner_base import Scanner
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
-from flowsint_types.address import PhysicalAddress
+from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
 from tools.network.whoxy import WhoxyTool
 from dotenv import load_dotenv
@@ -194,7 +194,7 @@ class IndividualToDomainsScanner(Scanner):
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return bool(re.match(pattern, email))
 
-    def __extract_physical_address(self, contact: Dict[str, Any]) -> PhysicalAddress:
+    def __extract_physical_address(self, contact: Dict[str, Any]) -> Location:
         """Extract physical address from contact data."""
         address = contact.get("mailing_address", "")
         city = contact.get("city_name", "")
@@ -208,7 +208,7 @@ class IndividualToDomainsScanner(Scanner):
         if not all([address, city, zip_code, country]):
             return None
 
-        return PhysicalAddress(
+        return Location(
             address=address, city=city, zip=zip_code, country=country
         )
 

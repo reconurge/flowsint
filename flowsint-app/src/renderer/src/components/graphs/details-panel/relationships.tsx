@@ -2,11 +2,12 @@ import { sketchService } from '@/api/sketch-service';
 import Loader from '@/components/loader';
 import { TypeBadge } from '@/components/type-badge';
 import { Badge } from '@/components/ui/badge';
-import { GraphEdge, GraphNode, useGraphStore } from '@/stores/graph-store'
+import { useGraphStore } from '@/stores/graph-store'
 import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowRight } from 'lucide-react';
 import { memo, useCallback, useRef } from 'react';
+import { GraphEdge, GraphNode } from "@/types"
 
 type Relation = {
     source: GraphNode,
@@ -67,12 +68,20 @@ const Relationships = memo(({ sketchId, nodeId }: { sketchId: string, nodeId: st
                             }}
                             className="mb-1 px-3"
                         >
-                            <Badge variant={"outline"} className='h-8 truncate justify-between text-ellipsis text-sm w-full'>
-                                <RelationshipItem node={rel.source} />
-                                <ArrowRight />
-                                <span className='opacity-60 text-xs truncate text-ellipsis'>{rel.edge.label}</span>
-                                <ArrowRight />
-                                <RelationshipItem node={rel.target} />
+                            <Badge variant={"outline"} className='h-8 px-2 py-1 w-full'>
+                                <div className='flex items-center gap-1 w-full min-w-0 h-full'>
+                                    <div className='min-w-0 flex-1 flex items-center'>
+                                        <RelationshipItem node={rel.source} />
+                                    </div>
+                                    <ArrowRight className='flex-shrink-0 opacity-60 h-4 w-4' />
+                                    <div className='min-w-0 flex-1 flex items-center justify-center'>
+                                        <span className='opacity-60 text-xs truncate block'>{rel.edge.label}</span>
+                                    </div>
+                                    <ArrowRight className='flex-shrink-0 opacity-60 h-4 w-4' />
+                                    <div className='min-w-0 flex-1 flex items-center justify-end'>
+                                        <RelationshipItem node={rel.target} />
+                                    </div>
+                                </div>
                             </Badge>
                         </div>
                     );
@@ -91,8 +100,13 @@ const RelationshipItem = memo(({ node }: { node: GraphNode }) => {
         setCurrentNode(node)
     }, [setCurrentNode])
     return (
-        <button className='truncate text-ellipsis' onClick={handleClick}>
-            <TypeBadge className='hover:underline cursor-pointer truncate text-ellipsis' type={node.data.type}>{node.data.label}</TypeBadge>
+        <button
+            className='w-full h-full text-left hover:underline cursor-pointer flex items-center'
+            onClick={handleClick}
+        >
+            <TypeBadge className='w-full truncate block' type={node.data.type}>
+                {node.data.label}
+            </TypeBadge>
         </button>
     )
 })

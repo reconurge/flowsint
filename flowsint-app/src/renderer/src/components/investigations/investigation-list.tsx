@@ -64,7 +64,7 @@ const TreeNode = ({
                 className={cn(
                     "flex items-center group gap-2 px-3 py-2 hover:bg-muted/50 transition-colors",
                     isActive && "bg-muted",
-                    level > 0 && "ml-4",
+                    level > 0 && "pl-4",
                     !isClickable && "cursor-default"
                 )}
                 style={{ paddingLeft: `${12 + (level * 16)}px` }}

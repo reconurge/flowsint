@@ -62,7 +62,7 @@ const GraphMain = () => {
                 showIcons={true}
                 onGraphRef={handleGraphRef}
                 allowLasso
-                minimap={settings.general.showMinimap.value}
+                minimap={Boolean(settings?.general?.showMinimap?.value)}
             />
             {menu && <ContextMenu onClick={handleBackgroundClick} {...menu} />}
         </div>

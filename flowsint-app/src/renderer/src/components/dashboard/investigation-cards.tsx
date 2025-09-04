@@ -25,7 +25,7 @@ function InvestigationCard({ investigation }: InvestigationCardProps) {
             params={{ investigationId: investigation.id }}
             className="block"
         >
-            <Card className="hover:shadow-lg py-4 transition-all duration-200 cursor-pointer group border-2 hover:border-primary/20">
+            <Card className="hover:shadow-lg py-4 transition-all duration-200 cursor-pointer group border hover:border-primary/20">
                 <CardContent className="h-full flex flex-col">
                     {/* Header with title and count */}
                     <div className="flex items-start justify-between mb-3">

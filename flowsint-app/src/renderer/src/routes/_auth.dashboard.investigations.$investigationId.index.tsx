@@ -238,7 +238,7 @@ function InvestigationPage() {
                                 {investigation.sketches?.slice(0, 8).map((sketch: any) => (
                                     <Card
                                         key={sketch.id}
-                                        className="group py-2 relative overflow-hidden cursor-pointer border-2 border-border hover:border-primary bg-primary/10"
+                                        className="group py-2 relative overflow-hidden cursor-pointer border border-border hover:border-primary"
                                         onClick={() => navigate({
                                             to: "/dashboard/investigations/$investigationId/$type/$id",
                                             params: {
@@ -306,7 +306,7 @@ function InvestigationPage() {
                                 {investigation.analyses?.slice(0, 8).map((analysis: any) => (
                                     <Card
                                         key={analysis.id}
-                                        className="group py-2 relative overflow-hidden cursor-pointer hover:shadow-xl border-2 border-border hover:border-secondary bg-secondary/10"
+                                        className="group py-2 relative overflow-hidden cursor-pointer hover:shadow-xl border border-border hover:border-secondary"
                                         onClick={() => navigate({
                                             to: "/dashboard/investigations/$investigationId/$type/$id",
                                             params: {

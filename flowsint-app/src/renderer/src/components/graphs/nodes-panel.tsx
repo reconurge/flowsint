@@ -55,7 +55,7 @@ const NodeRenderer = memo(
                     onClick={handleClick}
                 >
                     <div className="grow truncate text-ellipsis">{node?.data?.label}</div>
-                    <TypeBadge type={node?.data?.type} />
+                    <TypeBadge className="ml-1" type={node?.data?.type} />
                 </button>
             </div>
         )

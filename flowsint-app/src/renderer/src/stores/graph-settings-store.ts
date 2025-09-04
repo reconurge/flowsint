@@ -7,6 +7,11 @@ const DEFAULT_SETTINGS = {
 
     },
     general: {
+        showFlow: {
+            type: "boolean",
+            value: true,
+            description: "Display Flo, your AI assistant."
+        },
         showMinimap: {
             type: "boolean",
             value: true,

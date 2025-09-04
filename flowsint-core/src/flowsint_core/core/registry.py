@@ -15,7 +15,7 @@ from flowsint_transforms.domain.to_history import DomainToHistoryScanner
 from flowsint_transforms.email.to_domains import EmailToDomainsScanner
 from flowsint_transforms.individual.to_domains import IndividualToDomainsScanner
 from flowsint_transforms.ip.to_domain import ReverseResolveScanner
-from flowsint_transforms.ip.to_geolocation import GeolocationScanner
+from flowsint_transforms.ip.to_infos import IpToInfosScanner
 from flowsint_transforms.ip.to_asn import IpToAsnScanner
 
 # ASN-related scanners
@@ -147,7 +147,7 @@ TransformRegistry.register(DomainToAsnScanner)
 TransformRegistry.register(DomainToHistoryScanner)
 
 # IP-related scanners
-TransformRegistry.register(GeolocationScanner)
+TransformRegistry.register(IpToInfosScanner)
 TransformRegistry.register(IpToAsnScanner)
 
 # ASN-related scanners

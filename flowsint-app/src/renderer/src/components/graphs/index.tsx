@@ -54,7 +54,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     const setFilters = useGraphStore(s => s.setFilters)
     const filters = useGraphStore(s => s.filters)
     const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
-    const NODE_COUNT_THRESHOLD = settings.general.graphViewerThreshold.value
+    const NODE_COUNT_THRESHOLD = settings?.general?.graphViewerThreshold?.value || 1000
 
     const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',

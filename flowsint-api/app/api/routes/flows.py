@@ -511,7 +511,7 @@ def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
                 "creation_date": "2020-01-01",
             }
 
-        elif class_name == "GeolocationScanner":
+        elif class_name == "IpToInfosScanner":
             # Geolocation scanner
             outputs[output_name] = {
                 "country": "France",

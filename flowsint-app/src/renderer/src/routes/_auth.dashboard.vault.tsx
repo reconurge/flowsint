@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { useConfirm } from '../components/use-confirm-dialog'
 import Loader from '@/components/loader'
 import { type Key as KeyType } from '@/types/key'
+import { queryKeys } from '@/api/query-keys'
 export const Route = createFileRoute('/_auth/dashboard/vault')({
     component: VaultPage,
 })
@@ -27,7 +28,7 @@ function VaultPage() {
 
     // Fetch keys
     const { data: keys = [], isLoading: keysLoading } = useQuery<KeyType[]>({
-        queryKey: ['keys'],
+        queryKey: queryKeys.keys.list,
         queryFn: () => KeyService.get(),
     })
 
@@ -35,7 +36,7 @@ function VaultPage() {
     const createKeyMutation = useMutation({
         mutationFn: KeyService.create,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['keys'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.keys.list })
             setIsAddDialogOpen(false)
             setKeyName('')
             setApiKey('')
@@ -51,7 +52,7 @@ function VaultPage() {
     const deleteKeyMutation = useMutation({
         mutationFn: KeyService.deleteById,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['keys'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.keys.list })
             toast.success('API key deleted successfully!')
         },
         onError: (error) => {

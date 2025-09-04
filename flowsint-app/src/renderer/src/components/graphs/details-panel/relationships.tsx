@@ -104,7 +104,7 @@ const RelationshipItem = memo(({ node }: { node: GraphNode }) => {
             className='w-full h-full text-left hover:underline cursor-pointer flex items-center'
             onClick={handleClick}
         >
-            <TypeBadge className='w-full truncate block' type={node.data.type}>
+            <TypeBadge className='w-full truncate block text-center' type={node.data.type}>
                 {node.data.label}
             </TypeBadge>
         </button>

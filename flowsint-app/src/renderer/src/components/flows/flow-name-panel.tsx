@@ -1,37 +1,54 @@
 
-import { useState, useEffect, type KeyboardEvent, useRef } from "react"
+import { useEffect, useRef, useState, type KeyboardEvent } from "react"
 import { Panel } from "@xyflow/react"
-import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
+import { toast } from "sonner"
 import { flowService } from "@/api/flow-service"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/api/query-keys"
+import type { Flow } from "@/types/flow"
 
-interface FlowDetailsPanelProps {
-    flow?: {
-        id: string
-        name: string
-        description?: string
-    }
-    onUpdate?: (updates: { name?: string; description?: string }) => void
+interface FlowNamePanelProps {
+    flow?: Flow
+    onUpdate?: (updates: Partial<Flow>) => void
     disabled?: boolean
 }
 
-export function FlowDetailsPanel({ flow, onUpdate, disabled = false }: FlowDetailsPanelProps) {
-    const [name, setName] = useState<string>(flow?.name || "My Flow")
-    const [description, setDescription] = useState<string>(flow?.description || "")
-    const [isEditingName, setIsEditingName] = useState<boolean>(false)
-    const [isEditingDesc, setIsEditingDesc] = useState<boolean>(false)
-    const [isSaving, setIsSaving] = useState<boolean>(false)
+export const FlowNamePanel = ({ flow, onUpdate, disabled = false }: FlowNamePanelProps) => {
+    const [isEditingName, setIsEditingName] = useState(false)
+    const [isEditingDesc, setIsEditingDesc] = useState(false)
+    const [name, setName] = useState(flow?.name || "My flow")
+    const [description, setDescription] = useState(flow?.description || "")
+    const [isSaving, setIsSaving] = useState(false)
     const nameInputRef = useRef<HTMLInputElement>(null)
     const descInputRef = useRef<HTMLInputElement>(null)
+    const queryClient = useQueryClient()
+
+    // Update flow mutation
+    const updateFlowMutation = useMutation({
+        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) => 
+            flowService.update(flowId, body),
+        onSuccess: (data, variables) => {
+            if (onUpdate) {
+                onUpdate(variables.body as Partial<Flow>)
+            }
+            // Invalidate the flow detail query
+            queryClient.invalidateQueries({ 
+                queryKey: queryKeys.flows.detail(variables.flowId)
+            })
+            toast.success("Flow updated successfully.")
+        },
+        onError: (error) => {
+            toast.error("Failed to update flow: " + (error instanceof Error ? error.message : "Unknown error"))
+        },
+    })
 
     useEffect(() => {
-        if (flow?.name) {
-            setName(flow.name)
+        if (flow) {
+            setName(flow.name || "My flow")
+            setDescription(flow.description || "")
         }
-        if (flow?.description !== undefined) {
-            setDescription(flow.description)
-        }
-    }, [flow?.name, flow?.description])
+    }, [flow])
 
     useEffect(() => {
         if (isEditingName && nameInputRef.current) {
@@ -58,16 +75,16 @@ export function FlowDetailsPanel({ flow, onUpdate, disabled = false }: FlowDetai
             field === "name" ? setIsEditingName(false) : setIsEditingDesc(false)
             return
         }
+        
         setIsSaving(true)
         try {
             const updates = { [field]: trimmedValue }
-            await flowService.update(flow.id, JSON.stringify(updates))
-            if (onUpdate) {
-                onUpdate(updates)
-            }
-            toast.success(`${field === "name" ? "Name" : "Description"} updated.`)
+            await updateFlowMutation.mutateAsync({ 
+                flowId: flow.id, 
+                body: JSON.stringify(updates) 
+            })
         } catch (error) {
-            toast.error(`Failed to update flow ${field}`)
+            // Revert local state on error
             if (field === "name") {
                 setName(flow.name)
             } else {

@@ -1,6 +1,7 @@
 import { memo, useRef, type PointerEvent } from 'react';
 import { useGraphStore } from '@/stores/graph-store';
 import { GraphNode } from '@/types';
+import { GRAPH_COLORS } from './graph-viewer';
 
 type NodePoints = ([number, number] | [number, number, number])[];
 type NodePointObject = Record<string, NodePoints>;
@@ -46,7 +47,6 @@ export function Lasso({ partial, width, height, graph2ScreenCoords, nodes }: { p
         canvas.setPointerCapture(e.pointerId);
         pointRef.current = [getRelativeCoordinates(e, canvas)];
 
-        // Enregistre les coins de chaque node pour la détection
         nodePointsRef.current = {};
         for (const node of nodes) {
             const { x, y } = graph2ScreenCoords(node);
@@ -64,8 +64,8 @@ export function Lasso({ partial, width, height, graph2ScreenCoords, nodes }: { p
 
         ctxRef.current = ctx;
         ctx.lineWidth = 1;
-        ctx.fillStyle = 'rgba(0, 89, 220, 0.08)';
-        ctx.strokeStyle = 'rgba(0, 89, 220, 0.8)';
+        ctx.fillStyle = `${GRAPH_COLORS.LASSO_FILL}`;
+        ctx.strokeStyle = GRAPH_COLORS.LASSO_STROKE;
     }
 
     function handlePointerMove(e: PointerEvent) {

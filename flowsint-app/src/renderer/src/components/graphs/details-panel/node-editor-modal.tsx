@@ -14,6 +14,8 @@ import { useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useIcon } from "@/hooks/use-icon"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/api/query-keys"
 
 export const NodeEditorModal: React.FC = () => {
     const currentNode = useGraphStore(state => state.currentNode)
@@ -44,10 +46,57 @@ export const NodeEditorModal: React.FC = () => {
         }
     }, [currentNode]);
 
-    const handleSave = async () => {
-        if (!currentNode || !sketchId) return;
+    const queryClient = useQueryClient()
 
-        setIsSaving(true);
+    // Update node mutation
+    const updateNodeMutation = useMutation({
+        mutationFn: async ({ sketchId, updateData }: { sketchId: string, updateData: any }) => {
+            return sketchService.updateNode(sketchId, JSON.stringify(updateData))
+        },
+        onSuccess: (result, variables) => {
+            if (result.status === "node updated" && currentNode) {
+                // Update the local store
+                updateNode(currentNode.id, formData)
+                setCurrentNode({
+                    ...currentNode,
+                    data: {
+                        ...currentNode.data,
+                        ...formData
+                    }
+                })
+
+                // Invalidate related queries
+                if (sketchId) {
+                    queryClient.invalidateQueries({ 
+                        queryKey: queryKeys.sketches.detail(sketchId)
+                    })
+                    queryClient.invalidateQueries({ 
+                        queryKey: queryKeys.sketches.graph(sketchId, sketchId)
+                    })
+                    // Also invalidate investigation queries that might show sketch data
+                    queryClient.invalidateQueries({ 
+                        queryKey: queryKeys.investigations.list
+                    })
+                    queryClient.invalidateQueries({ 
+                        queryKey: queryKeys.investigations.dashboard
+                    })
+                }
+
+                toast.success("Node updated successfully")
+                setOpenNodeEditorModal(false)
+            } else {
+                toast.error("Failed to update node")
+            }
+        },
+        onError: (error) => {
+            console.error("Error updating node:", error)
+            toast.error("Failed to update node. Please try again.")
+        }
+    });
+
+    const handleSave = async () => {
+        if (!currentNode || !sketchId) return
+        setIsSaving(true)
 
         try {
             // Prepare the data for the API
@@ -56,30 +105,12 @@ export const NodeEditorModal: React.FC = () => {
                 data: formData
             };
 
-            // Call the API to update the node
-            const result = await sketchService.updateNode(sketchId, JSON.stringify(updateData));
-
-            if (result.status === "node updated") {
-                // Update the local store
-                updateNode(currentNode.id, formData);
-                setCurrentNode({
-                    ...currentNode,
-                    data: {
-                        ...currentNode.data,
-                        ...formData
-                    }
-                });
-
-                toast.success("Node updated successfully");
-                setOpenNodeEditorModal(false);
-            } else {
-                toast.error("Failed to update node");
-            }
+            // Call the mutation
+            await updateNodeMutation.mutateAsync({ sketchId, updateData })
         } catch (error) {
-            console.error("Error updating node:", error);
-            toast.error("Failed to update node. Please try again.");
+            console.error("Error updating node:", error)
         } finally {
-            setIsSaving(false);
+            setIsSaving(false)
         }
     };
 

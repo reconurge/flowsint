@@ -25,6 +25,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { queryKeys } from "@/api/query-keys"
 
 interface AnalysisEditorProps {
     // Core data
@@ -125,7 +126,7 @@ export const AnalysisEditor = ({
             return res
         },
         onSuccess: async () => {
-            queryClient.invalidateQueries({ queryKey: ["analyses", investigationId] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.analyses.byInvestigation(investigationId || "") })
             onAnalysisCreate?.(investigationId)
             toast.success("New analysis created")
         },
@@ -144,8 +145,8 @@ export const AnalysisEditor = ({
             }))
         },
         onSuccess: async (data) => {
-            // Use more specific query invalidation
-            queryClient.setQueryData(["analyses", investigationId], (oldData: Analysis[] | undefined) => {
+            // Use more specific query invalidation with query key factory
+            queryClient.setQueryData(queryKeys.analyses.byInvestigation(investigationId || ""), (oldData: Analysis[] | undefined) => {
                 if (!oldData) return oldData
                 return oldData.map(item => item.id === data.id ? data : item)
             })
@@ -163,8 +164,8 @@ export const AnalysisEditor = ({
             return analysisService.delete(id)
         },
         onSuccess: async () => {
-            queryClient.invalidateQueries({ queryKey: ["analyses", investigationId] })
-            onAnalysisDelete?.(analysis?.id || "")
+            queryClient.invalidateQueries({ queryKey: queryKeys.analyses.byInvestigation(investigationId || "") })
+            onAnalysisDelete?.(investigationId)
             toast.success("Analysis deleted")
         },
         onError: (error) => {

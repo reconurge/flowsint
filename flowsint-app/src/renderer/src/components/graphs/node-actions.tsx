@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Sparkles, Plus } from 'lucide-react';
-import { GraphNode, useGraphStore } from '@/stores/graph-store';
+import { useGraphStore } from '@/stores/graph-store';
 import { useParams } from '@tanstack/react-router';
 import { useConfirm } from '@/components/use-confirm-dialog';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useLayoutStore } from '@/stores/layout-store';
+import { GraphNode } from '@/types';
 
 
 const NodeActions = memo(({ node, setMenu }: { node: GraphNode, setMenu?: (menu: any | null) => void }) => {

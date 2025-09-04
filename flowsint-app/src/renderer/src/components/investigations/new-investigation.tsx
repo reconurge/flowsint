@@ -1,32 +1,18 @@
 
-import type React from "react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { investigationService } from "@/api/investigation-service"
-import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { toast } from "sonner"
 import { useRouter } from "@tanstack/react-router"
-import { DialogTrigger } from "@radix-ui/react-dialog"
+import { toast } from "sonner"
+import { investigationService } from "@/api/investigation-service"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/api/query-keys"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import * as z from "zod"
 
 // Schema de validation Zod
 const investigationSchema = z.object({
@@ -42,13 +28,14 @@ const investigationSchema = z.object({
 type InvestigationFormData = z.infer<typeof investigationSchema>
 
 interface NewInvestigationProps {
-    children: React.ReactNode
+    children: ReactNode
     noDropDown?: boolean
 }
 
-export default function NewInvestigation({ children, noDropDown }: NewInvestigationProps) {
+export default function NewInvestigation({ children, noDropDown = false }: NewInvestigationProps) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
+    const queryClient = useQueryClient()
 
     const form = useForm<InvestigationFormData>({
         resolver: zodResolver(investigationSchema),
@@ -60,19 +47,33 @@ export default function NewInvestigation({ children, noDropDown }: NewInvestigat
 
     const { handleSubmit, formState: { isSubmitting }, reset } = form
 
-    const onSubmit = async (data: InvestigationFormData) => {
-        try {
-            const result = await investigationService.create(JSON.stringify(data))
+    // Create investigation mutation
+    const createInvestigationMutation = useMutation({
+        mutationFn: investigationService.create,
+        onSuccess: (result) => {
             if (result.id) {
                 handleClose()
                 toast.success("New investigation created.")
                 router.navigate({ to: `/dashboard/investigations/${result.id}` })
+                // Invalidate investigations list
+                queryClient.invalidateQueries({ 
+                    queryKey: queryKeys.investigations.list
+                })
             } else {
                 toast.error(result.error || "Failed to create investigation")
             }
-        } catch (error) {
+        },
+        onError: (error) => {
             console.error('Error creating investigation:', error)
             toast.error("An unexpected error occurred")
+        }
+    })
+
+    const onSubmit = async (data: InvestigationFormData) => {
+        try {
+            await createInvestigationMutation.mutateAsync(JSON.stringify(data))
+        } catch (error) {
+            console.error('Error creating investigation:', error)
         }
     }
 

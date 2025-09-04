@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button"
 import ScannerNode from "./scanner-node"
 import TypeNode from "./type-node"
 import { type ScannerNodeData } from "@/types/transform"
-import { categoryColors } from "./scanner-data"
 import { FlowControls } from "./controls"
 import { getDagreLayoutedElements } from "@/lib/utils"
 import { toast } from "sonner"
@@ -42,6 +41,9 @@ import { useTheme } from "../theme-provider"
 import ParamsDialog from "./params-dialog"
 import FlowSheet from "./flow-sheet"
 import ContextMenu from "./context-menu"
+import { useNodesDisplaySettings } from "@/stores/node-display-settings"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/api/query-keys"
 
 const nodeTypes: NodeTypes = {
     scanner: ScannerNode,
@@ -73,6 +75,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     const { flowId } = useParams({ strict: false })
     const [showModal, setShowModal] = useState(false)
     const hasInitialized = useRef(false)
+    const queryClient = useQueryClient()
 
     // #### Simulation State ####
     const [isSimulating, setIsSimulating] = useState(false)
@@ -91,6 +94,67 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     const onConnect = useFlowStore(state => state.onConnect)
     const setSelectedNode = useFlowStore(state => state.setSelectedNode)
     const setLoading = useFlowStore(state => state.setLoading)
+    const colors = useNodesDisplaySettings(s => s.colors)
+
+    // #### TanStack Query Mutations ####
+    // Create flow mutation
+    const createFlowMutation = useMutation({
+        mutationFn: flowService.create,
+        onSuccess: (data) => {
+            toast.success("Transform saved successfully.")
+            router.navigate({ to: `/dashboard/flows/${data.id}` })
+        },
+        onError: (error) => {
+            toast.error("Error creating transform: " + (error instanceof Error ? error.message : "Unknown error"))
+        },
+    })
+
+    // Update flow mutation
+    const updateFlowMutation = useMutation({
+        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) => 
+            flowService.update(flowId, body),
+        onSuccess: () => {
+            toast.success("Transform saved successfully.")
+            // Invalidate the flow detail query
+            if (flowId) {
+                queryClient.invalidateQueries({ 
+                    queryKey: queryKeys.flows.detail(flowId)
+                })
+            }
+        },
+        onError: (error) => {
+            toast.error("Error saving transform: " + (error instanceof Error ? error.message : "Unknown error"))
+        },
+    })
+
+    // Delete flow mutation
+    const deleteFlowMutation = useMutation({
+        mutationFn: flowService.delete,
+        onSuccess: () => {
+            router.navigate({ to: "/dashboard/flows" })
+            toast.success("Flow deleted successfully.")
+            // Invalidate flows list
+            queryClient.invalidateQueries({ 
+                queryKey: queryKeys.flows.list
+            })
+        },
+        onError: (error) => {
+            toast.error("Error deleting flow: " + (error instanceof Error ? error.message : "Unknown error"))
+        },
+    })
+
+    // Compute flow mutation
+    const computeFlowMutation = useMutation({
+        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) => 
+            flowService.compute(flowId, body),
+        onSuccess: (response) => {
+            setFlowBranches(response.flowBranches)
+            startSimulation()
+        },
+        onError: (error) => {
+            toast.error("Error computing flow: " + (error instanceof Error ? error.message : "Unknown error"))
+        },
+    })
 
     const [menu, setMenu] = useState<{
         node: FlowNode;
@@ -188,7 +252,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                     class_name: scannerData.class_name,
                     module: scannerData.module || "",
                     key: scannerData.name,
-                    color: categoryColors[scannerData.category] || "#94a3b8",
+                    color: colors[scannerData.category.toLowerCase()] || "#94a3b8",
                     name: scannerData.name,
                     category: scannerData.category,
                     type: scannerData.type,
@@ -271,7 +335,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                     toast.error("Make sure your transform contains an input type.")
                     return
                 }
-                let newTransform
+                
                 const body = JSON.stringify({
                     name: name,
                     description: description,
@@ -281,25 +345,20 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                         edges,
                     },
                 })
+                
                 if (flowId) {
-                    newTransform = await flowService.update(flowId, body)
+                    await updateFlowMutation.mutateAsync({ flowId, body })
                 } else {
-                    newTransform = await flowService.create(body)
-                    if (!newTransform) {
-                        toast.error("Error creating transform")
-                        return
-                    }
+                    await createFlowMutation.mutateAsync(body)
                 }
-                toast.success("Transform saved successfully.")
-                newTransform && !flowId && router.navigate({ to: `/dashboard/flows/${newTransform.id}` })
             } catch (error) {
-                toast.error("Error saving transform" + JSON.stringify(error))
+                console.error("Error saving flow:", error)
             } finally {
                 setLoading(false)
                 setShowModal(false)
             }
         },
-        [nodes, edges, flowId, router, setLoading],
+        [nodes, edges, flowId, createFlowMutation, updateFlowMutation, setLoading],
     )
 
     const handleSaveFlow = useCallback(async () => {
@@ -319,12 +378,10 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
             })
         ) {
             setLoading(true)
-            await flowService.delete(flowId)
-            router.navigate({ to: "/dashboard/flows" })
-            toast.success("Flow deleted successfully.")
+            await deleteFlowMutation.mutateAsync(flowId)
             setLoading(false)
         }
-    }, [flowId, confirm, setLoading])
+    }, [flowId, confirm, deleteFlowMutation, setLoading])
 
     // #### Flow Computation ####
     const handleComputeFlow = useCallback(async () => {
@@ -340,15 +397,13 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                 edges,
                 initialValue: "domain"
             }
-            const response = await flowService.compute(flowId, JSON.stringify(body))
-            setFlowBranches(response.flowBranches)
-            startSimulation()
+            await computeFlowMutation.mutateAsync({ flowId, body: JSON.stringify(body) })
         } catch (error) {
-            toast.error("Error computing flow")
+            console.error("Error computing flow:", error)
         } finally {
             setLoading(false)
         }
-    }, [flowId, nodes, edges])
+    }, [flowId, nodes, edges, computeFlowMutation, setLoading])
 
     // #### Simulation State Management ####
     // Update the updateNodeState function with proper types

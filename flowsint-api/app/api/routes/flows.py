@@ -6,7 +6,7 @@ from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
-from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Email
+from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Email, Phone
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
@@ -102,6 +102,7 @@ async def get_material_list():
         extract_input_schema_flow(Domain),
         extract_input_schema_flow(Website),
         extract_input_schema_flow(Ip),
+        extract_input_schema_flow(Phone),
         extract_input_schema_flow(ASN),
         extract_input_schema_flow(CIDR),
         extract_input_schema_flow(SocialProfile),
@@ -172,7 +173,7 @@ def update_flow(
     flow = db.query(Flow).filter(Flow.id == flow_id).first()
     if not flow:
         raise HTTPException(status_code=404, detail="flow not found")
-    update_data = payload.dict(exclude_unset=True)
+    update_data = payload.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         print(f"only update {key}")
         if key == "category":

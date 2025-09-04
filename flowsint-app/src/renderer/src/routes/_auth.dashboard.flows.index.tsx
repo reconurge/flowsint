@@ -47,7 +47,7 @@ function FlowPage() {
 
     return (
         <div className="h-full w-full overflow-y-auto bg-background">
-            <div className="bg-gradient-to-r from-secondary/10 to-primary/10 border-b border-border z-10">
+            <div className="border-b border-border z-10">
                 <div className="max-w-7xl mx-auto p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">

@@ -83,6 +83,7 @@ def get_chats_by_investigation(
         .filter(
             Chat.investigation_id == investigation_id, Chat.owner_id == current_user.id
         )
+        .order_by(Chat.created_at.asc())
         .all()
     )
 

@@ -9,12 +9,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { DynamicForm } from "@/components/graphs/dynamic-form"
 import { Badge } from "@/components/ui/badge"
-import { GraphNode, useGraphStore } from "@/stores/graph-store"
+import { useGraphStore } from "@/stores/graph-store"
 import { sketchService } from "@/api/sketch-service"
 import { useParams } from "@tanstack/react-router"
 import { useIcon } from "@/hooks/use-icon"
 import { useLayoutStore } from "@/stores/layout-store"
 import { useActionItems } from "@/hooks/use-action-items"
+import { GraphNode } from "@/types"
 
 export default function AddItemDialog() {
     const handleOpenFormModal = useGraphStore(state => state.handleOpenFormModal)

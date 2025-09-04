@@ -16,6 +16,7 @@ import { investigationService } from "@/api/investigation-service";
 import { analysisService } from "@/api/analysis-service";
 import { Waypoints, FileText, Search, ChevronDown, Plus, ArrowLeft, Home } from "lucide-react";
 import NewSketch from "@/components/graphs/new-sketch";
+import { queryKeys } from "@/api/query-keys";
 
 export default function CaseSelector() {
     const navigate = useNavigate()
@@ -24,13 +25,13 @@ export default function CaseSelector() {
     const [searchQuery, setSearchQuery] = useState("")
 
     const { data: investigation, isLoading: isLoadingInvestigation } = useQuery({
-        queryKey: ["dashboard", "investigation", investigationId],
+        queryKey: queryKeys.sketches.dashboard(investigationId as string),
         queryFn: () => investigationService.getById(investigationId as string),
         refetchOnWindowFocus: true,
     })
 
     const { data: analyses, isLoading: isLoadingAnalyses } = useQuery({
-        queryKey: ["analyses", investigationId],
+        queryKey: queryKeys.analyses.dashboard(investigationId as string),
         queryFn: () => analysisService.getByInvestigationId(investigationId as string),
         enabled: !!investigationId,
         refetchOnWindowFocus: true,
@@ -158,7 +159,7 @@ export default function CaseSelector() {
                         </div>
                         <Separator className="my-0.5" />
                         <div className="py-0.5">
-                            <NewSketch noDropDown={true}>
+                            <NewSketch>
                                 <Button
                                     variant="ghost"
                                     size="sm"

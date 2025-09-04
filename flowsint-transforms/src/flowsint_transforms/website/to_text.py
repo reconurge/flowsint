@@ -49,7 +49,7 @@ class WebsiteToText(Scanner):
 
     def _extract_text(self, website_url: str) -> str:
         try:
-            response = requests.get(website_url)
+            response = requests.get(website_url, timeout=8)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             text = soup.get_text()
@@ -74,7 +74,7 @@ class WebsiteToText(Scanner):
                     caption=str(website_url),
                     type="website",
                 )
-                
+
                 # Create relationship with the specific phrase for this website
                 self.create_node(
                     "phrase",

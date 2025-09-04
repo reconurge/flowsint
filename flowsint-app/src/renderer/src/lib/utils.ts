@@ -197,8 +197,8 @@ export const getForceLayoutedElements = (
   }
 }
 
-export const getDagreLayoutedElements = (nodes: GraphNode[],
-  edges: GraphEdge[],
+export const getDagreLayoutedElements = (nodes: GraphNode[] | any,
+  edges: GraphEdge[] | any,
   options: LayoutOptions = {
     direction: "TB",
     strength: -300,
@@ -345,3 +345,30 @@ export const getAllNodeTypes = (actionItems: any[]) => {
 }
 
 export const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+
+
+interface Dictionary {
+  [Key: string]: any;
+}
+
+export function deepObjectDiff(obj1: Dictionary, obj2: Dictionary): Dictionary {
+  let diffObject = {}
+  // We want object 2 to be compared against object 1
+  if (typeof obj1 != "object" || typeof obj2 != "object") throw Error("Items to compare mustr be objects.")
+  // We map over the obj2 key:value duos to retrieve new keys that obj2 might have
+  Object.entries(obj2).forEach(([key, value]) => {
+    // We check for additional keys
+    if (!obj1.hasOwnProperty(key))
+      diffObject = { ...diffObject, [key]: { value, new: true } }
+    else {
+      diffObject = { ...diffObject, [key]: { value, new: false, oldValue: obj1[key] ?? null, newValue: obj2[key] ?? null, identical: obj2[key] === obj1[key] } }
+    }
+  })
+  // We map over the obj1 key:value duos to retrieve new keys that might have disapeared
+  Object.entries(obj1).forEach(([key, value]) => {
+    // We check for additional keys
+    if (!obj2.hasOwnProperty(key))
+      diffObject = { ...diffObject, [key]: { value, removed: true } }
+  })
+  return diffObject
+}

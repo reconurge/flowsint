@@ -15,15 +15,14 @@ import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
 import NewActions from './add-item-dialog'
-import GraphSettings from './graph-settings'
 import GraphMain from './graph-main'
-import GlobalSettings, { KeyboardShortcuts } from './global-settings'
+import Settings, { KeyboardShortcuts } from './settings'
 import { type GraphNode, type GraphEdge } from '@/types'
+import { MergeDialog } from './merge-nodes'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 const Graph = lazy(() => import('./graph'))
 // const Wall = lazy(() => import('./wall/wall'))
-
-const NODE_COUNT_THRESHOLD = 1500;
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -50,10 +49,13 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     const handleOpenFormModal = useGraphStore(s => s.handleOpenFormModal)
     const nodes = useGraphStore(s => s.nodes)
     const view = useGraphControls((s) => s.view)
+    const settings = useGraphSettingsStore(s => s.settings)
     const updateGraphData = useGraphStore(s => s.updateGraphData)
     const setFilters = useGraphStore(s => s.setFilters)
     const filters = useGraphStore(s => s.filters)
     const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
+    const NODE_COUNT_THRESHOLD = settings.general.graphViewerThreshold.value
+
     const { sketch } = useLoaderData({
         from: '/_auth/dashboard/investigations/$investigationId/$type/$id',
     })
@@ -162,9 +164,9 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
             </div>
             <NewActions />
             <CreateRelationDialog />
+            <MergeDialog />
             <NodeEditorModal />
-            <GraphSettings />
-            <GlobalSettings />
+            <Settings />
             <KeyboardShortcuts />
         </div>
     )

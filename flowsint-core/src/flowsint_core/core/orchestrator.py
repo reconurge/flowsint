@@ -12,7 +12,7 @@ import json
 import os
 
 
-class TransformOrchestrator(Scanner):
+class FlowOrchestrator(Scanner):
     """
     Orchestrator for running a list of scanners.
     """

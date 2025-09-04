@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { logService } from "@/api/log-service"
 import { EventLevel } from "@/types"
 import { useGraphControls } from "@/stores/graph-controls-store"
+import { queryKeys } from "@/api/query-keys"
 
 export function useEvents(sketch_id: string | undefined) {
     const [liveLogs, setLiveLogs] = useState<Event[]>([])
@@ -10,7 +11,7 @@ export function useEvents(sketch_id: string | undefined) {
     const refetchGraph = useGraphControls((s) => s.refetchGraph)
 
     const { data: previousLogs = [], refetch } = useQuery({
-        queryKey: ["logs", sketch_id],
+        queryKey: queryKeys.logs.bySketch(sketch_id as string),
         queryFn: () => logService.get(sketch_id as string),
         refetchOnWindowFocus: false,
         enabled: !!sketch_id,

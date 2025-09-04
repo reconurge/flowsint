@@ -1,12 +1,12 @@
 import socket
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
 from flowsint_core.utils import is_valid_domain, is_root_domain
 
 
-class ResolveScanner(Scanner):
+class ResolveTransform(Transform):
     """Resolve domain names to IP addresses."""
 
     # Define the input and output types as class attributes
@@ -27,15 +27,15 @@ class ResolveScanner(Scanner):
 
     @classmethod
     def documentation(cls) -> str:
-        """Return formatted markdown documentation for the domain resolver scanner."""
+        """Return formatted markdown documentation for the domain resolver transform."""
         return """
-# Domain Resolver Scanner
+# Domain Resolver Transform
 
-Resolve domain names to their corresponding IP addresses using DNS queries. This scanner performs forward DNS resolution to discover the IP addresses associated with domain names and subdomains.
+Resolve domain names to their corresponding IP addresses using DNS queries. This transform performs forward DNS resolution to discover the IP addresses associated with domain names and subdomains.
 
 ## Overview
 
-The Domain Resolver Scanner takes domain names as input and returns their resolved IP addresses. It automatically handles different input formats and validates domains before attempting resolution.
+The Domain Resolver Transform takes domain names as input and returns their resolved IP addresses. It automatically handles different input formats and validates domains before attempting resolution.
 
 ## Input/Output Types
 
@@ -44,7 +44,7 @@ The Domain Resolver Scanner takes domain names as input and returns their resolv
 
 ## Input Format Support
 
-The scanner accepts multiple input formats and automatically converts them:
+The transform accepts multiple input formats and automatically converts them:
 
 ### String Format
 
@@ -151,7 +151,7 @@ MERGE (d)-[:RESOLVES_TO {sketch_id: "sketch-uuid"}]->(ip)
 
 ## Domain Type Classification
 
-The scanner automatically classifies domains:
+The transform automatically classifies domains:
 
 - **Root Domain**: `example.com` → `type: "domain"`
 - **Subdomain**: `api.example.com` → `type: "subdomain"`
@@ -160,7 +160,7 @@ The scanner automatically classifies domains:
 
 ### Resolution Failures
 
-When DNS resolution fails, the scanner:
+When DNS resolution fails, the transform:
 
 - Logs the error with domain name
 - Continues processing remaining domains
@@ -174,7 +174,7 @@ Common resolution failures:
 
 ### Invalid Input Handling
 
-The scanner filters out:
+The transform filters out:
 
 - Malformed domain names
 - Empty strings
@@ -207,7 +207,7 @@ The scanner filters out:
 
 ```
 [Domain Discovery] → [Domain Resolver] → [IP Geolocation]
-                                      → [Port Scanner]
+                                      → [Port Transform]
                                       → [ASN Lookup]
 ```
 
@@ -234,7 +234,7 @@ The scanner filters out:
 
 ### Debug Information
 
-The scanner provides logging for:
+The transform provides logging for:
 - Input validation results
 - DNS resolution attempts
 - Graph database operations
@@ -311,5 +311,5 @@ Check FlowSint logs for detailed resolution information.
 
 
 # Make types available at module level for easy access
-InputType = ResolveScanner.InputType
-OutputType = ResolveScanner.OutputType
+InputType = ResolveTransform.InputType
+OutputType = ResolveTransform.OutputType

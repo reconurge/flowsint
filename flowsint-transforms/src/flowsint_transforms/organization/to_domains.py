@@ -1,7 +1,7 @@
 import os
 import re
 from typing import Any, List, Union, Dict, Set
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
@@ -17,7 +17,7 @@ load_dotenv()
 WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
 
 
-class OrgToDomainsScanner(Scanner):
+class OrgToDomainsTransform(Transform):
     """[WHOXY] Takes an organization and returns the domains it registered."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -406,5 +406,5 @@ class OrgToDomainsScanner(Scanner):
                 )
 
 
-InputType = OrgToDomainsScanner.InputType
-OutputType = OrgToDomainsScanner.OutputType
+InputType = OrgToDomainsTransform.InputType
+OutputType = OrgToDomainsTransform.OutputType

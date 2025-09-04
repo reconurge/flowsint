@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 from urllib.parse import urlparse
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.website import Website
 from flowsint_types.phone import Phone
 from flowsint_types.email import Email
@@ -15,7 +15,7 @@ class ReturnType(BaseModel):
     phones: Optional[Phone]
 
 
-class WebsiteToCrawler(Scanner):
+class WebsiteToCrawler(Transform):
     """From website to crawler."""
 
     # Define types as class attributes - base class handles schema generation automatically

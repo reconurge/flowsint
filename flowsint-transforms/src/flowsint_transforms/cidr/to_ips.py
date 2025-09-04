@@ -1,12 +1,12 @@
 import subprocess
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.cidr import CIDR
 from flowsint_types.ip import Ip
 from flowsint_core.core.logger import Logger
 
 
-class CidrToIpsScanner(Scanner):
+class CidrToIpsTransform(Transform):
     """Takes a CIDR and returns its corresponding IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -120,5 +120,5 @@ class CidrToIpsScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = CidrToIpsScanner.InputType
-OutputType = CidrToIpsScanner.OutputType
+InputType = CidrToIpsTransform.InputType
+OutputType = CidrToIpsTransform.OutputType

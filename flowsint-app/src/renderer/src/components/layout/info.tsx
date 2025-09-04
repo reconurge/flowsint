@@ -41,7 +41,7 @@ const InfoDialog = () => {
                                     <strong>Tracks and saves investigation states</strong> over time, letting you explore multiple hypotheses or revisit older threads without losing context.
                                 </li>
                                 <li>
-                                    Supports <strong>live data enrichment</strong> from custom or built-in scanners, giving you <strong>actionable insights</strong> as you explore.
+                                    Supports <strong>live data enrichment</strong> from custom or built-in transforms, giving you <strong>actionable insights</strong> as you explore.
                                 </li>
                             </ul>
 

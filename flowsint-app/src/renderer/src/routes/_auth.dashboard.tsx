@@ -12,7 +12,7 @@ function DashboardPage() {
     return (
         <RootLayout>
             <Outlet />
-            {Boolean(settings.general.showFlow.value) && <FloatingChat />}
+            {Boolean(settings?.general?.showFlow?.value) && <FloatingChat />}
         </RootLayout>
     )
 }

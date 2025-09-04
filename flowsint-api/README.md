@@ -50,4 +50,4 @@ The crawler can be configured with:
 
 ## Usage
 
-The API provides REST endpoints for various scanning operations. See the individual scanner modules for specific usage examples.
+The API provides REST endpoints for various scanning operations. See the individual transform modules for specific usage examples.

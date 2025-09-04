@@ -1,7 +1,7 @@
-from flowsint_transforms.domains.whois import WhoisScanner
+from flowsint_transforms.domains.whois import WhoisTransform
 from flowsint_types.domain import Domain
 
-scanner = WhoisScanner("sketch_123", "scan_123")
+transform = WhoisTransform("sketch_123", "scan_123")
 
 
 def test_preprocess_valid_domains():
@@ -9,7 +9,7 @@ def test_preprocess_valid_domains():
         Domain(domain="example.com"),
         Domain(domain="example2.com"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     expected_domains = [d.domain for d in domains]
@@ -22,7 +22,7 @@ def test_unprocessed_valid_domains():
         "example.com",
         "example2.com",
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
     result_domains = [d for d in result]
     expected_domains = [Domain(domain=d) for d in domains]
     assert result_domains == expected_domains
@@ -34,7 +34,7 @@ def test_preprocess_invalid_domains():
         Domain(domain="invalid_domain"),
         Domain(domain="example.org"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     assert "example.com" in result_domains
@@ -49,7 +49,7 @@ def test_preprocess_multiple_formats():
         Domain(domain="example.org"),
         "example.org",
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     assert "example.com" in result_domains
@@ -73,7 +73,7 @@ def test_scan_returns_whois_objects(monkeypatch):
     monkeypatch.setattr("whois.whois", mock_whois)
 
     input_data = [Domain(domain="example.com")]
-    output = scanner.execute(input_data)
+    output = transform.execute(input_data)
     assert isinstance(output, list)
     assert isinstance(output[0], Domain)
     assert output[0].whois.org == "MockOrg"
@@ -81,8 +81,8 @@ def test_scan_returns_whois_objects(monkeypatch):
 
 
 def test_schemas():
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
+    input_schema = transform.input_schema()
+    output_schema = transform.output_schema()
     assert input_schema == {
         "type": "Domain",
         "properties": [

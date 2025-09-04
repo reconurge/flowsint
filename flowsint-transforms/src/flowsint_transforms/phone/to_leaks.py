@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List, Optional, Union
 import requests
 from urllib.parse import urljoin
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 from flowsint_types.phone import Phone
 from flowsint_types.breach import Breach
@@ -15,7 +15,7 @@ load_dotenv()
 HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
 
-class PhoneToBreachesScanner(Scanner):
+class PhoneToBreachesTransform(Transform):
     """[HIBPWNED] Get the breaches the phone number might be invovled in."""
 
     InputType = List[Phone]
@@ -56,7 +56,7 @@ class PhoneToBreachesScanner(Scanner):
 
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
-        """Declare required parameters for this scanner"""
+        """Declare required parameters for this transform"""
         return [
             {
                 "name": "HIBP_API_KEY",
@@ -102,7 +102,7 @@ class PhoneToBreachesScanner(Scanner):
             Logger.error(
                 self.sketch_id, {"message": "Could not find HIBP_API_URL in params."}
             )
-        headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Scanner"}
+        headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Transform"}
         Logger.info(self.sketch_id, {"message": f"HIBP API URL: {api_url}"})
         for phone in data:
             try:
@@ -235,5 +235,5 @@ class PhoneToBreachesScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = PhoneToBreachesScanner.InputType
-OutputType = PhoneToBreachesScanner.OutputType
+InputType = PhoneToBreachesTransform.InputType
+OutputType = PhoneToBreachesTransform.OutputType

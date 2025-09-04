@@ -1,13 +1,13 @@
 import json
 import subprocess
 from typing import List, Dict, Any, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.organization import Organization
 from flowsint_types.asn import ASN
 from flowsint_core.core.logger import Logger
 
 
-class OrgToAsnScanner(Scanner):
+class OrgToAsnTransform(Transform):
     """Takes an organization and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -159,5 +159,5 @@ class OrgToAsnScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = OrgToAsnScanner.InputType
-OutputType = OrgToAsnScanner.OutputType
+InputType = OrgToAsnTransform.InputType
+OutputType = OrgToAsnTransform.OutputType

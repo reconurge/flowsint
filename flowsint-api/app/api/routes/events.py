@@ -105,9 +105,9 @@ async def stream_events(
                     continue
 
                 # Handle different types of events
-                if isinstance(data, dict) and data.get("type") == "scanner_complete":
-                    # Send scanner completion event
-                    yield json.dumps({"event": "scanner_complete", "data": data})
+                if isinstance(data, dict) and data.get("type") == "transform_complete":
+                    # Send transform completion event
+                    yield json.dumps({"event": "transform_complete", "data": data})
                 else:
                     # Send regular log event
                     yield json.dumps({"event": "log", "data": data})

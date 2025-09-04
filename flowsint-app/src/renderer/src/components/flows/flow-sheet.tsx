@@ -11,7 +11,7 @@ import { memo, useCallback, useMemo, useState } from "react"
 import { TriangleAlert, Loader2, ArrowRight } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-import { Scanner } from "@/types/transform"
+import { Transform } from "@/types/transform"
 import { useQuery } from "@tanstack/react-query"
 import { Input } from "../ui/input"
 import { Alert, AlertDescription } from "../ui/alert"
@@ -33,48 +33,48 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 
-    const filteredScanners = useMemo(() => {
+    const filteredTransforms = useMemo(() => {
         if (!materials?.items || !selectedNode) return []
         if (!searchTerm.trim()) {
             return materials?.items
         }
         const term = searchTerm.toLowerCase()
-        return materials?.items.filter((scanner: Scanner) => {
+        return materials?.items.filter((transform: Transform) => {
             return (
-                scanner.class_name.toLowerCase().includes(term) ||
-                scanner.name.toLowerCase().includes(term) ||
-                scanner.module.toLowerCase().includes(term) ||
-                scanner.inputs.type.toLowerCase().includes(term) ||
-                scanner.outputs.type.toLowerCase().includes(term) ||
-                (scanner.documentation && scanner.documentation.toLowerCase().includes(term))
+                transform.class_name.toLowerCase().includes(term) ||
+                transform.name.toLowerCase().includes(term) ||
+                transform.module.toLowerCase().includes(term) ||
+                transform.inputs.type.toLowerCase().includes(term) ||
+                transform.outputs.type.toLowerCase().includes(term) ||
+                (transform.documentation && transform.documentation.toLowerCase().includes(term))
             )
         })
     }, [searchTerm, materials?.items, selectedNode])
 
-    const handleClick = useCallback((scanner: Scanner) => {
+    const handleClick = useCallback((transform: Transform) => {
         if (!selectedNode) return
         const position = { x: selectedNode.position.x + 350, y: selectedNode.position.y }
         const newNode: FlowNode = {
-            id: `${scanner.name}-${Date.now()}`,
-            type: scanner.type === "type" ? "type" : "scanner",
+            id: `${transform.name}-${Date.now()}`,
+            type: transform.type === "type" ? "type" : "transform",
             position,
             data: {
-                id: scanner.id,
-                class_name: scanner.class_name,
-                module: scanner.module || "",
-                key: scanner.name,
-                color: colors[scanner.category.toLowerCase()] || "#94a3b8",
-                name: scanner.name,
-                category: scanner.category,
-                type: scanner.type,
-                inputs: scanner.inputs,
-                outputs: scanner.outputs,
-                documentation: scanner.documentation,
-                description: scanner.description,
-                required_params: scanner.required_params,
-                params: scanner.params,
-                params_schema: scanner.params_schema,
-                icon: scanner.icon
+                id: transform.id,
+                class_name: transform.class_name,
+                module: transform.module || "",
+                key: transform.name,
+                color: colors[transform.category.toLowerCase()] || "#94a3b8",
+                name: transform.name,
+                category: transform.category,
+                type: transform.type,
+                inputs: transform.inputs,
+                outputs: transform.outputs,
+                documentation: transform.documentation,
+                description: transform.description,
+                required_params: transform.required_params,
+                params: transform.params,
+                params_schema: transform.params_schema,
+                icon: transform.icon
             },
         }
         setNodes((prev) => ([...prev, newNode]))
@@ -84,7 +84,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
             source: selectedNode.id,
             target: newNode.id,
             sourceHandle: selectedNode.data.outputs.type,
-            targetHandle: scanner.inputs.type
+            targetHandle: transform.inputs.type
         }
         setEdges((prev) => ([...prev, connection]))
         // onLayout && onLayout()
@@ -125,13 +125,13 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
 
                         {!isLoading && !error && (
                             <div className="flex flex-col gap-2">
-                                {filteredScanners.length === 0 ? (
+                                {filteredTransforms.length === 0 ? (
                                     <div className="text-center py-8 text-muted-foreground">
                                         {searchTerm.trim() ? 'No transforms found matching your search.' : 'No transforms available for this node type.'}
                                     </div>
                                 ) : (
-                                    filteredScanners.map((scanner: Scanner) => (
-                                        <ScannerItem key={scanner.id} scanner={scanner} onClick={() => handleClick(scanner)} />
+                                    filteredTransforms.map((transform: Transform) => (
+                                        <TransformItem key={transform.id} transform={transform} onClick={() => handleClick(transform)} />
                                     ))
                                 )}
                             </div>
@@ -146,22 +146,22 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
 
 export default FlowSheet
 
-// Custom equality function for ScannerItem
-function areEqual(prevProps: { scanner: Scanner }, nextProps: { scanner: Scanner }) {
+// Custom equality function for TransformItem
+function areEqual(prevProps: { transform: Transform }, nextProps: { transform: Transform }) {
     return (
-        prevProps.scanner.class_name === nextProps.scanner.class_name &&
-        prevProps.scanner.name === nextProps.scanner.name &&
-        prevProps.scanner.module === nextProps.scanner.module &&
-        prevProps.scanner.documentation === nextProps.scanner.documentation
+        prevProps.transform.class_name === nextProps.transform.class_name &&
+        prevProps.transform.name === nextProps.transform.name &&
+        prevProps.transform.module === nextProps.transform.module &&
+        prevProps.transform.documentation === nextProps.transform.documentation
     )
 }
 
-// Memoized scanner item component for the sidebar
-const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () => void }) => {
+// Memoized transform item component for the sidebar
+const TransformItem = memo(({ transform, onClick }: { transform: Transform, onClick: () => void }) => {
     const colors = useNodesDisplaySettings(s => s.colors)
-    const borderInputColor = colors[scanner.inputs.type.toLowerCase()]
-    const borderOutputColor = colors[scanner.outputs.type.toLowerCase()]
-    const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : scanner.icon ? useIcon(scanner.icon, null) : null
+    const borderInputColor = colors[transform.inputs.type.toLowerCase()]
+    const borderOutputColor = colors[transform.outputs.type.toLowerCase()]
+    const Icon = transform.type === "type" ? useIcon(transform.outputs.type.toLowerCase() as string, null) : transform.icon ? useIcon(transform.icon, null) : null
 
     return (
         <TooltipProvider>
@@ -175,24 +175,24 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
                         <div className="space-y-1 truncate text-left">
                             <div className="flex items-center gap-2 truncate text-ellipsis">
                                 {Icon && <Icon size={24} />}
-                                <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                                <h3 className="text-sm font-medium truncate text-ellipsis">{transform.class_name}</h3>
                             </div>
-                            <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{scanner.description}</p>
+                            <p className="text-sm font-normal opacity-60 truncate text-ellipsis">{transform.description}</p>
                             <div className="mt-2 flex items-center gap-2 text-xs">
                                 <div className="flex items-center gap-1">
                                     <span className="text-muted-foreground">Takes</span>
-                                    <span className="font-bold truncate text-ellipsis">{scanner.inputs.type}</span>
+                                    <span className="font-bold truncate text-ellipsis">{transform.inputs.type}</span>
                                 </div>
                                 <span><ArrowRight className="h-3 w-3" /></span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-muted-foreground">Returns</span>
-                                    <span className="font-bold truncate text-ellipsis">{scanner.outputs.type}</span>
+                                    <span className="font-bold truncate text-ellipsis">{transform.outputs.type}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {scanner.required_params &&
+                {transform.required_params &&
                     <div className="absolute bottom-3 right-3">
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -208,4 +208,4 @@ const ScannerItem = memo(({ scanner, onClick }: { scanner: Scanner, onClick: () 
     )
 }, areEqual)
 
-ScannerItem.displayName = "ScannerItem"
+TransformItem.displayName = "TransformItem"

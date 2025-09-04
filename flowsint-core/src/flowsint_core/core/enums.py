@@ -8,7 +8,7 @@ class EventLevel(str, Enum):
     FAILED = "FAILED"
     SUCCESS = "SUCCESS"
     DEBUG = "DEBUG"
-    # Scanner-specific statuses
+    # Transform-specific statuses
     PENDING = "PENDING"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"

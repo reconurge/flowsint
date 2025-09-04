@@ -8,7 +8,7 @@ from .vault import VaultProtocol
 from ..utils import resolve_type
 
 
-class InvalidScannerParams(Exception):
+class InvalidTransformParams(Exception):
     pass
 
 
@@ -34,13 +34,13 @@ def build_params_model(params_schema: list) -> BaseModel:
     return model
 
 
-class Scanner(ABC):
+class Transform(ABC):
     """
-    Abstract base class for all scanners.
+    Abstract base class for all transforms.
 
     ## InputType and OutputType Pattern
 
-    Scanners only need to define InputType and OutputType as class attributes.
+    Transforms only need to define InputType and OutputType as class attributes.
     The base class automatically handles schema generation:
 
     ```python
@@ -48,14 +48,14 @@ class Scanner(ABC):
     from flowsint_types import Domain
     from flowsint_types import Ip
 
-    class MyScanner(Scanner):
+    class MyTransform(Transform):
         # Define types as class attributes
         InputType = List[Domain]
         OutputType = List[Ip]
 
         @classmethod
         def name(cls):
-            return "my_scanner"
+            return "my_transform"
 
         @classmethod
         def category(cls):
@@ -76,15 +76,15 @@ class Scanner(ABC):
             return results
 
     # Make types available at module level for easy access
-    InputType = MyScanner.InputType
-    OutputType = MyScanner.OutputType
+    InputType = MyTransform.InputType
+    OutputType = MyTransform.OutputType
     ```
 
     The base class automatically provides:
     - input_schema() method using InputType
     - output_schema() method using OutputType
     - Error handling for missing type definitions
-    - Consistent schema generation across all scanners
+    - Consistent schema generation across all transforms
 
     Subclasses can override input_schema() or output_schema() if needed for special cases.
     """
@@ -128,8 +128,8 @@ class Scanner(ABC):
             validated = self.ParamsModel(**resolved_params)
             self.params = validated.model_dump()
         except ValidationError as e:
-            raise InvalidScannerParams(
-                f"Scanner '{self.name()}' received invalid parameters: {e}"
+            raise InvalidTransformParams(
+                f"Transform '{self.name()}' received invalid parameters: {e}"
             )
 
     def resolve_params(self) -> Dict[str, Any]:
@@ -192,13 +192,13 @@ class Scanner(ABC):
     @classmethod
     @abstractmethod
     def key(cls) -> str:
-        """Primary key on which the scanner operates (e.g. domain, IP, etc.)"""
+        """Primary key on which the transform operates (e.g. domain, IP, etc.)"""
         pass
 
     @classmethod
     def documentation(cls) -> str:
         """
-        Return formatted markdown documentation for this scanner.
+        Return formatted markdown documentation for this transform.
         Override this method to provide custom documentation.
         Falls back to cleaned docstring if not overridden.
         """
@@ -327,7 +327,7 @@ class Scanner(ABC):
 
     async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         if self.name() != "transform_orchestrator":
-            Logger.info(self.sketch_id, {"message": f"Scanner {self.name()} started."})
+            Logger.info(self.sketch_id, {"message": f"Transform {self.name()} started."})
         try:
             await self.async_init()
             preprocessed = self.preprocess(values)
@@ -336,7 +336,7 @@ class Scanner(ABC):
 
             if self.name() != "transform_orchestrator":
                 Logger.completed(
-                    self.sketch_id, {"message": f"Scanner {self.name()} finished."}
+                    self.sketch_id, {"message": f"Transform {self.name()} finished."}
                 )
 
             return processed
@@ -345,7 +345,7 @@ class Scanner(ABC):
             if self.name() != "transform_orchestrator":
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Scanner {self.name()} errored: '{str(e)}'."},
+                    {"message": f"Transform {self.name()} errored: '{str(e)}'."},
                 )
             return []
 
@@ -373,7 +373,6 @@ class Scanner(ABC):
         final_properties["type"] = node_type.lower()
         final_properties["sketch_id"] = self.sketch_id
         final_properties["label"] = final_properties.get("label", key_value)
-        
 
         set_clauses = [f"n.{prop} = ${prop}" for prop in final_properties.keys()]
         params = {key_prop: key_value, **final_properties}

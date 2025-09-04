@@ -1,13 +1,13 @@
 import requests
 from typing import List, Dict, Union, Set
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
 from flowsint_core.core.logger import Logger
 from tools.organizations.sirene import SireneTool
 
 
-class IndividualToOrgScanner(Scanner):
+class IndividualToOrgTransform(Transform):
     """[SIRENE] Find organization from a person with data from SIRENE (France only)."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -340,5 +340,5 @@ class IndividualToOrgScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = IndividualToOrgScanner.InputType
-OutputType = IndividualToOrgScanner.OutputType
+InputType = IndividualToOrgTransform.InputType
+OutputType = IndividualToOrgTransform.OutputType

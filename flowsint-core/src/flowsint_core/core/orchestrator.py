@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 import time
 from pydantic import ValidationError
-from .scanner_base import Scanner
+from .transform_base import Transform
 from .registry import TransformRegistry
 from .types import FlowBranch, FlowStep
 from .logger import Logger
@@ -12,9 +12,9 @@ import json
 import os
 
 
-class FlowOrchestrator(Scanner):
+class FlowOrchestrator(Transform):
     """
-    Orchestrator for running a list of scanners.
+    Orchestrator for running a list of transforms.
     """
 
     def __init__(
@@ -27,10 +27,10 @@ class FlowOrchestrator(Scanner):
     ):
         super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn, vault=vault)
         self.transform_branches = transform_branches
-        self.scanners = {}  # Map of nodeId -> scanner instance
+        self.transforms = {}  # Map of nodeId -> transform instance
         self.execution_log_file = None  # Path to the execution log file
         self._create_execution_log()
-        self._load_scanners()
+        self._load_transforms()
 
     def _create_execution_log(self) -> None:
         """
@@ -210,44 +210,44 @@ class FlowOrchestrator(Scanner):
                 {"message": f"Failed to save transform branches: {str(e)}"},
             )
 
-    def _load_scanners(self) -> None:
+    def _load_transforms(self) -> None:
         if not self.transform_branches:
             raise ValueError("No transform branches provided")
 
-        # Collect all scanner nodes across all branches
-        scanner_nodes = []
+        # Collect all transform nodes across all branches
+        transform_nodes = []
         for branch in self.transform_branches:
             for step in branch.steps:
                 if step.type == "type":
                     continue
-                scanner_nodes.append(step)
+                transform_nodes.append(step)
 
-        if not scanner_nodes:
-            raise ValueError("No scanner nodes found in transform branches")
+        if not transform_nodes:
+            raise ValueError("No transform nodes found in transform branches")
 
-        # Create scanner instances for each node
-        for node in scanner_nodes:
+        # Create transform instances for each node
+        for node in transform_nodes:
             node_id = node.nodeId
 
-            # Extract scanner name from nodeId (assuming format like "transform_name-1234567890")
+            # Extract transform name from nodeId (assuming format like "transform_name-1234567890")
             transform_name = node_id.split("-")[0]
 
             if not TransformRegistry.transform_exists(transform_name):
-                raise ValueError(f"Scanner '{transform_name}' not found in registry")
+                raise ValueError(f"Transform '{transform_name}' not found in registry")
 
-            # Pass the step params to the scanner instance
-            scanner_params = (
+            # Pass the step params to the transform instance
+            transform_params = (
                 node.params if hasattr(node, "params") and node.params else {}
             )
-            scanner = TransformRegistry.get_scanner(
+            transform = TransformRegistry.get_transform(
                 transform_name,
                 self.sketch_id,
                 self.scan_id,
                 neo4j_conn=self.neo4j_conn,
                 vault=self.vault,
-                params=scanner_params,
+                params=transform_params,
             )
-            self.scanners[node_id] = scanner
+            self.transforms[node_id] = transform
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -258,11 +258,11 @@ class FlowOrchestrator(Scanner):
             return results_mapping[ref_value]
         return None
 
-    def prepare_scanner_inputs(
+    def prepare_transform_inputs(
         self, step: FlowStep, results_mapping: Dict[str, Any], initial_values: List[str]
     ) -> List[Any]:
         """
-        Prepare the inputs for a scanner based on the references and previous results.
+        Prepare the inputs for a transform based on the references and previous results.
         Handles single references, lists, and direct values.
         """
         inputs = {}
@@ -290,12 +290,12 @@ class FlowOrchestrator(Scanner):
 
         # Si aucun input n'a été résolu, utiliser les valeurs initiales
         if not inputs:
-            scanner = self.scanners.get(step.nodeId)
-            if scanner:
-                primary_key = scanner.key()
+            transform = self.transforms.get(step.nodeId)
+            if transform:
+                primary_key = transform.key()
                 return {primary_key: initial_values}
         else:
-            scanner = self.scanners.get(step.nodeId)
+            transform = self.transforms.get(step.nodeId)
         return inputs[input_key]
 
     def update_results_mapping(
@@ -305,7 +305,7 @@ class FlowOrchestrator(Scanner):
         results_mapping: Dict[str, Any],
     ) -> None:
         """
-        Update the results mapping with new outputs from a scanner.
+        Update the results mapping with new outputs from a transform.
         """
         for output_key, output_ref in step_outputs.items():
             if output_key in outputs:
@@ -355,8 +355,8 @@ class FlowOrchestrator(Scanner):
 
         # Global mapping of output references to actual values
         results_mapping = {}
-        # Cache for scanner results to avoid recomputation
-        scanner_results_cache = {}
+        # Cache for transform results to avoid recomputation
+        transform_results_cache = {}
 
         total_steps = sum(len(branch.steps) for branch in self.transform_branches)
         completed_steps = 0
@@ -368,27 +368,27 @@ class FlowOrchestrator(Scanner):
             branch_results = {"id": branch_id, "name": branch_name, "steps": []}
 
             # Process each step in the branch
-            scanner_inputs = values
+            transform_inputs = values
             for step in branch.steps:
                 if step.type == "type":
                     continue
 
                 node_id = step.nodeId
-                scanner = self.scanners.get(node_id)
+                transform = self.transforms.get(node_id)
 
-                if not scanner:
+                if not transform:
                     Logger.error(
                         self.sketch_id,
-                        {"message": f"Scanner not found for node {node_id}"},
+                        {"message": f"Transform not found for node {node_id}"},
                     )
                     continue
 
-                transform_name = scanner.name()
+                transform_name = transform.name()
                 step_start_time = time.time()
 
                 step_result = {
                     "nodeId": node_id,
-                    "scanner": transform_name,
+                    "transform": transform_name,
                     "status": "error",  # Default to error, will update on success
                 }
 
@@ -399,7 +399,7 @@ class FlowOrchestrator(Scanner):
                     "branch_name": branch_name,
                     "node_id": node_id,
                     "transform_name": transform_name,
-                    "inputs": to_json_serializable(scanner_inputs),
+                    "inputs": to_json_serializable(transform_inputs),
                     "outputs": None,
                     "status": "running",
                     "error": None,
@@ -410,7 +410,7 @@ class FlowOrchestrator(Scanner):
                 try:
                     # Update status for current step
                     completed_steps += 1
-                    if not scanner_inputs:
+                    if not transform_inputs:
                         error_msg = "No inputs available"
                         step_result["error"] = error_msg
                         log_entry["status"] = "error"
@@ -422,20 +422,20 @@ class FlowOrchestrator(Scanner):
                         branch_results["steps"].append(step_result)
                         continue
 
-                    # Check if we already have results for this scanner with these inputs
-                    cache_key = f"{node_id}:{str(scanner_inputs)}"
-                    if cache_key in scanner_results_cache:
-                        outputs = scanner_results_cache[cache_key]
+                    # Check if we already have results for this transform with these inputs
+                    cache_key = f"{node_id}:{str(transform_inputs)}"
+                    if cache_key in transform_results_cache:
+                        outputs = transform_results_cache[cache_key]
                         log_entry["cache_hit"] = True
                     else:
-                        # Execute the scanner
-                        outputs = await scanner.execute(scanner_inputs)
+                        # Execute the transform
+                        outputs = await transform.execute(transform_inputs)
                         if not isinstance(outputs, (dict, list)):
                             raise ValueError(
-                                f"Scanner '{transform_name}' returned unsupported output format"
+                                f"Transform '{transform_name}' returned unsupported output format"
                             )
                         # Cache the results
-                        scanner_results_cache[cache_key] = outputs
+                        transform_results_cache[cache_key] = outputs
                         log_entry["cache_hit"] = False
 
                     # Store the outputs in the step result (serialize to avoid JSON issues)
@@ -453,7 +453,7 @@ class FlowOrchestrator(Scanner):
                     self.update_results_mapping(outputs, step.outputs, results_mapping)
                     # Also store the raw outputs in the main results
                     results["results"][node_id] = outputs
-                    scanner_inputs = outputs
+                    transform_inputs = outputs
 
                 except ValidationError as e:
                     error_msg = f"Validation error: {str(e)}"

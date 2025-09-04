@@ -4,7 +4,7 @@ from flowsint_transforms.crypto.wallet_to_transactions import (
 )
 from flowsint_types.wallet import CryptoWallet, CryptoWalletTransaction
 
-scanner = CryptoWalletAddressToTransactions(
+transform = CryptoWalletAddressToTransactions(
     "sketch_123",
     "scan_123",
     params={"ETHERSCAN_API_KEY": "ta-clef-api"},
@@ -12,20 +12,20 @@ scanner = CryptoWalletAddressToTransactions(
 
 
 def test_wallet_address_to_transactions_name():
-    assert scanner.name() == "wallet_to_transactions"
+    assert transform.name() == "wallet_to_transactions"
 
 
 def test_wallet_address_to_transactions_category():
-    assert scanner.category() == "CryptoCryptoWallet"
+    assert transform.category() == "CryptoCryptoWallet"
 
 
 def test_wallet_address_to_transactions_key():
-    assert scanner.key() == "address"
+    assert transform.key() == "address"
 
 
 def test_preprocess_with_string():
     input_data = ["0x742d35Cc6634C0532925a3b844Bc454e4438f44e"]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -33,7 +33,7 @@ def test_preprocess_with_string():
 
 def test_preprocess_with_dict():
     input_data = [{"address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"}]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -42,7 +42,7 @@ def test_preprocess_with_dict():
 def test_preprocess_with_wallet_object():
     wallet = CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
     input_data = [wallet]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -74,10 +74,10 @@ async def test_scan_mocked_transactions(monkeypatch):
             )
         ]
 
-    monkeypatch.setattr(scanner, "_get_transactions", mock_get_transactions)
+    monkeypatch.setattr(transform, "_get_transactions", mock_get_transactions)
 
     input_data = [CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")]
-    result = await scanner.scan(input_data)
+    result = await transform.scan(input_data)
 
     assert len(result) == 1
     assert len(result[0]) == 1
@@ -88,18 +88,18 @@ async def test_scan_mocked_transactions(monkeypatch):
     assert result[0][0].timestamp == "1234567890"
 
 
-def test_scanner_requires_api_key():
-    """Test that the scanner validates required ETHERSCAN_API_KEY parameter at construction"""
+def test_transform_requires_api_key():
+    """Test that the transform validates required ETHERSCAN_API_KEY parameter at construction"""
     with pytest.raises(
-        ValueError, match="Scanner wallet_to_transactions received invalid params"
+        ValueError, match="Transform wallet_to_transactions received invalid params"
     ):
         CryptoWalletAddressToTransactions("sketch_123", "scan_123", params={})
 
 
-def test_scanner_with_invalid_api_key_type():
-    """Test that the scanner validates parameter types"""
+def test_transform_with_invalid_api_key_type():
+    """Test that the transform validates parameter types"""
     with pytest.raises(
-        ValueError, match="Scanner wallet_to_transactions received invalid params"
+        ValueError, match="Transform wallet_to_transactions received invalid params"
     ):
         CryptoWalletAddressToTransactions(
             "sketch_123", "scan_123", params={"ETHERSCAN_API_KEY": 123}

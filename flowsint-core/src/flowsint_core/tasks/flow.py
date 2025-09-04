@@ -62,7 +62,7 @@ def run_flow(
                 )
 
         transform_branches = [FlowBranch(**branch) for branch in transform_branches]
-        scanner = FlowOrchestrator(
+        transform = FlowOrchestrator(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             transform_branches=transform_branches,
@@ -71,7 +71,7 @@ def run_flow(
         )
 
         # Use the synchronous scan method which internally handles the async operations
-        results = scanner.scan(values=values)
+        results = transform.scan(values=values)
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

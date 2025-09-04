@@ -21,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Create the enum type first using raw SQL to ensure it exists
-    op.execute("CREATE TYPE scannerstatus AS ENUM ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED')")
+    op.execute("CREATE TYPE transformstatus AS ENUM ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED')")
 
     # Add new columns
     op.add_column('scans', sa.Column('started_at', sa.DateTime(), nullable=True))
@@ -30,17 +30,17 @@ def upgrade() -> None:
     op.add_column('scans', sa.Column('details', sa.JSON(), nullable=True))
     
     # Add new status column with enum type
-    op.add_column('scans', sa.Column('status_new', postgresql.ENUM('PENDING', 'RUNNING', 'COMPLETED', 'FAILED', name='scannerstatus'), nullable=True))
+    op.add_column('scans', sa.Column('status_new', postgresql.ENUM('PENDING', 'RUNNING', 'COMPLETED', 'FAILED', name='transformstatus'), nullable=True))
     
     # Copy data from old status to new status with proper casting
     op.execute("""
         UPDATE scans 
         SET status_new = CASE 
-            WHEN status = 'PENDING' THEN 'PENDING'::scannerstatus
-            WHEN status = 'RUNNING' THEN 'RUNNING'::scannerstatus
-            WHEN status = 'COMPLETED' THEN 'COMPLETED'::scannerstatus
-            WHEN status = 'FAILED' THEN 'FAILED'::scannerstatus
-            ELSE 'PENDING'::scannerstatus
+            WHEN status = 'PENDING' THEN 'PENDING'::transformstatus
+            WHEN status = 'RUNNING' THEN 'RUNNING'::transformstatus
+            WHEN status = 'COMPLETED' THEN 'COMPLETED'::transformstatus
+            WHEN status = 'FAILED' THEN 'FAILED'::transformstatus
+            ELSE 'PENDING'::transformstatus
         END
     """)
     
@@ -100,4 +100,4 @@ def downgrade() -> None:
     op.drop_column('scans', 'started_at')
 
     # Drop the enum type
-    op.execute("DROP TYPE scannerstatus") 
+    op.execute("DROP TYPE transformstatus") 

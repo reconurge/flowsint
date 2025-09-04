@@ -1,7 +1,7 @@
 import requests
 from typing import List, Dict, Any, TypeAlias, Union
 from pydantic import TypeAdapter
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.ip import Ip, Ip
 from flowsint_core.utils import resolve_type, is_valid_ip
 
@@ -9,7 +9,7 @@ InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[Ip]
 
 
-class IpToInfosScanner(Scanner):
+class IpToInfosTransform(Transform):
     """[ip-api.com] Get information data for IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -131,5 +131,5 @@ class IpToInfosScanner(Scanner):
             return {}
 
 
-InputType = IpToInfosScanner.InputType
-OutputType = IpToInfosScanner.OutputType
+InputType = IpToInfosTransform.InputType
+OutputType = IpToInfosTransform.OutputType

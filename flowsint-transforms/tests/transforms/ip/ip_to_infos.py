@@ -1,7 +1,7 @@
-from flowsint_transforms.ips.geolocation import IpToInfosScanner
+from flowsint_transforms.ips.geolocation import IpToInfosTransform
 from flowsint_types.ip import Ip, Ip
 
-scanner = IpToInfosScanner("sketch_123", "scan_123")
+transform = IpToInfosTransform("sketch_123", "scan_123")
 
 
 def test_preprocess_valid_ips():
@@ -9,7 +9,7 @@ def test_preprocess_valid_ips():
         Ip(address="8.8.8.8"),
         Ip(address="1.1.1.1"),
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
     result_ips = [d.address for d in result]
     expected_ips = [d.address for d in ips]
     assert result_ips == expected_ips
@@ -20,7 +20,7 @@ def test_preprocess_string_ips():
         "8.8.8.8",
         "1.1.1.1",
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
     result_ips = [d.address for d in result]
     expected_ips = [d for d in ips]
     assert [ip.address for ip in result] == expected_ips
@@ -32,7 +32,7 @@ def test_preprocess_invalid_ips():
         Ip(address="invalid_ip"),
         Ip(address="1.1.1.1"),
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
     result_ips = [d.address for d in result]
     assert "8.8.8.8" in result_ips
     assert "1.1.1.1" in result_ips
@@ -46,7 +46,7 @@ def test_preprocess_multiple_formats():
         Ip(address="1.1.1.1"),
         "1.1.1.1",
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
     result_ips = [d.address for d in result]
     assert "8.8.8.8" in result_ips
     assert "1.1.1.1" in result_ips
@@ -64,10 +64,10 @@ def test_scan_returns_ip(monkeypatch):
             "isp": "Google LLC",
         }
 
-    monkeypatch.setattr(scanner, "get_location_data", mock_get_location_data)
+    monkeypatch.setattr(transform, "get_location_data", mock_get_location_data)
 
     input_data = [Ip(address="8.8.8.8")]
-    output = scanner.execute(input_data)
+    output = transform.execute(input_data)
     assert isinstance(output, list)
     assert isinstance(output[0], Ip)
     assert output[0].address == "8.8.8.8"
@@ -77,8 +77,8 @@ def test_scan_returns_ip(monkeypatch):
 
 
 def test_schemas():
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
+    input_schema = transform.input_schema()
+    output_schema = transform.output_schema()
     assert input_schema == {
         "type": "Ip",
         "properties": [

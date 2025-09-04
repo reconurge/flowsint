@@ -64,7 +64,7 @@ Core utilities and base classes used by all other modules:
 - Authentication and authorization
 - Logging and event handling
 - Configuration management
-- Base classes for scanners and tools
+- Base classes for transforms and tools
 - Utility functions
 
 ### flowsint-types
@@ -81,11 +81,11 @@ Pydantic models for all data types:
 
 Transform modules that process data:
 
-- Domain scanners (subdomains, WHOIS, resolution)
-- IP scanners (geolocation, ASN lookup)
-- Social media scanners (Maigret, Sherlock)
-- Email scanners (breaches, Gravatar)
-- Crypto scanners (transactions, NFTs)
+- Domain transforms (subdomains, WHOIS, resolution)
+- IP transforms (geolocation, ASN lookup)
+- Social media transforms (Maigret, Sherlock)
+- Email transforms (breaches, Gravatar)
+- Crypto transforms (transactions, NFTs)
 - And many more...
 
 ### flowsint-api

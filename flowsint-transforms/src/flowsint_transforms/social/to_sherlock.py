@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import List, Union
 from flowsint_core.utils import is_valid_username
 from flowsint_types.social import SocialProfile
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 
 
-class SherlockScanner(Scanner):
+class SherlockTransform(Transform):
     """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -127,5 +127,5 @@ class SherlockScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = SherlockScanner.InputType
-OutputType = SherlockScanner.OutputType
+InputType = SherlockTransform.InputType
+OutputType = SherlockTransform.OutputType

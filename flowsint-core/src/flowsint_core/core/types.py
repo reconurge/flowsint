@@ -56,9 +56,9 @@ class FlowStep(BaseModel):
     params: Optional[Dict[str, Any]] = Field(
         None, description="Parameters for the step", title="Parameters"
     )
-    type: Literal["type", "scanner"] = Field(
+    type: Literal["type", "transform"] = Field(
         ...,
-        description="Type of step - either type transformation or scanner",
+        description="Type of step - either type transformation or transform",
         title="Step Type",
     )
     inputs: Dict[str, Any] = Field(

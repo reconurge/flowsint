@@ -1,14 +1,14 @@
-export interface ScannerProperty {
+export interface TransformProperty {
     name: string
     type: string
 }
 
-export interface ScannerIO {
+export interface TransformIO {
     type: string
-    properties: ScannerProperty[]
+    properties: TransformProperty[]
 }
 
-export interface ScannerParamSchemaItem {
+export interface TransformParamSchemaItem {
     name: string
     type: string
     description: string
@@ -16,7 +16,7 @@ export interface ScannerParamSchemaItem {
     required: boolean
 }
 
-export interface Scanner {
+export interface Transform {
     id: string
     class_name: string
     category: string
@@ -24,12 +24,12 @@ export interface Scanner {
     module: string
     documentation: string | null
     description: string | null
-    inputs: ScannerIO
-    outputs: ScannerIO
+    inputs: TransformIO
+    outputs: TransformIO
     type: string
     required_params: boolean
     params: Record<string, string>
-    params_schema: ScannerParamSchemaItem[]
+    params_schema: TransformParamSchemaItem[]
     settings?: Record<string, string>
     icon: string | null
 }
@@ -38,7 +38,7 @@ export interface Scanner {
 // NODE DATA TYPE FOR TRANSFORM STORE
 // ================================
 
-export interface ScannerNodeData extends Scanner, Record<string, unknown> {
+export interface TransformNodeData extends Transform, Record<string, unknown> {
     color?: string
     computationState?: "pending" | "processing" | "completed" | "error"
     key: string
@@ -49,10 +49,10 @@ export interface ScannerNodeData extends Scanner, Record<string, unknown> {
 // ================================
 
 export interface ScansData {
-    [category: string]: Scanner[]
+    [category: string]: Transform[]
 }
 
-export interface ScannerData {
+export interface TransformData {
     items: ScansData
 }
 
@@ -60,29 +60,15 @@ export interface ScannerData {
 // COMPONENT PROPS INTERFACES
 // ================================
 
-export interface ScannerItemProps {
-    scanner: Scanner
+export interface TransformItemProps {
+    transform: Transform
     category: string
 }
 
-export interface ScannerNodeProps {
-    data: ScannerNodeData
+export interface TransformNodeProps {
+    data: TransformNodeData
     isConnectable?: boolean
     selected?: boolean
-}
-
-// ================================
-// TRANSFORM TYPE DEFINITIONS
-// ================================
-
-export interface Transform {
-    id: string;
-    class_name: string;
-    name: string;
-    module: string;
-    description: string;
-    documentation: string;
-    category: string;
 }
 
 // ================================

@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "../ui/checkbox"
 import { useCallback, memo } from "react"
-import { GraphNode, useGraphStore } from "@/stores/graph-store"
+import { useGraphStore } from "@/stores/graph-store"
+import { GraphNode } from "@/types"
 
 // Memoized icon component to prevent unnecessary re-renders
 const MemoizedIcon = memo(({ type, size = 16 }: { type: string; size?: number }) => {
@@ -65,7 +66,7 @@ const getConfidenceColor = (confidence: number) => {
 export const columns: ColumnDef<GraphNode>[] = [
     {
         size: 50,
-        minSize:50,
+        minSize: 50,
         maxSize: 50,
         enableResizing: false,
         accessorKey: "icon",
@@ -100,7 +101,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         accessorKey: "data.label",
         header: ({ column }) => {
@@ -156,7 +157,7 @@ export const columns: ColumnDef<GraphNode>[] = [
             )
         },
         size: 120,
-        minSize:80,
+        minSize: 80,
         maxSize: 200,
         accessorKey: "data.type",
         cell: ({ row }) => {
@@ -171,7 +172,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         header: ({ column }) => {
             return (
@@ -202,7 +203,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         header: ({ column }) => {
             return (
@@ -218,7 +219,7 @@ export const columns: ColumnDef<GraphNode>[] = [
         },
         accessorKey: "data.source",
         cell: ({ row }) => {
-            const source = row.original.data.source || 'Scanner'
+            const source = row.original.data.source || 'Transform'
             return (
                 <div className="text-left font-medium text-gray-700 dark:text-gray-200">
                     {source}
@@ -229,7 +230,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         header: ({ column }) => {
             return (
@@ -266,7 +267,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         header: ({ column }) => {
             return (
@@ -295,7 +296,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         enableResizing: true,
         size: 200,
-        minSize:120,
+        minSize: 120,
         maxSize: 500,
         header: ({ column }) => {
             return (
@@ -322,7 +323,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     {
         id: "actions",
         size: 50,
-        minSize:50,
+        minSize: 50,
         maxSize: 50,
         enableResizing: false,
         header: () => {

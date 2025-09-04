@@ -1,7 +1,7 @@
 import os
 import re
 from typing import Any, List, Union, Dict, Set
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.email import Email
@@ -15,7 +15,7 @@ load_dotenv()
 WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
 
 
-class EmailToDomainsScanner(Scanner):
+class EmailToDomainsTransform(Transform):
     """[WHOXY] Takes an email and returns the domains it registered."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -405,5 +405,5 @@ class EmailToDomainsScanner(Scanner):
                 )
 
 
-InputType = EmailToDomainsScanner.InputType
-OutputType = EmailToDomainsScanner.OutputType
+InputType = EmailToDomainsTransform.InputType
+OutputType = EmailToDomainsTransform.OutputType

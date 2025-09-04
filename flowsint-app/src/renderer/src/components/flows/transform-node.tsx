@@ -6,7 +6,7 @@ import { NodeStatusIndicator } from "../xyflow/node-status-indicator"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { cn } from "@/lib/utils"
 import { Plus, TriangleAlert } from "lucide-react"
-import { type ScannerNodeProps } from "@/types/transform"
+import { type TransformNodeProps } from "@/types/transform"
 import { FlowNode, useFlowStore } from "@/stores/flow-store"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { Button } from "../ui/button"
@@ -14,7 +14,7 @@ import { ButtonHandle } from "../xyflow/button-handle"
 import { useIcon } from "@/hooks/use-icon"
 
 // Custom equality function to prevent unnecessary re-renders
-function areEqual(prevProps: ScannerNodeProps, nextProps: ScannerNodeProps) {
+function areEqual(prevProps: TransformNodeProps, nextProps: TransformNodeProps) {
     return (
         prevProps.data.class_name === nextProps.data.class_name &&
         prevProps.data.name === nextProps.data.name &&
@@ -44,8 +44,8 @@ const getStateColor = (state?: string) => {
     }
 }
 
-// Scanner node component for transform/scanner nodes only
-const ScannerNode = memo(({ data, isConnectable }: ScannerNodeProps) => {
+// Transform node component for transform/transform nodes only
+const TransformNode = memo(({ data, isConnectable }: TransformNodeProps) => {
     const colors = useNodesDisplaySettings(s => s.colors)
     const inputColor = colors[data.inputs.type.toLowerCase()]
     const outputColor = colors[data.outputs.type.toLowerCase()]
@@ -174,6 +174,6 @@ const ScannerNode = memo(({ data, isConnectable }: ScannerNodeProps) => {
     )
 }, areEqual)
 
-ScannerNode.displayName = "ScannerNode"
+TransformNode.displayName = "TransformNode"
 
-export default ScannerNode
+export default TransformNode

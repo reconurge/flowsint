@@ -1,30 +1,30 @@
 import hashlib
 from unittest.mock import Mock, patch
-from flowsint_transforms.emails.to_gravatar import EmailToGravatarScanner
+from flowsint_transforms.emails.to_gravatar import EmailToGravatarTransform
 from flowsint_types.email import Email
 from flowsint_types.gravatar import Gravatar
 
-scanner = EmailToGravatarScanner("sketch_123", "scan_123")
+transform = EmailToGravatarTransform("sketch_123", "scan_123")
 
 
-class TestEmailToGravatarScanner:
-    """Test suite for EmailToGravatarScanner"""
+class TestEmailToGravatarTransform:
+    """Test suite for EmailToGravatarTransform"""
 
     def test_name(self):
-        """Test the scanner name"""
-        assert EmailToGravatarScanner.name() == "to_gravatar"
+        """Test the transform name"""
+        assert EmailToGravatarTransform.name() == "to_gravatar"
 
     def test_category(self):
-        """Test the scanner category"""
-        assert EmailToGravatarScanner.category() == "Email"
+        """Test the transform category"""
+        assert EmailToGravatarTransform.category() == "Email"
 
     def test_key(self):
-        """Test the scanner key"""
-        assert EmailToGravatarScanner.key() == "email"
+        """Test the transform key"""
+        assert EmailToGravatarTransform.key() == "email"
 
     def test_input_schema(self):
         """Test the input schema generation"""
-        schema = EmailToGravatarScanner.input_schema()
+        schema = EmailToGravatarTransform.input_schema()
         assert schema["type"] == "Email"
         assert "properties" in schema
         # Check that email property is present
@@ -36,7 +36,7 @@ class TestEmailToGravatarScanner:
 
     def test_output_schema(self):
         """Test the output schema generation"""
-        schema = EmailToGravatarScanner.output_schema()
+        schema = EmailToGravatarTransform.output_schema()
         assert schema["type"] == "Gravatar"
         assert "properties" in schema
         # Check that required properties are present
@@ -55,7 +55,7 @@ class TestEmailToGravatarScanner:
             "test@example.com",
             "user@gmail.com",
         ]
-        result = scanner.preprocess(emails)
+        result = transform.preprocess(emails)
         assert len(result) == 2
         assert all(isinstance(email, Email) for email in result)
         assert result[0].email == "test@example.com"
@@ -67,7 +67,7 @@ class TestEmailToGravatarScanner:
             {"email": "test@example.com"},
             {"email": "user@gmail.com"},
         ]
-        result = scanner.preprocess(emails)
+        result = transform.preprocess(emails)
         assert len(result) == 2
         assert all(isinstance(email, Email) for email in result)
         assert result[0].email == "test@example.com"
@@ -79,7 +79,7 @@ class TestEmailToGravatarScanner:
             Email(email="test@example.com"),
             Email(email="user@gmail.com"),
         ]
-        result = scanner.preprocess(emails)
+        result = transform.preprocess(emails)
         assert len(result) == 2
         assert all(isinstance(email, Email) for email in result)
         assert result[0].email == "test@example.com"
@@ -92,7 +92,7 @@ class TestEmailToGravatarScanner:
             {"email": "user@gmail.com"},
             Email(email="admin@company.com"),
         ]
-        result = scanner.preprocess(emails)
+        result = transform.preprocess(emails)
         assert len(result) == 3
         assert all(isinstance(email, Email) for email in result)
         assert result[0].email == "test@example.com"
@@ -108,7 +108,7 @@ class TestEmailToGravatarScanner:
             None,
             123,
         ]
-        result = scanner.preprocess(emails)
+        result = transform.preprocess(emails)
         # The preprocess method doesn't validate email format, it just creates Email objects
         # for valid string inputs and dicts with email key
         assert len(result) == 2  # "not-an-email" and "invalid-email" are processed
@@ -117,7 +117,7 @@ class TestEmailToGravatarScanner:
 
     def test_preprocess_empty_list(self):
         """Test preprocessing with empty list"""
-        result = scanner.preprocess([])
+        result = transform.preprocess([])
         assert result == []
 
     @patch("requests.get")
@@ -129,7 +129,7 @@ class TestEmailToGravatarScanner:
         mock_get.return_value = mock_response
 
         emails = [Email(email="test@example.com")]
-        result = scanner.scan(emails)
+        result = transform.scan(emails)
 
         assert len(result) == 1
         assert isinstance(result[0], Gravatar)
@@ -145,7 +145,7 @@ class TestEmailToGravatarScanner:
         mock_get.return_value = mock_response
 
         emails = [Email(email="test@example.com")]
-        result = scanner.scan(emails)
+        result = transform.scan(emails)
 
         assert len(result) == 0
 
@@ -156,7 +156,7 @@ class TestEmailToGravatarScanner:
         mock_get.side_effect = Exception("Network error")
 
         emails = [Email(email="test@example.com")]
-        result = scanner.scan(emails)
+        result = transform.scan(emails)
 
         assert len(result) == 0
 
@@ -173,7 +173,7 @@ class TestEmailToGravatarScanner:
             Email(email="test2@example.com"),
             Email(email="test3@example.com"),
         ]
-        result = scanner.scan(emails)
+        result = transform.scan(emails)
 
         assert len(result) == 3
         assert all(isinstance(gravatar, Gravatar) for gravatar in result)
@@ -200,7 +200,7 @@ class TestEmailToGravatarScanner:
             Email(email="test1@example.com"),
             Email(email="test2@example.com"),
         ]
-        result = scanner.scan(emails)
+        result = transform.scan(emails)
 
         # Should get 1 result for the first email (success) and 0 for the second (failure)
         assert len(result) == 1
@@ -210,7 +210,7 @@ class TestEmailToGravatarScanner:
         """Test postprocessing with Neo4j connection"""
         # Mock Neo4j connection
         mock_neo4j = Mock()
-        scanner_with_neo4j = EmailToGravatarScanner(
+        transform_with_neo4j = EmailToGravatarTransform(
             "sketch_123", "scan_123", neo4j_conn=mock_neo4j
         )
 
@@ -223,7 +223,7 @@ class TestEmailToGravatarScanner:
             Email(email="test2@example.com"),
         ]
 
-        result = scanner_with_neo4j.postprocess(gravatars, original_input)
+        result = transform_with_neo4j.postprocess(gravatars, original_input)
 
         # Verify Neo4j queries were executed
         assert mock_neo4j.query.call_count == 2
@@ -238,7 +238,7 @@ class TestEmailToGravatarScanner:
         ]
         original_input = [Email(email="test@example.com")]
 
-        result = scanner.postprocess(gravatars, original_input)
+        result = transform.postprocess(gravatars, original_input)
 
         # Should return results unchanged
         assert result == gravatars
@@ -250,7 +250,7 @@ class TestEmailToGravatarScanner:
         ]
         original_input = []  # Empty list
 
-        result = scanner.postprocess(gravatars, original_input)
+        result = transform.postprocess(gravatars, original_input)
 
         # Should handle gracefully and return results
         assert result == gravatars
@@ -263,7 +263,7 @@ class TestEmailToGravatarScanner:
 
         # The postprocess method doesn't handle None input properly
         # Let's test with an empty list instead
-        result = scanner.postprocess(gravatars, [])
+        result = transform.postprocess(gravatars, [])
 
         # Should handle gracefully and return results
         assert result == gravatars
@@ -277,7 +277,7 @@ class TestEmailToGravatarScanner:
             mock_get.return_value = mock_response
 
             emails = ["test@example.com"]
-            result = scanner.execute(emails)
+            result = transform.execute(emails)
 
             assert len(result) == 1
             assert isinstance(result[0], Gravatar)
@@ -295,9 +295,9 @@ class TestEmailToGravatarScanner:
             mock_response.status_code = 200
             mock_get.return_value = mock_response
 
-            result = scanner.execute(emails)
+            result = transform.execute(emails)
 
-            # The scanner processes any string as an email, so it will create Email objects
+            # The transform processes any string as an email, so it will create Email objects
             # and attempt to get gravatars for them
             assert len(result) == 2
             assert all(isinstance(gravatar, Gravatar) for gravatar in result)
@@ -313,7 +313,7 @@ class TestEmailToGravatarScanner:
             mock_get.return_value = mock_response
 
             emails = [Email(email=email)]
-            result = scanner.scan(emails)
+            result = transform.scan(emails)
 
             assert len(result) == 1
             assert result[0].hash == expected_hash
@@ -330,7 +330,7 @@ class TestEmailToGravatarScanner:
             mock_get.return_value = mock_response
 
             emails = [Email(email=email)]
-            result = scanner.scan(emails)
+            result = transform.scan(emails)
 
             assert len(result) == 1
             assert str(result[0].src) == expected_url

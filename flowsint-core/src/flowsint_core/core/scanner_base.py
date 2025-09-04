@@ -373,6 +373,7 @@ class Scanner(ABC):
         final_properties["type"] = node_type.lower()
         final_properties["sketch_id"] = self.sketch_id
         final_properties["label"] = final_properties.get("label", key_value)
+        
 
         set_clauses = [f"n.{prop} = ${prop}" for prop in final_properties.keys()]
         params = {key_prop: key_value, **final_properties}

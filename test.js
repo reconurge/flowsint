@@ -16,3 +16,6 @@ export function deepObjectDiff(obj1, obj2) {
     return diffObject
 
 }
+
+const diffObject = deepObjectDiff({ key1: "value1", key2: "value2" }, { key1: "value1", key2: "value3", key3: "value4" })
+console.log(diffObject)

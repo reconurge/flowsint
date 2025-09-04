@@ -9,8 +9,8 @@ InputType: TypeAlias = List[Ip]
 OutputType: TypeAlias = List[Ip]
 
 
-class GeolocationScanner(Scanner):
-    """[ip-api.com] Get geolocation data for IP addresses."""
+class IpToInfosScanner(Scanner):
+    """[ip-api.com] Get information data for IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Ip]
@@ -18,7 +18,7 @@ class GeolocationScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "ip_to_geolocation"
+        return "ip_to_infos"
 
     @classmethod
     def category(cls) -> str:
@@ -131,5 +131,5 @@ class GeolocationScanner(Scanner):
             return {}
 
 
-InputType = GeolocationScanner.InputType
-OutputType = GeolocationScanner.OutputType
+InputType = IpToInfosScanner.InputType
+OutputType = IpToInfosScanner.OutputType

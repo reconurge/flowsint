@@ -1,7 +1,7 @@
-from flowsint_transforms.ips.geolocation import GeolocationScanner
+from flowsint_transforms.ips.geolocation import IpToInfosScanner
 from flowsint_types.ip import Ip, Ip
 
-scanner = GeolocationScanner("sketch_123", "scan_123")
+scanner = IpToInfosScanner("sketch_123", "scan_123")
 
 
 def test_preprocess_valid_ips():

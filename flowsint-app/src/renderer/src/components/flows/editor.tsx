@@ -18,9 +18,9 @@ import {
 import "@xyflow/react/dist/style.css"
 import { Play, Pause, SkipForward, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import ScannerNode from "./scanner-node"
+import TransformNode from "./transform-node"
 import TypeNode from "./type-node"
-import { type ScannerNodeData } from "@/types/transform"
+import { type TransformNodeData } from "@/types/transform"
 import { FlowControls } from "./controls"
 import { getDagreLayoutedElements } from "@/lib/utils"
 import { toast } from "sonner"
@@ -42,11 +42,11 @@ import ParamsDialog from "./params-dialog"
 import FlowSheet from "./flow-sheet"
 import ContextMenu from "./context-menu"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/api/query-keys"
 
 const nodeTypes: NodeTypes = {
-    scanner: ScannerNode,
+    transform: TransformNode,
     type: TypeNode,
 }
 
@@ -111,13 +111,13 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
 
     // Update flow mutation
     const updateFlowMutation = useMutation({
-        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) => 
+        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
             flowService.update(flowId, body),
         onSuccess: () => {
             toast.success("Transform saved successfully.")
             // Invalidate the flow detail query
             if (flowId) {
-                queryClient.invalidateQueries({ 
+                queryClient.invalidateQueries({
                     queryKey: queryKeys.flows.detail(flowId)
                 })
             }
@@ -134,7 +134,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
             router.navigate({ to: "/dashboard/flows" })
             toast.success("Flow deleted successfully.")
             // Invalidate flows list
-            queryClient.invalidateQueries({ 
+            queryClient.invalidateQueries({
                 queryKey: queryKeys.flows.list
             })
         },
@@ -145,7 +145,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
 
     // Compute flow mutation
     const computeFlowMutation = useMutation({
-        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) => 
+        mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
             flowService.compute(flowId, body),
         onSuccess: (response) => {
             setFlowBranches(response.flowBranches)
@@ -229,11 +229,11 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
             event.preventDefault()
             if (!reactFlowWrapper.current || !reactFlowInstance) return
             const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-            const scannerData = JSON.parse(event.dataTransfer.getData("application/json")) as ScannerNodeData & {
+            const transformData = JSON.parse(event.dataTransfer.getData("application/json")) as TransformNodeData & {
                 category: string
             }
 
-            if (scannerData.type === "type") {
+            if (transformData.type === "type") {
                 const existsType = nodes.find((node) => node.data.type === "type")
                 if (existsType) {
                     return toast.error("Only one type node is allowed")
@@ -244,26 +244,26 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                 y: event.clientY - reactFlowBounds.top,
             })
             const newNode: FlowNode = {
-                id: `${scannerData.name}-${Date.now()}`,
-                type: scannerData.type === "type" ? "type" : "scanner",
+                id: `${transformData.name}-${Date.now()}`,
+                type: transformData.type === "type" ? "type" : "transform",
                 position,
                 data: {
-                    id: scannerData.id,
-                    class_name: scannerData.class_name,
-                    module: scannerData.module || "",
-                    key: scannerData.name,
-                    color: colors[scannerData.category.toLowerCase()] || "#94a3b8",
-                    name: scannerData.name,
-                    category: scannerData.category,
-                    type: scannerData.type,
-                    inputs: scannerData.inputs,
-                    outputs: scannerData.outputs,
-                    documentation: scannerData.documentation,
-                    description: scannerData.description,
-                    required_params: scannerData.required_params,
-                    params: scannerData.params,
-                    params_schema: scannerData.params_schema,
-                    icon: scannerData.icon
+                    id: transformData.id,
+                    class_name: transformData.class_name,
+                    module: transformData.module || "",
+                    key: transformData.name,
+                    color: colors[transformData.category.toLowerCase()] || "#94a3b8",
+                    name: transformData.name,
+                    category: transformData.category,
+                    type: transformData.type,
+                    inputs: transformData.inputs,
+                    outputs: transformData.outputs,
+                    documentation: transformData.documentation,
+                    description: transformData.description,
+                    required_params: transformData.required_params,
+                    params: transformData.params,
+                    params_schema: transformData.params_schema,
+                    icon: transformData.icon
                 },
             }
             const updatedNodes = [...nodes, newNode]
@@ -335,7 +335,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                     toast.error("Make sure your transform contains an input type.")
                     return
                 }
-                
+
                 const body = JSON.stringify({
                     name: name,
                     description: description,
@@ -345,7 +345,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                         edges,
                     },
                 })
-                
+
                 if (flowId) {
                     await updateFlowMutation.mutateAsync({ flowId, body })
                 } else {

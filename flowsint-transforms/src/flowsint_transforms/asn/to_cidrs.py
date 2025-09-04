@@ -1,14 +1,14 @@
 import json
 import subprocess
 from typing import List, Dict, Any, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.cidr import CIDR
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_asn, parse_asn
 from flowsint_core.core.logger import Logger
 
 
-class AsnToCidrsScanner(Scanner):
+class AsnToCidrsTransform(Transform):
     """Takes an ASN and returns its corresponding CIDRs."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -202,5 +202,5 @@ class AsnToCidrsScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = AsnToCidrsScanner.InputType
-OutputType = AsnToCidrsScanner.OutputType
+InputType = AsnToCidrsTransform.InputType
+OutputType = AsnToCidrsTransform.OutputType

@@ -68,8 +68,8 @@ def downgrade() -> None:
     # 1. Revert 'scans.status' to old ENUM type
     op.execute("""
         ALTER TABLE scans
-        ALTER COLUMN status TYPE scannerstatus
-        USING status::text::scannerstatus
+        ALTER COLUMN status TYPE transformstatus
+        USING status::text::transformstatus
     """)
 
     # 2. Revert 'logs.type' back to VARCHAR

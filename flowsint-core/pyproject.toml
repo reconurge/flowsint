@@ -25,9 +25,9 @@ alembic = "1.13.0"
 phonenumbers = "^9.0.8"
 python-multipart = "^0.0.20"
 docker = "^7.1.0"
+pytest = "^8.4.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
 pytest-asyncio = "^0.21"
 black = "^23.0"
 isort = "^5.12"

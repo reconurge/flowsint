@@ -1,12 +1,12 @@
 from typing import List, Union
 from urllib.parse import urlparse
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.website import Website
 from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 
 
-class WebsiteToDomainScanner(Scanner):
+class WebsiteToDomainTransform(Transform):
     """From website to domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -110,5 +110,5 @@ class WebsiteToDomainScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = WebsiteToDomainScanner.InputType
-OutputType = WebsiteToDomainScanner.OutputType
+InputType = WebsiteToDomainTransform.InputType
+OutputType = WebsiteToDomainTransform.OutputType

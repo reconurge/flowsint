@@ -24,7 +24,7 @@ const SketchList = () => {
         if (!searchQuery.trim()) return investigation.sketches
 
         const query = searchQuery.toLowerCase().trim()
-        return investigation.sketches.filter((sketch) => 
+        return investigation.sketches.filter((sketch) =>
             sketch.title.toLowerCase().includes(query)
         )
     }, [investigation?.sketches, searchQuery])
@@ -33,15 +33,15 @@ const SketchList = () => {
     return (
         <div className="w-full h-full bg-card flex flex-col overflow-hidden">
             <div className="p-2 flex items-center gap-2 border-b shrink-0">
-                <NewSketch noDropDown>
+                <NewSketch>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
                         <PlusIcon className="h-4 w-4" />
                     </Button>
                 </NewSketch>
-                <Input 
-                    type="search" 
-                    className="!border border-border h-7" 
-                    placeholder="Search..." 
+                <Input
+                    type="search"
+                    className="!border border-border h-7"
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -71,13 +71,13 @@ const SketchList = () => {
                                 {searchQuery ? "No matching sketches" : "No sketches yet"}
                             </h3>
                             <p className="text-xs opacity-70 max-w-xs">
-                                {searchQuery 
+                                {searchQuery
                                     ? "Try adjusting your search query to find what you're looking for."
                                     : "This investigation doesn't contain any sketch. Sketches let you organize and visualize your data as graphs."
                                 }
                             </p>
                         </div>
-                        <NewSketch noDropDown>
+                        <NewSketch>
                             <Button size="sm" variant="outline">
                                 <PlusIcon className="w-4 h-4 mr-2" />
                                 Create your first sketch

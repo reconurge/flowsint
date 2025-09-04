@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Union
 import hibpwned
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ load_dotenv()
 HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
 
-class HibpScanner(Scanner):
+class HibpTransform(Transform):
     """Queries HaveIBeenPwned for potential leaks."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -116,5 +116,5 @@ class HibpScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = HibpScanner.InputType
-OutputType = HibpScanner.OutputType
+InputType = HibpTransform.InputType
+OutputType = HibpTransform.OutputType

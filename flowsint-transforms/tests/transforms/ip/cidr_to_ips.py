@@ -1,10 +1,10 @@
-from flowsint_transforms.ips.cidr_to_ips import CidrToIpsScanner
+from flowsint_transforms.ips.cidr_to_ips import CidrToIpsTransform
 from flowsint_types.cidr import CIDR
 from flowsint_types.ip import Ip
 from tests.logger import TestLogger
 
 logger = TestLogger()
-scanner = CidrToIpsScanner("sketch_123", "scan_123", logger)
+transform = CidrToIpsTransform("sketch_123", "scan_123", logger)
 
 
 def test_preprocess_valid_cidrs():
@@ -12,7 +12,7 @@ def test_preprocess_valid_cidrs():
         CIDR(network="8.8.8.0/24"),
         CIDR(network="1.1.1.0/24"),
     ]
-    result = scanner.preprocess(cidrs)
+    result = transform.preprocess(cidrs)
 
     result_networks = [cidr.network for cidr in result]
     expected_networks = [cidr.network for cidr in cidrs]
@@ -25,7 +25,7 @@ def test_preprocess_unprocessed_valid_cidrs():
         "8.8.8.0/24",
         "1.1.1.0/24",
     ]
-    result = scanner.preprocess(cidrs)
+    result = transform.preprocess(cidrs)
     result_cidrs = [c for c in result]
     expected_cidrs = [CIDR(network=c) for c in cidrs]
     assert result_cidrs == expected_cidrs
@@ -37,7 +37,7 @@ def test_preprocess_invalid_cidrs():
         "invalid-cidr",
         "not-a-cidr",
     ]
-    result = scanner.preprocess(cidrs)
+    result = transform.preprocess(cidrs)
     result_networks = [str(cidr.network) for cidr in result]
     assert "8.8.8.0/24" in result_networks
     assert "invalid-cidr" not in result_networks
@@ -51,7 +51,7 @@ def test_preprocess_multiple_formats():
         CIDR(network="9.9.9.0/24"),
         "InvalidCIDR",
     ]
-    result = scanner.preprocess(cidrs)
+    result = transform.preprocess(cidrs)
     result_networks = [str(cidr.network) for cidr in result]
     assert "8.8.8.0/24" in result_networks
     assert "9.9.9.0/24" in result_networks
@@ -75,11 +75,11 @@ def test_scan_extracts_ips(monkeypatch):
         assert "-ptr" in cmd
         return MockSubprocessResult(mock_dnsx_output)
 
-    # Patch the subprocess call in the scanner
+    # Patch the subprocess call in the transform
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [CIDR(network="8.35.200.0/24")]
-    ips = scanner.scan(input_data)
+    ips = transform.scan(input_data)
 
     assert isinstance(ips, list)
     assert len(ips) == 4
@@ -103,7 +103,7 @@ def test_scan_handles_empty_output(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [CIDR(network="8.8.8.0/24")]
-    ips = scanner.scan(input_data)
+    ips = transform.scan(input_data)
 
     assert isinstance(ips, list)
     assert len(ips) == 0
@@ -116,7 +116,7 @@ def test_scan_handles_subprocess_exception(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [CIDR(network="8.8.8.0/24")]
-    ips = scanner.scan(input_data)
+    ips = transform.scan(input_data)
 
     assert isinstance(ips, list)
     assert len(ips) == 0

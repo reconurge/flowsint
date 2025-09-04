@@ -3,7 +3,7 @@ import socket
 import requests
 from typing import List, Union
 from flowsint_core.core.logger import Logger
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
 from flowsint_core.utils import is_valid_ip
@@ -11,7 +11,7 @@ from flowsint_core.utils import is_valid_ip
 PTR_BLACKLIST = re.compile(r"^ip\d+\.ip-\d+-\d+-\d+-\d+\.")
 
 
-class ReverseResolveScanner(Scanner):
+class ReverseResolveTransform(Transform):
     """Resolve IP addresses to domain names using PTR, Certificate Transparency and optional API calls."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -120,5 +120,5 @@ class ReverseResolveScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = ReverseResolveScanner.InputType
-OutputType = ReverseResolveScanner.OutputType
+InputType = ReverseResolveTransform.InputType
+OutputType = ReverseResolveTransform.OutputType

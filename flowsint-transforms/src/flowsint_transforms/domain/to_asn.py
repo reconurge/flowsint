@@ -2,14 +2,14 @@ import json
 import socket
 import subprocess
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 
 
-class DomainToAsnScanner(Scanner):
+class DomainToAsnTransform(Transform):
     """Takes a domain and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -88,5 +88,5 @@ class DomainToAsnScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = DomainToAsnScanner.InputType
-OutputType = DomainToAsnScanner.OutputType
+InputType = DomainToAsnTransform.InputType
+OutputType = DomainToAsnTransform.OutputType

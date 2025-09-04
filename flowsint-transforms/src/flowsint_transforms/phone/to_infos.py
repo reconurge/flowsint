@@ -1,13 +1,13 @@
 import asyncio
 from typing import Dict, Any, List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.utils import is_valid_number
 from flowsint_core.core.logger import Logger
 from flowsint_types.phone import Phone
 import httpx
 
 
-class IgnorantScanner(Scanner):
+class IgnorantTransform(Transform):
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[str]  # Phone numbers as strings
@@ -120,5 +120,5 @@ class IgnorantScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = IgnorantScanner.InputType
-OutputType = IgnorantScanner.OutputType
+InputType = IgnorantTransform.InputType
+OutputType = IgnorantTransform.OutputType

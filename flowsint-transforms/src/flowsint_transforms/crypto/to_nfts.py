@@ -1,7 +1,7 @@
 import os
 from typing import List, Dict, Any, Optional, Union
 import requests
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.wallet import CryptoWallet, CryptoNFT
 from flowsint_core.core.logger import Logger
 from flowsint_core.core.graph_db import Neo4jConnection
@@ -12,7 +12,7 @@ load_dotenv()
 ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
 
 
-class CryptoWalletAddressToNFTs(Scanner):
+class CryptoWalletAddressToNFTs(Transform):
     """Resolve NFTs for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -46,7 +46,7 @@ class CryptoWalletAddressToNFTs(Scanner):
 
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
-        """Declare required parameters for this scanner"""
+        """Declare required parameters for this transform"""
         return [
             {
                 "name": "ETHERSCAN_API_KEY",

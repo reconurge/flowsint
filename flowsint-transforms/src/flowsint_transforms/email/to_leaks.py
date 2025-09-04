@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List, Optional, Union
 import requests
 from urllib.parse import urljoin
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.breach import Breach
@@ -15,7 +15,7 @@ load_dotenv()
 HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
 
-class EmailToBreachesScanner(Scanner):
+class EmailToBreachesTransform(Transform):
     """[HIBPWNED] Get the breaches the email might be invovled in."""
 
     InputType = List[Email]
@@ -56,7 +56,7 @@ class EmailToBreachesScanner(Scanner):
 
     @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
-        """Declare required parameters for this scanner"""
+        """Declare required parameters for this transform"""
         return [
             {
                 "name": "HIBP_API_KEY",
@@ -102,7 +102,7 @@ class EmailToBreachesScanner(Scanner):
             Logger.error(
                 self.sketch_id, {"message": "Could not find HIBP_API_URL in params."}
             )
-        headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Scanner"}
+        headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Transform"}
         Logger.info(self.sketch_id, {"message": f"HIBP API URL: {api_url}"})
         for email in data:
             try:
@@ -235,5 +235,5 @@ class EmailToBreachesScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = EmailToBreachesScanner.InputType
-OutputType = EmailToBreachesScanner.OutputType
+InputType = EmailToBreachesTransform.InputType
+OutputType = EmailToBreachesTransform.OutputType

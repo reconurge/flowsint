@@ -1,4 +1,4 @@
-import type { GraphEdge, GraphNode } from "@/stores/graph-store";
+import { GraphEdge, GraphNode } from "./graph"
 
 export enum EventLevel {
   // Standard log levels
@@ -7,7 +7,7 @@ export enum EventLevel {
   FAILED = "FAILED",
   SUCCESS = "SUCCESS",
   DEBUG = "DEBUG",
-  // Scanner-specific statuses
+  // Transform-specific statuses
   PENDING = "PENDING",
   RUNNING = "RUNNING",
   COMPLETED = "COMPLETED",

@@ -1,7 +1,7 @@
 import shutil
 import requests
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
@@ -9,8 +9,8 @@ from tools.network.subfinder import SubfinderTool
 from flowsint_core.core.logger import Logger
 
 
-class SubdomainScanner(Scanner):
-    """Scanner to find subdomains associated with a domain."""
+class SubdomainTransform(Transform):
+    """Transform to find subdomains associated with a domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Domain | str]
@@ -144,5 +144,5 @@ class SubdomainScanner(Scanner):
         return output
 
 
-InputType = SubdomainScanner.InputType
-OutputType = SubdomainScanner.OutputType
+InputType = SubdomainTransform.InputType
+OutputType = SubdomainTransform.OutputType

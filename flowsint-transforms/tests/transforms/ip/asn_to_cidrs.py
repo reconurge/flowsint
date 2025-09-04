@@ -1,7 +1,7 @@
-from flowsint_transforms.ips.asn_to_cidrs import AsnToCidrsScanner
+from flowsint_transforms.ips.asn_to_cidrs import AsnToCidrsTransform
 from flowsint_types.asn import ASN
 
-scanner = AsnToCidrsScanner("sketch_123", "scan_123")
+transform = AsnToCidrsTransform("sketch_123", "scan_123")
 
 
 def test_preprocess_valid_asns():
@@ -9,7 +9,7 @@ def test_preprocess_valid_asns():
         ASN(number=15169),
         ASN(number=13335),
     ]
-    result = scanner.preprocess(asns)
+    result = transform.preprocess(asns)
 
     result_numbers = [asn.number for asn in result]
     expected_numbers = [asn.number for asn in asns]
@@ -22,7 +22,7 @@ def test_unprocessed_valid_asns():
         "15169",
         "13335",
     ]
-    result = scanner.preprocess(asns)
+    result = transform.preprocess(asns)
     result_asns = [asn for asn in result]
     expected_asns = [ASN(number=int(asn)) for asn in asns]
     assert result_asns == expected_asns
@@ -34,7 +34,7 @@ def test_preprocess_invalid_asns():
         ASN(number=999999999999),  # Invalid ASN number
         ASN(number=13335),
     ]
-    result = scanner.preprocess(asns)
+    result = transform.preprocess(asns)
 
     result_numbers = [asn.number for asn in result]
     assert 15169 in result_numbers
@@ -49,7 +49,7 @@ def test_preprocess_multiple_formats():
         ASN(number=13335),
         "15169",
     ]
-    result = scanner.preprocess(asns)
+    result = transform.preprocess(asns)
 
     result_numbers = [asn.number for asn in result]
     assert 15169 in result_numbers
@@ -60,8 +60,8 @@ def test_preprocess_multiple_formats():
 
 
 def test_schemas():
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
+    input_schema = transform.input_schema()
+    output_schema = transform.output_schema()
 
     # Input schema should have number field
     assert "properties" in input_schema

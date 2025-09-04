@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
-import ScannerItem from "./scanner-item"
-import { type Scanner } from "@/types/transform"
+import TransformItem from "./transform-list-item"
+import { type Transform } from "@/types/transform"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { useQuery } from "@tanstack/react-query"
@@ -17,9 +17,9 @@ export default function RawMaterial() {
     })
     const [searchTerm, setSearchTerm] = useState<string>("")
 
-    const filteredScanners = useMemo(() => {
+    const filteredTransforms = useMemo(() => {
         if (!materials?.items) return {}
-        const result: Record<string, Scanner[]> = {}
+        const result: Record<string, Transform[]> = {}
         if (!searchTerm.trim()) {
             return materials?.items
         }
@@ -50,7 +50,7 @@ export default function RawMaterial() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="text"
-                    placeholder="Search scanners..."
+                    placeholder="Search transforms..."
                     className="pl-8 !border border-border"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -67,24 +67,24 @@ export default function RawMaterial() {
                 )}
             </div>
             <div className="flex-1 w-full">
-                {Object.entries(filteredScanners).map(([category, scanners]) => (
+                {Object.entries(filteredTransforms).map(([category, transforms]) => (
                     <div key={category} className="space-y-2 w-full">
                         <h3 className="text-sm font-medium capitalize mt-4">{category.replace("_", " ")}</h3>
                         <div className="space-y-2">
                             {/* @ts-ignore */}
-                            {scanners.map((scanner: Scanner) => (
-                                <ScannerItem
-                                    key={scanner.name}
-                                    scanner={scanner}
-                                    category={scanner.category}
+                            {transforms.map((transform: Transform) => (
+                                <TransformItem
+                                    key={transform.name}
+                                    transform={transform}
+                                    category={transform.category}
                                 />
                             ))}
                         </div>
                     </div>
                 ))}
-                {Object.keys(filteredScanners).length === 0 && (
+                {Object.keys(filteredTransforms).length === 0 && (
                     <div className="text-center py-4 text-muted-foreground">
-                        No scanners found matching "{searchTerm}"
+                        No transforms found matching "{searchTerm}"
                     </div>
                 )}
             </div>

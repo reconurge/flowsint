@@ -1,12 +1,12 @@
 from typing import List, Union
 from urllib.parse import urlparse
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.website import Website
 from flowsint_core.core.logger import Logger
 from reconspread import Crawler
 
 
-class WebsiteToLinks(Scanner):
+class WebsiteToLinks(Transform):
     """From website to spread crawler that extracts domains and internal/external links."""
 
     # Define types as class attributes - base class handles schema generation automatically

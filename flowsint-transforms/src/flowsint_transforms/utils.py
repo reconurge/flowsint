@@ -268,18 +268,18 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
     input_output = input_node["data"]["outputs"]
     node_lookup = {node["id"]: node for node in nodes}
 
-    scanners = []
+    transforms = []
     for edge in edges:
         target_id = edge["target"]
         source_handle = edge["sourceHandle"]
         target_handle = edge["targetHandle"]
 
-        scanner_node = node_lookup.get(target_id)
-        if scanner_node and scanner_node["data"]["type"] == "scanner":
-            scanners.append(
+        transform_node = node_lookup.get(target_id)
+        if transform_node and transform_node["data"]["type"] == "transform":
+            transforms.append(
                 {
-                    "transform_name": scanner_node["data"]["name"],
-                    "module": scanner_node["data"]["module"],
+                    "transform_name": transform_node["data"]["name"],
+                    "module": transform_node["data"]["module"],
                     "input": source_handle,
                     "output": target_handle,
                 }
@@ -290,8 +290,8 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
             "name": input_node["data"]["name"],
             "outputs": input_output,
         },
-        "scanners": scanners,
-        "transform_names": [scanner["transform_name"] for scanner in scanners],
+        "transforms": transforms,
+        "transform_names": [transform["transform_name"] for transform in transforms],
     }
 
 

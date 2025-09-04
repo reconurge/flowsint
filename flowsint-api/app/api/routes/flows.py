@@ -72,27 +72,27 @@ def get_flows(
 # Returns the "raw_materials" for the flow editor
 @router.get("/raw_materials")
 async def get_material_list():
-    scanners = TransformRegistry.list_by_categories()
-    scanner_categories = {
+    transforms = TransformRegistry.list_by_categories()
+    transform_categories = {
         category: [
             {
-                "class_name": scanner.get("class_name"),
-                "category": scanner.get("category"),
-                "name": scanner.get("name"),
-                "module": scanner.get("module"),
-                "documentation": scanner.get("documentation"),
-                "description": scanner.get("description"),
-                "inputs": scanner.get("inputs"),
-                "outputs": scanner.get("outputs"),
-                "type": "scanner",
-                "params": scanner.get("params"),
-                "params_schema": scanner.get("params_schema"),
-                "required_params": scanner.get("required_params"),
-                "icon": scanner.get("icon"),
+                "class_name": transform.get("class_name"),
+                "category": transform.get("category"),
+                "name": transform.get("name"),
+                "module": transform.get("module"),
+                "documentation": transform.get("documentation"),
+                "description": transform.get("description"),
+                "inputs": transform.get("inputs"),
+                "outputs": transform.get("outputs"),
+                "type": "transform",
+                "params": transform.get("params"),
+                "params_schema": transform.get("params_schema"),
+                "required_params": transform.get("required_params"),
+                "icon": transform.get("icon"),
             }
-            for scanner in scanner_list
+            for transform in transform_list
         ]
-        for category, scanner_list in scanners.items()
+        for category, transform_list in transforms.items()
     }
 
     object_inputs = [
@@ -112,11 +112,11 @@ async def get_material_list():
         extract_input_schema_flow(CryptoNFT),
     ]
 
-    # Put types first, then add all scanner categories
-    flattened_scanners = {"types": object_inputs}
-    flattened_scanners.update(scanner_categories)
+    # Put types first, then add all transform categories
+    flattened_transforms = {"types": object_inputs}
+    flattened_transforms.update(transform_categories)
 
-    return {"items": flattened_scanners}
+    return {"items": flattened_transforms}
 
 
 # Returns the "raw_materials" for the flow editor
@@ -296,8 +296,8 @@ def compute_flow_branches(
     node_map = {node.id: node for node in nodes}
     branches = []
     branch_counter = 0
-    # Track scanner outputs across all branches
-    scanner_outputs = {}
+    # Track transform outputs across all branches
+    transform_outputs = {}
 
     def calculate_path_length(start_node: str, visited: set = None) -> int:
         """Calculate the shortest possible path length from a node to any leaf"""
@@ -340,7 +340,7 @@ def compute_flow_branches(
             params=node_params,
             inputs={} if is_input_node else input_data,
             outputs=outputs,
-            type="type" if is_input_node else "scanner",
+            type="type" if is_input_node else "transform",
             status="pending",
             branchId=branch_id,
             depth=depth,
@@ -376,13 +376,13 @@ def compute_flow_branches(
             )
             current_outputs = {first_output_name: initial_value}
         else:
-            # Check if we already have outputs for this scanner
-            if current_node_id in scanner_outputs:
-                current_outputs = scanner_outputs[current_node_id]
+            # Check if we already have outputs for this transform
+            if current_node_id in transform_outputs:
+                current_outputs = transform_outputs[current_node_id]
             else:
                 current_outputs = process_node_data(current_node, input_data)
                 # Store the outputs for future use
-                scanner_outputs[current_node_id] = current_outputs
+                transform_outputs[current_node_id] = current_outputs
 
         # Extract node parameters
         node_params = current_node.data.get("params", {})
@@ -493,49 +493,49 @@ def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
     for output in output_types:
         output_name = output.get("name", "output")
         class_name = node.data.get("class_name", "")
-        # For simulation purposes, we'll return a placeholder value based on the scanner type
-        if class_name in ["ReverseResolveScanner", "ResolveScanner"]:
-            # IP/Domain resolution scanners
+        # For simulation purposes, we'll return a placeholder value based on the transform type
+        if class_name in ["ReverseResolveTransform", "ResolveTransform"]:
+            # IP/Domain resolution transforms
             outputs[output_name] = (
                 "192.168.1.1" if "ip" in output_name.lower() else "example.com"
             )
-        elif class_name == "SubdomainScanner":
-            # Subdomain scanner
+        elif class_name == "SubdomainTransform":
+            # Subdomain transform
             outputs[output_name] = f"sub.{inputs.get('input', 'example.com')}"
 
-        elif class_name == "WhoisScanner":
-            # WHOIS scanner
+        elif class_name == "WhoisTransform":
+            # WHOIS transform
             outputs[output_name] = {
                 "domain": inputs.get("input", "example.com"),
                 "registrar": "Example Registrar",
                 "creation_date": "2020-01-01",
             }
 
-        elif class_name == "IpToInfosScanner":
-            # Geolocation scanner
+        elif class_name == "IpToInfosTransform":
+            # Geolocation transform
             outputs[output_name] = {
                 "country": "France",
                 "city": "Paris",
                 "coordinates": {"lat": 48.8566, "lon": 2.3522},
             }
 
-        elif class_name == "MaigretScanner":
-            # Social media scanner
+        elif class_name == "MaigretTransform":
+            # Social media transform
             outputs[output_name] = {
                 "username": inputs.get("input", "user123"),
                 "platforms": ["twitter", "github", "linkedin"],
             }
 
-        elif class_name == "HoleheScanner":
-            # Email verification scanner
+        elif class_name == "HoleheTransform":
+            # Email verification transform
             outputs[output_name] = {
                 "email": inputs.get("input", "user@example.com"),
                 "exists": True,
                 "platforms": ["gmail", "github"],
             }
 
-        elif class_name == "SireneScanner":
-            # Organization scanner
+        elif class_name == "SireneTransform":
+            # Organization transform
             outputs[output_name] = {
                 "name": inputs.get("input", "Example Corp"),
                 "siret": "12345678901234",
@@ -543,7 +543,7 @@ def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         else:
-            # For unknown scanners, pass through the input
+            # For unknown transforms, pass through the input
             outputs[output_name] = inputs.get("input") or f"flowed_{output_name}"
 
     return outputs

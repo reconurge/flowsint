@@ -7,41 +7,41 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useNodesDisplaySettings } from "@/stores/node-display-settings"
 import { Badge } from "../ui/badge"
-import { type ScannerItemProps } from "@/types/transform"
+import { type TransformItemProps } from "@/types/transform"
 import { useIcon } from "@/hooks/use-icon"
 
-// Custom equality function for ScannerItem
-function areEqual(prevProps: ScannerItemProps, nextProps: ScannerItemProps) {
+// Custom equality function for TransformItem
+function areEqual(prevProps: TransformItemProps, nextProps: TransformItemProps) {
   return (
-    prevProps.scanner.class_name === nextProps.scanner.class_name &&
-    prevProps.scanner.name === nextProps.scanner.name &&
-    prevProps.scanner.module === nextProps.scanner.module &&
-    prevProps.scanner.documentation === nextProps.scanner.documentation &&
-    prevProps.scanner.description === nextProps.scanner.description &&
+    prevProps.transform.class_name === nextProps.transform.class_name &&
+    prevProps.transform.name === nextProps.transform.name &&
+    prevProps.transform.module === nextProps.transform.module &&
+    prevProps.transform.documentation === nextProps.transform.documentation &&
+    prevProps.transform.description === nextProps.transform.description &&
     prevProps.category === nextProps.category
   )
 }
 
-// Memoized scanner item component for the sidebar
-const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
+// Memoized transform item component for the sidebar
+const TransformItem = memo(({ transform, category }: TransformItemProps) => {
   const colors = useNodesDisplaySettings(s => s.colors)
-  const borderInputColor = colors[scanner.inputs.type.toLowerCase()]
-  const borderOutputColor = colors[scanner.outputs.type.toLowerCase()]
-  const Icon = scanner.type === "type" ? useIcon(scanner.outputs.type.toLowerCase() as string, null) : scanner.icon ? useIcon(scanner.icon, null) : null
+  const borderInputColor = colors[transform.inputs.type.toLowerCase()]
+  const borderOutputColor = colors[transform.outputs.type.toLowerCase()]
+  const Icon = transform.type === "type" ? useIcon(transform.outputs.type.toLowerCase() as string, null) : transform.icon ? useIcon(transform.icon, null) : null
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   // Handler for drag start - using useCallback to prevent recreation on each render
   const onDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      const data = { ...scanner, category }
+      const data = { ...transform, category }
       event.dataTransfer.setData("application/json", JSON.stringify(data))
       event.dataTransfer.effectAllowed = "move"
     },
-    [scanner, category],
+    [transform, category],
   )
 
-  const isConfigurationRequired = scanner.required_params
+  const isConfigurationRequired = transform.required_params
 
   return (
     <TooltipProvider>
@@ -60,18 +60,18 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
               <div className="space-y-1 truncate">
                 <div className="flex items-center gap-2 truncate text-ellipsis">
                   {Icon && <Icon size={24} />}
-                  <h3 className="text-sm font-medium truncate text-ellipsis">{scanner.class_name}</h3>
+                  <h3 className="text-sm font-medium truncate text-ellipsis">{transform.class_name}</h3>
                 </div>
-                <p className="text-xs font-normal truncate text-ellipsis opacity-60">{scanner.description}</p>
-                {scanner.type !== "type" &&
+                <p className="text-xs font-normal truncate text-ellipsis opacity-60">{transform.description}</p>
+                {transform.type !== "type" &&
                   <div className="mt-2 text-xs">
                     <div className="flex items-center gap-1">
                       <span className="font-medium">Input:</span>
-                      <span className="text-muted-foreground truncate text-ellipsis">{scanner.inputs.type}</span>
+                      <span className="text-muted-foreground truncate text-ellipsis">{transform.inputs.type}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="font-medium">Output:</span>
-                      <span className="text-muted-foreground truncate text-ellipsis">{scanner.outputs.type}</span>
+                      <span className="text-muted-foreground truncate text-ellipsis">{transform.outputs.type}</span>
                     </div>
                   </div>}
               </div>
@@ -100,7 +100,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: borderInputColor }} />
-              {scanner.class_name}
+              {transform.class_name}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -112,16 +112,16 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
               </div>}
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Description</h4>
-              <p className="text-sm text-muted-foreground">{scanner.description || "No description available"}</p>
+              <p className="text-sm text-muted-foreground">{transform.description || "No description available"}</p>
             </div>
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Module</h4>
-              <p className="text-sm text-muted-foreground">{scanner.module}</p>
+              <p className="text-sm text-muted-foreground">{transform.module}</p>
             </div>
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>Input Properties</h4>
               <div className="space-y-1">
-                {scanner?.inputs?.properties?.map((prop, index) => (
+                {transform?.inputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
                     <span className="font-medium">{prop.name}:</span>{" "}
                     <span className="text-muted-foreground">{prop.type}</span>
@@ -132,7 +132,7 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderOutputColor }}>Output Properties</h4>
               <div className="space-y-1">
-                {scanner?.outputs?.properties?.map((prop, index) => (
+                {transform?.outputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
                     <span className="font-medium">{prop.name}:</span>{" "}
                     <span className="text-muted-foreground">{prop.type}</span>
@@ -147,6 +147,6 @@ const ScannerItem = memo(({ scanner, category }: ScannerItemProps) => {
   )
 }, areEqual)
 
-ScannerItem.displayName = "ScannerItem"
+TransformItem.displayName = "TransformItem"
 
-export default ScannerItem
+export default TransformItem

@@ -2,24 +2,24 @@ from flowsint_transforms.crypto.wallet_to_nfts import CryptoWalletAddressToNFTs
 from flowsint_types.wallet import CryptoWallet, CryptoNFT
 from pydantic import HttpUrl
 
-scanner = CryptoWalletAddressToNFTs("sketch_123", "scan_123")
+transform = CryptoWalletAddressToNFTs("sketch_123", "scan_123")
 
 
 def test_wallet_address_to_transactions_name():
-    assert scanner.name() == "wallet_to_nfts"
+    assert transform.name() == "wallet_to_nfts"
 
 
 def test_wallet_address_to_transactions_category():
-    assert scanner.category() == "crypto"
+    assert transform.category() == "crypto"
 
 
 def test_wallet_address_to_transactions_key():
-    assert scanner.key() == "address"
+    assert transform.key() == "address"
 
 
 def test_preprocess_with_string():
     input_data = ["0x742d35Cc6634C0532925a3b844Bc454e4438f44e"]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -27,7 +27,7 @@ def test_preprocess_with_string():
 
 def test_preprocess_with_dict():
     input_data = [{"address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"}]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -36,7 +36,7 @@ def test_preprocess_with_dict():
 def test_preprocess_with_wallet_object():
     wallet = CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
     input_data = [wallet]
-    result = scanner.preprocess(input_data)
+    result = transform.preprocess(input_data)
     assert len(result) == 1
     assert isinstance(result[0], CryptoWallet)
     assert result[0].address == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
@@ -59,10 +59,10 @@ def test_scan_mocked_transactions(monkeypatch):
             )
         ]
 
-    monkeypatch.setattr(scanner, "_get_nfts", mock_get_nfts)
+    monkeypatch.setattr(transform, "_get_nfts", mock_get_nfts)
 
     input_data = [CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")]
-    result = scanner.scan(input_data)
+    result = transform.scan(input_data)
 
     assert len(result) == 1
     assert len(result[0]) == 1

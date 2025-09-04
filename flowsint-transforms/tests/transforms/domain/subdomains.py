@@ -1,7 +1,7 @@
-from flowsint_transforms.domains.subdomains import SubdomainScanner
+from flowsint_transforms.domains.subdomains import SubdomainTransform
 from flowsint_types.domain import Domain, Domain
 
-scanner = SubdomainScanner("sketch_123", "scan_123")
+transform = SubdomainTransform("sketch_123", "scan_123")
 
 
 def test_preprocess_valid_domains():
@@ -9,7 +9,7 @@ def test_preprocess_valid_domains():
         Domain(domain="example.com"),
         Domain(domain="example2.com"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     expected_domains = [d.domain for d in domains]
@@ -22,7 +22,7 @@ def test_unprocessed_valid_domains():
         "example.com",
         "example2.com",
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
     result_domains = [d for d in result]
     expected_domains = [Domain(domain=d) for d in domains]
     assert result_domains == expected_domains
@@ -34,7 +34,7 @@ def test_preprocess_invalid_domains():
         Domain(domain="invalid_domain"),
         Domain(domain="example.org"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     assert "example.com" in result_domains
@@ -49,7 +49,7 @@ def test_preprocess_multiple_formats():
         Domain(domain="example.org"),
         "example.org",
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     assert "example.com" in result_domains
@@ -81,11 +81,11 @@ def test_scan_extracts_subdomains(monkeypatch):
         assert "example.com" in url
         return MockRequestsResponse(mock_response)
 
-    # Patch la requête réseau dans le module scanner
+    # Patch la requête réseau dans le module transform
     monkeypatch.setattr("requests.get", mock_get)
 
     input_data = [Domain(domain="example.com")]
-    domains = scanner.execute(input_data)
+    domains = transform.execute(input_data)
     assert isinstance(domains, list)
     for sub in domains:
         print(sub)

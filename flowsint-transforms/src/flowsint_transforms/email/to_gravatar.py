@@ -1,13 +1,13 @@
 import hashlib
 from typing import List, Union
 import requests
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.gravatar import Gravatar
 
 
-class EmailToGravatarScanner(Scanner):
+class EmailToGravatarTransform(Transform):
     """From md5 hash of email to gravatar."""
 
     InputType = List[Email]
@@ -129,5 +129,5 @@ class EmailToGravatarScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = EmailToGravatarScanner.InputType
-OutputType = EmailToGravatarScanner.OutputType
+InputType = EmailToGravatarTransform.InputType
+OutputType = EmailToGravatarTransform.OutputType

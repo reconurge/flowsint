@@ -1,7 +1,7 @@
 from typing import List, Union
 import whois
 from flowsint_core.utils import is_valid_domain
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain, Domain
 from flowsint_types.whois import Whois
 from flowsint_types.email import Email
@@ -9,7 +9,7 @@ from flowsint_core.core.logger import Logger
 from datetime import datetime
 
 
-class WhoisScanner(Scanner):
+class WhoisTransform(Transform):
     """Scan for WHOIS information of a domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -203,5 +203,5 @@ class WhoisScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = WhoisScanner.InputType
-OutputType = WhoisScanner.OutputType
+InputType = WhoisTransform.InputType
+OutputType = WhoisTransform.OutputType

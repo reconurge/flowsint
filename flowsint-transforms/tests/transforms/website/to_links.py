@@ -39,34 +39,34 @@ class MockCrawler:
 @pytest.mark.asyncio
 async def test_website_to_links_real_time_neo4j_creation():
     """Test that Neo4j nodes are created in real-time during the callback."""
-    scanner = WebsiteToLinks(sketch_id="test", scan_id="test")
+    transform = WebsiteToLinks(sketch_id="test", scan_id="test")
 
     # Mock neo4j connection and methods
-    scanner.neo4j_conn = Mock()
-    scanner.create_node = Mock()
-    scanner.create_relationship = Mock()
-    scanner.log_graph_message = Mock()
+    transform.neo4j_conn = Mock()
+    transform.create_node = Mock()
+    transform.create_relationship = Mock()
+    transform.log_graph_message = Mock()
 
     # Test input
     websites = [Website(url="https://example.com")]
 
     with patch("src.transforms.websites.to_links.Crawler", MockCrawler):
-        results = await scanner.scan(websites)
+        results = await transform.scan(websites)
 
     # Verify main website and domain nodes were created upfront
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://example.com",
         caption="https://example.com",
         type="website",
     )
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "domain", "name", "example.com", caption="example.com", type="domain"
     )
 
     # Verify main website to domain relationship
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -77,14 +77,14 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify internal website nodes were created in callback
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://example.com/page1",
         caption="https://example.com/page1",
         type="website",
     )
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://example.com/page2",
@@ -93,7 +93,7 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify internal website relationships
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -102,7 +102,7 @@ async def test_website_to_links_real_time_neo4j_creation():
         "https://example.com/page1",
         "LINKS_TO",
     )
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -113,14 +113,14 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify external website nodes were created in callback
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://external.com/page",
         caption="https://external.com/page",
         type="website",
     )
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://another-external.org/resource",
@@ -129,10 +129,10 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify external domain nodes were created in callback
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "domain", "name", "external.com", caption="external.com", type="domain"
     )
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "domain",
         "name",
         "another-external.org",
@@ -141,7 +141,7 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify main website to external website relationships
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -150,7 +150,7 @@ async def test_website_to_links_real_time_neo4j_creation():
         "https://external.com/page",
         "LINKS_TO",
     )
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -161,7 +161,7 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify external website to domain relationships
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://external.com/page",
@@ -170,7 +170,7 @@ async def test_website_to_links_real_time_neo4j_creation():
         "external.com",
         "BELONGS_TO_DOMAIN",
     )
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://another-external.org/resource",
@@ -181,7 +181,7 @@ async def test_website_to_links_real_time_neo4j_creation():
     )
 
     # Verify main website to external domain relationships
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -190,7 +190,7 @@ async def test_website_to_links_real_time_neo4j_creation():
         "external.com",
         "LINKS_TO_DOMAIN",
     )
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -204,13 +204,13 @@ async def test_website_to_links_real_time_neo4j_creation():
 @pytest.mark.asyncio
 async def test_website_to_links_error_handling_with_neo4j():
     """Test that main nodes are still created even when crawling fails."""
-    scanner = WebsiteToLinks(sketch_id="test", scan_id="test")
+    transform = WebsiteToLinks(sketch_id="test", scan_id="test")
 
     # Mock neo4j connection and methods
-    scanner.neo4j_conn = Mock()
-    scanner.create_node = Mock()
-    scanner.create_relationship = Mock()
-    scanner.log_graph_message = Mock()
+    transform.neo4j_conn = Mock()
+    transform.create_node = Mock()
+    transform.create_relationship = Mock()
+    transform.log_graph_message = Mock()
 
     # Mock crawler that raises an exception
     def mock_crawler_error(*args, **kwargs):
@@ -219,22 +219,22 @@ async def test_website_to_links_error_handling_with_neo4j():
     websites = [Website(url="https://example.com")]
 
     with patch("src.transforms.websites.to_links.Crawler", mock_crawler_error):
-        results = await scanner.scan(websites)
+        results = await transform.scan(websites)
 
     # Verify main website and domain nodes were still created despite error
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "website",
         "url",
         "https://example.com",
         caption="https://example.com",
         type="website",
     )
-    scanner.create_node.assert_any_call(
+    transform.create_node.assert_any_call(
         "domain", "name", "example.com", caption="example.com", type="domain"
     )
 
     # Verify main website to domain relationship was created
-    scanner.create_relationship.assert_any_call(
+    transform.create_relationship.assert_any_call(
         "website",
         "url",
         "https://example.com",
@@ -256,7 +256,7 @@ async def test_website_to_links_error_handling_with_neo4j():
 
 def test_postprocess_simplified():
     """Test that postprocess now just returns results as-is."""
-    scanner = WebsiteToLinks(sketch_id="test", scan_id="test")
+    transform = WebsiteToLinks(sketch_id="test", scan_id="test")
 
     original_input = [Website(url="https://example.com")]
     results = [
@@ -269,7 +269,7 @@ def test_postprocess_simplified():
         }
     ]
 
-    processed_results = scanner.postprocess(results, original_input)
+    processed_results = transform.postprocess(results, original_input)
 
     # Should just return the same results since Neo4j work is done in real-time
     assert processed_results == results

@@ -2,7 +2,7 @@ import os
 import re
 import json
 from typing import Any, List, Union, Dict, Set
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
@@ -17,7 +17,7 @@ load_dotenv()
 WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
 
 
-class DomainToHistoryScanner(Scanner):
+class DomainToHistoryTransform(Transform):
     """[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -649,5 +649,5 @@ class DomainToHistoryScanner(Scanner):
         return results
 
 
-InputType = DomainToHistoryScanner.InputType
-OutputType = DomainToHistoryScanner.OutputType
+InputType = DomainToHistoryTransform.InputType
+OutputType = DomainToHistoryTransform.OutputType

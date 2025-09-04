@@ -1,117 +1,117 @@
 import inspect
 from typing import Dict, Optional, Type, List
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 
-# Domain-related scanners
-from flowsint_transforms.domain.to_subdomains import SubdomainScanner
-from flowsint_transforms.domain.to_whois import WhoisScanner
-from flowsint_transforms.domain.to_ip import ResolveScanner
-from flowsint_transforms.domain.to_website import DomainToWebsiteScanner
+# Domain-related transforms
+from flowsint_transforms.domain.to_subdomains import SubdomainTransform
+from flowsint_transforms.domain.to_whois import WhoisTransform
+from flowsint_transforms.domain.to_ip import ResolveTransform
+from flowsint_transforms.domain.to_website import DomainToWebsiteTransform
 from flowsint_transforms.domain.to_root_domain import DomainToRootDomain
-from flowsint_transforms.domain.to_asn import DomainToAsnScanner
-from flowsint_transforms.domain.to_history import DomainToHistoryScanner
+from flowsint_transforms.domain.to_asn import DomainToAsnTransform
+from flowsint_transforms.domain.to_history import DomainToHistoryTransform
 
-# IP-related scanners
-from flowsint_transforms.email.to_domains import EmailToDomainsScanner
-from flowsint_transforms.individual.to_domains import IndividualToDomainsScanner
-from flowsint_transforms.ip.to_domain import ReverseResolveScanner
-from flowsint_transforms.ip.to_infos import IpToInfosScanner
-from flowsint_transforms.ip.to_asn import IpToAsnScanner
+# IP-related transforms
+from flowsint_transforms.email.to_domains import EmailToDomainsTransform
+from flowsint_transforms.individual.to_domains import IndividualToDomainsTransform
+from flowsint_transforms.ip.to_domain import ReverseResolveTransform
+from flowsint_transforms.ip.to_infos import IpToInfosTransform
+from flowsint_transforms.ip.to_asn import IpToAsnTransform
 
-# ASN-related scanners
-from flowsint_transforms.asn.to_cidrs import AsnToCidrsScanner
+# ASN-related transforms
+from flowsint_transforms.asn.to_cidrs import AsnToCidrsTransform
 
-# CIDR-related scanners
-from flowsint_transforms.cidr.to_ips import CidrToIpsScanner
+# CIDR-related transforms
+from flowsint_transforms.cidr.to_ips import CidrToIpsTransform
 
-# Social media scanners
-from flowsint_transforms.organization.to_domains import OrgToDomainsScanner
-from flowsint_transforms.social.to_maigret import MaigretScanner
+# Social media transforms
+from flowsint_transforms.organization.to_domains import OrgToDomainsTransform
+from flowsint_transforms.social.to_maigret import MaigretTransform
 
-# Organization-related scanners
-from flowsint_transforms.organization.to_asn import OrgToAsnScanner
-from flowsint_transforms.organization.to_infos import OrgToInfosScanner
+# Organization-related transforms
+from flowsint_transforms.organization.to_asn import OrgToAsnTransform
+from flowsint_transforms.organization.to_infos import OrgToInfosTransform
 
-# Cryptocurrency scanners
+# Cryptocurrency transforms
 from flowsint_transforms.crypto.to_transactions import (
     CryptoWalletAddressToTransactions,
 )
 from flowsint_transforms.crypto.to_nfts import CryptoWalletAddressToNFTs
 
-# Website-related scanners
+# Website-related transforms
 from flowsint_transforms.website.to_crawler import WebsiteToCrawler
 from flowsint_transforms.website.to_links import WebsiteToLinks
-from flowsint_transforms.website.to_domain import WebsiteToDomainScanner
+from flowsint_transforms.website.to_domain import WebsiteToDomainTransform
 from flowsint_transforms.website.to_text import WebsiteToText
-from flowsint_transforms.website.to_webtrackers import WebsiteToWebtrackersScanner
+from flowsint_transforms.website.to_webtrackers import WebsiteToWebtrackersTransform
 
-# Email-related scanners
-from flowsint_transforms.email.to_gravatar import EmailToGravatarScanner
-from flowsint_transforms.email.to_leaks import EmailToBreachesScanner
+# Email-related transforms
+from flowsint_transforms.email.to_gravatar import EmailToGravatarTransform
+from flowsint_transforms.email.to_leaks import EmailToBreachesTransform
 
-# Phone-related scanners
-from flowsint_transforms.phone.to_leaks import PhoneToBreachesScanner
+# Phone-related transforms
+from flowsint_transforms.phone.to_leaks import PhoneToBreachesTransform
 
-# Individual-related scanners
-from flowsint_transforms.individual.to_org import IndividualToOrgScanner
+# Individual-related transforms
+from flowsint_transforms.individual.to_org import IndividualToOrgTransform
 
-# Integration scanners
+# Integration transforms
 from flowsint_transforms.n8n.connector import N8nConnector
 
 
 class TransformRegistry:
 
-    _scanners: Dict[str, Type[Scanner]] = {}
+    _transforms: Dict[str, Type[Transform]] = {}
 
     @classmethod
-    def register(cls, scanner_class: Type[Scanner]) -> None:
-        cls._scanners[scanner_class.name()] = scanner_class
+    def register(cls, transform_class: Type[Transform]) -> None:
+        cls._transforms[transform_class.name()] = transform_class
 
     @classmethod
     def transform_exists(cls, name: str) -> bool:
-        return name in cls._scanners
+        return name in cls._transforms
 
     @classmethod
-    def get_scanner(cls, name: str, sketch_id: str, scan_id: str, **kwargs) -> Scanner:
-        if name not in cls._scanners:
-            raise Exception(f"Scanner '{name}' not found")
-        return cls._scanners[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
+    def get_transform(cls, name: str, sketch_id: str, scan_id: str, **kwargs) -> Transform:
+        if name not in cls._transforms:
+            raise Exception(f"Transform '{name}' not found")
+        return cls._transforms[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
 
     @classmethod
-    def _create_scanner_metadata(cls, scanner: Type[Scanner]) -> Dict[str, str]:
-        """Helper method to create scanner metadata dictionary."""
+    def _create_transform_metadata(cls, transform: Type[Transform]) -> Dict[str, str]:
+        """Helper method to create transform metadata dictionary."""
         return {
-            "class_name": scanner.__name__,
-            "name": scanner.name(),
-            "module": scanner.__module__,
-            "description": scanner.__doc__,
-            "documentation": inspect.cleandoc(scanner.documentation()),
-            "category": scanner.category(),
-            "inputs": scanner.input_schema(),
-            "outputs": scanner.output_schema(),
+            "class_name": transform.__name__,
+            "name": transform.name(),
+            "module": transform.__module__,
+            "description": transform.__doc__,
+            "documentation": inspect.cleandoc(transform.documentation()),
+            "category": transform.category(),
+            "inputs": transform.input_schema(),
+            "outputs": transform.output_schema(),
             "params": {},
-            "params_schema": scanner.get_params_schema(),
-            "required_params": scanner.required_params(),
-            "icon": scanner.icon(),
+            "params_schema": transform.get_params_schema(),
+            "required_params": transform.required_params(),
+            "icon": transform.icon(),
         }
 
     @classmethod
     def list(cls, exclude: Optional[List[str]] = []) -> Dict[str, Dict[str, str]]:
         return {
-            name: cls._create_scanner_metadata(scanner)
-            for name, scanner in cls._scanners.items()
+            name: cls._create_transform_metadata(transform)
+            for name, transform in cls._transforms.items()
             if name not in exclude
         }
 
     @classmethod
     def list_by_categories(cls) -> Dict[str, List[Dict[str, str]]]:
-        scanners_by_category = {}
-        for _, scanner in cls._scanners.items():
-            category = scanner.category()
-            if category not in scanners_by_category:
-                scanners_by_category[category] = []
-            scanners_by_category[category].append(cls._create_scanner_metadata(scanner))
-        return scanners_by_category
+        transforms_by_category = {}
+        for _, transform in cls._transforms.items():
+            category = transform.category()
+            if category not in transforms_by_category:
+                transforms_by_category[category] = []
+            transforms_by_category[category].append(cls._create_transform_metadata(transform))
+        return transforms_by_category
 
     @classmethod
     def list_by_input_type(
@@ -121,70 +121,70 @@ class TransformRegistry:
 
         if input_type_lower == "any":
             return [
-                cls._create_scanner_metadata(scanner)
-                for scanner in cls._scanners.values()
-                if scanner.name() not in exclude
+                cls._create_transform_metadata(transform)
+                for transform in cls._transforms.values()
+                if transform.name() not in exclude
             ]
 
         return [
-            cls._create_scanner_metadata(scanner)
-            for scanner in cls._scanners.values()
-            if scanner.input_schema()["type"].lower() in ["any", input_type_lower]
-            and scanner.name() not in exclude
+            cls._create_transform_metadata(transform)
+            for transform in cls._transforms.values()
+            if transform.input_schema()["type"].lower() in ["any", input_type_lower]
+            and transform.name() not in exclude
         ]
 
 
-# Register all scanners
+# Register all transforms
 
-# Domain-related scanners
-TransformRegistry.register(ReverseResolveScanner)
-TransformRegistry.register(ResolveScanner)
-TransformRegistry.register(SubdomainScanner)
-TransformRegistry.register(WhoisScanner)
-TransformRegistry.register(DomainToWebsiteScanner)
+# Domain-related transforms
+TransformRegistry.register(ReverseResolveTransform)
+TransformRegistry.register(ResolveTransform)
+TransformRegistry.register(SubdomainTransform)
+TransformRegistry.register(WhoisTransform)
+TransformRegistry.register(DomainToWebsiteTransform)
 TransformRegistry.register(DomainToRootDomain)
-TransformRegistry.register(DomainToAsnScanner)
-TransformRegistry.register(DomainToHistoryScanner)
+TransformRegistry.register(DomainToAsnTransform)
+TransformRegistry.register(DomainToHistoryTransform)
 
-# IP-related scanners
-TransformRegistry.register(IpToInfosScanner)
-TransformRegistry.register(IpToAsnScanner)
+# IP-related transforms
+TransformRegistry.register(IpToInfosTransform)
+TransformRegistry.register(IpToAsnTransform)
 
-# ASN-related scanners
-TransformRegistry.register(AsnToCidrsScanner)
+# ASN-related transforms
+TransformRegistry.register(AsnToCidrsTransform)
 
-# CIDR-related scanners
-TransformRegistry.register(CidrToIpsScanner)
+# CIDR-related transforms
+TransformRegistry.register(CidrToIpsTransform)
 
-# Social media scanners
-TransformRegistry.register(MaigretScanner)
+# Social media transforms
+TransformRegistry.register(MaigretTransform)
 
-# Organization-related scanners
-TransformRegistry.register(OrgToAsnScanner)
-TransformRegistry.register(OrgToInfosScanner)
-TransformRegistry.register(OrgToDomainsScanner)
-# Cryptocurrency scanners
+# Organization-related transforms
+TransformRegistry.register(OrgToAsnTransform)
+TransformRegistry.register(OrgToInfosTransform)
+TransformRegistry.register(OrgToDomainsTransform)
+# Cryptocurrency transforms
 TransformRegistry.register(CryptoWalletAddressToTransactions)
 TransformRegistry.register(CryptoWalletAddressToNFTs)
 
-# Website-related scanners
+# Website-related transforms
 TransformRegistry.register(WebsiteToCrawler)
 TransformRegistry.register(WebsiteToLinks)
-TransformRegistry.register(WebsiteToDomainScanner)
-TransformRegistry.register(WebsiteToWebtrackersScanner)
+TransformRegistry.register(WebsiteToDomainTransform)
+TransformRegistry.register(WebsiteToWebtrackersTransform)
 TransformRegistry.register(WebsiteToText)
 
-# Email-related scanners
-TransformRegistry.register(EmailToGravatarScanner)
-TransformRegistry.register(EmailToBreachesScanner)
-TransformRegistry.register(EmailToDomainsScanner)
+# Email-related transforms
+TransformRegistry.register(EmailToGravatarTransform)
+TransformRegistry.register(EmailToBreachesTransform)
+TransformRegistry.register(EmailToDomainsTransform)
 
-# Phone-related scanners
-TransformRegistry.register(PhoneToBreachesScanner)
+# Phone-related transforms
+TransformRegistry.register(PhoneToBreachesTransform)
 
-# Individual-related scanners
-TransformRegistry.register(IndividualToOrgScanner)
-TransformRegistry.register(IndividualToDomainsScanner)
+# Individual-related transforms
+TransformRegistry.register(IndividualToOrgTransform)
+TransformRegistry.register(IndividualToDomainsTransform)
 
-# Integration scanners
+# Integration transforms
 TransformRegistry.register(N8nConnector)

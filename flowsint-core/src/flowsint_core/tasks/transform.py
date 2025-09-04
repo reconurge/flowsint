@@ -60,9 +60,9 @@ def run_transform(
                 )
 
         if not TransformRegistry.transform_exists(transform_name):
-            raise ValueError(f"Scanner '{transform_name}' not found in registry")
+            raise ValueError(f"Transform '{transform_name}' not found in registry")
 
-        scanner = TransformRegistry.get_scanner(
+        transform = TransformRegistry.get_transform(
             name=transform_name,
             sketch_id=sketch_id,
             scan_id=scan_id,
@@ -70,7 +70,7 @@ def run_transform(
             vault=vault,
         )
 
-        results = asyncio.run(scanner.execute(values=values))
+        results = asyncio.run(transform.execute(values=values))
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

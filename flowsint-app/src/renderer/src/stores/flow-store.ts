@@ -12,9 +12,9 @@ import {
     applyEdgeChanges
 } from "@xyflow/react"
 import { toast } from "sonner"
-import { type ScannerNodeData } from "@/types/transform"
+import { type TransformNodeData } from "@/types/transform"
 
-export type NodeData = ScannerNodeData
+export type NodeData = TransformNodeData
 
 export type FlowNode = Node<NodeData>
 export type FlowEdge = Edge

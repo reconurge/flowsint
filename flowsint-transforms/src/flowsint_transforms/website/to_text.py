@@ -1,12 +1,12 @@
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.phrase import Phrase
 from flowsint_types.website import Website
 import requests
 from bs4 import BeautifulSoup
 
 
-class WebsiteToText(Scanner):
+class WebsiteToText(Transform):
     """Extracts the texts in a webpage."""
 
     InputType = List[Website]

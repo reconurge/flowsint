@@ -2,7 +2,7 @@ import pytest
 import json
 import os
 from unittest.mock import Mock
-from flowsint_transforms.domain.to_history import DomainToHistoryScanner
+from flowsint_transforms.domain.to_history import DomainToHistoryTransform
 from flowsint_types.domain import Domain
 
 
@@ -37,7 +37,7 @@ class MockNeo4jConn:
         pass
 
 
-class MockScanner(DomainToHistoryScanner):
+class MockTransform(DomainToHistoryTransform):
     def __init__(self):
         self.sketch_id = "test_sketch_123"
         self.neo4j_conn = MockNeo4jConn()
@@ -50,10 +50,10 @@ class MockScanner(DomainToHistoryScanner):
 
 
 @pytest.fixture
-def scanner():
-    """Create a scanner instance for testing."""
-    scanner = MockScanner()
-    return scanner
+def transform():
+    """Create a transform instance for testing."""
+    transform = MockTransform()
+    return transform
 
 
 @pytest.fixture
@@ -65,13 +65,13 @@ def test_data():
         return json.load(f)
 
 
-def test_preprocess_valid_domains(scanner):
+def test_preprocess_valid_domains(transform):
     """Test preprocessing with valid domains."""
     domains = [
         Domain(domain="example.com"),
         Domain(domain="example2.com"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     expected_domains = [d.domain for d in domains]
@@ -79,10 +79,10 @@ def test_preprocess_valid_domains(scanner):
     assert result_domains == expected_domains
 
 
-def test_preprocess_string_domains(scanner):
+def test_preprocess_string_domains(transform):
     """Test preprocessing with string domains."""
     domains = ["example.com", "example2.com"]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     assert len(result) == 2
     assert all(isinstance(d, Domain) for d in result)
@@ -90,10 +90,10 @@ def test_preprocess_string_domains(scanner):
     assert result[1].domain == "example2.com"
 
 
-def test_preprocess_dict_domains(scanner):
+def test_preprocess_dict_domains(transform):
     """Test preprocessing with dict domains."""
     domains = [{"domain": "example.com"}, {"domain": "example2.com"}]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     assert len(result) == 2
     assert all(isinstance(d, Domain) for d in result)
@@ -101,14 +101,14 @@ def test_preprocess_dict_domains(scanner):
     assert result[1].domain == "example2.com"
 
 
-def test_preprocess_invalid_domains(scanner):
+def test_preprocess_invalid_domains(transform):
     """Test preprocessing with invalid domains."""
     domains = [
         Domain(domain="example.com"),
         Domain(domain="invalid_domain"),
         Domain(domain="example.org"),
     ]
-    result = scanner.preprocess(domains)
+    result = transform.preprocess(domains)
 
     result_domains = [d.domain for d in result]
     assert "example.com" in result_domains
@@ -116,21 +116,21 @@ def test_preprocess_invalid_domains(scanner):
     assert "invalid_domain" not in result_domains
 
 
-def test_is_redacted(scanner):
+def test_is_redacted(transform):
     """Test the __is_redacted method."""
     # Should be redacted
-    assert scanner._DomainToHistoryScanner__is_redacted("REDACTED FOR PRIVACY")
-    assert scanner._DomainToHistoryScanner__is_redacted("redacted for privacy")
-    assert scanner._DomainToHistoryScanner__is_redacted("Some text with PRIVACY in it")
+    assert transform._DomainToHistoryTransform__is_redacted("REDACTED FOR PRIVACY")
+    assert transform._DomainToHistoryTransform__is_redacted("redacted for privacy")
+    assert transform._DomainToHistoryTransform__is_redacted("Some text with PRIVACY in it")
 
     # Should NOT be redacted
-    assert not scanner._DomainToHistoryScanner__is_redacted("JOHN DOE")
-    assert not scanner._DomainToHistoryScanner__is_redacted("john@doe.com")
-    assert not scanner._DomainToHistoryScanner__is_redacted("123 JOHN STREET")
-    assert not scanner._DomainToHistoryScanner__is_redacted("DOE CITY")
+    assert not transform._DomainToHistoryTransform__is_redacted("JOHN DOE")
+    assert not transform._DomainToHistoryTransform__is_redacted("john@doe.com")
+    assert not transform._DomainToHistoryTransform__is_redacted("123 JOHN STREET")
+    assert not transform._DomainToHistoryTransform__is_redacted("DOE CITY")
 
 
-def test_has_non_redacted_info(scanner):
+def test_has_non_redacted_info(transform):
     """Test the __has_non_redacted_info method."""
     # Contact with valid information
     valid_contact = {
@@ -142,7 +142,7 @@ def test_has_non_redacted_info(scanner):
         "zip_code": "12345",
         "country_name": "United States",
     }
-    assert scanner._DomainToHistoryScanner__has_non_redacted_info(valid_contact)
+    assert transform._DomainToHistoryTransform__has_non_redacted_info(valid_contact)
 
     # Contact with all redacted information
     redacted_contact = {
@@ -154,13 +154,13 @@ def test_has_non_redacted_info(scanner):
         "zip_code": "REDACTED FOR PRIVACY",
         "country_name": "REDACTED FOR PRIVACY",
     }
-    assert not scanner._DomainToHistoryScanner__has_non_redacted_info(redacted_contact)
+    assert not transform._DomainToHistoryTransform__has_non_redacted_info(redacted_contact)
 
     # Empty contact
-    assert not scanner._DomainToHistoryScanner__has_non_redacted_info({})
+    assert not transform._DomainToHistoryTransform__has_non_redacted_info({})
 
 
-def test_extract_individual_from_contact(scanner):
+def test_extract_individual_from_contact(transform):
     """Test the __extract_individual_from_contact method."""
     # Valid contact
     valid_contact = {
@@ -173,7 +173,7 @@ def test_extract_individual_from_contact(scanner):
         "country_name": "United States",
     }
 
-    individual = scanner._DomainToHistoryScanner__extract_individual_from_contact(
+    individual = transform._DomainToHistoryTransform__extract_individual_from_contact(
         valid_contact, "REGISTRANT"
     )
 
@@ -187,7 +187,7 @@ def test_extract_individual_from_contact(scanner):
     assert individual.phone_numbers == ["+123456789"]
 
 
-def test_extract_individual_redacted_name(scanner):
+def test_extract_individual_redacted_name(transform):
     """Test that individuals with redacted names are skipped."""
     redacted_contact = {
         "full_name": "REDACTED FOR PRIVACY",
@@ -195,27 +195,27 @@ def test_extract_individual_redacted_name(scanner):
         "phone_number": "+1234567890",
     }
 
-    individual = scanner._DomainToHistoryScanner__extract_individual_from_contact(
+    individual = transform._DomainToHistoryTransform__extract_individual_from_contact(
         redacted_contact, "REGISTRANT"
     )
     assert individual is None
 
 
-def test_is_valid_email(scanner):
+def test_is_valid_email(transform):
     """Test the __is_valid_email method."""
     # Valid emails
-    assert scanner._DomainToHistoryScanner__is_valid_email("test@example.com")
-    assert scanner._DomainToHistoryScanner__is_valid_email("user.name@domain.org")
-    assert scanner._DomainToHistoryScanner__is_valid_email("user+tag@example.co.uk")
+    assert transform._DomainToHistoryTransform__is_valid_email("test@example.com")
+    assert transform._DomainToHistoryTransform__is_valid_email("user.name@domain.org")
+    assert transform._DomainToHistoryTransform__is_valid_email("user+tag@example.co.uk")
 
     # Invalid emails
-    assert not scanner._DomainToHistoryScanner__is_valid_email("invalid-email")
-    assert not scanner._DomainToHistoryScanner__is_valid_email("@example.com")
-    assert not scanner._DomainToHistoryScanner__is_valid_email("test@")
-    assert not scanner._DomainToHistoryScanner__is_valid_email("")
+    assert not transform._DomainToHistoryTransform__is_valid_email("invalid-email")
+    assert not transform._DomainToHistoryTransform__is_valid_email("@example.com")
+    assert not transform._DomainToHistoryTransform__is_valid_email("test@")
+    assert not transform._DomainToHistoryTransform__is_valid_email("")
 
 
-def test_extract_physical_address(scanner):
+def test_extract_physical_address(transform):
     """Test the __extract_physical_address method."""
     # Valid address
     valid_contact = {
@@ -225,7 +225,7 @@ def test_extract_physical_address(scanner):
         "country_name": "United States",
     }
 
-    address = scanner._DomainToHistoryScanner__extract_physical_address(valid_contact)
+    address = transform._DomainToHistoryTransform__extract_physical_address(valid_contact)
 
     assert address is not None
     assert address.address == "123 JOHN STREET"
@@ -241,14 +241,14 @@ def test_extract_physical_address(scanner):
         "country_name": "United States",
     }
 
-    address = scanner._DomainToHistoryScanner__extract_physical_address(
+    address = transform._DomainToHistoryTransform__extract_physical_address(
         redacted_contact
     )
     assert address is None
 
 
 @pytest.mark.asyncio
-async def test_scan_with_test_data(scanner, test_data, monkeypatch):
+async def test_scan_with_test_data(transform, test_data, monkeypatch):
     """Test the scan method with test data."""
 
     # Mock the __get_infos_from_whoxy method to return test data
@@ -258,30 +258,30 @@ async def test_scan_with_test_data(scanner, test_data, monkeypatch):
         return {}
 
     monkeypatch.setattr(
-        scanner, "_DomainToHistoryScanner__get_infos_from_whoxy", mock_get_infos
+        transform, "_DomainToHistoryTransform__get_infos_from_whoxy", mock_get_infos
     )
 
     # Test with epios.com domain
     input_domains = [Domain(domain="epios.com")]
-    results = await scanner.scan(input_domains)
+    results = await transform.scan(input_domains)
 
     # Should find the domain (one for each WHOIS record)
     assert len(results) == 16  # 16 WHOIS records in the test data
     assert all(r.domain == "epios.com" for r in results)
 
     # Should have extracted data
-    assert len(scanner._extracted_data) == 16
+    assert len(transform._extracted_data) == 16
 
     # Should have extracted individuals
     assert (
-        len(scanner._extracted_individuals) > 0
+        len(transform._extracted_individuals) > 0
     ), "Should have extracted some individuals"
 
     # Check that JOHN DOE is in the extracted individuals
     marc_found = False
     marc_individuals = []
 
-    for individual_info in scanner._extracted_individuals:
+    for individual_info in transform._extracted_individuals:
         individual = individual_info["individual"]
         if "JOHN DOE" in individual.full_name:
             marc_found = True
@@ -299,7 +299,7 @@ async def test_scan_with_test_data(scanner, test_data, monkeypatch):
 
     # Print summary of all extracted individuals
     print(f"\n=== Summary of extracted individuals ===")
-    for individual_info in scanner._extracted_individuals:
+    for individual_info in transform._extracted_individuals:
         individual = individual_info["individual"]
         print(
             f"- {individual.full_name} ({individual_info['contact_type']}) for {individual_info['domain_name']}"
@@ -310,7 +310,7 @@ async def test_scan_with_test_data(scanner, test_data, monkeypatch):
             print(f"  Phones: {individual.phone_numbers}")
 
 
-def test_postprocess_creates_nodes_and_relationships(scanner, test_data, monkeypatch):
+def test_postprocess_creates_nodes_and_relationships(transform, test_data, monkeypatch):
     """Test that postprocess creates the expected nodes and relationships."""
 
     # Mock the __get_infos_from_whoxy method
@@ -320,7 +320,7 @@ def test_postprocess_creates_nodes_and_relationships(scanner, test_data, monkeyp
         return {}
 
     monkeypatch.setattr(
-        scanner, "_DomainToHistoryScanner__get_infos_from_whoxy", mock_get_infos
+        transform, "_DomainToHistoryTransform__get_infos_from_whoxy", mock_get_infos
     )
 
     # First run scan to populate _extracted_data and _extracted_individuals
@@ -331,13 +331,13 @@ def test_postprocess_creates_nodes_and_relationships(scanner, test_data, monkeyp
 
     try:
         input_domains = [Domain(domain="epios.com")]
-        results = loop.run_until_complete(scanner.scan(input_domains))
+        results = loop.run_until_complete(transform.scan(input_domains))
 
         # Debug: Check what individuals were extracted
         print(
-            f"\n=== DEBUG: _extracted_individuals has {len(scanner._extracted_individuals)} individuals ==="
+            f"\n=== DEBUG: _extracted_individuals has {len(transform._extracted_individuals)} individuals ==="
         )
-        for i, individual_info in enumerate(scanner._extracted_individuals):
+        for i, individual_info in enumerate(transform._extracted_individuals):
             individual = individual_info["individual"]
             print(
                 f"Individual {i+1}: {individual.full_name} ({individual_info['contact_type']}) for {individual_info['domain_name']}"
@@ -349,28 +349,28 @@ def test_postprocess_creates_nodes_and_relationships(scanner, test_data, monkeyp
 
         # Now run postprocess
         print(f"\n=== Running postprocess ===")
-        scanner.postprocess(results, input_domains)
+        transform.postprocess(results, input_domains)
 
         # Debug: Check what happened during postprocess
         print(f"=== Postprocess completed ===")
-        print(f"Nodes created: {len(scanner.neo4j_conn.nodes_created)}")
-        print(f"Relationships created: {len(scanner.neo4j_conn.relationships_created)}")
+        print(f"Nodes created: {len(transform.neo4j_conn.nodes_created)}")
+        print(f"Relationships created: {len(transform.neo4j_conn.relationships_created)}")
 
         # Should have created some nodes
-        assert len(scanner.neo4j_conn.nodes_created) > 0
+        assert len(transform.neo4j_conn.nodes_created) > 0
 
         # Should have created some relationships
-        assert len(scanner.neo4j_conn.relationships_created) > 0
+        assert len(transform.neo4j_conn.relationships_created) > 0
 
         # Check for domain node
         domain_nodes = [
-            n for n in scanner.neo4j_conn.nodes_created if n["label"] == "domain"
+            n for n in transform.neo4j_conn.nodes_created if n["label"] == "domain"
         ]
         assert len(domain_nodes) > 0
 
         # Check for individual nodes (should include JOHN DOE)
         individual_nodes = [
-            n for n in scanner.neo4j_conn.nodes_created if n["label"] == "individual"
+            n for n in transform.neo4j_conn.nodes_created if n["label"] == "individual"
         ]
         assert len(individual_nodes) > 0
 
@@ -384,10 +384,10 @@ def test_postprocess_creates_nodes_and_relationships(scanner, test_data, monkeyp
         loop.close()
 
 
-def test_schemas(scanner):
-    """Test that the scanner has the expected schemas."""
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
+def test_schemas(transform):
+    """Test that the transform has the expected schemas."""
+    input_schema = transform.input_schema()
+    output_schema = transform.output_schema()
 
     assert input_schema is not None
     assert output_schema is not None

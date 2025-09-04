@@ -1,22 +1,22 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from flowsint_transforms.emails.to_leaks import EmailToBreachesScanner
+from flowsint_transforms.emails.to_leaks import EmailToBreachesTransform
 from flowsint_types.email import Email
 from flowsint_types.breach import Breach
 
-scanner = EmailToBreachesScanner("sketch_123", "scan_123")
+transform = EmailToBreachesTransform("sketch_123", "scan_123")
 
 
 def test_transform_name():
-    assert EmailToBreachesScanner.name() == "to_leaks"
+    assert EmailToBreachesTransform.name() == "to_leaks"
 
 
-def test_scanner_category():
-    assert EmailToBreachesScanner.category() == "Email"
+def test_transform_category():
+    assert EmailToBreachesTransform.category() == "Email"
 
 
-def test_scanner_key():
-    assert EmailToBreachesScanner.key() == "email"
+def test_transform_key():
+    assert EmailToBreachesTransform.key() == "email"
 
 
 def test_preprocess_string_emails():
@@ -24,7 +24,7 @@ def test_preprocess_string_emails():
         "test@example.com",
         "user@domain.org",
     ]
-    result = scanner.preprocess(emails)
+    result = transform.preprocess(emails)
     expected_emails = [Email(email=email) for email in emails]
     assert result == expected_emails
 
@@ -34,7 +34,7 @@ def test_preprocess_dict_emails():
         {"email": "test@example.com"},
         {"email": "user@domain.org"},
     ]
-    result = scanner.preprocess(emails)
+    result = transform.preprocess(emails)
     expected_emails = [Email(email=email["email"]) for email in emails]
     assert result == expected_emails
 
@@ -44,7 +44,7 @@ def test_preprocess_email_objects():
         Email(email="test@example.com"),
         Email(email="user@domain.org"),
     ]
-    result = scanner.preprocess(emails)
+    result = transform.preprocess(emails)
     assert result == emails
 
 
@@ -55,7 +55,7 @@ def test_preprocess_mixed_formats():
         Email(email="admin@company.com"),
         {"invalid_key": "should_be_ignored@test.com"},
     ]
-    result = scanner.preprocess(emails)
+    result = transform.preprocess(emails)
 
     result_emails = [email.email for email in result]
     assert "test@example.com" in result_emails
@@ -76,7 +76,7 @@ def test_scan_successful_response(mock_get):
     mock_get.return_value = mock_response
 
     emails = [Email(email="test@example.com")]
-    result = scanner.scan(emails)
+    result = transform.scan(emails)
 
     assert len(result) == 2
     assert isinstance(result[0], Breach)
@@ -95,7 +95,7 @@ def test_scan_no_breaches_found(mock_get):
     mock_get.return_value = mock_response
 
     emails = [Email(email="test@example.com")]
-    result = scanner.scan(emails)
+    result = transform.scan(emails)
 
     assert len(result) == 0
 
@@ -106,7 +106,7 @@ def test_scan_api_error(mock_get):
     mock_get.side_effect = Exception("API Error")
 
     emails = [Email(email="test@example.com")]
-    result = scanner.scan(emails)
+    result = transform.scan(emails)
 
     assert len(result) == 0
 
@@ -123,7 +123,7 @@ def test_scan_missing_name_field(mock_get):
     mock_get.return_value = mock_response
 
     emails = [Email(email="test@example.com")]
-    result = scanner.scan(emails)
+    result = transform.scan(emails)
 
     assert len(result) == 2
     assert result[0].name == "unknown"  # Should default to "unknown"
@@ -134,16 +134,16 @@ def test_scan_missing_name_field(mock_get):
 
 @patch("src.transforms.emails.to_leaks.HIBP_API_KEY", None)
 def test_scan_no_api_key():
-    """Test that scanner raises ValueError when HIBP_API_KEY is not set."""
+    """Test that transform raises ValueError when HIBP_API_KEY is not set."""
     emails = [Email(email="test@example.com")]
 
     with pytest.raises(ValueError, match="HIBP_API_KEY not set"):
-        scanner.scan(emails)
+        transform.scan(emails)
 
 
 def test_postprocess():
     # Test postprocess method with mocked neo4j connection
-    scanner.neo4j_conn = MagicMock()
+    transform.neo4j_conn = MagicMock()
 
     # Create breach objects with the new structure
     breach1 = Breach(
@@ -164,7 +164,7 @@ def test_postprocess():
     breaches = [breach1, breach2]
     original_input = [Email(email="test@example.com")]
 
-    result = scanner.postprocess(breaches, original_input)
+    result = transform.postprocess(breaches, original_input)
 
     assert result == breaches
     # Verify that neo4j queries were called:
@@ -172,4 +172,4 @@ def test_postprocess():
     # - 1 email node creation query
     # - 2 relationship creation queries
     # Total: 5 queries
-    assert scanner.neo4j_conn.query.call_count == 5
+    assert transform.neo4j_conn.query.call_count == 5

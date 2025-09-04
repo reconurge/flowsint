@@ -1,14 +1,14 @@
 import json
 from unittest.mock import Mock
-from flowsint_transforms.ips.ip_to_asn import IpToAsnScanner
+from flowsint_transforms.ips.ip_to_asn import IpToAsnTransform
 from flowsint_types.ip import Ip
 from flowsint_types.asn import ASN
 from flowsint_types.cidr import CIDR
 from tests.logger import TestLogger
 
 logger = TestLogger()
-# The scanner will get a mock logger from conftest.py automatically
-scanner = IpToAsnScanner("sketch_123", "scan_123", logger)
+# The transform will get a mock logger from conftest.py automatically
+transform = IpToAsnTransform("sketch_123", "scan_123", logger)
 
 
 def test_preprocess_valid_ips():
@@ -16,7 +16,7 @@ def test_preprocess_valid_ips():
         Ip(address="8.8.8.8"),
         Ip(address="1.1.1.1"),
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
 
     result_addresses = [ip.address for ip in result]
     expected_addresses = [ip.address for ip in ips]
@@ -29,7 +29,7 @@ def test_unprocessed_valid_ips():
         "8.8.8.8",
         "1.1.1.1",
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
     result_ips = [ip for ip in result]
     expected_ips = [Ip(address=ip) for ip in ips]
     assert result_ips == expected_ips
@@ -41,7 +41,7 @@ def test_preprocess_invalid_ips():
         Ip(address="invalid_ip"),
         Ip(address="192.168.1.1"),
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
 
     result_addresses = [ip.address for ip in result]
     assert "8.8.8.8" in result_addresses
@@ -56,7 +56,7 @@ def test_preprocess_multiple_formats():
         Ip(address="192.168.1.1"),
         "10.0.0.1",
     ]
-    result = scanner.preprocess(ips)
+    result = transform.preprocess(ips)
 
     result_addresses = [ip.address for ip in result]
     assert "8.8.8.8" in result_addresses
@@ -86,11 +86,11 @@ def test_scan_extracts_asn_info(monkeypatch):
         assert input == "8.8.8.8"
         return MockSubprocessResult(json.dumps(mock_asnmap_output))
 
-    # Patch the subprocess call in the scanner
+    # Patch the subprocess call in the transform
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [Ip(address="8.8.8.8")]
-    asns = scanner.scan(input_data)
+    asns = transform.scan(input_data)
 
     assert isinstance(asns, list)
     assert len(asns) == 1
@@ -118,7 +118,7 @@ def test_scan_handles_no_asn_found(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [Ip(address="192.168.1.1")]
-    asns = scanner.scan(input_data)
+    asns = transform.scan(input_data)
 
     assert isinstance(asns, list)
     assert len(asns) == 1
@@ -138,7 +138,7 @@ def test_scan_handles_subprocess_exception(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [Ip(address="8.8.8.8")]
-    asns = scanner.scan(input_data)
+    asns = transform.scan(input_data)
 
     assert isinstance(asns, list)
     assert len(asns) == 1
@@ -181,7 +181,7 @@ def test_scan_multiple_ips(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_subprocess_run)
 
     input_data = [Ip(address="8.8.8.8"), Ip(address="1.1.1.1")]
-    asns = scanner.scan(input_data)
+    asns = transform.scan(input_data)
 
     assert len(asns) == 2
 
@@ -195,8 +195,8 @@ def test_scan_multiple_ips(monkeypatch):
 
 
 def test_schemas():
-    input_schema = scanner.input_schema()
-    output_schema = scanner.output_schema()
+    input_schema = transform.input_schema()
+    output_schema = transform.output_schema()
 
     # Input schema should have address field
     assert "properties" in input_schema
@@ -218,7 +218,7 @@ def test_schemas():
 def test_postprocess_creates_neo4j_relationships(monkeypatch):
     # Mock Neo4j connection
     mock_neo4j = Mock()
-    scanner.neo4j_conn = mock_neo4j
+    transform.neo4j_conn = mock_neo4j
 
     input_data = [Ip(address="8.8.8.8")]
     asn_results = [
@@ -230,7 +230,7 @@ def test_postprocess_creates_neo4j_relationships(monkeypatch):
         )
     ]
 
-    result = scanner.postprocess(asn_results, input_data)
+    result = transform.postprocess(asn_results, input_data)
 
     # Verify Neo4j query was called
     mock_neo4j.query.assert_called_once()
@@ -251,14 +251,14 @@ def test_postprocess_creates_neo4j_relationships(monkeypatch):
 def test_postprocess_skips_unknown_asns(monkeypatch):
     # Mock Neo4j connection
     mock_neo4j = Mock()
-    scanner.neo4j_conn = mock_neo4j
+    transform.neo4j_conn = mock_neo4j
 
     input_data = [Ip(address="192.168.1.1")]
     asn_results = [
         ASN(number=0, name="Unknown", country="Unknown", cidrs=[])  # Unknown ASN
     ]
 
-    result = scanner.postprocess(asn_results, input_data)
+    result = transform.postprocess(asn_results, input_data)
 
     # Verify Neo4j query was NOT called for unknown ASN
     mock_neo4j.query.assert_not_called()

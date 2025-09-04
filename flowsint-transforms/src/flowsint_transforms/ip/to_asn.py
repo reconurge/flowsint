@@ -2,14 +2,14 @@ import json
 import socket
 import subprocess
 from typing import List, Union
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.ip import Ip
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_ip
 from flowsint_core.core.logger import Logger
 
 
-class IpToAsnScanner(Scanner):
+class IpToAsnTransform(Transform):
     """[ASNMAP] Takes an IP address and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
@@ -18,7 +18,7 @@ class IpToAsnScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "ip_to_asn_scanner"
+        return "ip_to_asn_transform"
 
     @classmethod
     def category(cls) -> str:
@@ -108,5 +108,5 @@ class IpToAsnScanner(Scanner):
 
 
 # Make types available at module level for easy access
-InputType = IpToAsnScanner.InputType
-OutputType = IpToAsnScanner.OutputType
+InputType = IpToAsnTransform.InputType
+OutputType = IpToAsnTransform.OutputType

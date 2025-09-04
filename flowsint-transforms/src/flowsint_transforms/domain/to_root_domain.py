@@ -1,11 +1,11 @@
 from typing import List, Union
 from flowsint_transforms.utils import is_valid_domain, get_root_domain
-from flowsint_core.core.scanner_base import Scanner
+from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 
 
-class DomainToRootDomain(Scanner):
+class DomainToRootDomain(Transform):
     """Subdomain to root domain."""
 
     InputType = List[Domain]

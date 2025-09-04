@@ -14,6 +14,7 @@ import { investigationService } from "@/api/investigation-service";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { Search, ChevronDown, Plus, FolderOpen } from "lucide-react";
 import NewInvestigation from "@/components/investigations/new-investigation";
+import { queryKeys } from "@/api/query-keys";
 
 export default function InvestigationSelector() {
     const navigate = useNavigate()
@@ -22,7 +23,7 @@ export default function InvestigationSelector() {
     const [searchQuery, setSearchQuery] = useState("")
 
     const { data: investigations, isLoading } = useQuery({
-        queryKey: ["dashboard", "selector", investigationId],
+        queryKey: queryKeys.investigations.selector(investigationId as string),
         queryFn: investigationService.get,
         refetchOnWindowFocus: true,
     })

@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FolderOpen, Plus, Clock, FileText, BarChart3 } from "lucide-react";
+import { FolderOpen, Plus, Clock, FileText, BarChart3, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import NewInvestigation from "@/components/investigations/new-investigation";
+import { queryKeys } from "@/api/query-keys";
 
 interface InvestigationCardProps {
     investigation: any;
@@ -17,7 +18,7 @@ function InvestigationCard({ investigation }: InvestigationCardProps) {
     const sketchCount = investigation.sketches?.length || 0;
     const analysisCount = investigation.analyses?.length || 0;
     const totalItems = sketchCount + analysisCount;
-    
+
     return (
         <Link
             to="/dashboard/investigations/$investigationId"
@@ -30,7 +31,7 @@ function InvestigationCard({ investigation }: InvestigationCardProps) {
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <FolderOpen className="w-4 h-4 text-primary" />
+                                <Search className="w-4 h-4 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
@@ -45,7 +46,7 @@ function InvestigationCard({ investigation }: InvestigationCardProps) {
                             {totalItems}
                         </Badge>
                     </div>
-                    
+
                     {/* Stats row */}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                         <div className="flex items-center gap-1">
@@ -57,7 +58,7 @@ function InvestigationCard({ investigation }: InvestigationCardProps) {
                             <span>{analysisCount} docs</span>
                         </div>
                     </div>
-                    
+
                     {/* Footer with timestamp */}
                     <div className="mt-auto">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -86,7 +87,7 @@ function InvestigationCardsSkeleton() {
             <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                     <Card key={i} className="w-full">
-                                                    <CardContent className="p-4 h-full flex flex-col">
+                        <CardContent className="p-4 h-full flex flex-col">
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                     <Skeleton className="w-8 h-8 rounded-lg" />
@@ -114,7 +115,7 @@ function InvestigationCardsSkeleton() {
 
 export function InvestigationCards() {
     const { data: investigations, isLoading } = useQuery({
-        queryKey: ["investigations", "dashboard"],
+        queryKey: queryKeys.investigations.dashboard,
         queryFn: investigationService.get,
         staleTime: 30000, // 30 seconds
         refetchOnWindowFocus: false,
@@ -130,7 +131,7 @@ export function InvestigationCards() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <FolderOpen className="h-6 w-6 text-muted-foreground" />
+                        <Search className="h-6 w-6 text-muted-foreground" />
                         <h2 className="text-xl font-semibold">Investigations</h2>
                     </div>
                     <NewInvestigation noDropDown>
@@ -161,7 +162,7 @@ export function InvestigationCards() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FolderOpen className="h-6 w-6 text-muted-foreground" />
+                    <Search className="h-6 w-6 text-muted-foreground" />
                     <h2 className="text-xl font-semibold">Investigations</h2>
                     <span className="text-sm text-muted-foreground">
                         {investigations.length} investigations
@@ -176,7 +177,7 @@ export function InvestigationCards() {
                     </NewInvestigation>
                 </div>
             </div>
-            
+
             <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                 {investigations.slice(0, 8).map((investigation: any) => (
                     <InvestigationCard key={investigation.id} investigation={investigation} />

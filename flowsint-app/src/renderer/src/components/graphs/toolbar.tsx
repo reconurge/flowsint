@@ -10,17 +10,16 @@ import {
     Waypoints,
     MapPin,
     List,
-    SlidersHorizontal,
     GitFork,
     ArrowRightLeft,
     FunnelPlus,
     GitPullRequestArrow,
-    LassoSelect
+    LassoSelect,
+    Merge
 } from "lucide-react"
 import { memo, useCallback } from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import ForceControls from './force-controls'
 import Filters from "./filters"
 import { useGraphStore } from "@/stores/graph-store"
 
@@ -49,7 +48,7 @@ export const ToolbarButton = memo(function ToolbarButton({
                         disabled={disabled}
                         variant="outline"
                         size="icon"
-                        className={cn("h-8 w-8 relative shadow-none", toggled && "bg-muted hover:bg-muted")}
+                        className={cn("h-8 w-8 relative shadow-none", toggled && "bg-primary/30 border-primary text-primary hover:bg-primary/40 hover:text-primary")}
                     >
                         {icon}
                         {badge && <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">{badge}</span>}
@@ -72,11 +71,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const setIsLassoActive = useGraphControls((s) => s.setIsLassoActive)
     const selectedNodes = useGraphStore(s => s.selectedNodes)
     const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
+    const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
+    const filters = useGraphStore(s => s.filters)
 
     const handleRefresh = useCallback(() => {
         try {
             refetchGraph()
-            onLayout("dagre")
         } catch (error) {
             toast.error("Failed to refresh graph data");
         }
@@ -84,7 +84,8 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
 
     const handleForceLayout = useCallback(() => {
         setView("force")
-    }, [setView])
+        setTimeout(() => zoomToFit(), 500)
+    }, [setView, zoomToFit])
 
     const handleTableLayout = useCallback(() => {
         setView("table")
@@ -101,17 +102,24 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     const handleDagreLayoutTB = useCallback(() => {
         setView("hierarchy")
         onLayout && onLayout("dagre-tb")
-    }, [onLayout, setView])
+        setTimeout(() => zoomToFit(), 200)
+    }, [onLayout, setView, zoomToFit])
 
     const handleOpenAddRelationDialog = useCallback(() => {
         setOpenAddRelationDialog(true)
     }, [setOpenAddRelationDialog])
+
+    const handleOpenMergeDialog = useCallback(() => {
+        setOpenMergeDialog(true)
+    }, [setOpenMergeDialog])
 
     const handleLassoSelect = useCallback(() => {
         setIsLassoActive(!isLassoActive)
     }, [setIsLassoActive, isLassoActive])
 
     const areExactlyTwoSelected = selectedNodes.length === 2
+    const areMergeable = selectedNodes.length > 1 && selectedNodes.every((n) => n.data.type === selectedNodes[0].data.type)
+    const hasFilters = !(filters.types.every(t => t.checked) || filters.types.every(t => !t.checked))
 
     return (
         <div className="flex w-full justify-between gap-2 items-center">
@@ -123,6 +131,13 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         onClick={handleOpenAddRelationDialog}
                         disabled={!areExactlyTwoSelected}
                         badge={areExactlyTwoSelected ? 2 : null}
+                    />
+                    <ToolbarButton
+                        icon={<Merge className="h-4 w-4 opacity-70" />}
+                        tooltip="Merge"
+                        onClick={handleOpenMergeDialog}
+                        disabled={!areMergeable}
+                        badge={areMergeable ? selectedNodes.length : null}
 
                     />
                     <ToolbarButton
@@ -150,18 +165,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         toggled={isLassoActive}
                         disabled={!["force", "hierarchy"].includes(view)}
                     />
-                    <ForceControls>
-                        <ToolbarButton
-                            disabled={isLoading || !["force", "hierarchy"].includes(view)}
-                            icon={<SlidersHorizontal className={cn("h-4 w-4 opacity-70")} />}
-                            tooltip="Settings"
-                        />
-                    </ForceControls>
                     <Filters>
                         <ToolbarButton
                             disabled={isLoading}
                             icon={<FunnelPlus className={cn("h-4 w-4 opacity-70")} />}
                             tooltip="Filters"
+                            toggled={hasFilters}
                         />
                     </Filters>
                     <ToolbarButton
@@ -178,12 +187,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
                         tooltip={`Hierarchy`}
                         toggled={["hierarchy"].includes(view)}
-                        disabled={["hierarchy"].includes(view)}
                         onClick={handleDagreLayoutTB}
                     />
                     <ToolbarButton
                         icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                        disabled={["force"].includes(view)}
                         tooltip={"Graph view"}
                         toggled={["force"].includes(view)}
                         onClick={handleForceLayout}
@@ -191,21 +198,18 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                     <ToolbarButton
                         icon={<List className="h-4 w-4 opacity-70" />}
                         tooltip={"Table view"}
-                        disabled={["table"].includes(view)}
                         toggled={["table"].includes(view)}
                         onClick={handleTableLayout}
                     />
                     <ToolbarButton
                         icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
                         tooltip={"Relationships view"}
-                        disabled={["relationships"].includes(view)}
                         toggled={["relationships"].includes(view)}
                         onClick={handleRelationshipsLayout}
                     />
                     <ToolbarButton
                         icon={<MapPin className="h-4 w-4 opacity-70" />}
                         tooltip={"Map view"}
-                        disabled={["map"].includes(view)}
                         toggled={["map"].includes(view)}
                         onClick={handleMapLayout}
                     />

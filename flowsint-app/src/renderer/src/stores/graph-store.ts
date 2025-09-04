@@ -44,10 +44,12 @@ interface GraphState {
     openMainDialog: boolean
     openFormDialog: boolean
     openAddRelationDialog: boolean
+    openMergeDialog: boolean
     openNodeEditorModal: boolean
     setOpenMainDialog: (open: boolean) => void
     setOpenFormDialog: (open: boolean) => void
     setOpenAddRelationDialog: (open: boolean) => void
+    setOpenMergeDialog: (open: boolean) => void
     setOpenNodeEditorModal: (open: boolean) => void
 
     // === Action Type for Form ===
@@ -235,10 +237,12 @@ export const useGraphStore = create<GraphState>()(
             openMainDialog: false,
             openFormDialog: false,
             openAddRelationDialog: false,
+            openMergeDialog: false,
             openNodeEditorModal: false,
             setOpenMainDialog: (open) => set({ openMainDialog: open }),
             setOpenFormDialog: (open) => set({ openFormDialog: open }),
             setOpenAddRelationDialog: (open) => set({ openAddRelationDialog: open }),
+            setOpenMergeDialog: (open) => set({ openMergeDialog: open }),
             setOpenNodeEditorModal: (open) => set({ openNodeEditorModal: open }),
 
             // === Action Type for Edit form ===

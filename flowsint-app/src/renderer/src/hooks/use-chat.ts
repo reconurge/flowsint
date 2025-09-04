@@ -18,6 +18,7 @@ import type { Editor } from '@tiptap/react'
 import { useGraphStore } from '@/stores/graph-store';
 import { useChatState } from '@/stores/use-chat-store';
 import { useParams } from '@tanstack/react-router'
+import { queryKeys } from '@/api/query-keys';
 
 const markdownToHtml = (markdown: string) => {
     return marked(markdown, {
@@ -46,7 +47,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
 
     // Fetch current chat data with messages
     const { data: currentChat, isLoading: isLoadingChat } = useQuery({
-        queryKey: ['chat', currentChatId],
+        queryKey: queryKeys.chats.detail(currentChatId!),
         queryFn: () => chatCRUDService.getById(currentChatId!),
         enabled: !!currentChatId,
         refetchOnWindowFocus: false,
@@ -65,7 +66,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
         onSuccess: (data) => {
             // Add the new chat to the store
             // Invalidate chats query to refresh the list
-            queryClient.invalidateQueries({ queryKey: ['chat', currentChatId] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.chats.detail(currentChatId!) })
             setCurrentChatId(data.id)
             toast.success("New chat created successfully!")
         },
@@ -84,7 +85,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
         onSuccess: () => {
             // Remove the chat from the store
             // Invalidate chats query to refresh the list
-            queryClient.invalidateQueries({ queryKey: ['chats'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.chats.list })
             toast.success("Chat deleted successfully!")
         },
         onError: (error) => {
@@ -144,7 +145,7 @@ export const useChat = ({ onContentUpdate, onSuccess, editor }: UseChatOptions) 
             // Invalidate the current chat query to refresh messages
             if (currentChatId) {
                 onContentUpdate("")
-                queryClient.invalidateQueries({ queryKey: ['chat', currentChatId] })
+                queryClient.invalidateQueries({ queryKey: queryKeys.chats.detail(currentChatId) })
             }
         },
         onError: (error) => {

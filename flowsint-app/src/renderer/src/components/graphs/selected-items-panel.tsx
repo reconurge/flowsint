@@ -2,7 +2,6 @@ import React, { memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, Sparkles, XIcon, Rocket } from 'lucide-react';
 import { useGraphStore } from '@/stores/graph-store';
-import { useParams } from '@tanstack/react-router';
 import { useConfirm } from '@/components/use-confirm-dialog';
 import { toast } from 'sonner';
 import { sketchService } from '@/api/sketch-service';
@@ -18,6 +17,7 @@ import { useNodesDisplaySettings } from '@/stores/node-display-settings';
 import { Badge } from '../ui/badge';
 import LaunchFlow from './launch-transform';
 import { TypeBadge } from '../type-badge';
+import { useParams } from '@tanstack/react-router';
 const SelectedItemsPanel = () => {
     const selectedNodes = useGraphStore(s => s.selectedNodes)
 

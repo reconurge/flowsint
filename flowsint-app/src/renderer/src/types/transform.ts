@@ -1,11 +1,3 @@
-import type { Edge, Node } from "@xyflow/react";
-import type { NodeData, EdgeData } from "./graph";
-import type { Profile } from "./profile";
-
-// ================================
-// SCANNER TYPE DEFINITIONS
-// ================================
-
 export interface ScannerProperty {
     name: string
     type: string

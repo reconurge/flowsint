@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Ellipsis } from "lucide-react"
 import { isMac } from "@/lib/utils"
-import { useGraphGeneralSettingsStore } from "@/stores/graph-general-store"
+import { useGraphSettingsStore } from "@/stores/graph-settings-store"
 
 export const TopNavbar = memo(() => {
     const { investigationId, id, type } = useParams({ strict: false })
@@ -33,9 +33,8 @@ export const TopNavbar = memo(() => {
         const checkWindowState = async () => {
             try {
                 const windowState = await window.api.getWindowState()
-                setIsFullscreen(windowState.isFullscreen)
+                setIsFullscreen(windowState?.isFullscreen)
             } catch (error) {
-                console.error('Failed to get window state:', error)
                 setIsFullscreen(true)
             }
         }
@@ -49,9 +48,10 @@ export const TopNavbar = memo(() => {
         }
     }, [])
 
+
     return (
         <header className={`flex items-center bg-card h-12 border-b shrink-0 ${isFullscreen ? 'px-4' : 'pl-20 pr-4'} -webkit-app-region-drag`}>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 -webkit-app-region-no-drag">
                 <Link to="/dashboard" className="flex items-center gap-2">
                     <img src="/icon.png" alt="Flowsint" className="h-8 w-8" />
                     <span className="text-lg font-semibold">Flowsint</span>
@@ -65,7 +65,7 @@ export const TopNavbar = memo(() => {
                 </div>
             </div>
             <div className="grow flex items-center justify-center">
-                <Command />
+                <div className="-webkit-app-region-no-drag"><Command /></div>
             </div>
             <div className="flex items-center gap-4 -webkit-app-region-no-drag">
                 <div className="flex items-center space-x-2">
@@ -85,8 +85,8 @@ export const TopNavbar = memo(() => {
 
 
 export function InvestigationMenu() {
-    const setSettingsModalOpen = useGraphGeneralSettingsStore(s => s.setSettingsModalOpen)
-    const setKeyboardShortcutsOpen = useGraphGeneralSettingsStore(s => s.setKeyboardShortcutsOpen)
+    const setSettingsModalOpen = useGraphSettingsStore(s => s.setSettingsModalOpen)
+    const setKeyboardShortcutsOpen = useGraphSettingsStore(s => s.setKeyboardShortcutsOpen)
 
     return (
         <DropdownMenu>
@@ -99,7 +99,7 @@ export function InvestigationMenu() {
                 <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem onClick={() => setSettingsModalOpen(true)}>
-                        Preferences
+                        General
                         <DropdownMenuShortcut>⌘G</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setKeyboardShortcutsOpen(true)}>
@@ -107,25 +107,6 @@ export function InvestigationMenu() {
                         <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                    <DropdownMenuItem>Team</DropdownMenuItem>
-                    <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem>Email</DropdownMenuItem>
-                                <DropdownMenuItem>Message</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>More...</DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem>
-                        New Team
-                        <DropdownMenuShortcut>⌘T</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem><a href="https://github.com/reconurge">GitHub</a></DropdownMenuItem>
                 <DropdownMenuItem><a href="https://github.com/reconurge">Support</a></DropdownMenuItem>

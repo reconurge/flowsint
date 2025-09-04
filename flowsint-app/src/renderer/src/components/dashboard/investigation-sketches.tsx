@@ -131,7 +131,7 @@ export function InvestigationSketches({ investigationId, title }: InvestigationS
                         <BarChart3 className="h-6 w-6 text-muted-foreground" />
                         <h2 className="text-xl font-semibold">Sketches</h2>
                     </div>
-                    <NewSketch noDropDown>
+                    <NewSketch>
                         <Button size="sm">
                             <Plus className="w-4 h-4 mr-2" />
                             New Sketch
@@ -144,7 +144,7 @@ export function InvestigationSketches({ investigationId, title }: InvestigationS
                     <p className="text-muted-foreground mb-4">
                         Create your first sketch to start visualizing your investigation data.
                     </p>
-                    <NewSketch noDropDown>
+                    <NewSketch>
                         <Button>
                             <Plus className="w-4 h-4 mr-2" />
                             Create Sketch
@@ -166,7 +166,7 @@ export function InvestigationSketches({ investigationId, title }: InvestigationS
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <NewSketch noDropDown>
+                    <NewSketch>
                         <Button size="sm">
                             <Plus className="w-4 h-4 mr-2" />
                             New Sketch

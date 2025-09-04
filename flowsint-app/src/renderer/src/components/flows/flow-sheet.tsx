@@ -15,7 +15,6 @@ import { Scanner } from "@/types/transform"
 import { useQuery } from "@tanstack/react-query"
 import { Input } from "../ui/input"
 import { Alert, AlertDescription } from "../ui/alert"
-import { categoryColors } from "./scanner-data"
 import { useIcon } from "@/hooks/use-icon"
 import { flowService } from "@/api/flow-service"
 
@@ -25,6 +24,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
     const selectedNode = useFlowStore(state => state.selectedNode)
     const setNodes = useFlowStore(state => state.setNodes)
     const setEdges = useFlowStore(state => state.setEdges)
+    const colors = useNodesDisplaySettings(s => s.colors)
 
     const { data: materials, isLoading, error } = useQuery({
         queryKey: ["raw_material", selectedNode?.data.outputs.type],
@@ -63,7 +63,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
                 class_name: scanner.class_name,
                 module: scanner.module || "",
                 key: scanner.name,
-                color: categoryColors[scanner.category] || "#94a3b8",
+                color: colors[scanner.category.toLowerCase()] || "#94a3b8",
                 name: scanner.name,
                 category: scanner.category,
                 type: scanner.type,

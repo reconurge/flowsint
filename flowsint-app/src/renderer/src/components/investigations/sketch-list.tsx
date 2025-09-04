@@ -9,11 +9,12 @@ import { SkeletonList } from "../shared/skeleton-list"
 import NewSketch from "../graphs/new-sketch"
 import { SketchListItem } from "./investigation-list"
 import { useState, useMemo } from "react"
+import { queryKeys } from "@/api/query-keys"
 
 const SketchList = () => {
     const { investigationId } = useParams({ strict: false })
     const { data: investigation, isLoading, refetch, error } = useQuery({
-        queryKey: ["investigations", "sketches", investigationId],
+        queryKey: queryKeys.investigations.detail(investigationId as string),
         queryFn: () => investigationService.getById(investigationId as string),
     })
     const [searchQuery, setSearchQuery] = useState("")

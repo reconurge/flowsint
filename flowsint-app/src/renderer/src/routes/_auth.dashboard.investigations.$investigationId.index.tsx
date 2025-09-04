@@ -5,10 +5,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Plus, Calendar, User, FileText, BarChart3, Clock, ArrowRight } from 'lucide-react'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Plus, Calendar, User, FileText, BarChart3, Clock, ChevronDown } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
+import NewSketch from '@/components/graphs/new-sketch'
 
 function InvestigationSkeleton() {
     return (
@@ -80,10 +87,10 @@ function InvestigationPage() {
             // Navigate to the new analysis page
             navigate({
                 to: "/dashboard/investigations/$investigationId/$type/$id",
-                params: { 
-                    investigationId: investigation.id, 
-                    type: "analysis", 
-                    id: data.id 
+                params: {
+                    investigationId: investigation.id,
+                    type: "analysis",
+                    id: data.id
                 }
             })
         },
@@ -109,17 +116,37 @@ function InvestigationPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Button
-                                onClick={() => createAnalysisMutation.mutate()}
-                                disabled={createAnalysisMutation.isPending}
-                                className="gap-2"
-                            >
-                                <Plus className="h-4 w-4" />
-                                New Analysis
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <div>
+                                        <Button className="gap-2" disabled={createAnalysisMutation.isPending}>
+                                            New
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                        onClick={() => createAnalysisMutation.mutate()}
+                                        disabled={createAnalysisMutation.isPending}
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        New Analysis
+                                        {createAnalysisMutation.isPending && (
+                                            <span className="ml-2 text-xs text-muted-foreground">Creating...</span>
+                                        )}
+                                    </DropdownMenuItem>
+                                    <NewSketch>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <BarChart3 className="h-4 w-4 mr-2" />
+                                            New Sketch
+                                        </DropdownMenuItem>
+                                    </NewSketch>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-6 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
@@ -153,7 +180,7 @@ function InvestigationPage() {
                             </p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
@@ -166,7 +193,7 @@ function InvestigationPage() {
                             </p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Last Activity</CardTitle>
@@ -193,20 +220,8 @@ function InvestigationPage() {
                                 <h2 className="text-xl font-semibold">Sketches</h2>
                                 <Badge variant="outline" className="ml-2">{sketchCount}</Badge>
                             </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate({
-                                    to: "/dashboard/investigations/$investigationId",
-                                    params: { investigationId: investigation.id }
-                                })}
-                                className="gap-2"
-                            >
-                                View All
-                                <ArrowRight className="h-4 w-4" />
-                            </Button>
                         </div>
-                        
+
                         {sketchCount === 0 ? (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-8">
@@ -215,54 +230,33 @@ function InvestigationPage() {
                                     <p className="text-muted-foreground mb-4 text-center max-w-md">
                                         Create your first sketch to start visualizing your investigation data and building relationships between entities.
                                     </p>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => navigate({
-                                            to: "/dashboard/investigations/$investigationId",
-                                            params: { investigationId: investigation.id }
-                                        })}
-                                        className="gap-2"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Create Sketch
-                                    </Button>
+
                                 </CardContent>
                             </Card>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {investigation.sketches?.slice(0, 8).map((sketch: any) => (
-                                    <Card 
-                                        key={sketch.id} 
-                                        className="group py-2 relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/20 hover:from-blue-100 hover:to-indigo-200 dark:hover:from-blue-900/40 dark:hover:to-indigo-900/30"
+                                    <Card
+                                        key={sketch.id}
+                                        className="group py-2 relative overflow-hidden cursor-pointer border-2 border-border hover:border-primary bg-primary/10"
                                         onClick={() => navigate({
                                             to: "/dashboard/investigations/$investigationId/$type/$id",
-                                            params: { 
-                                                investigationId: investigation.id, 
+                                            params: {
+                                                investigationId: investigation.id,
                                                 type: "graph",
-                                                id: sketch.id 
+                                                id: sketch.id
                                             }
                                         })}
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                                                    <BarChart3 className="h-5 w-5 text-white" />
-                                                </div>
-                                                <Badge variant="secondary" className="text-xs font-medium bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                                                    {sketch.status || "active"}
-                                                </Badge>
-                                            </div>
-                                            
                                             <div className="space-y-3">
-                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                                                <h4 className="font-semibold line-clamp-1 group-hover:text-primary transition-colors">
                                                     {sketch.title}
                                                 </h4>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                                                     {sketch.description || "No description provided"}
                                                 </p>
                                             </div>
-                                            
                                             <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-blue-800/30">
                                                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                                                     <span className="flex items-center gap-1">
@@ -287,20 +281,8 @@ function InvestigationPage() {
                                 <h2 className="text-xl font-semibold">Analyses</h2>
                                 <Badge variant="outline" className="ml-2">{analysisCount}</Badge>
                             </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate({
-                                    to: "/dashboard/investigations/$investigationId",
-                                    params: { investigationId: investigation.id }
-                                })}
-                                className="gap-2"
-                            >
-                                View All
-                                <ArrowRight className="h-4 w-4" />
-                            </Button>
                         </div>
-                        
+
                         {analysisCount === 0 ? (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-8">
@@ -315,36 +297,26 @@ function InvestigationPage() {
                                         className="gap-2"
                                     >
                                         <Plus className="h-4 w-4" />
-                                        Create Analysis
+                                        Create analysis
                                     </Button>
                                 </CardContent>
                             </Card>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {investigation.analyses?.slice(0, 8).map((analysis: any) => (
-                                    <Card 
-                                        key={analysis.id} 
-                                        className="group py-2 relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-0 bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-950/30 dark:to-teal-950/20 hover:from-emerald-100 hover:to-teal-200 dark:hover:from-emerald-900/40 dark:hover:to-teal-900/30"
+                                    <Card
+                                        key={analysis.id}
+                                        className="group py-2 relative overflow-hidden cursor-pointer hover:shadow-xl border-2 border-border hover:border-secondary bg-secondary/10"
                                         onClick={() => navigate({
                                             to: "/dashboard/investigations/$investigationId/$type/$id",
-                                            params: { 
-                                                investigationId: investigation.id, 
+                                            params: {
+                                                investigationId: investigation.id,
                                                 type: "analysis",
-                                                id: analysis.id 
+                                                id: analysis.id
                                             }
                                         })}
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                         <CardContent className="p-6 relative">
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                                                    <FileText className="h-5 w-5 text-white" />
-                                                </div>
-                                                <Badge variant="secondary" className="text-xs font-medium bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                                                    Analysis
-                                                </Badge>
-                                            </div>
-                                            
                                             <div className="space-y-3">
                                                 <h4 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
                                                     {analysis.title}
@@ -353,7 +325,7 @@ function InvestigationPage() {
                                                     {analysis.description || "No description provided"}
                                                 </p>
                                             </div>
-                                            
+
                                             <div className="mt-4 pt-4 border-t border-emerald-200/50 dark:border-emerald-800/30">
                                                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                                                     <span className="flex items-center gap-1">

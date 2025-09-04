@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Panel } from "@xyflow/react"
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { FlowDetailsPanel } from "./flow-name-panel"
+import { FlowNamePanel } from "./flow-name-panel"
 
 interface FlowControlsProps {
     loading: boolean
@@ -30,7 +30,7 @@ export function FlowControls({
 }: FlowControlsProps) {
     return (
         <TooltipProvider>
-            <FlowDetailsPanel flow={flow} />
+            <FlowNamePanel flow={flow} />
             <Panel position="bottom-right" className="flex gap-2 mt-28 mr-2 z-40">
                 <Tooltip>
                     <TooltipTrigger asChild>

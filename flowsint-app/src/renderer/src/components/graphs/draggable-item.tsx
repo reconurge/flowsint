@@ -69,7 +69,7 @@ export const DraggableItem = memo(function DraggableItem({
                         style={{ borderLeftColor: colorStr }}
                     >
                         <div>
-                            <IconComponent showBorder size={16} type={type} />
+                            <IconComponent size={16} type={type} />
                         </div>
                         <div className="w-full p-1 text-left flex-1 min-w-0">
                             <h3 className="text-sm font-medium truncate w-full">{label}</h3>

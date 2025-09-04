@@ -7,10 +7,10 @@ import React, { useCallback, useMemo, useEffect, useState, useRef } from 'react'
 import ForceGraph2D from 'react-force-graph-2d';
 import { Button } from '../ui/button';
 import { useTheme } from '@/components/theme-provider'
-import { GRAPH_COLORS } from '../flows/scanner-data';
 import { Share2, Type } from 'lucide-react';
 import Lasso from './lasso';
 import { GraphNode, GraphEdge } from '@/types';
+import MiniMap from './minimap';
 
 function truncateText(text: string, limit: number = 16) {
     if (text.length <= limit)
@@ -35,7 +35,39 @@ interface GraphViewerProps {
     onGraphRef?: (ref: any) => void;
     instanceId?: string; // Add instanceId prop for instance-specific actions
     allowLasso?: boolean
+    minimap?: boolean
 }
+
+// Graph viewer specific colors
+export const GRAPH_COLORS = {
+    // Link colors
+    LINK_DEFAULT: 'rgba(128, 128, 128, 0.6)',
+    LINK_HIGHLIGHTED: 'rgba(255, 115, 0, 0.68)',
+    LINK_DIMMED: 'rgba(133, 133, 133, 0.23)',
+    LINK_LABEL_HIGHLIGHTED: 'rgba(255, 115, 0, 0.9)',
+    LINK_LABEL_DEFAULT: 'rgba(180, 180, 180, 0.75)',
+
+    // Node highlight colors
+    NODE_HIGHLIGHT_HOVER: 'rgba(255, 0, 0, 0.3)',
+    NODE_HIGHLIGHT_DEFAULT: 'rgba(255, 165, 0, 0.3)',
+
+    LASSO_FILL: 'rgba(255, 115, 0, 0.07)',
+    LASSO_STROKE: 'rgba(255, 115, 0, 0.56)',
+
+    // Text colors
+    TEXT_LIGHT: '#161616',
+    TEXT_DARK: '#FFFFFF',
+
+    // Background colors
+    BACKGROUND_LIGHT: "#FFFFFF",
+    BACKGROUND_DARK: '#161616',
+
+    // Transparent colors
+    TRANSPARENT: "#00000000",
+
+    // Default node color
+    NODE_DEFAULT: '#0074D9',
+} as const
 
 const CONSTANTS = {
     NODE_COUNT_THRESHOLD: 500,
@@ -116,9 +148,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     style,
     onGraphRef,
     instanceId,
-    allowLasso = false
+    allowLasso = false,
+    minimap = false
 }) => {
-    const [currentZoom, setCurrentZoom] = useState(1);
+    const [currentZoom, setCurrentZoom] = useState({
+        k: 1,
+        x: 1,
+        y: 1
+    });
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const isLassoActive = useGraphControls(s => s.isLassoActive)
     // Hover highlighting state
@@ -136,8 +173,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     // Store selectors
     const nodeColors = useNodesDisplaySettings(s => s.colors);
     const getSize = useNodesDisplaySettings(s => s.getSize);
-    const settings = useGraphSettingsStore(s => s.settings);
     const view = useGraphControls(s => s.view);
+
+    // Get settings by categories to avoid re-renders
+    const forceSettings = useGraphSettingsStore(s => s.forceSettings);
     const setActions = useGraphControls(s => s.setActions);
     const currentNode = useGraphStore(s => s.currentNode)
     const selectedNodes = useGraphStore(s => s.selectedNodes)
@@ -276,7 +315,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Memoized rendering check
     const shouldUseSimpleRendering = useMemo(() =>
-        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5
+        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom.k < 1.5
         , [nodes.length, currentZoom]);
 
     // Memoized graph data transformation with proper memoization dependencies
@@ -382,7 +421,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (!showLabels) return new Set<string>();
 
         // Find the appropriate layer for current zoom
-        const currentLayer = CONSTANTS.LABEL_LAYERS.find(layer => currentZoom >= layer.minZoom);
+        const currentLayer = CONSTANTS.LABEL_LAYERS.find(layer => currentZoom.k >= layer.minZoom);
         if (!currentLayer) return new Set<string>();
 
         // Sort nodes by weight (number of connections) in descending order
@@ -556,7 +595,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Optimized node rendering with proper icon caching
     const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-        const size = Math.min((node.nodeSize + node.neighbors.length / 5), 20) * (settings.nodeSize.value / 100 + .4);
+        const size = Math.min((node.nodeSize + node.neighbors.length / 5), 20) * (forceSettings.nodeSize.value / 100 + .4);
         node.val = size / 5
         const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id);
         const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0;
@@ -622,7 +661,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 ctx.fillText(label, node.x, bgY + bgHeight / 2);
             }
         }
-    }, [shouldUseSimpleRendering, showLabels, showIcons, isCurrent, isSelected, settings.nodeSize.value, theme, highlightNodes, highlightLinks, hoverNode, getVisibleLabels]);
+    }, [shouldUseSimpleRendering, forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode, getVisibleLabels]);
 
     const renderLink = useCallback((link: any, ctx: CanvasRenderingContext2D) => {
         const { source: start, target: end } = link;
@@ -633,18 +672,19 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         let strokeStyle: string;
         let lineWidth: number;
         let fillStyle: string;
+
         if (isHighlighted) {
             strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED;
             fillStyle = GRAPH_COLORS.LINK_HIGHLIGHTED;
-            lineWidth = CONSTANTS.LINK_WIDTH * (settings.linkWidth.value / 3);
+            lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 3);
         } else if (hasAnyHighlight) {
             strokeStyle = GRAPH_COLORS.LINK_DIMMED;
             fillStyle = GRAPH_COLORS.LINK_DIMMED;
-            lineWidth = CONSTANTS.LINK_WIDTH * (settings.linkWidth.value / 5);
+            lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 5);
         } else {
             strokeStyle = GRAPH_COLORS.LINK_DEFAULT;
             fillStyle = GRAPH_COLORS.LINK_DEFAULT;
-            lineWidth = CONSTANTS.LINK_WIDTH * (settings.linkWidth.value / 5);
+            lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 5);
         }
         // Draw connection line
         ctx.beginPath();
@@ -654,9 +694,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.lineWidth = lineWidth;
         ctx.stroke();
         // Draw directional arrow
-        const arrowLength = settings.linkDirectionalArrowLength?.value;
+        const arrowLength = forceSettings.linkDirectionalArrowLength.value;
         if (arrowLength && arrowLength > 0) {
-            const arrowRelPos = settings.linkDirectionalArrowRelPos?.value || 1;
+            const arrowRelPos = forceSettings.linkDirectionalArrowRelPos.value || 1;
             // Calculate arrow position along the link
             let arrowX = start.x + (end.x - start.x) * arrowRelPos;
             let arrowY = start.y + (end.y - start.y) * arrowRelPos;
@@ -667,7 +707,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance > 0) {
                     // Calculate target node size (same as in renderNode function)
-                    const targetNodeSize = (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) * (settings.nodeSize.value / 100 + 0.4);
+                    const targetNodeSize = (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) * (forceSettings.nodeSize.value / 100 + 0.4);
                     // Calculate offset to place arrow at node edge
                     const offset = targetNodeSize / distance;
                     arrowX = end.x - dx * offset;
@@ -727,21 +767,28 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             ctx.fillText(link.label, 0, 0);
             ctx.restore();
         }
-    }, [shouldUseSimpleRendering, settings.linkWidth.value, settings.linkDirectionalArrowLength?.value, settings.linkDirectionalArrowRelPos?.value, settings.nodeSize.value, theme, highlightLinks, highlightNodes]);
+    }, [shouldUseSimpleRendering, forceSettings, theme, highlightLinks, highlightNodes]);
 
     // Restart simulation when settings change (debounced)
     useEffect(() => {
         let settingsTimeout: number | undefined;
-        if (graphRef.current && isGraphReadyRef.current) {
-            if (settingsTimeout) clearTimeout(settingsTimeout);
-            settingsTimeout = setTimeout(() => {
-                graphRef.current?.d3ReheatSimulation();
-            }, 100) as any; // Debounce settings changes
-        }
+
+        const restartSimulation = () => {
+            if (graphRef.current && isGraphReadyRef.current) {
+                if (settingsTimeout) clearTimeout(settingsTimeout);
+                settingsTimeout = setTimeout(() => {
+                    graphRef.current?.d3ReheatSimulation();
+                }, 100) as any; // Debounce settings changes
+            }
+        };
+
+        // Restart simulation when force settings change
+        restartSimulation();
+
         return () => {
             if (settingsTimeout) clearTimeout(settingsTimeout);
         };
-    }, [settings]);
+    }, [forceSettings]);
 
     // Clear highlights when graph data changes
     useEffect(() => {
@@ -851,15 +898,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                     node.fx = node.x;
                     node.fy = node.y;
                 })}
-                cooldownTicks={view === "hierarchy" ? 0 : settings.cooldownTicks?.value}
-                cooldownTime={settings.cooldownTime?.value}
-                d3AlphaDecay={settings.d3AlphaDecay?.value}
-                d3AlphaMin={settings.d3AlphaMin?.value}
-                d3VelocityDecay={settings.d3VelocityDecay?.value}
-                warmupTicks={settings.warmupTicks?.value}
-                dagLevelDistance={settings.dagLevelDistance?.value}
+                cooldownTicks={view === "hierarchy" ? 0 : forceSettings.cooldownTicks.value}
+                cooldownTime={forceSettings.cooldownTime.value}
+                d3AlphaDecay={forceSettings.d3AlphaDecay.value}
+                d3AlphaMin={forceSettings.d3AlphaMin.value}
+                d3VelocityDecay={forceSettings.d3VelocityDecay.value}
+                warmupTicks={forceSettings.warmupTicks.value}
+                dagLevelDistance={forceSettings.dagLevelDistance.value}
                 backgroundColor={backgroundColor}
-                onZoom={(zoom) => setCurrentZoom(zoom.k)}
+                onZoom={(zoom) => setCurrentZoom(zoom)}
+                onZoomEnd={(zoom) => setCurrentZoom(zoom)}
                 linkCanvasObject={renderLink}
                 enableNodeDrag={!shouldUseSimpleRendering}
                 autoPauseRedraw={true}
@@ -868,6 +916,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             />
             {allowLasso && isLassoActive && <Lasso nodes={graphData.nodes} graph2ScreenCoords={graph2ScreenCoords} partial={true} width={containerSize.width}
                 height={containerSize.height} />}
+            {minimap && graphData.nodes &&
+                <MiniMap zoomTransform={currentZoom}
+                    canvasWidth={containerSize.width}
+                    canvasHeight={containerSize.height}
+                    nodes={graphData.nodes as GraphNode[]} />}
         </div >
     );
 };

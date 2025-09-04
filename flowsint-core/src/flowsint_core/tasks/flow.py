@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from celery import states
 from ..core.celery import celery
-from ..core.orchestrator import TransformOrchestrator
+from ..core.orchestrator import FlowOrchestrator
 from ..core.postgre_db import SessionLocal, get_db
 from ..core.graph_db import Neo4jConnection
 from ..core.vault import Vault
@@ -62,7 +62,7 @@ def run_flow(
                 )
 
         transform_branches = [FlowBranch(**branch) for branch in transform_branches]
-        scanner = TransformOrchestrator(
+        scanner = FlowOrchestrator(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             transform_branches=transform_branches,

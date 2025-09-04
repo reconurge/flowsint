@@ -1,4 +1,4 @@
-import { createFileRoute, useLoaderData } from '@tanstack/react-router'
+import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router'
 import GraphPanel from '@/components/graphs'
 import { sketchService } from '@/api/sketch-service'
 import { useQuery } from '@tanstack/react-query'
@@ -124,14 +124,14 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
                         </svg>
                         Reload Page
                     </button>
-
-                    <button
-                        onClick={() => window.history.back()}
-                        className="w-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground
-                                 px-4 py-2 rounded-md font-medium transition-colors"
+                    <Link
+                        to="/dashboard"
                     >
-                        Go Back
-                    </button>
+                        <button className="w-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground px-4 py-2 rounded-md font-medium transition-colors"
+                        >
+                            Go home
+                        </button>
+                    </Link>
                 </div>
 
                 <div className="mt-6 pt-4 border-t">

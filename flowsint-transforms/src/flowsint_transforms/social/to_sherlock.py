@@ -16,11 +16,11 @@ class SherlockScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "username_to_socials"
+        return "username_to_socials_sherlock"
 
     @classmethod
     def category(cls) -> str:
-        return "social_account"
+        return "social"
 
     @classmethod
     def key(cls) -> str:

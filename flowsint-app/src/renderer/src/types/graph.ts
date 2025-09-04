@@ -50,6 +50,17 @@ export type GeneralSetting = {
   description?: string,
 }
 
+// Extended setting types for the centralized store
+export type ExtendedSetting = {
+  value: any,
+  type: string,
+  min?: number,
+  max?: number,
+  step?: number,
+  options?: { value: string; label: string }[]
+  description?: string,
+}
+
 export type Settings = {
-  [key: string]: ForceGraphSetting | GeneralSetting,
+  [key: string]: ExtendedSetting,
 }

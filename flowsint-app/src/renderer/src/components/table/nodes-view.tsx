@@ -1,10 +1,9 @@
 import { useGraphStore } from "@/stores/graph-store";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, Users, Link, Filter } from "lucide-react";
+import { Search, Users, Link, Filter, Calendar } from "lucide-react";
 import { useIcon } from "@/hooks/use-icon";
 import {
     Select,
@@ -13,9 +12,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CopyButton } from "../copy";
 import { GraphNode } from '@/types';
-
+import { formatDistanceToNow } from "date-fns";
 
 export type RelationshipType = {
     source: GraphNode
@@ -23,45 +23,92 @@ export type RelationshipType = {
     edge: { label: string }
 }
 
-const ITEM_HEIGHT = 67; // Balanced spacing between items (55px card + 12px padding)
+const ITEM_HEIGHT = 56; // Row height used by virtualizer
 
 // Separate component for node item to avoid hook order issues
 interface NodeItemProps {
     node: GraphNode;
-    style: React.CSSProperties;
-    onNodeClick: (node: GraphNode) => void
+    onNodeClick: (node: GraphNode) => void;
+    isSelected: boolean;
+    onSelectionChange: (node: GraphNode, checked: boolean) => void;
 }
 
-function NodeItem({ node, style, onNodeClick }: NodeItemProps) {
+const NodeItem = memo(function NodeItem({ node, onNodeClick, isSelected, onSelectionChange }: NodeItemProps) {
     const SourceIcon = useIcon(node.data?.type, node.data?.src);
 
-    const handleNodeClik = useCallback(() => {
+    const handleNodeClick = useCallback(() => {
         onNodeClick(node)
+    }, [onNodeClick, node])
+
+    const handleCheckboxChange = useCallback((checked: boolean) => {
+        onSelectionChange(node, checked)
+    }, [onSelectionChange, node])
+
+    const formatCreatedAt = useCallback((dateString: string) => {
+        try {
+            return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+        } catch {
+            return 'Unknown'
+        }
     }, [])
 
-
     return (
-        <div style={style} className="px-4 pb-2">
-            <Card className="h-[55px] hover:shadow-md transition-shadow duration-200 p-0">
-                <CardContent className="p-3 h-[55px] flex items-center gap-2 min-w-0">
-                    {/* Source Node */}
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
-                            <SourceIcon className="h-4 w-4" />
-                        </div>
-                        <button onClick={handleNodeClik} className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-left max-w-full">
-                            <span className="block truncate">
-                                {node.data?.label ?? node.id}
-                            </span>
-                        </button>
-                        <CopyButton content={node.data?.label ?? node.id} />
+        <div className="px-4">
+            <div className="grid items-center h-[56px] gap-3 text-sm border-b last:border-b-0"
+                 style={{
+                    gridTemplateColumns: "24px 32px 1fr 140px 160px 32px"
+                 }}
+            >
+                {/* Checkbox */}
+                <div className="flex items-center">
+                    <Checkbox 
+                        checked={isSelected} 
+                        onCheckedChange={handleCheckboxChange}
+                    />
+                </div>
+
+                {/* Icon */}
+                <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center w-6 h-6 rounded bg-muted">
+                        <SourceIcon className="h-4 w-4" />
                     </div>
-                    <div><Badge variant={"outline"}>{node.data.type}</Badge></div>
-                </CardContent>
-            </Card>
+                </div>
+
+                {/* Label */}
+                <div className="min-w-0 flex justify-start grow">
+                    <button 
+                        onClick={handleNodeClick} 
+                        className="font-medium hover:text-primary hover:underline cursor-pointer p-0"
+                    >
+                        <span className="block truncate">
+                            {node.data?.label ?? node.id}
+                        </span>
+                    </button>
+                </div>
+
+                {/* Type */}
+                <div>
+                    <Badge variant="outline" className="text-xs">
+                        {node.data?.type || 'Unknown'}
+                    </Badge>
+                </div>
+
+                {/* Created At */}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
+                    <Calendar className="h-3 w-3" />
+                    <span className="truncate">
+                        {node.data?.created_at ? formatCreatedAt(node.data.created_at) : 'Unknown'}
+                    </span>
+                </div>
+
+                {/* Copy Button */}
+                <div className="flex justify-end">
+                    <CopyButton content={node.data?.label ?? node.id} />
+                </div>
+            </div>
         </div>
     );
-}
+})
 
 type NodesTableProps = {
     nodes: GraphNode[]
@@ -71,39 +118,60 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     const [selectedType, setSelectedType] = useState<string>("all");
     const parentRef = useRef<HTMLDivElement>(null);
     const setCurrentNode = useGraphStore(s => s.setCurrentNode)
-    // const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
+    const selectedNodes = useGraphStore(s => s.selectedNodes)
+    const setSelectedNodes = useGraphStore(s => s.setSelectedNodes)
+    const toggleNodeSelection = useGraphStore(s => s.toggleNodeSelection)
 
     const onNodeClick = useCallback((node: GraphNode) => {
         setCurrentNode(node)
-        // setOpenNodeEditorModal(true)
-    }, [setCurrentNode,
-        // setOpenNodeEditorModal
-    ])
-
+    }, [setCurrentNode])
 
     // Filter nodes based on search and type
     const filteredNodes = useMemo(() => {
         if (!nodes) return [];
 
         return nodes.filter((node: GraphNode) => {
-            const matchesSearch = searchQuery === "" ||
-                node.data?.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                node.data?.label?.toLowerCase().includes(searchQuery.toLowerCase())
+            const lower = searchQuery.toLowerCase();
+            const label = node.data?.label?.toLowerCase() ?? "";
+            const type = node.data?.type?.toLowerCase() ?? "";
+            const matchesSearch = lower === "" || label.includes(lower) || type.includes(lower);
 
-            const matchesType = selectedType === "all" ||
-                node.data?.type === selectedType ||
-                node.data?.type === selectedType;
+            const matchesType = selectedType === "all" || node.data?.type === selectedType;
 
             return matchesSearch && matchesType;
         });
     }, [nodes, searchQuery, selectedType]);
+
+    const handleSelectAll = useCallback((checked: boolean) => {
+        if (checked) {
+            setSelectedNodes(filteredNodes)
+        } else {
+            setSelectedNodes([])
+        }
+    }, [setSelectedNodes, filteredNodes])
+
+    const handleNodeSelectionChange = useCallback((node: GraphNode, checked: boolean) => {
+        toggleNodeSelection(node, checked)
+    }, [toggleNodeSelection])
+
+    const isNodeSelected = useCallback((nodeId: string) => {
+        return selectedNodes.some(node => node.id === nodeId)
+    }, [selectedNodes])
+
+    const isAllSelected = useMemo(() => {
+        return filteredNodes.length > 0 && filteredNodes.every(node => isNodeSelected(node.id))
+    }, [filteredNodes, isNodeSelected])
+
+    const isIndeterminate = useMemo(() => {
+        const selectedCount = filteredNodes.filter(node => isNodeSelected(node.id)).length
+        return selectedCount > 0 && selectedCount < filteredNodes.length
+    }, [filteredNodes, isNodeSelected])
 
     // Get unique node types for filter
     const nodeTypes = useMemo(() => {
         if (!nodes) return [];
         const types = new Set<string>();
         nodes.forEach((node: GraphNode) => {
-            if (node.data?.type) types.add(node.data.type);
             if (node.data?.type) types.add(node.data.type);
         });
         return Array.from(types).sort();
@@ -131,7 +199,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     }
 
     return (
-        <div className="w-full grow flex flex-col pt-18 space-y-4 p-4 px-6">
+        <div className="w-full grow flex flex-col pt-18 p-4 px-6">
             {/* Header with stats */}
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -147,7 +215,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
             </div>
 
             {/* Search and Filter */}
-            <div className="flex gap-4">
+            <div className="flex gap-4 my-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -172,11 +240,32 @@ export default function NodesTable({ nodes }: NodesTableProps) {
                     </SelectContent>
                 </Select>
             </div>
+            {/* Table Header */}
+            <div className="grid items-center h-[44px] px-4 bg-muted/50 p-2 rounded-t-lg border text-sm font-medium text-muted-foreground"
+                 style={{ gridTemplateColumns: "24px 32px 1fr 140px 160px 32px" }}
+            >
+                <div className="flex items-center">
+                    <Checkbox 
+                        checked={isAllSelected}
+                        ref={(el) => {
+                            if (el && 'indeterminate' in el) {
+                                (el as HTMLInputElement).indeterminate = isIndeterminate
+                            }
+                        }}
+                        onCheckedChange={handleSelectAll}
+                    />
+                </div>
+                <div></div> {/* Icon */}
+                <div className="text-center">Label</div>
+                <div>Type</div>
+                <div>Created</div>
+                <div></div> {/* Actions */}
+            </div>
 
             {/* Virtualized List */}
             <div
                 ref={parentRef}
-                className="grow overflow-auto py-4 rounded-lg border"
+                className="grow overflow-auto rounded-b-lg border border-t-0"
             >
                 <div
                     style={{
@@ -184,16 +273,14 @@ export default function NodesTable({ nodes }: NodesTableProps) {
                         width: '100%',
                         position: 'relative',
                     }}
-                    className="space-y-2"
+                    className=""
                 >
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                         const node = filteredNodes[virtualRow.index];
 
                         return (
-                            <NodeItem
-                                key={virtualRow.index}
-                                node={node}
-                                onNodeClick={onNodeClick}
+                            <div
+                                key={node.id}
                                 style={{
                                     position: 'absolute',
                                     top: 0,
@@ -202,7 +289,15 @@ export default function NodesTable({ nodes }: NodesTableProps) {
                                     height: `${virtualRow.size}px`,
                                     transform: `translateY(${virtualRow.start}px)`,
                                 }}
-                            />
+                                className="hover:bg-muted/40"
+                            >
+                                <NodeItem
+                                    node={node}
+                                    onNodeClick={onNodeClick}
+                                    isSelected={isNodeSelected(node.id)}
+                                    onSelectionChange={handleNodeSelectionChange}
+                                />
+                            </div>
                         );
                     })}
                 </div>

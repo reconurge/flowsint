@@ -22,6 +22,8 @@ import { EventLevel } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "../ui/button"
 import { useEvents } from "@/hooks/use-events"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/api/query-keys"
 
 const logLevelConfig = {
     [EventLevel.INFO]: {
@@ -103,7 +105,24 @@ export const LogPanel = memo(() => {
     const bottomRef = useRef<HTMLDivElement | null>(null)
     const scrollAreaRef = useRef<HTMLDivElement>(null)
     const { logs, refetch } = useEvents(sketch_id as string)
+    const queryClient = useQueryClient()
 
+    // Delete logs mutation
+    const deleteLogsMutation = useMutation({
+        mutationFn: logService.delete,
+        onSuccess: () => {
+            // Invalidate logs for this sketch
+            if (sketch_id) {
+                queryClient.invalidateQueries({ 
+                    queryKey: queryKeys.logs.bySketch(sketch_id)
+                })
+            }
+            refetch()
+        },
+        onError: (error) => {
+            console.error("Error deleting logs:", error)
+        }
+    })
 
     useEffect(() => {
         if (bottomRef.current) {
@@ -120,8 +139,7 @@ export const LogPanel = memo(() => {
             }))
         )
             return
-        await logService.delete(sketch_id)
-        refetch()
+        await deleteLogsMutation.mutateAsync(sketch_id)
     }
 
     const formatTime = (date: string) => {

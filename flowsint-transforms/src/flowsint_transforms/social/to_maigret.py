@@ -19,7 +19,7 @@ class MaigretScanner(Scanner):
 
     @classmethod
     def name(cls) -> str:
-        return "username_to_socials"
+        return "username_to_socials_maigret"
 
     @classmethod
     def category(cls) -> str:
@@ -159,7 +159,9 @@ class MaigretScanner(Scanner):
             )
 
             # Create username node
-            self.create_node("username", "username", profile.username, username=profile.username)
+            self.create_node(
+                "username", "username", profile.username, username=profile.username
+            )
 
             # Create relationship
             self.create_relationship(

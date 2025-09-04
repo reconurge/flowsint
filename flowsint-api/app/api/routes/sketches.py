@@ -17,6 +17,45 @@ from app.api.deps import get_current_user
 router = APIRouter()
 
 
+class NodeData(BaseModel):
+    label: str = Field(default="Node", description="Label/name of the node")
+    color: str = Field(default="Node", description="Color of the node")
+    type: str = Field(default="Node", description="Type of the node")
+    # Add any other specific data fields that might be common across nodes
+
+    class Config:
+        extra = "allow"  # Accept any additional fields
+
+
+class NodeInput(BaseModel):
+    type: str = Field(..., description="Type of the node")
+    data: NodeData = Field(
+        default_factory=NodeData, description="Additional data for the node"
+    )
+
+
+def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
+    return ", ".join(f"{key}: ${prefix}{key}" for key in props)
+
+
+class NodeDeleteInput(BaseModel):
+    nodeIds: List[str]
+
+
+class NodeEditInput(BaseModel):
+    nodeId: str
+    data: NodeData = Field(
+        default_factory=NodeData, description="Updated data for the node"
+    )
+
+
+class NodeMergeInput(BaseModel):
+    id: str
+    data: NodeData = Field(
+        default_factory=NodeData, description="Updated data for the node"
+    )
+
+
 @router.post("/create", response_model=SketchRead, status_code=status.HTTP_201_CREATED)
 def create_sketch(
     data: SketchCreate,
@@ -54,14 +93,19 @@ def get_sketch_by_id(
 @router.put("/{id}", response_model=SketchRead)
 def update_sketch(
     id: UUID,
-    data: SketchUpdate,
+    payload: SketchUpdate,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    sketch = db.query(Sketch).filter(Sketch.owner_id == current_user.id).get(id)
+    sketch = (
+        db.query(Sketch)
+        .filter(Sketch.owner_id == current_user.id)
+        .filter(Sketch.id == id)
+        .first()
+    )
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
-    for key, value in data.dict(exclude_unset=True).items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(sketch, key, value)
     db.commit()
     db.refresh(sketch)
@@ -177,27 +221,6 @@ async def get_sketch_nodes(
     return {"nds": nodes, "rls": rels}
 
 
-class NodeData(BaseModel):
-    label: str = Field(default="Node", description="Label/name of the node")
-    color: str = Field(default="Node", description="Color of the node")
-    type: str = Field(default="Node", description="Type of the node")
-    # Add any other specific data fields that might be common across nodes
-
-    class Config:
-        extra = "allow"  # Accept any additional fields
-
-
-class NodeInput(BaseModel):
-    type: str = Field(..., description="Type of the node")
-    data: NodeData = Field(
-        default_factory=NodeData, description="Additional data for the node"
-    )
-
-
-def dict_to_cypher_props(props: dict, prefix: str = "") -> str:
-    return ", ".join(f"{key}: ${prefix}{key}" for key in props)
-
-
 @router.post("/{sketch_id}/nodes/add")
 def add_node(
     sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)
@@ -254,8 +277,8 @@ def add_node(
 
 
 class RelationInput(BaseModel):
-    source: Any
-    target: Any
+    source: str
+    target: str
     type: Literal["one-way", "two-way"]
     label: str = "RELATED_TO"  # Optionnel : nom de la relation
 
@@ -275,8 +298,8 @@ def add_edge(
     """
 
     params = {
-        "from_id": relation.source["id"],
-        "to_id": relation.target["id"],
+        "from_id": relation.source,
+        "to_id": relation.target,
         "sketch_id": sketch_id,
     }
 
@@ -293,17 +316,6 @@ def add_edge(
         "status": "edge added",
         "edge": result[0]["r"],
     }
-
-
-class NodeDeleteInput(BaseModel):
-    nodeIds: List[str]
-
-
-class NodeEditInput(BaseModel):
-    nodeId: str
-    data: NodeData = Field(
-        default_factory=NodeData, description="Updated data for the node"
-    )
 
 
 @router.put("/{sketch_id}/nodes/edit")
@@ -392,6 +404,112 @@ def delete_nodes(
         raise HTTPException(status_code=500, detail="Failed to delete nodes")
 
     return {"status": "nodes deleted", "count": len(nodes.nodeIds)}
+
+
+@router.post("/{sketch_id}/nodes/merge")
+def merge_nodes(
+    sketch_id: str,
+    oldNodes: List[str],
+    newNode: NodeMergeInput,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    # 1. Vérifier le sketch
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+
+    oldNodeIds = [id for id in oldNodes]
+
+    # 2. Préparer le node unique (utiliser nodeId)
+    node_id = getattr(newNode, "id", None)
+    if not node_id:
+        raise HTTPException(status_code=400, detail="newNode.id is required")
+
+    properties = {}
+    if newNode.data:
+        flattened_data = flatten(newNode.data.dict())
+        properties.update(flattened_data)
+
+    cypher_props = dict_to_cypher_props(properties)
+    node_type = getattr(newNode, "type", "Node")
+
+    # 3. Créer ou merger le nouveau node
+    create_query = f"""
+    MERGE (new:`{node_type}` {{nodeId: $nodeId}})
+    SET new += $nodeData
+    RETURN elementId(new) as newElementId
+    """
+    try:
+        result = neo4j_connection.query(
+            create_query, {"nodeId": node_id, "nodeData": cypher_props}
+        )
+        new_node_element_id = result[0]["newElementId"]
+    except Exception as e:
+        print(f"Error creating/merging new node: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create new node")
+
+    # 4. Récupérer tous les types de relations des oldNodes
+    rel_types_query = """
+    MATCH (old)
+    WHERE elementId(old) IN $oldNodeIds AND old.sketch_id = $sketch_id
+    MATCH (old)-[r]-()
+    RETURN DISTINCT type(r) AS relType
+    """
+    try:
+        rel_types_result = neo4j_connection.query(
+            rel_types_query, {"oldNodeIds": oldNodeIds, "sketch_id": sketch_id}
+        )
+        rel_types = [row["relType"] for row in rel_types_result] or []
+    except Exception as e:
+        print(f"Error fetching relation types: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch relation types")
+
+    # 5. Construire la query pour copier les relations
+    blocks = []
+    for rel_type in rel_types:
+        block = f"""
+        // Relations entrantes
+        MATCH (new) WHERE elementId(new) = $newElementId
+        MATCH (old) WHERE elementId(old) IN $oldNodeIds
+        OPTIONAL MATCH (src)-[r:`{rel_type}`]->(old)
+        WITH src, new, r WHERE src IS NOT NULL
+        MERGE (src)-[newRel:`{rel_type}`]->(new)
+        ON CREATE SET newRel = r
+        ON MATCH SET newRel += r
+        WITH DISTINCT new
+
+        // Relations sortantes
+        MATCH (new) WHERE elementId(new) = $newElementId
+        MATCH (old) WHERE elementId(old) IN $oldNodeIds
+        OPTIONAL MATCH (old)-[r:`{rel_type}`]->(dst)
+        WITH dst, new, r WHERE dst IS NOT NULL
+        MERGE (new)-[newRel2:`{rel_type}`]->(dst)
+        ON CREATE SET newRel2 = r
+        ON MATCH SET newRel2 += r
+        WITH DISTINCT new
+        """
+        blocks.append(block)
+
+    # 6. Supprimer les anciens nodes
+    delete_query = """
+    MATCH (old)
+    WHERE elementId(old) IN $oldNodeIds
+    DETACH DELETE old
+    """
+
+    full_query = "\n".join(blocks) + delete_query
+
+    # 7. Exécuter la query
+    try:
+        neo4j_connection.query(
+            full_query, {"newElementId": new_node_element_id, "oldNodeIds": oldNodeIds}
+        )
+    except Exception as e:
+        print(f"Node merging error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to merge node relations")
+
+    return {"status": "nodes merged", "count": len(oldNodeIds)}
 
 
 @router.get("/{sketch_id}/nodes/{node_id}")

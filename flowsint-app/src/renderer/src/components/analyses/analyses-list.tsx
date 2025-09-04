@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
+import { queryKeys } from "@/api/query-keys"
 
 const AnalysisItem = ({ analysis, active }: { analysis: Analysis, active: boolean }) => {
     return (
@@ -44,8 +45,8 @@ const AnalysisList = () => {
     const navigate = useNavigate()
     
     // Fetch all analyses for this investigation
-    const { data: analyses, error, isLoading } = useQuery<Analysis[]>({
-        queryKey: ["analyses", investigationId],
+    const { data: analyses, isLoading, error } = useQuery({
+        queryKey: queryKeys.analyses.byInvestigation(investigationId || ""),
         queryFn: () => analysisService.getByInvestigationId(investigationId || ""),
         enabled: !!investigationId,
     })
@@ -62,7 +63,7 @@ const AnalysisList = () => {
         )
     }, [analyses, searchQuery])
 
-    const createAnalysisMutation = useMutation({
+    const createMutation = useMutation({
         mutationFn: async () => {
             const newAnalysis: Partial<Analysis> = {
                 title: "Untitled Analysis",
@@ -72,8 +73,8 @@ const AnalysisList = () => {
             return analysisService.create(JSON.stringify(newAnalysis))
         },
         onSuccess: async (data) => {
-            queryClient.invalidateQueries({ queryKey: ["analyses", investigationId] })
-            toast.success("New analysis created")
+            queryClient.invalidateQueries({ queryKey: queryKeys.analyses.byInvestigation(investigationId || "") })
+            toast.success("Analysis created successfully")
             investigationId && navigate({ to: "/dashboard/investigations/$investigationId/$type/$id", params: { investigationId, type: "analysis", id: data.id } })
         },
         onError: (error) => {
@@ -89,8 +90,8 @@ const AnalysisList = () => {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={() => createAnalysisMutation.mutate()}
-                    disabled={createAnalysisMutation.isPending}
+                    onClick={() => createMutation.mutate()}
+                    disabled={createMutation.isPending}
                     title="Create new analysis"
                 >
                     <PlusIcon className="h-4 w-4" />
@@ -136,8 +137,8 @@ const AnalysisList = () => {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => createAnalysisMutation.mutate()}
-                            disabled={createAnalysisMutation.isPending}
+                            onClick={() => createMutation.mutate()}
+                            disabled={createMutation.isPending}
                         >
                             <PlusIcon className="w-4 h-4 mr-2" />
                             Create your first analysis

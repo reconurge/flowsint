@@ -1,195 +1,319 @@
-import { type Settings } from '@/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Centralized default settings organized by categories
 const DEFAULT_SETTINGS = {
-    nodeSize: {
-        value: 14,
-        min: 1,
-        max: 100,
-        step: .1,
-        description: "Defined the width of the link between two nodes."
+    information: {
+
     },
-    linkWidth: {
-        value: 2,
-        min: 1,
-        max: 10,
-        step: .1,
-        description: "Defined the width of the link between two nodes."
-    },
-    dagLevelDistance: {
-        value: 50,
-        min: 0,
-        max: 100,
-        step: 1,
-        description: "Distance between different graph depths when using DAG (directed acyclic graph) layout mode"
-    },
-    linkDirectionalArrowRelPos: {
-        value: 1,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        description: "Position of directional arrows along the link line (0 = source node, 1 = target node, 0.5 = middle)"
-    },
-    linkDirectionalArrowLength: {
-        value: 3,
-        min: 1,
-        max: 100,
-        step: 0.1,
-        description: "Length of the arrow heads that indicate link direction"
-    },
-    linkDirectionalParticleSpeed: {
-        value: 0.005,
-        min: 0,
-        max: 0.05,
-        step: 0.001,
-        description: "Speed of moving particles along links (higher = faster movement)"
-    },
-    cooldownTicks: {
-        value: 200,
-        min: 50,
-        max: 1000,
-        step: 10,
-        description: "Number of simulation frames to render before stopping and freezing the layout"
-    },
-    cooldownTime: {
-        value: 15000,
-        min: 1000,
-        max: 60000,
-        step: 1000,
-        description: "Maximum time in milliseconds to run the simulation before stopping (15000 = 15 seconds)"
-    },
-    d3AlphaDecay: {
-        value: 0.045,
-        min: 0,
-        max: 0.3,
-        step: 0.005,
-        description: "Rate at which the simulation intensity decays (higher = faster convergence, lower = longer simulation)"
-    },
-    d3AlphaMin: {
-        value: 0,
-        min: 0,
-        max: 0.1,
-        step: 0.001,
-        description: "Minimum simulation intensity threshold - simulation stops when reaching this value"
-    },
-    d3VelocityDecay: {
-        value: 0.41,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        description: "Velocity decay factor that simulates friction/resistance (higher = more damping, nodes slow down faster)"
-    },
-    warmupTicks: {
-        value: 0,
-        min: 0,
-        max: 100,
-        step: 1,
-        description: "Number of simulation cycles to run in background before starting to render (improves initial layout)"
+    general: {
+        showMinimap: {
+            type: "boolean",
+            value: true,
+            description: "Display the MiniMap on the graph panel."
+        },
+        graphViewerThreshold: {
+            type: "number",
+            value: 1500,
+            min: 10,
+            max: 20000,
+            step: 5,
+            description: "Threshold to switch from general graph to less interactive but more performant) viewer."
+        },
     },
 
-}
+    graph: {
+        nodeSize: {
+            type: "number",
+            value: 14,
+            min: 1,
+            max: 100,
+            step: 0.1,
+            description: "Defines the width of the link between two nodes."
+        },
+        linkWidth: {
+            type: "number",
+            value: 2,
+            min: 1,
+            max: 10,
+            step: 0.1,
+            description: "Defines the width of the link between two nodes."
+        },
+        dagLevelDistance: {
+            type: "number",
+            value: 50,
+            min: 0,
+            max: 100,
+            step: 1,
+            description: "Distance between different graph depths when using DAG (directed acyclic graph) layout mode"
+        },
+        linkDirectionalArrowRelPos: {
+            type: "number",
+            value: 1,
+            min: 0,
+            max: 1,
+            step: 0.01,
+            description: "Position of directional arrows along the link line (0 = source node, 1 = target node, 0.5 = middle)"
+        },
+        linkDirectionalArrowLength: {
+            type: "number",
+            value: 3,
+            min: 1,
+            max: 100,
+            step: 0.1,
+            description: "Length of the arrow heads that indicate link direction"
+        },
+        linkDirectionalParticleSpeed: {
+            type: "number",
+            value: 0.005,
+            min: 0,
+            max: 0.05,
+            step: 0.001,
+            description: "Speed of moving particles along links (higher = faster movement)"
+        },
+        cooldownTicks: {
+            type: "number",
+            value: 200,
+            min: 50,
+            max: 1000,
+            step: 10,
+            description: "Number of simulation frames to render before stopping and freezing the layout"
+        },
+        cooldownTime: {
+            type: "number",
+            value: 15000,
+            min: 1000,
+            max: 60000,
+            step: 1000,
+            description: "Maximum time in milliseconds to run the simulation before stopping (15000 = 15 seconds)"
+        },
+        d3AlphaDecay: {
+            type: "number",
+            value: 0.045,
+            min: 0,
+            max: 0.3,
+            step: 0.005,
+            description: "Rate at which the simulation intensity decays (higher = faster convergence, lower = longer simulation)"
+        },
+        d3AlphaMin: {
+            type: "number",
+            value: 0,
+            min: 0,
+            max: 0.1,
+            step: 0.001,
+            description: "Minimum simulation intensity threshold - simulation stops when reaching this value"
+        },
+        d3VelocityDecay: {
+            type: "number",
+            value: 0.41,
+            min: 0,
+            max: 1,
+            step: 0.01,
+            description: "Velocity decay factor that simulates friction/resistance (higher = more damping, nodes slow down faster)"
+        },
+        warmupTicks: {
+            type: "number",
+            value: 0,
+            min: 0,
+            max: 100,
+            step: 1,
+            description: "Number of simulation cycles to run in background before starting to render (improves initial layout)"
+        }
+    },
+};
 
-type GraphSettingsStore = {
+// Force Presets
+const FORCE_PRESETS = {
+    'Tight Clusters': {
+        d3AlphaDecay: 0.1,
+        d3VelocityDecay: 0.8,
+        cooldownTicks: 300,
+        cooldownTime: 20000
+    },
+    'Compact Network': {
+        d3AlphaDecay: 0.08,
+        d3VelocityDecay: 0.7,
+        cooldownTicks: 250,
+        cooldownTime: 18000
+    },
+    'Balanced Layout': {
+        d3AlphaDecay: 0.06,
+        d3VelocityDecay: 0.6,
+        cooldownTicks: 200,
+        cooldownTime: 15000
+    },
+    'Loose Organic': {
+        d3AlphaDecay: 0.04,
+        d3VelocityDecay: 0.4,
+        cooldownTicks: 150,
+        cooldownTime: 12000
+    },
+    'High Energy': {
+        d3AlphaDecay: 0.02,
+        d3VelocityDecay: 0.3,
+        cooldownTicks: 100,
+        cooldownTime: 10000
+    }
+};
+
+type GraphGeneralSettingsStore = {
     // Settings state
-    settings: Settings
-    updateSetting: (key: string, val: number) => void
-    // UI State
-    settingsModalOpen: boolean
-    setSettingsModalOpen: (open: boolean) => void
+    settings: typeof DEFAULT_SETTINGS
+    forceSettings: any
+    updateSetting: (category: string, key: string, value: any) => void
     resetSettings: () => void
-    getSettings: () => any
+    getSettings: () => Record<string, any>
+    getCategorySettings: (category: string) => Record<string, any>
+
     // Force Presets
     currentPreset: string | null
     applyPreset: (presetName: string) => void
     getPresets: () => Record<string, any>
+
+    // UI State
+    settingsModalOpen: boolean
+    setSettingsModalOpen: (open: boolean) => void
+    keyboardShortcutsOpen: boolean
+    setKeyboardShortcutsOpen: (open: boolean) => void
+
+    // Helper methods
+    getSettingValue: (category: string, key: string) => any
+    getSettingType: (category: string, key: string) => string | undefined
+    getSettingOptions: (category: string, key: string) => { value: string; label: string }[] | undefined
+    getSettingDescription: (category: string, key: string) => string | undefined
+    getSettingConstraints: (category: string, key: string) => { min?: number; max?: number; step?: number } | undefined
 };
-export const useGraphSettingsStore = create<GraphSettingsStore>()(
+
+export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
     persist((set, get) => ({
-        settingsModalOpen: false,
+        // Settings state
         settings: DEFAULT_SETTINGS,
         currentPreset: null,
-        setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
-        updateSetting: (key, val) => set((state) => ({
-            settings: {
-                ...state.settings,
-                [key]: {
-                    ...state.settings[key],
-                    value: val
-                },
-            },
-            currentPreset: null, // Clear preset when manually changing settings
-        })),
-        getSettings: () => {
-            let flatSettings = {}
-            Object.keys(get().settings).map((key) => {
-                flatSettings[key] = get().settings[key].value
-            })
-            return flatSettings
-        },
-        resetSettings: () => set({ settings: DEFAULT_SETTINGS, currentPreset: null }),
+        forceSettings: DEFAULT_SETTINGS.graph,
+        // UI State
+        settingsModalOpen: false,
+        keyboardShortcutsOpen: false,
 
-        // Force Presets Implementation
-        getPresets: () => ({
-            'Tight Clusters': {
-                d3AlphaDecay: 0.1,
-                d3VelocityDecay: 0.8,
-                cooldownTicks: 300,
-                cooldownTime: 20000
-            },
-            'Compact Network': {
-                d3AlphaDecay: 0.08,
-                d3VelocityDecay: 0.7,
-                cooldownTicks: 250,
-                cooldownTime: 18000
-            },
-            'Balanced Layout': {
-                d3AlphaDecay: 0.06,
-                d3VelocityDecay: 0.6,
-                cooldownTicks: 200,
-                cooldownTime: 15000
-            },
-            'Loose Organic': {
-                d3AlphaDecay: 0.04,
-                d3VelocityDecay: 0.4,
-                cooldownTicks: 150,
-                cooldownTime: 12000
-            },
-            'High Energy': {
-                d3AlphaDecay: 0.02,
-                d3VelocityDecay: 0.3,
-                cooldownTicks: 100,
-                cooldownTime: 10000
+        // Core methods
+        updateSetting: (category, key, value) => set((state) => {
+            const newSettings = {
+                ...state.settings,
+                [category]: {
+                    ...state.settings[category],
+                    [key]: {
+                        ...state.settings[category][key],
+                        value: value
+                    },
+                },
+            };
+
+            // Also update forceSettings if we're updating a force setting
+            let newForceSettings = state.forceSettings;
+            if (category === 'force') {
+                newForceSettings = {
+                    ...state.forceSettings,
+                    [key]: {
+                        ...state.forceSettings[key],
+                        value: value
+                    }
+                };
             }
+
+            return {
+                settings: newSettings,
+                forceSettings: newForceSettings,
+                currentPreset: null, // Clear preset when manually changing settings
+            };
         }),
 
+        resetSettings: () => set({
+            settings: DEFAULT_SETTINGS,
+            forceSettings: DEFAULT_SETTINGS.graph,
+            currentPreset: null
+        }),
+
+        getSettings: () => {
+            const flatSettings: Record<string, any> = {};
+            Object.entries(get().settings).forEach(([category, categorySettings]) => {
+                Object.entries(categorySettings as Record<string, any>).forEach(([key, setting]) => {
+                    flatSettings[`${category}.${key}`] = (setting as any).value;
+                });
+            });
+            return flatSettings;
+        },
+
+        getCategorySettings: (category: string) => {
+            const categorySettings: Record<string, any> = {};
+            const settings = get().settings[category];
+            if (settings) {
+                Object.entries(settings as Record<string, any>).forEach(([key, setting]) => {
+                    categorySettings[key] = (setting as any).value;
+                });
+            }
+            return categorySettings;
+        },
+
+        // Force Presets
+        getPresets: () => FORCE_PRESETS,
+
         applyPreset: (presetName: string) => {
-            const presets = get().getPresets();
-            const preset = presets[presetName];
+            const preset = FORCE_PRESETS[presetName as keyof typeof FORCE_PRESETS];
             if (!preset) return;
 
             set((state) => {
                 const newSettings = { ...state.settings };
+                const newForceSettings = { ...state.forceSettings };
+
                 Object.entries(preset).forEach(([key, value]) => {
-                    if (newSettings[key]) {
-                        newSettings[key] = {
-                            ...newSettings[key],
-                            value: value as number
+                    if (newSettings.graph[key]) {
+                        newSettings.graph[key] = {
+                            ...newSettings.graph[key],
+                            value: value
+                        };
+                    }
+                    if (newForceSettings[key]) {
+                        newForceSettings[key] = {
+                            ...newForceSettings[key],
+                            value: value
                         };
                     }
                 });
+
                 return {
                     settings: newSettings,
+                    forceSettings: newForceSettings,
                     currentPreset: presetName
                 };
             });
+        },
+
+        // UI State methods
+        setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
+        setKeyboardShortcutsOpen: (open) => set({ keyboardShortcutsOpen: open }),
+
+        // Helper methods
+        getSettingValue: (category: string, key: string) => get().settings[category]?.[key]?.value,
+        getSettingType: (category: string, key: string) => get().settings[category]?.[key]?.type,
+        getSettingOptions: (category: string, key: string) => get().settings[category]?.[key]?.options,
+        getSettingDescription: (category: string, key: string) => get().settings[category]?.[key]?.description,
+        getSettingConstraints: (category: string, key: string) => {
+            const setting = get().settings[category]?.[key];
+            if (setting && 'min' in setting) {
+                return {
+                    min: setting.min,
+                    max: setting.max,
+                    step: setting.step
+                };
+            }
+            return undefined;
         }
     }),
         {
-            name: 'graph-controls-storage',
+            name: 'graph-settings-storage',
             partialize: (state) => ({
                 settings: state.settings,
-                currentPreset: state.currentPreset
+                forceSettings: state.forceSettings,
+                currentPreset: state.currentPreset,
             }),
         }
     ));

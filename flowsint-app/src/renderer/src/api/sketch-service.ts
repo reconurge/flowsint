@@ -40,6 +40,12 @@ export const sketchService = {
             body: body
         });
     },
+    mergeNodes: async (sketchId: string, body: BodyInit): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}/nodes/merge`, {
+            method: 'POST',
+            body: body
+        });
+    },
     deleteNodes: async (sketchId: string, body: BodyInit): Promise<any> => {
         return fetchWithAuth(`/api/sketches/${sketchId}/nodes`, {
             method: 'DELETE',
@@ -60,6 +66,12 @@ export const sketchService = {
     types: async (): Promise<any> => {
         return fetchWithAuth(`/api/types`, {
             method: 'GET'
+        });
+    },
+    update: async (sketchId: string, body: BodyInit): Promise<any> => {
+        return fetchWithAuth(`/api/sketches/${sketchId}`, {
+            method: 'PUT',
+            body: body
         });
     },
 };

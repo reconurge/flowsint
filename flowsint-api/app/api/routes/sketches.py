@@ -7,7 +7,7 @@ from flowsint_core.utils import flatten
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
-from app.models.models import Sketch, Profile
+from flowsint_core.core.models import Sketch, Profile
 from sqlalchemy.orm import Session
 from uuid import UUID
 from flowsint_core.core.graph_db import neo4j_connection

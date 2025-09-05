@@ -11,6 +11,5 @@ class KeyCreate(BaseModel):
 class KeyRead(ORMBase):
     id: UUID4
     owner_id: UUID4
-    encrypted_key: str
     name: str
     created_at: datetime

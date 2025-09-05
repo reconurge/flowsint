@@ -10,10 +10,11 @@ from sqlalchemy import (
     JSON,
     Column,
     Enum as SQLEnum,
+    LargeBinary,
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from .enums import EventLevel
+from flowsint_core.core.enums import EventLevel
 
 
 class Base(DeclarativeBase):
@@ -195,8 +196,8 @@ class SketchesProfiles(Base):
     )
 
 
-class Transform(Base):
-    __tablename__ = "transforms"
+class Flow(Base):
+    __tablename__ = "flows"
 
     id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -291,14 +292,23 @@ class Key(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    name = mapped_column(String, nullable=False)
-    owner_id = mapped_column(
+
+    name: Mapped[str] = mapped_column(String, nullable=False)  # ex: "shodan", "whocy"
+
+    owner_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=True,
+        nullable=False,
     )
-    encrypted_key = mapped_column(String, nullable=False)
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    ciphertext: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    iv: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # 12 bytes
+    salt: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # 16/32 bytes
+    key_version: Mapped[str] = mapped_column(String, nullable=False)  # ex: "V1"
+
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     __table_args__ = (
         Index("idx_keys_owner_id", "owner_id"),

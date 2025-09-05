@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Analysis, Profile
+from flowsint_core.core.models import Analysis, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.analysis import AnalysisRead, AnalysisCreate, AnalysisUpdate
 

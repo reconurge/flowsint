@@ -1,24 +1,17 @@
 from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
+from flowsint_core.core.vault import Vault
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Profile, Key
+from flowsint_core.core.models import Profile, Key
 from app.api.deps import get_current_user
 from app.api.schemas.key import KeyRead, KeyCreate
-from datetime import datetime
 
 router = APIRouter()
 
 
-def obfuscate_key(key: str) -> str:
-    """Obfuscate a key by showing only the last 4 characters, replacing others with asterisks."""
-    if len(key) <= 4:
-        return key
-    return "*" * (len(key) - 4) + key[-4:]
-
-
-# Get the list of all keys for a user
+# Get the list of all keys for a user, just the public method for viewing
 @router.get("", response_model=List[KeyRead])
 def get_keys(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
@@ -28,7 +21,6 @@ def get_keys(
         KeyRead(
             id=key.id,
             owner_id=key.owner_id,
-            encrypted_key=obfuscate_key(key.encrypted_key),
             name=key.name,
             created_at=key.created_at,
         )
@@ -37,7 +29,7 @@ def get_keys(
     return response_data
 
 
-# Get a key by ID
+# Get a key by ID, just the public method for viewing
 @router.get("/{id}", response_model=KeyRead)
 def get_key_by_id(
     id: UUID,
@@ -52,7 +44,6 @@ def get_key_by_id(
     response_data = KeyRead(
         id=key.id,
         owner_id=key.owner_id,
-        encrypted_key=obfuscate_key(key.encrypted_key),
         name=key.name,
         created_at=key.created_at,
     )
@@ -66,17 +57,19 @@ def create_key(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    new_key = Key(
-        id=uuid4(),
-        name=payload.name,
-        owner_id=current_user.id,
-        encrypted_key=payload.key,
-        created_at=datetime.utcnow(),
-    )
-    db.add(new_key)
-    db.commit()
-    db.refresh(new_key)
-    return new_key
+    try:
+        vault = Vault(db=db, owner_id=current_user.id)
+        key = vault.set_secret(vault_ref=payload.name, plain_key=payload.key)
+        if not key:
+            raise HTTPException(
+                status_code=500, detail="An error occured creating the key."
+            )
+        return key
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500, detail="An error occured creating the key."
+        )
 
 
 # Delete a key by ID

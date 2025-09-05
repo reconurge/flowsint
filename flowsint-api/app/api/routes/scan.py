@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Scan, Profile
+from flowsint_core.core.models import Scan, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.scan import ScanRead
 

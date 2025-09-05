@@ -9,11 +9,11 @@ from dotenv import load_dotenv
 # Charger les variables d'environnement
 load_dotenv()
 
-# Permet les imports comme from app.models.base import Base
+# Permet les imports comme from flowsint_core.core.models.base import Base
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Importer Base et toutes les tables pour qu'Alembic les détecte
-from app.models.models import *  # noqa
+from flowsint_core.core.models import *  # noqa
 
 # Configuration Alembic
 config = context.config

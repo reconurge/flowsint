@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
 from flowsint_core.core.types import Node, Edge, FlowBranch
-from app.models.models import Profile
+from flowsint_core.core.models import Profile
 from app.api.deps import get_current_user
 
 

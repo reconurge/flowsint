@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from flowsint_core.core.auth import ALGORITHM
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Profile
+from flowsint_core.core.models import Profile
 
 import os
 from dotenv import load_dotenv

@@ -179,11 +179,11 @@ function VaultPage() {
                                             <Zap className="w-4 h-4 mr-2" />
                                             Fast Setup
                                         </Badge>
-                                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 px-4 py-2">
+                                        <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 border-emerald-200/40 px-4 py-2">
                                             <Lock className="w-4 h-4 mr-2" />
                                             Encrypted
                                         </Badge>
-                                        <Badge variant="secondary" className="bg-violet-50 text-violet-700 border-violet-200 px-4 py-2">
+                                        <Badge variant="secondary" className="bg-violet-500/10 text-violet-700 border-violet-200/40 px-4 py-2">
                                             <Sparkles className="w-4 h-4 mr-2" />
                                             Secure
                                         </Badge>

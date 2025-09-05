@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Chat, ChatMessage, Profile
+from flowsint_core.core.models import Chat, ChatMessage, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.chat import ChatCreate, ChatRead
 

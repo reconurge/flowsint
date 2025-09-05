@@ -5,7 +5,7 @@ from flowsint_core.core.auth import verify_password
 from flowsint_core.core.auth import create_access_token, get_password_hash
 from sqlalchemy.orm import Session
 from app.api.schemas.profile import ProfileCreate
-from app.models.models import Profile
+from flowsint_core.core.models import Profile
 from flowsint_core.core.postgre_db import get_db
 
 router = APIRouter()

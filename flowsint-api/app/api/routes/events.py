@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Log, Sketch
+from flowsint_core.core.models import Log, Sketch
 from flowsint_core.core.events import event_emitter
 from sse_starlette.sse import EventSourceResponse
 from flowsint_core.core.types import Event
 from app.api.deps import get_current_user
-from app.models.models import Profile, Sketch
+from flowsint_core.core.models import Profile, Sketch
 import json
 import asyncio
 from datetime import datetime, timedelta

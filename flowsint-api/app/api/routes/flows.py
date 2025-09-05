@@ -10,7 +10,7 @@ from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Emai
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from app.models.models import Flow, Profile
+from flowsint_core.core.models import Flow, Profile
 from app.api.deps import get_current_user
 from app.api.schemas.flow import FlowRead, FlowCreate, FlowUpdate
 from flowsint_types import (

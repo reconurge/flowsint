@@ -29,7 +29,7 @@ reconspread = { git = "https://github.com/reconurge/reconspread.git" }
 dnspython = "^2.4"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
+pytest = "^8.4.2"
 pytest-asyncio = "^0.21"
 black = "^25.0"
 isort = "^6.0"

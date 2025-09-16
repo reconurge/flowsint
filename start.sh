@@ -25,12 +25,14 @@ start_service() {
     echo ""
     eval "$2=$pid"  # stocker le PID dans la variable donnée
 }
+cd "$PROJECT_ROOT/"
+docker compose up -d
 
 cd "$PROJECT_ROOT/flowsint-api"
 start_service "API server" poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 cd "$PROJECT_ROOT/flowsint-app"
-start_service "Frontend" yarn dev
+start_service "Frontend" npx electron-vite dev
 
 cd "$PROJECT_ROOT/flowsint-core"
 start_service "Celery worker" poetry run celery -A flowsint_core.core.celery worker --loglevel=info

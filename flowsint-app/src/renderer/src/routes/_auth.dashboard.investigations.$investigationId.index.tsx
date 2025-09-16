@@ -126,6 +126,12 @@ function InvestigationPage() {
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <NewSketch>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <BarChart3 className="h-4 w-4 mr-2" />
+                                            New Sketch
+                                        </DropdownMenuItem>
+                                    </NewSketch>
                                     <DropdownMenuItem
                                         onClick={() => createAnalysisMutation.mutate()}
                                         disabled={createAnalysisMutation.isPending}
@@ -136,12 +142,6 @@ function InvestigationPage() {
                                             <span className="ml-2 text-xs text-muted-foreground">Creating...</span>
                                         )}
                                     </DropdownMenuItem>
-                                    <NewSketch>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <BarChart3 className="h-4 w-4 mr-2" />
-                                            New Sketch
-                                        </DropdownMenuItem>
-                                    </NewSketch>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>

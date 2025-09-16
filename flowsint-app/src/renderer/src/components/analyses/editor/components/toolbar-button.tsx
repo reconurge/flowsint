@@ -40,7 +40,7 @@ export const ToolbarButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{toggleButton}</TooltipTrigger>
+        <TooltipTrigger asChild><div>{toggleButton}</div></TooltipTrigger>
         <TooltipContent {...tooltipOptions}>
           <div className="flex flex-col items-center text-center">
             {tooltip}

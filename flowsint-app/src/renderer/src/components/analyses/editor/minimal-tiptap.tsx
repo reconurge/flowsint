@@ -21,15 +21,14 @@ export interface MinimalTiptapProps
   className?: string
   editorContentClassName?: string
   onEditorReady?: (editor: Editor) => void
+  showToolbar?:boolean
 }
 //@ts-ignore
 const Toolbar = ({ editor }: { editor: Editor }) => (
   <div className="shrink-0 overflow-x-auto border-b border-border p-2">
     <div className="flex w-max items-center gap-px">
       <SectionOne editor={editor} activeLevels={[1, 2, 3, 4, 5, 6]} />
-
       <Separator orientation="vertical" className="mx-2 h-7" />
-
       <SectionTwo
         editor={editor}
         activeActions={[
@@ -42,21 +41,15 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
         ]}
         mainActionCount={3}
       />
-
       <Separator orientation="vertical" className="mx-2 h-7" />
-
       <SectionThree editor={editor} />
-
       <Separator orientation="vertical" className="mx-2 h-7" />
-
       <SectionFour
         editor={editor}
         activeActions={["orderedList", "bulletList"]}
         mainActionCount={0}
       />
-
       <Separator orientation="vertical" className="mx-2 h-7" />
-
       <SectionFive
         editor={editor}
         activeActions={["codeBlock", "blockquote", "horizontalRule"]}
@@ -69,7 +62,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 export const MinimalTiptapEditor = React.forwardRef<
   HTMLDivElement,
   MinimalTiptapProps
->(({ value, onChange, className, editorContentClassName, onEditorReady, ...props }, ref) => {
+>(({ value, onChange, className, editorContentClassName, onEditorReady, showToolbar=false, ...props }, ref) => {
   const editor = useMinimalTiptapEditor({
     value,
     onUpdate: onChange,
@@ -96,7 +89,7 @@ export const MinimalTiptapEditor = React.forwardRef<
         className
       )}
     >
-      {/* <Toolbar editor={editor} /> */}
+      {showToolbar && <div className="border-t"><Toolbar editor={editor} /></div>}
       <EditorContent
         editor={editor}
         className={cn("minimal-tiptap-editor prose dark:prose-invert p-8 w-full max-w-4xl mx-auto", editorContentClassName)}

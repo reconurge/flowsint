@@ -41,6 +41,7 @@ interface AnalysisEditorProps {
     // UI customization
     showHeader?: boolean
     showActions?: boolean
+    showToolbar?: boolean
     showAnalysisSelector?: boolean
     showNavigation?: boolean
     className?: string
@@ -68,7 +69,8 @@ export const AnalysisEditor = ({
     className = "",
     isLoading = false,
     analyses = [],
-    currentAnalysisId
+    currentAnalysisId,
+    showToolbar = false
 }: AnalysisEditorProps) => {
     const { confirm } = useConfirm()
     const toggleAnalysis = useLayoutStore(s => s.toggleAnalysis)
@@ -446,6 +448,7 @@ export const AnalysisEditor = ({
                             output="json"
                             placeholder="Enter your analysis..."
                             autofocus={true}
+                            showToolbar={showToolbar}
                             editable={true}
                             editorClassName="focus:outline-hidden"
                             onEditorReady={setEditor}

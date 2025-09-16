@@ -38,18 +38,12 @@ flowsint-types (types)
 - Poetry (for dependency management)
 - Docker (for some tools)
 
-### Installation
+### Run
 
-1. Run the install script
-
-```bash
-chmod +x ./install.sh
-```
-
-### Run the services
+For now, you can start flowsint in a development environment. It's pretty performant already ! And fully local stored. Make sure you have **Make** installed.
 
 ```bash
-chmod +x ./start.sh
+make dev
 ```
 
 An electron app should start, frontend is also accessible at [http://localhost:5173](http://localhost:5173).

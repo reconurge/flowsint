@@ -2,7 +2,7 @@
 
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-echo "🚀 Starting Flowsint Project services..."
+echo "Starting Flowsint project services..."
 
 cleanup() {
     echo "🛑 Stopping all services..."

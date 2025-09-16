@@ -22,7 +22,7 @@ import TransformNode from "./transform-node"
 import TypeNode from "./type-node"
 import { type TransformNodeData } from "@/types/transform"
 import { FlowControls } from "./controls"
-import { getDagreLayoutedElements } from "@/lib/utils"
+import { getFlowDagreLayoutedElements } from "@/lib/utils"
 import { toast } from "sonner"
 import { SaveModal } from "./save-modal"
 import { useConfirm } from "@/components/use-confirm-dialog"
@@ -302,7 +302,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     const onLayout = useCallback(() => {
         // Wait for nodes to be measured before running layout
         setTimeout(() => {
-            const layouted = getDagreLayoutedElements(
+            const layouted = getFlowDagreLayoutedElements(
                 nodes.map(node => ({
                     ...node,
                     measured: {

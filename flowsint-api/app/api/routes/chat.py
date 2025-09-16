@@ -26,20 +26,15 @@ def clean_context(context: List[Dict]) -> List[Dict]:
         if isinstance(item, dict):
             # Create a copy and remove unwanted keys
             cleaned_item = item["data"].copy()
-
             # Remove top-level keys
             cleaned_item.pop("id", None)
             cleaned_item.pop("sketch_id", None)
-
             # Remove from data if it exists
             if "data" in cleaned_item and isinstance(cleaned_item["data"], dict):
                 cleaned_item["data"].pop("sketch_id", None)
-
             # Remove measured/dimensions
             cleaned_item.pop("measured", None)
-
             cleaned.append(cleaned_item)
-    print(cleaned)
     return cleaned
 
 

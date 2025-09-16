@@ -14,7 +14,7 @@ The project is organized into autonomous modules:
 - **flowsint-types**: Pydantic models and type definitions
 - **flowsint-transforms**: Transform modules, scanning logic, and tools
 - **flowsint-api**: FastAPI server, API routes, and schemas only
-- **flowsint-app**: Frontend application (unchanged)
+- **flowsint-app**: Frontend application
 
 ### Module dependencies
 

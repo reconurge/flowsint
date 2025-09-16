@@ -73,10 +73,7 @@ const InfoDialog = () => {
                             </p>
                             <ul className="list-disc list-inside space-y-1">
                                 <li>
-                                    <strong>Small to medium datasets (1-500 nodes):</strong> Interactive <strong>React Flow</strong> (<a href="https://reactflow.dev/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">reactflow.dev</a>) graphs with real-time node dragging, detailed tooltips, and smooth animations for precise exploration.
-                                </li>
-                                <li>
-                                    <strong>Medium to large datasets (1-1500 nodes):</strong> Optimized <strong>React Force Graph</strong> (<a href="https://github.com/vasturiano/react-force-graph" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">github.com/vasturiano/react-force-graph</a>) layouts with force-directed algorithms that group related entities while maintaining interactive features for focused analysis.
+                                    <strong>Small to large datasets (1-1500 nodes):</strong> Optimized <strong>React Force Graph</strong> (<a href="https://github.com/vasturiano/react-force-graph" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">github.com/vasturiano/react-force-graph</a>) layouts with force-directed algorithms that group related entities while maintaining interactive features for focused analysis.
                                 </li>
                                 <li>
                                     <strong>Large datasets (1550-100,000 nodes):</strong> High-performance <strong>Cosmograph</strong> (<a href="https://cosmograph.app" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">cosmograph.app</a>) with advanced rendering techniques, allowing you to visualize complex networks without sacrificing responsiveness or browser stability.

@@ -1,120 +1,11 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import Dagre from '@dagrejs/dagre';
-
-import { type Edge, Position, type Node } from '@xyflow/react';
-import * as d3 from "d3-force"
 import { GraphEdge, GraphNode } from '@/types';
-
-interface NodePosition {
-  x: number;
-  y: number;
-}
-
-interface NodeMeasured {
-  width: number;
-  height: number;
-}
-
-interface NodeInternals {
-  positionAbsolute: NodePosition;
-}
-
-interface FlowNode {
-  measured: NodeMeasured;
-  internals: NodeInternals;
-}
-
-interface IntersectionPoint {
-  x: number;
-  y: number;
-}
+import { FlowEdge, FlowNode } from "@/stores/flow-store";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-export const zoomSelector = (s: { transform: number[]; }) => s.transform[2] >= 0.6;
-
-
-// this helper function returns the intersection point
-// of the line between the center of the intersectionNode and the target node
-function getNodeIntersection(
-  intersectionNode: FlowNode,
-  targetNode: FlowNode
-): IntersectionPoint {
-  const { width: intersectionNodeWidth, height: intersectionNodeHeight } = intersectionNode.measured;
-  const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
-  const targetPosition = targetNode.internals.positionAbsolute;
-
-  const w = intersectionNodeWidth / 2;
-  const h = intersectionNodeHeight / 2;
-
-  const x2 = intersectionNodePosition.x + w;
-  const y2 = intersectionNodePosition.y + h;
-  const x1 = targetPosition.x + targetNode.measured.width / 2;
-  const y1 = targetPosition.y + targetNode.measured.height / 2;
-
-  const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
-  const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
-  const a = 1 / (Math.abs(xx1) + Math.abs(yy1));
-  const xx3 = a * xx1;
-  const yy3 = a * yy1;
-  const x = w * (xx3 + yy3) + x2;
-  const y = h * (-xx3 + yy3) + y2;
-
-  return { x, y };
-}
-
-// returns the position (top,right,bottom or right) passed node compared to the intersection point
-function getEdgePosition(node: FlowNode, intersectionPoint: IntersectionPoint): Position {
-  const n = { ...node.internals.positionAbsolute, ...node };
-  const nx = Math.round(n.x);
-  const ny = Math.round(n.y);
-  const px = Math.round(intersectionPoint.x);
-  const py = Math.round(intersectionPoint.y);
-
-  if (px <= nx + 1) {
-    return Position.Left;
-  }
-  if (px >= nx + n.measured.width - 1) {
-    return Position.Right;
-  }
-  if (py <= ny + 1) {
-    return Position.Top;
-  }
-  if (py >= n.y + n.measured.height - 1) {
-    return Position.Bottom;
-  }
-
-  return Position.Top;
-}
-
-// returns the parameters (sx, sy, tx, ty, sourcePos, targetPos) you need to create an edge
-interface EdgeParams {
-  sx: number;
-  sy: number;
-  tx: number;
-  ty: number;
-  sourcePos: Position;
-  targetPos: Position;
-}
-
-export function getEdgeParams(source: FlowNode, target: FlowNode): EdgeParams {
-  const sourceIntersectionPoint = getNodeIntersection(source, target);
-  const targetIntersectionPoint = getNodeIntersection(target, source);
-
-  const sourcePos = getEdgePosition(source, sourceIntersectionPoint);
-  const targetPos = getEdgePosition(target, targetIntersectionPoint);
-
-  return {
-    sx: sourceIntersectionPoint.x,
-    sy: sourceIntersectionPoint.y,
-    tx: targetIntersectionPoint.x,
-    ty: targetIntersectionPoint.y,
-    sourcePos,
-    targetPos,
-  };
 }
 
 interface LayoutOptions {
@@ -124,81 +15,9 @@ interface LayoutOptions {
   iterations?: number;
 }
 
-export const getForceLayoutedElements = (
-  nodes: Node[],
-  edges: Edge[],
-  options: LayoutOptions = {
-    direction: "LR",
-    strength: -30,
-    distance: 10,
-    iterations: 300,
-  },
-) => {
-  // Create a map of node IDs to indices for the simulation
-  const nodeMap = new Map(nodes.map((node, i) => [node.id, i]))
-
-  // Create a copy of nodes with positions for the simulation
-  const nodesCopy = nodes.map((node) => ({
-    ...node,
-    x: node.position?.x || Math.random() * 500,
-    y: node.position?.y || Math.random() * 500,
-    width: node.measured?.width || 0,
-    height: node.measured?.height || 0,
-  }))
-
-  // Create links for the simulation using indices
-  const links = edges.map((edge) => ({
-    source: nodeMap.get(edge.source),
-    target: nodeMap.get(edge.target),
-    original: edge,
-  }))
-
-  // Create the simulation
-  const simulation = d3
-    .forceSimulation(nodesCopy)
-    .force(
-      "link",
-      d3.forceLink(links).id((d: any) => nodeMap.get(d.id)),
-    )
-    .force("charge", d3.forceManyBody().strength(options.strength || -300))
-    .force("center", d3.forceCenter(250, 250))
-    .force(
-      "collision",
-      d3.forceCollide().radius((d: any) => Math.max(d.width, d.height) / 2 + 10),
-    )
-
-  // If direction is horizontal, adjust forces
-  if (options.direction === "LR") {
-    simulation.force("x", d3.forceX(250).strength(0.1))
-    simulation.force("y", d3.forceY(250).strength(0.05))
-  } else {
-    simulation.force("x", d3.forceX(250).strength(0.05))
-    simulation.force("y", d3.forceY(250).strength(0.1))
-  }
-
-  // Run the simulation synchronously
-  simulation.stop()
-  for (let i = 0; i < (options.iterations || 300); i++) {
-    simulation.tick()
-  }
-
-  // Update node positions based on simulation results
-  const updatedNodes = nodesCopy.map((node) => ({
-    ...node,
-    position: {
-      x: node.x - node.width / 2,
-      y: node.y - node.height / 2,
-    },
-  }))
-
-  return {
-    nodes: updatedNodes,
-    edges,
-  }
-}
-
-export const getDagreLayoutedElements = (nodes: GraphNode[] | any,
-  edges: GraphEdge[] | any,
+// dagre layout function for the main graph component.
+export const getDagreLayoutedElements = (nodes: GraphNode[],
+  edges: GraphEdge[],
   options: LayoutOptions = {
     direction: "TB",
     strength: -300,
@@ -223,6 +42,38 @@ export const getDagreLayoutedElements = (nodes: GraphNode[] | any,
       const x = position.x - (node.nodeSize ?? 0) / 2;
       const y = position.y - (node.nodeSize ?? 0) / 2;
       return { ...node, x, y };
+    }),
+    edges,
+  };
+};
+
+// dagre layout function for the flow component.
+export const getFlowDagreLayoutedElements = (nodes: FlowNode[],
+  edges: FlowEdge[],
+  options: LayoutOptions = {
+    direction: "TB",
+    strength: -300,
+    distance: 10,
+    iterations: 300,
+  },) => {
+
+  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: options.direction });
+  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+  nodes.forEach((node) =>
+    g.setNode(node.id, {
+      ...node,
+      width: node.measured?.width ?? 0,
+      height: node.measured?.height ?? 0,
+    }),
+  );
+  Dagre.layout(g);
+  return {
+    nodes: nodes.map((node) => {
+      const position = g.node(node.id);
+      const x = position.x - (node.measured?.width ?? 0) / 2;
+      const y = position.y - (node.measured?.height ?? 0) / 2;
+      return { ...node, position: { x, y } };
     }),
     edges,
   };
@@ -364,7 +215,7 @@ export function deepObjectDiff(obj1: Dictionary, obj2: Dictionary): Dictionary {
       diffObject = { ...diffObject, [key]: { value, new: false, oldValue: obj1[key] ?? null, newValue: obj2[key] ?? null, identical: obj2[key] === obj1[key] } }
     }
   })
-  // We map over the obj1 key:value duos to retrieve new keys that might have disapeared
+  // We map over the obj1 key:value duos to retrieve keys that might have disapeared
   Object.entries(obj1).forEach(([key, value]) => {
     // We check for additional keys
     if (!obj2.hasOwnProperty(key))

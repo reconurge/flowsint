@@ -151,17 +151,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     allowLasso = false,
     minimap = false
 }) => {
-    const [currentZoom, setCurrentZoom] = useState({
-        k: 1,
-        x: 1,
-        y: 1
-    });
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const isLassoActive = useGraphControls(s => s.isLassoActive)
     // Hover highlighting state
     const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set());
     const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set());
     const [hoverNode, setHoverNode] = useState<string | null>(null);
+    const zoomRef = useRef({ k: 1, x: 0, y: 0 });
+    const [zoomState, setZoomState] = useState({ k: 1, x: 0, y: 0 });
 
     // Store references
     const graphRef = useRef<any>();
@@ -210,6 +207,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             });
         }
     }, [nodes, showIcons]);
+
+    const handleZoom = useCallback((zoom: any) => {
+        zoomRef.current = zoom;
+        setZoomState(zoom);
+    }, []);
 
     // Optimized graph initialization callback
     const initializeGraph = useCallback((graphInstance: any) => {
@@ -315,8 +317,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Memoized rendering check
     const shouldUseSimpleRendering = useMemo(() =>
-        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom.k < 1.5
-        , [nodes.length, currentZoom]);
+        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || zoomState.k < 1.5
+        , [nodes.length, zoomState.k]);
 
     // Memoized graph data transformation with proper memoization dependencies
     const graphData = useMemo(() => {
@@ -350,12 +352,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             const group = edgeGroups.get(key)!;
             const groupIndex = group.indexOf(edge);
             const groupSize = group.length;
-            const curve = groupSize > 1 ? (groupIndex - (groupSize - 1) / 2) * 0.2 : 0;
-
+            const curvature = groupSize > 1 ? (groupIndex - (groupSize - 1) / 2) * 0.2 : 0;
             return {
                 ...edge,
                 edgeLabel: edge.label,
-                curve,
+                curvature,
                 groupIndex,
                 groupSize
             };
@@ -421,7 +422,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (!showLabels) return new Set<string>();
 
         // Find the appropriate layer for current zoom
-        const currentLayer = CONSTANTS.LABEL_LAYERS.find(layer => currentZoom.k >= layer.minZoom);
+        const currentLayer = CONSTANTS.LABEL_LAYERS.find(layer => zoomState.k >= layer.minZoom);
         if (!currentLayer) return new Set<string>();
 
         // Sort nodes by weight (number of connections) in descending order
@@ -440,7 +441,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             .slice(0, currentLayer.maxNodes);
 
         return new Set(visibleNodes.map(node => node.id));
-    }, [graphData.nodes, currentZoom, showLabels]);
+    }, [graphData.nodes, zoomState.k, showLabels]);
 
     // Event handlers with proper memoization
     const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
@@ -519,7 +520,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (node) {
             const weight = node.neighbors?.length || 0;
             const label = node.nodeLabel || node.label || node.id;
-
             // Position tooltip above the node using the graph's coordinate conversion
             if (graphRef.current) {
                 try {
@@ -582,12 +582,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (link) {
             // Add the hovered link
             newHighlightLinks.add(`${link.source}-${link.target}`);
-
             // Add connected nodes
             newHighlightNodes.add(link.source.id);
             newHighlightNodes.add(link.target.id);
         }
-
         setHoverNode(null);
         setHighlightNodes(newHighlightNodes);
         setHighlightLinks(newHighlightLinks);
@@ -600,7 +598,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id);
         const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0;
         const isHovered = hoverNode === node.id || (isCurrent(node.id));
-
         // Draw highlight ring for highlighted nodes
         if (isHighlighted) {
             ctx.beginPath();
@@ -608,21 +605,17 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             ctx.fillStyle = isHovered ? GRAPH_COLORS.NODE_HIGHLIGHT_HOVER : GRAPH_COLORS.NODE_HIGHLIGHT_DEFAULT;
             ctx.fill();
         }
-
         // Set node color based on highlight state
         if (hasAnyHighlight) {
             ctx.fillStyle = isHighlighted ? node.nodeColor : `${node.nodeColor}7D`;
         } else {
             ctx.fillStyle = node.nodeColor;
         }
-
         ctx.beginPath();
         ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
         ctx.fill();
-
         // Early exit for simple rendering
         if (shouldUseSimpleRendering) return;
-
         // Optimized icon rendering with cached images
         if (showIcons && node.nodeType) {
             const cachedImage = imageCache.get(node.nodeType);
@@ -634,7 +627,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 }
             }
         }
-
         // Optimized label rendering with layered display
         if (showLabels && globalScale > 3) {
             const label = truncateText(node.nodeLabel || node.label || node.id, 58);
@@ -672,7 +664,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         let strokeStyle: string;
         let lineWidth: number;
         let fillStyle: string;
-
         if (isHighlighted) {
             strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED;
             fillStyle = GRAPH_COLORS.LINK_HIGHLIGHTED;
@@ -686,10 +677,25 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             fillStyle = GRAPH_COLORS.LINK_DEFAULT;
             lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 5);
         }
-        // Draw connection line
+        // Draw connection line (use quadratic curve if curvature present)
+        const curvature: number = link.curvature || 0;
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        const midX = (start.x + end.x) * 0.5;
+        const midY = (start.y + end.y) * 0.5;
+        const normX = -dy / distance;
+        const normY = dx / distance;
+        const offset = curvature * distance;
+        const ctrlX = midX + normX * offset;
+        const ctrlY = midY + normY * offset;
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
+        if (curvature !== 0) {
+            ctx.quadraticCurveTo(ctrlX, ctrlY, end.x, end.y);
+        } else {
+            ctx.lineTo(end.x, end.y);
+        }
         ctx.strokeStyle = strokeStyle;
         ctx.lineWidth = lineWidth;
         ctx.stroke();
@@ -697,27 +703,38 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         const arrowLength = forceSettings.linkDirectionalArrowLength.value;
         if (arrowLength && arrowLength > 0) {
             const arrowRelPos = forceSettings.linkDirectionalArrowRelPos.value || 1;
-            // Calculate arrow position along the link
-            let arrowX = start.x + (end.x - start.x) * arrowRelPos;
-            let arrowY = start.y + (end.y - start.y) * arrowRelPos;
-            // If arrow is at the target node (arrowRelPos = 1), offset it to be at the node's edge
-            if (arrowRelPos === 1) {
-                const dx = end.x - start.x;
-                const dy = end.y - start.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 0) {
-                    // Calculate target node size (same as in renderNode function)
-                    const targetNodeSize = (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) * (forceSettings.nodeSize.value / 100 + 0.4);
-                    // Calculate offset to place arrow at node edge
-                    const offset = targetNodeSize / distance;
-                    arrowX = end.x - dx * offset;
-                    arrowY = end.y - dy * offset;
+            // Helper to get point and tangent along straight/curved link
+            const bezierPoint = (t: number) => {
+                if (curvature === 0) {
+                    return { x: start.x + dx * t, y: start.y + dy * t };
                 }
+                const oneMinusT = 1 - t;
+                return {
+                    x: oneMinusT * oneMinusT * start.x + 2 * oneMinusT * t * ctrlX + t * t * end.x,
+                    y: oneMinusT * oneMinusT * start.y + 2 * oneMinusT * t * ctrlY + t * t * end.y,
+                };
+            };
+            const bezierTangent = (t: number) => {
+                if (curvature === 0) {
+                    return { x: dx, y: dy };
+                }
+                const oneMinusT = 1 - t;
+                return {
+                    x: 2 * oneMinusT * (ctrlX - start.x) + 2 * t * (end.x - ctrlX),
+                    y: 2 * oneMinusT * (ctrlY - start.y) + 2 * t * (end.y - ctrlY),
+                };
+            };
+            let t = arrowRelPos;
+            let { x: arrowX, y: arrowY } = bezierPoint(t);
+            if (arrowRelPos === 1) {
+                const tan = bezierTangent(0.99);
+                const tanLen = Math.hypot(tan.x, tan.y) || 1;
+                const targetNodeSize = (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) * (forceSettings.nodeSize.value / 100 + 0.4);
+                arrowX = end.x - (tan.x / tanLen) * targetNodeSize;
+                arrowY = end.y - (tan.y / tanLen) * targetNodeSize;
             }
-            // Calculate arrow direction
-            const dx = end.x - start.x;
-            const dy = end.y - start.y;
-            const angle = Math.atan2(dy, dx);
+            const tan = bezierTangent(t);
+            const angle = Math.atan2(tan.y, tan.x);
             // Draw arrow head
             ctx.save();
             ctx.translate(arrowX, arrowY);
@@ -735,12 +752,24 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (shouldUseSimpleRendering || !link.label) return;
         // Only show labels for highlighted links when there's any highlighting
         if (isHighlighted) {
-            // Calculate label position and angle
-            tempPos.x = (start.x + end.x) * 0.5;
-            tempPos.y = (start.y + end.y) * 0.5;
-            const dx = end.x - start.x;
-            const dy = end.y - start.y;
-            let textAngle = Math.atan2(dy, dx);
+            // Calculate label position and angle along straight/curved link
+            let textAngle: number;
+            if ((link.curvature || 0) !== 0) {
+                // Bezier midpoint and tangent at t=0.5
+                const t = 0.5;
+                const oneMinusT = 1 - t;
+                tempPos.x = oneMinusT * oneMinusT * start.x + 2 * oneMinusT * t * ctrlX + t * t * end.x;
+                tempPos.y = oneMinusT * oneMinusT * start.y + 2 * oneMinusT * t * ctrlY + t * t * end.y;
+                const tx = 2 * oneMinusT * (ctrlX - start.x) + 2 * t * (end.x - ctrlX);
+                const ty = 2 * oneMinusT * (ctrlY - start.y) + 2 * t * (end.y - ctrlY);
+                textAngle = Math.atan2(ty, tx);
+            } else {
+                tempPos.x = (start.x + end.x) * 0.5;
+                tempPos.y = (start.y + end.y) * 0.5;
+                const sdx = end.x - start.x;
+                const sdy = end.y - start.y;
+                textAngle = Math.atan2(sdy, sdx);
+            }
             // Flip text for readability
             if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
                 textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI;
@@ -772,7 +801,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     // Restart simulation when settings change (debounced)
     useEffect(() => {
         let settingsTimeout: number | undefined;
-
         const restartSimulation = () => {
             if (graphRef.current && isGraphReadyRef.current) {
                 if (settingsTimeout) clearTimeout(settingsTimeout);
@@ -781,10 +809,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 }, 100) as any; // Debounce settings changes
             }
         };
-
         // Restart simulation when force settings change
         restartSimulation();
-
         return () => {
             if (settingsTimeout) clearTimeout(settingsTimeout);
         };
@@ -892,7 +918,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 onNodeRightClick={handleNodeRightClick}
                 onNodeClick={handleNodeClick}
                 onBackgroundClick={handleBackgroundClick}
-                linkCurvature={link => link.curve}
+                linkCurvature={link => link.curvature || 0}
                 nodeCanvasObject={renderNode}
                 onNodeDragEnd={(node => {
                     node.fx = node.x;
@@ -906,8 +932,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 warmupTicks={forceSettings.warmupTicks.value}
                 dagLevelDistance={forceSettings.dagLevelDistance.value}
                 backgroundColor={backgroundColor}
-                onZoom={(zoom) => setCurrentZoom(zoom)}
-                onZoomEnd={(zoom) => setCurrentZoom(zoom)}
+                onZoom={handleZoom}
+                onZoomEnd={handleZoom}
                 linkCanvasObject={renderLink}
                 enableNodeDrag={!shouldUseSimpleRendering}
                 autoPauseRedraw={true}
@@ -917,7 +943,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             {allowLasso && isLassoActive && <Lasso nodes={graphData.nodes} graph2ScreenCoords={graph2ScreenCoords} partial={true} width={containerSize.width}
                 height={containerSize.height} />}
             {minimap && graphData.nodes &&
-                <MiniMap zoomTransform={currentZoom}
+                <MiniMap zoomTransform={zoomState}
                     canvasWidth={containerSize.width}
                     canvasHeight={containerSize.height}
                     nodes={graphData.nodes as GraphNode[]} />}

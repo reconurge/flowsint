@@ -3,7 +3,7 @@ PROJECT_ROOT := $(shell pwd)
 
 # --- Cibles phony (pas des fichiers) ---
 .PHONY: install run stop infra api frontend celery clean dev check-env
-ENV_DIRS := flowsint-api flowsint-core flowsint-app
+ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
 # --- Installation des dépendances ---
 

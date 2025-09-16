@@ -75,6 +75,3 @@ clean:
 	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-transforms/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-api/.venv
-
-
-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

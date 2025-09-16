@@ -39,6 +39,32 @@
   -webkit-app-region: no-drag;
 }
 
+/* Appliquer sur toute la page */
+body {
+  scrollbar-width: thin;       /* Firefox */
+  scrollbar-color: #888 transparent; /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(125, 125, 125, 0.204);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.573);
+}
+
 body {
   @apply m-0;
   font-family:

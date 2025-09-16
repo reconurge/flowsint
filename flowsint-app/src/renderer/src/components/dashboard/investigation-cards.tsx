@@ -178,7 +178,7 @@ export function InvestigationCards() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 cq-xs:grid-cols-2 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-4">
                 {investigations.slice(0, 8).map((investigation: any) => (
                     <InvestigationCard key={investigation.id} investigation={investigation} />
                 ))}

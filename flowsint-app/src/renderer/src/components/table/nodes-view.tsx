@@ -78,7 +78,7 @@ const NodeItem = memo(function NodeItem({ node, onNodeClick, isSelected, onSelec
                 <div className="min-w-0 flex justify-start grow">
                     <button 
                         onClick={handleNodeClick} 
-                        className="font-medium hover:text-primary hover:underline cursor-pointer p-0"
+                        className="font-medium hover:text-primary hover:underline cursor-pointer truncate p-0"
                     >
                         <span className="block truncate">
                             {node.data?.label ?? node.id}

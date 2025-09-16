@@ -97,6 +97,7 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
       {dropdownActions.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
+            <div>
             <ToolbarButton
               isActive={isDropdownActive}
               tooltip={dropdownTooltip}
@@ -107,6 +108,7 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
             >
               {dropdownIcon || <ChevronDownIcon className="size-5" />}
             </ToolbarButton>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-full">
             {dropdownActions.map(renderDropdownMenuItem)}

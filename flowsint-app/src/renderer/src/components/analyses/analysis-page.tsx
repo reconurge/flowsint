@@ -30,6 +30,7 @@ export const AnalysisPage = ({ analysis, isLoading, isError, refetch }: { analys
         <div className="flex flex-col h-full w-full">
             {/* Analysis Editor */}
             <AnalysisEditor
+                showToolbar={true}
                 analysis={analysis || null}
                 investigationId={investigationId}
                 onAnalysisUpdate={handleAnalysisUpdate}

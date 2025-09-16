@@ -1,12 +1,13 @@
-# electron-chrome-tabs
+# flowsint-app
 
-An Electron application with React and TypeScript
+The folder for the flowsint client, an electron app wrapped with Vite and React. The main libraries used are:
 
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-## Project Setup
+- TanstackQuery
+- TanstackRouter
+- XYflow
+- react-force-graph
+  
+## Project setup
 
 ### Install
 

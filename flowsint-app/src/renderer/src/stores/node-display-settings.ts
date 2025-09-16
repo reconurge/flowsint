@@ -117,7 +117,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     phone: "#4CB5AE",           // teal doux
     location: "#E57373",        // rouge rosé
     email: "#8E7CC3",           // violet pastel
-    ip: "#F4A261",              // orange chaud
+    ip: "#5AA1C8",              // orange chaud
     socialprofile: "#A76DAA",   // mauve
     organization: "#BCA18A",    // taupe clair
     vehicle: "#E1B84D",         // jaune doux
@@ -127,7 +127,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
     plane: "#C1A78E",           // brun clair
     website: "#D279A6",         // rose pastel
     domain: "#66A892",          // vert sauge
-    subdomain: "#5AA1C8",       // bleu ciel
+    subdomain: "#F4A261",       // bleu ciel
     document: "#8F9CA3",        // gris bleuté
     financial: "#E98973",       // corail doux
     event: "#6DBBA2",           // vert menthe
@@ -336,4 +336,3 @@ export const useNodesDisplaySettings = create<NodesDisplaySettingsState>()(
         },
     ),
 )
-

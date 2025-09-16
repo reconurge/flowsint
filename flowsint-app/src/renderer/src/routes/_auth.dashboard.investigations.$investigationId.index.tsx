@@ -11,7 +11,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Calendar, User, FileText, BarChart3, Clock, ChevronDown } from 'lucide-react'
+import { Plus, Calendar, User, FileText, BarChart3, Clock, ChevronDown, Waypoints } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -236,34 +236,36 @@ function InvestigationPage() {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {investigation.sketches?.slice(0, 8).map((sketch: any) => (
-                                    <Card
-                                        key={sketch.id}
-                                        className="group py-2 relative overflow-hidden cursor-pointer border border-border hover:border-primary"
-                                        onClick={() => navigate({
+                                    <Card onClick={() => navigate({
                                             to: "/dashboard/investigations/$investigationId/$type/$id",
                                             params: {
                                                 investigationId: investigation.id,
                                                 type: "graph",
                                                 id: sketch.id
                                             }
-                                        })}
-                                    >
-                                        <CardContent className="p-6 relative">
-                                            <div className="space-y-3">
-                                                <h4 className="font-semibold line-clamp-1 group-hover:text-primary transition-colors">
-                                                    {sketch.title}
-                                                </h4>
-                                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                                                    {sketch.description || "No description provided"}
-                                                </p>
+                                        })} className="hover:shadow-lg py-4 transition-all duration-200 cursor-pointer group border hover:border-primary/20">
+                                        <CardContent className="h-full flex flex-col">
+                                            {/* Header with title and count */}
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <Waypoints className="w-4 h-4 text-primary" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                                                            {sketch.title}
+                                                        </h3>
+                                                        
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-blue-800/30">
-                                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                                    <span className="flex items-center gap-1">
-                                                        <Clock className="h-3 w-3" />
-                                                        {formatDistanceToNow(new Date(sketch.last_updated_at), { addSuffix: true })}
+                                            {/* Footer with timestamp */}
+                                            <div className="mt-auto">
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Clock className="w-3 h-3" />
+                                                    <span>
+                                                        Updated {formatDistanceToNow(new Date(sketch.last_updated_at), { addSuffix: true })}
                                                     </span>
-                                                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                                                 </div>
                                             </div>
                                         </CardContent>

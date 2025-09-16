@@ -1,11 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { InvestigationSkeleton } from '@/components/dashboard/investigation-skeleton';
 import { InvestigationCards } from '@/components/dashboard/investigation-cards';
-import { SectionCards } from '@/components/dashboard/section-cards';
-import { ChartAreaInteractive } from '@/components/dashboard/main-chart';
-import NewInvestigation from '@/components/investigations/new-investigation';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 // import { AnalysisCards } from '@/components/dashboard/analysis-cards';
 
 export const Route = createFileRoute('/_auth/dashboard/')({

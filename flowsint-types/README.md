@@ -2,4 +2,4 @@
 
 The types used in the flowsint transforms and core for flowsint.
 
->  ⚠️ 🚧 Work in progress ! No ready yet.
+>  ⚠️ 🚧 Work in progress !.

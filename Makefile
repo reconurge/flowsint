@@ -12,6 +12,11 @@ dev:
 	$(MAKE) install
 	$(MAKE) run
 
+prod:
+	$(MAKE) check-env
+	docker compose -f docker-compose.prod.yml up -d
+	$(MAKE) frontend
+
 check-env:
 	@echo "🔎 Checking .env files..."
 	@for dir in $(ENV_DIRS); do \

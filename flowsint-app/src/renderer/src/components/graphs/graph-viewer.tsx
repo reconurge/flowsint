@@ -615,7 +615,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
         ctx.fill();
         // Early exit for simple rendering
-        if (shouldUseSimpleRendering) return;
+        if (shouldUseSimpleRendering && !isHovered) return;
         // Optimized icon rendering with cached images
         if (showIcons && node.nodeType) {
             const cachedImage = imageCache.get(node.nodeType);

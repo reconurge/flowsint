@@ -433,11 +433,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }, [graphData.nodes.length, initializeGraph, instanceId]);
 
     // New function to determine which labels should be visible based on zoom and weight
-    const getVisibleLabels = useMemo(() => {
+    const handleShouldShowLabel = useCallback((nodeId: string, ctx: CanvasRenderingContext2D, globalScale: number) => {
         if (!showLabels || !labelRenderingCompound.current) return new Set<string>();
         const nodestoDisplay: string[] = [];
         // Min and max are actually dependant on the zoom level
-        const zoom = Math.round(zoomRef.current.k)
+        const zoom = Math.round(globalScale)
         const zoomCursor = Math.max(CONSTANTS.MIN_ZOOM, Math.min(CONSTANTS.MAX_ZOOM, zoom))
         const cursor = Math.round(zoomCursor * labelRenderingCompound.current.constants.nodesLength / (CONSTANTS.MAX_ZOOM))
         const min = Math.round(cursor - CONSTANTS.MAX_VISIBLE_LABELS)
@@ -452,8 +452,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             }
         }
         // We compute the number of labels to show, making sure it doesn't reach the threshold
-        return new Set<string>(nodestoDisplay);
-    }, [labelRenderingCompound.current, zoomRef.current.k, showLabels]);
+        return new Set<string>(nodestoDisplay).has(nodeId);
+    }, [labelRenderingCompound.current, showLabels]);
 
     // Event handlers with proper memoization
     const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
@@ -626,7 +626,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             const label = truncateText(node.nodeLabel || node.label || node.id, 58);
             if (label) {
                 // Check if this node's label should be visible in current layer
-                const shouldShowLabel = getVisibleLabels.has(node.id);
+                const shouldShowLabel = handleShouldShowLabel(node.id, ctx, globalScale);
                 // Always show labels for highlighted nodes
                 if (!shouldShowLabel && !isHighlighted) {
                     return;
@@ -646,7 +646,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 ctx.fillText(label, node.x, bgY + bgHeight / 2);
             }
         }
-    }, [forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode, getVisibleLabels]);
+    }, [forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode]);
 
     const renderLink = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
         const { source: start, target: end } = link;

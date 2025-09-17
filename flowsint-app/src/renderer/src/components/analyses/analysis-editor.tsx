@@ -77,8 +77,8 @@ export const AnalysisEditor = ({
     const { investigationId: routeInvestigationId, type } = useParams({ strict: false }) as { investigationId: string, type: string }
     const queryClient = useQueryClient()
 
-    // State for editor
-    const [editorValue, setEditorValue] = useState<any>("")
+    // State/refs for editor
+    const editorContentRef = useRef<any>("")
     const [titleValue, setTitleValue] = useState("")
     const [editor, setEditor] = useState<Editor | undefined>(undefined)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
@@ -96,7 +96,7 @@ export const AnalysisEditor = ({
 
     // Handle editor content changes
     const handleEditorChange = useCallback((value: any) => {
-        setEditorValue(value)
+        editorContentRef.current = value
         if (analysis) {
             setSaveStatus("unsaved")
             debouncedSave()
@@ -143,7 +143,7 @@ export const AnalysisEditor = ({
             return analysisService.update(analysis.id, JSON.stringify({
                 ...analysis,
                 ...updated,
-                content: editorValue
+                content: editorContentRef.current
             }))
         },
         onSuccess: async (data) => {
@@ -223,45 +223,19 @@ export const AnalysisEditor = ({
         }
     }
 
-    // Update editor content when analysis changes
+    // Update non-editor UI when analysis changes (avoid resetting content on same doc)
     useEffect(() => {
         if (analysis) {
-            // Handle both string content and object content
-            const content = analysis.content
-            if (typeof content === 'string') {
-                try {
-                    // Try to parse if it's a JSON string
-                    const parsedContent = JSON.parse(content)
-                    setEditorValue(parsedContent)
-                    if (editor) {
-                        editor.commands.setContent(parsedContent)
-                    }
-                } catch {
-                    // If parsing fails, treat as plain text and convert to editor format
-                    setEditorValue(content || "")
-                    if (editor) {
-                        editor.commands.setContent(content || "")
-                    }
-                }
-            } else {
-                // If it's already an object, use it directly
-                setEditorValue(content || "")
-                if (editor) {
-                    editor.commands.setContent(content || "")
-                }
-            }
             setTitleValue(analysis.title || "")
             setSaveStatus("saved")
         } else {
-            // Reset when no analysis is selected
-            setEditorValue("")
             setTitleValue("")
             setSaveStatus("saved")
             if (editor) {
                 editor.commands.setContent("")
             }
         }
-    }, [analysis?.id, analysis?.content, analysis?.title, editor])
+    }, [analysis?.id, analysis?.title, editor])
 
 
 
@@ -441,7 +415,17 @@ export const AnalysisEditor = ({
                         <MinimalTiptapEditor
                             key={analysis.id}
                             immediatelyRender={true}
-                            value={editorValue}
+                            value={(function getInitialContent() {
+                                const content = analysis.content as any
+                                if (typeof content === 'string') {
+                                    try {
+                                        return JSON.parse(content)
+                                    } catch {
+                                        return content || ""
+                                    }
+                                }
+                                return content || ""
+                            })()}
                             onChange={handleEditorChange}
                             className="w-full h-full"
                             editorContentClassName="p-5 min-h-[300px]"

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/command"
 import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut"
 import { Button } from "./ui/button"
-import { Link } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { investigationService } from "@/api/investigation-service"
 import { analysisService } from "@/api/analysis-service"
@@ -44,6 +44,7 @@ function CommandSkeleton() {
 export function Command() {
     const [open, setOpen] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState("")
+    const navigate = useNavigate()
 
     // Fetch investigations when dialog opens
     const { data: investigations = [], isLoading: isLoadingInvestigations } = useQuery({
@@ -121,7 +122,7 @@ export function Command() {
 
     return (
         <>
-            <Button variant="ghost" onClick={() => setOpen(true)} className="text-xs h-8 w-full max-w-3xs border flex items-center justify-between hover:border-muted-foreground text-muted-foreground">
+            <Button variant="ghost" onClick={() => setOpen(true)} className="text-xs h-8 w-full max-w-3xs border flex rounded-full items-center justify-between hover:border-muted-foreground text-muted-foreground">
                 <span className="flex items-center gap-2"><Search /> Search Flowsint{" "}</span>
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                     <span className="text-xs">⌘</span>J
@@ -146,53 +147,64 @@ export function Command() {
                                         <CommandGroup heading="Investigations">
                                             {filteredData.investigations.map((investigation: Investigation) => (
                                                 <React.Fragment key={investigation.id}>
-                                                    <CommandItem asChild>
-                                                        <Link
-                                                            onClick={() => setOpen(false)}
-                                                            to="/dashboard/investigations/$investigationId"
-                                                            params={{ investigationId: investigation.id }}
-                                                            className="flex items-center gap-2"
-                                                        >
+                                                    <CommandItem
+                                                        onSelect={() => {
+                                                            navigate({
+                                                                to: "/dashboard/investigations/$investigationId",
+                                                                params: { investigationId: investigation.id },
+                                                            })
+                                                            setOpen(false)
+                                                        }}
+                                                    >
+                                                        <div className="flex items-center gap-2">
                                                             <Fingerprint className="h-4 w-4" />
                                                             <span className="flex-1">{investigation.name}</span>
-                                                        </Link>
+                                                        </div>
                                                     </CommandItem>
 
                                                     {/* Show sketches for this investigation */}
                                                     {investigation.sketches?.map((sketch) => (
-                                                        <CommandItem asChild key={sketch.id}>
-                                                            <Link
-                                                                onClick={() => setOpen(false)}
-                                                                to="/dashboard/investigations/$investigationId/$type/$id"
-                                                                params={{
-                                                                    investigationId: investigation.id,
-                                                                    type: "graph",
-                                                                    id: sketch.id
-                                                                }}
-                                                                className="flex items-center gap-2 pl-6"
-                                                            >
+                                                        <CommandItem
+                                                            key={sketch.id}
+                                                            onSelect={() => {
+                                                                navigate({
+                                                                    to: "/dashboard/investigations/$investigationId/$type/$id",
+                                                                    params: {
+                                                                        investigationId: investigation.id,
+                                                                        type: "graph",
+                                                                        id: sketch.id,
+                                                                    },
+                                                                })
+                                                                setOpen(false)
+                                                            }}
+                                                        >
+                                                            <div className="flex items-center gap-2 pl-6">
                                                                 <Waypoints className="h-4 w-4" />
                                                                 <span className="flex-1">{sketch.title}</span>
-                                                            </Link>
+                                                            </div>
                                                         </CommandItem>
                                                     ))}
 
                                                     {/* Show analyses for this investigation */}
                                                     {analysesByInvestigation[investigation.id]?.map((analysis) => (
-                                                        <CommandItem asChild key={analysis.id}>
-                                                            <Link
-                                                                onClick={() => setOpen(false)}
-                                                                to="/dashboard/investigations/$investigationId/$type/$id"
-                                                                params={{
-                                                                    investigationId: investigation.id,
-                                                                    type: "analysis",
-                                                                    id: analysis.id
-                                                                }}
-                                                                className="flex items-center gap-2 pl-6"
-                                                            >
+                                                        <CommandItem
+                                                            key={analysis.id}
+                                                            onSelect={() => {
+                                                                navigate({
+                                                                    to: "/dashboard/investigations/$investigationId/$type/$id",
+                                                                    params: {
+                                                                        investigationId: investigation.id,
+                                                                        type: "analysis",
+                                                                        id: analysis.id,
+                                                                    },
+                                                                })
+                                                                setOpen(false)
+                                                            }}
+                                                        >
+                                                            <div className="flex items-center gap-2 pl-6">
                                                                 <FileText className="h-4 w-4" />
                                                                 <span className="flex-1">{analysis.title}</span>
-                                                            </Link>
+                                                            </div>
                                                         </CommandItem>
                                                     ))}
                                                 </React.Fragment>
@@ -202,17 +214,27 @@ export function Command() {
 
                                     <CommandSeparator />
                                     <CommandGroup heading="Quick Actions">
-                                        <CommandItem asChild>
-                                            <Link onClick={() => setOpen(false)} to="/dashboard/investigations">
+                                        <CommandItem
+                                            onSelect={() => {
+                                                navigate({ to: "/dashboard/investigations" })
+                                                setOpen(false)
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
                                                 <Fingerprint className="h-4 w-4" />
                                                 <span>All Investigations</span>
-                                            </Link>
+                                            </div>
                                         </CommandItem>
-                                        <CommandItem asChild>
-                                            <Link onClick={() => setOpen(false)} to="/dashboard/flows">
+                                        <CommandItem
+                                            onSelect={() => {
+                                                navigate({ to: "/dashboard/flows" })
+                                                setOpen(false)
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
                                                 <Workflow className="h-4 w-4" />
                                                 <span>Transforms</span>
-                                            </Link>
+                                            </div>
                                         </CommandItem>
                                     </CommandGroup>
                                 </>

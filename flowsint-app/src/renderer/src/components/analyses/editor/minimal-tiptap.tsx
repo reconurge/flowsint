@@ -21,7 +21,7 @@ export interface MinimalTiptapProps
   className?: string
   editorContentClassName?: string
   onEditorReady?: (editor: Editor) => void
-  showToolbar?:boolean
+  showToolbar?: boolean
 }
 //@ts-ignore
 const Toolbar = ({ editor }: { editor: Editor }) => (
@@ -62,10 +62,11 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 export const MinimalTiptapEditor = React.forwardRef<
   HTMLDivElement,
   MinimalTiptapProps
->(({ value, onChange, className, editorContentClassName, onEditorReady, showToolbar=false, ...props }, ref) => {
+>(({ value, onChange, className, editorContentClassName, onEditorReady, showToolbar = false, ...props }, ref) => {
   const editor = useMinimalTiptapEditor({
     value,
     onUpdate: onChange,
+    shouldRerenderOnTransaction: false,
     ...props,
   })
 

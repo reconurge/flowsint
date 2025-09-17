@@ -29,233 +29,233 @@ class ResolveTransform(Transform):
     def documentation(cls) -> str:
         """Return formatted markdown documentation for the domain resolver transform."""
         return """
-# Domain Resolver Transform
+        # Domain Resolver Transform
 
-Resolve domain names to their corresponding IP addresses using DNS queries. This transform performs forward DNS resolution to discover the IP addresses associated with domain names and subdomains.
+        Resolve domain names to their corresponding IP addresses using DNS queries. This transform performs forward DNS resolution to discover the IP addresses associated with domain names and subdomains.
 
-## Overview
+        ## Overview
 
-The Domain Resolver Transform takes domain names as input and returns their resolved IP addresses. It automatically handles different input formats and validates domains before attempting resolution.
+        The Domain Resolver Transform takes domain names as input and returns their resolved IP addresses. It automatically handles different input formats and validates domains before attempting resolution.
 
-## Input/Output Types
+        ## Input/Output Types
 
-- **Input**: `List[Domain]` - Array of domain objects to resolve
-- **Output**: `List[Ip]` - Array of resolved IP addresses
+        - **Input**: `List[Domain]` - Array of domain objects to resolve
+        - **Output**: `List[Ip]` - Array of resolved IP addresses
 
-## Input Format Support
+        ## Input Format Support
 
-The transform accepts multiple input formats and automatically converts them:
+        The transform accepts multiple input formats and automatically converts them:
 
-### String Format
+        ### String Format
 
-```python
-["example.com", "subdomain.example.com"]
-```
+        ```python
+        ["example.com", "subdomain.example.com"]
+        ```
 
-### Dictionary Format
+        ### Dictionary Format
 
-```python
-[
-    {"domain": "example.com"},
-    {"domain": "subdomain.example.com"}
-]
-```
+        ```python
+        [
+            {"domain": "example.com"},
+            {"domain": "subdomain.example.com"}
+        ]
+        ```
 
-### Domain Object Format
+        ### Domain Object Format
 
-```python
-[
-    Domain(domain="example.com", root=True),
-    Domain(domain="subdomain.example.com", root=False)
-]
-```
+        ```python
+        [
+            Domain(domain="example.com", root=True),
+            Domain(domain="subdomain.example.com", root=False)
+        ]
+        ```
 
-## Resolution Process
+        ## Resolution Process
 
-### 1. Input Validation
+        ### 1. Input Validation
 
-- Validates domain format using built-in validation
-- Determines if domain is root domain or subdomain
-- Filters out invalid domains
+        - Validates domain format using built-in validation
+        - Determines if domain is root domain or subdomain
+        - Filters out invalid domains
 
-### 2. DNS Resolution
+        ### 2. DNS Resolution
 
-- Uses Python's `socket.gethostbyname()` for DNS queries
-- Resolves each domain to its primary A record
-- Handles resolution errors gracefully
+        - Uses Python's `socket.gethostbyname()` for DNS queries
+        - Resolves each domain to its primary A record
+        - Handles resolution errors gracefully
 
-### 3. Result Storage
+        ### 3. Result Storage
 
-- Stores domain-to-IP relationships in Neo4j graph database
-- Creates nodes for both domains and IP addresses
-- Establishes `RESOLVES_TO` relationships
+        - Stores domain-to-IP relationships in Neo4j graph database
+        - Creates nodes for both domains and IP addresses
+        - Establishes `RESOLVES_TO` relationships
 
-## Example Usage
+        ## Example Usage
 
-### Basic Domain Resolution
+        ### Basic Domain Resolution
 
-**Input:**
-```json
-[
-    "google.com",
-    "github.com",
-    "stackoverflow.com"
-]
-```
+        **Input:**
+        ```json
+        [
+            "google.com",
+            "github.com",
+            "stackoverflow.com"
+        ]
+        ```
 
-**Expected Output:**
-```json
-[
-    {"address": "142.250.191.14"},
-    {"address": "140.82.113.4"},
-    {"address": "151.101.193.69"}
-]
-```
+        **Expected Output:**
+        ```json
+        [
+            {"address": "142.250.191.14"},
+            {"address": "140.82.113.4"},
+            {"address": "151.101.193.69"}
+        ]
+        ```
 
-### Mixed Input Types
+        ### Mixed Input Types
 
-**Input:**
-```json
-[
-    "example.com",
-    {"domain": "subdomain.example.com"},
-    {"domain": "api.example.com", "root": false}
-]
-```
+        **Input:**
+        ```json
+        [
+            "example.com",
+            {"domain": "subdomain.example.com"},
+            {"domain": "api.example.com", "root": false}
+        ]
+        ```
 
-## Graph Database Storage
+        ## Graph Database Storage
 
-### Node Creation
+        ### Node Creation
 
-**Domain Node:**
-```cypher
-MERGE (d:domain {domain: "example.com"})
-SET d.sketch_id = "sketch-uuid",
-    d.label = "example.com",
-    d.type = "domain"  // or "subdomain"
-```
+        **Domain Node:**
+        ```cypher
+        MERGE (d:domain {domain: "example.com"})
+        SET d.sketch_id = "sketch-uuid",
+            d.label = "example.com",
+            d.type = "domain"  // or "subdomain"
+        ```
 
-**IP Node:**
-```cypher
-MERGE (ip:ip {address: "93.184.216.34"})
-SET ip.sketch_id = "sketch-uuid",
-    ip.label = "93.184.216.34",
-    ip.type = "ip"
-```
+        **IP Node:**
+        ```cypher
+        MERGE (ip:ip {address: "93.184.216.34"})
+        SET ip.sketch_id = "sketch-uuid",
+            ip.label = "93.184.216.34",
+            ip.type = "ip"
+        ```
 
-### Relationship Creation
+        ### Relationship Creation
 
-```cypher
-MERGE (d)-[:RESOLVES_TO {sketch_id: "sketch-uuid"}]->(ip)
-```
+        ```cypher
+        MERGE (d)-[:RESOLVES_TO {sketch_id: "sketch-uuid"}]->(ip)
+        ```
 
-## Domain Type Classification
+        ## Domain Type Classification
 
-The transform automatically classifies domains:
+        The transform automatically classifies domains:
 
-- **Root Domain**: `example.com` → `type: "domain"`
-- **Subdomain**: `api.example.com` → `type: "subdomain"`
+        - **Root Domain**: `example.com` → `type: "domain"`
+        - **Subdomain**: `api.example.com` → `type: "subdomain"`
 
-## Error Handling
+        ## Error Handling
 
-### Resolution Failures
+        ### Resolution Failures
 
-When DNS resolution fails, the transform:
+        When DNS resolution fails, the transform:
 
-- Logs the error with domain name
-- Continues processing remaining domains
-- Does not create nodes for failed resolutions
+        - Logs the error with domain name
+        - Continues processing remaining domains
+        - Does not create nodes for failed resolutions
 
-Common resolution failures:
+        Common resolution failures:
 
-- **NXDOMAIN**: Domain does not exist
-- **Timeout**: DNS server not responding
-- **Network errors**: Connectivity issues
+        - **NXDOMAIN**: Domain does not exist
+        - **Timeout**: DNS server not responding
+        - **Network errors**: Connectivity issues
 
-### Invalid Input Handling
+        ### Invalid Input Handling
 
-The transform filters out:
+        The transform filters out:
 
-- Malformed domain names
-- Empty strings
-- Non-string, non-dict, non-Domain inputs
+        - Malformed domain names
+        - Empty strings
+        - Non-string, non-dict, non-Domain inputs
 
-## Performance Considerations
+        ## Performance Considerations
 
-### Resolution Speed
+        ### Resolution Speed
 
-- Sequential DNS queries (not parallelized)
-- Typical resolution time: 10-100ms per domain
-- Consider batch size for large domain lists
+        - Sequential DNS queries (not parallelized)
+        - Typical resolution time: 10-100ms per domain
+        - Consider batch size for large domain lists
 
-### DNS Caching
+        ### DNS Caching
 
-- Relies on system DNS cache
-- Results may vary based on TTL values
-- Fresh queries may take longer than cached ones
+        - Relies on system DNS cache
+        - Results may vary based on TTL values
+        - Fresh queries may take longer than cached ones
 
-## Use Cases
+        ## Use Cases
 
-### Investigation Scenarios
+        ### Investigation Scenarios
 
-1. **Domain Enumeration**: Resolve discovered subdomains to find active hosts
-2. **Infrastructure Mapping**: Map domain-to-IP relationships for target organization
-3. **CDN Detection**: Identify content delivery network usage patterns
-4. **IP Pivoting**: Find shared hosting infrastructure across domains
+        1. **Domain Enumeration**: Resolve discovered subdomains to find active hosts
+        2. **Infrastructure Mapping**: Map domain-to-IP relationships for target organization
+        3. **CDN Detection**: Identify content delivery network usage patterns
+        4. **IP Pivoting**: Find shared hosting infrastructure across domains
 
-### Workflow Integration
+        ### Workflow Integration
 
-```
-[Domain Discovery] → [Domain Resolver] → [IP Geolocation]
-                                      → [Port Transform]
-                                      → [ASN Lookup]
-```
+        ```
+        [Domain Discovery] → [Domain Resolver] → [IP Geolocation]
+                                            → [Port Transform]
+                                            → [ASN Lookup]
+        ```
 
-## Security Considerations
+        ## Security Considerations
 
-- **DNS Leakage**: Resolution queries may be logged by DNS providers
-- **Rate Limiting**: Some DNS servers may rate limit queries
-- **Privacy**: Consider using secure DNS (DoH/DoT) for sensitive investigations
+        - **DNS Leakage**: Resolution queries may be logged by DNS providers
+        - **Rate Limiting**: Some DNS servers may rate limit queries
+        - **Privacy**: Consider using secure DNS (DoH/DoT) for sensitive investigations
 
-## Limitations
+        ## Limitations
 
-- **IPv4 Only**: Currently resolves only A records (IPv4)
-- **Single IP**: Returns only the first resolved IP address
-- **No CNAME Following**: Does not follow CNAME chains
-- **No Cache Control**: Cannot force fresh DNS queries
+        - **IPv4 Only**: Currently resolves only A records (IPv4)
+        - **Single IP**: Returns only the first resolved IP address
+        - **No CNAME Following**: Does not follow CNAME chains
+        - **No Cache Control**: Cannot force fresh DNS queries
 
-## Troubleshooting
+        ## Troubleshooting
 
-### Common Issues
+        ### Common Issues
 
-1. **No Results**: Check domain validity and DNS configuration
-2. **Timeouts**: Verify network connectivity and DNS server availability
-3. **Partial Results**: Some domains may fail while others succeed
+        1. **No Results**: Check domain validity and DNS configuration
+        2. **Timeouts**: Verify network connectivity and DNS server availability
+        3. **Partial Results**: Some domains may fail while others succeed
 
-### Debug Information
+        ### Debug Information
 
-The transform provides logging for:
-- Input validation results
-- DNS resolution attempts
-- Graph database operations
-- Error conditions
+        The transform provides logging for:
+        - Input validation results
+        - DNS resolution attempts
+        - Graph database operations
+        - Error conditions
 
-Check FlowSint logs for detailed resolution information.
+        Check FlowSint logs for detailed resolution information.
 
-## Technical Details
+        ## Technical Details
 
-### DNS Query Method
+        ### DNS Query Method
 
-- Uses Python's standard library `socket.gethostbyname()`
-- Follows system DNS configuration
-- Respects `/etc/hosts` file entries on Unix systems
+        - Uses Python's standard library `socket.gethostbyname()`
+        - Follows system DNS configuration
+        - Respects `/etc/hosts` file entries on Unix systems
 
-### Graph Integration
+        ### Graph Integration
 
-- Creates typed nodes in Neo4j
-- Maintains investigation context via `sketch_id`
-- Supports graph traversal for relationship analysis
-"""
+        - Creates typed nodes in Neo4j
+        - Maintains investigation context via `sketch_id`
+        - Supports graph traversal for relationship analysis
+        """
 
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []

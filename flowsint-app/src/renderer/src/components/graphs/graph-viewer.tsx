@@ -84,15 +84,17 @@ const CONSTANTS = {
     LINK_WIDTH: 1,
     ARROW_SIZE: 8,
     ARROW_ANGLE: Math.PI / 6,
-    // New constants for layered label display
-    LABEL_LAYERS: [
-        { minZoom: 1.5, minWeight: 15, maxNodes: 20 },    // High-weight nodes first
-        { minZoom: 2.0, minWeight: 10, maxNodes: 50 },    // Medium-weight nodes
-        { minZoom: 2.5, minWeight: 5, maxNodes: 100 },    // Lower-weight nodes
-        { minZoom: 3.0, minWeight: 1, maxNodes: 200 },    // All remaining nodes
-        { minZoom: 4.0, minWeight: 0, maxNodes: Infinity } // All nodes at high zoom
-    ]
+    MIN_ZOOM: 0.4,
+    MAX_ZOOM: 5,
+    MAX_VISIBLE_LABELS: 3
 };
+
+interface LabelRenderingCompound {
+    weightList: Map<string, number>,
+    constants: {
+        nodesLength: number
+    }
+}
 
 // Pre-computed constants
 const LABEL_FONT_STRING = `${CONSTANTS.LABEL_FONT_SIZE}px Sans-Serif`;
@@ -158,8 +160,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set());
     const [hoverNode, setHoverNode] = useState<string | null>(null);
     const zoomRef = useRef({ k: 1, x: 0, y: 0 });
-    const [zoomState, setZoomState] = useState({ k: 1, x: 0, y: 0 });
-
+    // The ref for the node weighlist.
+    const labelRenderingCompound = useRef<LabelRenderingCompound>(
+        {
+            weightList: new Map(), constants: {
+                nodesLength: 0,
+            }
+        }
+    );
     // Store references
     const graphRef = useRef<any>();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -179,6 +187,27 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     const selectedNodes = useGraphStore(s => s.selectedNodes)
     const { theme } = useTheme();
     const setOpenMainDialog = useGraphStore(state => state.setOpenMainDialog);
+
+    const shouldUseSimpleRendering = useMemo(() =>
+        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || zoomRef.current.k < 1.5
+        , [nodes.length, zoomRef.current.k]);
+
+    // Add state for tooltip
+    const [tooltip, setTooltip] = useState<{
+        x: number;
+        y: number;
+        data: {
+            label: string,
+            connections: string
+            type: string
+        } | null;
+        visible: boolean;
+    }>({
+        x: 0,
+        y: 0,
+        data: null,
+        visible: false
+    });
 
     const graph2ScreenCoords = useCallback((node: GraphNode) => {
         return graphRef.current.graph2ScreenCoords(node.x, node.y);
@@ -210,13 +239,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     const handleZoom = useCallback((zoom: any) => {
         zoomRef.current = zoom;
-        setZoomState(zoom);
     }, []);
 
     // Optimized graph initialization callback
     const initializeGraph = useCallback((graphInstance: any) => {
         if (!graphInstance) return;
-
         // Check if the graph instance has the required methods
         if (typeof graphInstance.zoom !== 'function' || typeof graphInstance.zoomToFit !== 'function') {
             // If methods aren't available yet, retry after a short delay
@@ -227,10 +254,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             }, 100);
             return;
         }
-
         if (isGraphReadyRef.current) return;
         isGraphReadyRef.current = true;
-
         // Only set global actions if no instanceId is provided (for main graph)
         if (!instanceId) {
             setActions({
@@ -253,7 +278,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 }
             });
         }
-
         // Call external ref callback
         onGraphRef?.(graphInstance);
     }, [setActions, onGraphRef, instanceId]);
@@ -263,7 +287,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (graphRef.current) {
             initializeGraph(graphRef.current);
         }
-
         // Cleanup: reset actions when component unmounts (only for main graph)
         return () => {
             if (!instanceId && isGraphReadyRef.current) {
@@ -296,29 +319,20 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 });
             }
         };
-
         // Initial size
         updateSize();
-
         // Set up resize observer
         const resizeObserver = new ResizeObserver(updateSize);
         if (containerRef.current) {
             resizeObserver.observe(containerRef.current);
         }
-
         // Also listen for window resize events
         window.addEventListener('resize', updateSize);
-
         return () => {
             resizeObserver.disconnect();
             window.removeEventListener('resize', updateSize);
         };
     }, []);
-
-    // Memoized rendering check
-    const shouldUseSimpleRendering = useMemo(() =>
-        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || zoomState.k < 1.5
-        , [nodes.length, zoomState.k]);
 
     // Memoized graph data transformation with proper memoization dependencies
     const graphData = useMemo(() => {
@@ -361,12 +375,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 groupSize
             };
         });
-
         // Build node relationships (neighbors and links)
         transformedEdges.forEach(link => {
             const sourceNode = nodeMap.get(link.source);
             const targetNode = nodeMap.get(link.target);
-
             if (sourceNode && targetNode) {
                 // Add neighbors
                 if (!sourceNode.neighbors.includes(targetNode)) {
@@ -375,13 +387,18 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 if (!targetNode.neighbors.includes(sourceNode)) {
                     targetNode.neighbors.push(sourceNode);
                 }
-
                 // Add links
                 sourceNode.links.push(link);
                 targetNode.links.push(link);
             }
         });
-
+        // feed the labelRenderingCompound
+        labelRenderingCompound.current.weightList = new Map(
+            transformedNodes
+                .sort((a, b) => b.neighbors.length - a.neighbors.length)
+                .map(node => [node.id, node.neighbors.length])
+        );
+        labelRenderingCompound.current.constants = { nodesLength: transformedNodes.length, }
         // Handle hierarchy layout
         if (view === "hierarchy") {
             const { nodes: nds, edges: eds } = getDagreLayoutedElements(transformedNodes, transformedEdges);
@@ -410,38 +427,33 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                     initializeGraph(graphRef.current);
                 }
             }, 200);
-
             return () => clearTimeout(timeoutId);
         }
         return undefined;
     }, [graphData.nodes.length, initializeGraph, instanceId]);
 
-
     // New function to determine which labels should be visible based on zoom and weight
     const getVisibleLabels = useMemo(() => {
-        if (!showLabels) return new Set<string>();
-
-        // Find the appropriate layer for current zoom
-        const currentLayer = CONSTANTS.LABEL_LAYERS.find(layer => zoomState.k >= layer.minZoom);
-        if (!currentLayer) return new Set<string>();
-
-        // Sort nodes by weight (number of connections) in descending order
-        const sortedNodes = [...graphData.nodes].sort((a, b) => {
-            const aWeight = a.neighbors?.length || 0;
-            const bWeight = b.neighbors?.length || 0;
-            return bWeight - aWeight; // Higher weight first
-        });
-
-        // Take only the nodes that meet the criteria for this layer
-        const visibleNodes = sortedNodes
-            .filter(node => {
-                const weight = node.neighbors?.length || 0;
-                return weight >= currentLayer.minWeight;
-            })
-            .slice(0, currentLayer.maxNodes);
-
-        return new Set(visibleNodes.map(node => node.id));
-    }, [graphData.nodes, zoomState.k, showLabels]);
+        if (!showLabels || !labelRenderingCompound.current) return new Set<string>();
+        const nodestoDisplay: string[] = [];
+        // Min and max are actually dependant on the zoom level
+        const zoom = Math.round(zoomRef.current.k)
+        const zoomCursor = Math.max(CONSTANTS.MIN_ZOOM, Math.min(CONSTANTS.MAX_ZOOM, zoom))
+        const cursor = Math.round(zoomCursor * labelRenderingCompound.current.constants.nodesLength / (CONSTANTS.MAX_ZOOM))
+        const min = Math.round(cursor - CONSTANTS.MAX_VISIBLE_LABELS)
+        const max = Math.round(cursor + CONSTANTS.MAX_VISIBLE_LABELS)
+        let i = 0;
+        for (const id of labelRenderingCompound.current.weightList.keys()) {
+            i++
+            const thresholdReached = nodestoDisplay.length >= CONSTANTS.MAX_VISIBLE_LABELS
+            if (thresholdReached) break;
+            if (i >= min && i <= max) {
+                nodestoDisplay.push(id);
+            }
+        }
+        // We compute the number of labels to show, making sure it doesn't reach the threshold
+        return new Set<string>(nodestoDisplay);
+    }, [labelRenderingCompound.current, zoomRef.current.k, showLabels]);
 
     // Event handlers with proper memoization
     const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
@@ -497,23 +509,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         setHighlightNodes(newHighlightNodes);
         setHighlightLinks(newHighlightLinks);
     }, []);
-
-    // Add state for tooltip
-    const [tooltip, setTooltip] = useState<{
-        x: number;
-        y: number;
-        data: {
-            label: string,
-            connections: string
-            type: string
-        } | null;
-        visible: boolean;
-    }>({
-        x: 0,
-        y: 0,
-        data: null,
-        visible: false
-    });
 
     // Enhanced node hover with tooltip
     const handleNodeHoverWithTooltip = useCallback((node: any) => {
@@ -575,10 +570,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             return;
         }
         lastRenderTimeRef.current = now;
-
         const newHighlightNodes = new Set<string>();
         const newHighlightLinks = new Set<string>();
-
         if (link) {
             // Add the hovered link
             newHighlightLinks.add(`${link.source}-${link.target}`);
@@ -593,6 +586,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     // Optimized node rendering with proper icon caching
     const renderNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        const shouldUseSimpleRendering = nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || globalScale < 1.5
         const size = Math.min((node.nodeSize + node.neighbors.length / 5), 20) * (forceSettings.nodeSize.value / 100 + .4);
         node.val = size / 5
         const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id);
@@ -628,17 +622,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             }
         }
         // Optimized label rendering with layered display
-        if (showLabels && globalScale > 3) {
+        if (showLabels) {
             const label = truncateText(node.nodeLabel || node.label || node.id, 58);
             if (label) {
                 // Check if this node's label should be visible in current layer
                 const shouldShowLabel = getVisibleLabels.has(node.id);
-
                 // Always show labels for highlighted nodes
                 if (!shouldShowLabel && !isHighlighted) {
                     return;
                 }
-                const fontSize = Math.max(CONSTANTS.MIN_FONT_SIZE, CONSTANTS.NODE_FONT_SIZE * (size / 7));
+                const fontSize = Math.max(CONSTANTS.MIN_FONT_SIZE, CONSTANTS.NODE_FONT_SIZE * (size / 2) / globalScale);
                 ctx.font = `${fontSize}px Sans-Serif`;
                 const bgHeight = fontSize + 2;
                 const bgY = node.y + size / 2 + 1;
@@ -653,11 +646,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 ctx.fillText(label, node.x, bgY + bgHeight / 2);
             }
         }
-    }, [shouldUseSimpleRendering, forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode, getVisibleLabels]);
+    }, [forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode, getVisibleLabels]);
 
-    const renderLink = useCallback((link: any, ctx: CanvasRenderingContext2D) => {
+    const renderLink = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
         const { source: start, target: end } = link;
         if (typeof start !== 'object' || typeof end !== 'object') return;
+        const shouldUseSimpleRendering = nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || globalScale < 1.5
         const linkKey = `${start.id}-${end.id}`;
         const isHighlighted = highlightLinks.has(linkKey);
         const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0;
@@ -796,7 +790,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             ctx.fillText(link.label, 0, 0);
             ctx.restore();
         }
-    }, [shouldUseSimpleRendering, forceSettings, theme, highlightLinks, highlightNodes]);
+    }, [forceSettings, theme, highlightLinks, highlightNodes]);
 
     // Restart simulation when settings change (debounced)
     useEffect(() => {
@@ -913,7 +907,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
                 width={containerSize.width}
                 height={containerSize.height}
                 graphData={graphData}
-                nodeLabel={() => ''} nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : GRAPH_COLORS.TRANSPARENT}
+                nodeLabel={() => ''}
+                // nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : GRAPH_COLORS.TRANSPARENT}
                 nodeRelSize={6}
                 onNodeRightClick={handleNodeRightClick}
                 onNodeClick={handleNodeClick}
@@ -942,11 +937,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             />
             {allowLasso && isLassoActive && <Lasso nodes={graphData.nodes} graph2ScreenCoords={graph2ScreenCoords} partial={true} width={containerSize.width}
                 height={containerSize.height} />}
-            {minimap && graphData.nodes &&
+            {/* {minimap && graphData.nodes &&
                 <MiniMap zoomTransform={zoomState}
                     canvasWidth={containerSize.width}
                     canvasHeight={containerSize.height}
-                    nodes={graphData.nodes as GraphNode[]} />}
+                    nodes={graphData.nodes as GraphNode[]} />} */}
         </div >
     );
 };

@@ -11,9 +11,12 @@ import NeighborsGraph from "./neighbors"
 import Relationships from "./relationships"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../../ui/resizable"
 import { GraphNode } from "@/types"
+import { useGraphStore } from "@/stores/graph-store"
 
 const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
     const { id: sketchId } = useParams({ strict: false })
+    const nodes = useGraphStore((s) => s.nodes)
+    node = nodes.find((n) => n.id === node?.id) || null
     if (!node) {
         return (
             <div className="flex p-12 rounded-xl border flex-col items-center justify-center h-full text-center p-8">
@@ -78,12 +81,12 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                     <ResizableHandle />
                     <ResizablePanel defaultSize={40} minSize={25}>
                         <div className="h-full w-full p-3">
-                            <NeighborsGraph sketchId={sketchId as string} nodeId={node.id} />
+                            <NeighborsGraph nodeLength={nodes.length} sketchId={sketchId as string} nodeId={node.id} />
                         </div>
                     </ResizablePanel>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={30} minSize={20}>
-                        <Relationships sketchId={sketchId as string} nodeId={node.id} />
+                        <Relationships nodeLength={nodes.length} sketchId={sketchId as string} nodeId={node.id} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>

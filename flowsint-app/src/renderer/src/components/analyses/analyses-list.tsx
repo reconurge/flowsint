@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { queryKeys } from "@/api/query-keys"
+import ErrorState from "../shared/error-state"
 
 const AnalysisItem = ({ analysis, active }: { analysis: Analysis, active: boolean }) => {
     return (
@@ -45,7 +46,7 @@ const AnalysisList = () => {
     const navigate = useNavigate()
     
     // Fetch all analyses for this investigation
-    const { data: analyses, isLoading, error } = useQuery({
+    const { data: analyses, isLoading, error, refetch } = useQuery({
         queryKey: queryKeys.analyses.byInvestigation(investigationId || ""),
         queryFn: () => analysisService.getByInvestigationId(investigationId || ""),
         enabled: !!investigationId,
@@ -82,7 +83,14 @@ const AnalysisList = () => {
         }
     })
 
-    if (error) return <div>Error: {(error as Error).message}</div>
+    if (error) return (
+        <ErrorState
+            title="Couldn't load analyses"
+            description="Something went wrong while fetching data. Please try again."
+            error={error}
+            onRetry={() => refetch()}
+        />
+    )
     return (
         <div className="w-full h-full bg-card flex flex-col overflow-hidden">
             <div className="p-2 flex items-center h-11 gap-2 border-b shrink-0">

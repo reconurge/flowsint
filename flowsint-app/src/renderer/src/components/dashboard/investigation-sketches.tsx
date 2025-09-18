@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart3, Plus, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import NewSketch from "@/components/graphs/new-sketch";
+import ErrorState from "@/components/shared/error-state";
 
 interface InvestigationSketchesProps {
     investigationId: string;
@@ -109,7 +110,7 @@ function InvestigationSketchesSkeleton() {
 }
 
 export function InvestigationSketches({ investigationId, title }: InvestigationSketchesProps) {
-    const { data: investigation, isLoading } = useQuery({
+    const { data: investigation, isLoading, error, refetch } = useQuery({
         queryKey: ["investigation", "sketches", investigationId],
         queryFn: () => investigationService.getById(investigationId),
         staleTime: 30000, // 30 seconds
@@ -119,6 +120,17 @@ export function InvestigationSketches({ investigationId, title }: InvestigationS
 
     if (isLoading) {
         return <InvestigationSketchesSkeleton />;
+    }
+
+    if (error) {
+        return (
+            <ErrorState
+                title="Couldn't load sketches"
+                description="Something went wrong while fetching data. Please try again."
+                error={error}
+                onRetry={() => refetch()}
+            />
+        );
     }
 
     const sketches = investigation?.sketches || [];

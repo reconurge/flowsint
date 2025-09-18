@@ -26,9 +26,9 @@ const getInlineRelationships = (nodes: GraphNode[], edges: GraphEdge[]): Relatio
     return relationships
 }
 
-const Relationships = memo(({ sketchId, nodeId }: { sketchId: string, nodeId: string }) => {
+const Relationships = memo(({ sketchId, nodeId, nodeLength }: { sketchId: string, nodeId: string, nodeLength: number }) => {
     const { data: neighborsData, isLoading } = useQuery({
-        queryKey: ['neighbors', sketchId, nodeId],
+        queryKey: ['neighbors', sketchId, nodeId, nodeLength],
         queryFn: () => sketchService.getNodeNeighbors(sketchId, nodeId),
     });
 

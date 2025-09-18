@@ -28,10 +28,10 @@ export function SkeletonList({ rowCount, className, mode = 'list' }: SkeletonLis
                                     <Skeleton className="h-4 w-4 mr-1" />
                                     <Skeleton className="h-4 w-24" />
                                 </div>
-                                <div className="flex gap-2">
+                                {/* <div className="flex gap-2">
                                     <Skeleton className="h-5 w-16" />
                                     <Skeleton className="h-5 w-16" />
-                                </div>
+                                </div> */}
                             </div>
                         </CardContent>
                     </Card>

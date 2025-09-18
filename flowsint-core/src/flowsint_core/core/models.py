@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from flowsint_core.core.types import Role
 from sqlalchemy import (
     String,
     Text,
@@ -11,6 +12,7 @@ from sqlalchemy import (
     Column,
     Enum as SQLEnum,
     LargeBinary,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -52,37 +54,15 @@ class Investigation(Base):
     analyses = relationship("Analysis", back_populates="investigation")
     chats = relationship("Chat", back_populates="investigation")
     owner = relationship("Profile", foreign_keys=[owner_id])
+    user_roles = relationship(
+        "InvestigationUserRole",
+        back_populates="investigation",
+        passive_deletes=True,
+        cascade="save-update, merge",
+    )
     __table_args__ = (
         Index("idx_investigations_id", "id"),
         Index("idx_investigations_owner_id", "owner_id"),
-    )
-
-
-class InvestigationsProfiles(Base):
-    __tablename__ = "investigations_profiles"
-
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
-    investigation_id = mapped_column(
-        PGUUID(as_uuid=True),
-        ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
-    )
-    profile_id = mapped_column(
-        PGUUID(as_uuid=True),
-        ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
-    )
-    role = mapped_column(String, server_default="member")
-
-    __table_args__ = (
-        Index("idx_investigations_profiles_investigation_id", "investigation_id"),
-        Index("idx_investigations_profiles_profile_id", "profile_id"),
-        # Uniqueness constraint
-        Index(
-            "projects_profiles_unique_profile_project",
-            "profile_id",
-            "investigation_id",
-            unique=True,
-        ),
     )
 
 
@@ -114,6 +94,7 @@ class Profile(Base):
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
+    investigation_roles = relationship("InvestigationUserRole", back_populates="user")
 
 
 class Scan(Base):
@@ -313,4 +294,46 @@ class Key(Base):
     __table_args__ = (
         Index("idx_keys_owner_id", "owner_id"),
         Index("idx_keys_service", "name"),
+    )
+
+
+class InvestigationUserRole(Base):
+    __tablename__ = "investigation_user_roles"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    investigation_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    roles: Mapped[list[Role]] = mapped_column(
+        ARRAY(SQLEnum(Role, name="role_enum", create_constraint=True)),
+        nullable=False,
+        server_default="{}",
+    )
+
+    # Relations ORM
+    user = relationship(
+        "Profile", back_populates="investigation_roles", passive_deletes=True
+    )
+    investigation = relationship(
+        "Investigation", back_populates="user_roles", passive_deletes=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "investigation_id", name="uq_user_investigation"),
+        Index("idx_investigation_roles_user_id", "user_id"),
+        Index("idx_investigation_roles_investigation_id", "investigation_id"),
     )

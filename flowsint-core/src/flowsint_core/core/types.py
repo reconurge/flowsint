@@ -1,3 +1,4 @@
+import enum
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 from datetime import datetime
@@ -90,3 +91,9 @@ class FlowBranch(BaseModel):
     steps: List[FlowStep] = Field(
         ..., description="List of steps in this branch", title="Steps"
     )
+
+
+class Role(str, enum.Enum):
+    OWNER = "owner"
+    EDITOR = "editor"
+    VIEWER = "viewer"

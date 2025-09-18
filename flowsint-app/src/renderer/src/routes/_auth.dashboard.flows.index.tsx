@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import NewFlow from '@/components/flows/new-flow'
 import { flowService } from '@/api/flow-service'
+import ErrorState from '@/components/shared/error-state'
 
 interface Flow {
     id: string
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/_auth/dashboard/flows/')({
 
 function FlowPage() {
     const navigate = useNavigate()
-    const { data: flows, isLoading } = useQuery<Flow[]>({
+    const { data: flows, isLoading, error, refetch } = useQuery<Flow[]>({
         queryKey: ["flow"],
         queryFn: () => flowService.get(),
     })
@@ -72,6 +73,13 @@ function FlowPage() {
                     <div className="p-2">
                         <SkeletonList rowCount={6} mode="card" />
                     </div>
+                ) : error ? (
+                    <ErrorState
+                        title="Couldn't load flows"
+                        description="Something went wrong while fetching data. Please try again."
+                        error={error}
+                        onRetry={() => refetch()}
+                    />
                 ) : !flows?.length ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                         <div className="rounded-full bg-muted/50 p-4 mb-4">

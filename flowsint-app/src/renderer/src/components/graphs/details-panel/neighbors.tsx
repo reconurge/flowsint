@@ -4,11 +4,11 @@ import ForceGraphViewer from "../graph-viewer";
 import Loader from "@/components/loader";
 import { memo, useRef } from "react";
 
-const NeighborsGraph = memo(({ sketchId, nodeId }: { sketchId: string, nodeId: string }) => {
+const NeighborsGraph = memo(({ sketchId, nodeId, nodeLength }: { sketchId: string, nodeId: string, nodeLength: number }) => {
     const containerRef = useRef<HTMLDivElement>(null)
 
     const { data: neighborsData, isLoading } = useQuery({
-        queryKey: ['neighbors', sketchId, nodeId],
+        queryKey: ['neighbors', sketchId, nodeId, nodeLength],
         queryFn: () => sketchService.getNodeNeighbors(sketchId, nodeId),
     });
     return (

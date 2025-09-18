@@ -1,10 +1,10 @@
+from app.security.permissions import check_investigation_permission
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Literal
+from typing import Literal, List
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from flowsint_core.utils import flatten
-from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from flowsint_core.core.models import Sketch, Profile
@@ -63,6 +63,9 @@ def create_sketch(
     current_user: Profile = Depends(get_current_user),
 ):
     sketch_data = data.dict()
+    check_investigation_permission(
+        current_user.id, sketch_data.get("investigation_id"), actions=["create"], db=db
+    )
     sketch_data["owner_id"] = current_user.id
     sketch = Sketch(**sketch_data)
     db.add(sketch)

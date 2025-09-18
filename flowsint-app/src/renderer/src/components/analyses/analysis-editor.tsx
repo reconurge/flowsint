@@ -275,7 +275,7 @@ export const AnalysisEditor = ({
                                             </Button>
                                         </div>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] truncate text-ellipsis p-0" align="start">
+                                    <PopoverContent className="w-[200px] max-h-[300px] overflow-y-auto truncate text-ellipsis p-0" align="start">
                                         <div className="flex flex-col truncate text-ellipsis">
                                             {analyses.map((analysisItem) => (
                                                 <Button

@@ -12,11 +12,11 @@ const DEFAULT_SETTINGS = {
             value: true,
             description: "Display Flo, your AI assistant."
         },
-        showMinimap: {
-            type: "boolean",
-            value: true,
-            description: "Display the MiniMap on the graph panel."
-        },
+        // showMinimap: {
+        //     type: "boolean",
+        //     value: true,
+        //     description: "Display the MiniMap on the graph panel."
+        // },
         graphViewerThreshold: {
             type: "select",
             value: 800,

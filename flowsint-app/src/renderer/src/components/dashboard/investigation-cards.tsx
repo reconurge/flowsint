@@ -9,6 +9,7 @@ import { FolderOpen, Plus, Clock, FileText, BarChart3, Search } from "lucide-rea
 import { formatDistanceToNow } from "date-fns";
 import NewInvestigation from "@/components/investigations/new-investigation";
 import { queryKeys } from "@/api/query-keys";
+import ErrorState from "@/components/shared/error-state";
 
 interface InvestigationCardProps {
     investigation: any;
@@ -114,7 +115,7 @@ function InvestigationCardsSkeleton() {
 }
 
 export function InvestigationCards() {
-    const { data: investigations, isLoading } = useQuery({
+    const { data: investigations, isLoading, error, refetch } = useQuery({
         queryKey: queryKeys.investigations.dashboard,
         queryFn: investigationService.get,
         staleTime: 30000, // 30 seconds
@@ -124,6 +125,31 @@ export function InvestigationCards() {
 
     if (isLoading) {
         return <InvestigationCardsSkeleton />;
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Search className="h-6 w-6 text-muted-foreground" />
+                        <h2 className="text-xl font-semibold">Investigations</h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button disabled size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            New Investigation
+                        </Button>
+                    </div>
+                </div>
+                <ErrorState
+                    title="Couldn't load investigations"
+                    description="Something went wrong while fetching data. Please try again."
+                    error={error}
+                    onRetry={() => refetch()}
+                />
+            </div>
+        );
     }
 
     if (!investigations || investigations.length === 0) {
@@ -141,19 +167,27 @@ export function InvestigationCards() {
                         </Button>
                     </NewInvestigation>
                 </div>
-                <div className="text-center py-12">
-                    <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No investigations yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                        Create your first investigation to start organizing your data.
-                    </p>
-                    <NewInvestigation noDropDown>
-                        <Button>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Investigation
-                        </Button>
-                    </NewInvestigation>
-                </div>
+
+                {/* Compact dashed card empty state */}
+                <Card className="border-dashed">
+                    <CardContent className="p-6">
+                        <div className="w-full flex flex-col items-center text-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                <FolderOpen className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="text-base font-medium">No investigations yet</div>
+                            <div className="text-sm text-muted-foreground max-w-md">
+                                Create an investigation to group graphs and analyses by case or topic.
+                            </div>
+                            <NewInvestigation noDropDown>
+                                <Button>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create investigation
+                                </Button>
+                            </NewInvestigation>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }

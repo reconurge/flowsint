@@ -10,6 +10,7 @@ import NewSketch from "../graphs/new-sketch"
 import { SketchListItem } from "./investigation-list"
 import { useState, useMemo } from "react"
 import { queryKeys } from "@/api/query-keys"
+import ErrorState from "../shared/error-state"
 
 const SketchList = () => {
     const { investigationId } = useParams({ strict: false })
@@ -29,7 +30,14 @@ const SketchList = () => {
         )
     }, [investigation?.sketches, searchQuery])
 
-    if (error) return <div>Error: {(error as Error).message}</div>
+    if (error) return (
+        <ErrorState
+            title="Couldn't load sketches"
+            description="Something went wrong while fetching data. Please try again."
+            error={error}
+            onRetry={() => refetch()}
+        />
+    )
     return (
         <div className="w-full h-full bg-card flex flex-col overflow-hidden">
             <div className="p-2 flex items-center gap-2 border-b shrink-0">

@@ -52,11 +52,10 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
         mutationFn: investigationService.create,
         onSuccess: (result) => {
             if (result.id) {
-                handleClose()
                 toast.success("New investigation created.")
                 router.navigate({ to: `/dashboard/investigations/${result.id}` })
                 // Invalidate investigations list
-                queryClient.invalidateQueries({ 
+                queryClient.invalidateQueries({
                     queryKey: queryKeys.investigations.list
                 })
             } else {
@@ -64,8 +63,7 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
             }
         },
         onError: (error) => {
-            console.error('Error creating investigation:', error)
-            toast.error("An unexpected error occurred")
+            toast.error(error.message)
         }
     })
 
@@ -147,7 +145,7 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
     if (noDropDown) {
         return (
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild><div>{children}</div></DialogTrigger>
+                <DialogTrigger asChild><span role="button">{children}</span></DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>New investigation</DialogTitle>

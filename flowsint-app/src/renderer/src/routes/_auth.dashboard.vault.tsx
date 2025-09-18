@@ -15,6 +15,7 @@ import { useConfirm } from '../components/use-confirm-dialog'
 import Loader from '@/components/loader'
 import { type Key as KeyType } from '@/types/key'
 import { queryKeys } from '@/api/query-keys'
+import ErrorState from '@/components/shared/error-state'
 export const Route = createFileRoute('/_auth/dashboard/vault')({
     component: VaultPage,
 })
@@ -27,7 +28,7 @@ function VaultPage() {
     const { confirm } = useConfirm()
 
     // Fetch keys
-    const { data: keys = [], isLoading: keysLoading } = useQuery<KeyType[]>({
+    const { data: keys = [], isLoading: keysLoading, error: keysError, refetch } = useQuery<KeyType[]>({
         queryKey: queryKeys.keys.list,
         queryFn: () => KeyService.get(),
     })
@@ -90,6 +91,27 @@ function VaultPage() {
                     </div>
                     <div className="w-full h-full flex items-center justify-center">
                         <Loader />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (keysError) {
+        return (
+            <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
+                <div className='max-w-7xl mx-auto flex h-full flex-col gap-12 items-center justify-start'>
+                    <div className='w-full'>
+                        <h1 className="font-semibold text-2xl">Vault</h1>
+                        <p className="opacity-60 mt-3">Manage your API keys for third-party services.</p>
+                    </div>
+                    <div className="w-full h-full flex items-center justify-center">
+                        <ErrorState
+                            title="Couldn't load keys"
+                            description="Something went wrong while fetching data. Please try again."
+                            error={keysError}
+                            onRetry={() => refetch()}
+                        />
                     </div>
                 </div>
             </div>

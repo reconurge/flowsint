@@ -8,9 +8,10 @@ import { formatDistanceToNow } from "date-fns"
 import { Pencil, PlusIcon } from "lucide-react"
 import { Button } from "../ui/button"
 import NewFlow from "./new-flow"
+import ErrorState from "../shared/error-state"
 
 const FlowsList = () => {
-    const { data: flows, isLoading } = useQuery({
+    const { data: flows, isLoading, error, refetch } = useQuery({
         queryKey: ["flows"],
         queryFn: () => flowService.get(),
     })
@@ -33,6 +34,14 @@ const FlowsList = () => {
     }, [flows, searchQuery])
 
     if (isLoading) return <div className="p-2"><SkeletonList rowCount={10} /></div>
+    if (error) return (
+        <ErrorState
+            title="Couldn't load flows"
+            description="Something went wrong while fetching data. Please try again."
+            error={error}
+            onRetry={() => refetch()}
+        />
+    )
 
     return (
         <div className="flex flex-col h-full min-h-0 overflow-hidden bg-card">

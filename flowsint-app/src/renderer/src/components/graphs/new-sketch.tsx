@@ -46,18 +46,17 @@ export default function NewSketch({ children }: NewSketchProps) {
         mutationFn: sketchService.create,
         onSuccess: (result) => {
             if (result.id) {
-                setOpen(false)
                 toast.success("New sketch created.")
                 router.navigate({
                     to: `/dashboard/investigations/${investigationId}/graph/${result.id}`,
                 })
                 reset()
                 // Invalidate sketches list and investigation sketches
-                queryClient.invalidateQueries({ 
+                queryClient.invalidateQueries({
                     queryKey: queryKeys.sketches.list
                 })
                 if (investigationId) {
-                    queryClient.invalidateQueries({ 
+                    queryClient.invalidateQueries({
                         queryKey: queryKeys.investigations.sketches(investigationId)
                     })
                 }
@@ -66,8 +65,7 @@ export default function NewSketch({ children }: NewSketchProps) {
             }
         },
         onError: (error) => {
-            toast.error("Unexpected error occurred.")
-            console.error(error)
+            toast.error(error.message)
         }
     })
 
@@ -137,7 +135,7 @@ export default function NewSketch({ children }: NewSketchProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div>{children}</div>
+                <span role="button">{children}</span>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

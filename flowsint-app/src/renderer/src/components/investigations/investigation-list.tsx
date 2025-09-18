@@ -4,10 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import type { Sketch } from "@/types/sketch"
 import NewInvestigation from "./new-investigation"
 import { Button } from "../ui/button"
-import { MoreVertical, PlusIcon, Trash2, Waypoints, ChevronRight, ChevronDown, Folder, FileText, Search } from "lucide-react"
+import { MoreVertical, PlusIcon, Trash2, Waypoints, ChevronRight, ChevronDown, Search } from "lucide-react"
 import { Input } from "../ui/input"
 import { cn } from "@/lib/utils"
-import { Link, useParams } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { SkeletonList } from "../shared/skeleton-list"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
@@ -16,6 +16,7 @@ import { sketchService } from "@/api/sketch-service"
 import { useState, useMemo } from "react"
 import { queryKeys } from "@/api/query-keys"
 import { useMutation } from "@tanstack/react-query"
+import ErrorState from "../shared/error-state"
 
 // Tree node component for investigations and sketches
 const TreeNode = ({
@@ -161,6 +162,8 @@ export const SketchListItem = ({ sketch, investigationId, refetch }: { sketch: S
             queryClient.invalidateQueries({
                 queryKey: queryKeys.investigations.dashboard
             })
+            // Ensure parent lists refresh
+            try { refetch(); } catch {}
         },
         onError: (error) => {
             console.error("Error deleting sketch:", error)
@@ -283,7 +286,14 @@ const InvestigationList = () => {
         }
     };
 
-    if (error) return <div>Error: {(error as Error).message}</div>
+    if (error) return (
+        <ErrorState
+            title="Couldn't load investigations"
+            description="Something went wrong while fetching data. Please try again."
+            error={error}
+            onRetry={() => refetch()}
+        />
+    )
     return (
         <div className="w-full h-full bg-card flex flex-col overflow-hidden">
             <div className="p-2 flex items-center gap-2 border-b">
@@ -350,16 +360,19 @@ const InvestigationList = () => {
                     })}
                 </div>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 p-4">
-                    <p className="text-sm text-muted-foreground">
-                        No investigations yet
-                    </p>
-                    <NewInvestigation noDropDown>
-                        <Button size="sm" variant="outline">
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            Create investigation
-                        </Button>
-                    </NewInvestigation>
+                <div className="flex-1 p-4">
+                    <div className="h-full w-full rounded-lg border border-dashed bg-muted/30 flex flex-col items-center justify-center text-center gap-3 p-6">
+                        <div className="text-sm font-medium">No investigations yet</div>
+                        <div className="text-xs text-muted-foreground max-w-xs">
+                            Create an investigation to organize your graphs and notes by case, incident, or research topic.
+                        </div>
+                        <NewInvestigation noDropDown>
+                            <Button size="sm">
+                                <PlusIcon className="w-4 h-4 mr-2" />
+                                Create investigation
+                            </Button>
+                        </NewInvestigation>
+                    </div>
                 </div>
             )}
         </div>

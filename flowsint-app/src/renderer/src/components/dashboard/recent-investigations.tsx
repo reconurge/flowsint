@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { investigationService } from '@/api/investigation-service';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
+import ErrorState from '@/components/shared/error-state';
 
 
 function LoadingSkeleton() {
@@ -31,13 +32,24 @@ function LoadingSkeleton() {
 }
 
 export function RecentInvestigations() {
-    const { data: investigations = [], isLoading } = useQuery({
+    const { data: investigations = [], isLoading, error, refetch } = useQuery({
         queryKey: ['recent-investigations'],
         queryFn: () => investigationService.get(),
     });
 
     if (isLoading) {
         return <LoadingSkeleton />;
+    }
+
+    if (error) {
+        return (
+            <ErrorState
+                title="Couldn't load recent investigations"
+                description="Something went wrong while fetching data. Please try again."
+                error={error}
+                onRetry={() => refetch()}
+            />
+        );
     }
 
     if (!investigations?.length) {

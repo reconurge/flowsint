@@ -1,5 +1,6 @@
 import socket
 from typing import List, Union
+from flowsint_core.core.logger import Logger
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
@@ -283,7 +284,11 @@ class ResolveTransform(Transform):
                 ip = socket.gethostbyname(d.domain)
                 results.append(Ip(address=ip))
             except Exception as e:
-                print(f"Error resolving {d.domain}: {e}")
+                Logger.info(
+                    self.sketch_id,
+                    {"message": f"Error resolving {d.domain}: {e}"},
+                )
+                continue
         return results
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:

@@ -1,10 +1,19 @@
 from uuid import UUID, uuid4
+from app.security.permissions import check_investigation_permission
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from datetime import datetime
+from flowsint_core.core.types import Role
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Analysis, Investigation, Profile, Sketch
+from flowsint_core.core.models import (
+    Analysis,
+    Investigation,
+    InvestigationUserRole,
+    Profile,
+    Sketch,
+)
 from app.api.deps import get_current_user
 from app.api.schemas.investigation import (
     InvestigationRead,
@@ -17,17 +26,52 @@ from flowsint_core.core.graph_db import neo4j_connection
 router = APIRouter()
 
 
+def get_user_accessible_investigations(
+    user_id: str, db: Session, allowed_roles: list[Role] = None
+) -> list[Investigation]:
+    """
+    Returns all investigations accessible to user depending on its roles
+    """
+    query = db.query(Investigation).join(
+        InvestigationUserRole,
+        InvestigationUserRole.investigation_id == Investigation.id,
+    )
+
+    query = query.filter(InvestigationUserRole.user_id == user_id)
+
+    if allowed_roles:
+        # ARRAY(Role) contains any of allowed_roles
+        conditions = [InvestigationUserRole.roles.any(role) for role in allowed_roles]
+        # Inclut également le propriétaire de l’investigation
+        query = query.filter(or_(*conditions, Investigation.owner_id == user_id))
+
+    return (
+        query.options(
+            selectinload(Investigation.sketches),
+            selectinload(Investigation.analyses),
+            selectinload(Investigation.owner),
+        )
+        .distinct()
+        .all()
+    )
+
+
 # Get the list of all investigations
 @router.get("", response_model=List[InvestigationRead])
 def get_investigations(
-    db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
 ):
-    investigations = (
-        db.query(Investigation)
-        .options(selectinload(Investigation.sketches), selectinload(Investigation.analyses), selectinload(Investigation.owner))
-        .filter(Investigation.owner_id == current_user.id)
-        .all()
+    """
+    Récupère toutes les investigations accessibles à l'utilisateur
+    selon ses rôles (OWNER, EDITOR, VIEWER).
+    """
+    allowed_roles_for_read = [Role.OWNER, Role.EDITOR, Role.VIEWER]
+
+    investigations = get_user_accessible_investigations(
+        user_id=current_user.id, db=db, allowed_roles=allowed_roles_for_read
     )
+
     return investigations
 
 
@@ -46,12 +90,21 @@ def create_investigation(
         description=payload.description or payload.name,
         owner_id=current_user.id,
         status="active",
-        created_at=datetime.utcnow(),
-        last_updated_at=datetime.utcnow(),
     )
     db.add(new_investigation)
+
+    new_roles = InvestigationUserRole(
+        id=uuid4(),
+        user_id=current_user.id,
+        investigation_id=new_investigation.id,
+        roles=[Role.OWNER],
+    )
+    db.add(new_roles)
+
     db.commit()
     db.refresh(new_investigation)
+    db.refresh(new_roles)
+
     return new_investigation
 
 
@@ -62,9 +115,14 @@ def get_investigation_by_id(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(current_user.id, investigation_id, actions=["read"], db=db)
     investigation = (
         db.query(Investigation)
-        .options(selectinload(Investigation.sketches), selectinload(Investigation.analyses), selectinload(Investigation.owner))
+        .options(
+            selectinload(Investigation.sketches),
+            selectinload(Investigation.analyses),
+            selectinload(Investigation.owner),
+        )
         .filter(Investigation.id == investigation_id)
         .filter(Investigation.owner_id == current_user.id)
         .first()

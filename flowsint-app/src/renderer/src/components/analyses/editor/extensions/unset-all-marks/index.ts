@@ -1,1 +1,1 @@
-export * from "./unset-all-marks"
+export * from './unset-all-marks'

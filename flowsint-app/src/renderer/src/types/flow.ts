@@ -3,15 +3,15 @@
 // ================================
 
 export interface Flow {
-    id: string;
-    class_name: string;
-    name: string;
-    module: string;
-    description: string;
-    documentation: string;
-    category: string;
-    created_at: string;
-    last_updated_at: string;
+  id: string
+  class_name: string
+  name: string
+  module: string
+  description: string
+  documentation: string
+  category: string
+  created_at: string
+  last_updated_at: string
 }
 
 // ================================
@@ -19,11 +19,11 @@ export interface Flow {
 // ================================
 
 export interface FlowsData {
-    [category: string]: Flow[];
+  [category: string]: Flow[]
 }
 
 export interface FlowData {
-    items: FlowsData;
+  items: FlowsData
 }
 
 // ================================
@@ -31,6 +31,6 @@ export interface FlowData {
 // ================================
 
 export interface FlowItemProps {
-    flow: Flow;
-    category: string;
+  flow: Flow
+  category: string
 }

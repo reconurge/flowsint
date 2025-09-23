@@ -1,1 +1,1 @@
-export * from "./reset-marks-on-enter"
+export * from './reset-marks-on-enter'

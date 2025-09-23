@@ -1,15 +1,15 @@
 // src/routes/register.tsx
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useRegister } from '@/hooks/use-auth';
-import { useForm, FormProvider } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import FormField from '@/components/shared/form-field';
-import { Button } from '@/components/ui/button';
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useRegister } from '@/hooks/use-auth'
+import { useForm, FormProvider } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import FormField from '@/components/shared/form-field'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/register')({
-  component: Register,
-});
+  component: Register
+})
 
 const registerSchema = z
   .object({
@@ -19,14 +19,14 @@ const registerSchema = z
       .max(50, "Le nom d'utilisateur ne peut pas dépasser 50 caractères"),
     email: z.string().email('Veuillez entrer une adresse email valide'),
     password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
-    confirmPassword: z.string(),
+    confirmPassword: z.string()
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
-  });
+    path: ['confirmPassword']
+  })
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>
 
 function Register() {
   const methods = useForm<RegisterFormValues>({
@@ -35,20 +35,20 @@ function Register() {
       username: '',
       email: '',
       password: '',
-      confirmPassword: '',
-    },
-  });
+      confirmPassword: ''
+    }
+  })
 
-  const registerMutation = useRegister();
+  const registerMutation = useRegister()
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      const { confirmPassword, ...registerData } = data;
-      await registerMutation.mutateAsync(registerData);
+      const { confirmPassword, ...registerData } = data
+      await registerMutation.mutateAsync(registerData)
     } catch (error) {
-      console.error("Erreur d'inscription:", error);
+      console.error("Erreur d'inscription:", error)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -124,7 +124,7 @@ function Register() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Register;
+export default Register

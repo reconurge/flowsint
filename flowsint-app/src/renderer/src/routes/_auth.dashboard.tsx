@@ -4,15 +4,15 @@ import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_auth/dashboard')({
-    component: DashboardPage,
+  component: DashboardPage
 })
 
 function DashboardPage() {
-    const settings = useGraphSettingsStore(s => s.settings)
-    return (
-        <RootLayout>
-            <Outlet />
-            {Boolean(settings?.general?.showFlow?.value) && <FloatingChat />}
-        </RootLayout>
-    )
+  const settings = useGraphSettingsStore((s) => s.settings)
+  return (
+    <RootLayout>
+      <Outlet />
+      {Boolean(settings?.general?.showFlow?.value) && <FloatingChat />}
+    </RootLayout>
+  )
 }

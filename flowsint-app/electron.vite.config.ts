@@ -1,6 +1,6 @@
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from "@tailwindcss/vite"
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import { resolve } from 'path'
 
@@ -16,12 +16,12 @@ export default defineConfig({
       {
         ...tanstackRouter({
           target: 'react',
-          routesDirectory: "src/renderer/src/routes",
-          generatedRouteTree: "src/renderer/src/routeTree.gen.ts",
-          routeFileIgnorePrefix: "_",
+          routesDirectory: 'src/renderer/src/routes',
+          generatedRouteTree: 'src/renderer/src/routeTree.gen.ts',
+          routeFileIgnorePrefix: '_',
           autoCodeSplitting: true,
           verboseFileRoutes: false,
-          quoteStyle: "double",
+          quoteStyle: 'double',
           semicolons: true
         }),
         enforce: 'pre'
@@ -30,8 +30,7 @@ export default defineConfig({
         babel: {
           // plugins: ["babel-plugin-react-compiler"]
         }
-      }
-      ),
+      }),
       tailwindcss()
     ],
     resolve: {
@@ -41,12 +40,12 @@ export default defineConfig({
     },
     server: {
       proxy: {
-        "/api": {
-          target: "http://localhost:5001",
+        '/api': {
+          target: 'http://localhost:5001',
           changeOrigin: true,
-          secure: false,
-        },
-      },
-    },
+          secure: false
+        }
+      }
+    }
   }
 })

@@ -30,7 +30,9 @@ export const Tab = ({ item, onClick, onRemove, isSelected, showSeparator }: Prop
         transition: { ease: 'easeInOut' }
       }}
       className={cn(
-        isSelected ? 'selected bg-card text-white border-border border-b-transparent' : 'bg-background text-white border-transparent',
+        isSelected
+          ? 'selected bg-card text-white border-border border-b-transparent'
+          : 'bg-background text-white border-transparent',
         'titlebar-button min-w-[120px] max-w-[200px]',
         `h-8 pl-4 relative cursor-pointer flex justify-between items-center
         flex-1 overflow-hidden select-none border border-transparent`
@@ -44,7 +46,7 @@ export const Tab = ({ item, onClick, onRemove, isSelected, showSeparator }: Prop
           isSelected ? 'text-foreground' : 'text-white'
         )}
         layout="position"
-      >{`${item.title || "Flowsint"} ${item.id}`}</motion.span>
+      >{`${item.title || 'Flowsint'} ${item.id}`}</motion.span>
       <motion.div
         layout
         className="absolute top-0 bottom-0 right-[0px] flex align-center items-center justify-end

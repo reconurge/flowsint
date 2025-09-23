@@ -1,23 +1,20 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { getShortcutKey } from "../utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+import { getShortcutKey } from '../utils'
 
-export interface ShortcutKeyProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+export interface ShortcutKeyProps extends React.HTMLAttributes<HTMLSpanElement> {
   keys: string[]
 }
 
 export const ShortcutKey = React.forwardRef<HTMLSpanElement, ShortcutKeyProps>(
   ({ className, keys, ...props }, ref) => {
     const modifiedKeys = keys.map((key) => getShortcutKey(key))
-    const ariaLabel = modifiedKeys
-      .map((shortcut) => shortcut.readable)
-      .join(" + ")
+    const ariaLabel = modifiedKeys.map((shortcut) => shortcut.readable).join(' + ')
 
     return (
       <span
         aria-label={ariaLabel}
-        className={cn("inline-flex items-center gap-0.5", className)}
+        className={cn('inline-flex items-center gap-0.5', className)}
         {...props}
         ref={ref}
       >
@@ -25,7 +22,7 @@ export const ShortcutKey = React.forwardRef<HTMLSpanElement, ShortcutKeyProps>(
           <kbd
             key={shortcut.symbol}
             className={cn(
-              "inline-block min-w-2.5 text-center align-baseline font-sans text-xs font-medium capitalize text-[rgb(156,157,160)]",
+              'inline-block min-w-2.5 text-center align-baseline font-sans text-xs font-medium capitalize text-[rgb(156,157,160)]',
 
               className
             )}
@@ -40,4 +37,4 @@ export const ShortcutKey = React.forwardRef<HTMLSpanElement, ShortcutKeyProps>(
   }
 )
 
-ShortcutKey.displayName = "ShortcutKey"
+ShortcutKey.displayName = 'ShortcutKey'

@@ -1,7 +1,7 @@
-import { type Editor, Extension } from "@tiptap/react"
-import { Plugin, PluginKey } from "@tiptap/pm/state"
-import type { FileError, FileValidationOptions } from "../../utils"
-import { filterFiles } from "../../utils"
+import { type Editor, Extension } from '@tiptap/react'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import type { FileError, FileValidationOptions } from '../../utils'
+import { filterFiles } from '../../utils'
 
 type FileHandlePluginOptions = {
   key?: PluginKey
@@ -12,18 +12,10 @@ type FileHandlePluginOptions = {
 } & FileValidationOptions
 
 const FileHandlePlugin = (options: FileHandlePluginOptions) => {
-  const {
-    key,
-    editor,
-    onPaste,
-    onDrop,
-    onValidationError,
-    allowedMimeTypes,
-    maxFileSize,
-  } = options
+  const { key, editor, onPaste, onDrop, onValidationError, allowedMimeTypes, maxFileSize } = options
 
   return new Plugin({
-    key: key || new PluginKey("fileHandler"),
+    key: key || new PluginKey('fileHandler'),
 
     props: {
       handleDrop(view, event) {
@@ -38,17 +30,14 @@ const FileHandlePlugin = (options: FileHandlePluginOptions) => {
 
         const pos = view.posAtCoords({
           left: event.clientX,
-          top: event.clientY,
+          top: event.clientY
         })
 
-        const [validFiles, errors] = filterFiles(
-          Array.from(dataTransfer.files),
-          {
-            allowedMimeTypes,
-            maxFileSize,
-            allowBase64: options.allowBase64,
-          }
-        )
+        const [validFiles, errors] = filterFiles(Array.from(dataTransfer.files), {
+          allowedMimeTypes,
+          maxFileSize,
+          allowBase64: options.allowBase64
+        })
 
         if (errors.length > 0 && onValidationError) {
           onValidationError(errors)
@@ -69,15 +58,12 @@ const FileHandlePlugin = (options: FileHandlePluginOptions) => {
           return
         }
 
-        const [validFiles, errors] = filterFiles(
-          Array.from(clipboardData.files),
-          {
-            allowedMimeTypes,
-            maxFileSize,
-            allowBase64: options.allowBase64,
-          }
-        )
-        const html = clipboardData.getData("text/html")
+        const [validFiles, errors] = filterFiles(Array.from(clipboardData.files), {
+          allowedMimeTypes,
+          maxFileSize,
+          allowBase64: options.allowBase64
+        })
+        const html = clipboardData.getData('text/html')
 
         if (errors.length > 0 && onValidationError) {
           onValidationError(errors)
@@ -86,21 +72,19 @@ const FileHandlePlugin = (options: FileHandlePluginOptions) => {
         if (validFiles.length > 0 && onPaste) {
           onPaste(editor, validFiles, html)
         }
-      },
-    },
+      }
+    }
   })
 }
 
-export const FileHandler = Extension.create<
-  Omit<FileHandlePluginOptions, "key" | "editor">
->({
-  name: "fileHandler",
+export const FileHandler = Extension.create<Omit<FileHandlePluginOptions, 'key' | 'editor'>>({
+  name: 'fileHandler',
 
   addOptions() {
     return {
       allowBase64: false,
       allowedMimeTypes: [],
-      maxFileSize: 0,
+      maxFileSize: 0
     }
   },
 
@@ -109,8 +93,8 @@ export const FileHandler = Extension.create<
       FileHandlePlugin({
         key: new PluginKey(this.name),
         editor: this.editor,
-        ...this.options,
-      }),
+        ...this.options
+      })
     ]
-  },
+  }
 })

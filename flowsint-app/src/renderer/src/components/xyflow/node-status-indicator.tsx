@@ -1,20 +1,20 @@
-import { cn } from "@/lib/utils"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from '@/lib/utils'
+import { cva, type VariantProps } from 'class-variance-authority'
 
 const nodeStatusIndicatorVariants = cva(
-  "absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-background",
+  'absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-background',
   {
     variants: {
       variant: {
-        success: "bg-green-500",
-        error: "bg-red-500",
-        loading: "bg-blue-500",
-        pending: "bg-gray-500",
-      },
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        loading: 'bg-blue-500',
+        pending: 'bg-gray-500'
+      }
     },
     defaultVariants: {
-      variant: "pending",
-    },
+      variant: 'pending'
+    }
   }
 )
 
@@ -33,8 +33,7 @@ export function NodeStatusIndicator({
   return (
     <div className="relative">
       {children}
-      {showStatus &&
-        <div className={cn(nodeStatusIndicatorVariants({ variant }), className)} />}
+      {showStatus && <div className={cn(nodeStatusIndicatorVariants({ variant }), className)} />}
     </div>
   )
-} 
+}

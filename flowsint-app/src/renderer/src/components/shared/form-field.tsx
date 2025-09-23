@@ -1,16 +1,16 @@
 // src/components/FormField.tsx
-import React, { type InputHTMLAttributes } from 'react';
-import { useFormContext, type RegisterOptions, type FieldError } from 'react-hook-form';
-import { Input } from '../ui/input';
+import React, { type InputHTMLAttributes } from 'react'
+import { useFormContext, type RegisterOptions, type FieldError } from 'react-hook-form'
+import { Input } from '../ui/input'
 
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  name: string;
-  label: string;
-  registerOptions?: RegisterOptions;
-  error?: FieldError;
-  type?: string;
-  placeholder?: string;
-  className?: string;
+  name: string
+  label: string
+  registerOptions?: RegisterOptions
+  error?: FieldError
+  type?: string
+  placeholder?: string
+  className?: string
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -24,11 +24,11 @@ const FormField: React.FC<FormFieldProps> = ({
   ...rest
 }) => {
   // Si utilisé dans un FormProvider, on peut récupérer le registre ici
-  const formContext = useFormContext();
+  const formContext = useFormContext()
 
   // Détermine si on utilise le contexte ou des props directes
-  const register = formContext ? formContext.register : undefined;
-  const fieldError = error || (formContext ? formContext.formState.errors[name] : undefined);
+  const register = formContext ? formContext.register : undefined
+  const fieldError = error || (formContext ? formContext.formState.errors[name] : undefined)
 
   return (
     <div className={`space-y-1 ${className}`}>
@@ -40,22 +40,19 @@ const FormField: React.FC<FormFieldProps> = ({
         id={name}
         type={type}
         placeholder={placeholder}
-        className={`mt-1 block w-full px-3 py-2 border ${fieldError ? 'border-red-300' : 'border-border'
-          } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
+        className={`mt-1 block w-full px-3 py-2 border ${
+          fieldError ? 'border-red-300' : 'border-border'
+        } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
         {...(register ? register(name, registerOptions) : {})}
         {...rest}
       />
 
-      {fieldError && (
-        <p className="mt-1 text-sm text-red-600">
-          {fieldError.message as string}
-        </p>
-      )}
+      {fieldError && <p className="mt-1 text-sm text-red-600">{fieldError.message as string}</p>}
     </div>
-  );
-};
+  )
+}
 
-export default FormField;
+export default FormField
 
 // Exemple d'utilisation avec FormProvider:
 /*

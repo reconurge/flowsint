@@ -1,11 +1,11 @@
 export interface Tool {
   name: string
   path: string
-  description?: string,
+  description?: string
   active: boolean
   link?: string
   avatar?: string
-  apiKeyRequired?: false | "free" | "paid"
+  apiKeyRequired?: false | 'free' | 'paid'
 }
 
 export interface ToolCategory {
@@ -16,4 +16,4 @@ export interface ToolCategory {
 
 export interface Tools {
   [key: string]: ToolCategory
-} 
+}

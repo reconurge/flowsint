@@ -14,7 +14,7 @@ export async function initializeMainWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     icon: join(__dirname, 'icon.png'),
-    title: "Flowsint",
+    title: 'Flowsint',
     height: 770,
     show: false,
     autoHideMenuBar: true,

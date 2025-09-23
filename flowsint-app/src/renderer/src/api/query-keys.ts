@@ -3,7 +3,7 @@ export const queryKeys = {
   // Auth related queries
   auth: {
     session: ['auth', 'session'],
-    currentUser: ['auth', 'currentUser'],
+    currentUser: ['auth', 'currentUser']
   },
 
   // Investigations
@@ -14,7 +14,7 @@ export const queryKeys = {
     analyses: (investigationId: string) => [investigationId, 'analyses'],
     flows: (investigationId: string) => [investigationId, 'flows'],
     dashboard: ['investigations', 'dashboard'],
-    selector: (investigationId: string) => ['dashboard', 'selector', investigationId],
+    selector: (investigationId: string) => ['dashboard', 'selector', investigationId]
   },
 
   // Sketches/Graphs
@@ -24,7 +24,7 @@ export const queryKeys = {
     byInvestigation: (investigationId: string) => [investigationId, 'sketches'],
     graph: (investigationId: string, sketchId: string) => [investigationId, 'graph', sketchId],
     types: ['sketches', 'types'],
-    dashboard: (investigationId: string) => ['dashboard', 'investigation', investigationId],
+    dashboard: (investigationId: string) => ['dashboard', 'investigation', investigationId]
   },
 
   // Analyses
@@ -32,14 +32,14 @@ export const queryKeys = {
     list: ['analyses', 'list'],
     detail: (analysisId: string) => ['analyses', analysisId],
     byInvestigation: (investigationId: string) => [investigationId, 'analyses'],
-    dashboard: (investigationId: string) => ['analyses', investigationId],
+    dashboard: (investigationId: string) => ['analyses', investigationId]
   },
 
   // Flows
   flows: {
     list: ['flows', 'list'],
     detail: (flowId: string) => ['flows', flowId],
-    byInvestigation: (investigationId: string) => [investigationId, 'flows'],
+    byInvestigation: (investigationId: string) => [investigationId, 'flows']
   },
 
   // Chats
@@ -47,18 +47,18 @@ export const queryKeys = {
     list: ['chats', 'list'],
     detail: (chatId: string) => ['chats', chatId],
     byInvestigation: (investigationId: string) => [investigationId, 'chats'],
-    messages: (chatId: string) => [chatId, 'messages'],
+    messages: (chatId: string) => [chatId, 'messages']
   },
 
   // API Keys
   keys: {
     list: ['keys'],
-    detail: (keyId: string) => ['keys', keyId],
+    detail: (keyId: string) => ['keys', keyId]
   },
 
   // Logs/Events
   logs: {
-    bySketch: (sketchId: string) => [sketchId, 'logs'],
+    bySketch: (sketchId: string) => [sketchId, 'logs']
   },
 
   // Action Items
@@ -67,14 +67,14 @@ export const queryKeys = {
   // Scans
   scans: {
     list: ['scans', 'list'],
-    detail: (scanId: string) => ['scans', scanId],
+    detail: (scanId: string) => ['scans', scanId]
   },
 
   // Transforms
   transforms: {
     list: ['transforms', 'list'],
-    detail: (transformId: string) => ['transforms', transformId],
-  },
+    detail: (transformId: string) => ['transforms', transformId]
+  }
 }
 
 // Export individual key groups for easier imports

@@ -1,11 +1,7 @@
-import * as React from "react"
-import { Separator } from "@/components/ui/separator"
-import { ToolbarButton } from "../toolbar-button"
-import {
-  Copy,
-  ExternalLink,
-  Unlink,
-} from "lucide-react"
+import * as React from 'react'
+import { Separator } from '@/components/ui/separator'
+import { ToolbarButton } from '../toolbar-button'
+import { Copy, ExternalLink, Unlink } from 'lucide-react'
 
 interface LinkPopoverBlockProps {
   url: string
@@ -13,12 +9,8 @@ interface LinkPopoverBlockProps {
   onEdit: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
-export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
-  url,
-  onClear,
-  onEdit,
-}) => {
-  const [copyTitle, setCopyTitle] = React.useState<string>("Copy")
+export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({ url, onClear, onEdit }) => {
+  const [copyTitle, setCopyTitle] = React.useState<string>('Copy')
 
   const handleCopy = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -26,8 +18,8 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
       navigator.clipboard
         .writeText(url)
         .then(() => {
-          setCopyTitle("Copied!")
-          setTimeout(() => setCopyTitle("Copy"), 1000)
+          setCopyTitle('Copied!')
+          setTimeout(() => setCopyTitle('Copy'), 1000)
         })
         .catch(console.error)
     },
@@ -35,24 +27,17 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
   )
 
   const handleOpenLink = React.useCallback(() => {
-    window.open(url, "_blank", "noopener,noreferrer")
+    window.open(url, '_blank', 'noopener,noreferrer')
   }, [url])
 
   return (
     <div className="flex h-10 overflow-hidden rounded-mdbg-background p-2 shadow-lg">
       <div className="inline-flex items-center gap-1">
-        <ToolbarButton
-          tooltip="Edit link"
-          onClick={onEdit}
-          className="w-auto px-2"
-        >
+        <ToolbarButton tooltip="Edit link" onClick={onEdit} className="w-auto px-2">
           Edit link
         </ToolbarButton>
         <Separator orientation="vertical" />
-        <ToolbarButton
-          tooltip="Open link in a new tab"
-          onClick={handleOpenLink}
-        >
+        <ToolbarButton tooltip="Open link in a new tab" onClick={handleOpenLink}>
           <ExternalLink className="size-4" />
         </ToolbarButton>
         <Separator orientation="vertical" />
@@ -66,7 +51,7 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
           tooltipOptions={{
             onPointerDownOutside: (e) => {
               if (e.target === e.currentTarget) e.preventDefault()
-            },
+            }
           }}
         >
           <Copy className="size-4" />

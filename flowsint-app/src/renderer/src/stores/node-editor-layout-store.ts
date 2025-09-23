@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type CardType = 'description' | 'core-properties' | 'additional-properties' | 'preview' | 'neighbors' | 'location'
+export type CardType =
+  | 'description'
+  | 'core-properties'
+  | 'additional-properties'
+  | 'preview'
+  | 'neighbors'
+  | 'location'
 
 interface CardState {
   id: CardType
@@ -23,7 +29,7 @@ const defaultCardLayout: CardState[] = [
   { id: 'additional-properties', isEditing: false, order: 2 },
   { id: 'preview', isEditing: false, order: 3 },
   { id: 'neighbors', isEditing: false, order: 4 },
-  { id: 'location', isEditing: false, order: 5 },
+  { id: 'location', isEditing: false, order: 5 }
 ]
 
 export const useNodeEditorLayoutStore = create<NodeEditorLayoutState>()(
@@ -33,23 +39,23 @@ export const useNodeEditorLayoutStore = create<NodeEditorLayoutState>()(
       setCardLayout: (layout) => set({ cardLayout: layout }),
       toggleCardEdit: (cardId) => {
         const { cardLayout } = get()
-        const updatedLayout = cardLayout.map(card =>
+        const updatedLayout = cardLayout.map((card) =>
           card.id === cardId ? { ...card, isEditing: !card.isEditing } : card
         )
         set({ cardLayout: updatedLayout })
       },
       setCardEditState: (cardId, isEditing) => {
         const { cardLayout } = get()
-        const updatedLayout = cardLayout.map(card =>
+        const updatedLayout = cardLayout.map((card) =>
           card.id === cardId ? { ...card, isEditing } : card
         )
         set({ cardLayout: updatedLayout })
       },
-      resetLayout: () => set({ cardLayout: defaultCardLayout }),
+      resetLayout: () => set({ cardLayout: defaultCardLayout })
     }),
     {
       name: 'node-editor-layout-storage',
-      partialize: (state) => ({ cardLayout: state.cardLayout }),
+      partialize: (state) => ({ cardLayout: state.cardLayout })
     }
   )
-) 
+)

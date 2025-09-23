@@ -1,37 +1,37 @@
 export interface TransformProperty {
-    name: string
-    type: string
+  name: string
+  type: string
 }
 
 export interface TransformIO {
-    type: string
-    properties: TransformProperty[]
+  type: string
+  properties: TransformProperty[]
 }
 
 export interface TransformParamSchemaItem {
-    name: string
-    type: string
-    description: string
-    default: string
-    required: boolean
+  name: string
+  type: string
+  description: string
+  default: string
+  required: boolean
 }
 
 export interface Transform {
-    id: string
-    class_name: string
-    category: string
-    name: string
-    module: string
-    documentation: string | null
-    description: string | null
-    inputs: TransformIO
-    outputs: TransformIO
-    type: string
-    required_params: boolean
-    params: Record<string, string>
-    params_schema: TransformParamSchemaItem[]
-    settings?: Record<string, string>
-    icon: string | null
+  id: string
+  class_name: string
+  category: string
+  name: string
+  module: string
+  documentation: string | null
+  description: string | null
+  inputs: TransformIO
+  outputs: TransformIO
+  type: string
+  required_params: boolean
+  params: Record<string, string>
+  params_schema: TransformParamSchemaItem[]
+  settings?: Record<string, string>
+  icon: string | null
 }
 
 // ================================
@@ -39,9 +39,9 @@ export interface Transform {
 // ================================
 
 export interface TransformNodeData extends Transform, Record<string, unknown> {
-    color?: string
-    computationState?: "pending" | "processing" | "completed" | "error"
-    key: string
+  color?: string
+  computationState?: 'pending' | 'processing' | 'completed' | 'error'
+  key: string
 }
 
 // ================================
@@ -49,11 +49,11 @@ export interface TransformNodeData extends Transform, Record<string, unknown> {
 // ================================
 
 export interface ScansData {
-    [category: string]: Transform[]
+  [category: string]: Transform[]
 }
 
 export interface TransformData {
-    items: ScansData
+  items: ScansData
 }
 
 // ================================
@@ -61,14 +61,14 @@ export interface TransformData {
 // ================================
 
 export interface TransformItemProps {
-    transform: Transform
-    category: string
+  transform: Transform
+  category: string
 }
 
 export interface TransformNodeProps {
-    data: TransformNodeData
-    isConnectable?: boolean
-    selected?: boolean
+  data: TransformNodeData
+  isConnectable?: boolean
+  selected?: boolean
 }
 
 // ================================
@@ -76,11 +76,11 @@ export interface TransformNodeProps {
 // ================================
 
 export interface TransformsData {
-    [category: string]: Transform[];
+  [category: string]: Transform[]
 }
 
 export interface TransformData {
-    items: TransformsData;
+  items: TransformsData
 }
 
 // ================================
@@ -88,6 +88,6 @@ export interface TransformData {
 // ================================
 
 export interface TransformItemProps {
-    transform: Transform;
-    category: string;
+  transform: Transform
+  category: string
 }

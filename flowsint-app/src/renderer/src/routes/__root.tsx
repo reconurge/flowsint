@@ -13,9 +13,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     const { theme } = useTheme()
     return (
       <>
-        <Toaster theme={theme} position='top-right' richColors />
+        <Toaster theme={theme} position="top-right" richColors />
         <Outlet />
       </>
     )
-  },
+  }
 })

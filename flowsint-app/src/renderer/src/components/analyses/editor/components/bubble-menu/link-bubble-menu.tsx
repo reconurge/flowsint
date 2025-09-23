@@ -1,9 +1,9 @@
-import * as React from "react"
-import type { ShouldShowProps } from "../../types"
-import type { Editor } from "@tiptap/react"
-import { BubbleMenu } from "@tiptap/react"
-import { LinkEditBlock } from "../link/link-edit-block"
-import { LinkPopoverBlock } from "../link/link-popover-block"
+import * as React from 'react'
+import type { ShouldShowProps } from '../../types'
+import type { Editor } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react'
+import { LinkEditBlock } from '../link/link-edit-block'
+import { LinkPopoverBlock } from '../link/link-popover-block'
 
 interface LinkBubbleMenuProps {
   editor: Editor
@@ -17,15 +17,15 @@ interface LinkAttributes {
 export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
   const [showEdit, setShowEdit] = React.useState(false)
   const [linkAttrs, setLinkAttrs] = React.useState<LinkAttributes>({
-    href: "",
-    target: "",
+    href: '',
+    target: ''
   })
-  const [selectedText, setSelectedText] = React.useState("")
+  const [selectedText, setSelectedText] = React.useState('')
 
   const updateLinkState = React.useCallback(() => {
     const { from, to } = editor.state.selection
-    const { href, target } = editor.getAttributes("link")
-    const text = editor.state.doc.textBetween(from, to, " ")
+    const { href, target } = editor.getAttributes('link')
+    const text = editor.state.doc.textBetween(from, to, ' ')
 
     setLinkAttrs({ href, target })
     setSelectedText(text)
@@ -36,9 +36,9 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
       if (from === to) {
         return false
       }
-      const { href } = editor.getAttributes("link")
+      const { href } = editor.getAttributes('link')
 
-      if (!editor.isActive("link") || !editor.isEditable) {
+      if (!editor.isActive('link') || !editor.isEditable) {
         return false
       }
 
@@ -60,21 +60,21 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
       editor
         .chain()
         .focus()
-        .extendMarkRange("link")
+        .extendMarkRange('link')
         .insertContent({
-          type: "text",
+          type: 'text',
           text: text || url,
           marks: [
             {
-              type: "link",
+              type: 'link',
               attrs: {
                 href: url,
-                target: openInNewTab ? "_blank" : "",
-              },
-            },
-          ],
+                target: openInNewTab ? '_blank' : ''
+              }
+            }
+          ]
         })
-        .setLink({ href: url, target: openInNewTab ? "_blank" : "" })
+        .setLink({ href: url, target: openInNewTab ? '_blank' : '' })
         .run()
       setShowEdit(false)
       updateLinkState()
@@ -83,7 +83,7 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
   )
 
   const onUnsetLink = React.useCallback(() => {
-    editor.chain().focus().extendMarkRange("link").unsetLink().run()
+    editor.chain().focus().extendMarkRange('link').unsetLink().run()
     setShowEdit(false)
     updateLinkState()
   }, [editor, updateLinkState])
@@ -93,24 +93,20 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
       editor={editor}
       shouldShow={shouldShow}
       tippyOptions={{
-        placement: "bottom-start",
-        onHidden: () => setShowEdit(false),
+        placement: 'bottom-start',
+        onHidden: () => setShowEdit(false)
       }}
     >
       {showEdit ? (
         <LinkEditBlock
           defaultUrl={linkAttrs.href}
           defaultText={selectedText}
-          defaultIsNewTab={linkAttrs.target === "_blank"}
+          defaultIsNewTab={linkAttrs.target === '_blank'}
           onSave={onSetLink}
           className="w-full min-w-80 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none"
         />
       ) : (
-        <LinkPopoverBlock
-          onClear={onUnsetLink}
-          url={linkAttrs.href}
-          onEdit={handleEdit}
-        />
+        <LinkPopoverBlock onClear={onUnsetLink} url={linkAttrs.href} onEdit={handleEdit} />
       )}
     </BubbleMenu>
   )

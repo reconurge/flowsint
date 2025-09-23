@@ -25,7 +25,7 @@ app.on('window-all-closed', () => {
 ipcMain.handle('get-window-state', () => {
   const mainWindow = getMainWindow()
   if (!mainWindow) return { isFullscreen: false, isMaximized: false }
-  
+
   return {
     isFullscreen: mainWindow.isFullScreen(),
     isMaximized: mainWindow.isMaximized()

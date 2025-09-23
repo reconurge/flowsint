@@ -2,7 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { createHashHistory } from '@tanstack/react-router'
-import { Provider as TanStackQueryProvider, getContext as getQueryContext } from '@/integrations/tanstack-query/root-provider'
+import {
+  Provider as TanStackQueryProvider,
+  getContext as getQueryContext
+} from '@/integrations/tanstack-query/root-provider'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -13,14 +16,14 @@ const router = createRouter({
   routeTree,
   history: hashHistory,
   context: {
-    ...getQueryContext(),
+    ...getQueryContext()
   },
   defaultPreload: false,
   scrollRestoration: true,
   defaultStructuralSharing: true,
   // Keep components mounted but hidden during transitions
   defaultPendingComponent: ({ children }) => children,
-  defaultPendingMs: 0,
+  defaultPendingMs: 0
 })
 
 declare module '@tanstack/react-router' {

@@ -13,154 +13,161 @@ import { flowService } from '@/api/flow-service'
 import ErrorState from '@/components/shared/error-state'
 
 interface Flow {
-    id: string
-    name: string
-    description?: string
-    category?: string[]
-    created_at: string
-    updated_at?: string
-    flow_schema?: any
+  id: string
+  name: string
+  description?: string
+  category?: string[]
+  created_at: string
+  updated_at?: string
+  flow_schema?: any
 }
 
 export const Route = createFileRoute('/_auth/dashboard/flows/')({
-    component: FlowPage,
+  component: FlowPage
 })
 
 function FlowPage() {
-    const navigate = useNavigate()
-    const { data: flows, isLoading, error, refetch } = useQuery<Flow[]>({
-        queryKey: ["flow"],
-        queryFn: () => flowService.get(),
-    })
+  const navigate = useNavigate()
+  const {
+    data: flows,
+    isLoading,
+    error,
+    refetch
+  } = useQuery<Flow[]>({
+    queryKey: ['flow'],
+    queryFn: () => flowService.get()
+  })
 
-    // Get all unique categories
-    const categories = flows?.reduce((acc: string[], flow) => {
-        if (flow.category) {
-            flow.category.forEach(cat => {
-                if (!acc.includes(cat)) acc.push(cat)
-            })
-        }
-        return acc
+  // Get all unique categories
+  const categories =
+    flows?.reduce((acc: string[], flow) => {
+      if (flow.category) {
+        flow.category.forEach((cat) => {
+          if (!acc.includes(cat)) acc.push(cat)
+        })
+      }
+      return acc
     }, []) || []
 
-    // Add "All" and "Uncategorized" to categories
-    const allCategories = ['All', ...categories, 'Uncategorized']
+  // Add "All" and "Uncategorized" to categories
+  const allCategories = ['All', ...categories, 'Uncategorized']
 
-    return (
-        <div className="h-full w-full overflow-y-auto bg-background">
-            <div className="border-b border-border z-10">
-                <div className="max-w-7xl mx-auto p-8">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h1 className="text-3xl font-bold text-foreground">Flows</h1>
-                            <p className="text-muted-foreground">
-                                Create and manage your flow flows.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <NewFlow>
-                                <Button size="sm">
-                                    <PlusIcon className="w-4 h-4 mr-2" />
-                                    New flow
-                                </Button>
-                            </NewFlow>
-                        </div>
-                    </div>
+  return (
+    <div className="h-full w-full overflow-y-auto bg-background">
+      <div className="border-b border-border z-10">
+        <div className="max-w-7xl mx-auto p-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold text-foreground">Flows</h1>
+              <p className="text-muted-foreground">Create and manage your flow flows.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <NewFlow>
+                <Button size="sm">
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  New flow
+                </Button>
+              </NewFlow>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-8 space-y-8" style={{ containerType: 'inline-size' }}>
+        {isLoading ? (
+          <div className="p-2">
+            <SkeletonList rowCount={6} mode="card" />
+          </div>
+        ) : error ? (
+          <ErrorState
+            title="Couldn't load flows"
+            description="Something went wrong while fetching data. Please try again."
+            error={error}
+            onRetry={() => refetch()}
+          />
+        ) : !flows?.length ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="rounded-full bg-muted/50 p-4 mb-4">
+              <FileX className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No flow yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Get started by creating your first flow. You can use flows to process and manipulate
+              your data in powerful ways.
+            </p>
+            <NewFlow>
+              <Button>
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Create your first flow
+              </Button>
+            </NewFlow>
+          </div>
+        ) : (
+          <Tabs defaultValue="All" className="space-y-6">
+            <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 overflow-x-auto hide-scrollbar">
+              {allCategories.map((category) => (
+                <TabsTrigger
+                  key={category}
+                  value={category}
+                  className="data-[state=active]:bg-background"
+                >
+                  {category}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {allCategories.map((category) => (
+              <TabsContent key={category} value={category} className="mt-0">
+                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
+                  {flows
+                    ?.filter((flow) =>
+                      category === 'All'
+                        ? true
+                        : category === 'Uncategorized'
+                          ? !flow.category?.length
+                          : flow.category?.includes(category)
+                    )
+                    .map((flow) => (
+                      <Card
+                        key={flow.id}
+                        className="group hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => navigate({ to: `/dashboard/flows/${flow.id}` })}
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-lg font-medium group-hover:text-primary transition-colors">
+                              {flow.name || '(Unnamed flow)'}
+                            </CardTitle>
+                            <FileCode2 className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <CardDescription className="line-clamp-2 mt-1">
+                            {flow.description || 'No description provided'}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4 mr-1" />
+                              {formatDistanceToNow(new Date(flow.updated_at || flow.created_at), {
+                                addSuffix: true
+                              })}
+                            </div>
+                            <div className="flex flex-wrap gap-2 justify-end">
+                              {flow.category?.map((cat) => (
+                                <Badge key={cat} variant="secondary">
+                                  {cat}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
-            </div>
-            <div className="max-w-7xl mx-auto p-8 space-y-8" style={{ containerType: 'inline-size' }}>
-                {isLoading ? (
-                    <div className="p-2">
-                        <SkeletonList rowCount={6} mode="card" />
-                    </div>
-                ) : error ? (
-                    <ErrorState
-                        title="Couldn't load flows"
-                        description="Something went wrong while fetching data. Please try again."
-                        error={error}
-                        onRetry={() => refetch()}
-                    />
-                ) : !flows?.length ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="rounded-full bg-muted/50 p-4 mb-4">
-                            <FileX className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">No flow yet</h3>
-                        <p className="text-muted-foreground mb-6 max-w-md">
-                            Get started by creating your first flow. You can use flows to process and manipulate your data in powerful ways.
-                        </p>
-                        <NewFlow>
-                            <Button>
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                Create your first flow
-                            </Button>
-                        </NewFlow>
-                    </div>
-                ) : (
-                    <Tabs defaultValue="All" className="space-y-6">
-                        <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 overflow-x-auto hide-scrollbar">
-                            {allCategories.map((category) => (
-                                <TabsTrigger
-                                    key={category}
-                                    value={category}
-                                    className="data-[state=active]:bg-background"
-                                >
-                                    {category}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-
-                        {allCategories.map((category) => (
-                            <TabsContent key={category} value={category} className="mt-0">
-                                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
-                                    {flows
-                                        ?.filter(flow =>
-                                            category === 'All'
-                                                ? true
-                                                : category === 'Uncategorized'
-                                                    ? !flow.category?.length
-                                                    : flow.category?.includes(category)
-                                        )
-                                        .map((flow) => (
-                                            <Card
-                                                key={flow.id}
-                                                className="group hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
-                                                onClick={() => navigate({ to: `/dashboard/flows/${flow.id}` })}
-                                            >
-                                                <CardHeader className="pb-2">
-                                                    <div className="flex items-start justify-between">
-                                                        <CardTitle className="text-lg font-medium group-hover:text-primary transition-colors">
-                                                            {flow.name || "(Unnamed flow)"}
-                                                        </CardTitle>
-                                                        <FileCode2 className="w-4 h-4 text-muted-foreground" />
-                                                    </div>
-                                                    <CardDescription className="line-clamp-2 mt-1">
-                                                        {flow.description || "No description provided"}
-                                                    </CardDescription>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center text-sm text-muted-foreground">
-                                                            <Clock className="w-4 h-4 mr-1" />
-                                                            {formatDistanceToNow(new Date(flow.updated_at || flow.created_at), { addSuffix: true })}
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-2 justify-end">
-                                                            {flow.category?.map((cat) => (
-                                                                <Badge key={cat} variant="secondary">
-                                                                    {cat}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                </div>
-                            </TabsContent>
-                        ))}
-                    </Tabs>
-                )}
-            </div>
-        </div >
-    )
+              </TabsContent>
+            ))}
+          </Tabs>
+        )}
+      </div>
+    </div>
+  )
 }

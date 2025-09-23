@@ -9,5 +9,5 @@ interface GraphNavigationState {
 export const useGraphNavigationStore = create<GraphNavigationState>((set) => ({
   activeTab: 'entities',
   setActiveTab: (tab: string) => set({ activeTab: tab }),
-  resetTabs: () => set({ activeTab: 'entities' }),
-})) 
+  resetTabs: () => set({ activeTab: 'entities' })
+}))

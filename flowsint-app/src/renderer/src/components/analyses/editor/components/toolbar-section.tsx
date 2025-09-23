@@ -1,19 +1,19 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import type { FormatAction } from "../types"
-import type { VariantProps } from "class-variance-authority"
-import type { toggleVariants } from "@/components/ui/toggle"
-import { cn } from "@/lib/utils"
-import { ChevronDownIcon } from "lucide-react"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import type { FormatAction } from '../types'
+import type { VariantProps } from 'class-variance-authority'
+import type { toggleVariants } from '@/components/ui/toggle'
+import { cn } from '@/lib/utils'
+import { ChevronDownIcon } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ToolbarButton } from "./toolbar-button"
-import { ShortcutKey } from "./shortcut-key"
-import { getShortcutKey } from "../utils"
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { ToolbarButton } from './toolbar-button'
+import { ShortcutKey } from './shortcut-key'
+import { getShortcutKey } from '../utils'
 
 interface ToolbarSectionProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
@@ -31,22 +31,19 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
   activeActions = actions.map((action) => action.value),
   mainActionCount = 0,
   dropdownIcon,
-  dropdownTooltip = "More options",
-  dropdownClassName = "w-12",
+  dropdownTooltip = 'More options',
+  dropdownClassName = 'w-12',
   size,
-  variant,
+  variant
 }) => {
   const { mainActions, dropdownActions } = React.useMemo(() => {
     const sortedActions = actions
       .filter((action) => activeActions.includes(action.value))
-      .sort(
-        (a, b) =>
-          activeActions.indexOf(a.value) - activeActions.indexOf(b.value)
-      )
+      .sort((a, b) => activeActions.indexOf(a.value) - activeActions.indexOf(b.value))
 
     return {
       mainActions: sortedActions.slice(0, mainActionCount),
-      dropdownActions: sortedActions.slice(mainActionCount),
+      dropdownActions: sortedActions.slice(mainActionCount)
     }
   }, [actions, activeActions, mainActionCount])
 
@@ -57,7 +54,7 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
         onClick={() => action.action(editor)}
         disabled={!action.canExecute(editor)}
         isActive={action.isActive(editor)}
-        tooltip={`${action.label} ${action.shortcuts.map((s) => getShortcutKey(s).symbol).join(" ")}`}
+        tooltip={`${action.label} ${action.shortcuts.map((s) => getShortcutKey(s).symbol).join(' ')}`}
         aria-label={action.label}
         size={size}
         variant={variant}
@@ -74,8 +71,8 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
         key={action.label}
         onClick={() => action.action(editor)}
         disabled={!action.canExecute(editor)}
-        className={cn("flex flex-row items-center justify-between gap-4", {
-          "bg-accent": action.isActive(editor),
+        className={cn('flex flex-row items-center justify-between gap-4', {
+          'bg-accent': action.isActive(editor)
         })}
         aria-label={action.label}
       >
@@ -98,16 +95,16 @@ export const ToolbarSection: React.FC<ToolbarSectionProps> = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div>
-            <ToolbarButton
-              isActive={isDropdownActive}
-              tooltip={dropdownTooltip}
-              aria-label={dropdownTooltip}
-              className={cn(dropdownClassName)}
-              size={size}
-              variant={variant}
-            >
-              {dropdownIcon || <ChevronDownIcon className="size-5" />}
-            </ToolbarButton>
+              <ToolbarButton
+                isActive={isDropdownActive}
+                tooltip={dropdownTooltip}
+                aria-label={dropdownTooltip}
+                className={cn(dropdownClassName)}
+                size={size}
+                variant={variant}
+              >
+                {dropdownIcon || <ChevronDownIcon className="size-5" />}
+              </ToolbarButton>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-full">

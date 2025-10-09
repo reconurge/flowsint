@@ -1,12 +1,12 @@
 # flowsint-app
 
-The folder for the flowsint client, an electron app wrapped with Vite and React. The main libraries used are:
+The folder for the flowsint client, a web application built with Vite and React. The main libraries used are:
 
 - TanstackQuery
 - TanstackRouter
 - XYflow
 - react-force-graph
-  
+
 ## Project setup
 
 ### Install
@@ -21,15 +21,20 @@ $ npm install
 $ npm run dev
 ```
 
+This will start the development server at http://localhost:5173
+
 ### Build
 
 ```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
+$ npm run build
 ```
+
+This will create a production build in the `dist` folder.
+
+### Preview
+
+```bash
+$ npm run preview
+```
+
+This will preview the production build locally.

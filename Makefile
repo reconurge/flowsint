@@ -1,11 +1,8 @@
-# --- Variables ---
 PROJECT_ROOT := $(shell pwd)
 
-# --- Cibles phony (pas des fichiers) ---
 .PHONY: install run stop infra api frontend celery clean dev check-env
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
-# --- Installation des dépendances ---
 
 dev:
 	$(MAKE) check-env
@@ -14,8 +11,8 @@ dev:
 
 prod:
 	$(MAKE) check-env
-	docker compose -f docker-compose.prod.yml up -d
-	$(MAKE) frontend
+	docker compose up -d
+	$(MAKE) frontend_prod
 
 check-env:
 	@echo "🔎 Checking .env files..."
@@ -49,32 +46,31 @@ install:
 	cd $(PROJECT_ROOT)/flowsint-app && yarn install
 	@echo "✅ All modules installed successfully!"
 
-# --- Services Docker only ---
 infra:
 	docker compose up -d
 
-# --- Lancer chaque service individuellement ---
 api:
 	cd $(PROJECT_ROOT)/flowsint-api && poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 frontend:
-	cd $(PROJECT_ROOT)/flowsint-app && npx electron-vite dev
+	cd $(PROJECT_ROOT)/flowsint-app && npm run dev
+
+frontend_prod:
+	cd $(PROJECT_ROOT)/flowsint-app && npm run build
 
 celery:
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
 
-# --- Lancer tous les services (API + Front + Celery) ---
 run: infra
 	$(MAKE) -j3 api frontend celery
 
-# --- stop all ---
 stop:
 	@echo "🛑 Stopping all services..."
 	-docker compose down
 
 # --- Nettoyage complet ---
 clean:
-	@echo "🧹 Removing containers, volumes and venvs..."
+	@echo "Removing containers, volumes and venvs..."
 	docker compose down -v --remove-orphans
 	rm -rf $(PROJECT_ROOT)/flowsint-app/node_modules
 	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv

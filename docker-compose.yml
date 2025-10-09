@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: flowsint
       POSTGRES_DB: flowsint
     ports:
-      - "5433:5432" # 5433 sur l'hôte pour éviter conflit local
+      - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:

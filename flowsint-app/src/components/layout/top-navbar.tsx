@@ -2,7 +2,7 @@ import { Command } from '../command'
 import { Link, useParams } from '@tanstack/react-router'
 import InvestigationSelector from './investigation-selector'
 import SketchSelector from './sketch-selector'
-import { useEffect, useState, memo, useCallback } from 'react'
+import { memo, useCallback } from 'react'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { useLayoutStore } from '@/stores/layout-store'
@@ -23,36 +23,16 @@ import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 
 export const TopNavbar = memo(() => {
   const { investigationId, id, type } = useParams({ strict: false })
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
   const isOpenAnalysis = useLayoutStore((s) => s.isOpenAnalysis)
 
   const handleToggleAnalysis = useCallback(() => toggleAnalysis(), [toggleAnalysis])
 
-  useEffect(() => {
-    const checkWindowState = async () => {
-      try {
-        const windowState = await window.api.getWindowState()
-        setIsFullscreen(windowState?.isFullscreen)
-      } catch (error) {
-        setIsFullscreen(true)
-      }
-    }
-    checkWindowState()
-    const handleResize = () => {
-      setTimeout(checkWindowState, 100)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
   return (
     <header
-      className={`flex items-center bg-card h-12 border-b shrink-0 ${isFullscreen ? 'px-4' : 'pl-20 pr-4'} -webkit-app-region-drag`}
+      className="flex items-center bg-card h-12 border-b shrink-0 px-4"
     >
-      <div className="flex items-center gap-4 -webkit-app-region-no-drag">
+      <div className="flex items-center gap-4">
         <Link to="/dashboard" className="flex items-center gap-2">
           <img src="/icon.png" alt="Flowsint" className="h-8 w-8" />
           <span className="text-lg font-semibold">Flowsint</span>
@@ -68,11 +48,11 @@ export const TopNavbar = memo(() => {
         </div>
       </div>
       <div className="grow flex items-center justify-center">
-        <div className="-webkit-app-region-no-drag">
+        <div>
           <Command />
         </div>
       </div>
-      <div className="flex items-center gap-4 -webkit-app-region-no-drag">
+      <div className="flex items-center gap-4">
         <div className="flex items-center space-x-2">
           {type === 'graph' && (
             <>

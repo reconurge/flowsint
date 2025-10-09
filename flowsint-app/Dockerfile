@@ -1,52 +1,27 @@
-# Étape 1 – Build Vite + Electron
+# Build stage
 FROM node:20 AS builder
 
 WORKDIR /app
 
-# Copie et install
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-# Vérification de type + build
+# Type check and build
 RUN npm run typecheck
-RUN npm run build -y
+RUN npm run build
 
-# Build de l'app avec electron-builder (non packagée)
-RUN npm run build:unpack
+# Production stage
+FROM nginx:alpine
 
-# Étape 2 – Image finale avec l'app prête
-FROM node:20-slim
+# Copy built files to nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Dépendances d'Electron requises pour s'exécuter dans un conteneur
-RUN apt-get update && apt-get install -y \
-    libgtk-3-0 \
-    libx11-xcb1 \
-    libnss3 \
-    libxcomposite1 \
-    libxrandr2 \
-    libasound2 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libgbm1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxkbcommon0 \
-    libxshmfence1 \
-    libglu1-mesa \
-    x11-xserver-utils \
-    --no-install-recommends && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy nginx configuration if needed
+# COPY nginx.conf /etc/nginx/nginx.conf
 
-WORKDIR /app
+EXPOSE 80
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/out ./out
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-CMD ["npx", "electron", "."]
+CMD ["nginx", "-g", "daemon off;"]

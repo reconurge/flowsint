@@ -4,6 +4,66 @@ A modular investigation and reconnaissance platform with clean separation of con
 
 <img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/29b42698-18ab-4389-b070-b231f4ba257c" />
 
+## What is it?
+
+Flowsint is a graph-based investigation tool focused on reconnaissance and OSINT (Open Source Intelligence). It allows you to explore relationships between entities through a visual graph interface and automated transforms.
+
+### Available Transforms
+
+**Domain Transforms**
+- Reverse DNS Resolution - Find domains pointing to an IP
+- DNS Resolution - Resolve domain to IP addresses
+- Subdomain Discovery - Enumerate subdomains
+- WHOIS Lookup - Get domain registration information
+- Domain to Website - Convert domain to website entity
+- Domain to Root Domain - Extract root domain
+- Domain to ASN - Find ASN associated with domain
+- Domain History - Retrieve historical domain data
+
+**IP Transforms**
+- IP Information - Get geolocation and network details
+- IP to ASN - Find ASN for IP address
+
+**ASN Transforms**
+- ASN to CIDRs - Get IP ranges for an ASN
+
+**CIDR Transforms**
+- CIDR to IPs - Enumerate IPs in a range
+
+**Social Media Transforms**
+- Maigret - Username search across social platforms
+
+**Organization Transforms**
+- Organization to ASN - Find ASNs owned by organization
+- Organization Information - Get company details
+- Organization to Domains - Find domains owned by organization
+
+**Cryptocurrency Transforms**
+- Wallet to Transactions - Get transaction history
+- Wallet to NFTs - Find NFTs owned by wallet
+
+**Website Transforms**
+- Website Crawler - Crawl and map website structure
+- Website to Links - Extract all links
+- Website to Domain - Extract domain from URL
+- Website to Webtrackers - Identify tracking scripts
+- Website to Text - Extract text content
+
+**Email Transforms**
+- Email to Gravatar - Find Gravatar profile
+- Email to Breaches - Check data breach databases
+- Email to Domains - Find associated domains
+
+**Phone Transforms**
+- Phone to Breaches - Check phone number in breaches
+
+**Individual Transforms**
+- Individual to Organization - Find organizational affiliations
+- Individual to Domains - Find domains associated with person
+
+**Integration Transforms**
+- N8n Connector - Connect to N8n workflows
+
 ## Project structure
 
 The project is organized into autonomous modules:

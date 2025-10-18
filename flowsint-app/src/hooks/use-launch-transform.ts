@@ -1,9 +1,12 @@
 import { toast } from 'sonner'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { transformService } from '@/api/transform-service'
+import { useLayoutStore } from '@/stores/layout-store'
 
 export function useLaunchTransform(askUser: boolean = false) {
   const { confirm } = useConfirm()
+  const openClonsole = useLayoutStore(s => s.openConsole)
+
   const launchTransform = async (
     values: string[],
     transformName: string,
@@ -26,6 +29,7 @@ export function useLaunchTransform(askUser: boolean = false) {
         `Transform ${transformName} has been launched on ${sliced.join(', ')}${left > 0 ? ` and ${left} others` : ''}.`,
       error: () => `An error occurred launching transform.`
     })
+    openClonsole()
     return
   }
   return {

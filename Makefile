@@ -22,7 +22,7 @@ check-env:
 		if [ -f "$$env_file" ]; then \
 			echo "✅ Using existing .env in $$dir"; \
 		else \
-			echo "❌ .env missing in $$dir, copying from .env.example"; \
+			echo "⚠️ .env missing in $$dir, copying from .env.example"; \
 			cp "$$env_example" "$$env_file"; \
 		fi; \
 	done
@@ -30,7 +30,7 @@ check-env:
 install:
 	@echo "🚀 Installing Flowsint project modules..."
 	@if ! command -v poetry >/dev/null 2>&1; then \
-		echo "❌ Poetry is not installed. Please install it:"; \
+		echo "⚠️ Poetry is not installed. Please install it:"; \
 		echo "pipx install poetry"; \
 		echo "or"; \
 		echo "curl -sSL https://install.python-poetry.org | python3 -"; \

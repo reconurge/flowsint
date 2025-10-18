@@ -3,16 +3,19 @@ import { useConfirm } from '@/components/use-confirm-dialog'
 import { flowService } from '@/api/flow-service'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
+import { useLayoutStore } from '@/stores/layout-store'
 
 export function useLaunchFlow(askUser: boolean = false) {
   const { confirm } = useConfirm()
   const queryClient = useQueryClient()
+  const openClonsole = useLayoutStore(s => s.openConsole)
 
   // Launch flow mutation
   const launchFlowMutation = useMutation({
     mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
       flowService.launch(flowId, body),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
+      openClonsole()
       queryClient.invalidateQueries({
         queryKey: queryKeys.flows.detail(variables.flowId)
       })

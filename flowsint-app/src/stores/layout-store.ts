@@ -9,6 +9,7 @@ interface LayoutStore {
   isOpenAnalysis: boolean
   chatWidth: number
   chatHeight: number
+  openConsole: () => void
   toggleConsole: () => void
   togglePanel: () => void
   toggleChat: () => void
@@ -39,6 +40,7 @@ export const useLayoutStore = create<LayoutStore>()(
       chatHeight: 600,
       activeTab: 'entities',
       activeTransformTab: 'transforms',
+      openConsole: () => set(() => ({ isOpenConsole: true })),
       toggleConsole: () => set((state) => ({ isOpenConsole: !state.isOpenConsole })),
       togglePanel: () => set((state) => ({ isOpenPanel: !state.isOpenPanel })),
       toggleDetails: () => set((state) => ({ isOpenDetails: !state.isOpenDetails })),

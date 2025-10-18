@@ -9,11 +9,9 @@ import { type CosmosInputNode } from '@cosmograph/cosmos'
 import { ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
 import EmptyState from './empty-state'
 
-// Lazy loading du timeline
 const CosmographTimeline = lazy(() =>
   import('@cosmograph/react').then((module) => ({ default: module.CosmographTimeline }))
 )
-// Hook pour tracker l'état de chargement de Cosmograph
 const useCosmographLoader = (nodes: any[], edges: any[]) => {
   const [isCosmographReady, setIsCosmographReady] = useState(true)
   const [loadingStage, setLoadingStage] = useState<'importing' | 'rendering' | 'ready'>('ready')
@@ -21,7 +19,6 @@ const useCosmographLoader = (nodes: any[], edges: any[]) => {
   const dataVersionRef = useRef(0)
 
   useEffect(() => {
-    // Reset l'état quand les données changent
     dataVersionRef.current += 1
     setIsCosmographReady(false)
     setLoadingStage('importing')
@@ -30,7 +27,6 @@ const useCosmographLoader = (nodes: any[], edges: any[]) => {
       setLoadingStage('ready')
       return
     }
-    // Skip simulation if no edges
     if (edges.length === 0) {
       setIsCosmographReady(true)
       setLoadingStage('ready')
@@ -149,7 +145,6 @@ const GraphContent = memo(() => {
     }
   }, [cosmograph?.cosmograph, isCosmographReady])
 
-  // Configuration des actions une seule fois
   useEffect(() => {
     if (cosmograph?.cosmograph && !actionsSetRef.current) {
       const actions = {
@@ -217,7 +212,6 @@ const GraphContent = memo(() => {
 })
 GraphContent.displayName = 'GraphContent'
 
-// Timeline avec ses propres optimisations
 const TimelinePanel = memo(() => {
   const handleAnimationPlay = useCallback(() => {}, [])
 
@@ -244,7 +238,6 @@ const TimelinePanel = memo(() => {
 })
 TimelinePanel.displayName = 'TimelinePanel'
 
-// Provider wrapper mémorisé pour éviter les re-créations
 const GraphProvider = memo(
   ({ nodes, edges, children }: { nodes: any[]; edges: any[]; children: React.ReactNode }) => {
     return (
@@ -256,7 +249,6 @@ const GraphProvider = memo(
 )
 GraphProvider.displayName = 'GraphProvider'
 
-// Composant principal avec optimisations maximales
 const Graph = memo(() => {
   const nodes = useGraphStore((s) => s.filteredNodes)
   const edges = useGraphStore((s) => s.filteredEdges)

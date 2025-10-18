@@ -13,7 +13,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement
 load_dotenv()
 
 

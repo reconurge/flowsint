@@ -4,6 +4,19 @@ A modular investigation and reconnaissance platform with clean separation of con
 
 <img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/29b42698-18ab-4389-b070-b231f4ba257c" />
 
+## Get started
+
+Don't want to read ? Got it. Here's your install instructions: 
+
+```bash
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+make run
+```
+
+> ✅ OSINT investigations need a high level of privacy. Everything is stored on your machine.
+
+
 ## What is it?
 
 Flowsint is a graph-based investigation tool focused on reconnaissance and OSINT (Open Source Intelligence). It allows you to explore relationships between entities through a visual graph interface and automated transforms.
@@ -100,13 +113,13 @@ flowsint-types (types)
 
 ### Run
 
-For now, you can start flowsint in a development environment. It's pretty performant already ! And fully local stored. Make sure you have **Make** installed.
+For now, you can start flowsint in a development and production environment. Make sure you have **Make** installed.
 
 ```bash
-make dev
+make run
 ```
 
-An electron app should start, frontend is also accessible at [http://localhost:5173](http://localhost:5173).
+The app is accessible at [http://localhost:5173](http://localhost:5173).
 
 ## Module details
 

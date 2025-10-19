@@ -19,10 +19,7 @@ import GraphMain from './graph-main'
 import Settings, { KeyboardShortcuts } from './settings'
 import { type GraphNode, type GraphEdge } from '@/types'
 import { MergeDialog } from './merge-nodes'
-import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
-const Graph = lazy(() => import('./graph'))
-// const Wall = lazy(() => import('./wall/wall'))
 
 // Separate component for the drag overlay
 const DragOverlay = memo(({ isDragging }: { isDragging: boolean }) => (
@@ -47,14 +44,11 @@ interface GraphPanelProps {
 
 const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
-  const nodes = useGraphStore((s) => s.nodes)
   const view = useGraphControls((s) => s.view)
-  const settings = useGraphSettingsStore((s) => s.settings)
   const updateGraphData = useGraphStore((s) => s.updateGraphData)
   const setFilters = useGraphStore((s) => s.setFilters)
   const filters = useGraphStore((s) => s.filters)
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
-  const NODE_COUNT_THRESHOLD = settings?.general?.graphViewerThreshold?.value || 1000
 
   const { sketch } = useLoaderData({
     from: '/_auth/dashboard/investigations/$investigationId/$type/$id'
@@ -138,23 +132,12 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
           </div>
         }
       >
-        {nodes?.length > NODE_COUNT_THRESHOLD ? (
-          <>
-            {view === 'table' && <NodesTable />}
-            {['force', 'hierarchy'].includes(view) && <Graph />}
-            {view === 'map' && <MapPanel />}
-            {view === 'relationships' && <RelationshipsTable />}
-          </>
-        ) : (
-          <>
-            {/* {view === "hierarchy" && <Wall isLoading={false} isRefetching={false} />} */}
-            {/* {view === "force" && <GraphMain />} */}
-            {['force', 'hierarchy'].includes(view) && <GraphMain />}
-            {view === 'table' && <NodesTable />}
-            {view === 'map' && <MapPanel />}
-            {view === 'relationships' && <RelationshipsTable />}
-          </>
-        )}
+        <>
+          {['force', 'hierarchy'].includes(view) && <GraphMain />}
+          {view === 'table' && <NodesTable />}
+          {view === 'map' && <MapPanel />}
+          {view === 'relationships' && <RelationshipsTable />}
+        </>
       </Suspense>
       <DragOverlay isDragging={isDraggingOver} />
       <div className="absolute z-21 left-3 top-3 right-3">

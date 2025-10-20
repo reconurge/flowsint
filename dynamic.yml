@@ -1,6 +1,0 @@
-tls:
-  certificates:
-    - certFile: '/etc/traefik/certs/localhost.flowsint.*.cert.pem'
-      keyFile: '/etc/traefik/certs/localhost.flowsint.*.key.pem'
-      stores:
-        - default

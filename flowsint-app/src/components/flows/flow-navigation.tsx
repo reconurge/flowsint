@@ -16,7 +16,7 @@ const TransformNavigation = () => {
   }, [setActiveTransformTab, flowId])
 
   return (
-    <div className="h-full w-full bg-card flex flex-col min-h-0">
+    <div className="h-full w-full bg-card flex flex-col min-h-0" data-tour-id="flow-sidebar">
       <Tabs
         value={activeTransformTab}
         onValueChange={setActiveTransformTab}

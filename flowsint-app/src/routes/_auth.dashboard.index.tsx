@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 
 function DashboardPage() {
   return (
-    <div className="h-full w-full bg-background overflow-y-auto">
+    <div className="h-full w-full bg-background overflow-y-auto" data-tour-id="welcome">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-8 space-y-12" style={{ containerType: 'inline-size' }}>
         {/* Investigation Cards */}

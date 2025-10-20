@@ -96,6 +96,7 @@
     "react-force-graph-2d": "^1.27.1",
     "react-force-graph-3d": "^1.26.1",
     "react-hook-form": "^7.56.4",
+    "react-joyride": "^2.9.3",
     "react-markdown": "^10.1.0",
     "react-medium-image-zoom": "^5.2.14",
     "react-resizable-panels": "^3.0.2",

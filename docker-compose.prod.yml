@@ -30,7 +30,7 @@ services:
       POSTGRES_PASSWORD: flowsint
       POSTGRES_DB: flowsint
     ports:
-      - "5433:5432" # 5433 sur l'hôte pour éviter conflit local
+      - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
@@ -45,7 +45,6 @@ services:
     networks:
       - flowsint_network
 
-  # Neo4j graph database
   neo4j:
     image: neo4j:5
     container_name: flowsint-neo4j
@@ -67,7 +66,6 @@ services:
     networks:
       - flowsint_network
 
-  # Flowsint frontend app (production)
   flowsint-app:
     build:
       context: ./flowsint-app

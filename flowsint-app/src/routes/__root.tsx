@@ -3,6 +3,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
 import '@/styles.css'
 import { useTheme } from '@/components/theme-provider'
+import { TutorialProvider } from '@/components/tutorial/tutorial-provider'
 
 export interface MyRouterContext {
   queryClient: QueryClient
@@ -12,10 +13,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => {
     const { theme } = useTheme()
     return (
-      <>
+      <TutorialProvider>
         <Toaster theme={theme} position="top-right" richColors />
         <Outlet />
-      </>
+      </TutorialProvider>
     )
   }
 })

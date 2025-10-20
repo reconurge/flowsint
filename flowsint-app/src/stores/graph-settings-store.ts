@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS = {
   general: {
     showFlow: {
       type: 'boolean',
-      value: true,
+      value: false,
       description: 'Display Flo, your AI assistant.'
     },
   },

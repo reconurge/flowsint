@@ -63,7 +63,7 @@ function FlowPage() {
             </div>
             <div className="flex items-center gap-2">
               <NewFlow>
-                <Button size="sm">
+                <Button size="sm" data-tour-id="create-flow">
                   <PlusIcon className="w-4 h-4 mr-2" />
                   New flow
                 </Button>
@@ -117,7 +117,7 @@ function FlowPage() {
 
             {allCategories.map((category) => (
               <TabsContent key={category} value={category} className="mt-0">
-                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6" data-tour-id="flow-list">
                   {flows
                     ?.filter((flow) =>
                       category === 'All'

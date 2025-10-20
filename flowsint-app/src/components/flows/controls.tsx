@@ -39,6 +39,7 @@ export function FlowControls({
               className="bg-card"
               onClick={handleSaveFlow}
               disabled={loading}
+              data-tour-id="save-button"
             >
               <Save className="h-4 w-4" />
             </Button>
@@ -69,7 +70,7 @@ export function FlowControls({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" className="bg-card" onClick={onLayout}>
+            <Button variant="outline" size="icon" className="bg-card" onClick={onLayout} data-tour-id="layout-button">
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

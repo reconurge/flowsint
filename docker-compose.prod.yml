@@ -67,6 +67,20 @@ services:
     networks:
       - flowsint_network
 
+  # Flowsint frontend app (production)
+  flowsint-app:
+    build:
+      context: ./flowsint-app
+      dockerfile: Dockerfile
+    container_name: flowsint-app
+    ports:
+      - "5173:80"
+    depends_on:
+      - flowsint_api
+    networks:
+      - flowsint_network
+    restart: unless-stopped
+
 networks:
   flowsint_network:
     name: flowsint_network

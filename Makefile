@@ -11,8 +11,7 @@ dev:
 
 prod:
 	$(MAKE) check-env
-	docker compose up -d
-	$(MAKE) frontend_prod
+	docker compose -f docker-compose.prod.yml up -d --build
 
 check-env:
 	@echo "🔎 Checking .env files..."
@@ -38,12 +37,11 @@ install:
 	fi
 	poetry config virtualenvs.in-project true --local
 	poetry env use python3.12
-	docker compose up -d
+	docker compose up -d postgres redis neo4j
 	poetry install
 	cd $(PROJECT_ROOT)/flowsint-core && poetry install
 	cd $(PROJECT_ROOT)/flowsint-transforms && poetry install
 	cd $(PROJECT_ROOT)/flowsint-api && poetry install && poetry run alembic upgrade head
-	cd $(PROJECT_ROOT)/flowsint-app && yarn install
 	@echo "✅ All modules installed successfully!"
 
 infra:
@@ -53,7 +51,9 @@ api:
 	cd $(PROJECT_ROOT)/flowsint-api && poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 frontend:
-	cd $(PROJECT_ROOT)/flowsint-app && npm run dev
+	@echo "🚀 Starting frontend in Docker and opening browser..."
+	@docker compose up -d flowsint-app
+	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done; open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Frontend ready at http://localhost:5173"'
 
 frontend_prod:
 	cd $(PROJECT_ROOT)/flowsint-app && npm run build
@@ -61,8 +61,14 @@ frontend_prod:
 celery:
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
 
-run: infra
-	$(MAKE) -j3 api frontend celery
+run:
+	@echo "🚀 Starting all services..."
+	docker compose up -d
+	@echo "⏳ Waiting for frontend to be ready..."
+	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'
+	@echo "🌐 Opening browser..."
+	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ All services ready! Frontend at http://localhost:5173"
+	$(MAKE) -j2 api celery
 
 stop:
 	@echo "🛑 Stopping all services..."

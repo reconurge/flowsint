@@ -48,6 +48,24 @@ services:
     networks:
       - flowsint_network
 
+  # Flowsint frontend app (development)
+  flowsint-app:
+    build:
+      context: ./flowsint-app
+      dockerfile: Dockerfile.dev
+    container_name: flowsint-app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./flowsint-app:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5001
+    networks:
+      - flowsint_network
+    stdin_open: true
+    tty: true
+
 networks:
   flowsint_network:
     name: flowsint_network

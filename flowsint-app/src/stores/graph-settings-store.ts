@@ -200,12 +200,13 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       // Core methods
       updateSetting: (category, key, value) =>
         set((state) => {
+          const categorySettings = state.settings[category as keyof typeof state.settings] as any
           const newSettings = {
             ...state.settings,
             [category]: {
-              ...state.settings[category],
+              ...categorySettings,
               [key]: {
-                ...state.settings[category][key],
+                ...(categorySettings?.[key] || {}),
                 value: value
               }
             }
@@ -217,7 +218,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
             newForceSettings = {
               ...state.forceSettings,
               [key]: {
-                ...state.forceSettings[key],
+                ...(state.forceSettings[key] || {}),
                 value: value
               }
             }
@@ -249,6 +250,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
 
       getCategorySettings: (category: string) => {
         const categorySettings: Record<string, any> = {}
+        // @ts-ignore
         const settings = get().settings[category]
         if (settings) {
           Object.entries(settings as Record<string, any>).forEach(([key, setting]) => {
@@ -266,8 +268,8 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
         if (!preset) return
 
         set((state) => {
-          const newSettings = { ...state.settings }
-          const newForceSettings = { ...state.forceSettings }
+          const newSettings = { ...state.settings } as any
+          const newForceSettings = { ...state.forceSettings } as any
 
           Object.entries(preset).forEach(([key, value]) => {
             if (newSettings.graph[key]) {
@@ -297,14 +299,25 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       setKeyboardShortcutsOpen: (open) => set({ keyboardShortcutsOpen: open }),
 
       // Helper methods
-      getSettingValue: (category: string, key: string) => get().settings[category]?.[key]?.value,
-      getSettingType: (category: string, key: string) => get().settings[category]?.[key]?.type,
-      getSettingOptions: (category: string, key: string) =>
-        get().settings[category]?.[key]?.options,
-      getSettingDescription: (category: string, key: string) =>
-        get().settings[category]?.[key]?.description,
+      getSettingValue: (category: string, key: string) => {
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        return categorySettings?.[key]?.value
+      },
+      getSettingType: (category: string, key: string) => {
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        return categorySettings?.[key]?.type
+      },
+      getSettingOptions: (category: string, key: string) => {
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        return categorySettings?.[key]?.options
+      },
+      getSettingDescription: (category: string, key: string) => {
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        return categorySettings?.[key]?.description
+      },
       getSettingConstraints: (category: string, key: string) => {
-        const setting = get().settings[category]?.[key]
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const setting = categorySettings?.[key]
         if (setting && 'min' in setting) {
           return {
             min: setting.min,

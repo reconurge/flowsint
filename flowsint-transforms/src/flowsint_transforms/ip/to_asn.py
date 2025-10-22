@@ -1,12 +1,11 @@
 import json
-import socket
-import subprocess
 from typing import List, Union
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.ip import Ip
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_ip
 from flowsint_core.core.logger import Logger
+from tools.network.asnmap import AsnmapTool
 
 
 class IpToAsnTransform(Transform):
@@ -18,7 +17,7 @@ class IpToAsnTransform(Transform):
 
     @classmethod
     def name(cls) -> str:
-        return "ip_to_asn_transform"
+        return "ip_to_asn"
 
     @classmethod
     def category(cls) -> str:
@@ -46,29 +45,21 @@ class IpToAsnTransform(Transform):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
+        asnmap = AsnmapTool()
 
         for ip in data:
             try:
-                # Use asnmap to get ASN info
-                result = subprocess.run(
-                    ["asnmap", "-a", ip.address, "-json"],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
+                # Use asnmap tool to get ASN info
+                asn_data = asnmap.launch(ip.address, type="ip")
 
-                if result.returncode == 0:
-                    output = result.stdout.strip()
-                    if output:
-                        asn_data = json.loads(output)
-                        if asn_data and "as_number" in asn_data:
-                            asn = ASN(
-                                asn=str(asn_data["as_number"]),
-                                name=asn_data.get("as_name", ""),
-                                org=asn_data.get("as_org", ""),
-                                country=asn_data.get("as_country", ""),
-                            )
-                            results.append(asn)
+                if asn_data and "as_number" in asn_data:
+                    asn = ASN(
+                        asn=str(asn_data["as_number"]),
+                        name=asn_data.get("as_name", ""),
+                        org=asn_data.get("as_org", ""),
+                        country=asn_data.get("as_country", ""),
+                    )
+                    results.append(asn)
 
             except Exception as e:
                 Logger.error(

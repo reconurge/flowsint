@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker run:*)",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

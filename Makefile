@@ -9,7 +9,7 @@ dev:
 	$(MAKE) install
 	$(MAKE) run
 
-run:
+prod:
 	$(MAKE) check-env
 	docker compose -f docker-compose.prod.yml up -d --build
 
@@ -61,7 +61,7 @@ frontend_prod:
 celery:
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
 
-old-run:
+run:
 	@echo "🚀 Starting all services..."
 	docker compose up -d
 	@echo "⏳ Waiting for frontend to be ready..."

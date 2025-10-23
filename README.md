@@ -11,7 +11,7 @@ Don't want to read ? Got it. Here's your install instructions:
 ```bash
 git clone https://github.com/reconurge/flowsint.git
 cd flowsint
-make run
+make dev
 ```
 
 > ✅ OSINT investigations need a high level of privacy. Everything is stored on your machine.

@@ -10,7 +10,7 @@ Don't want to read ? Got it. Here's your install instructions:
 
 #### 1. Install pre-requisites
 
-- Python 3.10+
+- Python 3.11+
 - Poetry (for python dependency management)
 - Docker
 
@@ -118,7 +118,7 @@ flowsint-types (types)
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - Poetry (for dependency management)
 - Docker (for some tools)
 

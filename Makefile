@@ -10,8 +10,10 @@ dev:
 	$(MAKE) run
 
 prod:
+	# temporary
 	$(MAKE) check-env
-	docker compose -f docker-compose.prod.yml up -d --build
+	$(MAKE) install
+	$(MAKE) run
 
 check-env:
 	@echo "🔎 Checking .env files..."
@@ -36,7 +38,7 @@ install:
 		exit 1; \
 	fi
 	poetry config virtualenvs.in-project true --local
-	poetry env use python3.12
+	# poetry env use python3.12
 	docker compose up -d postgres redis neo4j
 	poetry install
 	cd $(PROJECT_ROOT)/flowsint-core && poetry install

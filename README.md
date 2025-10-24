@@ -6,7 +6,15 @@ A modular investigation and reconnaissance platform with clean separation of con
 
 ## Get started
 
-Don't want to read ? Got it. Here's your install instructions: 
+Don't want to read ? Got it. Here's your install instructions:
+
+#### 1. Install pre-requisites
+
+- Python 3.10+
+- Poetry (for dependency management)
+- Docker (for some tools)
+
+#### 2. Run install command
 
 ```bash
 git clone https://github.com/reconurge/flowsint.git

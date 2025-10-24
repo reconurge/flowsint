@@ -48,8 +48,7 @@ services:
     networks:
       - flowsint_network
 
-  # Flowsint frontend app (development)
-  flowsint-app:
+  app:
     build:
       context: ./flowsint-app
       dockerfile: Dockerfile.dev

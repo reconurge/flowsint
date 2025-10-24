@@ -6,7 +6,7 @@ authors = ["EliottElek <dexxterrmorgan@proton.me>"]
 packages = [{ include = "flowsint_core", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10"
 pydantic = {extras = ["email"], version = "^2.11.7"}
 flowsint-transforms = { path = "../flowsint-transforms", develop = true }
 neo4j = "^5.0"

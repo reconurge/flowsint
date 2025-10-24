@@ -6,7 +6,7 @@ authors = ["EliottElek <dexxterrmorgan@proton.me>"]
 packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10"
 flowsint-core = { path = "../flowsint-core", develop = true }
 flowsint-types = { path = "../flowsint-types", develop = true }
 flowsint-transforms = { path = "../flowsint-transforms", develop = true }

@@ -11,8 +11,8 @@ Don't want to read ? Got it. Here's your install instructions:
 #### 1. Install pre-requisites
 
 - Python 3.10+
-- Poetry (for dependency management)
-- Docker (for some tools)
+- Poetry (for python dependency management)
+- Docker
 
 #### 2. Run install command
 

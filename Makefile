@@ -53,7 +53,7 @@ api:
 	cd $(PROJECT_ROOT)/flowsint-api && poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 frontend:
-	@echo "🚀 Starting frontend in Docker and opening browser..."
+	@echo "🚀 Starting frontend and opening browser..."
 	@docker compose up -d flowsint-app
 	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done; open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Frontend ready at http://localhost:5173"'
 

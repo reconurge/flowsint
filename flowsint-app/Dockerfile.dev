@@ -1,10 +1,10 @@
-FROM node:20
+FROM node:24
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN yarn install
 
 # Copy source code
 COPY . .
@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 5173
 
 # Run development server with host flag to make it accessible from outside container
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["yarn", "dev", "--", "--host", "0.0.0.0"]

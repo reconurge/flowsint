@@ -19,6 +19,7 @@ python-dotenv = "^1.0"
 requests = "^2.31"
 networkx = "^2.6.3"
 passlib = {extras = ["bcrypt"], version = "^1.7"}
+bcrypt = ">=4.0.0,<5.0.0"
 python-jose = {extras = ["cryptography"], version = "^3.3"}
 sse-starlette = "^1.8"
 alembic = "1.13.0"

@@ -12,7 +12,7 @@ export default defineConfig({
         target: 'react',
         routesDirectory: 'src/routes',
         generatedRouteTree: 'src/routeTree.gen.ts',
-        routeFileIgnorePrefix: '_',
+        // routeFileIgnorePrefix: '_',
         autoCodeSplitting: true,
         verboseFileRoutes: false,
         quoteStyle: 'double',

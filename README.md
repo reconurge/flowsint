@@ -22,6 +22,9 @@ cd flowsint
 make dev
 ```
 
+Then go to [http://localhost:5173/register](http://localhost:5173/register) and create an account. There are no credentials or account by default.
+
+
 > ✅ OSINT investigations need a high level of privacy. Everything is stored on your machine.
 
 

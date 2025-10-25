@@ -30,7 +30,7 @@ const SketchList = () => {
     if (!searchQuery.trim()) return investigation.sketches
 
     const query = searchQuery.toLowerCase().trim()
-    return investigation.sketches.filter((sketch) => sketch.title.toLowerCase().includes(query))
+    return investigation.sketches.filter((sketch: Sketch) => sketch.title.toLowerCase().includes(query))
   }, [investigation?.sketches, searchQuery])
 
   if (error)

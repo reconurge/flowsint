@@ -1,5 +1,5 @@
 import { Command } from '../command'
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import InvestigationSelector from './investigation-selector'
 import SketchSelector from './sketch-selector'
 import { memo, useCallback } from 'react'
@@ -20,6 +20,10 @@ import {
 import { Ellipsis } from 'lucide-react'
 import { isMac } from '@/lib/utils'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useConfirm } from '../use-confirm-dialog'
+import { sketchService } from '@/api/sketch-service'
+import { toast } from 'sonner'
 
 export const TopNavbar = memo(() => {
   const { investigationId, id, type } = useParams({ strict: false })
@@ -65,16 +69,53 @@ export const TopNavbar = memo(() => {
             </>
           )}
         </div>
-        {id && <InvestigationMenu />}
+        {id && <InvestigationMenu investigationId={investigationId} sketchId={id} />}
         {/* <NavUser /> */}
       </div>
     </header>
   )
 })
 
-export function InvestigationMenu() {
+export function InvestigationMenu({ investigationId, sketchId }: { investigationId?: string, sketchId: string }) {
   const setSettingsModalOpen = useGraphSettingsStore((s) => s.setSettingsModalOpen)
   const setKeyboardShortcutsOpen = useGraphSettingsStore((s) => s.setKeyboardShortcutsOpen)
+  const navigate = useNavigate()
+  const { confirm } = useConfirm()
+
+  // Delete sketch mutation
+  const deleteSketchMutation = useMutation({
+    mutationFn: sketchService.delete,
+    onSuccess: () => {
+      investigationId &&
+        navigate({
+          to: '/dashboard/investigations/$investigationId',
+          params: {
+            investigationId: investigationId as string
+          }
+        })
+    },
+    onError: (error) => {
+      console.error('Error deleting sketch:', error)
+    }
+  })
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const confirmed = await confirm({
+      title: 'Delete Sketch',
+      message: `Are you sure you want to delete this sketch ? This action cannot be undone.`
+    })
+
+    if (confirmed) {
+      toast.promise(deleteSketchMutation.mutateAsync(sketchId), {
+        loading: 'Deleting sketch...',
+        success: () => `Sketch has been deleted`,
+        error: 'Failed to delete sketch'
+      })
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -106,7 +147,7 @@ export function InvestigationMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem onClick={handleDelete} variant="destructive">
           Delete
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>

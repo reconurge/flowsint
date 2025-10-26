@@ -26,7 +26,7 @@ const GraphNavigation = () => {
             <Users className="h-3 w-3 opacity-60" /> Entities
           </TabsTrigger>
           <TabsTrigger value="items">
-            <UserPlus className="h-3 w-3 opacity-60" /> Items
+            <UserPlus className="h-3 w-3 opacity-60" /> Add
           </TabsTrigger>
         </TabsList>
         <TabsContent

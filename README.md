@@ -172,13 +172,15 @@ FastAPI server providing:
 
 - REST API endpoints
 - Authentication and user management
-- Transform orchestration
 - Graph database integration
 - Real-time event streaming
 
 ### flowsint-app
 
-Frontend application (unchanged from original).
+Frontend application.
+
+- Modern and UI friendly interface
+- Built for performance (no lag even on thousands of nodes)
 
 ## Development workflow
 
@@ -189,7 +191,7 @@ Frontend application (unchanged from original).
 
 ## Testing
 
-Each module has its own test suite:
+Each module has its own (incomplete) test suite:
 
 ```bash
 # Test core module

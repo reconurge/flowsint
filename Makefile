@@ -38,7 +38,6 @@ install:
 		exit 1; \
 	fi
 	poetry config virtualenvs.in-project true --local
-	poetry env use python3.12
 	docker compose up -d postgres redis neo4j
 	poetry install
 	cd $(PROJECT_ROOT)/flowsint-core && poetry install

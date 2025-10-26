@@ -398,6 +398,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       toast.error('Save the flow first to compute it.')
       return
     }
+    await handleSaveFlow()
 
     setLoading(true)
     try {

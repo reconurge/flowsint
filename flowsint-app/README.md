@@ -34,7 +34,7 @@ This will create a production build in the `dist` folder.
 ### Preview
 
 ```bash
-$ npm run preview
+$ npm run start
 ```
 
-This will preview the production build locally.
+This will start the production build locally.

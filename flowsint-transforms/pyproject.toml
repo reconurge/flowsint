@@ -6,7 +6,7 @@ authors = ["EliottElek <dexxterrmorgan@proton.me>"]
 packages = [{ include = "tools", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = ">=3.12,<4.0"
 flowsint-types = { path = "../flowsint-types", develop = true }
 flowsint-core = { path = "../flowsint-core", develop = true }
 holehe = "^1.61"
@@ -22,7 +22,7 @@ pydantic = "^2.11.7"
 
 requests-random-user-agent = "^2023.10.25"
 spacy = "^3.7"
-maigret = { git = "https://github.com/soxoj/maigret" }
+maigret = { git = "https://github.com/soxoj/maigret", python = ">=3.12,<4.0" }
 recontrack = { git = "https://github.com/reconurge/recontrack.git" }
 reconcrawl = { git = "https://github.com/reconurge/reconcrawl.git" }
 reconspread = { git = "https://github.com/reconurge/reconspread.git" }

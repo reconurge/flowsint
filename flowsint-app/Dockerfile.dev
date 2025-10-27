@@ -2,15 +2,11 @@ FROM node:24
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 RUN yarn install
 
-# Copy source code
 COPY . .
 
-# Expose Vite dev server port
 EXPOSE 5173
 
-# Run development server with host flag to make it accessible from outside container
-CMD ["yarn", "dev", "--", "--host", "0.0.0.0"]
+CMD ["yarn", "dev", "--host", "0.0.0.0"]

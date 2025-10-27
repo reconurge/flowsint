@@ -11,6 +11,7 @@ Don't want to read ? Got it. Here's your install instructions:
 #### 1. Install pre-requisites
 
 - Docker
+- Make
 
 #### 2. Run install command
 
@@ -18,6 +19,15 @@ Don't want to read ? Got it. Here's your install instructions:
 git clone https://github.com/reconurge/flowsint.git
 cd flowsint
 make prod
+```
+
+Before running this command, setup your different API keys in the `.env.example` file:
+
+```bash
+HIBP_API_KEY=   # HaveIBeenPwned
+ETHERSCAN_API_KEY= #Etherscan
+WHOXY_API_KEY= # Whoxy
+...
 ```
 
 Then go to [http://localhost:5173/register](http://localhost:5173/register) and create an account. There are no credentials or account by default.

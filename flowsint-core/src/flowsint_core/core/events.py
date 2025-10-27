@@ -11,7 +11,7 @@ import os
 class EventEmitter:
     def __init__(self):
         self.id = uuid.uuid4()
-        self.redis = redis.from_url(os.getenv("REDIS_URI", "redis://localhost:6379/0"))
+        self.redis = redis.from_url(os.environ["REDIS_URL"])
         self.pubsubs: Dict[str, redis.client.PubSub] = {}
 
     async def subscribe(self, channel: str):

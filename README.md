@@ -19,7 +19,7 @@ Don't want to read ? Got it. Here's your install instructions:
 ```bash
 git clone https://github.com/reconurge/flowsint.git
 cd flowsint
-make dev
+make prod
 ```
 
 Then go to [http://localhost:5173/register](http://localhost:5173/register) and create an account. There are no credentials or account by default.
@@ -124,10 +124,18 @@ flowsint-types (types)
 
 ### Run
 
-For now, you can start flowsint in a development and production environment. Make sure you have **Make** installed.
+Make sure you have **Make** installed.
 
 ```bash
-make run
+make prod
+```
+
+### Development
+
+To run Flowsint in develoment mode, run:
+
+```bash
+make dev
 ```
 
 The app is accessible at [http://localhost:5173](http://localhost:5173).

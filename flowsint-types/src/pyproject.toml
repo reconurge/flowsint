@@ -6,7 +6,7 @@ authors = ["EliottElek <dexxterrmorgan@proton.me>"]
 packages = [{ include = "flowsint_types" }]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.12,<4.0"
 pydantic = "^2.0"
 
 [build-system]

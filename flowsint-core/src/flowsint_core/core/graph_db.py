@@ -21,7 +21,6 @@ class Neo4jConnection:
 
 
 URI = os.getenv("NEO4J_URI_BOLT")
-URI = "bolt://localhost:7687"
 USERNAME = os.getenv("NEO4J_USERNAME")
 PASSWORD = os.getenv("NEO4J_PASSWORD")
 

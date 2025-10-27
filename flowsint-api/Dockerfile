@@ -1,35 +1,57 @@
-# --- Production stage ---
-FROM python:3.12-slim AS prod
+FROM python:3.12-slim AS base
 
-# Environment variables
 ENV PYTHONUNBUFFERED=1
 ENV POETRY_VIRTUALENVS_CREATE=false
-ENV APP_ENV=prod
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
+    libpq-dev \
+    pkg-config \
+    libcairo2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 - \
     && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
 WORKDIR /app
 
-# Copy only dependency files to leverage Docker cache
-COPY pyproject.toml poetry.lock ./
+FROM base AS dev
 
-# Install production dependencies only (no dev)
-RUN poetry install --no-dev --no-root
+ENV APP_ENV=development
 
-# Copy the source code
-COPY . .
+COPY flowsint-core /app/flowsint-core
+COPY flowsint-types /app/flowsint-types
+COPY flowsint-transforms /app/flowsint-transforms
 
-# Expose FastAPI port
+COPY flowsint-api /app/flowsint-api
+
+WORKDIR /app/flowsint-api
+
+RUN poetry install --no-root
+
 EXPOSE 5001
 
-# Run FastAPI
+ENTRYPOINT ["/app/flowsint-api/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001", "--reload"]
+
+# Production stage
+FROM base AS prod
+
+ENV APP_ENV=production
+
+COPY flowsint-core /app/flowsint-core
+COPY flowsint-types /app/flowsint-types
+COPY flowsint-transforms /app/flowsint-transforms
+
+COPY flowsint-api /app/flowsint-api
+
+WORKDIR /app/flowsint-api
+
+RUN poetry install
+
+EXPOSE 5001
+
+ENTRYPOINT ["/app/flowsint-api/entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]

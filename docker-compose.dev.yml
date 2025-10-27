@@ -1,0 +1,159 @@
+name: flowsint-dev
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: flowsint-postgres-dev
+    restart: always
+    environment:
+      POSTGRES_USER: flowsint
+      POSTGRES_PASSWORD: flowsint
+      POSTGRES_DB: flowsint
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data_dev:/var/lib/postgresql/data
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowsint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery & cache
+  redis:
+    image: redis:alpine
+    container_name: flowsint-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j graph database
+  neo4j:
+    image: neo4j:5
+    container_name: flowsint-neo4j-dev
+    ports:
+      - "7474:7474"  # Web UI
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    volumes:
+      - neo4j_data_dev:/data
+      - neo4j_logs_dev:/logs
+      - neo4j_import_dev:/var/lib/neo4j/import
+      - neo4j_plugins_dev:/plugins
+    restart: unless-stopped
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: flowsint-api/Dockerfile
+      target: dev
+    container_name: flowsint-api-dev
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./flowsint-api:/app/flowsint-api
+      - ./flowsint-core:/app/flowsint-core
+      - ./flowsint-types:/app/flowsint-types
+      - ./flowsint-transforms:/app/flowsint-transforms
+    environment:
+      - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - HIBP_API_KEY=${HIBP_API_KEY}
+      - ETHERSCAN_API_KEY=${ETHERSCAN_API_KEY}
+      - WHOXY_API_KEY=${WHOXY_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    networks:
+      - flowsint_network
+
+  # Celery Worker
+  celery:
+    build:
+      context: .
+      dockerfile: flowsint-api/Dockerfile
+      target: dev
+    container_name: flowsint-celery-dev
+    restart: unless-stopped
+    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    volumes:
+      - ./flowsint-api:/app/flowsint-api
+      - ./flowsint-core:/app/flowsint-core
+      - ./flowsint-types:/app/flowsint-types
+      - ./flowsint-transforms:/app/flowsint-transforms
+    environment:
+      - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    networks:
+      - flowsint_network
+
+  # Frontend
+  app:
+    build:
+      context: ./flowsint-app
+      dockerfile: Dockerfile.dev
+    container_name: flowsint-app-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./flowsint-app:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5001
+    networks:
+      - flowsint_network
+    stdin_open: true
+    tty: true
+
+networks:
+  flowsint_network:
+    name: flowsint_network_dev
+    driver: bridge
+
+volumes:
+  pg_data_dev:
+  neo4j_data_dev:
+  neo4j_logs_dev:
+  neo4j_import_dev:
+  neo4j_plugins_dev:

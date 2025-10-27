@@ -17,9 +17,7 @@ def emit_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: 
         event = Event(
             id=log_id, sketch_id=sketch_id, type=log_type, payload=content
         ).model_dump_json()
-        redis_client = redis.from_url(
-            os.getenv("REDIS_URI", "redis://127.0.0.1:6379/0")
-        )
+        redis_client = redis.from_url(os.environ["REDIS_URL"])
         redis_client.publish(sketch_id, event)
     except Exception as e:
         raise

@@ -32,6 +32,7 @@ export default defineConfig({
     }
   },
   server: {
+    open: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5001',
@@ -39,5 +40,10 @@ export default defineConfig({
         secure: false
       }
     }
+  },
+  preview: {
+    open: false,
+    host: '0.0.0.0',
+    port: 5173
   }
 })

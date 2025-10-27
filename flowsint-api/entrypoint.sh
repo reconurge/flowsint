@@ -1,12 +1,8 @@
 #!/bin/sh
-set -e  # Arrêter le script en cas d'erreur
+set -e
 
-if [ "$1" = "app" ]; then
-    echo "Démarrage de FastAPI..."
-    exec uvicorn app.main:app --host 0.0.0.0 --port 5001
-elif [ "$1" = "celery" ]; then
-    echo "Démarrage de Celery..."
-    exec celery -A app.core.celery worker --loglevel=info
-else
-    exec "$@"
-fi
+echo "Running database migrations..."
+alembic upgrade head
+
+echo "Starting application..."
+exec "$@"

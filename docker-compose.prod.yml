@@ -1,0 +1,148 @@
+name: flowsint-prod
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: flowsint-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-flowsint}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flowsint}
+      POSTGRES_DB: ${POSTGRES_DB:-flowsint}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data_prod:/var/lib/postgresql/data
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-flowsint}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery & cache
+  redis:
+    image: redis:alpine
+    container_name: flowsint-redis-prod
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j graph database
+  neo4j:
+    image: neo4j:5
+    container_name: flowsint-neo4j-prod
+    restart: always
+    ports:
+      - "7474:7474"  # Web UI
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    volumes:
+      - neo4j_data_prod:/data
+      - neo4j_logs_prod:/logs
+      - neo4j_import_prod:/var/lib/neo4j/import
+      - neo4j_plugins_prod:/plugins
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend (Production)
+  api:
+    build:
+      context: .
+      dockerfile: flowsint-api/Dockerfile
+      target: prod
+    container_name: flowsint-api-prod
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-flowsint}:${POSTGRES_PASSWORD:-flowsint}@postgres:5432/${POSTGRES_DB:-flowsint}
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - HIBP_API_KEY=${HIBP_API_KEY}
+      - ETHERSCAN_API_KEY=${ETHERSCAN_API_KEY}
+      - WHOXY_API_KEY=${WHOXY_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    networks:
+      - flowsint_network
+
+  # Celery Worker (Production)
+  celery:
+    build:
+      context: .
+      dockerfile: flowsint-api/Dockerfile
+      target: prod
+    container_name: flowsint-celery-prod
+    restart: always
+    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-flowsint}:${POSTGRES_PASSWORD:-flowsint}@postgres:5432/${POSTGRES_DB:-flowsint}
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    networks:
+      - flowsint_network
+
+  # Frontend (Production)
+  app:
+    build:
+      context: ./flowsint-app
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:5001}
+    container_name: flowsint-app-prod
+    restart: always
+    ports:
+      - "5173:5173"
+    networks:
+      - flowsint_network
+    depends_on:
+      - api
+
+networks:
+  flowsint_network:
+    name: flowsint_network_prod
+    driver: bridge
+
+volumes:
+  pg_data_prod:
+  neo4j_data_prod:
+  neo4j_logs_prod:
+  neo4j_import_prod:
+  neo4j_plugins_prod:

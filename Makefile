@@ -1,19 +1,34 @@
 PROJECT_ROOT := $(shell pwd)
 
-.PHONY: install run stop infra api frontend celery clean dev check-env
+.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
+open-browser:
+	@echo "⏳ Waiting for frontend to be ready..."
+	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'
+	@echo "🌐 Opening browser..."
+	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Flowsint ready at http://localhost:5173"
 
 dev:
+	@echo "🚀 Starting Flowsint in DEVELOPMENT mode..."
 	$(MAKE) check-env
-	$(MAKE) install
-	$(MAKE) run
+	docker compose -f docker-compose.dev.yml up --build -d
+	$(MAKE) open-browser
+	docker compose -f docker-compose.dev.yml logs -f
 
 prod:
-	# temporary
+	@echo "🚀 Starting Flowsint in PRODUCTION mode..."
 	$(MAKE) check-env
-	$(MAKE) install
-	$(MAKE) run
+	docker compose -f docker-compose.prod.yml up --build -d
+	$(MAKE) open-browser
+
+build-dev:
+	@echo "🔨 Building development images..."
+	docker compose -f docker-compose.dev.yml build
+
+build-prod:
+	@echo "🔨 Building production images..."
+	docker compose -f docker-compose.prod.yml build
 
 check-env:
 	@echo "🔎 Checking .env files..."
@@ -68,18 +83,30 @@ run:
 	@echo "⏳ Waiting for frontend to be ready..."
 	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'
 	@echo "🌐 Opening browser..."
-	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ All services ready! Frontend at http://localhost:5173"
+	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ All services ready! Flowsint at http://localhost:5173"
 	$(MAKE) -j2 api celery
 
 stop:
 	@echo "🛑 Stopping all services..."
+	-docker compose -f docker-compose.dev.yml down
+	-docker compose -f docker-compose.prod.yml down
 	-docker compose down
 
-# --- Nettoyage complet ---
+stop-dev:
+	@echo "🛑 Stopping development services..."
+	docker compose -f docker-compose.dev.yml down
+
+stop-prod:
+	@echo "🛑 Stopping production services..."
+	docker compose -f docker-compose.prod.yml down
+
 clean:
-	@echo "Removing containers, volumes and venvs..."
-	docker compose down -v --remove-orphans
+	@echo "🧹 Removing containers, volumes and venvs..."
+	-docker compose -f docker-compose.dev.yml down -v --remove-orphans
+	-docker compose -f docker-compose.prod.yml down -v --remove-orphans
+	-docker compose down -v --remove-orphans
 	rm -rf $(PROJECT_ROOT)/flowsint-app/node_modules
 	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-transforms/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-api/.venv
+	@echo "✅ Cleanup complete!"

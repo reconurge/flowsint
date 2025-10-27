@@ -10,8 +10,6 @@ Don't want to read ? Got it. Here's your install instructions:
 
 #### 1. Install pre-requisites
 
-- Python 3.12+
-- Poetry (for python dependency management)
 - Docker
 
 #### 2. Run install command
@@ -118,25 +116,17 @@ flowsint-types (types)
 
 ### Prerequisites
 
-- Python 3.12+
-- Poetry (for dependency management)
-- Docker (for some tools)
+- Docker
 
 ### Run
 
 Make sure you have **Make** installed.
 
 ```bash
-make prod
+make dev
 ```
 
 ### Development
-
-To run Flowsint in develoment mode, run:
-
-```bash
-make dev
-```
 
 The app is accessible at [http://localhost:5173](http://localhost:5173).
 

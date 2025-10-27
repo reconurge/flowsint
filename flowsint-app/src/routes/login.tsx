@@ -62,8 +62,8 @@ function Login() {
               {/* Username field */}
               <FormField
                 name="username"
-                label="Username"
-                placeholder="Your username"
+                label="Email"
+                placeholder="Your email"
                 disabled={login.isPending}
               />
 

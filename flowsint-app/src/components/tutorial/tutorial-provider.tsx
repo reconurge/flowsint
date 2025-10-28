@@ -99,7 +99,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
 
   return (
     <TutorialContext.Provider value={contextValue}>
-      <Joyride
+      {/* <Joyride
         steps={steps}
         run={run}
         stepIndex={stepIndex}
@@ -120,7 +120,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
           next: 'Next',
           skip: 'Skip',
         }}
-      />
+      /> */}
       {children}
     </TutorialContext.Provider>
   );

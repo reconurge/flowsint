@@ -168,7 +168,7 @@ const ActionBar = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="ml-2">
-              <LaunchFlow values={values} type={type}>
+              <LaunchFlow disabled={!shareSameType} values={values} type={type}>
                 <Button disabled={!shareSameType} size={'sm'} className="rounded-full h-7">
                   <Rocket className="h-3 w-3" strokeWidth={2} />({selectedNodes.length})
                 </Button>

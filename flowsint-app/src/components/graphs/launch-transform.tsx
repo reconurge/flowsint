@@ -26,7 +26,7 @@ import { Search, FileCode2, Zap, PlusIcon, GitBranch, FileX, Sparkles } from 'lu
 import { Transform, Flow } from '@/types'
 
 const LaunchTransformOrFlowPanel = memo(
-  ({ values, type, children }: { values: string[]; type: string; children?: React.ReactNode }) => {
+  ({ values, type, children, disabled }: { values: string[]; type: string; children?: React.ReactNode, disabled?: boolean }) => {
     const { launchTransform } = useLaunchTransform()
     const { launchFlow } = useLaunchFlow()
     const { id: sketch_id } = useParams({ strict: false })
@@ -86,10 +86,13 @@ const LaunchTransformOrFlowPanel = memo(
       }
     }, [selectedTransform, activeTab, launchTransform, launchFlow, values, sketch_id])
 
+    if (disabled) return (
+      <>{children}</>
+    )
     return (
       <div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
+          <SheetTrigger disabled={disabled} asChild>
             <div>{children}</div>
           </SheetTrigger>
           <SheetContent className="sm:max-w-xl">
@@ -176,13 +179,12 @@ const LaunchTransformOrFlowPanel = memo(
                       filteredTransforms.map((transform: Transform) => (
                         <Card
                           key={transform.name}
-                          className={`cursor-pointer border py-1 transition-all ${
-                            selectedTransform &&
+                          className={`cursor-pointer border py-1 transition-all ${selectedTransform &&
                             'name' in selectedTransform &&
                             selectedTransform.name === transform.name
-                              ? 'border-primary bg-primary/5'
-                              : 'hover:border-primary/50'
-                          }`}
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:border-primary/50'
+                            }`}
                           onClick={() => handleSelectTransform(transform)}
                         >
                           <CardHeader className="p-4">
@@ -288,13 +290,12 @@ const LaunchTransformOrFlowPanel = memo(
                       filteredFlows.map((flow: Flow) => (
                         <Card
                           key={flow.id}
-                          className={`cursor-pointer border py-1 transition-all ${
-                            selectedTransform &&
+                          className={`cursor-pointer border py-1 transition-all ${selectedTransform &&
                             'id' in selectedTransform &&
                             selectedTransform.id === flow.id
-                              ? 'border-primary bg-primary/5'
-                              : 'hover:border-primary/50'
-                          }`}
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:border-primary/50'
+                            }`}
                           onClick={() => handleSelectTransform(flow)}
                         >
                           <CardHeader className="p-4">

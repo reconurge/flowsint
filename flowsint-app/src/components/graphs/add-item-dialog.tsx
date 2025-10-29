@@ -86,27 +86,26 @@ export default function AddItemDialog() {
 
       // If we have a related node to connect to, create the edge
       if (relatedNodeToAdd && newNodeResponse.node) {
-        const newEdge = {
-          source: relatedNodeToAdd,
-          target: newNodeResponse.node,
+        const relationPayload = {
+          source: relatedNodeToAdd.id,
+          target: newNodeResponse.node.id,
           type: 'one-way',
-          label: `HAS_${newNode.data.type.toUpperCase()}`,
-          sketch_id: sketch_id
+          label: `HAS_${newNode.data.type.toUpperCase()}`
         }
 
         // Add edge to local state
         if (addEdge) {
           const newEdgeObject = {
             type: 'custom',
-            label: newEdge.label,
-            source: newEdge.source.id,
-            target: newEdge.target.id
+            label: relationPayload.label,
+            source: relationPayload.source,
+            target: relationPayload.target
           }
           addEdge(newEdgeObject)
         }
 
         // Make API call to persist the edge
-        await sketchService.addEdge(sketch_id as string, JSON.stringify(newEdge))
+        await sketchService.addEdge(sketch_id as string, JSON.stringify(relationPayload))
       }
 
       // Set current node using the API response (which has the correct ID from the database)

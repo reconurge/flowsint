@@ -1,0 +1,32 @@
+{
+  "name": "flowsint",
+  "version": "0.1.0",
+  "description": "Graph analysis and intelligence platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "commit": "cz",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:patch": "standard-version --release-as patch",
+    "release:first": "standard-version --first-release",
+    "sync-version": "node scripts/sync-versions.js"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0"
+  },
+  "workspaces": [
+    "flowsint-app"
+  ]
+}

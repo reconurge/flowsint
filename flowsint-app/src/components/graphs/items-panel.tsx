@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { PlusIcon, Search } from 'lucide-react'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { type ActionItem } from '@/lib/action-items'
 import { DraggableItem } from './draggable-item'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,37 @@ export const ItemsPanel = memo(function LeftPanel() {
   }, [setOpenMainDialog])
 
   const { actionItems, isLoading } = useActionItems()
+
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return actionItems
+    if (!actionItems) return actionItems
+
+    return actionItems
+      .map((item) => {
+        const parentMatches = item.label.toLowerCase().includes(query)
+
+        if (item.children && item.children.length > 0) {
+          const filteredChildren = item.children.filter((child) => {
+            const childMatchesLabel = child.label.toLowerCase().includes(query)
+            const childMatchesFields = (child.fields || []).some(
+              (f) => f.label.toLowerCase().includes(query) || f.name.toLowerCase().includes(query)
+            )
+            return childMatchesLabel || childMatchesFields
+          })
+          if (parentMatches || filteredChildren.length > 0) {
+            return { ...item, children: filteredChildren }
+          }
+          return null
+        }
+
+        const itemMatchesFields = (item.fields || []).some(
+          (f) => f.label.toLowerCase().includes(query) || f.name.toLowerCase().includes(query)
+        )
+        return parentMatches || itemMatchesFields ? item : null
+      })
+      .filter(Boolean) as ActionItem[]
+  }, [actionItems, searchQuery])
 
   return (
     <div className="bg-card p-4 h-full w-full overflow-y-auto flex flex-col">
@@ -50,7 +81,7 @@ export const ItemsPanel = memo(function LeftPanel() {
         {isLoading ? (
           <SkeletonList rowCount={8} />
         ) : (
-          actionItems?.map((item: ActionItem) => {
+          (filteredItems || actionItems)?.map((item: ActionItem) => {
             if (item.children && item.children.length > 0) {
               return (
                 <div key={item.id}>

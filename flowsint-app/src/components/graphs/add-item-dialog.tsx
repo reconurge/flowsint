@@ -29,12 +29,19 @@ export default function AddItemDialog() {
   const setOpenFormDialog = useGraphStore((state) => state.setOpenFormDialog)
   const addNode = useGraphStore((state) => state.addNode)
   const addEdge = useGraphStore((state) => state.addEdge)
+  const replaceNodeId = useGraphStore((state) => state.replaceNodeId)
   const setActiveTab = useLayoutStore((state) => state.setActiveTab)
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
 
   const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
   const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
+
+  const generateTempId = () => {
+    // Generate a temporary ID in the format: 4:uuid:0
+    const uuid = crypto.randomUUID()
+    return `temp:${uuid}:0`
+  }
 
   const handleDialogOpenChange = useCallback(
     (open: boolean) => {
@@ -47,82 +54,94 @@ export default function AddItemDialog() {
   )
 
   const handleAddNode = async (data: any) => {
-    try {
-      if (!currentNodeType || !sketch_id) {
-        toast.error('Invalid node type or sketch ID.')
-        return
-      }
-      const label_key =
-        currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name ||
-        currentNodeType.fields[0].name
-      const type = currentNodeType.type
-      const label = data[label_key as keyof typeof data]
+    if (!currentNodeType || !sketch_id) {
+      toast.error('Invalid node type or sketch ID.')
+      return
+    }
 
-      const newNode = {
+    const label_key =
+      currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name ||
+      currentNodeType.fields[0].name
+    const type = currentNodeType.type
+    const label = data[label_key as keyof typeof data]
+
+    const newNode = {
+      type: 'custom',
+      label: label,
+      data: {
+        ...flattenObj(data),
+        label,
+        type: type.toLowerCase()
+      }
+    }
+
+    // Generate temporary ID for optimistic update
+    const tempId = generateTempId()
+    // Optimistically add the node to local state with temporary ID
+    const nodeWithTempId: GraphNode = {
+      id: tempId,
+      data: {
+        ...newNode.data,
+        id: tempId,
+        created_at: new Date().toISOString()
+      }
+    }
+    if (addNode) {
+      addNode(nodeWithTempId)
+    }
+    // Optimistically add edge if we have a related node
+    let tempEdgeId: string | null = null
+    if (relatedNodeToAdd) {
+      const tempEdgePayload = {
         type: 'custom',
-        label: label,
-        data: {
-          ...flattenObj(data),
-          label,
-          type: type.toLowerCase()
-        }
+        label: `HAS_${newNode.data.type.toUpperCase()}`,
+        source: relatedNodeToAdd.id,
+        target: tempId
       }
-
-      // First, create the node via API to get the real database ID
+      if (addEdge) {
+        const tempEdge = addEdge(tempEdgePayload)
+        tempEdgeId = tempEdge.id
+      }
+    }
+    // Set current node optimistically
+    if (setCurrentNode) {
+      setCurrentNode(nodeWithTempId)
+    }
+    setActiveTab('entities')
+    // Close dialogs immediately for better UX
+    setOpenMainDialog(false)
+    setOpenFormDialog(false)
+    // Show optimistic success message
+    toast.success(
+      relatedNodeToAdd
+        ? `New relation added to ${relatedNodeToAdd.data.label}.`
+        : 'New node added.'
+    )
+    // Make API calls in the background
+    try {
+      // Create the node via API to get the real database ID
       const newNodeResponse = await sketchService.addNode(
         sketch_id as string,
         JSON.stringify(newNode)
       )
-
-      // Add the node to local state with the real ID from the API response
-      if (addNode && newNodeResponse.node) {
-        const nodeWithRealId = {
-          ...newNode,
-          id: newNodeResponse.node.id,
-          position: { x: 0, y: 0 }
-        }
-        addNode(nodeWithRealId as any)
-      }
-
-      // If we have a related node to connect to, create the edge
-      if (relatedNodeToAdd && newNodeResponse.node) {
-        const relationPayload = {
-          source: relatedNodeToAdd.id,
-          target: newNodeResponse.node.id,
-          type: 'one-way',
-          label: `HAS_${newNode.data.type.toUpperCase()}`
-        }
-
-        // Add edge to local state
-        if (addEdge) {
-          const newEdgeObject = {
-            type: 'custom',
-            label: relationPayload.label,
-            source: relationPayload.source,
-            target: relationPayload.target
+      if (newNodeResponse.node && replaceNodeId) {
+        // Replace the temporary ID with the real ID from the API
+        replaceNodeId(tempId, newNodeResponse.node.id)
+        // If we have a related node, create the edge with the real ID
+        if (relatedNodeToAdd && tempEdgeId) {
+          const relationPayload = {
+            source: relatedNodeToAdd.id,
+            target: newNodeResponse.node.id,
+            type: 'one-way',
+            label: `HAS_${newNode.data.type.toUpperCase()}`
           }
-          addEdge(newEdgeObject)
+          // Make API call to persist the edge
+          await sketchService.addEdge(sketch_id as string, JSON.stringify(relationPayload))
         }
-
-        // Make API call to persist the edge
-        await sketchService.addEdge(sketch_id as string, JSON.stringify(relationPayload))
       }
-
-      // Set current node using the API response (which has the correct ID from the database)
-      if (setCurrentNode)
-        setCurrentNode({ ...newNodeResponse.node, position: { x: 0, y: 0 } } as GraphNode)
-      setActiveTab('entities')
-      toast.success(
-        relatedNodeToAdd
-          ? `New relation added to ${relatedNodeToAdd.data.label}.`
-          : 'New node added.'
-      )
     } catch (error) {
       console.error(error)
-      toast.error('Unexpected error during node creation.')
-    } finally {
-      setOpenMainDialog(false)
-      setOpenFormDialog(false)
+      toast.error('Failed to sync node with server. Please refresh.')
     }
   }
 

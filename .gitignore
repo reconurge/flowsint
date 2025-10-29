@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+/node_modules/
 # C extensions
 *.so
 *transform_logs

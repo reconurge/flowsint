@@ -1,0 +1,67 @@
+{
+  "header": "# Changelog\n\nAll notable changes to Flowsint will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n",
+  "types": [
+    {
+      "type": "feat",
+      "section": "Features"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
+    },
+    {
+      "type": "perf",
+      "section": "Performance Improvements"
+    },
+    {
+      "type": "refactor",
+      "section": "Code Refactoring",
+      "hidden": false
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": false
+    },
+    {
+      "type": "style",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "hidden": true
+    },
+    {
+      "type": "test",
+      "hidden": true
+    },
+    {
+      "type": "build",
+      "section": "Build System",
+      "hidden": false
+    },
+    {
+      "type": "ci",
+      "hidden": true
+    }
+  ],
+  "packageFiles": [
+    {
+      "filename": "flowsint-app/package.json",
+      "type": "json"
+    }
+  ],
+  "bumpFiles": [
+    {
+      "filename": "flowsint-app/package.json",
+      "type": "json"
+    },
+    {
+      "filename": "pyproject.toml",
+      "updater": "scripts/pyproject-updater.js"
+    }
+  ],
+  "scripts": {
+    "postbump": "node scripts/sync-versions.js $(node -p \"require('./flowsint-app/package.json').version\")"
+  }
+}

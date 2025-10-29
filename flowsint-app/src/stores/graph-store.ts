@@ -26,6 +26,7 @@ interface GraphState {
   updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
   updateNode: (nodeId: string, updates: Partial<NodeData>) => void
   updateEdge: (edgeId: string, updates: Partial<GraphEdge>) => void
+  replaceNodeId: (oldId: string, newId: string) => void
   reset: () => void
 
   // === Selection & Current ===
@@ -186,6 +187,31 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
         set({ edges: updatedEdges, filteredNodes, filteredEdges })
+      },
+
+      replaceNodeId: (oldId, newId) => {
+        const { nodes, edges, filters, currentNode } = get()
+        // Update the node's ID and data.id
+        const updatedNodes = nodes.map((node) =>
+          node.id === oldId ? { ...node, id: newId, data: { ...node.data, id: newId } } : node
+        )
+        // Update all edges that reference this node
+        const updatedEdges = edges.map((edge) => {
+          if (edge.source === oldId) {
+            return { ...edge, source: newId }
+          }
+          if (edge.target === oldId) {
+            return { ...edge, target: newId }
+          }
+          return edge
+        })
+        const filteredNodes = computeFilteredNodes(updatedNodes, filters)
+        const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
+        // Update currentNode if it matches the old ID
+        const updatedCurrentNode = currentNode?.id === oldId
+          ? { ...currentNode, id: newId, data: { ...currentNode.data, id: newId } }
+          : currentNode
+        set({ nodes: updatedNodes, edges: updatedEdges, filteredNodes, filteredEdges, currentNode: updatedCurrentNode })
       },
 
       // === Selection & Current ===

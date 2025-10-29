@@ -9,6 +9,7 @@ import { GraphNode } from '@/types'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
+import type { ItemType } from '@/stores/node-display-settings'
 import { Badge } from '../ui/badge'
 import LaunchFlow from './launch-transform'
 import { TypeBadge } from '../type-badge'
@@ -55,7 +56,7 @@ export const SelectedList = () => {
   return (
     <div className="flex flex-col gap-1.5 p-1">
       {displayItems.map((item: GraphNode, index: number) => {
-        const color = colors[item.data.type]
+        const color = colors[item.data.type as ItemType] ?? '#999999'
         return <SelectedNodeItem key={index} node={item} color={color} />
       })}
       {remainingCount > 0 && (

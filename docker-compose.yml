@@ -57,7 +57,7 @@ services:
       - "5173:5173"
     volumes:
       - ./flowsint-app:/app
-      - /app/node_modules
+      - app_node_modules:/app/node_modules
     environment:
       - VITE_API_URL=http://localhost:5001
     networks:
@@ -76,3 +76,4 @@ volumes:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
+  app_node_modules:

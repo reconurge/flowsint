@@ -1,4 +1,4 @@
-from docker import from_env
+from docker import from_env, DockerClient
 from docker.errors import ImageNotFound, APIError, DockerException
 from .base import Tool
 
@@ -6,7 +6,12 @@ from .base import Tool
 class DockerTool(Tool):
     def __init__(self, image: str, default_tag: str = "latest"):
         self.image = f"{image}:{default_tag}"
-        self.client = from_env()
+        try:
+            self.client = from_env()
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to connect to Docker daemon. Is Docker running? Error: {e}"
+            )
 
     @classmethod
     def get_image(cls) -> str:

@@ -78,6 +78,7 @@ services:
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
       - ./flowsint-transforms:/app/flowsint-transforms
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
       - NEO4J_URI_BOLT=bolt://neo4j:7687
@@ -112,6 +113,7 @@ services:
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
       - ./flowsint-transforms:/app/flowsint-transforms
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
       - NEO4J_URI_BOLT=bolt://neo4j:7687

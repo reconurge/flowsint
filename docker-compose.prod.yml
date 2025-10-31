@@ -74,6 +74,8 @@ services:
     restart: always
     ports:
       - "5001:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-flowsint}:${POSTGRES_PASSWORD:-flowsint}@postgres:5432/${POSTGRES_DB:-flowsint}
       - NEO4J_URI_BOLT=bolt://neo4j:7687
@@ -103,6 +105,8 @@ services:
     container_name: flowsint-celery-prod
     restart: always
     command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-flowsint}:${POSTGRES_PASSWORD:-flowsint}@postgres:5432/${POSTGRES_DB:-flowsint}
       - NEO4J_URI_BOLT=bolt://neo4j:7687

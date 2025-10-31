@@ -111,6 +111,7 @@
     "three-spritetext": "^1.9.6",
     "tw-animate-css": "^1.3.2",
     "usehooks-ts": "^3.1.1",
+    "uuid": "^13.0.0",
     "vaul": "^1.1.2",
     "zod": "^3.25.42"
   },

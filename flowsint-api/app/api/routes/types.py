@@ -32,6 +32,7 @@ from flowsint_types import (
     CreditCard,
     WebTracker,
     Phrase,
+    Location
 )
 
 # from flowsint_types.script import Script
@@ -54,6 +55,7 @@ async def get_types_list():
             "fields": [],
             "children": [
                 extract_input_schema(Phrase, label_key="text"),
+                extract_input_schema(Location, label_key="address")
             ],
         },
         {

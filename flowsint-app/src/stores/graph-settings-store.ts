@@ -212,9 +212,9 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
             }
           }
 
-          // Also update forceSettings if we're updating a force setting
+          // Also update forceSettings if we're updating a graph setting
           let newForceSettings = state.forceSettings
-          if (category === 'force') {
+          if (category === 'graph') {
             newForceSettings = {
               ...state.forceSettings,
               [key]: {

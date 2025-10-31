@@ -5,6 +5,9 @@ import { EventLevel } from '@/types'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { queryKeys } from '@/api/query-keys'
 
+const API_URL = import.meta.env.VITE_API_URL
+
+
 export function useEvents(sketch_id: string | undefined) {
   const [liveLogs, setLiveLogs] = useState<Event[]>([])
   // const [graphUpdates, setGraphUpdates] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }[]>([])
@@ -27,7 +30,7 @@ export function useEvents(sketch_id: string | undefined) {
     if (!sketch_id) return
 
     const eventSource = new EventSource(
-      `http://localhost:5001/api/events/sketch/${sketch_id}/stream`
+      `${API_URL}api/events/sketch/${sketch_id}/stream`
     )
 
     eventSource.onmessage = (e) => {

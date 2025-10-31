@@ -1,4 +1,3 @@
-import shutil
 import requests
 from typing import List, Union
 from flowsint_core.core.transform_base import Transform
@@ -43,35 +42,27 @@ class SubdomainTransform(Transform):
         return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
-        """Find subdomains using subfinder (if available) or fallback to crt.sh."""
+        """Find subdomains using subfinder (Docker) or fallback to crt.sh."""
         domains: OutputType = []
-        use_subfinder = self.__is_subfinder_installed()
 
         for md in data:
             d = Domain(domain=md.domain)
-            if use_subfinder:
-                subdomains = self.__get_subdomains_from_subfinder(d.domain)
-                if not subdomains:
-                    Logger.warn(
-                        self.sketch_id,
-                        {
-                            "message": f"subfinder failed for {d.domain}, falling back to crt.sh"
-                        },
-                    )
-                    subdomains = self.__get_subdomains_from_crtsh(d.domain)
-            else:
-                Logger.info(
+            # Try subfinder first (Docker-based)
+            subdomains = self.__get_subdomains_from_subfinder(d.domain)
+
+            # If subfinder fails or returns no results, fallback to crt.sh
+            if not subdomains:
+                Logger.warn(
                     self.sketch_id,
-                    {"message": "subfinder not found, using crt.sh only"},
+                    {
+                        "message": f"subfinder failed for {d.domain}, falling back to crt.sh"
+                    },
                 )
                 subdomains = self.__get_subdomains_from_crtsh(d.domain)
 
             domains.append({"domain": d.domain, "subdomains": sorted(subdomains)})
 
         return domains
-
-    def __is_subfinder_installed(self) -> bool:
-        return shutil.which("subfinder") is not None
 
     def __get_subdomains_from_crtsh(self, domain: str) -> set[str]:
         subdomains: set[str] = set()
@@ -102,8 +93,8 @@ class SubdomainTransform(Transform):
 
     def __get_subdomains_from_subfinder(self, domain: str) -> set[str]:
         subdomains: set[str] = set()
-        subfinder = SubfinderTool()
         try:
+            subfinder = SubfinderTool()
             subdomains = subfinder.launch(domain)
         except Exception as e:
             Logger.error(

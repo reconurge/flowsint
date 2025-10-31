@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
@@ -38,8 +39,8 @@ export default function AddItemDialog() {
   const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
 
   const generateTempId = () => {
-    // Generate a temporary ID in the format: 4:uuid:0
-    const uuid = crypto.randomUUID()
+    // Generate a temporary ID in the format: temp:uuid:0
+    const uuid = uuidv4()
     return `temp:${uuid}:0`
   }
 

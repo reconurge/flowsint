@@ -59,7 +59,7 @@ services:
       - ./flowsint-app:/app
       - app_node_modules:/app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:5001
+      - VITE_API_URL=${VITE_API_URL}
     networks:
       - flowsint_network
     stdin_open: true

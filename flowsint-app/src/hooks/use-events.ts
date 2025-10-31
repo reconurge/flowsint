@@ -30,7 +30,7 @@ export function useEvents(sketch_id: string | undefined) {
     if (!sketch_id) return
 
     const eventSource = new EventSource(
-      `${API_URL}api/events/sketch/${sketch_id}/stream`
+      `${API_URL}/api/events/sketch/${sketch_id}/stream`
     )
 
     eventSource.onmessage = (e) => {

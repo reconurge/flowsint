@@ -84,8 +84,10 @@ const CONSTANTS = {
   ARROW_SIZE: 8,
   ARROW_ANGLE: Math.PI / 6,
   MIN_ZOOM: 0.4,
-  MAX_ZOOM: 5,
-  MAX_VISIBLE_LABELS: 3
+  MAX_ZOOM: 8,
+  // Dynamic label thresholds based on zoom
+  MIN_VISIBLE_LABELS: 5,
+  MAX_VISIBLE_LABELS_PER_ZOOM: 15
 }
 
 interface LabelRenderingCompound {
@@ -158,7 +160,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set())
   const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set())
   const [hoverNode, setHoverNode] = useState<string | null>(null)
+  const [currentZoom, setCurrentZoom] = useState<number>(1)
   const zoomRef = useRef({ k: 1, x: 0, y: 0 })
+  const hoverFrameRef = useRef<number | null>(null)
   // The ref for the node weighlist.
   const labelRenderingCompound = useRef<LabelRenderingCompound>({
     weightList: new Map(),
@@ -170,8 +174,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const graphRef = useRef<any>()
   const containerRef = useRef<HTMLDivElement>(null)
   const isGraphReadyRef = useRef(false)
-  const lastRenderTimeRef = useRef<number>(0)
-  const renderThrottleRef = useRef<number | null>(null)
 
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
@@ -187,9 +189,41 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
 
   const shouldUseSimpleRendering = useMemo(
-    () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || zoomRef.current.k < 1.5,
-    [nodes.length, zoomRef.current.k]
+    () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5,
+    [nodes.length, currentZoom]
   )
+
+  // Pre-compute visible labels based on zoom and node weight (O(n) once per zoom change)
+  const visibleLabels = useMemo(() => {
+    if (!showLabels || labelRenderingCompound.current.weightList.size === 0) {
+      return new Set<string>()
+    }
+
+    const totalNodes = labelRenderingCompound.current.constants.nodesLength
+    if (totalNodes === 0) return new Set<string>()
+
+    // Calculate how many labels to show based on zoom
+    // More zoom = more labels (progressive disclosure)
+    const zoomFactor = Math.max(CONSTANTS.MIN_ZOOM, Math.min(CONSTANTS.MAX_ZOOM, currentZoom))
+    const zoomRatio = (zoomFactor - CONSTANTS.MIN_ZOOM) / (CONSTANTS.MAX_ZOOM - CONSTANTS.MIN_ZOOM)
+
+    // Scale from MIN_VISIBLE_LABELS to a percentage of total nodes
+    const maxLabelsAtZoom = Math.floor(
+      CONSTANTS.MIN_VISIBLE_LABELS +
+      zoomRatio * Math.min(totalNodes * 0.5, CONSTANTS.MAX_VISIBLE_LABELS_PER_ZOOM * zoomFactor)
+    )
+
+    // Take the top N nodes by weight (connection count)
+    const visibleSet = new Set<string>()
+    let count = 0
+    for (const [nodeId] of labelRenderingCompound.current.weightList) {
+      if (count >= maxLabelsAtZoom) break
+      visibleSet.add(nodeId)
+      count++
+    }
+
+    return visibleSet
+  }, [currentZoom, showLabels, labelRenderingCompound.current.weightList.size, labelRenderingCompound.current.constants.nodesLength])
 
   // Add state for tooltip
   const [tooltip, setTooltip] = useState<{
@@ -241,7 +275,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const handleZoom = useCallback((zoom: any) => {
     zoomRef.current = zoom
-  }, [])
+    // Only update state if zoom changed significantly (reduces re-renders)
+    const newZoom = zoom.k
+    if (Math.abs(newZoom - currentZoom) > 0.1) {
+      setCurrentZoom(newZoom)
+    }
+  }, [currentZoom])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(
@@ -443,33 +482,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     return undefined
   }, [graphData.nodes.length, initializeGraph, instanceId])
 
-  // New function to determine which labels should be visible based on zoom and weight
-  const handleShouldShowLabel = useCallback(
-    (nodeId: string, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      if (!showLabels || !labelRenderingCompound.current) return new Set<string>()
-      const nodestoDisplay: string[] = []
-      // Min and max are actually dependant on the zoom level
-      const zoom = Math.round(globalScale)
-      const zoomCursor = Math.max(CONSTANTS.MIN_ZOOM, Math.min(CONSTANTS.MAX_ZOOM, zoom))
-      const cursor = Math.round(
-        (zoomCursor * labelRenderingCompound.current.constants.nodesLength) / CONSTANTS.MAX_ZOOM
-      )
-      const min = Math.round(cursor - CONSTANTS.MAX_VISIBLE_LABELS)
-      const max = Math.round(cursor + CONSTANTS.MAX_VISIBLE_LABELS)
-      let i = 0
-      for (const id of labelRenderingCompound.current.weightList.keys()) {
-        i++
-        const thresholdReached = nodestoDisplay.length >= CONSTANTS.MAX_VISIBLE_LABELS
-        if (thresholdReached) break
-        if (i >= min && i <= max) {
-          nodestoDisplay.push(id)
-        }
-      }
-      // We compute the number of labels to show, making sure it doesn't reach the threshold
-      return new Set<string>(nodestoDisplay).has(nodeId)
-    },
-    [labelRenderingCompound.current, showLabels]
-  )
 
   // Event handlers with proper memoization
   const handleNodeClick = useCallback(
@@ -494,43 +506,39 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     setOpenMainDialog(true)
   }, [setOpenMainDialog])
 
-  // Throttled hover handlers to reduce excessive re-renders
+  // Throttled hover handlers using RAF for better performance
   const handleNodeHover = useCallback((node: any) => {
-    // Throttle hover updates to max 60fps
-    const now = Date.now()
-    if (now - lastRenderTimeRef.current < 16) {
-      // ~60fps
-      if (renderThrottleRef.current) {
-        clearTimeout(renderThrottleRef.current)
-      }
-      renderThrottleRef.current = setTimeout(() => {
-        handleNodeHover(node)
-      }, 16) as any
-      return
+    // Cancel any pending RAF
+    if (hoverFrameRef.current) {
+      cancelAnimationFrame(hoverFrameRef.current)
     }
-    lastRenderTimeRef.current = now
-    const newHighlightNodes = new Set<string>()
-    const newHighlightLinks = new Set<string>()
-    if (node) {
-      // Add the hovered node
-      newHighlightNodes.add(node.id)
-      // Add connected nodes and links
-      if (node.neighbors) {
-        node.neighbors.forEach((neighbor: any) => {
-          newHighlightNodes.add(neighbor.id)
-        })
+
+    // Schedule update on next frame
+    hoverFrameRef.current = requestAnimationFrame(() => {
+      const newHighlightNodes = new Set<string>()
+      const newHighlightLinks = new Set<string>()
+      if (node) {
+        // Add the hovered node
+        newHighlightNodes.add(node.id)
+        // Add connected nodes and links
+        if (node.neighbors) {
+          node.neighbors.forEach((neighbor: any) => {
+            newHighlightNodes.add(neighbor.id)
+          })
+        }
+        if (node.links) {
+          node.links.forEach((link: any) => {
+            newHighlightLinks.add(`${link.source.id}-${link.target.id}`)
+          })
+        }
+        setHoverNode(node.id)
+      } else {
+        setHoverNode(null)
       }
-      if (node.links) {
-        node.links.forEach((link: any) => {
-          newHighlightLinks.add(`${link.source.id}-${link.target.id}`)
-        })
-      }
-      setHoverNode(node.id)
-    } else {
-      setHoverNode(null)
-    }
-    setHighlightNodes(newHighlightNodes)
-    setHighlightLinks(newHighlightLinks)
+      setHighlightNodes(newHighlightNodes)
+      setHighlightLinks(newHighlightLinks)
+      hoverFrameRef.current = null
+    })
   }, [])
 
   // Enhanced node hover with tooltip
@@ -584,31 +592,27 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   )
 
   const handleLinkHover = useCallback((link: any) => {
-    // Throttle hover updates to max 60fps
-    const now = Date.now()
-    if (now - lastRenderTimeRef.current < 16) {
-      // ~60fps
-      if (renderThrottleRef.current) {
-        clearTimeout(renderThrottleRef.current)
+    // Cancel any pending RAF
+    if (hoverFrameRef.current) {
+      cancelAnimationFrame(hoverFrameRef.current)
+    }
+
+    // Schedule update on next frame
+    hoverFrameRef.current = requestAnimationFrame(() => {
+      const newHighlightNodes = new Set<string>()
+      const newHighlightLinks = new Set<string>()
+      if (link) {
+        // Add the hovered link
+        newHighlightLinks.add(`${link.source}-${link.target}`)
+        // Add connected nodes
+        newHighlightNodes.add(link.source.id)
+        newHighlightNodes.add(link.target.id)
       }
-      renderThrottleRef.current = setTimeout(() => {
-        handleLinkHover(link)
-      }, 16) as any
-      return
-    }
-    lastRenderTimeRef.current = now
-    const newHighlightNodes = new Set<string>()
-    const newHighlightLinks = new Set<string>()
-    if (link) {
-      // Add the hovered link
-      newHighlightLinks.add(`${link.source}-${link.target}`)
-      // Add connected nodes
-      newHighlightNodes.add(link.source.id)
-      newHighlightNodes.add(link.target.id)
-    }
-    setHoverNode(null)
-    setHighlightNodes(newHighlightNodes)
-    setHighlightLinks(newHighlightLinks)
+      setHoverNode(null)
+      setHighlightNodes(newHighlightNodes)
+      setHighlightLinks(newHighlightLinks)
+      hoverFrameRef.current = null
+    })
   }, [])
 
   // Optimized node rendering with proper icon caching
@@ -658,8 +662,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       if (showLabels) {
         const label = truncateText(node.nodeLabel || node.label || node.id, 58)
         if (label) {
-          // Check if this node's label should be visible in current layer
-          const shouldShowLabel = handleShouldShowLabel(node.id, ctx, globalScale)
+          // Check if this node's label should be visible (O(1) lookup)
+          const shouldShowLabel = visibleLabels.has(node.id)
           // Always show labels for highlighted nodes
           if (!shouldShowLabel && !isHighlighted) {
             return
@@ -692,7 +696,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       theme,
       highlightNodes,
       highlightLinks,
-      hoverNode
+      hoverNode,
+      visibleLabels,
+      nodes.length
     ]
   )
 
@@ -874,11 +880,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     setHoverNode(null)
   }, [nodes, edges])
 
-  // Cleanup throttle timeouts
+  // Cleanup RAF on unmount
   useEffect(() => {
     return () => {
-      if (renderThrottleRef.current) {
-        clearTimeout(renderThrottleRef.current)
+      if (hoverFrameRef.current) {
+        cancelAnimationFrame(hoverFrameRef.current)
       }
     }
   }, [])

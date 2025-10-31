@@ -2,14 +2,12 @@ import { useGraphStore } from '@/stores/graph-store'
 import React, { useRef, useCallback } from 'react'
 import GraphViewer from './graph-viewer'
 import ContextMenu from './context-menu'
-import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 
 const GraphMain = () => {
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
-  const settings = useGraphSettingsStore((s) => s.settings)
 
   const graphRef = useRef<any>()
   const containerRef = useRef<HTMLDivElement>(null)

@@ -28,6 +28,22 @@ const DEFAULT_SETTINGS = {
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
     },
+    nodeLabelFontSize: {
+      type: 'number',
+      value: 100,
+      min: 50,
+      max: 200,
+      step: 5,
+      description: 'Adjusts the font size of node labels (percentage of base size, scales with zoom)'
+    },
+    linkLabelFontSize: {
+      type: 'number',
+      value: 100,
+      min: 50,
+      max: 200,
+      step: 5,
+      description: 'Adjusts the font size of link labels (percentage of base size, scales with zoom)'
+    },
     dagLevelDistance: {
       type: 'number',
       value: 50,

@@ -7,7 +7,7 @@ import React, { useCallback, useMemo, useEffect, useState, useRef } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Button } from '../ui/button'
 import { useTheme } from '@/components/theme-provider'
-import { Share2, Type } from 'lucide-react'
+import { Info, Share2, Type } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
 import MiniMap from './minimap'
@@ -1065,13 +1065,18 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onLinkHover={handleLinkHover}
       />
       {allowLasso && isLassoActive && (
-        <Lasso
-          nodes={graphData.nodes}
-          graph2ScreenCoords={graph2ScreenCoords}
-          partial={true}
-          width={containerSize.width}
-          height={containerSize.height}
-        />
+        <>
+          <div
+            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 border border-primary rounded-lg p-1 px-2 shadow-lg text-xs pointer-events-none"
+          ><Info className='h-3 w-3 '/> Lasso is active</div>
+          <Lasso
+            nodes={graphData.nodes}
+            graph2ScreenCoords={graph2ScreenCoords}
+            partial={true}
+            width={containerSize.width}
+            height={containerSize.height}
+          />
+        </>
       )}
       {/* {minimap && graphData.nodes &&
                 <MiniMap zoomTransform={zoomState}

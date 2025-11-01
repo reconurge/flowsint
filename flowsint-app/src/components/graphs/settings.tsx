@@ -29,9 +29,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Sketch } from '@/types'
 import { useParams } from '@tanstack/react-router'
 import { sketchService } from '@/api/sketch-service'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { queryKeys } from '@/api/query-keys'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
+import { ScrollArea } from '../ui/scroll-area'
 
 // SettingItem Components
 interface SettingItemProps {
@@ -204,6 +206,113 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
         </SettingItem>
       )
   }
+}
+
+function NodeColorsSection() {
+  const storeColors = useNodesDisplaySettings((s) => s.colors)
+  const setColor = useNodesDisplaySettings((s) => s.setColor)
+  const resetColors = useNodesDisplaySettings((s) => s.resetColors)
+
+  // Local state for immediate UI updates
+  const [localColors, setLocalColors] = useState(storeColors)
+  const debounceTimers = useRef<Map<ItemType, NodeJS.Timeout>>(new Map())
+
+  // Sync local state with store when store changes externally (e.g., reset)
+  useEffect(() => {
+    setLocalColors(storeColors)
+  }, [storeColors])
+
+  // Debounced color update function
+  const handleColorChange = useCallback(
+    (itemType: ItemType, color: string) => {
+      // Update local state immediately for responsive UI
+      setLocalColors((prev) => ({
+        ...prev,
+        [itemType]: color
+      }))
+
+      // Clear existing timer for this item type
+      const existingTimer = debounceTimers.current.get(itemType)
+      if (existingTimer) {
+        clearTimeout(existingTimer)
+      }
+
+      // Set new debounced timer to update store
+      const timer = setTimeout(() => {
+        setColor(itemType, color)
+        debounceTimers.current.delete(itemType)
+      }, 500) // 500ms debounce
+
+      debounceTimers.current.set(itemType, timer)
+    },
+    [setColor]
+  )
+
+  const handleReset = useCallback(() => {
+    // Clear all pending timers
+    debounceTimers.current.forEach((timer) => clearTimeout(timer))
+    debounceTimers.current.clear()
+    // Reset colors in store
+    resetColors()
+  }, [resetColors])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      debounceTimers.current.forEach((timer) => clearTimeout(timer))
+      debounceTimers.current.clear()
+    }
+  }, [])
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <h3 className="text-lg font-semibold text-foreground">Node colors</h3>
+        <p className="text-sm text-muted-foreground">
+          Customize the colors for each node type in the graph visualization.
+        </p>
+      </div>
+
+      <div className="border-b pb-4">
+        <Button variant="outline" size="sm" onClick={handleReset} className="w-full">
+          Reset to Default Colors
+        </Button>
+      </div>
+
+      <div className="pr-4">
+        <div className="space-y-4 pb-6">
+          {ITEM_TYPES.map((itemType) => (
+            <div key={itemType} className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-6 h-6 rounded border border-border shrink-0"
+                  style={{ backgroundColor: localColors[itemType] }}
+                />
+                <Label className="text-sm font-medium text-foreground capitalize">
+                  {itemType.replace(/_/g, ' ')}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="color"
+                  value={localColors[itemType]}
+                  onChange={(e) => handleColorChange(itemType, e.target.value)}
+                  className="h-9 w-12 p-1 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={localColors[itemType]}
+                  onChange={(e) => handleColorChange(itemType, e.target.value)}
+                  placeholder="#000000"
+                  className="h-9 w-24 font-mono text-xs"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Dynamic Section Renderer
@@ -485,6 +594,10 @@ export default function GlobalSettings() {
       )
     }
 
+    if (sectionId === 'nodecolors') {
+      return <NodeColorsSection />
+    }
+
     // For all other sections, use the dynamic renderer
     // @ts-ignore
     const category = settings[sectionId]
@@ -526,6 +639,9 @@ export default function GlobalSettings() {
                   {category}
                 </TabsTrigger>
               ))}
+              <TabsTrigger value="nodecolors" className="h-9">
+                Node colors
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -540,6 +656,12 @@ export default function GlobalSettings() {
                 {getSelectedSectionPanel(category)}
               </TabsContent>
             ))}
+            <TabsContent
+              value="nodecolors"
+              className="mt-0 h-full flex flex-col"
+            >
+              {getSelectedSectionPanel('nodecolors')}
+            </TabsContent>
           </div>
         </Tabs>
       </SheetContent>

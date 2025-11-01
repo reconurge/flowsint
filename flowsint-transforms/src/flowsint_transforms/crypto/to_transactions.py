@@ -96,12 +96,8 @@ class CryptoWalletAddressToTransactions(Transform):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        params = self.get_params()
-        api_key = params.get("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
-        api_url = params.get("ETHERSCAN_API_URL", ETHERSCAN_API_URL)
-        if not api_key:
-            Logger.error(self.sketch_id, {"message": "ETHERSCAN_API_KEY is required"})
-            raise ValueError("ETHERSCAN_API_KEY is required")
+        api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
+        api_url = self.get_params().get("ETHERSCAN_API_URL", ETHERSCAN_API_URL)
         for d in data:
             try:
                 transactions = await self._get_transactions(d.address, api_key, api_url)

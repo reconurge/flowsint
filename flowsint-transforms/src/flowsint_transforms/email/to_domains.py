@@ -1,12 +1,13 @@
 import os
 import re
-from typing import Any, List, Union, Dict, Set
+from typing import Any, List, Union, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.email import Email
 from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.graph_db import Neo4jConnection
 from tools.network.whoxy import WhoxyTool
 from dotenv import load_dotenv
 
@@ -21,6 +22,39 @@ class EmailToDomainsTransform(Transform):
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Email]
     OutputType = List[Domain]
+
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this transform"""
+        return [
+            {
+                "name": "WHOXY_API_KEY",
+                "type": "vaultSecret",
+                "description": "The Whoxy API key to use for domain lookups.",
+                "required": True,
+            },
+        ]
 
     @classmethod
     def name(cls) -> str:
@@ -52,9 +86,10 @@ class EmailToDomainsTransform(Transform):
         """Find domains related to emails using whoxy api."""
         domains: OutputType = []
         self._extracted_data = []  # Store all extracted data for postprocess
+        api_key = self.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
 
         for email in data:
-            infos_data = self.__get_infos_from_whoxy(email.email)
+            infos_data = self.__get_infos_from_whoxy(email.email, api_key)
             if infos_data and "search_result" in infos_data:
                 # Process each domain result
                 for result in infos_data["search_result"]:
@@ -86,12 +121,12 @@ class EmailToDomainsTransform(Transform):
                 )
         return domains
 
-    def __get_infos_from_whoxy(self, email: str) -> Dict[str, Any]:
+    def __get_infos_from_whoxy(self, email: str, api_key: str) -> Dict[str, Any]:
         infos: Dict[str, Any] = {}
         whoxy = WhoxyTool()
         try:
             params = {
-                "key": WHOXY_API_KEY,
+                "key": api_key,
                 "reverse": "whois",
                 "email": email,
             }

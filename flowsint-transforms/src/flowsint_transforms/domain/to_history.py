@@ -1,7 +1,7 @@
 import os
 import re
 import json
-from typing import Any, List, Union, Dict, Set
+from typing import Any, List, Union, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
@@ -9,6 +9,7 @@ from flowsint_types.organization import Organization
 from flowsint_core.utils import is_valid_domain, is_root_domain
 from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.graph_db import Neo4jConnection
 from tools.network.whoxy import WhoxyTool
 from dotenv import load_dotenv
 
@@ -23,6 +24,39 @@ class DomainToHistoryTransform(Transform):
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[Domain]
     OutputType = List[Domain]
+
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this transform"""
+        return [
+            {
+                "name": "WHOXY_API_KEY",
+                "type": "vaultSecret",
+                "description": "The Whoxy API key to use for domain history lookups.",
+                "required": True,
+            },
+        ]
 
     @classmethod
     def name(cls) -> str:
@@ -61,9 +95,10 @@ class DomainToHistoryTransform(Transform):
         self._extracted_data = []  # Store all extracted data for postprocess
         self._extracted_individuals = []  # Store extracted individuals for testing
         self._extracted_organizations = []  # Store extracted organizations for testing
+        api_key = self.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
 
         for domain in data:
-            infos_data = self.__get_infos_from_whoxy(domain.domain)
+            infos_data = self.__get_infos_from_whoxy(domain.domain, api_key)
             if infos_data and "whois_records" in infos_data:
                 Logger.info(
                     self.sketch_id,
@@ -180,7 +215,7 @@ class DomainToHistoryTransform(Transform):
                     },
                 )
 
-    def __get_infos_from_whoxy(self, domain: str) -> Dict[str, Any]:
+    def __get_infos_from_whoxy(self, domain: str, api_key: str) -> Dict[str, Any]:
         """Get WHOIS history information from Whoxy API or test data."""
         Logger.info(
             self.sketch_id,
@@ -193,7 +228,7 @@ class DomainToHistoryTransform(Transform):
         whoxy = WhoxyTool()
         try:
             params = {
-                "key": WHOXY_API_KEY,
+                "key": api_key,
                 "history": domain,
             }
             infos = whoxy.launch(params=params)

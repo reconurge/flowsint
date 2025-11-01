@@ -62,8 +62,7 @@ class PhoneToBreachesTransform(Transform):
                 "name": "HIBP_API_KEY",
                 "type": "vaultSecret",
                 "description": "The HIBP API key to use for breaches lookup.",
-                "required": False,
-                "default": HIBP_API_KEY,
+                "required": True,
             },
             {
                 "name": "HIBP_API_URL",
@@ -90,18 +89,8 @@ class PhoneToBreachesTransform(Transform):
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
-        print(self.get_params())
-        api_key = self.get_params().get("HIBP_API_KEY", None)
-        api_url = self.get_params().get("HIBP_API_URL", None)
-        if not api_key:
-            Logger.error(
-                self.sketch_id,
-                {"message": "A valid HIBP_API_KEY is required to scan for breaches."},
-            )
-        if not api_url:
-            Logger.error(
-                self.sketch_id, {"message": "Could not find HIBP_API_URL in params."}
-            )
+        api_key = self.get_secret("HIBP_API_KEY", os.getenv("HIBP_API_KEY"))
+        api_url = self.get_params().get("HIBP_API_URL", "https://haveibeenpwned.com/api/v3/breachedaccount/")
         headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Transform"}
         Logger.info(self.sketch_id, {"message": f"HIBP API URL: {api_url}"})
         for phone in data:

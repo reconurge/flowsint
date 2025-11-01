@@ -602,11 +602,13 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       const newHighlightNodes = new Set<string>()
       const newHighlightLinks = new Set<string>()
       if (link) {
-        // Add the hovered link
-        newHighlightLinks.add(`${link.source}-${link.target}`)
+        // Add the hovered link (extract IDs from source/target objects)
+        const sourceId = typeof link.source === 'object' ? link.source.id : link.source
+        const targetId = typeof link.target === 'object' ? link.target.id : link.target
+        newHighlightLinks.add(`${sourceId}-${targetId}`)
         // Add connected nodes
-        newHighlightNodes.add(link.source.id)
-        newHighlightNodes.add(link.target.id)
+        newHighlightNodes.add(sourceId)
+        newHighlightNodes.add(targetId)
       }
       setHoverNode(null)
       setHighlightNodes(newHighlightNodes)
@@ -831,9 +833,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.fill()
         ctx.restore()
       }
-      // Early exit for simple rendering or no label
-      if (shouldUseSimpleRendering || !link.label) return
-      // Only show labels for highlighted links when there's any highlighting
+      // Early exit if no label
+      if (!link.label) return
+      // Always show labels for highlighted links (even in simple rendering mode for better UX)
       if (isHighlighted) {
         // Calculate label position and angle along straight/curved link
         let textAngle: number
@@ -1067,7 +1069,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       {allowLasso && isLassoActive && (
         <>
           <div
-            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 border border-primary rounded-lg p-1 px-2 shadow-lg text-xs pointer-events-none"
+            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary rounded-lg p-1 px-2 shadow-lg text-xs pointer-events-none"
           ><Info className='h-3 w-3 '/> Lasso is active</div>
           <Lasso
             nodes={graphData.nodes}

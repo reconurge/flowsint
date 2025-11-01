@@ -668,10 +668,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           if (!shouldShowLabel && !isHighlighted) {
             return
           }
-          const fontSize = Math.max(
+          const baseFontSize = Math.max(
             CONSTANTS.MIN_FONT_SIZE,
             (CONSTANTS.NODE_FONT_SIZE * (size / 2)) / globalScale + 2
           )
+          const nodeLabelSetting = forceSettings.nodeLabelFontSize.value ?? 50
+          const fontSize = baseFontSize * (nodeLabelSetting / 100)
           ctx.font = `${fontSize}px Sans-Serif`
 
           // Measure text for background sizing
@@ -855,12 +857,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
           textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI
         }
-        // Measure and draw label
-        ctx.font = LABEL_FONT_STRING
+        const linkLabelSetting = forceSettings.linkLabelFontSize.value ?? 50
+        // Measure and draw label with dynamic font size
+        const linkFontSize = CONSTANTS.LABEL_FONT_SIZE * (linkLabelSetting / 100)
+        ctx.font = `${linkFontSize}px Sans-Serif`
         const textWidth = ctx.measureText(link.label).width
-        const padding = CONSTANTS.LABEL_FONT_SIZE * CONSTANTS.PADDING_RATIO
+        const padding = linkFontSize * CONSTANTS.PADDING_RATIO
         tempDimensions[0] = textWidth + padding
-        tempDimensions[1] = CONSTANTS.LABEL_FONT_SIZE + padding
+        tempDimensions[1] = linkFontSize + padding
         const halfWidth = tempDimensions[0] * 0.5
         const halfHeight = tempDimensions[1] * 0.5
         // Batch canvas operations
@@ -868,7 +872,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.translate(tempPos.x, tempPos.y)
         ctx.rotate(textAngle)
         // Draw rounded rectangle background
-        const borderRadius = CONSTANTS.LABEL_FONT_SIZE * 0.3
+        const borderRadius = linkFontSize * 0.3
         ctx.beginPath()
         ctx.roundRect(-halfWidth, -halfHeight, tempDimensions[0], tempDimensions[1], borderRadius)
         // Background with semi-transparency
@@ -894,7 +898,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.restore()
       }
     },
-    [forceSettings, theme, highlightLinks, highlightNodes]
+    [forceSettings, theme, highlightLinks, highlightNodes, nodes.length]
   )
 
   // Restart simulation when settings change (debounced)

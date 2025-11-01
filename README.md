@@ -12,6 +12,7 @@ Don't want to read ? Got it. Here's your install instructions:
 
 - Docker
 - Make
+- Git
 
 #### 2. Run install command
 

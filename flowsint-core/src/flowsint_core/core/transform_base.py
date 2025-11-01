@@ -16,6 +16,9 @@ def build_params_model(params_schema: list) -> BaseModel:
     """
     Build a strict Pydantic model from a params_schema.
     Unknown fields will raise a validation error.
+
+    Note: Vault secrets are always optional in the Pydantic model to allow
+    for deferred configuration. Required validation happens after vault resolution.
     """
     fields: Dict[str, Any] = {}
 
@@ -23,7 +26,15 @@ def build_params_model(params_schema: list) -> BaseModel:
         name = param["name"]
         type = str  # You can later enhance this to support int, bool, etc.
         required = param.get("required", False)
-        default = ... if required else param.get("default")
+        param_type = param.get("type", "string")
+
+        # Vault secrets are always optional in Pydantic validation
+        # Required validation happens after vault resolution
+        if param_type == "vaultSecret":
+            default = param.get("default", None)
+        else:
+            default = ... if required else param.get("default")
+
         fields[name] = (
             Optional[type],
             Field(default=default, description=param.get("description", "")),
@@ -115,14 +126,11 @@ class Transform(ABC):
 
     async def async_init(self):
         self.ParamsModel = build_params_model(self.params_schema)
-        # Resolve parameters (e.g. replace vaultSecret by real secrets)
-        if self.params:
-            resolved_params = self.resolve_params()
-            Logger.debug(
-                self.sketch_id, {"message": f"Resolved params: {str(resolved_params)}"}
-            )
-        else:
-            resolved_params = {}
+
+        # Always resolve parameters, even if self.params is empty
+        # This allows vault secrets to be fetched by name from params_schema
+        resolved_params = self.resolve_params()
+
         # Strict validation after resolution
         try:
             validated = self.ParamsModel(**resolved_params)
@@ -134,41 +142,42 @@ class Transform(ABC):
 
     def resolve_params(self) -> Dict[str, Any]:
         resolved = {}
-        Logger.debug(
-            self.sketch_id, {"message": f"Params schema: {str(self.params_schema)}"}
-        )
-        Logger.debug(self.sketch_id, {"message": f"Params: {str(self.params)}"})
-        Logger.debug(
-            self.sketch_id,
-            {"message": f"Params schema length: {len(self.params_schema)}"},
-        )
-        i = 1
+
         for param in self.params_schema:
-            Logger.debug(self.sketch_id, {"message": f"Param {i}: {str(param)}"})
-            i += 1
-            if param["type"] == "vaultSecret":
-                # Check if the vault secret parameter is provided
-                if param["name"] in self.params and self.params[param["name"]]:
-                    if self.vault is not None:
-                        secret = self.vault.get_secret(self.params[param["name"]])
-                        if secret is not None:
-                            resolved[param["name"]] = secret
-                        else:
-                            # If secret not found in vault, keep the original parameter value
-                            resolved[param["name"]] = self.params[param["name"]]
-                    else:
-                        # If vault is not available, use the parameter value as-is
-                        resolved[param["name"]] = self.params[param["name"]]
-                elif param.get("default") is not None:
-                    resolved[param["name"]] = param["default"]
-                # If not provided and no default, skip (optional parameter)
+            param_name = param["name"]
+            param_type = param.get("type", "string")
+
+            if param_type == "vaultSecret":
+                # For vault secrets, try to get from vault by name or ID
+                secret = None
+                if self.vault is not None:
+                    # First, check if user provided a specific vault ID in params
+                    if param_name in self.params and self.params[param_name]:
+                        secret = self.vault.get_secret(self.params[param_name])
+                    # Otherwise, try to get the secret by the param name itself
+                    if secret is None:
+                        secret = self.vault.get_secret(param_name)
+
+                    if secret is not None:
+                        resolved[param_name] = secret
+                    elif param.get("required", False):
+                        Logger.error(
+                            self.sketch_id,
+                            {
+                                "message": f"Required vault secret '{param_name}' is missing. Please go to the Vault settings and create a '{param_name}' key."
+                            },
+                        )
+
+                # If no vault or no secret found, use default if available
+                if param_name not in resolved and param.get("default") is not None:
+                    resolved[param_name] = param["default"]
             else:
-                if param["name"] in self.params and self.params[param["name"]]:
-                    resolved[param["name"]] = self.params[param["name"]]
+                # For non-vault params, use the provided value or default
+                if param_name in self.params and self.params[param_name]:
+                    resolved[param_name] = self.params[param_name]
                 elif param.get("default") is not None:
-                    resolved[param["name"]] = param["default"]
-                else:
-                    continue
+                    resolved[param_name] = param["default"]
+
         return resolved
 
     @classmethod
@@ -316,6 +325,20 @@ class Transform(ABC):
 
     def get_params(self) -> Dict[str, Any]:
         return self.params
+
+    def get_secret(self, key_name: str, default: Any = None) -> Any:
+        """
+        Get a secret value by key name.
+        The secret is automatically resolved from the vault during async_init.
+
+        Args:
+            key_name: The name of the secret parameter (e.g., "WHOXY_API_KEY")
+            default: Default value if secret is not found
+
+        Returns:
+            The secret value from the vault, or default if not found
+        """
+        return self.params.get(key_name, default)
 
     def preprocess(self, values: List[str]) -> List[str]:
         return values

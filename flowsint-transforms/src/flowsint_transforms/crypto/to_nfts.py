@@ -9,11 +9,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
-
 
 class CryptoWalletAddressToNFTs(Transform):
-    """Resolve NFTs for a wallet address (ETH)."""
+    """[ETHERSCAN] Resolve NFTs for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[CryptoWallet]
@@ -51,15 +49,15 @@ class CryptoWalletAddressToNFTs(Transform):
             {
                 "name": "ETHERSCAN_API_KEY",
                 "type": "vaultSecret",
-                "description": "The Etherscan API key to use for the transaction lookup.",
+                "description": "The Etherscan API key to use for the NFT lookup.",
                 "required": True,
             },
             {
                 "name": "ETHERSCAN_API_URL",
                 "type": "url",
-                "description": "The Etherscan API URL to use for the transaction lookup.",
+                "description": "The Etherscan API URL to use for the NFT lookup.",
                 "required": False,
-                "default": ETHERSCAN_API_URL,
+                "default": "https://api.etherscan.io/v2/api",
             },
         ]
 
@@ -92,7 +90,7 @@ class CryptoWalletAddressToNFTs(Transform):
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
-        api_url = self.get_params().get("ETHERSCAN_API_URL", None)
+        api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
         for d in data:
             try:
                 nfts = self._get_nfts(d.address, api_key, api_url)

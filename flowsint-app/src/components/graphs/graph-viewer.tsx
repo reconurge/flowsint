@@ -338,9 +338,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     return () => {
       if (!instanceId && isGraphReadyRef.current) {
         setActions({
-          zoomIn: () => {},
-          zoomOut: () => {},
-          zoomToFit: () => {}
+          zoomIn: () => { },
+          zoomOut: () => { },
+          zoomToFit: () => { }
         })
         isGraphReadyRef.current = false
       }
@@ -670,19 +670,48 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           }
           const fontSize = Math.max(
             CONSTANTS.MIN_FONT_SIZE,
-            (CONSTANTS.NODE_FONT_SIZE * (size / 2)) / globalScale
+            (CONSTANTS.NODE_FONT_SIZE * (size / 2)) / globalScale + 2
           )
           ctx.font = `${fontSize}px Sans-Serif`
-          const bgHeight = fontSize + 2
-          const bgY = node.y + size / 2 + 1
+
+          // Measure text for background sizing
+          const textWidth = ctx.measureText(label).width
+          const paddingX = fontSize * 0.4
+          const paddingY = fontSize * 0.25
+          const bgWidth = textWidth + paddingX * 2
+          const bgHeight = fontSize + paddingY * 2
+          const borderRadius = fontSize * 0.3
+          const bgY = node.y + size / 2 + fontSize * 0.6
+
+          // Draw rounded rectangle background
+          const bgX = node.x - bgWidth / 2
+          ctx.beginPath()
+          ctx.roundRect(bgX, bgY, bgWidth, bgHeight, borderRadius)
+
+          // Background color with theme awareness
+          if (theme === 'light') {
+            ctx.fillStyle = isHighlighted
+              ? 'rgba(255, 255, 255, 0.95)'
+              : 'rgba(255, 255, 255, 0.75)'
+          } else {
+            ctx.fillStyle = isHighlighted
+              ? 'rgba(32, 32, 32, 0.95)'
+              : 'rgba(32, 32, 32, 0.75)'
+          }
+          ctx.fill()
+
+          // Subtle border for depth
+          ctx.strokeStyle = theme === 'light'
+            ? 'rgba(0, 0, 0, 0.1)'
+            : 'rgba(255, 255, 255, 0.1)'
+          ctx.lineWidth = 0.5
+          ctx.stroke()
+
+          // Draw text
           const color = theme === 'light' ? GRAPH_COLORS.TEXT_LIGHT : GRAPH_COLORS.TEXT_DARK
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          if (isHighlighted) {
-            ctx.fillStyle = color
-          } else {
-            ctx.fillStyle = `${color}4D` // 30% opacity
-          }
+          ctx.fillStyle = isHighlighted ? color : `${color}CC` // 80% opacity
           ctx.fillText(label, node.x, bgY + bgHeight / 2)
         }
       }
@@ -838,10 +867,23 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.save()
         ctx.translate(tempPos.x, tempPos.y)
         ctx.rotate(textAngle)
-        // Background
-        ctx.fillStyle =
-          theme === 'light' ? GRAPH_COLORS.BACKGROUND_LIGHT : GRAPH_COLORS.BACKGROUND_DARK
-        ctx.fillRect(-halfWidth, -halfHeight, tempDimensions[0], tempDimensions[1])
+        // Draw rounded rectangle background
+        const borderRadius = CONSTANTS.LABEL_FONT_SIZE * 0.3
+        ctx.beginPath()
+        ctx.roundRect(-halfWidth, -halfHeight, tempDimensions[0], tempDimensions[1], borderRadius)
+        // Background with semi-transparency
+        if (theme === 'light') {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
+        } else {
+          ctx.fillStyle = 'rgba(32, 32, 32, 0.95)'
+        }
+        ctx.fill()
+        // Subtle border for depth
+        ctx.strokeStyle = theme === 'light'
+          ? 'rgba(0, 0, 0, 0.1)'
+          : 'rgba(255, 255, 255, 0.1)'
+        ctx.lineWidth = 0.5
+        ctx.stroke()
         // Text - follow same highlighting behavior as links
         ctx.fillStyle = isHighlighted
           ? GRAPH_COLORS.LINK_LABEL_HIGHLIGHTED

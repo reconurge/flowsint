@@ -124,21 +124,32 @@ class Vault(VaultProtocol):
         return new_key
 
     def get_secret(self, vault_ref: str) -> Optional[str]:
-        """_summary_
+        """Get a secret from the vault by ID or name.
 
         Args:
-            vault_ref (str): _description_
+            vault_ref (str): Either a UUID (key ID) or a string (key name)
 
         Returns:
-            Optional[str]: _description_
+            Optional[str]: The decrypted secret value, or None if not found
         """
         try:
             ref_uuid = uuid.UUID(vault_ref)
             stmt = select(Key).where(Key.id == ref_uuid)
         except ValueError:
             stmt = select(Key).where(Key.name == vault_ref)
+
         stmt = stmt.where(Key.owner_id == self.owner_id)
         result = self.db.execute(stmt)
         row = result.scalars().first()
-        decrypted_key = self._decrypt_key(row.dict())
-        return decrypted_key if row else None
+
+        if row:
+            # Convert SQLAlchemy model to dict for decryption
+            row_dict = {
+                "salt": row.salt,
+                "iv": row.iv,
+                "ciphertext": row.ciphertext,
+            }
+            decrypted_key = self._decrypt_key(row_dict)
+            return decrypted_key
+        else:
+            return None

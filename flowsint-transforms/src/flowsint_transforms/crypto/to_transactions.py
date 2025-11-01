@@ -11,14 +11,13 @@ from flowsint_core.core.logger import Logger
 
 load_dotenv()
 
-ETHERSCAN_API_URL = os.getenv("ETHERSCAN_API_URL")
-
 
 def wei_to_eth(wei_str):
     return int(wei_str) / 10**18
 
 
 class CryptoWalletAddressToTransactions(Transform):
+    """[ETHERSCAN] Resolve transactions for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[CryptoWallet]
@@ -64,7 +63,7 @@ class CryptoWalletAddressToTransactions(Transform):
                 "type": "url",
                 "description": "The Etherscan API URL to use for the transaction lookup.",
                 "required": False,
-                "default": ETHERSCAN_API_URL,
+                "default": "https://api.etherscan.io/v2/api",
             },
         ]
 
@@ -97,7 +96,7 @@ class CryptoWalletAddressToTransactions(Transform):
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
-        api_url = self.get_params().get("ETHERSCAN_API_URL", ETHERSCAN_API_URL)
+        api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
         for d in data:
             try:
                 transactions = await self._get_transactions(d.address, api_key, api_url)

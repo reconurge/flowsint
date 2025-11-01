@@ -1,7 +1,8 @@
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 import hibpwned
 from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.graph_db import Neo4jConnection
 import os
 from dotenv import load_dotenv
 
@@ -17,6 +18,39 @@ class HibpTransform(Transform):
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[str]  # Email addresses as strings
     OutputType = List[Dict[str, Any]]  # Breach results as dictionaries
+
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this transform"""
+        return [
+            {
+                "name": "HIBP_API_KEY",
+                "type": "vaultSecret",
+                "description": "The HIBP API key to use for breach lookups.",
+                "required": True,
+            },
+        ]
 
     @classmethod
     def name(cls) -> str:
@@ -42,9 +76,11 @@ class HibpTransform(Transform):
     async def scan(self, data: InputType) -> OutputType:
         """Performs a search on HaveIBeenPwned for a list of emails."""
         results: OutputType = []
+        api_key = self.get_secret("HIBP_API_KEY", os.getenv("HIBP_API_KEY"))
+
         for email in data:
             try:
-                result = hibpwned.Pwned(email, "MyHIBPChecker", HIBP_API_KEY)
+                result = hibpwned.Pwned(email, "MyHIBPChecker", api_key)
 
                 # Clear data structure for results
                 breaches = result.search_all_breaches()

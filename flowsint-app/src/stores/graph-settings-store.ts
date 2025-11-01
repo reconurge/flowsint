@@ -122,15 +122,15 @@ const DEFAULT_SETTINGS = {
       description:
         'Velocity decay factor that simulates friction/resistance (higher = more damping, nodes slow down faster)'
     },
-    warmupTicks: {
-      type: 'number',
-      value: 0,
-      min: 0,
-      max: 100,
-      step: 1,
-      description:
-        'Number of simulation cycles to run in background before starting to render (improves initial layout)'
-    }
+    // warmupTicks: {
+    //   type: 'number',
+    //   value: 0,
+    //   min: 0,
+    //   max: 100,
+    //   step: 1,
+    //   description:
+    //     'Number of simulation cycles to run in background before starting to render (improves initial layout)'
+    // }
   }
 }
 

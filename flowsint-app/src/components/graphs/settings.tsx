@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -44,18 +44,18 @@ interface SettingItemProps {
 function SettingItem({ label, description, children, inline = false }: SettingItemProps) {
   if (inline) {
     return (
-      <div className="flex items-center justify-between py-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
         <div className="space-y-1 flex-1">
           <Label className="text-sm font-medium text-foreground">{label}</Label>
           {description && <p className="text-xs text-muted-foreground">{description}</p>}
         </div>
-        <div className="ml-4">{children}</div>
+        <div className="sm:ml-4">{children}</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 py-1">
       <div className="space-y-1">
         <Label className="text-sm font-medium text-foreground">{label}</Label>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
@@ -79,8 +79,8 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
   if (shouldUseSlider && (setting.type === 'number' || setting.type === 'slider')) {
     return (
-      <SettingItem label={settingKey} description={setting.description} inline={true}>
-        <div className="flex items-center space-x-3 w-64">
+      <SettingItem label={settingKey} description={setting.description} inline={false}>
+        <div className="flex items-center space-x-3">
           <Slider
             value={[setting.value]}
             onValueChange={([value]) => onValueChange(value)}
@@ -222,7 +222,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
 
   if (!category) {
     return (
-      <div className="space-y-6 flex flex-col h-full">
+      <div className="space-y-6">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
           <p className="text-sm text-muted-foreground">{description}</p>
@@ -241,7 +241,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
   }
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <div className="space-y-6">
       <div className="space-y-1">
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -277,7 +277,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
         </div>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-5 pb-6">
         {Object.entries(category).map(([settingKey, setting]) => (
           <DynamicSetting
             key={settingKey}
@@ -288,7 +288,6 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
           />
         ))}
       </div>
-      <div className="grow" />
     </div>
   )
 }
@@ -381,15 +380,15 @@ export default function GlobalSettings() {
 
   if (isLoading) {
     return (
-      <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>General settings</DialogTitle>
-            <DialogDescription>
+      <Sheet open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+        <SheetContent className="w-full sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>General settings</SheetTitle>
+            <SheetDescription>
               Make changes to your sketch settings here. Click save when you&apos;re done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
+            </SheetDescription>
+          </SheetHeader>
+          <div className="grid gap-4 mt-6">
             <div className="grid gap-2">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-10 w-full" />
@@ -403,37 +402,31 @@ export default function GlobalSettings() {
               <Skeleton className="h-10 w-full" />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" disabled>
-              Cancel
-            </Button>
-            <Button disabled>Saving...</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     )
   }
 
   if (isError) {
     return (
-      <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>General settings</DialogTitle>
-            <DialogDescription>Error loading sketch data. Please try again.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
+      <Sheet open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+        <SheetContent className="w-full sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>General settings</SheetTitle>
+            <SheetDescription>Error loading sketch data. Please try again.</SheetDescription>
+          </SheetHeader>
+          <div className="grid gap-4 mt-6">
             <Button onClick={() => refetch()}>Retry</Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     )
   }
 
   const getSelectedSectionPanel = (sectionId: string) => {
     if (sectionId === 'information') {
       return (
-        <div className="space-y-6 flex flex-col h-full">
+        <div className="space-y-6">
           <div className="space-y-1">
             <h3 className="text-lg font-semibold text-foreground">General Information</h3>
             <p className="text-sm text-muted-foreground">
@@ -473,30 +466,27 @@ export default function GlobalSettings() {
             />
           </div>
 
-          <div className="grow" />
-
-          <div className="border-t pt-6">
-            <DialogFooter className="gap-3">
-              <DialogClose asChild>
-                <Button variant="outline" type="button" className="h-10 px-6">
-                  Cancel
-                </Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending}
-                onClick={handleSubmit}
-                className="h-10 px-6"
-              >
-                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+          <div className="flex gap-3 pt-6">
+            <SheetClose asChild>
+              <Button variant="outline" type="button" className="flex-1">
+                Cancel
               </Button>
-            </DialogFooter>
+            </SheetClose>
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              onClick={handleSubmit}
+              className="flex-1"
+            >
+              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
         </div>
       )
     }
 
     // For all other sections, use the dynamic renderer
+    // @ts-ignore
     const category = settings[sectionId]
     if (category) {
       return (
@@ -513,49 +503,47 @@ export default function GlobalSettings() {
   }
 
   return (
-    <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-      <DialogContent className="sm:max-w-[800px] h-[80vh] flex flex-col items-start overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Sketch settings</DialogTitle>
-          <DialogDescription>Configure your sketch settings and preferences.</DialogDescription>
-        </DialogHeader>
+    <Sheet open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col overflow-hidden p-0">
+        <SheetHeader className="px-6 pt-6 pb-4">
+          <SheetTitle>Sketch settings</SheetTitle>
+          <SheetDescription>Configure your sketch settings and preferences.</SheetDescription>
+        </SheetHeader>
         <Tabs
           value={activeSection}
           onValueChange={setActiveSection}
-          className="w-full h-full overflow-hidden"
+          className="flex flex-col flex-1 overflow-hidden"
         >
-          <div className="grid grid-cols-4 gap-6 h-full divide-x overflow-hidden">
-            {/* Left sidebar with tabs */}
-            <div className="col-span-1 pr-3">
-              <TabsList className="flex bg-transparent flex-col gap-2 w-full h-auto">
-                {Object.keys(settings).map((category: string) => (
-                  <TabsTrigger
-                    key={category}
-                    value={category}
-                    className="w-full justify-start capitalize h-10"
-                  >
-                    {category}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            {/* Right content panel */}
-            <div className="col-span-3 h-full w-full overflow-auto p-1">
+          {/* Horizontal tabs at top */}
+          <div className="px-6 pb-4 border-b">
+            <TabsList className="w-full h-auto flex">
               {Object.keys(settings).map((category: string) => (
-                <TabsContent
+                <TabsTrigger
                   key={category}
                   value={category}
-                  className="mt-0 h-full w-full flex flex-col justify-center"
+                  className="capitalize h-9"
                 >
-                  {getSelectedSectionPanel(category)}
-                </TabsContent>
+                  {category}
+                </TabsTrigger>
               ))}
-            </div>
+            </TabsList>
+          </div>
+
+          {/* Content panel */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {Object.keys(settings).map((category: string) => (
+              <TabsContent
+                key={category}
+                value={category}
+                className="mt-0 h-full flex flex-col"
+              >
+                {getSelectedSectionPanel(category)}
+              </TabsContent>
+            ))}
           </div>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -686,15 +674,15 @@ export function KeyboardShortcuts() {
   ]
 
   return (
-    <Dialog open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
-          <DialogDescription>
+    <Sheet open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Keyboard Shortcuts</SheetTitle>
+          <SheetDescription>
             Here is the list of all available keyboard shortcuts.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="space-y-6 mt-6">
           {shortcuts.map((category) => (
             <div key={category.category} className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wide">
@@ -716,12 +704,7 @@ export function KeyboardShortcuts() {
             </div>
           ))}
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

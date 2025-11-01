@@ -33,7 +33,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { queryKeys } from '@/api/query-keys'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
-import { ScrollArea } from '../ui/scroll-area'
 
 // SettingItem Components
 interface SettingItemProps {

@@ -171,7 +171,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   })
   // Store references
-  const graphRef = useRef<any>()
+  const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const isGraphReadyRef = useRef(false)
 

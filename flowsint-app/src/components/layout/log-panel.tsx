@@ -151,7 +151,7 @@ export const LogPanel = memo(() => {
   }
 
   return (
-    <div className="h-full bg-card overflow-hidden flex flex-col relative">
+    <div className="h-full bg-card overflow-hidden border-t flex flex-col relative">
       <div
         className={cn('flex-1 h-full', logs.length === 0 ? 'overflow-hidden' : 'overflow-y-auto')}
         ref={scrollAreaRef}
@@ -172,6 +172,7 @@ export const LogPanel = memo(() => {
             </div>
           ) : (
             logs.map((log, i) => {
+              //@ts-ignore
               const config = logLevelConfig[log.type] || defaultConfig
               const Icon = config.icon
 

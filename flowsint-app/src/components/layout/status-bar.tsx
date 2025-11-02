@@ -14,7 +14,7 @@ export const StatusBar = memo(() => {
   const toggleConsole = useLayoutStore((s) => s.toggleConsole)
 
   return (
-    <div className="flex items-center bg-card h-8 border-t px-2 text-xs text-muted-foreground">
+    <div className="flex items-center bg-card h-8 px-2 text-xs text-muted-foreground">
       <div className="flex items-center gap-2">
         {sketch_id && (
           <Button

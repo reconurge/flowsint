@@ -217,13 +217,6 @@ class DomainToHistoryTransform(Transform):
 
     def __get_infos_from_whoxy(self, domain: str, api_key: str) -> Dict[str, Any]:
         """Get WHOIS history information from Whoxy API or test data."""
-        Logger.info(
-            self.sketch_id,
-            {
-                "message": f"[WHOXY] Getting info for domain: '{domain}' (length: {len(domain)})"
-            },
-        )
-
         infos: Dict[str, Any] = {}
         whoxy = WhoxyTool()
         try:

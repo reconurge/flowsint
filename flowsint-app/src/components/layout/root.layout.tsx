@@ -150,19 +150,14 @@ export default function RootLayout({ children }: LayoutProps) {
                       </>
                     )}
                     <ResizablePanel className="h-full w-full" id="children" order={3}>
-                      {children}
+                      <>{children}</>
                     </ResizablePanel>
                     {detailsPanelSection}
                   </ResizablePanelGroup>
                 </ResizablePanel>
 
-                {/* Status bar */}
-                <div className="h-8 shrink-0">
-                  <StatusBar />
-                </div>
-
-                {/* Console panel - only shown when isOpen is true */}
-                {isOpenConsole && id && (
+                {/* Console panel with status bar - only shown when isOpen is true */}
+                {isOpenConsole && id ? (
                   <>
                     <ResizableHandle />
                     <ResizablePanel
@@ -172,11 +167,20 @@ export default function RootLayout({ children }: LayoutProps) {
                       minSize={10}
                       maxSize={50}
                     >
-                      <div className="h-full overflow-hidden">
-                        <LogPanel />
+                      <div className="h-full overflow-hidden flex flex-col">
+                        <div className="h-8 shrink-0">
+                          <StatusBar />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <LogPanel />
+                        </div>
                       </div>
                     </ResizablePanel>
                   </>
+                ) : (
+                  <div className="h-8 shrink-0 border-t">
+                    <StatusBar />
+                  </div>
                 )}
               </ResizablePanelGroup>
             </ResizablePanel>

@@ -11,6 +11,11 @@ export const investigationService = {
       method: 'GET'
     })
   },
+  getStatistics: async (investigationId: string): Promise<any> => {
+    return fetchWithAuth(`/api/investigations/${investigationId}/statistics`, {
+      method: 'GET'
+    })
+  },
   create: async (body: BodyInit): Promise<any> => {
     return fetchWithAuth(`/api/investigations/create`, {
       method: 'POST',

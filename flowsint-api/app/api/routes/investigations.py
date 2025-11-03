@@ -173,6 +173,77 @@ def update_investigation(
     return investigation
 
 
+# Get statistics for an investigation (entity types and relation labels)
+@router.get("/{investigation_id}/statistics")
+def get_investigation_statistics(
+    investigation_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    Get statistics about entity types and relation labels across all sketches
+    in the investigation.
+    """
+    check_investigation_permission(current_user.id, investigation_id, actions=["read"], db=db)
+
+    # Get all sketch IDs for this investigation
+    sketches = (
+        db.query(Sketch)
+        .filter(Sketch.investigation_id == investigation_id)
+        .all()
+    )
+
+    if not sketches:
+        return {
+            "entity_types": [],
+            "relation_labels": []
+        }
+
+    sketch_ids = [str(sketch.id) for sketch in sketches]
+
+    # Query entity types (node labels) across all sketches
+    entity_query = """
+    MATCH (n)
+    WHERE n.sketch_id IN $sketch_ids
+    UNWIND labels(n) AS label
+    WITH label, count(*) as count
+    WHERE label <> 'Entity'
+    RETURN label as type, count
+    ORDER BY count DESC
+    """
+
+    # Query relation types across all sketches
+    relation_query = """
+    MATCH (a)-[r]->(b)
+    WHERE a.sketch_id IN $sketch_ids AND b.sketch_id IN $sketch_ids
+    WITH type(r) as relType, count(*) as count
+    RETURN relType as type, count
+    ORDER BY count DESC
+    """
+
+    try:
+        entity_result = neo4j_connection.query(entity_query, {"sketch_ids": sketch_ids})
+        relation_result = neo4j_connection.query(relation_query, {"sketch_ids": sketch_ids})
+
+        entity_types = [
+            {"type": record["type"], "count": record["count"]}
+            for record in entity_result
+        ]
+
+        relation_labels = [
+            {"type": record["type"], "count": record["count"]}
+            for record in relation_result
+        ]
+
+        return {
+            "entity_types": entity_types,
+            "relation_labels": relation_labels
+        }
+    except Exception as e:
+        print(f"Error fetching investigation statistics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch investigation statistics")
+
+
 # Delete a investigation by ID
 @router.delete("/{investigation_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_investigation(

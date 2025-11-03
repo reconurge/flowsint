@@ -1,22 +1,57 @@
-import subprocess
-from typing import List, Union
+import os
+from typing import Any, Dict, List, Optional, Union
 from flowsint_core.core.transform_base import Transform
+from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.cidr import CIDR
 from flowsint_types.ip import Ip
 from flowsint_core.core.logger import Logger
+from tools.network.mapcidr import MapcidrTool
 
 
 class CidrToIpsTransform(Transform):
-    """Takes a CIDR and returns its corresponding IP addresses."""
+    """[MAPCIDR] Takes a CIDR and returns its corresponding IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[CIDR]
     OutputType = List[Ip]
 
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return False
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare optional parameters for this transform"""
+        return [
+            {
+                "name": "PDCP_API_KEY",
+                "type": "vaultSecret",
+                "description": "Optional ProjectDiscovery Cloud Platform API key for mapcidr.",
+                "required": False,
+            },
+        ]
+
     @classmethod
     def name(cls) -> str:
         return "cidr_to_ips"
-    
+
     @classmethod
     def key(cls) -> str:
         return "network"
@@ -44,47 +79,49 @@ class CidrToIpsTransform(Transform):
         return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
-        """Find IP addresses from CIDR using dnsx."""
+        """Find IP addresses from CIDR using mapcidr."""
         ips: OutputType = []
+        mapcidr = MapcidrTool()
+
+        # Retrieve API key from vault or environment (optional)
+        api_key = self.get_secret("PDCP_API_KEY", os.getenv("PDCP_API_KEY"))
+
         for cidr in data:
-            ip_addresses = self.__get_ips_from_cidr(cidr.network)
-            if ip_addresses:
-                for ip_str in ip_addresses:
-                    try:
-                        ip = Ip(address=ip_str.strip())
-                        ips.append(ip)
-                    except Exception as e:
-                        Logger.error(
-                            self.sketch_id,
-                            {"message": f"Failed to parse IP {ip_str}: {str(e)}"},
-                        )
-            else:
-                Logger.warn(
-                    self.sketch_id, {"message": f"No IPs found for CIDR {cidr.network}"}
+            try:
+                # Use mapcidr tool to get IPs from CIDR, passing the API key
+                ip_addresses = mapcidr.launch(cidr.network, api_key=api_key)
+
+                if ip_addresses:
+                    for ip_str in ip_addresses:
+                        try:
+                            ip = Ip(address=ip_str.strip())
+                            ips.append(ip)
+                        except Exception as e:
+                            Logger.error(
+                                self.sketch_id,
+                                {"message": f"Failed to parse IP {ip_str}: {str(e)}"},
+                            )
+
+                    Logger.info(
+                        self.sketch_id,
+                        {
+                            "message": f"[MAPCIDR] Found {len(ip_addresses)} IPs for CIDR {cidr.network}"
+                        },
+                    )
+                else:
+                    Logger.warn(
+                        self.sketch_id,
+                        {"message": f"[MAPCIDR] No IPs found for CIDR {cidr.network}"},
+                    )
+
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Error getting IPs for CIDR {cidr.network}: {e}"},
                 )
+                continue
+
         return ips
-
-    def __get_ips_from_cidr(self, cidr: str) -> List[str]:
-        try:
-            command = f"echo {cidr} | dnsx -ptr"
-            result = subprocess.run(
-                command, shell=True, capture_output=True, text=True, timeout=60
-            )
-            if not result.stdout.strip():
-                Logger.info(self.sketch_id, {"message": f"No IPs found for {cidr}."})
-                return []
-
-            # Split the output by newlines and filter out empty lines
-            ip_addresses = [
-                ip.strip() for ip in result.stdout.split("\n") if ip.strip()
-            ]
-            return ip_addresses
-
-        except Exception as e:
-            Logger.error(
-                self.sketch_id, {"message": f"dnsx exception for {cidr}: {str(e)}"}
-            )
-            return []
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
@@ -95,13 +132,19 @@ class CidrToIpsTransform(Transform):
                     "cidr",
                     "network",
                     str(cidr.network),
+                    label=str(cidr.network),
                     caption=str(cidr.network),
                     type="cidr",
                 )
 
                 # Create IP node
                 self.create_node(
-                    "ip", "address", ip.address, caption=ip.address, type="ip"
+                    "ip",
+                    "address",
+                    ip.address,
+                    label=ip.address,
+                    caption=ip.address,
+                    type="ip",
                 )
 
                 # Create relationship
@@ -115,7 +158,7 @@ class CidrToIpsTransform(Transform):
                     "CONTAINS",
                 )
 
-            self.log_graph_message(f"Found {len(results)} IPs for CIDR {cidr.network}")
+                self.log_graph_message(f"CIDR {cidr.network} contains IP {ip.address}")
         return results
 
 

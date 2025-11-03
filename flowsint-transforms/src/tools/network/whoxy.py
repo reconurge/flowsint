@@ -6,6 +6,8 @@ from ..base import Tool
 
 class WhoxyTool(Tool):
 
+    whoxy_api_endoint = "https://api.whoxy.com/"
+    
     @classmethod
     def name(cls) -> str:
         return "whoxy"
@@ -25,7 +27,7 @@ class WhoxyTool(Tool):
     def launch(self, params: Dict[str, str] = {}) -> list[Dict]:
         try:
             resp = requests.get(
-                "https://api.whoxy.com/",
+                self.whoxy_api_endoint,
                 params=params,
                 timeout=10,
             )

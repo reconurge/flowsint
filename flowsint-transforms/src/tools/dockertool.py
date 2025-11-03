@@ -46,8 +46,13 @@ class DockerTool(Tool):
         except ImageNotFound:
             return False
 
-    def launch(self, command: str, volumes: dict = None, timeout: int = 30):
+    def launch(self, command: str, volumes: dict = None, timeout: int = 30, environment: dict = None):
         self.install()
+        # Merge default environment with custom environment
+        env = {"TERM": "dumb"}  # Set terminal type to avoid TTY issues
+        if environment:
+            env.update(environment)
+
         try:
             result = self.client.containers.run(
                 self.image,
@@ -60,7 +65,7 @@ class DockerTool(Tool):
                 tty=False,
                 network_mode="bridge",
                 stdin_open=False,  # Ensure stdin is not open
-                environment={"TERM": "dumb"},  # Set terminal type to avoid TTY issues
+                environment=env,
             )
             return result.decode()
         except ImageNotFound:
@@ -89,7 +94,7 @@ class DockerTool(Tool):
                         tty=False,
                         network_mode="bridge",
                         stdin_open=False,
-                        environment={"TERM": "dumb"},
+                        environment=env,
                     )
                     # If we get here, the command actually worked
                     return test_result.decode()

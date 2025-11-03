@@ -1,19 +1,54 @@
 import json
-import subprocess
-from typing import List, Dict, Any, Union
+import os
+from typing import List, Dict, Any, Union, Optional
 from flowsint_core.core.transform_base import Transform
+from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.cidr import CIDR
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_asn, parse_asn
 from flowsint_core.core.logger import Logger
+from tools.network.asnmap import AsnmapTool
 
 
 class AsnToCidrsTransform(Transform):
-    """Takes an ASN and returns its corresponding CIDRs."""
+    """[ASNMAP] Takes an ASN and returns its corresponding CIDRs."""
 
     # Define types as class attributes - base class handles schema generation automatically
     InputType = List[ASN]
     OutputType = List[CIDR]
+
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        neo4j_conn: Optional[Neo4jConnection] = None,
+        vault=None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            neo4j_conn=neo4j_conn,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+        )
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this transform"""
+        return [
+            {
+                "name": "PDCP_API_KEY",
+                "type": "vaultSecret",
+                "description": "The ProjectDiscovery Cloud Platform API key for asnmap.",
+                "required": True,
+            },
+        ]
 
     @classmethod
     def name(cls) -> str:
@@ -25,7 +60,7 @@ class AsnToCidrsTransform(Transform):
 
     @classmethod
     def key(cls) -> str:
-        return "network"
+        return "number"
 
     def preprocess(
         self, data: Union[List[str], List[int], List[dict], InputType]
@@ -51,79 +86,54 @@ class AsnToCidrsTransform(Transform):
         """Find CIDR from ASN using asnmap."""
         cidrs: OutputType = []
         self._asn_to_cidrs_map = []  # Store mapping for postprocess
+        asnmap = AsnmapTool()
+
+        # Retrieve API key from vault or environment
+        api_key = self.get_secret("PDCP_API_KEY", os.getenv("PDCP_API_KEY"))
 
         for asn in data:
-            asn_cidrs = []
-            cidr_data = self.__get_cidrs_from_asn(asn.number)
-            if cidr_data and "as_range" in cidr_data and cidr_data["as_range"]:
-                # Add all CIDRs for this ASN
-                for cidr_str in cidr_data["as_range"]:
-                    try:
-                        cidr = CIDR(network=cidr_str)
-                        cidrs.append(cidr)
-                        asn_cidrs.append(cidr)
-                    except Exception as e:
-                        Logger.error(
-                            self.sketch_id,
-                            {"message": f"Failed to parse CIDR {cidr_str}: {str(e)}"},
-                        )
-            else:
-                Logger.warn(
-                    self.sketch_id, {"message": f"No CIDRs found for ASN {asn.number}"}
-                )
-
-            if asn_cidrs:  # Only add to mapping if we found valid CIDRs
-                self._asn_to_cidrs_map.append((asn, asn_cidrs))
-        return cidrs
-
-    def __get_cidrs_from_asn(self, asn: int) -> Dict[str, Any]:
-        try:
-            command = f"echo {asn} | asnmap -silent -json | jq -s '.'"
-            result = subprocess.run(
-                command, shell=True, capture_output=True, text=True, timeout=60
-            )
-            if not result.stdout.strip():
-                Logger.info(self.sketch_id, {"message": f"No CIDRs found for {asn}."})
-                return None
             try:
-                # Parse the JSON array
-                data_array = json.loads(result.stdout)
-                if not data_array:
-                    return None
+                asn_cidrs = []
+                # Use asnmap tool to get CIDR info, passing the API key
+                # asnmap expects ASN with "AS" prefix
+                cidr_data = asnmap.launch(f"AS{asn.number}", type="asn", api_key=api_key)
 
-                combined_data = {
-                    "as_range": [],
-                    "as_name": None,
-                    "as_country": None,
-                    "as_number": None,
-                }
+                if cidr_data and "as_range" in cidr_data and cidr_data["as_range"]:
+                    # Add all CIDRs for this ASN
+                    for cidr_str in cidr_data["as_range"]:
+                        try:
+                            cidr = CIDR(network=cidr_str)
+                            cidrs.append(cidr)
+                            asn_cidrs.append(cidr)
+                        except Exception as e:
+                            Logger.error(
+                                self.sketch_id,
+                                {"message": f"Failed to parse CIDR {cidr_str}: {str(e)}"},
+                            )
 
-                for data in data_array:
-                    if "as_range" in data:
-                        combined_data["as_range"].extend(data["as_range"])
-                    if data.get("as_name") and not combined_data["as_name"]:
-                        combined_data["as_name"] = data["as_name"]
-                    if data.get("as_country") and not combined_data["as_country"]:
-                        combined_data["as_country"] = data["as_country"]
-                    if data.get("as_number") and not combined_data["as_number"]:
-                        combined_data["as_number"] = data["as_number"]
+                    Logger.info(
+                        self.sketch_id,
+                        {
+                            "message": f"[ASNMAP] Found {len(asn_cidrs)} CIDRs for AS{asn.number}"
+                        },
+                    )
+                else:
+                    Logger.warn(
+                        self.sketch_id,
+                        {"message": f"[ASNMAP] No CIDRs found for AS{asn.number}"},
+                    )
 
-                return combined_data if combined_data["as_range"] else None
+                if asn_cidrs:  # Only add to mapping if we found valid CIDRs
+                    self._asn_to_cidrs_map.append((asn, asn_cidrs))
 
-            except json.JSONDecodeError:
+            except Exception as e:
                 Logger.error(
                     self.sketch_id,
-                    {
-                        "message": f"Failed to parse JSON from asnmap output: {result.stdout}"
-                    },
+                    {"message": f"Error getting CIDRs for ASN {asn.number}: {e}"},
                 )
-                return None
+                continue
 
-        except Exception as e:
-            Logger.error(
-                self.sketch_id, {"message": f"asnmap exception for {asn}: {str(e)}"}
-            )
-            return None
+        return cidrs
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between ASNs and their corresponding CIDRs
@@ -139,10 +149,8 @@ class AsnToCidrsTransform(Transform):
                             "asn",
                             "number",
                             asn.number,
-                            name=asn.name or "Unknown",
-                            country=asn.country or "Unknown",
                             label=f"AS{asn.number}",
-                            caption=f"AS{asn.number} - {asn.name or 'Unknown'}",
+                            caption=f"AS{asn.number}",
                             type="asn",
                         )
 
@@ -150,6 +158,7 @@ class AsnToCidrsTransform(Transform):
                             "cidr",
                             "network",
                             str(cidr.network),
+                            label=str(cidr.network),
                             caption=str(cidr.network),
                             type="cidr",
                         )
@@ -163,40 +172,46 @@ class AsnToCidrsTransform(Transform):
                             str(cidr.network),
                             "ANNOUNCES",
                         )
+
+                        self.log_graph_message(
+                            f"AS{asn.number} announces CIDR {cidr.network}"
+                        )
         else:
             # Fallback: original behavior (one-to-one zip)
             for asn, cidr in zip(original_input, results):
                 if str(cidr.network) == "0.0.0.0/0":
                     continue  # Skip default CIDR for unknown ASN
-                self.log_graph_message(f"ASN {asn.number} -> {cidr.network}")
                 if self.neo4j_conn:
                     self.create_node(
-                        "ASN",
+                        "asn",
                         "number",
                         asn.number,
-                        name=asn.name or "Unknown",
-                        country=asn.country or "Unknown",
                         label=f"AS{asn.number}",
-                        caption=f"AS{asn.number} - {asn.name or 'Unknown'}",
+                        caption=f"AS{asn.number}",
                         type="asn",
                     )
 
                     self.create_node(
-                        "CIDR",
+                        "cidr",
                         "network",
                         str(cidr.network),
+                        label=str(cidr.network),
                         caption=str(cidr.network),
                         type="cidr",
                     )
 
                     self.create_relationship(
-                        "ASN",
+                        "asn",
                         "number",
                         asn.number,
-                        "CIDR",
+                        "cidr",
                         "network",
                         str(cidr.network),
                         "ANNOUNCES",
+                    )
+
+                    self.log_graph_message(
+                        f"AS{asn.number} announces CIDR {cidr.network}"
                     )
         return results
 

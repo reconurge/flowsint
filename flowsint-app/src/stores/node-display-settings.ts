@@ -56,6 +56,7 @@ export type ItemType =
   | 'affiliation'
   | 'phrase'
 
+
 export const ITEM_TYPES: ItemType[] = [
   'individual',
   'phone',
@@ -281,6 +282,39 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
   phrase: 10 // Small
 }
 
+const hslToHex = (h: number, s: number, l: number): string => {
+  const s1 = s / 100
+  const l1 = l / 100
+  const c = (1 - Math.abs(2 * l1 - 1)) * s1
+  const hh = h / 60
+  const x = c * (1 - Math.abs((hh % 2) - 1))
+  let r1 = 0, g1 = 0, b1 = 0
+  if (hh >= 0 && hh < 1) { r1 = c; g1 = x; b1 = 0 }
+  else if (hh >= 1 && hh < 2) { r1 = x; g1 = c; b1 = 0 }
+  else if (hh >= 2 && hh < 3) { r1 = 0; g1 = c; b1 = x }
+  else if (hh >= 3 && hh < 4) { r1 = 0; g1 = x; b1 = c }
+  else if (hh >= 4 && hh < 5) { r1 = x; g1 = 0; b1 = c }
+  else { r1 = c; g1 = 0; b1 = x }
+  const m = l1 - c / 2
+  const r = Math.round((r1 + m) * 255)
+  const g = Math.round((g1 + m) * 255)
+  const b = Math.round((b1 + m) * 255)
+  const toHex = (v: number) => v.toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
+const randomizeColors = (colors: Record<ItemType, string>): Record<ItemType, string> => {
+  const next: Record<ItemType, string> = { ...colors }
+  ITEM_TYPES.forEach((t) => {
+    // Simple, slightly vibrant but not neon
+    const h = Math.floor(Math.random() * 360)
+    const s = Math.floor(45 + Math.random() * 15) // 45% - 60%
+    const l = Math.floor(65 + Math.random() * 10) // 65% - 75%
+    next[t] = hslToHex(h, s, l)
+  })
+  return next
+}
+
 interface NodesDisplaySettingsState {
   colors: Record<ItemType, string>
   icons: Record<ItemType, string>
@@ -288,6 +322,7 @@ interface NodesDisplaySettingsState {
   setColor: (itemType: ItemType, color: string) => void
   setIcon: (itemType: ItemType, iconPath: string) => void
   resetColors: () => void
+  randomizeColors: () => void
   resetIcons: () => void
   resetAll: () => void
   getIcon: (itemType: ItemType) => string
@@ -316,6 +351,7 @@ export const useNodesDisplaySettings = create<NodesDisplaySettingsState>()(
         })),
       resetColors: () => set({ colors: { ...DEFAULT_COLORS } }),
       resetIcons: () => set({ icons: { ...DEFAULT_ICONS } }),
+      randomizeColors: () => set({ colors: randomizeColors(get().colors) }),
       resetAll: () =>
         set({
           colors: { ...DEFAULT_COLORS },

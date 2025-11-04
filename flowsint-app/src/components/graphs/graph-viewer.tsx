@@ -674,7 +674,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             CONSTANTS.MIN_FONT_SIZE,
             (CONSTANTS.NODE_FONT_SIZE * (size / 2)) / globalScale + 2
           )
-          const nodeLabelSetting = forceSettings.nodeLabelFontSize.value ?? 50
+          const nodeLabelSetting = forceSettings?.nodeLabelFontSize?.value ?? 50
           const fontSize = baseFontSize * (nodeLabelSetting / 100)
           ctx.font = `${fontSize}px Sans-Serif`
 
@@ -739,26 +739,26 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const { source: start, target: end } = link
       if (typeof start !== 'object' || typeof end !== 'object') return
-      const shouldUseSimpleRendering =
-        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || globalScale < 1.5
       const linkKey = `${start.id}-${end.id}`
       const isHighlighted = highlightLinks.has(linkKey)
       const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
+      const linkWidth = forceSettings?.linkWidth?.value ?? 2
+      const nodeSize = forceSettings?.nodeSize?.value ?? 14
       let strokeStyle: string
       let lineWidth: number
       let fillStyle: string
       if (isHighlighted) {
         strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
         fillStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
-        lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 3)
+        lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 3)
       } else if (hasAnyHighlight) {
         strokeStyle = GRAPH_COLORS.LINK_DIMMED
         fillStyle = GRAPH_COLORS.LINK_DIMMED
-        lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 5)
+        lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
       } else {
         strokeStyle = GRAPH_COLORS.LINK_DEFAULT
         fillStyle = GRAPH_COLORS.LINK_DEFAULT
-        lineWidth = CONSTANTS.LINK_WIDTH * (forceSettings.linkWidth.value / 5)
+        lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
       }
       // Draw connection line (use quadratic curve if curvature present)
       const curvature: number = link.curvature || 0
@@ -783,9 +783,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       ctx.lineWidth = lineWidth
       ctx.stroke()
       // Draw directional arrow
-      const arrowLength = forceSettings.linkDirectionalArrowLength.value
+      const arrowLength = forceSettings?.linkDirectionalArrowLength?.value
       if (arrowLength && arrowLength > 0) {
-        const arrowRelPos = forceSettings.linkDirectionalArrowRelPos.value || 1
+        const arrowRelPos = forceSettings?.linkDirectionalArrowRelPos?.value || 1
         // Helper to get point and tangent along straight/curved link
         const bezierPoint = (t: number) => {
           if (curvature === 0) {
@@ -814,7 +814,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           const tanLen = Math.hypot(tan.x, tan.y) || 1
           const targetNodeSize =
             (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) *
-            (forceSettings.nodeSize.value / 100 + 0.4)
+            (nodeSize / 100 + 0.4)
           arrowX = end.x - (tan.x / tanLen) * targetNodeSize
           arrowY = end.y - (tan.y / tanLen) * targetNodeSize
         }
@@ -859,7 +859,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
           textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI
         }
-        const linkLabelSetting = forceSettings.linkLabelFontSize.value ?? 50
+        const linkLabelSetting = forceSettings?.linkLabelFontSize?.value ?? 50
         // Measure and draw label with dynamic font size
         const linkFontSize = CONSTANTS.LABEL_FONT_SIZE * (linkLabelSetting / 100)
         ctx.font = `${linkFontSize}px Sans-Serif`
@@ -1070,7 +1070,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         <>
           <div
             className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary rounded-lg p-1 px-2 shadow-lg text-xs pointer-events-none"
-          ><Info className='h-3 w-3 '/> Lasso is active</div>
+          ><Info className='h-3 w-3 ' /> Lasso is active</div>
           <Lasso
             nodes={graphData.nodes}
             graph2ScreenCoords={graph2ScreenCoords}

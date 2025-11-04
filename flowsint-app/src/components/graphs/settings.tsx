@@ -211,6 +211,7 @@ function NodeColorsSection() {
   const storeColors = useNodesDisplaySettings((s) => s.colors)
   const setColor = useNodesDisplaySettings((s) => s.setColor)
   const resetColors = useNodesDisplaySettings((s) => s.resetColors)
+  const randomizeColors = useNodesDisplaySettings((s) => s.randomizeColors)
 
   // Local state for immediate UI updates
   const [localColors, setLocalColors] = useState(storeColors)
@@ -247,6 +248,10 @@ function NodeColorsSection() {
     [setColor]
   )
 
+  const handleRandomizeColors = useCallback(() => {
+    randomizeColors()
+  }, [])
+
   const handleReset = useCallback(() => {
     // Clear all pending timers
     debounceTimers.current.forEach((timer) => clearTimeout(timer))
@@ -272,9 +277,12 @@ function NodeColorsSection() {
         </p>
       </div>
 
-      <div className="border-b pb-4">
-        <Button variant="outline" size="sm" onClick={handleReset} className="w-full">
+      <div className="border-b flex items-center gap-2 pb-4">
+        <Button variant="outline" size="sm" onClick={handleReset} className="grow">
           Reset to Default Colors
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleRandomizeColors} className="grow">
+          Randomize
         </Button>
       </div>
 

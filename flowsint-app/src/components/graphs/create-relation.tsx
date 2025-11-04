@@ -70,13 +70,13 @@ export function CreateRelationDialog() {
             New relationship
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 w-full">
           {/* Selected Nodes Display */}
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Selected Nodes ({selectedNodes.length})
             </Label>
-            <div className="flex flex-wrap w-full gap-2">
+            <div className="flex w-full overflow-x-auto gap-2 min-w-0">
               {selectedNodes.map((node) => (
                 <NodeDisplayCard key={node.id} node={node} />
               ))}
@@ -194,11 +194,11 @@ export function NodeDisplayCard({
 
   if (variant === 'preview') {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0">
         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted">
           <NodeIcon size={20} />
         </div>
-        <span className="text-xs text-muted-foreground truncate">{getNodeDisplayName(node)}</span>
+        <span className="text-xs text-muted-foreground max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
       </div>
     )
   }
@@ -207,25 +207,25 @@ export function NodeDisplayCard({
     return (
       <label
         htmlFor={id}
-        className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary/5"
+        className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 min-w-0"
       >
         <RadioGroupItem id={id} value={radioValue || ''} className="mt-0.5" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
             <NodeIcon size={16} />
           </div>
-          <span className="text-sm truncate">{getNodeDisplayName(node)}</span>
+          <span className="text-sm max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
         </div>
       </label>
     )
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors">
+    <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors min-w-0">
       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
         <NodeIcon size={16} />
       </div>
-      <span className="text-sm truncate">{getNodeDisplayName(node)}</span>
+      <span className="text-sm max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
     </div>
   )
 }

@@ -140,10 +140,10 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <a href="https://github.com/reconurge">GitHub</a>
+          <a className='h-full w-full' target='_blank' href="https://github.com/reconurge/flowsint">GitHub</a>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <a href="https://github.com/reconurge">Support</a>
+          <a className='h-full w-full' target='_blank' href="https://github.com/reconurge/flowsint/issues">Support</a>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem>
         <DropdownMenuSeparator />

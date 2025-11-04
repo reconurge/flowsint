@@ -15,9 +15,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
-
-
 class DomainToHistoryTransform(Transform):
     """[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."""
 

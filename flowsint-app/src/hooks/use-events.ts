@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { logService } from '@/api/log-service'
 import { EventLevel } from '@/types'
@@ -64,7 +64,10 @@ export function useEvents(sketch_id: string | undefined) {
     }
   }, [sketch_id])
 
-  const logs = [...previousLogs, ...liveLogs].slice(-100)
+  const logs = useMemo(
+    () => [...previousLogs, ...liveLogs].slice(-100),
+    [previousLogs, liveLogs]
+  )
 
   return {
     logs,

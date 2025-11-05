@@ -2,11 +2,12 @@ import { Command } from '../command'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import InvestigationSelector from './investigation-selector'
 import SketchSelector from './sketch-selector'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { useLayoutStore } from '@/stores/layout-store'
 import { Button } from '@/components/ui/button'
+import { ImportSheet } from '../graphs/import-sheet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +18,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Ellipsis } from 'lucide-react'
+import { Ellipsis, Upload } from 'lucide-react'
 import { isMac } from '@/lib/utils'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -79,6 +80,7 @@ export const TopNavbar = memo(() => {
 export function InvestigationMenu({ investigationId, sketchId }: { investigationId?: string, sketchId: string }) {
   const setSettingsModalOpen = useGraphSettingsStore((s) => s.setSettingsModalOpen)
   const setKeyboardShortcutsOpen = useGraphSettingsStore((s) => s.setKeyboardShortcutsOpen)
+  const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
   const navigate = useNavigate()
   const { confirm } = useConfirm()
 
@@ -147,11 +149,16 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
         </DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setImportModalOpen(true)}>
+          <Upload />  Import entities
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleDelete} variant="destructive">
           Delete
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ImportSheet sketchId={sketchId} />
     </DropdownMenu>
   )
 }

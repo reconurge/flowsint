@@ -5,14 +5,15 @@ const API_URL = import.meta.env.VITE_API_URL
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<any> {
   const token = useAuthStore.getState().token
 
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json'
+  // Check if body is FormData - if so, don't set Content-Type (browser will set it with boundary)
+  const isFormData = options.body instanceof FormData
+  const defaultHeaders: HeadersInit = {}
+  if (!isFormData) {
+    defaultHeaders['Content-Type'] = 'application/json'
   }
-
   if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`
   }
-
   const config: RequestInit = {
     ...options,
     headers: {

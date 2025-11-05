@@ -101,31 +101,43 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent
         side="right"
-        className={`w-full overflow-y-auto ${analysisResult ? 'sm:max-w-[95vw]' : 'sm:max-w-2xl'
-          }`}
+        className={cn(
+          "flex flex-col h-full overflow-hidden", // full height, vertical layout
+          analysisResult ? "sm:max-w-[85vw]" : "sm:max-w-2xl"
+        )}
       >
-        <SheetHeader>
-          <SheetTitle>Import Entities</SheetTitle>
+        {/* Header stays fixed */}
+        <SheetHeader className="shrink-0 border-b bg-background px-6 py-4">
+          <SheetTitle>Import entities</SheetTitle>
           <SheetDescription>
             Upload a CSV, TXT, or XLSX file to import entities into your sketch
           </SheetDescription>
         </SheetHeader>
 
-        <div className="px-6">
+        {/* Optional beta banner */}
+        <div className="px-6 shrink-0">
           <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            This import feature is in beta. There may be minor side effects. If you see any issue, please <a className='text-primary underline font-semibold' target='_blank' href="https://github.com/reconurge/flowsint/issues">report them here</a> to help out the community.
+            This import feature is in beta. There may be minor side effects. If you see any issue, please{" "}
+            <a
+              className="text-primary underline font-semibold"
+              target="_blank"
+              href="https://github.com/reconurge/flowsint/issues"
+            >
+              report them here
+            </a>{" "}
+            to help out the community.
           </div>
         </div>
 
-
-        <div className="p-6">
+        {/* Main scrollable zone */}
+        <div className="flex flex-col flex-grow overflow-hidden p-6">
           {!file && !analysisResult && (
             <div
               className={cn(
-                'border-2 border-dashed rounded-lg p-12 text-center transition-colors',
+                "border-2 border-dashed rounded-lg p-12 text-center flex items-center justify-center transition-colors flex-grow overflow-auto",
                 isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:border-muted-foreground/50"
               )}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -134,12 +146,8 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
               <div className="flex flex-col items-center gap-4">
                 <Upload className="h-12 w-12 text-muted-foreground" />
                 <div>
-                  <p className="text-lg font-medium">
-                    Drag & drop your file here
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    or click to browse
-                  </p>
+                  <p className="text-lg font-medium">Drag & drop your file here</p>
+                  <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
                 </div>
                 <input
                   type="file"
@@ -182,17 +190,21 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
             </div>
           )}
 
+          {/* Scrollable Import Preview */}
           {analysisResult && file && (
-            <ImportPreview
-              analysisResult={analysisResult}
-              file={file}
-              sketchId={sketchId}
-              onSuccess={handleClose}
-              onCancel={handleReset}
-            />
+            <div className="flex flex-col flex-grow overflow-hidden">
+              <ImportPreview
+                analysisResult={analysisResult}
+                file={file}
+                sketchId={sketchId}
+                onSuccess={handleClose}
+                onCancel={handleReset}
+              />
+            </div>
           )}
         </div>
       </SheetContent>
     </Sheet>
+
   )
 }

@@ -7,7 +7,7 @@ import React, { useCallback, useMemo, useEffect, useState, useRef } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Button } from '../ui/button'
 import { useTheme } from '@/components/theme-provider'
-import { Info, Share2, Type } from 'lucide-react'
+import { Info, Plus, Share2, Type, Upload } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
 import MiniMap from './minimap'
@@ -187,6 +187,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const { theme } = useTheme()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
+  const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
   const shouldUseSimpleRendering = useMemo(
     () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5,
@@ -505,6 +506,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const handleOpenNewAddItemDialog = useCallback(() => {
     setOpenMainDialog(true)
   }, [setOpenMainDialog])
+
+  const handleOpenImportDialog = useCallback(() => {
+    setImportModalOpen(true)
+  }, [setImportModalOpen])
+
 
   // Throttled hover handlers using RAF for better performance
   const handleNodeHover = useCallback((node: any) => {
@@ -977,19 +983,18 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
               <strong>Labels:</strong> Zoom in to see node labels progressively by connection weight
             </p>
           </div>
-          <Button onClick={handleOpenNewAddItemDialog}>
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            Add your first item
-          </Button>
+          <div className='flex flex-col justify-center gap-1'>
+            <Button onClick={handleOpenNewAddItemDialog}>
+              <Plus />
+              Add your first item
+            </Button>
+            <span className='opacity-60'>or</span>
+            <Button variant="secondary" onClick={handleOpenImportDialog}>
+              <Upload /> Import data
+            </Button>
+          </div>
         </div>
-      </div>
+      </div >
     )
   }
 

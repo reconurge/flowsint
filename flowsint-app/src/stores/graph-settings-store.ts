@@ -187,6 +187,8 @@ type GraphGeneralSettingsStore = {
   setSettingsModalOpen: (open: boolean) => void
   keyboardShortcutsOpen: boolean
   setKeyboardShortcutsOpen: (open: boolean) => void
+  importModalOpen: boolean
+  setImportModalOpen: (open: boolean) => void
 
   // Helper methods
   getSettingValue: (category: string, key: string) => any
@@ -212,7 +214,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       // UI State
       settingsModalOpen: false,
       keyboardShortcutsOpen: false,
-
+      importModalOpen: false,
       // Core methods
       updateSetting: (category, key, value) =>
         set((state) => {
@@ -227,7 +229,6 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
               }
             }
           }
-
           // Also update forceSettings if we're updating a graph setting
           let newForceSettings = state.forceSettings
           if (category === 'graph') {
@@ -239,7 +240,6 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
               }
             }
           }
-
           return {
             settings: newSettings,
             forceSettings: newForceSettings,
@@ -313,6 +313,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       // UI State methods
       setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
       setKeyboardShortcutsOpen: (open) => set({ keyboardShortcutsOpen: open }),
+      setImportModalOpen: (open) => set({ importModalOpen: open }),
 
       // Helper methods
       getSettingValue: (category: string, key: string) => {

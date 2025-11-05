@@ -30,6 +30,7 @@ networkx = "^2.6.3"
 email-validator = "^2.2.0"
 mistralai = "^1.9.3"
 python-multipart = "^0.0.20"
+openpyxl = "^3.1.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0"

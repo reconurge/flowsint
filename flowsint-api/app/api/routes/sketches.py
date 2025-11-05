@@ -1,18 +1,16 @@
 from app.security.permissions import check_investigation_permission
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
 from pydantic import BaseModel, Field
-from typing import Literal, List
-from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from typing import Literal, List, Optional, Dict, Any
 from flowsint_core.utils import flatten
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from flowsint_core.core.models import Sketch, Profile
-from sqlalchemy.orm import Session
 from uuid import UUID
 from flowsint_core.core.graph_db import neo4j_connection
 from flowsint_core.core.postgre_db import get_db
 from app.api.deps import get_current_user
+from flowsint_core.imports import parse_file
 
 router = APIRouter()
 
@@ -651,3 +649,212 @@ def get_related_nodes(
     all_nodes = [center_node] + related_nodes
 
     return {"nds": all_nodes, "rls": relationships}
+
+
+class EntityPreviewModel(BaseModel):
+    """Preview model for a single entity."""
+
+    row_index: int
+    data: Dict[str, Any]
+    detected_type: str
+    primary_value: str
+    confidence: str
+
+
+class AnalyzeFileResponse(BaseModel):
+    """Response model for file analysis."""
+
+    entities: List[EntityPreviewModel]
+    total_entities: int
+    type_distribution: Dict[str, int]
+    columns: List[str]
+
+
+@router.post("/{sketch_id}/import/analyze", response_model=AnalyzeFileResponse)
+async def analyze_import_file(
+    sketch_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    Analyze an uploaded file for import.
+    Each row represents one entity. Detects entity types and provides preview.
+    """
+    # Verify sketch exists and user has access
+    sketch = (
+        db.query(Sketch)
+        .filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id)
+        .first()
+    )
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+
+    # Read file content
+    try:
+        content = await file.read()
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"Failed to read file: {str(e)}"
+        )
+
+    # Parse and analyze the file
+    try:
+        result = parse_file(
+            file_content=content,
+            filename=file.filename or "unknown.csv",
+            max_preview_rows=10000000,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to parse file: {str(e)}"
+        )
+
+    # Convert entities to response models (no slicing)
+    entity_previews = [
+        EntityPreviewModel(
+            row_index=e.row_index,
+            data=e.data,
+            detected_type=e.detected_type,
+            primary_value=e.primary_value,
+            confidence=e.confidence
+        )
+        for e in result.entities
+    ]
+
+    return AnalyzeFileResponse(
+        entities=entity_previews,
+        total_entities=result.total_entities,
+        type_distribution=result.type_distribution,
+        columns=result.columns
+    )
+
+
+class EntityMapping(BaseModel):
+    """Mapping configuration for an entity (row)."""
+
+    row_index: int
+    entity_type: str
+    include: bool = True
+    label: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None  # Edited data from frontend
+
+
+class ImportExecuteResponse(BaseModel):
+    """Response model for import execution."""
+
+    status: str
+    nodes_created: int
+    nodes_skipped: int
+    errors: List[str]
+
+
+@router.post("/{sketch_id}/import/execute", response_model=ImportExecuteResponse)
+async def execute_import(
+    sketch_id: str,
+    file: UploadFile = File(...),
+    entity_mappings_json: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    Execute the import of entities from a file into the sketch.
+    Each row is one entity with all columns stored in data property.
+    """
+    import json
+
+    # Verify sketch exists and user has access
+    sketch = (
+        db.query(Sketch)
+        .filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id)
+        .first()
+    )
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+
+    # Parse entity mappings
+    try:
+        mappings_data = json.loads(entity_mappings_json)
+        entity_mappings = [EntityMapping(**m) for m in mappings_data]
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid entity_mappings JSON")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"Failed to parse entity_mappings: {str(e)}"
+        )
+
+    # Read and parse file
+    try:
+        content = await file.read()
+        result = parse_file(
+            file_content=content,
+            filename=file.filename or "unknown.csv",
+            max_preview_rows=10000000,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to parse file: {str(e)}"
+        )
+
+    # Create mapping lookup by row index
+    mappings_by_row = {
+        m.row_index: m for m in entity_mappings if m.include
+    }
+
+    # Import entities
+    nodes_created = 0
+    nodes_skipped = 0
+    errors = []
+
+    for entity in result.entities:
+        # Prefer explicit mapping when provided; otherwise import using detected defaults
+        mapping = mappings_by_row.get(entity.row_index)
+        if mapping:
+            entity_type = mapping.entity_type
+            label = mapping.label if mapping.label else entity.primary_value
+            entity_data = mapping.data if mapping.data is not None else entity.data
+        else:
+            entity_type = entity.detected_type
+            label = entity.primary_value
+            entity_data = entity.data
+
+        # Create node properties with all data
+        properties = {
+            "type": entity_type.lower(),
+            "sketch_id": sketch_id,
+            "label": label,
+            "caption": label,
+            **entity_data,  # Include all row data (edited or original) as properties
+        }
+
+        # Flatten nested dicts if any
+        flattened_props = flatten(properties)
+
+        # Create node in Neo4j
+        create_query = f"""
+            MERGE (n:`{entity_type}` {{sketch_id: $sketch_id, label: $label}})
+            ON CREATE SET n += $props
+            RETURN elementId(n) as id
+        """
+
+        try:
+            neo4j_connection.query(
+                create_query,
+                {"sketch_id": sketch_id, "label": label, "props": flattened_props}
+            )
+            nodes_created += 1
+        except Exception as e:
+            error_msg = f"Row {entity.row_index + 1}: {str(e)}"
+            errors.append(error_msg)
+            nodes_skipped += 1
+
+    return ImportExecuteResponse(
+        status="completed" if not errors else "completed_with_errors",
+        nodes_created=nodes_created,
+        nodes_skipped=nodes_skipped,
+        errors=errors[:50],  # Limit to first 50 errors
+    )

@@ -116,7 +116,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
 
         {/* Optional beta banner */}
         <div className="px-6 shrink-0">
-          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div className="mt-3 rounded-md border border-primary bg-primary/20 px-3 py-2 text-xs text-primary">
             This import feature is in beta. There may be minor side effects. If you see any issue, please{" "}
             <a
               className="text-primary underline font-semibold"

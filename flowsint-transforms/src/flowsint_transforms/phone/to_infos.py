@@ -28,15 +28,15 @@ class IgnorantTransform(Transform):
     def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
         cleaned: InputType = []
         for number in data:
-            email_obj = None
+            phone_obj = None
             if isinstance(number, str):
-                email_obj = Phone(number=number)
+                phone_obj = Phone(number=number)
             elif isinstance(number, dict) and "number" in number:
-                email_obj = Phone(number=number["number"])
+                phone_obj = Phone(number=number["number"])
             elif isinstance(number, Phone):
-                email_obj = number
-            if email_obj:
-                cleaned.append(email_obj)
+                phone_obj = number
+            if phone_obj:
+                cleaned.append(phone_obj)
         return cleaned
 
     async def scan(self, data: InputType) -> OutputType:

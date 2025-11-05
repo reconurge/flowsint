@@ -334,108 +334,108 @@ export function ImportPreview({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="border rounded-lg">
-        <div className="overflow-auto" style={{ maxHeight: '500px' }}>
-          <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
-            <thead className="bg-muted top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup: any) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header: any, index: number) => {
-                    return (
-                      <th
-                        key={header.id}
-                        className={`px-3 py-2 text-left text-xs font-medium border-b border-r`}
-                        style={{
-                          width: `${header.getSize()}px`,
-                          minWidth: `${header.getSize()}px`,
-                          maxWidth: `${header.getSize()}px`,
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    )
-                  })}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row: any) => (
-                <tr
-                  key={row.id}
-                  className={`border-b ${!row.original.mapping.include ? 'opacity-50' : ''}`}
+    <div className="flex flex-col h-full overflow-hidden">
+  {/* Scrollable area */}
+  <div className="flex flex-col flex-grow overflow-hidden">
+    {/* Table wrapper */}
+    <div className="flex-grow overflow-auto border rounded-lg">
+      <table
+        className="w-full"
+        style={{ borderCollapse: 'separate', borderSpacing: 0 }}
+      >
+        <thead className="bg-muted sticky top-0 z-10">
+          {table.getHeaderGroups().map((headerGroup: any) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header: any) => (
+                <th
+                  key={header.id}
+                  className="px-3 py-2 text-left text-xs font-medium border-b border-r bg-muted"
+                  style={{
+                    width: `${header.getSize()}px`,
+                    minWidth: `${header.getSize()}px`,
+                    maxWidth: `${header.getSize()}px`,
+                    boxSizing: 'border-box',
+                  }}
                 >
-                  {row.getVisibleCells().map((cell: any, index: number) => {
-                    return (
-                      <td
-                        key={cell.id}
-                        className={`px-3 py-2 border-r`}
-                        style={{
-                          width: `${cell.column.getSize()}px`,
-                          minWidth: `${cell.column.getSize()}px`,
-                          maxWidth: `${cell.column.getSize()}px`,
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    )
-                  })}
-                </tr>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t">
-          <div className="text-sm text-muted-foreground">
-            Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-              table.getFilteredRowModel().rows.length
-            )}{' '}
-            of {table.getFilteredRowModel().rows.length} entities
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row: any) => (
+            <tr
+              key={row.id}
+              className={`border-b ${!row.original.mapping.include ? 'opacity-50' : ''}`}
             >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <span className="text-sm">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} disabled={isImporting}>
-          Cancel
-        </Button>
-        <Button onClick={handleImport} disabled={isImporting}>
-          {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} Entities`}
-        </Button>
-      </div>
+              {row.getVisibleCells().map((cell: any) => (
+                <td
+                  key={cell.id}
+                  className="px-3 py-2 border-r"
+                  style={{
+                    width: `${cell.column.getSize()}px`,
+                    minWidth: `${cell.column.getSize()}px`,
+                    maxWidth: `${cell.column.getSize()}px`,
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+  </div>
+
+  {/* Fixed footer: Pagination */}
+  <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-background">
+    <div className="text-sm text-muted-foreground">
+      Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+      {Math.min(
+        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+        table.getFilteredRowModel().rows.length
+      )}{' '}
+      of {table.getFilteredRowModel().rows.length} entities
+    </div>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => table.previousPage()}
+        disabled={!table.getCanPreviousPage()}
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Previous
+      </Button>
+      <span className="text-sm">
+        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => table.nextPage()}
+        disabled={!table.getCanNextPage()}
+      >
+        Next
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+
+  {/* Fixed footer: Actions */}
+  <div className="flex justify-end gap-2 px-4 py-3 border-t shrink-0 bg-background">
+    <Button variant="outline" onClick={onCancel} disabled={isImporting}>
+      Cancel
+    </Button>
+    <Button onClick={handleImport} disabled={isImporting}>
+      {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} Entities`}
+    </Button>
+  </div>
+</div>
+
   )
 }

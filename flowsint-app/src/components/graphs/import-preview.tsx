@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -9,7 +9,6 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { CheckCircle2, XCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { sketchService } from '@/api/sketch-service'
@@ -54,11 +53,102 @@ interface ImportPreviewProps {
   onCancel: () => void
 }
 
-// Removed fixed ENTITY_TYPES; now derived from useActionItems()
-
 type TableRow = EntityPreview & {
   mapping: EntityMapping
 }
+
+// Memoized cell components to prevent unnecessary re-renders
+const IncludeCell = memo(({ 
+  checked, 
+  rowIndex, 
+  onChange 
+}: { 
+  checked: boolean
+  rowIndex: number
+  onChange: (rowIndex: number, include: boolean) => void 
+}) => (
+  <Checkbox
+    checked={checked}
+    onCheckedChange={(checked) => onChange(rowIndex, checked as boolean)}
+  />
+))
+IncludeCell.displayName = 'IncludeCell'
+
+const EntityTypeCell = memo(({ 
+  value, 
+  rowIndex, 
+  onChange, 
+  disabled, 
+  entityTypes 
+}: { 
+  value: string
+  rowIndex: number
+  onChange: (rowIndex: number, entityType: string) => void
+  disabled: boolean
+  entityTypes: string[]
+}) => (
+  <Select
+    value={value}
+    onValueChange={(value) => onChange(rowIndex, value)}
+    disabled={disabled}
+  >
+    <SelectTrigger className="h-8 w-full text-xs">
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      {entityTypes.map((type) => (
+        <SelectItem key={type} value={type}>
+          {type}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+))
+EntityTypeCell.displayName = 'EntityTypeCell'
+
+const LabelCell = memo(({ 
+  value, 
+  rowIndex, 
+  onChange, 
+  disabled 
+}: { 
+  value: string
+  rowIndex: number
+  onChange: (rowIndex: number, label: string) => void
+  disabled: boolean
+}) => (
+  <Input
+    className="h-8 w-full text-xs"
+    value={value}
+    onChange={(e) => onChange(rowIndex, e.target.value)}
+    disabled={disabled}
+    placeholder="Enter label..."
+  />
+))
+LabelCell.displayName = 'LabelCell'
+
+const DataCell = memo(({ 
+  value, 
+  rowIndex, 
+  dataKey, 
+  onChange, 
+  disabled 
+}: { 
+  value: string
+  rowIndex: number
+  dataKey: string
+  onChange: (rowIndex: number, key: string, value: string) => void
+  disabled: boolean
+}) => (
+  <Input
+    className="h-8 w-full text-xs"
+    value={value || ''}
+    onChange={(e) => onChange(rowIndex, dataKey, e.target.value)}
+    disabled={disabled}
+    placeholder="-"
+  />
+))
+DataCell.displayName = 'DataCell'
 
 export function ImportPreview({
   analysisResult,
@@ -69,8 +159,8 @@ export function ImportPreview({
 }: ImportPreviewProps) {
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
+  
   const [entityMappings, setEntityMappings] = useState<EntityMapping[]>(() => {
-    // Initialize entity mappings from detected entities
     return analysisResult.entities.map((entity) => ({
       row_index: entity.row_index,
       entity_type: entity.detected_type,
@@ -80,7 +170,6 @@ export function ImportPreview({
     }))
   })
 
-  // Get all unique column keys across all entities
   const allDataKeys = useMemo(() => {
     const keysSet = new Set<string>()
     analysisResult.entities.forEach(entity => {
@@ -97,15 +186,16 @@ export function ImportPreview({
     errors: string[]
   } | null>(null)
 
-  const handleIncludeChange = (rowIndex: number, include: boolean) => {
+  // Memoized callbacks to prevent recreation on every render
+  const handleIncludeChange = useCallback((rowIndex: number, include: boolean) => {
     setEntityMappings((prev) =>
       prev.map((mapping) =>
         mapping.row_index === rowIndex ? { ...mapping, include } : mapping
       )
     )
-  }
+  }, [])
 
-  const handleTypeChange = (rowIndex: number, entityType: string) => {
+  const handleTypeChange = useCallback((rowIndex: number, entityType: string) => {
     setEntityMappings((prev) =>
       prev.map((mapping) =>
         mapping.row_index === rowIndex
@@ -113,17 +203,17 @@ export function ImportPreview({
           : mapping
       )
     )
-  }
+  }, [])
 
-  const handleLabelChange = (rowIndex: number, label: string) => {
+  const handleLabelChange = useCallback((rowIndex: number, label: string) => {
     setEntityMappings((prev) =>
       prev.map((mapping) =>
         mapping.row_index === rowIndex ? { ...mapping, label } : mapping
       )
     )
-  }
+  }, [])
 
-  const handleDataChange = (rowIndex: number, key: string, value: string) => {
+  const handleDataChange = useCallback((rowIndex: number, key: string, value: string) => {
     setEntityMappings((prev) =>
       prev.map((mapping) =>
         mapping.row_index === rowIndex
@@ -131,7 +221,7 @@ export function ImportPreview({
           : mapping
       )
     )
-  }
+  }, [])
 
   const handleImport = async () => {
     setIsImporting(true)
@@ -157,8 +247,6 @@ export function ImportPreview({
     }
   }
 
-
-  // Build entity types list from action items (flatten parent/children)
   const entityTypes = useMemo<string[]>(() => {
     if (!actionItems) return []
     const keys: string[] = []
@@ -171,11 +259,9 @@ export function ImportPreview({
         keys.push(item.label)
       }
     }
-    // De-duplicate while preserving order
     return Array.from(new Set(keys))
   }, [actionItems])
 
-  // Prepare table data
   const tableData: TableRow[] = useMemo(() => {
     return analysisResult.entities.map((entity) => ({
       ...entity,
@@ -183,7 +269,7 @@ export function ImportPreview({
     }))
   }, [analysisResult.entities, entityMappings])
 
-  // Define columns
+  // Define columns ONCE with stable references
   const columns = useMemo(() => {
     const columnHelper: any = createColumnHelper() as any
 
@@ -193,11 +279,10 @@ export function ImportPreview({
         header: 'Include',
         size: 60,
         cell: ({ row }: { row: any }) => (
-          <Checkbox
+          <IncludeCell
             checked={row.original.mapping.include}
-            onCheckedChange={(checked) =>
-              handleIncludeChange(row.original.row_index, checked as boolean)
-            }
+            rowIndex={row.original.row_index}
+            onChange={handleIncludeChange}
           />
         ),
       }),
@@ -206,24 +291,13 @@ export function ImportPreview({
         header: 'Entity Type',
         size: 160,
         cell: ({ row }: { row: any }) => (
-          <Select
+          <EntityTypeCell
             value={row.original.mapping.entity_type}
-            onValueChange={(value) =>
-              handleTypeChange(row.original.row_index, value)
-            }
+            rowIndex={row.original.row_index}
+            onChange={handleTypeChange}
             disabled={!row.original.mapping.include || isLoadingActionItems}
-          >
-            <SelectTrigger className="h-8 w-full text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {entityTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            entityTypes={entityTypes}
+          />
         ),
       }),
       columnHelper.display({
@@ -231,43 +305,44 @@ export function ImportPreview({
         header: 'Label *',
         size: 200,
         cell: ({ row }: { row: any }) => (
-          <Input
-            className="h-8 w-full text-xs"
+          <LabelCell
             value={row.original.mapping.label}
-            onChange={(e) =>
-              handleLabelChange(row.original.row_index, e.target.value)
-            }
+            rowIndex={row.original.row_index}
+            onChange={handleLabelChange}
             disabled={!row.original.mapping.include}
-            placeholder="Enter label..."
           />
         ),
       }),
     ]
 
-    // Add dynamic data columns
     const dataColumns = allDataKeys.map((key) =>
       columnHelper.display({
         id: `data_${key}`,
         header: key,
         size: 200,
         cell: ({ row }: { row: any }) => (
-          <Input
-            className="h-8 w-full text-xs"
-            value={row.original.mapping.data[key] || ''}
-            onChange={(e) =>
-              handleDataChange(row.original.row_index, key, e.target.value)
-            }
+          <DataCell
+            value={row.original.mapping.data[key]}
+            rowIndex={row.original.row_index}
+            dataKey={key}
+            onChange={handleDataChange}
             disabled={!row.original.mapping.include}
-            placeholder="-"
           />
         ),
       })
     )
 
     return [...baseColumns, ...dataColumns]
-  }, [allDataKeys, entityMappings])
+  }, [
+    allDataKeys, 
+    entityTypes, 
+    isLoadingActionItems,
+    handleIncludeChange,
+    handleTypeChange,
+    handleLabelChange,
+    handleDataChange
+  ])
 
-  // Create table instance
   const table = useReactTable({
     data: tableData,
     columns,
@@ -335,107 +410,102 @@ export function ImportPreview({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-  {/* Scrollable area */}
-  <div className="flex flex-col flex-grow overflow-hidden">
-    {/* Table wrapper */}
-    <div className="flex-grow overflow-auto border rounded-lg">
-      <table
-        className="w-full"
-        style={{ borderCollapse: 'separate', borderSpacing: 0 }}
-      >
-        <thead className="bg-muted sticky top-0 z-10">
-          {table.getHeaderGroups().map((headerGroup: any) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header: any) => (
-                <th
-                  key={header.id}
-                  className="px-3 py-2 text-left text-xs font-medium border-b border-r bg-muted"
-                  style={{
-                    width: `${header.getSize()}px`,
-                    minWidth: `${header.getSize()}px`,
-                    maxWidth: `${header.getSize()}px`,
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
+      <div className="flex flex-col flex-grow overflow-hidden">
+        <div className="flex-grow overflow-auto border rounded-lg">
+          <table
+            className="w-full"
+            style={{ borderCollapse: 'separate', borderSpacing: 0 }}
+          >
+            <thead className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup: any) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header: any) => (
+                    <th
+                      key={header.id}
+                      className="px-3 py-2 text-left text-xs font-medium border-b border-r bg-muted"
+                      style={{
+                        width: `${header.getSize()}px`,
+                        minWidth: `${header.getSize()}px`,
+                        maxWidth: `${header.getSize()}px`,
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row: any) => (
-            <tr
-              key={row.id}
-              className={`border-b ${!row.original.mapping.include ? 'opacity-50' : ''}`}
-            >
-              {row.getVisibleCells().map((cell: any) => (
-                <td
-                  key={cell.id}
-                  className="px-3 py-2 border-r"
-                  style={{
-                    width: `${cell.column.getSize()}px`,
-                    minWidth: `${cell.column.getSize()}px`,
-                    maxWidth: `${cell.column.getSize()}px`,
-                    boxSizing: 'border-box',
-                  }}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row: any) => (
+                <tr
+                  key={row.id}
+                  className={`border-b ${!row.original.mapping.include ? 'opacity-50' : ''}`}
                 >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+                  {row.getVisibleCells().map((cell: any) => (
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2 border-r"
+                      style={{
+                        width: `${cell.column.getSize()}px`,
+                        minWidth: `${cell.column.getSize()}px`,
+                        maxWidth: `${cell.column.getSize()}px`,
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-  {/* Fixed footer: Pagination */}
-  <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-background">
-    <div className="text-sm text-muted-foreground">
-      Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
-      {Math.min(
-        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-        table.getFilteredRowModel().rows.length
-      )}{' '}
-      of {table.getFilteredRowModel().rows.length} entities
-    </div>
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => table.previousPage()}
-        disabled={!table.getCanPreviousPage()}
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Previous
-      </Button>
-      <span className="text-sm">
-        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-      </span>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => table.nextPage()}
-        disabled={!table.getCanNextPage()}
-      >
-        Next
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </div>
-  </div>
+      <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-background">
+        <div className="text-sm text-muted-foreground">
+          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+          {Math.min(
+            (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+            table.getFilteredRowModel().rows.length
+          )}{' '}
+          of {table.getFilteredRowModel().rows.length} entities
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <span className="text-sm">
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
-  {/* Fixed footer: Actions */}
-  <div className="flex justify-end gap-2 px-4 py-3 border-t shrink-0 bg-background">
-    <Button variant="outline" onClick={onCancel} disabled={isImporting}>
-      Cancel
-    </Button>
-    <Button onClick={handleImport} disabled={isImporting}>
-      {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} Entities`}
-    </Button>
-  </div>
-</div>
-
+      <div className="flex justify-end gap-2 px-4 py-3 border-t shrink-0 bg-background">
+        <Button variant="outline" onClick={onCancel} disabled={isImporting}>
+          Cancel
+        </Button>
+        <Button onClick={handleImport} disabled={isImporting}>
+          {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} Entities`}
+        </Button>
+      </div>
+    </div>
   )
 }

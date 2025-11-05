@@ -28,6 +28,7 @@ python-multipart = "^0.0.20"
 docker = "^7.1.0"
 pytest = "^8.4.2"
 cryptography = "^45.0.7"
+openpyxl = "^3.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.21"

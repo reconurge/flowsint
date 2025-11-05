@@ -72,5 +72,28 @@ export const sketchService = {
       method: 'PUT',
       body: body
     })
+  },
+  analyzeImportFile: async (sketchId: string, file: File): Promise<any> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return fetchWithAuth(`/api/sketches/${sketchId}/import/analyze`, {
+      method: 'POST',
+      body: formData
+    })
+  },
+  executeImport: async (
+    sketchId: string,
+    file: File,
+    entityMappings: Array<{ row_index: number; entity_type: string; include: boolean; label?: string }>,
+  ): Promise<any> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('entity_mappings_json', JSON.stringify(entityMappings))
+
+    return fetchWithAuth(`/api/sketches/${sketchId}/import/execute`, {
+      method: 'POST',
+      body: formData
+    })
   }
 }

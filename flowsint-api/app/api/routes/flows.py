@@ -10,8 +10,9 @@ from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Emai
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Flow, Profile
+from flowsint_core.core.models import Flow, Profile, CustomType
 from app.api.deps import get_current_user
+from sqlalchemy import func
 from app.api.schemas.flow import FlowRead, FlowCreate, FlowUpdate
 from flowsint_types import (
     ASN,
@@ -48,25 +49,40 @@ class launchFlowPayload(BaseModel):
 router = APIRouter()
 
 
-# Get the list of all flows
 @router.get("/", response_model=List[FlowRead])
 def get_flows(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    query = db.query(Flow)
+    if not category or category.lower() == "undefined":
+        return db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
 
-    if category is not None and category != "undefined":
-        # Case-insensitive filtering by checking if any category matches (case-insensitive)
-        flows = query.all()
+    custom_type = (
+        db.query(CustomType)
+        .filter(
+            CustomType.owner_id == current_user.id,
+            CustomType.status == "published",
+            func.lower(CustomType.name) == category.lower(),
+        )
+        .first()
+    )
+    if custom_type:
+        flows = db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
         return [
-            flow
+            {
+                **(flow.to_dict() if hasattr(flow, "to_dict") else flow.__dict__),
+                "wobblyType": True,
+            }
             for flow in flows
-            if any(cat.lower() == category.lower() for cat in flow.category)
         ]
-
-    return query.order_by(Flow.last_updated_at.desc()).all()
+        
+    flows = db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
+    return [
+        flow
+        for flow in flows
+        if any(cat.lower() == category.lower() for cat in flow.category)
+    ]
 
 
 # Returns the "raw_materials" for the flow editor

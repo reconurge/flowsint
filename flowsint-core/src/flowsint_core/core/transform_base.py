@@ -161,11 +161,8 @@ class Transform(ABC):
                     if secret is not None:
                         resolved[param_name] = secret
                     elif param.get("required", False):
-                        Logger.error(
-                            self.sketch_id,
-                            {
-                                "message": f"Required vault secret '{param_name}' is missing. Please go to the Vault settings and create a '{param_name}' key."
-                            },
+                        raise Exception(
+                            f"Required vault secret '{param_name}' is missing. Please go to the Vault settings and create a '{param_name}' key."
                         )
 
                 # If no vault or no secret found, use default if available
@@ -350,7 +347,9 @@ class Transform(ABC):
 
     async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         if self.name() != "transform_orchestrator":
-            Logger.info(self.sketch_id, {"message": f"Transform {self.name()} started."})
+            Logger.info(
+                self.sketch_id, {"message": f"Transform {self.name()} started."}
+            )
         try:
             await self.async_init()
             preprocessed = self.preprocess(values)

@@ -1,5 +1,5 @@
 import inspect
-from typing import Dict, Optional, Type, List
+from typing import Dict, Optional, Type, List, Any
 from flowsint_core.core.transform_base import Transform
 
 # Domain-related transforms
@@ -72,7 +72,9 @@ class TransformRegistry:
         return name in cls._transforms
 
     @classmethod
-    def get_transform(cls, name: str, sketch_id: str, scan_id: str, **kwargs) -> Transform:
+    def get_transform(
+        cls, name: str, sketch_id: str, scan_id: str, **kwargs
+    ) -> Transform:
         if name not in cls._transforms:
             raise Exception(f"Transform '{name}' not found")
         return cls._transforms[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
@@ -96,12 +98,19 @@ class TransformRegistry:
         }
 
     @classmethod
-    def list(cls, exclude: Optional[List[str]] = []) -> Dict[str, Dict[str, str]]:
-        return {
-            name: cls._create_transform_metadata(transform)
-            for name, transform in cls._transforms.items()
-            if name not in exclude
-        }
+    def list(
+        cls, exclude: Optional[List[str]] = None, wobbly_type: Optional[bool] = False
+    ) -> List[Dict[str, Any]]:
+        if exclude is None:
+            exclude = []
+        return [
+            {
+                **cls._create_transform_metadata(transform),
+                "wobblyType": wobbly_type,
+            }
+            for transform in cls._transforms.values()
+            if transform.name() not in exclude
+        ]
 
     @classmethod
     def list_by_categories(cls) -> Dict[str, List[Dict[str, str]]]:
@@ -110,7 +119,9 @@ class TransformRegistry:
             category = transform.category()
             if category not in transforms_by_category:
                 transforms_by_category[category] = []
-            transforms_by_category[category].append(cls._create_transform_metadata(transform))
+            transforms_by_category[category].append(
+                cls._create_transform_metadata(transform)
+            )
         return transforms_by_category
 
     @classmethod

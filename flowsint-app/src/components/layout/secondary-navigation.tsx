@@ -47,7 +47,7 @@ const SecondaryNavigation = memo(() => {
       </div>
     )
   }
-  return <div>secondary-navigation</div>
+  return null
 })
 
 export default SecondaryNavigation

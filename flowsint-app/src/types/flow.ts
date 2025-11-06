@@ -12,6 +12,7 @@ export interface Flow {
   category: string
   created_at: string
   last_updated_at: string
+  wobblyType?: boolean
 }
 
 // ================================

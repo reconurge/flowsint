@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, flattenObj } from '@/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -17,6 +17,7 @@ import { useIcon } from '@/hooks/use-icon'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useActionItems } from '@/hooks/use-action-items'
 import { GraphNode } from '@/types'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 
 export default function AddItemDialog() {
   const handleOpenFormModal = useGraphStore((state) => state.handleOpenFormModal)
@@ -32,6 +33,7 @@ export default function AddItemDialog() {
   const addEdge = useGraphStore((state) => state.addEdge)
   const replaceNodeId = useGraphStore((state) => state.replaceNodeId)
   const setActiveTab = useLayoutStore((state) => state.setActiveTab)
+  const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
 
@@ -53,6 +55,11 @@ export default function AddItemDialog() {
     },
     [setOpenMainDialog, setRelatedNodeToAdd]
   )
+
+  const handleImportData = useCallback(() => {
+    setOpenMainDialog(false)
+    setImportModalOpen(true)
+  }, [setOpenMainDialog, setImportModalOpen])
 
   const handleAddNode = async (data: any) => {
     if (!currentNodeType || !sketch_id) {
@@ -201,29 +208,41 @@ export default function AddItemDialog() {
     <>
       <Dialog open={openMainDialog} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-[800px] h-[80vh] overflow-hidden flex flex-col">
-          <DialogTitle className="flex items-center">
-            {currentParent && (
-              <Button variant="ghost" size="icon" className="mr-2" onClick={navigateBack}>
-                <ArrowLeft className="h-4 w-4" />
+          <DialogTitle className="flex items justify-between">
+            <div className="flex items-center">
+              {currentParent && (
+                <Button variant="ghost" size="icon" className="mr-2" onClick={navigateBack}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              {relatedNodeToAdd
+                ? `Add a relation to `
+                : currentParent
+                  ? currentParent.label
+                  : 'Select an item to insert'}
+              {relatedNodeToAdd && (
+                <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
+                  {relatedNodeToAdd.data.label}
+                </span>
+              )}
+            </div>
+            <div className='pt-6'>
+              <Button
+                size="sm"
+                onClick={handleImportData}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Import
               </Button>
-            )}
-            {relatedNodeToAdd
-              ? `Add a relation to `
-              : currentParent
-                ? currentParent.label
-                : 'Select an item to insert'}
-            {relatedNodeToAdd && (
-              <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
-                {relatedNodeToAdd.data.label}
-              </span>
-            )}
+            </div>
           </DialogTitle>
           <DialogDescription>
             {relatedNodeToAdd
               ? 'Choose what type of relation to add to this node.'
               : currentParent
                 ? `Select a type of ${currentParent.label.toLowerCase()} to add`
-                : 'Choose an item to insert to the graph.'}
+                : 'Choose an item to insert manually, or import data from a file.'}
           </DialogDescription>
 
           <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow @container">

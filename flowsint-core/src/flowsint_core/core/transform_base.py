@@ -5,7 +5,9 @@ from pydantic.config import ConfigDict
 from .graph_db import Neo4jConnection
 from .logger import Logger
 from .vault import VaultProtocol
+from .graph_service import GraphService, create_graph_service
 from ..utils import resolve_type
+import warnings
 
 
 class InvalidTransformParams(Exception):
@@ -112,14 +114,27 @@ class Transform(ABC):
         params_schema: Optional[List[Dict[str, Any]]] = None,
         vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
+        graph_service: Optional[GraphService] = None,
     ):
         self.scan_id = scan_id or "default"
         self.sketch_id = sketch_id or "system"
-        self.neo4j_conn = neo4j_conn
+        self.neo4j_conn = neo4j_conn  # Kept for backward compatibility
         self.vault = vault
         self.params_schema = params_schema or []
         self.ParamsModel = build_params_model(self.params_schema)
         self.params: Dict[str, Any] = params or {}
+
+        # Initialize graph service (new architecture)
+        if graph_service:
+            self._graph_service = graph_service
+        else:
+            # Create graph service with the provided or singleton connection
+            self._graph_service = create_graph_service(
+                sketch_id=self.sketch_id,
+                neo4j_connection=neo4j_conn,
+                enable_batching=True
+            )
+
         # Params is filled synchronously by the constructor. This params is generally constructed of
         # vaultSecret references, not the key directly. The idea is that the real key values are resolved after calling
         # async_init(), right before the execution.
@@ -356,6 +371,9 @@ class Transform(ABC):
             results = await self.scan(preprocessed)
             processed = self.postprocess(results, preprocessed)
 
+            # Flush any pending batch operations
+            self._graph_service.flush()
+
             if self.name() != "transform_orchestrator":
                 Logger.completed(
                     self.sketch_id, {"message": f"Transform {self.name()} finished."}
@@ -374,90 +392,40 @@ class Transform(ABC):
     def create_node(
         self, node_type: str, key_prop: str, key_value: str, **properties
     ) -> None:
-        """Simple helper to create a single Neo4j node."""
-        if not self.neo4j_conn:
-            return
-
-        # Serialize properties to handle nested Pydantic objects
-        serialized_properties = self._serialize_properties(properties)
-
-        # Ensure all values are Neo4j-compatible primitive types
-        final_properties = {}
-        for key, value in serialized_properties.items():
-            if value is None:
-                final_properties[key] = ""
-            elif isinstance(value, (str, int, float, bool)):
-                final_properties[key] = "" if value == "None" else value
-            else:
-                # Convert any remaining complex types to strings
-                final_properties[key] = str(value)
-
-        final_properties["type"] = node_type.lower()
-        final_properties["sketch_id"] = self.sketch_id
-        final_properties["label"] = final_properties.get("label", key_value)
-
-        set_clauses = [f"n.{prop} = ${prop}" for prop in final_properties.keys()]
-        params = {key_prop: key_value, **final_properties}
-
-        query = f"""
-        MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
-        SET {', '.join(set_clauses)}
         """
-        self.neo4j_conn.query(query, params)
+        Create a single Neo4j node.
+
+        This method now uses the GraphService for improved performance and
+        better separation of concerns.
+
+        Args:
+            node_type: Node label (e.g., "domain", "ip")
+            key_prop: Property name used as unique identifier
+            key_value: Value of the key property
+            **properties: Additional node properties
+        """
+        self._graph_service.create_node(
+            node_type=node_type,
+            key_prop=key_prop,
+            key_value=key_value,
+            **properties
+        )
 
     def _serialize_properties(self, properties: dict) -> dict:
-        """Convert properties to Neo4j-compatible values, handling nested Pydantic objects."""
-        serialized = {}
+        """
+        Convert properties to Neo4j-compatible values.
 
-        for key, value in properties.items():
+        DEPRECATED: This method is kept for backward compatibility.
+        New code should use GraphSerializer directly.
 
-            if hasattr(value, "__dict__") and not isinstance(
-                value, (str, int, float, bool)
-            ):
-                # Handle Pydantic objects and other complex objects
-                if hasattr(value, "model_dump"):  # Pydantic v2
-                    # Flatten the Pydantic object into individual properties
-                    flattened = value.model_dump()
-                    for nested_key, nested_value in flattened.items():
-                        if nested_value is not None:
-                            serialized[f"{key}_{nested_key}"] = nested_value
-                elif hasattr(value, "dict"):  # Pydantic v1
-                    # Flatten the Pydantic object into individual properties
-                    flattened = value.dict()
-                    for nested_key, nested_value in flattened.items():
-                        if nested_value is not None:
-                            serialized[f"{key}_{nested_key}"] = nested_value
-                else:
-                    # For other objects, try to convert to dict or string
-                    try:
-                        flattened = value.__dict__
-                        for nested_key, nested_value in flattened.items():
-                            if nested_value is not None:
-                                serialized[f"{key}_{nested_key}"] = nested_value
-                    except:
-                        serialized[key] = str(value)
-            elif isinstance(value, list):
-                # Handle lists - convert all items to primitive types
-                serialized_list = []
-                for item in value:
-                    if hasattr(item, "__dict__") and not isinstance(
-                        item, (str, int, float, bool)
-                    ):
-                        # Convert complex objects to strings
-                        serialized_list.append(str(item))
-                    else:
-                        serialized_list.append(item)
-                serialized[key] = serialized_list
-            elif isinstance(value, dict):
-                # Handle dictionaries - flatten them
-                for dict_key, dict_value in value.items():
-                    if dict_value is not None:
-                        serialized[f"{key}_{dict_key}"] = dict_value
-            else:
-                # Keep primitive types as-is
-                serialized[key] = value
+        Args:
+            properties: Dictionary of properties to serialize
 
-        return serialized
+        Returns:
+            Dictionary of serialized properties
+        """
+        from .graph_serializer import GraphSerializer
+        return GraphSerializer.serialize_properties(properties)
 
     def create_relationship(
         self,
@@ -469,25 +437,46 @@ class Transform(ABC):
         to_value: str,
         rel_type: str,
     ) -> None:
-        """Simple helper to create a relationship between two nodes."""
-        if not self.neo4j_conn:
-            return
-
-        query = f"""
-        MATCH (from:{from_type} {{{from_key}: $from_value}})
-        MATCH (to:{to_type} {{{to_key}: $to_value}})
-        MERGE (from)-[:{rel_type} {{sketch_id: $sketch_id}}]->(to)
         """
+        Create a relationship between two nodes.
 
-        self.neo4j_conn.query(
-            query,
-            {
-                "from_value": from_value,
-                "to_value": to_value,
-                "sketch_id": self.sketch_id,
-            },
+        This method now uses the GraphService for improved performance and
+        better separation of concerns.
+
+        Args:
+            from_type: Source node label
+            from_key: Source node key property
+            from_value: Source node key value
+            to_type: Target node label
+            to_key: Target node key property
+            to_value: Target node key value
+            rel_type: Relationship type
+        """
+        self._graph_service.create_relationship(
+            from_type=from_type,
+            from_key=from_key,
+            from_value=from_value,
+            to_type=to_type,
+            to_key=to_key,
+            to_value=to_value,
+            rel_type=rel_type
         )
 
     def log_graph_message(self, message: str) -> None:
-        """Simple helper to log a graph message."""
-        Logger.graph_append(self.sketch_id, {"message": message})
+        """
+        Log a graph operation message.
+
+        Args:
+            message: Message to log
+        """
+        self._graph_service.log_graph_message(message)
+
+    @property
+    def graph_service(self) -> GraphService:
+        """
+        Get the graph service instance.
+
+        Returns:
+            GraphService instance for advanced operations
+        """
+        return self._graph_service

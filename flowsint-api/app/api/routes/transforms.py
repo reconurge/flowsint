@@ -4,8 +4,11 @@ from pydantic import BaseModel
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
 from flowsint_core.core.types import Node, Edge, FlowBranch
-from flowsint_core.core.models import Profile
+from flowsint_core.core.models import CustomType, Profile
 from app.api.deps import get_current_user
+from flowsint_core.core.postgre_db import get_db
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 
 class FlowComputationRequest(BaseModel):
@@ -36,15 +39,26 @@ router = APIRouter()
 @router.get("/")
 def get_transforms(
     category: Optional[str] = Query(None),
-    # current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
 ):
-    if category is not None and category != "undefined":
-        transforms = TransformRegistry.list_by_input_type(
-            category, exclude=["n8n_connector"]
+    if not category or category.lower() == "undefined":
+        return TransformRegistry.list(exclude=["n8n_connector"])
+    # Si catégorie custom
+    custom_type = (
+        db.query(CustomType)
+        .filter(
+            CustomType.owner_id == current_user.id,
+            CustomType.status == "published",
+            func.lower(CustomType.name) == category.lower(),
         )
-    else:
-        transforms = TransformRegistry.list(exclude=["n8n_connector"])
-    return transforms
+        .first()
+    )
+
+    if custom_type:
+        return TransformRegistry.list(exclude=["n8n_connector"], wobbly_type=True)
+
+    return TransformRegistry.list_by_input_type(category, exclude=["n8n_connector"])
 
 
 @router.post("/{transform_name}/launch")

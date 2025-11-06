@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { FileCode2, Search, Info, Zap } from 'lucide-react'
+import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert } from 'lucide-react'
 import { Transform, Flow, GraphNode } from '@/types'
 import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchTransform } from '@/hooks/use-launch-transform'
@@ -173,8 +173,8 @@ export default function ContextMenu({
                   >
                     <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {transform.name || '(Unnamed transform)'}
+                      <p className="text-sm font-medium flex gap-1 items-center truncate">
+                        <span>{transform.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {transform.name || '(Unnamed transform)'}
                       </p>
                       {transform.description && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -243,8 +243,8 @@ export default function ContextMenu({
                   >
                     <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {flow.name || '(Unnamed flow)'}
+                      <p className="flex items-center gap-1 text-sm font-medium truncate">
+                        <span>{flow.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {flow.name || '(Unnamed flow)'}
                       </p>
                       {flow.description && (
                         <p className="text-xs text-muted-foreground truncate">{flow.description}</p>

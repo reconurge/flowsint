@@ -23,6 +23,7 @@ export default function CaseSelector() {
   const { data: investigation, isLoading: isLoadingInvestigation } = useQuery({
     queryKey: queryKeys.sketches.dashboard(investigationId as string),
     queryFn: () => investigationService.getById(investigationId as string),
+    enabled: !!investigationId,
     refetchOnWindowFocus: true
   })
 

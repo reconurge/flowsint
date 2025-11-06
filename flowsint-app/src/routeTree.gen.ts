@@ -20,7 +20,9 @@ import { Route as AuthDashboardVaultRouteImport } from './routes/_auth.dashboard
 import { Route as AuthDashboardToolsRouteImport } from './routes/_auth.dashboard.tools'
 import { Route as AuthDashboardInvestigationsIndexRouteImport } from './routes/_auth.dashboard.investigations.index'
 import { Route as AuthDashboardFlowsIndexRouteImport } from './routes/_auth.dashboard.flows.index'
+import { Route as AuthDashboardCustomTypesIndexRouteImport } from './routes/_auth.dashboard.custom-types.index'
 import { Route as AuthDashboardFlowsFlowIdRouteImport } from './routes/_auth.dashboard.flows.$flowId'
+import { Route as AuthDashboardCustomTypesIdRouteImport } from './routes/_auth.dashboard.custom-types.$id'
 import { Route as AuthDashboardInvestigationsInvestigationIdIndexRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.index'
 import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport } from './routes/_auth.dashboard.investigations.$investigationId.$type.$id'
 
@@ -79,10 +81,22 @@ const AuthDashboardFlowsIndexRoute = AuthDashboardFlowsIndexRouteImport.update({
   path: '/flows/',
   getParentRoute: () => AuthDashboardRoute,
 } as any)
+const AuthDashboardCustomTypesIndexRoute =
+  AuthDashboardCustomTypesIndexRouteImport.update({
+    id: '/custom-types/',
+    path: '/custom-types/',
+    getParentRoute: () => AuthDashboardRoute,
+  } as any)
 const AuthDashboardFlowsFlowIdRoute =
   AuthDashboardFlowsFlowIdRouteImport.update({
     id: '/flows/$flowId',
     path: '/flows/$flowId',
+    getParentRoute: () => AuthDashboardRoute,
+  } as any)
+const AuthDashboardCustomTypesIdRoute =
+  AuthDashboardCustomTypesIdRouteImport.update({
+    id: '/custom-types/$id',
+    path: '/custom-types/$id',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
 const AuthDashboardInvestigationsInvestigationIdIndexRoute =
@@ -107,7 +121,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard/vault': typeof AuthDashboardVaultRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
+  '/dashboard/custom-types/$id': typeof AuthDashboardCustomTypesIdRoute
   '/dashboard/flows/$flowId': typeof AuthDashboardFlowsFlowIdRoute
+  '/dashboard/custom-types': typeof AuthDashboardCustomTypesIndexRoute
   '/dashboard/flows': typeof AuthDashboardFlowsIndexRoute
   '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
   '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
@@ -121,7 +137,9 @@ export interface FileRoutesByTo {
   '/dashboard/tools': typeof AuthDashboardToolsRoute
   '/dashboard/vault': typeof AuthDashboardVaultRoute
   '/dashboard': typeof AuthDashboardIndexRoute
+  '/dashboard/custom-types/$id': typeof AuthDashboardCustomTypesIdRoute
   '/dashboard/flows/$flowId': typeof AuthDashboardFlowsFlowIdRoute
+  '/dashboard/custom-types': typeof AuthDashboardCustomTypesIndexRoute
   '/dashboard/flows': typeof AuthDashboardFlowsIndexRoute
   '/dashboard/investigations': typeof AuthDashboardInvestigationsIndexRoute
   '/dashboard/investigations/$investigationId': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
@@ -138,7 +156,9 @@ export interface FileRoutesById {
   '/_auth/dashboard/tools': typeof AuthDashboardToolsRoute
   '/_auth/dashboard/vault': typeof AuthDashboardVaultRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/dashboard/custom-types/$id': typeof AuthDashboardCustomTypesIdRoute
   '/_auth/dashboard/flows/$flowId': typeof AuthDashboardFlowsFlowIdRoute
+  '/_auth/dashboard/custom-types/': typeof AuthDashboardCustomTypesIndexRoute
   '/_auth/dashboard/flows/': typeof AuthDashboardFlowsIndexRoute
   '/_auth/dashboard/investigations/': typeof AuthDashboardInvestigationsIndexRoute
   '/_auth/dashboard/investigations/$investigationId/': typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
@@ -155,7 +175,9 @@ export interface FileRouteTypes {
     | '/dashboard/tools'
     | '/dashboard/vault'
     | '/dashboard/'
+    | '/dashboard/custom-types/$id'
     | '/dashboard/flows/$flowId'
+    | '/dashboard/custom-types'
     | '/dashboard/flows'
     | '/dashboard/investigations'
     | '/dashboard/investigations/$investigationId'
@@ -169,7 +191,9 @@ export interface FileRouteTypes {
     | '/dashboard/tools'
     | '/dashboard/vault'
     | '/dashboard'
+    | '/dashboard/custom-types/$id'
     | '/dashboard/flows/$flowId'
+    | '/dashboard/custom-types'
     | '/dashboard/flows'
     | '/dashboard/investigations'
     | '/dashboard/investigations/$investigationId'
@@ -185,7 +209,9 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/tools'
     | '/_auth/dashboard/vault'
     | '/_auth/dashboard/'
+    | '/_auth/dashboard/custom-types/$id'
     | '/_auth/dashboard/flows/$flowId'
+    | '/_auth/dashboard/custom-types/'
     | '/_auth/dashboard/flows/'
     | '/_auth/dashboard/investigations/'
     | '/_auth/dashboard/investigations/$investigationId/'
@@ -279,11 +305,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardFlowsIndexRouteImport
       parentRoute: typeof AuthDashboardRoute
     }
+    '/_auth/dashboard/custom-types/': {
+      id: '/_auth/dashboard/custom-types/'
+      path: '/custom-types'
+      fullPath: '/dashboard/custom-types'
+      preLoaderRoute: typeof AuthDashboardCustomTypesIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
     '/_auth/dashboard/flows/$flowId': {
       id: '/_auth/dashboard/flows/$flowId'
       path: '/flows/$flowId'
       fullPath: '/dashboard/flows/$flowId'
       preLoaderRoute: typeof AuthDashboardFlowsFlowIdRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/custom-types/$id': {
+      id: '/_auth/dashboard/custom-types/$id'
+      path: '/custom-types/$id'
+      fullPath: '/dashboard/custom-types/$id'
+      preLoaderRoute: typeof AuthDashboardCustomTypesIdRouteImport
       parentRoute: typeof AuthDashboardRoute
     }
     '/_auth/dashboard/investigations/$investigationId/': {
@@ -307,7 +347,9 @@ interface AuthDashboardRouteChildren {
   AuthDashboardToolsRoute: typeof AuthDashboardToolsRoute
   AuthDashboardVaultRoute: typeof AuthDashboardVaultRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+  AuthDashboardCustomTypesIdRoute: typeof AuthDashboardCustomTypesIdRoute
   AuthDashboardFlowsFlowIdRoute: typeof AuthDashboardFlowsFlowIdRoute
+  AuthDashboardCustomTypesIndexRoute: typeof AuthDashboardCustomTypesIndexRoute
   AuthDashboardFlowsIndexRoute: typeof AuthDashboardFlowsIndexRoute
   AuthDashboardInvestigationsIndexRoute: typeof AuthDashboardInvestigationsIndexRoute
   AuthDashboardInvestigationsInvestigationIdIndexRoute: typeof AuthDashboardInvestigationsInvestigationIdIndexRoute
@@ -318,7 +360,9 @@ const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
   AuthDashboardToolsRoute: AuthDashboardToolsRoute,
   AuthDashboardVaultRoute: AuthDashboardVaultRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+  AuthDashboardCustomTypesIdRoute: AuthDashboardCustomTypesIdRoute,
   AuthDashboardFlowsFlowIdRoute: AuthDashboardFlowsFlowIdRoute,
+  AuthDashboardCustomTypesIndexRoute: AuthDashboardCustomTypesIndexRoute,
   AuthDashboardFlowsIndexRoute: AuthDashboardFlowsIndexRoute,
   AuthDashboardInvestigationsIndexRoute: AuthDashboardInvestigationsIndexRoute,
   AuthDashboardInvestigationsInvestigationIdIndexRoute:

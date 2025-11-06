@@ -53,7 +53,7 @@ class DomainToWebsiteTransform(Transform):
                         https_url, timeout=10, allow_redirects=True
                     )
                     if response.status_code < 400:
-                        results.append(Website(url=https_url, domain=domain))
+                        results.append(Website(url=https_url, domain=domain, active=True))
                         continue
                 except requests.RequestException:
                     pass
@@ -63,13 +63,13 @@ class DomainToWebsiteTransform(Transform):
                     http_url = f"http://{domain.domain}"
                     response = requests.head(http_url, timeout=10, allow_redirects=True)
                     if response.status_code < 400:
-                        results.append(Website(url=http_url, domain=domain))
+                        results.append(Website(url=http_url, domain=domain, active=True))
                         continue
                 except requests.RequestException:
                     pass
 
                 # If both fail, still add HTTPS URL as default
-                results.append(Website(url=f"https://{domain.domain}", domain=domain))
+                results.append(Website(url=f"https://{domain.domain}", domain=domain, active=False))
 
             except Exception as e:
                 Logger.error(
@@ -79,7 +79,7 @@ class DomainToWebsiteTransform(Transform):
                     },
                 )
                 # Add HTTPS URL as fallback
-                results.append(Website(url=f"https://{domain.domain}", domain=domain))
+                results.append(Website(url=f"https://{domain.domain}", domain=domain, active=False))
 
         return results
 

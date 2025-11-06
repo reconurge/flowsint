@@ -1,7 +1,11 @@
 from typing import Any, Dict, Optional, Type
 from uuid import uuid4
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, TypeAdapter
+from sqlalchemy.orm import Session
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.models import CustomType, Profile
+from app.api.deps import get_current_user
 from flowsint_types import (
     Domain,
     Ip,
@@ -44,7 +48,10 @@ router = APIRouter()
 
 # Returns the "types" for the sketches
 @router.get("/")
-async def get_types_list():
+async def get_types_list(
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
+):
     types = [
         {
             "id": uuid4(),
@@ -200,6 +207,58 @@ async def get_types_list():
             ],
         },
     ]
+
+    # Add custom types
+    custom_types = (
+        db.query(CustomType)
+        .filter(
+            CustomType.owner_id == current_user.id,
+            CustomType.status == "published"  # Only show published custom types
+        )
+        .all()
+    )
+
+    if custom_types:
+        custom_types_children = []
+        for custom_type in custom_types:
+            # Extract the label_key from the schema (use first required field or first property)
+            schema = custom_type.schema
+            properties = schema.get("properties", {})
+            required = schema.get("required", [])
+
+            # Try to use the first required field, or the first property
+            label_key = required[0] if required else list(properties.keys())[0] if properties else "value"
+
+            custom_types_children.append({
+                "id": custom_type.id,
+                "type": custom_type.name,
+                "key": custom_type.name.lower(),
+                "label_key": label_key,
+                "icon": "custom",
+                "label": custom_type.name,
+                "description": custom_type.description or "",
+                "fields": [
+                    {
+                        "name": prop,
+                        "label": info.get("title", prop),
+                        "description": info.get("description", ""),
+                        "type": "text",
+                        "required": prop in required
+                    }
+                    for prop, info in properties.items()
+                ],
+                "custom": True  # Mark as custom type
+            })
+
+        types.append({
+            "id": uuid4(),
+            "type": "custom_types_category",
+            "key": "custom_types",
+            "icon": "custom",
+            "label": "Custom types",
+            "fields": [],
+            "children": custom_types_children,
+        })
 
     return types
 

@@ -31,6 +31,7 @@ email-validator = "^2.2.0"
 mistralai = "^1.9.3"
 python-multipart = "^0.0.20"
 openpyxl = "^3.1.2"
+jsonschema = "^4.25.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0"

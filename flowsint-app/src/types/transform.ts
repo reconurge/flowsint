@@ -32,6 +32,7 @@ export interface Transform {
   params_schema: TransformParamSchemaItem[]
   settings?: Record<string, string>
   icon: string | null
+  wobblyType?: boolean
 }
 
 // ================================

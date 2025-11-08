@@ -40,7 +40,7 @@ from .website import Website
 from .whois import Whois
 
 __version__ = "0.1.0"
-__author__ = "EliottElek <dexxterrmorgan@proton.me>"
+__author__ = "dextmorgn <dexxterrmorgan@proton.me>"
 
 __all__ = [
     "Location",

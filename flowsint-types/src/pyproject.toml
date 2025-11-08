@@ -2,7 +2,7 @@
 name = "flowsint-types"
 version = "0.1.0"
 description = "Pydantic models for flowsint"
-authors = ["EliottElek <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
 packages = [{ include = "flowsint_types" }]
 
 [tool.poetry.dependencies]

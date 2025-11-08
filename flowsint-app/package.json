@@ -1,6 +1,7 @@
 {
   "name": "flowsint-app",
   "productName": "Flowsint",
+  "license": "AGPL-3.0-or-later",
   "version": "1.0.0",
   "type": "module",
   "description": "Graph analysis and intelligence platform to help you discover hidden relationships and insights.",

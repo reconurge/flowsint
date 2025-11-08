@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "flowsint-transforms"
 version = "0.1.0"
+license = "AGPL-3.0-or-later"
 description = "Transform modules for flowsint"
-authors = ["EliottElek <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
 packages = [{ include = "tools", from = "src" }]
 
 [tool.poetry.dependencies]

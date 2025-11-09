@@ -261,6 +261,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
           class_name: transformData.class_name,
           module: transformData.module || '',
           key: transformData.name,
+          // @ts-ignore
           color: colors[transformData.category.toLowerCase()] || '#94a3b8',
           name: transformData.name,
           category: transformData.category,

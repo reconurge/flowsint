@@ -1,5 +1,5 @@
 from app.security.permissions import check_investigation_permission
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Literal, List, Optional, Dict, Any
 from flowsint_core.utils import flatten
@@ -11,6 +11,7 @@ from flowsint_core.core.graph_db import neo4j_connection
 from flowsint_core.core.postgre_db import get_db
 from app.api.deps import get_current_user
 from flowsint_core.imports import parse_file
+from app.api.sketch_utils import update_sketch_timestamp
 
 router = APIRouter()
 
@@ -223,8 +224,13 @@ async def get_sketch_nodes(
 
 
 @router.post("/{sketch_id}/nodes/add")
+@update_sketch_timestamp
 def add_node(
-    sketch_id: str, node: NodeInput, current_user: Profile = Depends(get_current_user)
+    sketch_id: str,
+    node: NodeInput,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user)
 ):
     node_data = node.data.model_dump()
 
@@ -285,9 +291,12 @@ class RelationInput(BaseModel):
 
 
 @router.post("/{sketch_id}/relations/add")
+@update_sketch_timestamp
 def add_edge(
     sketch_id: str,
     relation: RelationInput,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
 
@@ -320,9 +329,11 @@ def add_edge(
 
 
 @router.put("/{sketch_id}/nodes/edit")
+@update_sketch_timestamp
 def edit_node(
     sketch_id: str,
     node_edit: NodeEditInput,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
@@ -377,9 +388,11 @@ def edit_node(
 
 
 @router.delete("/{sketch_id}/nodes")
+@update_sketch_timestamp
 def delete_nodes(
     sketch_id: str,
     nodes: NodeDeleteInput,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
@@ -408,10 +421,12 @@ def delete_nodes(
 
 
 @router.post("/{sketch_id}/nodes/merge")
+@update_sketch_timestamp
 def merge_nodes(
     sketch_id: str,
     oldNodes: List[str],
     newNode: NodeMergeInput,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
@@ -752,10 +767,12 @@ class ImportExecuteResponse(BaseModel):
 
 
 @router.post("/{sketch_id}/import/execute", response_model=ImportExecuteResponse)
+@update_sketch_timestamp
 async def execute_import(
     sketch_id: str,
     file: UploadFile = File(...),
     entity_mappings_json: str = Form(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):

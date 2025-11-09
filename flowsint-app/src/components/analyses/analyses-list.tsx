@@ -117,7 +117,7 @@ const AnalysisList = () => {
           className="h-7 w-7"
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending}
-          title="Create new analysis"
+          title="Create New analysis"
         >
           <PlusIcon className="h-4 w-4" />
         </Button>

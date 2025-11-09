@@ -12,7 +12,7 @@ The main reusable component that contains all analysis editing logic.
 - `investigationId: string` - The investigation ID
 - `onAnalysisUpdate?: (analysis: Analysis) => void` - Callback when analysis is updated
 - `onAnalysisDelete?: (analysisId: string) => void` - Callback when analysis is deleted
-- `onAnalysisCreate?: (investigationId: string) => void` - Callback when new analysis is created
+- `onAnalysisCreate?: (investigationId: string) => void` - Callback when New analysis is created
 - `onAnalysisSelect?: (analysisId: string) => void` - Callback when analysis is selected from dropdown
 - `showHeader?: boolean` - Whether to show the header (default: true)
 - `showActions?: boolean` - Whether to show action buttons (default: true)
@@ -42,7 +42,7 @@ A panel component that uses `AnalysisEditor` with analysis selection functionali
 - Analysis selector dropdown
 - Integration with analysis panel store
 - Navigation to full-page view
-- All original action buttons (Save, AI Chat, New Analysis, Delete, Open in Page)
+- All original action buttons (Save, AI Chat, New analysis, Delete, Open in Page)
 
 ### `AnalysisPage` (Full Page Component)
 A full-page component that uses `AnalysisEditor` for dedicated analysis editing.
@@ -116,7 +116,7 @@ The `AnalysisEditor` includes all the original action buttons:
 
 - **Save** (💾) - Save the current analysis
 - **AI Chat** (✨) - Open AI prompt panel
-- **New Analysis** (➕) - Create a new analysis
+- **New analysis** (➕) - Create a New analysis
 - **Delete** (🗑️) - Delete the current analysis
 - **Open in Page** (🔗) - Open analysis in full page view
 
@@ -133,7 +133,7 @@ The `AnalysisEditor` includes all the original action buttons:
 
 The existing `AnalysisPanel` has been refactored to use the new `AnalysisEditor` component. All original functionality including:
 - Analysis selector dropdown
-- All action buttons (Save, AI Chat, New Analysis, Delete, Open in Page)
+- All action buttons (Save, AI Chat, New analysis, Delete, Open in Page)
 - Navigation controls
 - AI prompt integration
 - Keyboard shortcuts

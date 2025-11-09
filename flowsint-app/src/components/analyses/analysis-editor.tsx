@@ -243,7 +243,7 @@ export const AnalysisEditor = ({
     }
     if (
       !(await confirm({
-        title: 'Delete Analysis',
+        title: 'Delete analysis',
         message: 'Are you sure you want to delete this analysis?'
       }))
     ) {
@@ -420,7 +420,7 @@ export const AnalysisEditor = ({
                           }}
                         >
                           <ExternalLink className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                          Open in Full Page
+                          Open in full page
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -430,7 +430,7 @@ export const AnalysisEditor = ({
                         disabled={createMutation.isPending}
                       >
                         <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                        New Analysis
+                        New analysis
                       </DropdownMenuItem>
                     )}
                     {analysis && (
@@ -442,7 +442,7 @@ export const AnalysisEditor = ({
                           variant="destructive"
                         >
                           <Trash2 className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                          Delete Analysis
+                          Delete analysis
                         </DropdownMenuItem>
                       </>
                     )}

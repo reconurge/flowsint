@@ -128,7 +128,7 @@ export function InvestigationAnalyses({ investigationId }: InvestigationAnalyses
           </div>
           <Button size="sm" variant="outline">
             <Plus className="w-4 h-4 mr-2" />
-            New Analysis
+            New analysis
           </Button>
         </div>
         <div className="text-center py-12">
@@ -157,7 +157,7 @@ export function InvestigationAnalyses({ investigationId }: InvestigationAnalyses
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
             <Plus className="w-4 h-4 mr-2" />
-            New Analysis
+            New analysis
           </Button>
         </div>
       </div>

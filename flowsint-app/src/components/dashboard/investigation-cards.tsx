@@ -122,9 +122,6 @@ export function InvestigationCards() {
   } = useQuery({
     queryKey: queryKeys.investigations.dashboard,
     queryFn: investigationService.get,
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
   })
 
   if (isLoading) {

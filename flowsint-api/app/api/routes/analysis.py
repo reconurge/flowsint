@@ -20,7 +20,7 @@ def get_analyses(
     return analyses
 
 
-# Create a new analysis
+# Create a New analysis
 @router.post(
     "/create", response_model=AnalysisRead, status_code=status.HTTP_201_CREATED
 )

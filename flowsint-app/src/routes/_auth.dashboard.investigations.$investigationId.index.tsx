@@ -93,7 +93,7 @@ function InvestigationPage() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['analyses', 'investigation', investigation.id] })
       toast.success('New analysis created')
-      // Navigate to the new analysis page
+      // Navigate to the New analysis page
       navigate({
         to: '/dashboard/investigations/$investigationId/$type/$id',
         params: {
@@ -150,7 +150,7 @@ function InvestigationPage() {
                     disabled={createAnalysisMutation.isPending}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    New Analysis
+                    New analysis
                     {createAnalysisMutation.isPending && (
                       <span className="ml-2 text-xs text-muted-foreground">Creating...</span>
                     )}

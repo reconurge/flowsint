@@ -345,7 +345,7 @@ export const NodeEditorModal: React.FC = () => {
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? 'Saving...' : 'Save changes'}
                 </Button>
               </div>
             </div>

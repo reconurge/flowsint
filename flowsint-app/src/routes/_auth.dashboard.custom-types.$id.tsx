@@ -250,7 +250,7 @@ function CustomTypeEditor() {
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isNew ? 'Create' : 'Save Changes'}
+              {isNew ? 'Create' : 'Save changes'}
             </Button>
           </div>
         </div>

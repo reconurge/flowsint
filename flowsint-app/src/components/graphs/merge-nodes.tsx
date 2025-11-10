@@ -56,7 +56,14 @@ export function MergeDialog() {
     if (!selectedNodes.every((n) => n.data.type === selectedNodes[0].data.type))
       return toast.error('Cannot merge entities of different types.')
     const entitiesToMerge = selectedNodes.map((node) => node.id)
-    const body = JSON.stringify({ oldNodes: entitiesToMerge, newNode: preview })
+    // Extract only id and data to avoid circular references from neighbors/links
+    const body = JSON.stringify({
+      oldNodes: entitiesToMerge,
+      newNode: {
+        id: preview.id,
+        data: preview.data
+      }
+    })
     return toast.promise(
       (async () => {
         await sketchService.mergeNodes(sketchId as string, body)

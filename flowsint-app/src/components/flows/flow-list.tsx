@@ -9,6 +9,7 @@ import { Pencil, PlusIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import NewFlow from './new-flow'
 import ErrorState from '../shared/error-state'
+import { Flow } from '@/types'
 
 const FlowsList = () => {
   const {
@@ -27,7 +28,7 @@ const FlowsList = () => {
     if (!searchQuery.trim()) return flows
 
     const query = searchQuery.toLowerCase().trim()
-    return flows.filter((flow) => {
+    return flows.filter((flow: Flow) => {
       const matchesName = flow.name?.toLowerCase().includes(query)
       const matchesCategory = flow.category
         ? Array.isArray(flow.category)

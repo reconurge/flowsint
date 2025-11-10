@@ -25,7 +25,7 @@ interface LayoutStore {
   activeTab: string
   activeTransformTab: string
   setActiveTab: (tab: 'entities' | 'items' | string) => void
-  setActiveTransformTab: (tab: 'transforms' | 'items' | string) => void
+  setActiveTransformTab: (tab: 'flows' | 'items' | string) => void
 }
 
 export const useLayoutStore = create<LayoutStore>()(
@@ -39,7 +39,7 @@ export const useLayoutStore = create<LayoutStore>()(
       chatWidth: 500,
       chatHeight: 600,
       activeTab: 'entities',
-      activeTransformTab: 'transforms',
+      activeTransformTab: 'flows',
       openConsole: () => set(() => ({ isOpenConsole: true })),
       toggleConsole: () => set((state) => ({ isOpenConsole: !state.isOpenConsole })),
       togglePanel: () => set((state) => ({ isOpenPanel: !state.isOpenPanel })),

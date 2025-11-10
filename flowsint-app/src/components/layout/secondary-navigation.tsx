@@ -1,7 +1,7 @@
 import { useLocation, useParams } from '@tanstack/react-router'
 import InvestigationList from '../investigations/investigation-list'
 import GraphNavigation from '../graphs/graph-navigation'
-import TransformNavigation from '../flows/flow-navigation'
+import FlowNavigation from '../flows/flow-navigation'
 import SketchList from '../investigations/sketch-list'
 import AnalysesList from '../analyses/analyses-list'
 import { memo } from 'react'
@@ -43,7 +43,7 @@ const SecondaryNavigation = memo(() => {
   if (pathname.startsWith('/dashboard/flows')) {
     return (
       <div className="grow w-full h-full overflow-x-hidden">
-        <TransformNavigation />
+        <FlowNavigation />
       </div>
     )
   }

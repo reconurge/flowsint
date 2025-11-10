@@ -13,6 +13,7 @@ import ErrorState from '@/components/shared/error-state'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { useConfirm } from '@/components/use-confirm-dialog'
+import { PageLayout } from '@/components/layout/page-layout'
 
 export const Route = createFileRoute('/_auth/dashboard/custom-types/')({
   component: CustomTypesPage
@@ -73,41 +74,36 @@ function CustomTypesPage() {
   const archivedTypes = customTypes?.filter((t) => t.status === 'archived') || []
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-background">
-      <div className="border-b border-border z-10">
-        <div className="max-w-7xl mx-auto p-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-foreground">Custom types</h1>
-              <p className="text-muted-foreground">Create and manage your custom data types.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                // @ts-ignore
-                onClick={() => navigate({ to: '/dashboard/custom-types/new' })}
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                New custom type
-              </Button>
-            </div>
-          </div>
+    <PageLayout
+      title="Custom types"
+      description="Create and manage your custom data types."
+      isLoading={isLoading}
+      loadingComponent={
+        <div className="p-2">
+          <SkeletonList rowCount={6} mode="card" />
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
-        {isLoading ? (
-          <div className="p-2">
-            <SkeletonList rowCount={6} mode="card" />
-          </div>
-        ) : error ? (
-          <ErrorState
-            title="Couldn't load custom types"
-            description="Something went wrong while fetching data. Please try again."
-            error={error}
-            onRetry={() => refetch()}
-          />
-        ) : !customTypes?.length ? (
+      }
+      error={error}
+      errorComponent={
+        <ErrorState
+          title="Couldn't load custom types"
+          description="Something went wrong while fetching data. Please try again."
+          error={error}
+          onRetry={() => refetch()}
+        />
+      }
+      actions={
+        <Button
+          size="sm"
+          // @ts-ignore
+          onClick={() => navigate({ to: '/dashboard/custom-types/new' })}
+        >
+          <PlusIcon className="w-4 h-4 mr-2" />
+          New custom type
+        </Button>
+      }
+    >
+      {!customTypes?.length ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="rounded-full bg-muted/50 p-4 mb-4">
               <FileX className="w-8 h-8 text-muted-foreground" />
@@ -151,8 +147,7 @@ function CustomTypesPage() {
             </TabsContent>
           </Tabs>
         )}
-      </div>
-    </div>
+    </PageLayout>
   )
 }
 

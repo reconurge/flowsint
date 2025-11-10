@@ -31,6 +31,7 @@ import Loader from '@/components/loader'
 import { type Key as KeyType } from '@/types/key'
 import { queryKeys } from '@/api/query-keys'
 import ErrorState from '@/components/shared/error-state'
+import { PageLayout } from '@/components/layout/page-layout'
 export const Route = createFileRoute('/_auth/dashboard/vault')({
   component: VaultPage
 })
@@ -101,62 +102,29 @@ function VaultPage() {
     }
   }
 
-  if (keysLoading) {
-    return (
-      <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
-        <div className="max-w-7xl mx-auto flex h-full flex-col gap-12 items-center justify-start">
-          <div className="w-full">
-            <h1 className="font-semibold text-2xl">Vault</h1>
-            <p className="opacity-60 mt-3">Manage your API keys for third-party services.</p>
-          </div>
-          <div className="w-full h-full flex items-center justify-center">
-            <Loader />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (keysError) {
-    return (
-      <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
-        <div className="max-w-7xl mx-auto flex h-full flex-col gap-12 items-center justify-start">
-          <div className="w-full">
-            <h1 className="font-semibold text-2xl">Vault</h1>
-            <p className="opacity-60 mt-3">Manage your API keys for third-party services.</p>
-          </div>
-          <div className="w-full h-full flex items-center justify-center">
-            <ErrorState
-              title="Couldn't load keys"
-              description="Something went wrong while fetching data. Please try again."
-              error={keysError}
-              onRetry={() => refetch()}
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="h-full w-full px-12 py-12 bg-background overflow-auto">
-      <div className="max-w-7xl mx-auto flex flex-col gap-12 items-center justify-start">
-        <div className="w-full flex justify-between items-center">
-          <div>
-            <h1 className="font-semibold text-3xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Vault
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Securely manage your API keys for third-party services.
-            </p>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-5 h-5" />
-                Add API Key
-              </Button>
-            </DialogTrigger>
+    <PageLayout
+      title="Vault"
+      description="Securely manage your API keys for third-party services."
+      isLoading={keysLoading}
+      loadingComponent={<Loader />}
+      error={keysError}
+      errorComponent={
+        <ErrorState
+          title="Couldn't load keys"
+          description="Something went wrong while fetching data. Please try again."
+          error={keysError}
+          onRetry={() => refetch()}
+        />
+      }
+      actions={
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add API Key
+            </Button>
+          </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Add API Key</DialogTitle>
@@ -202,10 +170,10 @@ function VaultPage() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="w-full">
+        </Dialog>
+      }
+    >
+      <div className="w-full">
           {keys.length === 0 ? (
             <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
               <CardContent className="flex flex-col items-center justify-center py-20 px-8">
@@ -243,7 +211,7 @@ function VaultPage() {
                   </div>
 
                   <Button onClick={() => setIsAddDialogOpen(true)}>
-                    <Plus className="w-5 h-5 mr-2" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Add Your First Key
                   </Button>
                 </div>
@@ -342,9 +310,8 @@ function VaultPage() {
               </CardContent>
             </Card>
           )}
-        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }
 

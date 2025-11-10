@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import NewFlow from '@/components/flows/new-flow'
 import { flowService } from '@/api/flow-service'
 import ErrorState from '@/components/shared/error-state'
+import { PageLayout } from '@/components/layout/page-layout'
 
 interface Flow {
   id: string
@@ -53,38 +54,35 @@ function FlowPage() {
   const allCategories = ['All', ...categories, 'Uncategorized']
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-background">
-      <div className="border-b border-border z-10">
-        <div className="max-w-7xl mx-auto p-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-foreground">Flows</h1>
-              <p className="text-muted-foreground">Create and manage your flow flows.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <NewFlow>
-                <Button size="sm" data-tour-id="create-flow">
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  New flow
-                </Button>
-              </NewFlow>
-            </div>
-          </div>
+    <PageLayout
+      title="Flows"
+      description="Create and manage your flow flows."
+      isLoading={isLoading}
+      loadingComponent={
+        <div className="p-2">
+          <SkeletonList rowCount={6} mode="card" />
         </div>
-      </div>
-      <div className="max-w-7xl mx-auto p-8 space-y-8" style={{ containerType: 'inline-size' }}>
-        {isLoading ? (
-          <div className="p-2">
-            <SkeletonList rowCount={6} mode="card" />
-          </div>
-        ) : error ? (
-          <ErrorState
-            title="Couldn't load flows"
-            description="Something went wrong while fetching data. Please try again."
-            error={error}
-            onRetry={() => refetch()}
-          />
-        ) : !flows?.length ? (
+      }
+      error={error}
+      errorComponent={
+        <ErrorState
+          title="Couldn't load flows"
+          description="Something went wrong while fetching data. Please try again."
+          error={error}
+          onRetry={() => refetch()}
+        />
+      }
+      actions={
+        <NewFlow>
+          <Button size="sm" data-tour-id="create-flow">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            New flow
+          </Button>
+        </NewFlow>
+      }
+    >
+      <div style={{ containerType: 'inline-size' }}>
+        {!flows?.length ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="rounded-full bg-muted/50 p-4 mb-4">
               <FileX className="w-8 h-8 text-muted-foreground" />
@@ -168,6 +166,6 @@ function FlowPage() {
           </Tabs>
         )}
       </div>
-    </div>
+    </PageLayout>
   )
 }

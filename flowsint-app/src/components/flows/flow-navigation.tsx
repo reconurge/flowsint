@@ -6,13 +6,13 @@ import { useLayoutStore } from '@/stores/layout-store'
 import { useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
-const TransformNavigation = () => {
+const FlowNavigation = () => {
   const { flowId } = useParams({ strict: false })
   const activeTransformTab = useLayoutStore((s) => s.activeTransformTab)
   const setActiveTransformTab = useLayoutStore((s) => s.setActiveTransformTab)
 
   useEffect(() => {
-    setActiveTransformTab(flowId ? 'items' : 'transforms')
+    setActiveTransformTab(flowId ? 'items' : 'flows')
   }, [setActiveTransformTab, flowId])
 
   return (
@@ -20,12 +20,12 @@ const TransformNavigation = () => {
       <Tabs
         value={activeTransformTab}
         onValueChange={setActiveTransformTab}
-        defaultValue="transforms"
+        defaultValue="flows"
         className="w-full h-full flex flex-col gap-0 min-h-0"
       >
         <TabsList className="w-full p-0 rounded-none my-0 border-b flex-shrink-0">
-          <TabsTrigger value="transforms">
-            <Users className="h-3 w-3 opacity-60" /> Transforms
+          <TabsTrigger value="flows">
+            <Users className="h-3 w-3 opacity-60" /> Flows
           </TabsTrigger>
           {flowId && (
             <TabsTrigger value="items">
@@ -34,7 +34,7 @@ const TransformNavigation = () => {
           )}
         </TabsList>
         <TabsContent
-          value="transforms"
+          value="flows"
           className="my-0 w-full flex-1 flex flex-col min-h-0 overflow-hidden"
         >
           <TransformsList />
@@ -52,4 +52,4 @@ const TransformNavigation = () => {
   )
 }
 
-export default TransformNavigation
+export default FlowNavigation

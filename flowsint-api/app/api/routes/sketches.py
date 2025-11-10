@@ -1,5 +1,14 @@
 from app.security.permissions import check_investigation_permission
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Depends,
+    status,
+    UploadFile,
+    File,
+    Form,
+    BackgroundTasks,
+)
 from pydantic import BaseModel, Field
 from typing import Literal, List, Optional, Dict, Any
 from flowsint_core.utils import flatten
@@ -230,7 +239,7 @@ def add_node(
     node: NodeInput,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user),
 ):
     node_data = node.data.model_dump()
 
@@ -430,102 +439,133 @@ def merge_nodes(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    # 1. Vérifier le sketch
+    # 1. Verify the sketch exists
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
 
-    oldNodeIds = [id for id in oldNodes]
+    if not oldNodes or len(oldNodes) == 0:
+        raise HTTPException(status_code=400, detail="oldNodes cannot be empty")
 
-    # 2. Préparer le node unique (utiliser nodeId)
-    node_id = getattr(newNode, "id", None)
-    if not node_id:
-        raise HTTPException(status_code=400, detail="newNode.id is required")
+    oldNodeIds = oldNodes
 
-    properties = {}
-    if newNode.data:
-        flattened_data = flatten(newNode.data.dict())
-        properties.update(flattened_data)
+    # 2. Prepare the merged node data
+    node_data = newNode.data.model_dump() if newNode.data else {}
+    node_type = node_data.get("type", "Node")
 
-    cypher_props = dict_to_cypher_props(properties)
-    node_type = getattr(newNode, "type", "Node")
+    # Build properties for the new merged node
+    properties = {
+        "type": node_type.lower(),
+        "sketch_id": sketch_id,
+        "label": node_data.get("label", "Merged Node"),
+        "caption": node_data.get("label", "Merged Node"),
+    }
 
-    # 3. Créer ou merger le nouveau node
-    create_query = f"""
-    MERGE (new:`{node_type}` {{nodeId: $nodeId}})
-    SET new += $nodeData
-    RETURN elementId(new) as newElementId
-    """
+    # Add all other data from the node
+    flattened_data = flatten(node_data)
+    properties.update(flattened_data)
+
+    # 3. Check if the newNode.id is one of the old nodes (reusing existing node)
+    # or if we need to create a brand new node
+    is_reusing_node = newNode.id in oldNodeIds
+
+    if is_reusing_node:
+        # Update the existing node that we're keeping
+        set_clause = ", ".join(f"n.{key} = ${key}" for key in properties.keys())
+        create_query = f"""
+        MATCH (n)
+        WHERE elementId(n) = $nodeId AND n.sketch_id = $sketch_id
+        SET {set_clause}
+        RETURN elementId(n) as newElementId
+        """
+        params = {"nodeId": newNode.id, "sketch_id": sketch_id, **properties}
+    else:
+        # Create a completely new node
+        create_query = f"""
+        CREATE (n:`{node_type}`)
+        SET n = $properties
+        RETURN elementId(n) as newElementId
+        """
+        params = {"properties": properties}
+
     try:
-        result = neo4j_connection.query(
-            create_query, {"nodeId": node_id, "nodeData": cypher_props}
-        )
+        result = neo4j_connection.query(create_query, params)
+        if not result:
+            raise HTTPException(
+                status_code=500, detail="Failed to create/update merged node"
+            )
         new_node_element_id = result[0]["newElementId"]
     except Exception as e:
-        print(f"Error creating/merging new node: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create new node")
-
-    # 4. Récupérer tous les types de relations des oldNodes
-    rel_types_query = """
-    MATCH (old)
-    WHERE elementId(old) IN $oldNodeIds AND old.sketch_id = $sketch_id
-    MATCH (old)-[r]-()
-    RETURN DISTINCT type(r) AS relType
-    """
-    try:
-        rel_types_result = neo4j_connection.query(
-            rel_types_query, {"oldNodeIds": oldNodeIds, "sketch_id": sketch_id}
+        print(f"Error creating/updating merged node: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create merged node: {str(e)}"
         )
-        rel_types = [row["relType"] for row in rel_types_result] or []
-    except Exception as e:
-        print(f"Error fetching relation types: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch relation types")
 
-    # 5. Construire la query pour copier les relations
-    blocks = []
-    for rel_type in rel_types:
-        block = f"""
-        // Relations entrantes
-        MATCH (new) WHERE elementId(new) = $newElementId
-        MATCH (old) WHERE elementId(old) IN $oldNodeIds
-        OPTIONAL MATCH (src)-[r:`{rel_type}`]->(old)
-        WITH src, new, r WHERE src IS NOT NULL
-        MERGE (src)-[newRel:`{rel_type}`]->(new)
-        ON CREATE SET newRel = r
-        ON MATCH SET newRel += r
-        WITH DISTINCT new
+    # 4. Copy all relationships from old nodes to the new node
+    # This handles both incoming and outgoing relationships while preserving types and properties
+    copy_relationships_query = """
+    MATCH (new) WHERE elementId(new) = $newElementId
 
-        // Relations sortantes
-        MATCH (new) WHERE elementId(new) = $newElementId
-        MATCH (old) WHERE elementId(old) IN $oldNodeIds
-        OPTIONAL MATCH (old)-[r:`{rel_type}`]->(dst)
-        WITH dst, new, r WHERE dst IS NOT NULL
-        MERGE (new)-[newRel2:`{rel_type}`]->(dst)
-        ON CREATE SET newRel2 = r
-        ON MATCH SET newRel2 += r
-        WITH DISTINCT new
-        """
-        blocks.append(block)
+    UNWIND $oldNodeIds AS oldNodeId
+    MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id
 
-    # 6. Supprimer les anciens nodes
-    delete_query = """
-    MATCH (old)
-    WHERE elementId(old) IN $oldNodeIds
-    DETACH DELETE old
+    // Copy incoming relationships - get all unique combinations
+    WITH new, collect(old) as oldNodes
+    UNWIND oldNodes as old
+    MATCH (src)-[r]->(old)
+    WHERE elementId(src) NOT IN $oldNodeIds AND elementId(src) <> $newElementId
+    WITH new, src, type(r) as relType, properties(r) as relProps, r
+    MERGE (src)-[newRel:RELATED_TO {sketch_id: $sketch_id}]->(new)
+    SET newRel = relProps
+
+    WITH new, $oldNodeIds as oldNodeIds
+    UNWIND oldNodeIds AS oldNodeId
+    MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id
+
+    // Copy outgoing relationships
+    MATCH (old)-[r]->(dst)
+    WHERE elementId(dst) NOT IN oldNodeIds AND elementId(dst) <> $newElementId
+    WITH new, dst, type(r) as relType, properties(r) as relProps
+    MERGE (new)-[newRel:RELATED_TO {sketch_id: $sketch_id}]->(dst)
+    SET newRel = relProps
     """
 
-    full_query = "\n".join(blocks) + delete_query
-
-    # 7. Exécuter la query
     try:
         neo4j_connection.query(
-            full_query, {"newElementId": new_node_element_id, "oldNodeIds": oldNodeIds}
+            copy_relationships_query,
+            {
+                "newElementId": new_node_element_id,
+                "oldNodeIds": oldNodeIds,
+                "sketch_id": sketch_id,
+            },
         )
     except Exception as e:
-        print(f"Node merging error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to merge node relations")
+        print(f"Error copying relationships: {e}")
+        # Don't fail if relationship copying has issues, continue to deletion
 
-    return {"status": "nodes merged", "count": len(oldNodeIds)}
+    # 5. Delete the old nodes (except if we're reusing one)
+    nodes_to_delete = [nid for nid in oldNodeIds if nid != new_node_element_id]
+
+    if nodes_to_delete:
+        delete_query = """
+        UNWIND $nodeIds AS nodeId
+        MATCH (old)
+        WHERE elementId(old) = nodeId AND old.sketch_id = $sketch_id
+        DETACH DELETE old
+        """
+        try:
+            neo4j_connection.query(
+                delete_query, {"nodeIds": nodes_to_delete, "sketch_id": sketch_id}
+            )
+        except Exception as e:
+            print(f"Error deleting old nodes: {e}")
+            raise HTTPException(status_code=500, detail="Failed to delete old nodes")
+
+    return {
+        "status": "nodes merged",
+        "count": len(oldNodeIds),
+        "new_node_id": new_node_element_id,
+    }
 
 
 @router.get("/{sketch_id}/nodes/{node_id}")
@@ -647,7 +687,11 @@ def get_related_nodes(
             seen_relationships.add(record["rel_id"])
 
         # Add related node if not seen
-        if record["other_node_id"] and record["other_node_id"] not in seen_nodes:
+        if (
+            record["other_node_id"]
+            and record["other_node_id"] not in seen_nodes
+            and record["other_node_id"] != center_node["id"]
+        ):
             related_nodes.append(
                 {
                     "id": record["other_node_id"],
@@ -709,9 +753,7 @@ async def analyze_import_file(
     try:
         content = await file.read()
     except Exception as e:
-        raise HTTPException(
-            status_code=400, detail=f"Failed to read file: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
 
     # Parse and analyze the file
     try:
@@ -723,9 +765,7 @@ async def analyze_import_file(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to parse file: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to parse file: {str(e)}")
 
     # Convert entities to response models (no slicing)
     entity_previews = [
@@ -734,7 +774,7 @@ async def analyze_import_file(
             data=e.data,
             detected_type=e.detected_type,
             primary_value=e.primary_value,
-            confidence=e.confidence
+            confidence=e.confidence,
         )
         for e in result.entities
     ]
@@ -743,7 +783,7 @@ async def analyze_import_file(
         entities=entity_previews,
         total_entities=result.total_entities,
         type_distribution=result.type_distribution,
-        columns=result.columns
+        columns=result.columns,
     )
 
 
@@ -813,14 +853,10 @@ async def execute_import(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to parse file: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to parse file: {str(e)}")
 
     # Create mapping lookup by row index
-    mappings_by_row = {
-        m.row_index: m for m in entity_mappings if m.include
-    }
+    mappings_by_row = {m.row_index: m for m in entity_mappings if m.include}
 
     # Import entities
     nodes_created = 0
@@ -861,7 +897,7 @@ async def execute_import(
         try:
             neo4j_connection.query(
                 create_query,
-                {"sketch_id": sketch_id, "label": label, "props": flattened_props}
+                {"sketch_id": sketch_id, "label": label, "props": flattened_props},
             )
             nodes_created += 1
         except Exception as e:

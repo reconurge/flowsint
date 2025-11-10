@@ -573,12 +573,12 @@ def get_related_nodes(
     sketch_id: str,
     node_id: str,
     db: Session = Depends(get_db),
-    # current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user)
 ):
     # First verify the sketch exists and belongs to the user
-    # sketch = db.query(Sketch).filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id).first()
-    # if not sketch:
-    #     raise HTTPException(status_code=404, detail="Sketch not found")
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
 
     # Query to get all direct relationships and connected nodes
     # First, let's get the center node

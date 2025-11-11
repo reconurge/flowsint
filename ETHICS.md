@@ -10,33 +10,42 @@ The development and use of Flowsint are guided by the principles of the [Hippocr
 
 > **The software must not be used in ways that violate fundamental human rights.**
 
-## Our Commitment
+## Ethical Commitment
 
-By using or contributing to Flowsint, you are encouraged to:
+By using or contributing to Flowsint, all individuals and organizations are expected to:
 
-- Respect and uphold universal human rights  
-- Use the software responsibly, transparently, and ethically  
-- Refrain from using this tool in any way that harms human dignity  
-- Promote constructive and socially beneficial uses of technology  
+* Respect and uphold universal human rights
+* Use the software responsibly, transparently, and ethically
+* Refrain from any activity that harms human dignity or privacy
+* Promote constructive, verifiable, and socially beneficial use of technology
 
-## Purpose and Prohibited Uses
+## Lawful and Responsible Use
 
-Flowsint exists to promote transparency, factual verification, and ethical investigation.  
-The following uses are **strictly prohibited**:
+Flowsint is designed **strictly for lawful, ethical investigation and research purposes**.
+It was created to assist:
 
-- Mass surveillance or surveillance conducted without a legal warrant  
-- Targeted collection of private or personal data for doxxing, harassment, or blackmail  
-- Dissemination of disinformation, propaganda, or electoral manipulation  
-- Any activity that contravenes internationally recognized human rights standards  
+* Cybersecurity researchers and analysts
+* Journalists and OSINT investigators
+* Law enforcement or fraud investigation teams
+* Organizations conducting internal threat intelligence or digital risk analysis
 
-> These examples are non-exhaustive and may evolve with ethical standards and community consensus.
+### Prohibited Uses
+
+Flowsint **must not be used** for:
+
+* Unauthorized intrusion, surveillance, or data collection
+* Harassment, doxxing, blackmail, or targeting of individuals
+* Political manipulation, disinformation, or privacy violations
+* Any activity that contravenes international human rights standards
+
+These examples are **non-exhaustive** and may evolve according to ethical and legal norms.
 
 ## Reporting Misuse
 
-If you become aware of any use that contradicts these principles, please report it to:  
-📧 **dexxterrmorgan@proton.me**
+If you become aware of any use that contradicts these principles, please report it to:
+📧 **[dexxterrmorgan@proton.me](mailto:dexxterrmorgan@proton.me)**
 
 ## Responsibility Statement
 
-The developers and maintainers of Flowsint are committed to upholding these ethical principles throughout the project’s life cycle.  
-However, as defined by the AGPL-3.0 license, **Flowsint is provided “as is,” without warranty**, and its authors **cannot be held liable for third-party misuse**.
+The developers and maintainers of Flowsint are committed to upholding these ethical principles throughout the project’s life cycle.
+However, in accordance with the AGPL-3.0 license, **Flowsint is provided “as is,” without warranty**, and its authors **cannot be held liable for misuse or unlawful activity conducted by third parties**.

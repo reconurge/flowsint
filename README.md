@@ -224,4 +224,23 @@ poetry run pytest
 
 
 ---
+
+## ⚖️ Legal & Ethical Use
+
 **Ethics:** Please read [ETHICS.md](./ETHICS.md) for responsible use guidelines.
+
+Flowsint is designed **strictly for lawful, ethical investigation and research purposes**.
+
+It was created to assist:
+- Cybersecurity researchers and analysts
+- Journalists and OSINT investigators
+- Law enforcement or fraud investigation teams
+- Organizations conducting internal threat intelligence or digital risk analysis
+
+**Flowsint must not be used for:**
+- Unauthorized intrusion, surveillance, or data collection
+- Harassment, doxxing, or targeting of individuals
+- Political manipulation, misinformation, or violation of privacy laws
+
+Any misuse of this software is strictly prohibited and goes against the ethical principles defined in [ETHICS.md](./ETHICS.md).
+

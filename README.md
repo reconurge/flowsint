@@ -1,6 +1,9 @@
 # Flowsint
 
-A modular investigation and reconnaissance platform with clean separation of concerns.
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](./LICENSE)
+[![Ethical Software](https://img.shields.io/badge/ethical-use-blue.svg)](./ETHICS.md)
+
+Flowsint is an open-source OSINT graph exploration tool designed for ethical investigation, transparency, and verification.
 
 <img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/29b42698-18ab-4389-b070-b231f4ba257c" />
 
@@ -216,3 +219,7 @@ poetry run pytest
 2. Use Poetry for dependency management
 3. Write tests for new functionality
 4. Update documentation as needed
+
+
+---
+**Ethics:** Please read [ETHICS.md](./ETHICS.md) for responsible use guidelines.

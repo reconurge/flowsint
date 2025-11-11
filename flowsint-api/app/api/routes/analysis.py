@@ -1,4 +1,5 @@
 from uuid import UUID, uuid4
+from app.security.permissions import check_investigation_permission
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from datetime import datetime
@@ -29,6 +30,9 @@ def create_analysis(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(
+        current_user.id, payload.investigation_id, actions=["create"], db=db
+    )
     new_analysis = Analysis(
         id=uuid4(),
         title=payload.title,
@@ -54,11 +58,14 @@ def get_analysis_by_id(
 ):
     analysis = (
         db.query(Analysis)
-        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .filter(Analysis.id == analysis_id)
         .first()
     )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
+    check_investigation_permission(
+        current_user.id, analysis.investigation_id, actions=["read"], db=db
+    )
     return analysis
 
 
@@ -69,12 +76,12 @@ def get_analyses_by_investigation(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(
+        current_user.id, investigation_id, actions=["read"], db=db
+    )
     analyses = (
         db.query(Analysis)
-        .filter(
-            Analysis.investigation_id == investigation_id,
-            Analysis.owner_id == current_user.id,
-        )
+        .filter(Analysis.investigation_id == investigation_id)
         .all()
     )
     return analyses
@@ -90,11 +97,14 @@ def update_analysis(
 ):
     analysis = (
         db.query(Analysis)
-        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .filter(Analysis.id == analysis_id)
         .first()
     )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
+    check_investigation_permission(
+        current_user.id, analysis.investigation_id, actions=["update"], db=db
+    )
     if payload.title is not None:
         analysis.title = payload.title
     if payload.description is not None:
@@ -102,6 +112,10 @@ def update_analysis(
     if payload.content is not None:
         analysis.content = payload.content
     if payload.investigation_id is not None:
+        # Check permission for the new investigation as well
+        check_investigation_permission(
+            current_user.id, payload.investigation_id, actions=["update"], db=db
+        )
         analysis.investigation_id = payload.investigation_id
     analysis.last_updated_at = datetime.utcnow()
     db.commit()
@@ -118,11 +132,14 @@ def delete_analysis(
 ):
     analysis = (
         db.query(Analysis)
-        .filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id)
+        .filter(Analysis.id == analysis_id)
         .first()
     )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
+    check_investigation_permission(
+        current_user.id, analysis.investigation_id, actions=["delete"], db=db
+    )
     db.delete(analysis)
     db.commit()
     return None

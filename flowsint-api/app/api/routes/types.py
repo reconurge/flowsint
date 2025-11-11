@@ -75,11 +75,11 @@ async def get_types_list(
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
                 extract_input_schema(
-                    SocialProfile, label_key="username", icon="socialprofile"
+                    SocialProfile, label_key="username", icon="social_profile"
                 ),
                 extract_input_schema(Organization, label_key="name"),
                 extract_input_schema(
-                    Username, label_key="username", icon="socialprofile"
+                    Username, label_key="username", icon="social_profile"
                 ),
                 # extract_input_schema(Alias, label_key="alias", icon="alias"),
                 # extract_input_schema(Affiliation, label_key="organization", icon="affiliation"),

@@ -98,6 +98,9 @@ def get_sketch_by_id(
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
     return sketch
 
 
@@ -110,12 +113,14 @@ def update_sketch(
 ):
     sketch = (
         db.query(Sketch)
-        .filter(Sketch.owner_id == current_user.id)
         .filter(Sketch.id == id)
         .first()
     )
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(sketch, key, value)
     db.commit()
@@ -131,11 +136,14 @@ def delete_sketch(
 ):
     sketch = (
         db.query(Sketch)
-        .filter(Sketch.id == id, Sketch.owner_id == current_user.id)
+        .filter(Sketch.id == id)
         .first()
     )
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["delete"], db=db
+    )
 
     # Delete all nodes and relationships in Neo4j first
     neo4j_query = """
@@ -158,7 +166,7 @@ async def get_sketch_nodes(
     id: str,
     format: str = None,
     db: Session = Depends(get_db),
-    # current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user)
 ):
     """
     Get the nodes and relationships for a sketch.
@@ -175,14 +183,14 @@ async def get_sketch_nodes(
     """
     sketch = (
         db.query(Sketch)
-        .filter(
-            Sketch.id == id,
-            #  Sketch.owner_id == current_user.id
-        )
+        .filter(Sketch.id == id)
         .first()
     )
     if not sketch:
         raise HTTPException(status_code=404, detail="Graph not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
     import random
 
     nodes_query = """
@@ -241,6 +249,13 @@ def add_node(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
+
     node_data = node.data.model_dump()
 
     node_type = node_data["type"]
@@ -308,6 +323,12 @@ def add_edge(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
 
     query = f"""
         MATCH (a) WHERE elementId(a) = $from_id
@@ -350,6 +371,9 @@ def edit_node(
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
 
     node_data = node_edit.data.model_dump()
     node_type = node_data.get("type", "Node")
@@ -409,6 +433,9 @@ def delete_nodes(
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
 
     # Delete nodes and their relationships
     query = """
@@ -443,6 +470,9 @@ def merge_nodes(
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
 
     if not oldNodes or len(oldNodes) == 0:
         raise HTTPException(status_code=400, detail="oldNodes cannot be empty")
@@ -576,9 +606,12 @@ def get_related_nodes(
     current_user: Profile = Depends(get_current_user)
 ):
     # First verify the sketch exists and belongs to the user
-    sketch = db.query(Sketch).filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id).first()
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
 
     # Query to get all direct relationships and connected nodes
     # First, let's get the center node
@@ -743,11 +776,14 @@ async def analyze_import_file(
     # Verify sketch exists and user has access
     sketch = (
         db.query(Sketch)
-        .filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id)
+        .filter(Sketch.id == sketch_id)
         .first()
     )
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
 
     # Read file content
     try:
@@ -825,11 +861,14 @@ async def execute_import(
     # Verify sketch exists and user has access
     sketch = (
         db.query(Sketch)
-        .filter(Sketch.id == sketch_id, Sketch.owner_id == current_user.id)
+        .filter(Sketch.id == sketch_id)
         .first()
     )
     if not sketch:
         raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
 
     # Parse entity mappings
     try:

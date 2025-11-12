@@ -348,6 +348,7 @@ export function ImportPreview({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: false, // Prevent pagination reset on data changes
     initialState: {
       pagination: {
         pageSize: 20,

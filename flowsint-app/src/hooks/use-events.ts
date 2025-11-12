@@ -16,15 +16,18 @@ export function useEvents(sketch_id: string | undefined) {
   const { data: previousLogs = [], refetch } = useQuery({
     queryKey: queryKeys.logs.bySketch(sketch_id as string),
     queryFn: () => logService.get(sketch_id as string),
-    refetchOnWindowFocus: false,
     enabled: !!sketch_id,
-    staleTime: 30_000
   })
 
   const handleRefresh = () => {
     refetch()
     setLiveLogs([]) // Pour éviter les doublons dans les logs live
   }
+
+  // Reset live logs when sketch_id changes
+  useEffect(() => {
+    setLiveLogs([])
+  }, [sketch_id])
 
   useEffect(() => {
     if (!sketch_id) return

@@ -59,13 +59,13 @@ class GraphRepository:
         serialized_props["sketch_id"] = sketch_id
         serialized_props["label"] = serialized_props.get("label", key_value)
 
-        # Build SET clauses
-        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys()]
+        # Build SET clauses (exclude sketch_id as it's in MERGE)
+        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys() if prop != "sketch_id"]
         params = {key_prop: key_value, **serialized_props}
 
-        # Build and execute query
+        # Build and execute query - MERGE on both key_prop AND sketch_id for uniqueness
         query = f"""
-        MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
+        MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
         SET {', '.join(set_clauses)}
         """
 
@@ -111,9 +111,10 @@ class GraphRepository:
         else:
             rel_props = "{sketch_id: $sketch_id}"
 
+        # MATCH nodes by both key and sketch_id to ensure we're connecting nodes from the same sketch
         query = f"""
-        MATCH (from:{from_type} {{{from_key}: $from_value}})
-        MATCH (to:{to_type} {{{to_key}: $to_value}})
+        MATCH (from:{from_type} {{{from_key}: $from_value, sketch_id: $sketch_id}})
+        MATCH (to:{to_type} {{{to_key}: $to_value, sketch_id: $sketch_id}})
         MERGE (from)-[:{rel_type} {rel_props}]->(to)
         """
 
@@ -164,11 +165,13 @@ class GraphRepository:
         serialized_props["sketch_id"] = sketch_id
         serialized_props["label"] = serialized_props.get("label", key_value)
 
-        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys()]
+        # Build SET clauses (exclude sketch_id as it's in MERGE)
+        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys() if prop != "sketch_id"]
         params = {key_prop: key_value, **serialized_props}
 
+        # MERGE on both key_prop AND sketch_id for uniqueness per sketch
         query = f"""
-        MERGE (n:{node_type} {{{key_prop}: ${key_prop}}})
+        MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
         SET {', '.join(set_clauses)}
         """
 
@@ -196,9 +199,10 @@ class GraphRepository:
         else:
             rel_props = "{sketch_id: $sketch_id}"
 
+        # MATCH nodes by both key and sketch_id to ensure we're connecting nodes from the same sketch
         query = f"""
-        MATCH (from:{from_type} {{{from_key}: $from_value}})
-        MATCH (to:{to_type} {{{to_key}: $to_value}})
+        MATCH (from:{from_type} {{{from_key}: $from_value, sketch_id: $sketch_id}})
+        MATCH (to:{to_type} {{{to_key}: $to_value, sketch_id: $sketch_id}})
         MERGE (from)-[:{rel_type} {rel_props}]->(to)
         """
 
@@ -238,6 +242,233 @@ class GraphRepository:
         if size < 1:
             raise ValueError("Batch size must be at least 1")
         self._batch_size = size
+
+    def update_node(
+        self,
+        node_type: str,
+        key_prop: str,
+        key_value: str,
+        sketch_id: str,
+        **properties: Any
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Update an existing node's properties.
+
+        Args:
+            node_type: Node label (e.g., "domain", "ip")
+            key_prop: Property name used as unique identifier
+            key_value: Value of the key property
+            sketch_id: Investigation sketch ID
+            **properties: Properties to update
+
+        Returns:
+            Updated node properties or None if not found
+        """
+        if not self._connection:
+            return None
+
+        # Serialize properties
+        serialized_props = GraphSerializer.serialize_properties(properties)
+
+        # Build SET clauses
+        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys()]
+        params = {key_prop: key_value, "sketch_id": sketch_id, **serialized_props}
+
+        query = f"""
+        MATCH (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
+        SET {', '.join(set_clauses)}
+        RETURN properties(n) as node
+        """
+
+        result = self._connection.query(query, params)
+        return result[0]["node"] if result else None
+
+    def delete_nodes(
+        self,
+        node_ids: List[str],
+        sketch_id: str
+    ) -> int:
+        """
+        Delete nodes by their element IDs.
+
+        Args:
+            node_ids: List of Neo4j element IDs
+            sketch_id: Investigation sketch ID (for safety)
+
+        Returns:
+            Number of nodes deleted
+        """
+        if not self._connection or not node_ids:
+            return 0
+
+        query = """
+        UNWIND $node_ids AS node_id
+        MATCH (n)
+        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
+        DETACH DELETE n
+        RETURN count(n) as deleted_count
+        """
+
+        result = self._connection.query(
+            query,
+            {"node_ids": node_ids, "sketch_id": sketch_id}
+        )
+        return result[0]["deleted_count"] if result else 0
+
+    def delete_all_sketch_nodes(self, sketch_id: str) -> int:
+        """
+        Delete all nodes and relationships for a sketch.
+
+        Args:
+            sketch_id: Investigation sketch ID
+
+        Returns:
+            Number of nodes deleted
+        """
+        if not self._connection:
+            return 0
+
+        query = """
+        MATCH (n {sketch_id: $sketch_id})
+        DETACH DELETE n
+        RETURN count(n) as deleted_count
+        """
+
+        result = self._connection.query(query, {"sketch_id": sketch_id})
+        return result[0]["deleted_count"] if result else 0
+
+    def get_sketch_graph(
+        self,
+        sketch_id: str,
+        limit: int = 100000
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get all nodes and relationships for a sketch.
+
+        Args:
+            sketch_id: Investigation sketch ID
+            limit: Maximum number of nodes to return
+
+        Returns:
+            Dictionary with 'nodes' and 'relationships' lists
+        """
+        if not self._connection:
+            return {"nodes": [], "relationships": []}
+
+        # Get all nodes for the sketch
+        nodes_query = """
+        MATCH (n)
+        WHERE n.sketch_id = $sketch_id
+        RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
+        LIMIT $limit
+        """
+        nodes_result = self._connection.query(
+            nodes_query,
+            {"sketch_id": sketch_id, "limit": limit}
+        )
+
+        if not nodes_result:
+            return {"nodes": [], "relationships": []}
+
+        node_ids = [record["id"] for record in nodes_result]
+
+        # Get all relationships between these nodes
+        rels_query = """
+        UNWIND $node_ids AS nid
+        MATCH (a)-[r]->(b)
+        WHERE elementId(a) = nid AND elementId(b) IN $node_ids
+        RETURN elementId(r) as id, type(r) as type, elementId(a) as source,
+               elementId(b) as target, properties(r) as data
+        """
+        rels_result = self._connection.query(
+            rels_query,
+            {"node_ids": node_ids}
+        )
+
+        return {
+            "nodes": nodes_result,
+            "relationships": rels_result or []
+        }
+
+    def create_relationship_by_element_id(
+        self,
+        from_element_id: str,
+        to_element_id: str,
+        rel_type: str,
+        sketch_id: str,
+        **properties: Any
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a relationship between two nodes using their element IDs.
+
+        Args:
+            from_element_id: Source node element ID
+            to_element_id: Target node element ID
+            rel_type: Relationship type
+            sketch_id: Investigation sketch ID
+            **properties: Additional relationship properties
+
+        Returns:
+            Created relationship properties or None
+        """
+        if not self._connection:
+            return None
+
+        serialized_props = GraphSerializer.serialize_properties(properties)
+        serialized_props["sketch_id"] = sketch_id
+
+        props_str = ", ".join([f"{k}: ${k}" for k in serialized_props.keys()])
+        rel_props = f"{{{props_str}}}"
+
+        query = f"""
+        MATCH (a) WHERE elementId(a) = $from_id
+        MATCH (b) WHERE elementId(b) = $to_id
+        MERGE (a)-[r:`{rel_type}` {rel_props}]->(b)
+        RETURN properties(r) as rel
+        """
+
+        params = {
+            "from_id": from_element_id,
+            "to_id": to_element_id,
+            **serialized_props
+        }
+
+        result = self._connection.query(query, params)
+        return result[0]["rel"] if result else None
+
+    def update_node_by_element_id(
+        self,
+        element_id: str,
+        sketch_id: str,
+        **properties: Any
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Update a node by its element ID.
+
+        Args:
+            element_id: Neo4j element ID
+            sketch_id: Investigation sketch ID (for safety)
+            **properties: Properties to update
+
+        Returns:
+            Updated node properties or None if not found
+        """
+        if not self._connection:
+            return None
+
+        serialized_props = GraphSerializer.serialize_properties(properties)
+        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys()]
+
+        query = f"""
+        MATCH (n)
+        WHERE elementId(n) = $element_id AND n.sketch_id = $sketch_id
+        SET {', '.join(set_clauses)}
+        RETURN properties(n) as node
+        """
+
+        params = {"element_id": element_id, "sketch_id": sketch_id, **serialized_props}
+        result = self._connection.query(query, params)
+        return result[0]["node"] if result else None
 
     def query(self, cypher: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """

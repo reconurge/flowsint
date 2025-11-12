@@ -17,6 +17,7 @@ from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from flowsint_core.core.models import Sketch, Profile
 from uuid import UUID
 from flowsint_core.core.graph_db import neo4j_connection
+from flowsint_core.core.graph_repository import GraphRepository
 from flowsint_core.core.postgre_db import get_db
 from app.api.deps import get_current_user
 from flowsint_core.imports import parse_file
@@ -145,13 +146,10 @@ def delete_sketch(
         current_user.id, sketch.investigation_id, actions=["delete"], db=db
     )
 
-    # Delete all nodes and relationships in Neo4j first
-    neo4j_query = """
-    MATCH (n {sketch_id: $sketch_id})
-    DETACH DELETE n
-    """
+    # Delete all nodes and relationships in Neo4j first using GraphRepository
     try:
-        neo4j_connection.query(neo4j_query, {"sketch_id": str(id)})
+        graph_repo = GraphRepository(neo4j_connection)
+        graph_repo.delete_all_sketch_nodes(str(id))
     except Exception as e:
         print(f"Neo4j cleanup error: {e}")
         raise HTTPException(status_code=500, detail="Failed to clean up graph data")
@@ -191,25 +189,12 @@ async def get_sketch_nodes(
     check_investigation_permission(
         current_user.id, sketch.investigation_id, actions=["read"], db=db
     )
-    import random
+    # Get all nodes and relationships using GraphRepository
+    graph_repo = GraphRepository(neo4j_connection)
+    graph_data = graph_repo.get_sketch_graph(id, limit=100000)
 
-    nodes_query = """
-    MATCH (n)
-    WHERE n.sketch_id = $sketch_id
-    RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
-    LIMIT 100000
-    """
-    nodes_result = neo4j_connection.query(nodes_query, parameters={"sketch_id": id})
-
-    node_ids = [record["id"] for record in nodes_result]
-
-    rels_query = """
-    UNWIND $node_ids AS nid
-    MATCH (a)-[r]->(b)
-    WHERE elementId(a) = nid AND elementId(b) IN $node_ids
-    RETURN elementId(r) as id, type(r) as type, elementId(a) as source, elementId(b) as target, properties(r) as data
-    """
-    rels_result = neo4j_connection.query(rels_query, parameters={"node_ids": node_ids})
+    nodes_result = graph_data["nodes"]
+    rels_result = graph_data["relationships"]
 
     nodes = [
         {
@@ -330,21 +315,15 @@ def add_edge(
         current_user.id, sketch.investigation_id, actions=["update"], db=db
     )
 
-    query = f"""
-        MATCH (a) WHERE elementId(a) = $from_id
-        MATCH (b) WHERE elementId(b) = $to_id
-        MERGE (a)-[r:`{relation.label}` {{sketch_id: $sketch_id}}]->(b)
-        RETURN r
-    """
-
-    params = {
-        "from_id": relation.source,
-        "to_id": relation.target,
-        "sketch_id": sketch_id,
-    }
-
+    # Create relationship using GraphRepository
     try:
-        result = neo4j_connection.query(query, params)
+        graph_repo = GraphRepository(neo4j_connection)
+        result = graph_repo.create_relationship_by_element_id(
+            from_element_id=relation.source,
+            to_element_id=relation.target,
+            rel_type=relation.label,
+            sketch_id=sketch_id
+        )
     except Exception as e:
         print(f"Edge creation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create edge")
@@ -354,7 +333,7 @@ def add_edge(
 
     return {
         "status": "edge added",
-        "edge": result[0]["r"],
+        "edge": result,
     }
 
 
@@ -390,28 +369,21 @@ def edit_node(
         flattened_data = flatten(node_data)
         properties.update(flattened_data)
 
-    # Build the SET clause for the Cypher query
-    set_clause = ", ".join(f"n.{key} = ${key}" for key in properties.keys())
-
-    query = f"""
-        MATCH (n)
-        WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
-        SET {set_clause}
-        RETURN n as node
-    """
-
-    params = {"node_id": node_edit.nodeId, "sketch_id": sketch_id, **properties}
-
+    # Update node using GraphRepository
     try:
-        result = neo4j_connection.query(query, params)
+        graph_repo = GraphRepository(neo4j_connection)
+        updated_node = graph_repo.update_node_by_element_id(
+            element_id=node_edit.nodeId,
+            sketch_id=sketch_id,
+            **properties
+        )
     except Exception as e:
         print(f"Node update error: {e}")
         raise HTTPException(status_code=500, detail="Failed to update node")
 
-    if not result:
+    if not updated_node:
         raise HTTPException(status_code=404, detail="Node not found or not accessible")
 
-    updated_node = result[0]["node"]
     updated_node["data"] = node_data
 
     return {
@@ -437,23 +409,15 @@ def delete_nodes(
         current_user.id, sketch.investigation_id, actions=["update"], db=db
     )
 
-    # Delete nodes and their relationships
-    query = """
-    UNWIND $node_ids AS node_id
-    MATCH (n)
-    WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
-    DETACH DELETE n
-    """
-
+    # Delete nodes and their relationships using GraphRepository
     try:
-        neo4j_connection.query(
-            query, {"node_ids": nodes.nodeIds, "sketch_id": sketch_id}
-        )
+        graph_repo = GraphRepository(neo4j_connection)
+        deleted_count = graph_repo.delete_nodes(nodes.nodeIds, sketch_id)
     except Exception as e:
         print(f"Node deletion error: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete nodes")
 
-    return {"status": "nodes deleted", "count": len(nodes.nodeIds)}
+    return {"status": "nodes deleted", "count": deleted_count}
 
 
 @router.post("/{sketch_id}/nodes/merge")

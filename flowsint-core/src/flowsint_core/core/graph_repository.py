@@ -6,6 +6,7 @@ handling node and relationship operations with batching support.
 """
 
 from typing import Dict, Any, List, Optional, Tuple
+from datetime import datetime, timezone
 from .graph_db import Neo4jConnection
 from .graph_serializer import GraphSerializer
 
@@ -61,11 +62,17 @@ class GraphRepository:
 
         # Build SET clauses (exclude sketch_id as it's in MERGE)
         set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys() if prop != "sketch_id"]
-        params = {key_prop: key_value, **serialized_props}
+        params = {
+            key_prop: key_value,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            **serialized_props
+        }
 
         # Build and execute query - MERGE on both key_prop AND sketch_id for uniqueness
+        # Use ON CREATE SET to only set created_at when creating, not updating
         query = f"""
         MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
+        ON CREATE SET n.created_at = $created_at
         SET {', '.join(set_clauses)}
         """
 
@@ -167,11 +174,17 @@ class GraphRepository:
 
         # Build SET clauses (exclude sketch_id as it's in MERGE)
         set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys() if prop != "sketch_id"]
-        params = {key_prop: key_value, **serialized_props}
+        params = {
+            key_prop: key_value,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            **serialized_props
+        }
 
         # MERGE on both key_prop AND sketch_id for uniqueness per sketch
+        # Use ON CREATE SET to only set created_at when creating, not updating
         query = f"""
         MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
+        ON CREATE SET n.created_at = $created_at
         SET {', '.join(set_clauses)}
         """
 
@@ -242,6 +255,54 @@ class GraphRepository:
         if size < 1:
             raise ValueError("Batch size must be at least 1")
         self._batch_size = size
+
+    def create_node_from_import(
+        self,
+        node_type: str,
+        label: str,
+        sketch_id: str,
+        **properties: Any
+    ) -> Optional[str]:
+        """
+        Create a node from import operation (MERGE on sketch_id + label).
+
+        This method is specifically designed for bulk imports where nodes
+        are identified by their label within a sketch, rather than by
+        a type-specific key property.
+
+        Args:
+            node_type: Node label (e.g., "Domain", "Ip")
+            label: Human-readable label for the node
+            sketch_id: Investigation sketch ID
+            **properties: All additional node properties
+
+        Returns:
+            Element ID of the created/found node or None
+        """
+        if not self._connection:
+            return None
+
+        # Serialize and prepare all properties
+        serialized_props = GraphSerializer.serialize_properties(properties)
+        serialized_props["type"] = node_type.lower()
+        serialized_props["label"] = label
+        serialized_props["caption"] = label
+        serialized_props["created_at"] = datetime.now(timezone.utc).isoformat()
+
+        query = f"""
+        MERGE (n:`{node_type}` {{sketch_id: $sketch_id, label: $label}})
+        ON CREATE SET n += $props
+        RETURN elementId(n) as id
+        """
+
+        params = {
+            "sketch_id": sketch_id,
+            "label": label,
+            "props": serialized_props
+        }
+
+        result = self._connection.query(query, params)
+        return result[0]["id"] if result else None
 
     def update_node(
         self,

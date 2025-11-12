@@ -69,6 +69,12 @@ class GraphService:
         """
         Create or update a node in the graph.
 
+        Automatically adds the following properties:
+        - type: Lowercase version of node_type
+        - sketch_id: Current sketch ID
+        - label: Defaults to key_value if not provided
+        - created_at: ISO 8601 UTC timestamp (only on creation via ON CREATE SET)
+
         Args:
             node_type: Node label (e.g., "domain", "ip")
             key_prop: Property name used as unique identifier

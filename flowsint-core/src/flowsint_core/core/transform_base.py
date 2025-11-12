@@ -398,11 +398,21 @@ class Transform(ABC):
         This method now uses the GraphService for improved performance and
         better separation of concerns.
 
+        The following properties are automatically added to every node:
+        - type: Lowercase version of node_type
+        - sketch_id: Current sketch ID from transform context
+        - label: Defaults to key_value if not provided
+        - created_at: ISO 8601 UTC timestamp (only on creation, not updates)
+
         Args:
             node_type: Node label (e.g., "domain", "ip")
             key_prop: Property name used as unique identifier
             key_value: Value of the key property
             **properties: Additional node properties
+
+        Note:
+            Uses MERGE semantics - if a node with the same (key_prop, sketch_id)
+            exists, it will be updated. The created_at field is only set on creation.
         """
         self._graph_service.create_node(
             node_type=node_type,

@@ -11,6 +11,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 from typing import Literal, List, Optional, Dict, Any
+from datetime import datetime, timezone
 from flowsint_core.utils import flatten
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
@@ -258,13 +259,20 @@ def add_node(
 
     cypher_props = dict_to_cypher_props(properties)
 
+    # Add created_at to parameters
+    properties_with_timestamp = {
+        **properties,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+
     create_query = f"""
         MERGE (d:`{node_type}` {{ {cypher_props} }})
+        ON CREATE SET d.created_at = $created_at
         RETURN d as node, elementId(d) as id
     """
 
     try:
-        create_result = neo4j_connection.query(create_query, properties)
+        create_result = neo4j_connection.query(create_query, properties_with_timestamp)
     except Exception as e:
         print(f"Query execution error: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -474,7 +482,9 @@ def merge_nodes(
         """
         params = {"nodeId": newNode.id, "sketch_id": sketch_id, **properties}
     else:
-        # Create a completely new node
+        # Create a completely new node with created_at timestamp
+        properties["created_at"] = datetime.now(timezone.utc).isoformat()
+
         create_query = f"""
         CREATE (n:`{node_type}`)
         SET n = $properties
@@ -861,7 +871,8 @@ async def execute_import(
     # Create mapping lookup by row index
     mappings_by_row = {m.row_index: m for m in entity_mappings if m.include}
 
-    # Import entities
+    # Import entities using GraphRepository
+    graph_repo = GraphRepository(neo4j_connection)
     nodes_created = 0
     nodes_skipped = 0
     errors = []
@@ -878,31 +889,22 @@ async def execute_import(
             label = entity.primary_value
             entity_data = entity.data
 
-        # Create node properties with all data
-        properties = {
-            "type": entity_type.lower(),
-            "sketch_id": sketch_id,
-            "label": label,
-            "caption": label,
-            **entity_data,  # Include all row data (edited or original) as properties
-        }
+        # Flatten entity data for storage
+        flattened_data = flatten(entity_data)
 
-        # Flatten nested dicts if any
-        flattened_props = flatten(properties)
-
-        # Create node in Neo4j
-        create_query = f"""
-            MERGE (n:`{entity_type}` {{sketch_id: $sketch_id, label: $label}})
-            ON CREATE SET n += $props
-            RETURN elementId(n) as id
-        """
-
+        # Create node using GraphRepository
         try:
-            neo4j_connection.query(
-                create_query,
-                {"sketch_id": sketch_id, "label": label, "props": flattened_props},
+            node_id = graph_repo.create_node_from_import(
+                node_type=entity_type,
+                label=label,
+                sketch_id=sketch_id,
+                **flattened_data
             )
-            nodes_created += 1
+            if node_id:
+                nodes_created += 1
+            else:
+                nodes_skipped += 1
+                errors.append(f"Row {entity.row_index + 1}: Failed to create node")
         except Exception as e:
             error_msg = f"Row {entity.row_index + 1}: {str(e)}"
             errors.append(error_msg)

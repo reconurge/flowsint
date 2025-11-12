@@ -273,7 +273,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
           />
         </div>
         <div></div> {/* Icon */}
-        <div className="text-center">Label</div>
+        <div className="text-left">Label</div>
         <div>Type</div>
         <div>Created</div>
         <div></div> {/* Actions */}

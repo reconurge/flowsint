@@ -9,7 +9,7 @@ const GraphMain = () => {
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
 
-  const graphRef = useRef<any>()
+  const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = React.useState<any>(null)
 

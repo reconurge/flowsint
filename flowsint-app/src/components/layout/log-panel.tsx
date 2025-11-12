@@ -24,6 +24,15 @@ import { useEvents } from '@/hooks/use-events'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
 
+const formatTime = (date: string) => {
+  return new Date(date).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
 const logLevelConfig = {
   [EventLevel.INFO]: {
     icon: Info,
@@ -141,15 +150,6 @@ export const LogPanel = memo(() => {
     await deleteLogsMutation.mutateAsync(sketch_id)
   }
 
-  const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
-  }
-
   return (
     <div className="h-full bg-card overflow-hidden border-t flex flex-col relative">
       <div
@@ -159,11 +159,6 @@ export const LogPanel = memo(() => {
         <div className="text-sm h-full">
           {logs.length === 0 ? (
             <div className="text-center text-muted-foreground h-full py-8 flex !overflow-hidden flex-col items-center justify-center">
-              {/* <div className="flex items-center gap-2 mb-4">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
-                            </div> */}
               <p className="text-lg font-medium mb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-primary animate-pulse" /> Waiting for investigation
                 activity

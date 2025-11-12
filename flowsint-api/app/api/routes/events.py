@@ -67,6 +67,7 @@ def get_logs_by_sketch(
                 sketch_id=str(log.sketch_id) if log.sketch_id else None,
                 type=log.type,
                 payload=payload,
+                created_at=log.created_at
             )
         )
 

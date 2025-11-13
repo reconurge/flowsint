@@ -48,9 +48,9 @@ export const ToolbarButton = memo(function ToolbarButton({
             variant="outline"
             size="icon"
             className={cn(
-              'h-8 w-8 relative shadow-none',
+              'h-8 w-8 relative shadow-none bg-card',
               toggled &&
-                'bg-primary/30 border-primary text-primary hover:bg-primary/40 hover:text-primary'
+              'bg-primary/30 border-primary text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
             {icon}
@@ -133,8 +133,8 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <div className="flex w-full justify-between gap-2 items-center">
-      <div className="flex items-center gap-2">
+    <>
+      <div className="absolute top-2 left-2 flex items-center gap-2">
         <TooltipProvider>
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
@@ -191,7 +191,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           />
         </TooltipProvider>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="absolute top-2 right-2 flex items-center gap-2">
         <TooltipProvider>
           <ToolbarButton
             icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
@@ -225,6 +225,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           />
         </TooltipProvider>
       </div>
-    </div>
+    </>
   )
 })

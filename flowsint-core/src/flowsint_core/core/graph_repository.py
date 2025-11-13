@@ -547,6 +547,40 @@ class GraphRepository:
 
         return self._connection.query(cypher, parameters)
 
+    def update_nodes_positions(
+        self,
+        positions: List[Dict[str, Any]],
+        sketch_id: str
+    ) -> int:
+        """
+        Update positions (x, y) for multiple nodes in batch.
+
+        Args:
+            positions: List of dicts with keys 'nodeId', 'x', 'y'
+            sketch_id: Investigation sketch ID (for safety)
+
+        Returns:
+            Number of nodes updated
+        """
+        if not self._connection or not positions:
+            return 0
+
+        query = """
+        UNWIND $positions AS pos
+        MATCH (n)
+        WHERE elementId(n) = pos.nodeId AND n.sketch_id = $sketch_id
+        SET n.x = pos.x, n.y = pos.y
+        RETURN count(n) as updated_count
+        """
+
+        params = {
+            "positions": positions,
+            "sketch_id": sketch_id
+        }
+
+        result = self._connection.query(query, params)
+        return result[0]["updated_count"] if result else 0
+
     def __enter__(self):
         """Context manager entry."""
         return self

@@ -10,7 +10,9 @@ import { useTheme } from '@/components/theme-provider'
 import { Info, Plus, Share2, Type, Upload } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
-import MiniMap from './minimap'
+import { sketchService } from '@/api/sketch-service'
+import { useDebounce } from '@/hooks/use-debounce'
+import { toast } from 'sonner'
 
 function truncateText(text: string, limit: number = 16) {
   if (text.length <= limit) return text
@@ -35,6 +37,7 @@ interface GraphViewerProps {
   instanceId?: string // Add instanceId prop for instance-specific actions
   allowLasso?: boolean
   minimap?: boolean
+  sketchId?: string // Add sketchId for saving node positions
 }
 
 // Graph viewer specific colors
@@ -97,9 +100,6 @@ interface LabelRenderingCompound {
   }
 }
 
-// Pre-computed constants
-const LABEL_FONT_STRING = `${CONSTANTS.LABEL_FONT_SIZE}px Sans-Serif`
-
 // Reusable objects to avoid allocations
 const tempPos = { x: 0, y: 0 }
 const tempDimensions = [0, 0]
@@ -152,7 +152,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   onGraphRef,
   instanceId,
   allowLasso = false,
-  minimap = false
+  minimap = false,
+  sketchId
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const isLassoActive = useGraphControls((s) => s.isLassoActive)
@@ -163,6 +164,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const [currentZoom, setCurrentZoom] = useState<number>(1)
   const zoomRef = useRef({ k: 1, x: 0, y: 0 })
   const hoverFrameRef = useRef<number | null>(null)
+
+  // Node position tracking for saving
+  const [changedNodePositions, setChangedNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map())
+  const [isStabilizing, setIsStabilizing] = useState(true)
   // The ref for the node weighlist.
   const labelRenderingCompound = useRef<LabelRenderingCompound>({
     weightList: new Map(),
@@ -188,6 +193,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const { theme } = useTheme()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
+
+  // Debounced value to trigger save
+  const debouncedChangedPositions = useDebounce(changedNodePositions, 1000)
 
   const shouldUseSimpleRendering = useMemo(
     () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5,
@@ -245,9 +253,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const graph2ScreenCoords = useCallback(
     (node: GraphNode) => {
+      if (!graphRef.current) return { x: 0, y: 0 }
       return graphRef.current.graph2ScreenCoords(node.x, node.y)
     },
-    [graphRef.current]
+    []
   )
 
   const isCurrent = useCallback(
@@ -283,79 +292,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [currentZoom])
 
-  // Optimized graph initialization callback
-  const initializeGraph = useCallback(
-    (graphInstance: any) => {
-      if (!graphInstance) return
-      // Check if the graph instance has the required methods
-      if (
-        typeof graphInstance.zoom !== 'function' ||
-        typeof graphInstance.zoomToFit !== 'function'
-      ) {
-        // If methods aren't available yet, retry after a short delay
-        setTimeout(() => {
-          if (graphRef.current && !isGraphReadyRef.current) {
-            initializeGraph(graphRef.current)
-          }
-        }, 100)
-        return
-      }
-      if (isGraphReadyRef.current) return
-      isGraphReadyRef.current = true
-      // Only set global actions if no instanceId is provided (for main graph)
-      if (!instanceId) {
-        setActions({
-          zoomIn: () => {
-            if (graphRef.current && typeof graphRef.current.zoom === 'function') {
-              const zoom = graphRef.current.zoom()
-              graphRef.current.zoom(zoom * 1.5)
-            }
-          },
-          zoomOut: () => {
-            if (graphRef.current && typeof graphRef.current.zoom === 'function') {
-              const zoom = graphRef.current.zoom()
-              graphRef.current.zoom(zoom * 0.75)
-            }
-          },
-          zoomToFit: () => {
-            if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-              graphRef.current.zoomToFit(400)
-            }
-          }
-        })
-      }
-      // Call external ref callback
-      onGraphRef?.(graphInstance)
-    },
-    [setActions, onGraphRef, instanceId]
-  )
-
-  // Handle graph ref changes and ensure actions are set up
-  useEffect(() => {
-    if (graphRef.current) {
-      initializeGraph(graphRef.current)
-    }
-    // Cleanup: reset actions when component unmounts (only for main graph)
-    return () => {
-      if (!instanceId && isGraphReadyRef.current) {
-        setActions({
-          zoomIn: () => { },
-          zoomOut: () => { },
-          zoomToFit: () => { }
-        })
-        isGraphReadyRef.current = false
-      }
-    }
-  }, [initializeGraph])
-
-  // Additional effect to ensure actions are set up when graph is ready
-  useEffect(() => {
-    if (graphRef.current && !instanceId && !isGraphReadyRef.current) {
-      // Try to initialize again if the graph is available but not marked as ready
-      initializeGraph(graphRef.current)
-    }
-  }, [graphRef.current, initializeGraph, instanceId])
-
   // Handle container size changes
   useEffect(() => {
     const updateSize = () => {
@@ -387,7 +323,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     // Transform nodes
     const transformedNodes = nodes.map((node) => {
       const type = node.data?.type as ItemType
-      return {
+      const transformed = {
         ...node,
         nodeLabel: node.data?.label || node.id,
         nodeColor: nodeColors[type] || GRAPH_COLORS.NODE_DEFAULT,
@@ -397,6 +333,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         neighbors: [] as any[],
         links: [] as any[]
       } as GraphNode & { neighbors: any[]; links: any[] }
+
+      // If node has saved positions, fix them so ForceGraph doesn't recalculate
+      if (node.x !== undefined && node.y !== undefined) {
+        // @ts-ignore
+        transformed.fx = node.x
+        // @ts-ignore
+        transformed.fy = node.y
+      }
+
+      return transformed
     })
     // Create a map for quick node lookup
     const nodeMap = new Map(transformedNodes.map((node) => [node.id, node]))
@@ -447,42 +393,132 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         .map((node) => [node.id, node.neighbors.length])
     )
     labelRenderingCompound.current.constants = { nodesLength: transformedNodes.length }
-    // Handle hierarchy layout
-    if (view === 'hierarchy') {
-      const { nodes: nds, edges: eds } = getDagreLayoutedElements(
-        transformedNodes,
-        transformedEdges
-      )
-      return {
-        nodes: nds.map((nd) => ({
-          ...nd,
-          // Preserve the neighbors and links from the original transformed node
-          neighbors: nodeMap.get(nd.id)?.neighbors || [],
-          links: nodeMap.get(nd.id)?.links || []
-        })),
-        links: eds
-      }
-    }
+
+    // Always use force layout - positions are preserved if they exist (fx/fy set above)
     return {
       nodes: transformedNodes,
       links: transformedEdges
     }
-  }, [nodes, edges, nodeColors, getSize, view])
+  }, [nodes, edges, nodeColors, getSize])
 
-  // Retry initialization if graph data changes and actions aren't set up
-  useEffect(() => {
-    if (graphData.nodes.length > 0 && graphRef.current && !instanceId && !isGraphReadyRef.current) {
-      // Small delay to ensure the graph has rendered
-      const timeoutId = setTimeout(() => {
-        if (graphRef.current && !isGraphReadyRef.current) {
-          initializeGraph(graphRef.current)
-        }
-      }, 200)
-      return () => clearTimeout(timeoutId)
+  // Regenerate layout by removing fixed positions and reheating simulation
+  const regenerateLayout = useCallback((layoutType: 'force' | 'hierarchy') => {
+    if (!graphRef.current) {
+      console.error('[Graph] graphRef.current is null')
+      throw new Error('Graph reference is not available')
     }
-    return undefined
-  }, [graphData.nodes.length, initializeGraph, instanceId])
 
+    if (!graphData || !graphData.nodes) {
+      console.error('[Graph] No nodes in graph data')
+      throw new Error('No nodes available in graph')
+    }
+
+    // Remove fx and fy from all nodes to allow repositioning
+    graphData.nodes.forEach((node: any) => {
+      delete node.fx
+      delete node.fy
+    })
+
+    if (layoutType === 'hierarchy') {
+      // Apply dagre layout for hierarchical positioning
+      const { nodes: layoutedNodes } = getDagreLayoutedElements(
+        graphData.nodes,
+        graphData.links
+      )
+
+      // Apply the calculated positions to the graph nodes
+      layoutedNodes.forEach((layoutedNode: any) => {
+        const graphNode = graphData.nodes.find((n: any) => n.id === layoutedNode.id)
+        if (graphNode && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
+          graphNode.x = layoutedNode.x
+          graphNode.y = layoutedNode.y
+          graphNode.fx = layoutedNode.x
+          graphNode.fy = layoutedNode.y
+        }
+      })
+    } else {
+      // Force layout: reheat the simulation to recalculate positions
+      if (typeof graphRef.current.d3ReheatSimulation !== 'function') {
+        console.error('[Graph] d3ReheatSimulation method not available')
+        throw new Error('d3ReheatSimulation method is not available')
+      }
+
+      graphRef.current.d3ReheatSimulation()
+    }
+
+    // Zoom to fit after a delay to see the new layout
+    setTimeout(() => {
+      if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+        graphRef.current.zoomToFit(400)
+      }
+    }, 500)
+  }, [graphData])
+
+  // Optimized graph initialization callback
+  const initializeGraph = useCallback(
+    (graphInstance: any) => {
+      if (!graphInstance) return
+      // Check if the graph instance has the required methods
+      if (
+        typeof graphInstance.zoom !== 'function' ||
+        typeof graphInstance.zoomToFit !== 'function'
+      ) {
+        // If methods aren't available yet, retry after a short delay
+        setTimeout(() => {
+          if (graphRef.current && !isGraphReadyRef.current) {
+            initializeGraph(graphRef.current)
+          }
+        }, 100)
+        return
+      }
+      if (isGraphReadyRef.current) return
+      isGraphReadyRef.current = true
+      // Only set global actions if no instanceId is provided (for main graph)
+      if (!instanceId) {
+        setActions({
+          zoomIn: () => {
+            if (graphRef.current && typeof graphRef.current.zoom === 'function') {
+              const zoom = graphRef.current.zoom()
+              graphRef.current.zoom(zoom * 1.5)
+            }
+          },
+          zoomOut: () => {
+            if (graphRef.current && typeof graphRef.current.zoom === 'function') {
+              const zoom = graphRef.current.zoom()
+              graphRef.current.zoom(zoom * 0.75)
+            }
+          },
+          zoomToFit: () => {
+            if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+              graphRef.current.zoomToFit(400)
+            }
+          },
+          regenerateLayout: regenerateLayout
+        })
+      }
+      // Call external ref callback
+      onGraphRef?.(graphInstance)
+    },
+    [setActions, onGraphRef, instanceId, regenerateLayout]
+  )
+
+  // Initialize graph once ready
+  useEffect(() => {
+    if (graphRef.current) {
+      initializeGraph(graphRef.current)
+    }
+    return () => {
+      if (!instanceId && isGraphReadyRef.current) {
+        setActions({
+          zoomIn: () => { },
+          zoomOut: () => { },
+          zoomToFit: () => { },
+          regenerateLayout: () => { }
+        })
+        isGraphReadyRef.current = false
+      }
+    }
+  }, [initializeGraph, instanceId, setActions])
 
   // Event handlers with proper memoization
   const handleNodeClick = useCallback(
@@ -510,6 +546,21 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const handleOpenImportDialog = useCallback(() => {
     setImportModalOpen(true)
   }, [setImportModalOpen])
+
+  // Handle node drag end with position tracking
+  const handleNodeDragEnd = useCallback((node: any) => {
+    node.fx = node.x
+    node.fy = node.y
+
+    // Track position changes for saving (only if not stabilizing and sketchId exists)
+    if (!isStabilizing && sketchId && node.x !== undefined && node.y !== undefined) {
+      setChangedNodePositions(prev => {
+        const newMap = new Map(prev)
+        newMap.set(node.id, { x: node.x!, y: node.y! })
+        return newMap
+      })
+    }
+  }, [isStabilizing, sketchId])
 
 
   // Throttled hover handlers using RAF for better performance
@@ -579,8 +630,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
               y,
               data: {
                 label,
-                type: node.data.type,
-                connections: weight
+                type: node.data?.type || 'unknown',
+                connections: weight.toString()
               },
               visible: true
             })
@@ -943,6 +994,49 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [])
 
+  // Mark graph as stabilized after warmupTicks
+  useEffect(() => {
+    const warmupTicks = forceSettings?.warmupTicks?.value ?? 0
+    if (warmupTicks > 0) {
+      setIsStabilizing(true)
+      // Wait for warmup + a small buffer to ensure graph has stabilized
+      const timeout = setTimeout(() => {
+        setIsStabilizing(false)
+      }, warmupTicks * 10 + 500) // Approximate time for warmup ticks
+
+      return () => clearTimeout(timeout)
+    } else {
+      setIsStabilizing(false)
+    }
+  }, [forceSettings?.warmupTicks?.value, nodes.length, edges.length])
+
+  // Save positions when debounced value changes
+  useEffect(() => {
+    if (isStabilizing || !sketchId || debouncedChangedPositions.size === 0) {
+      return
+    }
+
+    const positions = Array.from(debouncedChangedPositions.entries()).map(([nodeId, pos]) => ({
+      nodeId,
+      x: pos.x,
+      y: pos.y
+    }))
+
+    const savePromise = sketchService.updateNodePositions(sketchId, positions)
+
+    toast.promise(savePromise, {
+      loading: `Saving positions for ${positions.length} node${positions.length > 1 ? 's' : ''}...`,
+      success: (result) => {
+        setChangedNodePositions(new Map())
+        return `Successfully saved ${result.count || positions.length} node position${positions.length > 1 ? 's' : ''}`
+      },
+      error: (error) => {
+        console.error('[Graph] Failed to save node positions:', error)
+        return 'Failed to save node positions. Please try again.'
+      }
+    })
+  }, [debouncedChangedPositions, isStabilizing, sketchId])
+
   // Empty state
   if (!nodes.length) {
     return (
@@ -1051,11 +1145,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onBackgroundClick={handleBackgroundClick}
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNode}
-        onNodeDragEnd={(node) => {
-          node.fx = node.x
-          node.fy = node.y
-        }}
-        cooldownTicks={view === 'hierarchy' ? 0 : forceSettings.cooldownTicks.value}
+        onNodeDragEnd={handleNodeDragEnd}
+        cooldownTicks={forceSettings.cooldownTicks.value}
         cooldownTime={forceSettings.cooldownTime.value}
         d3AlphaDecay={forceSettings.d3AlphaDecay.value}
         d3AlphaMin={forceSettings.d3AlphaMin.value}

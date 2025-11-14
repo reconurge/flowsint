@@ -95,5 +95,14 @@ export const sketchService = {
       method: 'POST',
       body: formData
     })
+  },
+  updateNodePositions: async (
+    sketchId: string,
+    positions: Array<{ nodeId: string; x: number; y: number }>
+  ): Promise<any> => {
+    return fetchWithAuth(`/api/sketches/${sketchId}/nodes/positions`, {
+      method: 'PUT',
+      body: JSON.stringify({ positions })
+    })
   }
 }

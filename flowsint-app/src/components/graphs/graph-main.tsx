@@ -5,8 +5,10 @@ import React, { useRef, useCallback } from 'react'
 import ContextMenu from './context-menu'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import GraphViewer from './graph-viewer'
+import { useParams } from '@tanstack/react-router'
 
 const GraphMain = () => {
+  const { id: sketchId } = useParams({ strict: false })
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
@@ -76,6 +78,7 @@ const GraphMain = () => {
         onGraphRef={handleGraphRef}
         allowLasso
         minimap={false}
+        sketchId={sketchId}
       />
 
       {menu && <ContextMenu onClick={handleBackgroundClick} {...menu} />}

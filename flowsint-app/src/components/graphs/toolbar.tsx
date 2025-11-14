@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Filters from './filters'
 import { useGraphStore } from '@/stores/graph-store'
+import { useConfirm } from '@/components/use-confirm-dialog'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -67,12 +68,13 @@ export const ToolbarButton = memo(function ToolbarButton({
   )
 })
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
+  const { confirm } = useConfirm()
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
   const zoomToFit = useGraphControls((s) => s.zoomToFit)
   const zoomIn = useGraphControls((s) => s.zoomIn)
   const zoomOut = useGraphControls((s) => s.zoomOut)
-  const onLayout = useGraphControls((s) => s.onLayout)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
   const isLassoActive = useGraphControls((s) => s.isLassoActive)
   const setIsLassoActive = useGraphControls((s) => s.setIsLassoActive)
@@ -87,12 +89,57 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     } catch (error) {
       toast.error('Failed to refresh graph data')
     }
-  }, [refetchGraph, onLayout])
+  }, [refetchGraph])
 
-  const handleForceLayout = useCallback(() => {
-    setView('force')
-    setTimeout(() => zoomToFit(), 500)
-  }, [setView, zoomToFit])
+  const handleRegenerateForceLayout = useCallback(async () => {
+    console.log('[Toolbar] handleRegenerateForceLayout called')
+    console.log('[Toolbar] regenerateLayout function:', regenerateLayout)
+    console.log('[Toolbar] regenerateLayout is function?', typeof regenerateLayout === 'function')
+
+    const confirmed = await confirm({
+      title: 'Regenerate force layout?',
+      message: 'This will reset all node positions and regenerate them using the force-directed layout algorithm. Current positions will be lost.'
+    })
+
+    if (!confirmed) {
+      console.log('[Toolbar] User cancelled regeneration')
+      return
+    }
+
+    console.log('[Toolbar] Calling regenerateLayout with force')
+    try {
+      regenerateLayout('force')
+      console.log('[Toolbar] regenerateLayout completed successfully')
+      toast.success('Force layout regenerated successfully')
+    } catch (error) {
+      console.error('[Toolbar] Failed to regenerate layout:', error)
+      toast.error(`Failed to regenerate layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }, [confirm, regenerateLayout])
+
+  const handleRegenerateHierarchyLayout = useCallback(async () => {
+    console.log('[Toolbar] handleRegenerateHierarchyLayout called')
+
+    const confirmed = await confirm({
+      title: 'Regenerate hierarchy layout?',
+      message: 'This will reset all node positions and regenerate them using the hierarchical layout algorithm. Current positions will be lost.'
+    })
+
+    if (!confirmed) {
+      console.log('[Toolbar] User cancelled regeneration')
+      return
+    }
+
+    console.log('[Toolbar] Calling regenerateLayout with hierarchy')
+    try {
+      regenerateLayout('hierarchy')
+      console.log('[Toolbar] regenerateLayout completed successfully')
+      toast.success('Hierarchy layout regenerated successfully')
+    } catch (error) {
+      console.error('[Toolbar] Failed to regenerate layout:', error)
+      toast.error(`Failed to regenerate layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }, [confirm, regenerateLayout])
 
   const handleTableLayout = useCallback(() => {
     setView('table')
@@ -105,12 +152,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const handleRelationshipsLayout = useCallback(() => {
     setView('relationships')
   }, [setView])
-
-  const handleDagreLayoutTB = useCallback(() => {
-    setView('hierarchy')
-    onLayout && onLayout('dagre-tb')
-    setTimeout(() => zoomToFit(), 200)
-  }, [onLayout, setView, zoomToFit])
 
   const handleOpenAddRelationDialog = useCallback(() => {
     setOpenAddRelationDialog(true)
@@ -154,26 +195,26 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'force' || isLassoActive}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}
             tooltip="Zoom Out"
             onClick={zoomOut}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'force' || isLassoActive}
           />
           <ToolbarButton
             icon={<Maximize className="h-4 w-4 opacity-70" />}
             tooltip="Fit to View"
             onClick={zoomToFit}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'force' || isLassoActive}
           />
           <ToolbarButton
             icon={<LassoSelect className="h-4 w-4 opacity-70" />}
             tooltip={'Lasso select'}
             onClick={handleLassoSelect}
             toggled={isLassoActive}
-            disabled={!['force', 'hierarchy'].includes(view)}
+            disabled={view !== 'force'}
           />
           <Filters>
             <ToolbarButton
@@ -195,15 +236,15 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         <TooltipProvider>
           <ToolbarButton
             icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-            tooltip={`Hierarchy`}
-            toggled={['hierarchy'].includes(view)}
-            onClick={handleDagreLayoutTB}
+            tooltip={'Regenerate hierarchy layout'}
+            onClick={handleRegenerateHierarchyLayout}
+            disabled={isLoading}
           />
           <ToolbarButton
             icon={<Waypoints className="h-4 w-4 opacity-70" />}
-            tooltip={'Graph view'}
-            toggled={['force'].includes(view)}
-            onClick={handleForceLayout}
+            tooltip={'Regenerate force layout'}
+            onClick={handleRegenerateForceLayout}
+            disabled={isLoading}
           />
           <ToolbarButton
             icon={<List className="h-4 w-4 opacity-70" />}

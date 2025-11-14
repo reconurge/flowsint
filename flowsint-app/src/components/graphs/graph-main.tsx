@@ -1,9 +1,10 @@
 import { useGraphStore } from '@/stores/graph-store'
 import React, { useRef, useCallback } from 'react'
 // import GraphViewer from './graph-viewer'
-import WebGLGraphViewer from './webgl'
+// import WebGLGraphViewer from './webgl'
 import ContextMenu from './context-menu'
 import { useGraphControls } from '@/stores/graph-controls-store'
+import GraphViewer from './graph-viewer'
 
 const GraphMain = () => {
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
@@ -56,15 +57,14 @@ const GraphMain = () => {
   }, [])
   return (
     <div ref={containerRef} className="relative h-full w-full bg-background">
-      <WebGLGraphViewer
+      {/* <WebGLGraphViewer
         nodes={filteredNodes}
         edges={filteredEdges}
         onNodeClick={handleNodeClick}
         onNodeRightClick={onNodeContextMenu}
         onBackgroundClick={handleBackgroundClick}
         layoutMode={layoutMode}
-      />
-      {/* Ancien composant pour référence
+      /> */}
       <GraphViewer
         nodes={filteredNodes}
         edges={filteredEdges}
@@ -77,7 +77,7 @@ const GraphMain = () => {
         allowLasso
         minimap={false}
       />
-      */}
+
       {menu && <ContextMenu onClick={handleBackgroundClick} {...menu} />}
     </div>
   )

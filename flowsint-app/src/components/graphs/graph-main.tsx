@@ -3,7 +3,6 @@ import React, { useRef, useCallback } from 'react'
 // import GraphViewer from './graph-viewer'
 // import WebGLGraphViewer from './webgl'
 import ContextMenu from './context-menu'
-import { useGraphControls } from '@/stores/graph-controls-store'
 import GraphViewer from './graph-viewer'
 import { useParams } from '@tanstack/react-router'
 
@@ -13,7 +12,6 @@ const GraphMain = () => {
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
-  const layoutMode = useGraphControls((s) => s.layoutMode)
 
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)

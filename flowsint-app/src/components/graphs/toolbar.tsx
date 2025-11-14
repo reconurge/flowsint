@@ -69,6 +69,8 @@ export const ToolbarButton = memo(function ToolbarButton({
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
+  const layoutMode = useGraphControls((s) => s.layoutMode)
+  const setLayoutMode = useGraphControls((s) => s.setLayoutMode)
   const zoomToFit = useGraphControls((s) => s.zoomToFit)
   const zoomIn = useGraphControls((s) => s.zoomIn)
   const zoomOut = useGraphControls((s) => s.zoomOut)
@@ -87,30 +89,36 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     } catch (error) {
       toast.error('Failed to refresh graph data')
     }
-  }, [refetchGraph, onLayout])
+  }, [refetchGraph])
 
-  const handleForceLayout = useCallback(() => {
-    setView('force')
-    setTimeout(() => zoomToFit(), 500)
-  }, [setView, zoomToFit])
+  // View handlers
+  const handleGraphView = useCallback(() => {
+    setView('graph')
+  }, [setView])
 
-  const handleTableLayout = useCallback(() => {
+  const handleTableView = useCallback(() => {
     setView('table')
   }, [setView])
 
-  const handleMapLayout = useCallback(() => {
+  const handleMapView = useCallback(() => {
     setView('map')
   }, [setView])
 
-  const handleRelationshipsLayout = useCallback(() => {
+  const handleRelationshipsView = useCallback(() => {
     setView('relationships')
   }, [setView])
 
-  const handleDagreLayoutTB = useCallback(() => {
-    setView('hierarchy')
+  // Layout handlers (only active when in graph view)
+  const handleForceLayout = useCallback(() => {
+    setLayoutMode('force')
+    setTimeout(() => zoomToFit(), 500)
+  }, [setLayoutMode, zoomToFit])
+
+  const handleDagreLayout = useCallback(() => {
+    setLayoutMode('dagre')
     onLayout && onLayout('dagre-tb')
     setTimeout(() => zoomToFit(), 200)
-  }, [onLayout, setView, zoomToFit])
+  }, [onLayout, setLayoutMode, zoomToFit])
 
   const handleOpenAddRelationDialog = useCallback(() => {
     setOpenAddRelationDialog(true)
@@ -154,26 +162,26 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}
             tooltip="Zoom Out"
             onClick={zoomOut}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<Maximize className="h-4 w-4 opacity-70" />}
             tooltip="Fit to View"
             onClick={zoomToFit}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<LassoSelect className="h-4 w-4 opacity-70" />}
             tooltip={'Lasso select'}
             onClick={handleLassoSelect}
             toggled={isLassoActive}
-            disabled={!['force', 'hierarchy'].includes(view)}
+            disabled={view !== 'graph'}
           />
           <Filters>
             <ToolbarButton
@@ -193,35 +201,48 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       </div>
       <div className="absolute top-2 right-2 flex items-center gap-2">
         <TooltipProvider>
-          <ToolbarButton
-            icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-            tooltip={`Hierarchy`}
-            toggled={['hierarchy'].includes(view)}
-            onClick={handleDagreLayoutTB}
-          />
+          {/* Layout buttons - only visible when in graph view */}
+          {view === 'graph' && (
+            <>
+              <ToolbarButton
+                icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
+                tooltip="Dagre Layout"
+                toggled={layoutMode === 'dagre'}
+                onClick={handleDagreLayout}
+              />
+              <ToolbarButton
+                icon={<Waypoints className="h-4 w-4 opacity-70" />}
+                tooltip="Force Layout"
+                toggled={layoutMode === 'force'}
+                onClick={handleForceLayout}
+              />
+            </>
+          )}
+
+          {/* View buttons */}
           <ToolbarButton
             icon={<Waypoints className="h-4 w-4 opacity-70" />}
-            tooltip={'Graph view'}
-            toggled={['force'].includes(view)}
-            onClick={handleForceLayout}
+            tooltip="Graph view"
+            toggled={view === 'graph'}
+            onClick={handleGraphView}
           />
           <ToolbarButton
             icon={<List className="h-4 w-4 opacity-70" />}
-            tooltip={'Table view'}
-            toggled={['table'].includes(view)}
-            onClick={handleTableLayout}
+            tooltip="Table view"
+            toggled={view === 'table'}
+            onClick={handleTableView}
           />
           <ToolbarButton
             icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
-            tooltip={'Relationships view'}
-            toggled={['relationships'].includes(view)}
-            onClick={handleRelationshipsLayout}
+            tooltip="Relationships view"
+            toggled={view === 'relationships'}
+            onClick={handleRelationshipsView}
           />
           <ToolbarButton
             icon={<MapPin className="h-4 w-4 opacity-70" />}
-            tooltip={'Map view'}
-            toggled={['map'].includes(view)}
-            onClick={handleMapLayout}
+            tooltip="Map view"
+            toggled={view === 'map'}
+            onClick={handleMapView}
           />
         </TooltipProvider>
       </div>

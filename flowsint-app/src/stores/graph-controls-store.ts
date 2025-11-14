@@ -1,8 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+type ViewType = 'graph' | 'table' | 'map' | 'relationships'
+type LayoutMode = 'none' | 'force' | 'dagre'
+
 type GraphControlsStore = {
-  view: 'force' | 'hierarchy' | 'table' | 'map' | 'relationships'
+  view: ViewType
+  layoutMode: LayoutMode
   isLassoActive: boolean
   zoomToFit: () => void
   zoomIn: () => void
@@ -10,14 +14,16 @@ type GraphControlsStore = {
   onLayout: (layout: any) => void
   setActions: (actions: Partial<GraphControlsStore>) => void
   refetchGraph: () => void
-  setView: (view: 'force' | 'hierarchy' | 'table' | 'map' | 'relationships') => void
+  setView: (view: ViewType) => void
+  setLayoutMode: (mode: LayoutMode) => void
   setIsLassoActive: (active: boolean) => void
 }
 
 export const useGraphControls = create<GraphControlsStore>()(
   persist(
     (set) => ({
-      view: 'hierarchy',
+      view: 'graph',
+      layoutMode: 'none',
       isLassoActive: false,
       zoomToFit: () => {},
       zoomIn: () => {},
@@ -26,11 +32,12 @@ export const useGraphControls = create<GraphControlsStore>()(
       setActions: (actions) => set(actions),
       refetchGraph: () => {},
       setView: (view) => set({ view }),
+      setLayoutMode: (mode) => set({ layoutMode: mode }),
       setIsLassoActive: (active) => set({ isLassoActive: active })
     }),
     {
       name: 'graph-controls-storage',
-      partialize: (state) => ({ view: state.view })
+      partialize: (state) => ({ view: state.view, layoutMode: state.layoutMode })
     }
   )
 )

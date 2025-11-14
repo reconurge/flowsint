@@ -117,12 +117,15 @@ services:
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - MASTER_VAULT_KEY_V1=${MASTER_VAULT_KEY_V1}
       - REDIS_URL=redis://redis:6379/0
+      - SKIP_MIGRATIONS=true
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       neo4j:
+        condition: service_healthy
+      api:
         condition: service_healthy
     networks:
       - flowsint_network

@@ -91,6 +91,11 @@ services:
         condition: service_healthy
       neo4j:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - flowsint_network
 
@@ -136,7 +141,8 @@ services:
     networks:
       - flowsint_network
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 networks:
   flowsint_network:

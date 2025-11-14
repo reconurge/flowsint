@@ -10,9 +10,7 @@ import { useTheme } from '@/components/theme-provider'
 import { Info, Plus, Share2, Type, Upload } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
-import { sketchService } from '@/api/sketch-service'
-import { useDebounce } from '@/hooks/use-debounce'
-import { toast } from 'sonner'
+import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
 
 function truncateText(text: string, limit: number = 16) {
   if (text.length <= limit) return text
@@ -165,9 +163,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const zoomRef = useRef({ k: 1, x: 0, y: 0 })
   const hoverFrameRef = useRef<number | null>(null)
 
-  // Node position tracking for saving
-  const [changedNodePositions, setChangedNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map())
-  const [isStabilizing, setIsStabilizing] = useState(true)
+  // Use the dedicated hook for saving node positions
+  const { saveAllNodePositions, markAsStabilized, markAsStabilizing } = useSaveNodePositions(sketchId)
+
   // The ref for the node weighlist.
   const labelRenderingCompound = useRef<LabelRenderingCompound>({
     weightList: new Map(),
@@ -193,9 +191,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const { theme } = useTheme()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
-
-  // Debounced value to trigger save
-  const debouncedChangedPositions = useDebounce(changedNodePositions, 1000)
 
   const shouldUseSimpleRendering = useMemo(
     () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5,
@@ -428,7 +423,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
       // Apply the calculated positions to the graph nodes
       layoutedNodes.forEach((layoutedNode: any) => {
-        const graphNode = graphData.nodes.find((n: any) => n.id === layoutedNode.id)
+        const graphNode = graphData.nodes.find((n: any) => n.id === layoutedNode.id) as any
         if (graphNode && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
           graphNode.x = layoutedNode.x
           graphNode.y = layoutedNode.y
@@ -436,6 +431,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           graphNode.fy = layoutedNode.y
         }
       })
+
+      // Save all node positions immediately after hierarchy layout (force save)
+      saveAllNodePositions(graphData.nodes, true)
     } else {
       // Force layout: reheat the simulation to recalculate positions
       if (typeof graphRef.current.d3ReheatSimulation !== 'function') {
@@ -443,7 +441,19 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         throw new Error('d3ReheatSimulation method is not available')
       }
 
+      // Mark as stabilizing to prevent saving during force simulation
+      markAsStabilizing()
       graphRef.current.d3ReheatSimulation()
+
+      // For force layout, save positions after simulation stabilizes
+      const warmupTicks = forceSettings?.warmupTicks?.value ?? 0
+      const stabilizationTime = warmupTicks * 10 + 1500 // Wait for simulation to stabilize
+
+      setTimeout(() => {
+        markAsStabilized()
+        // Force save all positions after stabilization
+        saveAllNodePositions(graphData.nodes, true)
+      }, stabilizationTime)
     }
 
     // Zoom to fit after a delay to see the new layout
@@ -452,7 +462,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         graphRef.current.zoomToFit(400)
       }
     }, 500)
-  }, [graphData])
+  }, [graphData, sketchId, forceSettings, saveAllNodePositions, markAsStabilized, markAsStabilizing])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(
@@ -547,20 +557,17 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     setImportModalOpen(true)
   }, [setImportModalOpen])
 
-  // Handle node drag end with position tracking
+  // Handle node drag end - save ALL node positions
   const handleNodeDragEnd = useCallback((node: any) => {
     node.fx = node.x
     node.fy = node.y
 
-    // Track position changes for saving (only if not stabilizing and sketchId exists)
-    if (!isStabilizing && sketchId && node.x !== undefined && node.y !== undefined) {
-      setChangedNodePositions(prev => {
-        const newMap = new Map(prev)
-        newMap.set(node.id, { x: node.x!, y: node.y! })
-        return newMap
-      })
+    // Save positions of ALL nodes when one node is dragged
+    // In a force-directed graph, moving one node can affect others
+    if (graphData?.nodes) {
+      saveAllNodePositions(graphData.nodes)
     }
-  }, [isStabilizing, sketchId])
+  }, [graphData, saveAllNodePositions])
 
 
   // Throttled hover handlers using RAF for better performance
@@ -994,48 +1001,22 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [])
 
-  // Mark graph as stabilized after warmupTicks
+  // Mark graph as stabilizing on initial load
   useEffect(() => {
     const warmupTicks = forceSettings?.warmupTicks?.value ?? 0
     if (warmupTicks > 0) {
-      setIsStabilizing(true)
+      markAsStabilizing()
       // Wait for warmup + a small buffer to ensure graph has stabilized
       const timeout = setTimeout(() => {
-        setIsStabilizing(false)
+        markAsStabilized()
       }, warmupTicks * 10 + 500) // Approximate time for warmup ticks
 
       return () => clearTimeout(timeout)
     } else {
-      setIsStabilizing(false)
+      // No warmup, mark as stabilized immediately
+      markAsStabilized()
     }
-  }, [forceSettings?.warmupTicks?.value, nodes.length, edges.length])
-
-  // Save positions when debounced value changes
-  useEffect(() => {
-    if (isStabilizing || !sketchId || debouncedChangedPositions.size === 0) {
-      return
-    }
-
-    const positions = Array.from(debouncedChangedPositions.entries()).map(([nodeId, pos]) => ({
-      nodeId,
-      x: pos.x,
-      y: pos.y
-    }))
-
-    const savePromise = sketchService.updateNodePositions(sketchId, positions)
-
-    toast.promise(savePromise, {
-      loading: `Saving positions for ${positions.length} node${positions.length > 1 ? 's' : ''}...`,
-      success: (result) => {
-        setChangedNodePositions(new Map())
-        return `Successfully saved ${result.count || positions.length} node position${positions.length > 1 ? 's' : ''}`
-      },
-      error: (error) => {
-        console.error('[Graph] Failed to save node positions:', error)
-        return 'Failed to save node positions. Please try again.'
-      }
-    })
-  }, [debouncedChangedPositions, isStabilizing, sketchId])
+  }, [forceSettings?.warmupTicks?.value, nodes.length, edges.length, markAsStabilized, markAsStabilizing])
 
   // Empty state
   if (!nodes.length) {

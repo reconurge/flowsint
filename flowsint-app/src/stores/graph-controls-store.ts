@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type ViewType = 'hierarchy' | 'force' | 'table' | 'map' | 'relationships'
+type ViewType = 'graph' | 'table' | 'map' | 'relationships'
 
 type GraphControlsStore = {
   view: ViewType
@@ -13,14 +13,14 @@ type GraphControlsStore = {
   setActions: (actions: Partial<GraphControlsStore>) => void
   refetchGraph: () => void
   regenerateLayout: (layoutType: 'force' | 'hierarchy') => void
-  setView: (view: 'force' | 'hierarchy' | 'table' | 'map' | 'relationships') => void
+  setView: (view: 'graph' | 'table' | 'map' | 'relationships') => void
   setIsLassoActive: (active: boolean) => void
 }
 
 export const useGraphControls = create<GraphControlsStore>()(
   persist(
     (set) => ({
-      view: 'force',
+      view: 'graph',
       isLassoActive: false,
       zoomToFit: () => { },
       zoomIn: () => { },

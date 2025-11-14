@@ -26,21 +26,41 @@ export const getDagreLayoutedElements = (nodes: GraphNode[],
   },) => {
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: options.direction });
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+
+  // Configure dagre with proper spacing
+  g.setGraph({
+    rankdir: options.direction,
+    nodesep: 80,  // Horizontal spacing between nodes
+    ranksep: 120, // Vertical spacing between ranks
+    marginx: 20,
+    marginy: 20
+  });
+
+  // Set node dimensions first - use a consistent size for all nodes
+  const nodeWidth = 50;
+  const nodeHeight = 50;
+
   nodes.forEach((node) =>
     g.setNode(node.id, {
-      ...node,
-      width: node.nodeSize ?? 0,
-      height: node.nodeSize ?? 0,
+      width: nodeWidth,
+      height: nodeHeight,
     }),
   );
+
+  // Then add edges
+  edges.forEach((edge: GraphEdge) => {
+    const source = edge.source;
+    const target = edge.target;
+    g.setEdge(source, target);
+  });
+
   Dagre.layout(g);
+
   return {
     nodes: nodes.map((node) => {
       const position = g.node(node.id);
-      const x = position.x - (node.nodeSize ?? 0) / 2;
-      const y = position.y - (node.nodeSize ?? 0) / 2;
+      const x = position.x;
+      const y = position.y;
       return { ...node, x, y };
     }),
     edges,
@@ -183,9 +203,9 @@ export const getAllNodeTypes = (actionItems: any[]) => {
   const types: string[] = []
   actionItems.forEach(item => {
     if (item.children) {
-      item.children.forEach(child => {
-        if (child.type && !types.includes(child.type)) {
-          types.push(child.type)
+      item.children.forEach((child: GraphNode) => {
+        if (child.data.type && !types.includes(child.data.type)) {
+          types.push(child.data.type)
         }
       })
     } else if (item.type && !types.includes(item.type)) {

@@ -133,7 +133,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
         }
       >
         <>
-          {['force', 'hierarchy'].includes(view) && <GraphMain />}
+          {view === 'graph' && <GraphMain />}
           {view === 'table' && <NodesTable />}
           {view === 'map' && <MapPanel />}
           {view === 'relationships' && <RelationshipsTable />}

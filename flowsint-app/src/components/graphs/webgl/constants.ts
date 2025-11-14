@@ -1,0 +1,85 @@
+/**
+ * WebGL Graph Viewer Constants
+ * Centralized configuration for graph rendering
+ */
+
+export const GRAPH_CONSTANTS = {
+  // Node rendering
+  NODE_DEFAULT_SIZE: 10,
+  NODE_FONT_SIZE: 3.5,
+  NODE_LABEL_FONT_SIZE: 3.5,
+  MIN_FONT_SIZE: 0.5,
+
+  // Edge rendering
+  LINK_WIDTH: 1,
+
+  // Colors (hexadecimal)
+  NODE_DEFAULT_COLOR: 0x0074D9,
+  HOVER_COLOR: 0xff7300,
+  NODE_HIGHLIGHT_HOVER: 0xff0000,
+  NODE_HIGHLIGHT_DEFAULT: 0xffa500,
+  BACKGROUND_COLOR: 0x1a1a1a,
+  LABEL_COLOR: 0xe0e0e0,
+  LABEL_BG_COLOR: 0x1a1a1a,
+  LABEL_BG_BORDER_COLOR: 0x404040,
+  LINK_DEFAULT_COLOR: 0x808080,
+  LINK_DIMMED_COLOR: 0x858585,
+  EDGE_LABEL_BG_COLOR: 0x202020,
+
+  // Zoom/Pan
+  MIN_ZOOM: 0.25,
+  MAX_ZOOM: 4,
+  ZOOM_IN_FACTOR: 1.5,
+  ZOOM_OUT_FACTOR: 0.75,
+  ZOOM_TRANSITION_DURATION: 300,
+  ZOOM_FIT_DURATION: 500,
+  ZOOM_FIT_PADDING: 50,
+
+  // Label visibility
+  MIN_VISIBLE_LABELS: 5,
+  MAX_VISIBLE_LABELS_PER_ZOOM: 15,
+  EDGE_LABEL_MIN_ZOOM: 1.2,
+
+  // Level of Details (LOD) thresholds
+  LOD_ICON_MIN_ZOOM: 0.6,        // Show icons when zoom >= 0.6
+  LOD_NODE_LABEL_MIN_ZOOM: 0.5,  // Show node labels when zoom >= 0.5
+  LOD_EDGE_LABEL_MIN_ZOOM: 1.2,  // Enable edge labels when zoom >= 1.2 (only shown when nodes are active)
+  LOD_HIGH_DETAIL_ZOOM: 1.5,     // High detail mode (all features) when zoom >= 1.5
+
+  // Performance
+  MAX_LABEL_LENGTH: 58,
+  RESIZE_DEBOUNCE_MS: 150,
+  DEVICE_PIXEL_RATIO_MIN: 2,
+
+  // Force simulation
+  FORCE_LINK_DISTANCE: 100,
+  FORCE_CHARGE_STRENGTH: -300,
+  FORCE_ALPHA_TARGET_DRAG: 0.3,
+
+  // Interaction
+  CLICK_DISTANCE_THRESHOLD: 10,
+
+  // Rendering
+  EDGE_LABEL_PADDING: 3,
+  EDGE_LABEL_BORDER_RADIUS: 2,
+  NODE_LABEL_PADDING_X: 6,
+  NODE_LABEL_PADDING_Y: 3,
+  NODE_LABEL_BORDER_RADIUS: 4,
+  NODE_LABEL_BORDER_WIDTH: 1,
+  NODE_HIGHLIGHT_SCALE: 1.2,
+  NODE_BORDER_WIDTH: 2,
+  ICON_SIZE_MULTIPLIER: 1.6,
+
+  // Opacity
+  DIMMED_ALPHA: 0.2,
+  HIGHLIGHTED_ALPHA: 1,
+  LINK_DEFAULT_ALPHA: 0.6,
+  LINK_HIGHLIGHTED_ALPHA: 0.68,
+  LINK_DIMMED_ALPHA: 0.23,
+  EDGE_LABEL_BG_ALPHA: 0.9,
+  NODE_HIGHLIGHT_RING_ALPHA: 0.3,
+  NODE_LABEL_BG_ALPHA: 0.92,
+  NODE_LABEL_BG_BORDER_ALPHA: 0.3,
+} as const
+
+export type GraphConstants = typeof GRAPH_CONSTANTS

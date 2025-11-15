@@ -101,10 +101,18 @@ stop-prod:
 	docker compose -f docker-compose.prod.yml down
 
 clean:
-	@echo "🧹 Removing containers, volumes and venvs..."
-	-docker compose -f docker-compose.dev.yml down -v --remove-orphans
-	-docker compose -f docker-compose.prod.yml down -v --remove-orphans
-	-docker compose down -v --remove-orphans
+	@echo "⚠️  WARNING: This will remove ALL Docker containers, images, volumes, and virtual environments."
+	@echo "⚠️  ALL DATA in databases and volumes will be permanently deleted!"
+	@echo ""
+	@read -p "Are you sure you want to continue? [y/N]: " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "❌ Cleanup cancelled."; \
+		exit 1; \
+	fi
+	@echo "🧹 Removing containers, images, volumes and venvs..."
+	-docker compose -f docker-compose.dev.yml down -v --rmi all --remove-orphans
+	-docker compose -f docker-compose.prod.yml down -v --rmi all --remove-orphans
+	-docker compose down -v --rmi all --remove-orphans
 	rm -rf $(PROJECT_ROOT)/flowsint-app/node_modules
 	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-transforms/.venv

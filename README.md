@@ -9,6 +9,10 @@ Flowsint is an open-source OSINT graph exploration tool designed for ethical inv
 
 <img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/01eb128e-bef4-486e-9276-c4da58f829ae" />
 
+## Contributing
+
+Flowsint is still in early development and definetly needs the help of the community! Feel free to raise issues, propose features, etc.
+
 ## Get started
 
 Don't want to read ? Got it. Here's your install instructions:

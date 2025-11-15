@@ -183,9 +183,9 @@ export const getAllNodeTypes = (actionItems: any[]) => {
   const types: string[] = []
   actionItems.forEach(item => {
     if (item.children) {
-      item.children.forEach(child => {
-        if (child.type && !types.includes(child.type)) {
-          types.push(child.type)
+      item.children.forEach((child: GraphNode) => {
+        if (child.data.type && !types.includes(child.data.type)) {
+          types.push(child.data.type)
         }
       })
     } else if (item.type && !types.includes(item.type)) {

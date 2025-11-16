@@ -75,7 +75,6 @@ const GraphMain = () => {
         showIcons={true}
         onGraphRef={handleGraphRef}
         allowLasso
-        minimap={false}
         sketchId={sketchId}
       />
 

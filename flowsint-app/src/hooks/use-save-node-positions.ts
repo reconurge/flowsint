@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDebounce } from './use-debounce'
 import { sketchService } from '@/api/sketch-service'
 import { useGraphSaveStatus } from '@/stores/graph-save-status-store'
+import { useGraphStore } from '@/stores/graph-store'
 
 interface NodePosition {
   x: number
@@ -16,6 +17,7 @@ export type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
  */
 export function useSaveNodePositions(sketchId?: string) {
   const [changedNodePositions, setChangedNodePositions] = useState<Map<string, NodePosition>>(new Map())
+  const setNodes = useGraphStore(s => s.setNodes)
   const isStabilizingRef = useRef(false) // Start as false, mark as true only during layout regeneration
   const setSaveStatus = useGraphSaveStatus((state) => state.setSaveStatus)
 
@@ -68,6 +70,7 @@ export function useSaveNodePositions(sketchId?: string) {
 
     if (newMap.size > 0) {
       setChangedNodePositions(newMap)
+      setNodes(nodes)
       setSaveStatus('pending')
     }
   }, [sketchId])

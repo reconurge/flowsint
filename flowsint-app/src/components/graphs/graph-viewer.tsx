@@ -34,7 +34,6 @@ interface GraphViewerProps {
   onGraphRef?: (ref: any) => void
   instanceId?: string // Add instanceId prop for instance-specific actions
   allowLasso?: boolean
-  minimap?: boolean
   sketchId?: string // Add sketchId for saving node positions
 }
 
@@ -150,7 +149,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   onGraphRef,
   instanceId,
   allowLasso = false,
-  minimap = false,
   sketchId
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
@@ -181,7 +179,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const getSize = useNodesDisplaySettings((s) => s.getSize)
-  const view = useGraphControls((s) => s.view)
 
   // Get settings by categories to avoid re-renders
   const forceSettings = useGraphSettingsStore((s) => s.forceSettings)

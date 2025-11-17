@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useEffect, useState, useRef } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Button } from '../ui/button'
 import { useTheme } from '@/components/theme-provider'
-import { Info, Plus, Share2, Type, Upload } from 'lucide-react'
+import { Info, Loader2, Plus, Share2, Type, Upload } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
@@ -160,6 +160,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const [currentZoom, setCurrentZoom] = useState<number>(1)
   const zoomRef = useRef({ k: 1, x: 0, y: 0 })
   const hoverFrameRef = useRef<number | null>(null)
+  const [isRegeneratingLayout, setIsRegeneratingLayout] = useState(false)
 
   // Use the dedicated hook for saving node positions
   const { saveAllNodePositions } = useSaveNodePositions(sketchId)
@@ -412,6 +413,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       throw new Error('No nodes available in graph')
     }
 
+    // Show blur effect
+    setIsRegeneratingLayout(true)
+
     // Apply layout using dedicated hook
     applyLayout({
       layoutType,
@@ -424,6 +428,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
         graphRef.current.zoomToFit(400)
       }
+      // Hide blur effect after zoom animation completes
+      setTimeout(() => {
+        setIsRegeneratingLayout(false)
+      }, 400)
     }, 500)
   }, [graphData, applyLayout])
 
@@ -1098,6 +1106,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
             height={containerSize.height}
           />
         </>
+      )}
+      {isRegeneratingLayout && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-background/30">
+          <div className="flex flex-col items-center gap-3 p-6">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-sm font-medium text-foreground">Regenerating layout...</span>
+          </div>
+        </div>
       )}
       {/* {minimap && graphData.nodes &&
                 <MiniMap zoomTransform={zoomState}

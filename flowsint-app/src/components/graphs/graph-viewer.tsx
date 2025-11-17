@@ -493,6 +493,20 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [initializeGraph, instanceId, setActions])
 
+  // Auto-center graph on initial load
+  useEffect(() => {
+    // Only auto-center if we have nodes and the graph is ready
+    if (graphRef.current && graphData.nodes.length > 0 && containerSize.width > 0) {
+      // Wait a bit for the simulation to settle, then center
+      const timer = setTimeout(() => {
+        if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+          graphRef.current.zoomToFit(400)
+        }
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [graphData.nodes.length, containerSize.width])
+
   // Event handlers with proper memoization
   const handleNodeClick = useCallback(
     (node: any, event: MouseEvent) => {
@@ -1066,7 +1080,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onZoom={handleZoom}
         onZoomEnd={handleZoom}
         linkCanvasObject={renderLink}
-        enableNodeDrag={!shouldUseSimpleRendering}
+        enableNodeDrag={true}
         autoPauseRedraw={true}
         onNodeHover={handleNodeHoverWithTooltip}
         onLinkHover={handleLinkHover}

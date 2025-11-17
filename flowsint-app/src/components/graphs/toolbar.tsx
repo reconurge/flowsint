@@ -165,7 +165,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
 
   return (
     <>
-      <div className='absolute flex items-center gap-2 left-2 top-2'>
+      <div className='absolute flex gap-2 left-2 top-2'>
         <TooltipProvider>
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
@@ -224,7 +224,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       </div >
 
       {/* Center: View Toggle Group */}
-      <div className="flex-1 flex justify-center absolute left-1/2 top-2 -translate-x-1/2" >
+      <div className="flex-1 flex border rounded-md justify-center absolute left-1/2 top-1.5 -translate-x-1/2" >
         <div className="flex items-center bg-muted/40 p-1 gap-0.5 rounded-md">
           <TooltipProvider>
             <Tooltip>
@@ -236,7 +236,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   className={cn(
                     'h-7 px-2 rounded-sm',
                     view === 'graph'
-                      ? 'bg-background text-foreground shadow-sm'
+                      ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                   )}
                 >
@@ -254,7 +254,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   className={cn(
                     'h-7 px-2 rounded-sm',
                     view === 'table'
-                      ? 'bg-background text-foreground shadow-sm'
+                      ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                   )}
                 >
@@ -272,7 +272,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   className={cn(
                     'h-7 px-2 rounded-sm',
                     view === 'relationships'
-                      ? 'bg-background text-foreground shadow-sm'
+                      ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                   )}
                 >
@@ -290,7 +290,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   className={cn(
                     'h-7 px-2 rounded-sm',
                     view === 'map'
-                      ? 'bg-background text-foreground shadow-sm'
+                      ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                   )}
                 >

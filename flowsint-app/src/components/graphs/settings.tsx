@@ -279,7 +279,7 @@ function NodeColorsSection() {
 
       <div className="border-b flex items-center gap-2 pb-4">
         <Button variant="outline" size="sm" onClick={handleReset} className="grow">
-          Reset to Default Colors
+          Reset to default colors
         </Button>
         <Button variant="outline" size="sm" onClick={handleRandomizeColors} className="grow">
           Randomize
@@ -387,7 +387,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
           </div>
           <div className="mt-4">
             <Button variant="outline" size="sm" onClick={() => resetSettings()} className="w-full">
-              Reset to Defaults
+              Reset to defaults
             </Button>
           </div>
         </div>

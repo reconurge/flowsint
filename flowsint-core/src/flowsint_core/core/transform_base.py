@@ -385,7 +385,7 @@ class Transform(ABC):
             if self.name() != "transform_orchestrator":
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Transform {self.name()} errored: '{str(e)}'."},
+                    {"message": f"Transform {self.name()} errored: {str(e)}"},
                 )
             return []
 

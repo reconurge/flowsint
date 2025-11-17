@@ -13,6 +13,10 @@ interface UseForceSimulationProps {
   height: number
   nodeColors: Record<ItemType, string>
   layoutMode: LayoutMode
+  dagLevelDistance?: number
+  forceLinkDistance?: number
+  forceLinkStrength?: number
+  forceChargeStrength?: number
 }
 
 /**
@@ -33,6 +37,10 @@ export function useForceSimulation({
   height,
   nodeColors,
   layoutMode,
+  dagLevelDistance = 50,
+  forceLinkDistance = GRAPH_CONSTANTS.FORCE_LINK_DISTANCE,
+  forceLinkStrength,
+  forceChargeStrength = GRAPH_CONSTANTS.FORCE_CHARGE_STRENGTH,
 }: UseForceSimulationProps) {
   const [simulationNodes, setSimulationNodes] = useState<SimulationNode[]>([])
   const [simulationLinks, setSimulationLinks] = useState<SimulationLink[]>([])
@@ -64,6 +72,7 @@ export function useForceSimulation({
       // Use Dagre hierarchical layout
       const { nodes: layoutedNodes } = getDagreLayoutedElements(nodes, edges, {
         direction: 'TB',
+        dagLevelDistance: dagLevelDistance,
       })
       simNodes = layoutedNodes.map((node) => prepareNode(node, node.x || 0, node.y || 0))
     } else if (layoutMode === 'none') {
@@ -116,14 +125,18 @@ export function useForceSimulation({
 
     // Create D3 force simulation only for force layout
     if (layoutMode === 'force') {
+      const linkForce = forceLink(simLinks)
+        .id((d: any) => d.id)
+        .distance(forceLinkDistance)
+
+      // Apply link strength if provided (for fixed distance links)
+      if (forceLinkStrength !== undefined) {
+        linkForce.strength(forceLinkStrength)
+      }
+
       const simulation = forceSimulation(simNodes)
-        .force(
-          'link',
-          forceLink(simLinks)
-            .id((d: any) => d.id)
-            .distance(GRAPH_CONSTANTS.FORCE_LINK_DISTANCE)
-        )
-        .force('charge', forceManyBody().strength(GRAPH_CONSTANTS.FORCE_CHARGE_STRENGTH))
+        .force('link', linkForce)
+        .force('charge', forceManyBody().strength(forceChargeStrength))
         .force('center', forceCenter(width / 2, height / 2))
 
       simulationRef.current = simulation
@@ -139,7 +152,18 @@ export function useForceSimulation({
         simulationRef.current = null
       }
     }
-  }, [nodes, edges, width, height, nodeColors, layoutMode])
+  }, [
+    nodes,
+    edges,
+    width,
+    height,
+    nodeColors,
+    layoutMode,
+    dagLevelDistance,
+    forceLinkDistance,
+    forceLinkStrength,
+    forceChargeStrength,
+  ])
 
   return {
     simulationNodes,

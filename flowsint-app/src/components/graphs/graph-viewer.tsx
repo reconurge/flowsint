@@ -1,4 +1,3 @@
-import { getDagreLayoutedElements } from '@/lib/utils'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useGraphStore } from '@/stores/graph-store'
@@ -11,6 +10,7 @@ import { Info, Plus, Share2, Type, Upload } from 'lucide-react'
 import Lasso from './lasso'
 import { GraphNode, GraphEdge } from '@/types'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
+import { useLayout } from '@/hooks/use-layout'
 
 function truncateText(text: string, limit: number = 16) {
   if (text.length <= limit) return text
@@ -162,7 +162,17 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const hoverFrameRef = useRef<number | null>(null)
 
   // Use the dedicated hook for saving node positions
-  const { saveAllNodePositions, markAsStabilized, markAsStabilizing } = useSaveNodePositions(sketchId)
+  const { saveAllNodePositions } = useSaveNodePositions(sketchId)
+
+  // Store selectors (needed before useLayout)
+  const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
+
+  // Use the dedicated hook for layout logic
+  const { applyLayout } = useLayout({
+    forceSettings,
+    containerSize,
+    saveAllNodePositions,
+  })
 
   // The ref for the node weighlist.
   const labelRenderingCompound = useRef<LabelRenderingCompound>({
@@ -179,9 +189,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const getSize = useNodesDisplaySettings((s) => s.getSize)
-
-  // Get settings by categories to avoid re-renders
-  const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
   const setActions = useGraphControls((s) => s.setActions)
   const currentNode = useGraphStore((s) => s.currentNode)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
@@ -405,53 +412,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       throw new Error('No nodes available in graph')
     }
 
-    // Remove fx and fy from all nodes to allow repositioning
-    graphData.nodes.forEach((node: any) => {
-      delete node.fx
-      delete node.fy
+    // Apply layout using dedicated hook
+    applyLayout({
+      layoutType,
+      nodes: graphData.nodes,
+      edges: graphData.links,
     })
-
-    if (layoutType === 'hierarchy') {
-      // Apply dagre layout for hierarchical positioning
-      const { nodes: layoutedNodes } = getDagreLayoutedElements(
-        graphData.nodes,
-        graphData.links
-      )
-
-      // Apply the calculated positions to the graph nodes
-      layoutedNodes.forEach((layoutedNode: any) => {
-        const graphNode = graphData.nodes.find((n: any) => n.id === layoutedNode.id) as any
-        if (graphNode && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
-          graphNode.x = layoutedNode.x
-          graphNode.y = layoutedNode.y
-          graphNode.fx = layoutedNode.x
-          graphNode.fy = layoutedNode.y
-        }
-      })
-
-      // Save all node positions immediately after hierarchy layout (force save)
-      saveAllNodePositions(graphData.nodes, true)
-    } else {
-      // Force layout: reheat the simulation to recalculate positions
-      if (typeof graphRef.current.d3ReheatSimulation !== 'function') {
-        console.error('[Graph] d3ReheatSimulation method not available')
-        throw new Error('d3ReheatSimulation method is not available')
-      }
-
-      // Mark as stabilizing to prevent saving during force simulation
-      markAsStabilizing()
-      graphRef.current.d3ReheatSimulation()
-
-      // For force layout, save positions after simulation stabilizes
-      const warmupTicks = forceSettings?.warmupTicks?.value ?? 0
-      const stabilizationTime = warmupTicks * 10 + 1500 // Wait for simulation to stabilize
-
-      setTimeout(() => {
-        markAsStabilized()
-        // Force save all positions after stabilization
-        saveAllNodePositions(graphData.nodes, true)
-      }, stabilizationTime)
-    }
 
     // Zoom to fit after a delay to see the new layout
     setTimeout(() => {
@@ -459,7 +425,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         graphRef.current.zoomToFit(400)
       }
     }, 500)
-  }, [graphData, sketchId, forceSettings, saveAllNodePositions, markAsStabilized, markAsStabilizing])
+  }, [graphData, applyLayout])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(
@@ -964,24 +930,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     [forceSettings, theme, highlightLinks, highlightNodes, nodes.length]
   )
 
-  // Restart simulation when settings change (debounced)
-  useEffect(() => {
-    let settingsTimeout: number | undefined
-    const restartSimulation = () => {
-      if (graphRef.current && isGraphReadyRef.current) {
-        if (settingsTimeout) clearTimeout(settingsTimeout)
-        settingsTimeout = setTimeout(() => {
-          graphRef.current?.d3ReheatSimulation()
-        }, 100) as any // Debounce settings changes
-      }
-    }
-    // Restart simulation when force settings change
-    restartSimulation()
-    return () => {
-      if (settingsTimeout) clearTimeout(settingsTimeout)
-    }
-  }, [forceSettings])
-
   // Clear highlights when graph data changes
   useEffect(() => {
     setHighlightNodes(new Set())
@@ -997,23 +945,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       }
     }
   }, [])
-
-  // Mark graph as stabilizing on initial load
-  useEffect(() => {
-    const warmupTicks = forceSettings?.warmupTicks?.value ?? 0
-    if (warmupTicks > 0) {
-      markAsStabilizing()
-      // Wait for warmup + a small buffer to ensure graph has stabilized
-      const timeout = setTimeout(() => {
-        markAsStabilized()
-      }, warmupTicks * 10 + 500) // Approximate time for warmup ticks
-
-      return () => clearTimeout(timeout)
-    } else {
-      // No warmup, mark as stabilized immediately
-      markAsStabilized()
-    }
-  }, [forceSettings?.warmupTicks?.value, nodes.length, edges.length, markAsStabilized, markAsStabilizing])
 
   // Empty state
   if (!nodes.length) {

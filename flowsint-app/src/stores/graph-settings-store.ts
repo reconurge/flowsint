@@ -53,6 +53,33 @@ const DEFAULT_SETTINGS = {
       description:
         'Distance between different graph depths when using DAG (directed acyclic graph) layout mode'
     },
+    d3ForceChargeStrength: {
+      type: 'number',
+      value: -120,
+      min: -500,
+      max: 0,
+      step: 5,
+      description:
+        'Strength of repulsion between nodes (negative = repel, more negative = stronger repulsion, nodes further apart)'
+    },
+    d3ForceLinkDistance: {
+      type: 'number',
+      value: 50,
+      min: 10,
+      max: 2000,
+      step: 50,
+      description:
+        'Target distance between connected nodes (higher = nodes further apart)'
+    },
+    d3ForceLinkStrength: {
+      type: 'number',
+      value: 2,
+      min: 0,
+      max: 2,
+      step: 0.1,
+      description:
+        'Strength of links to maintain their target distance (higher = more rigid links, nodes stay closer to target distance, 2 = fixed distance)'
+    },
     linkDirectionalArrowRelPos: {
       type: 'number',
       value: 1,
@@ -97,7 +124,7 @@ const DEFAULT_SETTINGS = {
     },
     d3AlphaDecay: {
       type: 'number',
-      value: 0.045,
+      value: 0.06,
       min: 0,
       max: 0.3,
       step: 0.005,
@@ -115,7 +142,7 @@ const DEFAULT_SETTINGS = {
     },
     d3VelocityDecay: {
       type: 'number',
-      value: 0.41,
+      value: 0.6,
       min: 0,
       max: 1,
       step: 0.01,
@@ -134,35 +161,55 @@ const DEFAULT_SETTINGS = {
   }
 }
 
-// Force Presets
+// Force Presets - Include all relevant force simulation parameters
 const FORCE_PRESETS = {
   'Tight Clusters': {
     d3AlphaDecay: 0.1,
+    d3AlphaMin: 0.001,
     d3VelocityDecay: 0.8,
+    d3ForceChargeStrength: -50,
+    d3ForceLinkDistance: 20,
+    d3ForceLinkStrength: 2,
     cooldownTicks: 300,
     cooldownTime: 20000
   },
   'Compact Network': {
     d3AlphaDecay: 0.08,
+    d3AlphaMin: 0.001,
     d3VelocityDecay: 0.7,
+    d3ForceChargeStrength: -80,
+    d3ForceLinkDistance: 30,
+    d3ForceLinkStrength: 2,
     cooldownTicks: 250,
     cooldownTime: 18000
   },
   'Balanced Layout': {
     d3AlphaDecay: 0.06,
+    d3AlphaMin: 0,
     d3VelocityDecay: 0.6,
+    d3ForceChargeStrength: -120,
+    d3ForceLinkDistance: 50,
+    d3ForceLinkStrength: 2,
     cooldownTicks: 200,
     cooldownTime: 15000
   },
   'Loose Organic': {
     d3AlphaDecay: 0.04,
+    d3AlphaMin: 0,
     d3VelocityDecay: 0.4,
+    d3ForceChargeStrength: -200,
+    d3ForceLinkDistance: 80,
+    d3ForceLinkStrength: 2,
     cooldownTicks: 150,
     cooldownTime: 12000
   },
   'High Energy': {
     d3AlphaDecay: 0.02,
+    d3AlphaMin: 0,
     d3VelocityDecay: 0.3,
+    d3ForceChargeStrength: -300,
+    d3ForceLinkDistance: 120,
+    d3ForceLinkStrength: 2,
     cooldownTicks: 100,
     cooldownTime: 10000
   }
@@ -209,7 +256,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
     (set, get) => ({
       // Settings state
       settings: DEFAULT_SETTINGS,
-      currentPreset: null,
+      currentPreset: 'Balanced Layout',
       forceSettings: DEFAULT_SETTINGS.graph,
       // UI State
       settingsModalOpen: false,
@@ -251,7 +298,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
         set({
           settings: DEFAULT_SETTINGS,
           forceSettings: DEFAULT_SETTINGS.graph,
-          currentPreset: null
+          currentPreset: 'Balanced Layout'
         }),
 
       getSettings: () => {
@@ -284,13 +331,15 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
         if (!preset) return
 
         set((state) => {
-          const newSettings = { ...state.settings } as any
+          // Create completely new objects with new references
+          const newGraphSettings = { ...state.settings.graph } as any
           const newForceSettings = { ...state.forceSettings } as any
 
+          // Update each preset value, creating new objects for each setting
           Object.entries(preset).forEach(([key, value]) => {
-            if (newSettings.graph[key]) {
-              newSettings.graph[key] = {
-                ...newSettings.graph[key],
+            if (newGraphSettings[key]) {
+              newGraphSettings[key] = {
+                ...newGraphSettings[key],
                 value: value
               }
             }
@@ -301,6 +350,12 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
               }
             }
           })
+
+          // Create new settings object with new graph reference
+          const newSettings = {
+            ...state.settings,
+            graph: newGraphSettings
+          }
 
           return {
             settings: newSettings,

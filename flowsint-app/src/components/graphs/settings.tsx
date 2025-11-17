@@ -807,14 +807,14 @@ export function KeyboardShortcuts() {
 
   return (
     <Sheet open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto py-3">
         <SheetHeader>
           <SheetTitle>Keyboard Shortcuts</SheetTitle>
           <SheetDescription>
             Here is the list of all available keyboard shortcuts.
           </SheetDescription>
         </SheetHeader>
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-6  p-4">
           {shortcuts.map((category) => (
             <div key={category.category} className="space-y-3">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wide">

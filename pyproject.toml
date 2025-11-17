@@ -2,7 +2,7 @@
 name = "flowsint"
 version = "0.1.0"
 description = "Flowsint multi-module project"
-authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <contact@flowsint.io>"]
 package-mode = false
 
 [tool.poetry.dependencies]

@@ -2,7 +2,7 @@
 name = "flowsint-core"
 version = "0.1.0"
 description = "Core utilities and base classes for flowsint modules"
-authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <contact@flowsint.io>"]
 packages = [{ include = "flowsint_core", from = "src" }]
 
 [tool.poetry.dependencies]

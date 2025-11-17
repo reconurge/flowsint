@@ -43,7 +43,7 @@ These examples are **non-exhaustive** and may evolve according to ethical and le
 ## Reporting Misuse
 
 If you become aware of any use that contradicts these principles, please report it to:
-📧 **[dexxterrmorgan@proton.me](mailto:dexxterrmorgan@proton.me)**
+📧 **[contact@flowsint.io](mailto:contact@flowsint.io)**
 
 ## Responsibility Statement
 

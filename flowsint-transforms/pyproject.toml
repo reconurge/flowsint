@@ -3,7 +3,7 @@ name = "flowsint-transforms"
 version = "0.1.0"
 license = "AGPL-3.0-or-later"
 description = "Transform modules for flowsint"
-authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <contact@flowsint.io>"]
 packages = [{ include = "tools", from = "src" }]
 
 [tool.poetry.dependencies]

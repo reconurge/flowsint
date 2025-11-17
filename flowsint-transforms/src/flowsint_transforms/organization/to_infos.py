@@ -324,7 +324,7 @@ class OrgToInfosTransform(Transform):
                         "organization",
                         "org_id",
                         org_key,
-                        "Individual",
+                        "individual",
                         "full_name",
                         dirigeant.full_name,
                         "HAS_LEADER",

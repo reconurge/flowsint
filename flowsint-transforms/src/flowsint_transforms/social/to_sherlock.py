@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Union
 from flowsint_core.utils import is_valid_username
-from flowsint_types.social import SocialProfile
+from flowsint_types import SocialAccount, Username
 from flowsint_core.core.transform_base import Transform
 from flowsint_core.core.logger import Logger
 
@@ -11,8 +11,8 @@ class SherlockTransform(Transform):
     """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[SocialProfile]
-    OutputType = List[SocialProfile]
+    InputType = List[Username]
+    OutputType = List[SocialAccount]
 
     @classmethod
     def name(cls) -> str:
@@ -31,13 +31,17 @@ class SherlockTransform(Transform):
         for item in data:
             obj = None
             if isinstance(item, str):
-                obj = SocialProfile(username=item)
+                obj = Username(value=item)
             elif isinstance(item, dict) and "username" in item:
-                obj = SocialProfile(username=item["username"])
-            elif isinstance(item, SocialProfile):
+                obj = Username(value=item["username"])
+            elif isinstance(item, dict) and "value" in item:
+                obj = Username(value=item["value"])
+            elif isinstance(item, SocialAccount):
+                obj = Username(value=item.username.value)
+                obj = item.username.value
+            elif isinstance(item, Username):
                 obj = item
-
-            if obj and obj.username and is_valid_username(obj.username):
+            if obj and obj.value and is_valid_username(obj.value):
                 cleaned.append(obj)
         return cleaned
 
@@ -45,13 +49,12 @@ class SherlockTransform(Transform):
         """Performs the scan using Sherlock on the list of usernames."""
         results: OutputType = []
 
-        for social in data:
-            username = social.username
-            output_file = Path(f"/tmp/sherlock_{username}.txt")
+        for username in data:
+            output_file = Path(f"/tmp/sherlock_{username.value}.txt")
             try:
                 # Running the Sherlock command to perform the scan
                 result = subprocess.run(
-                    ["sherlock", username, "-o", str(output_file)],
+                    ["sherlock", username.value, "-o", str(output_file)],
                     capture_output=True,
                     text=True,
                     timeout=100,
@@ -61,7 +64,7 @@ class SherlockTransform(Transform):
                     Logger.error(
                         self.sketch_id,
                         {
-                            "message": f"Sherlock failed for {username}: {result.stderr.strip()}"
+                            "message": f"Sherlock failed for {username.value}: {result.stderr.strip()}"
                         },
                     )
                     continue
@@ -70,7 +73,7 @@ class SherlockTransform(Transform):
                     Logger.error(
                         self.sketch_id,
                         {
-                            "message": f"Sherlock did not produce any output file for {username}."
+                            "message": f"Sherlock did not produce any output file for {username.value}."
                         },
                     )
                     continue
@@ -86,19 +89,19 @@ class SherlockTransform(Transform):
                 # Create Social objects for each found account
                 for platform, url in found_accounts.items():
                     results.append(
-                        SocialProfile(username=username, platform=platform, url=url)
+                        SocialAccount(username=username, platform=platform, url=url)
                     )
 
             except subprocess.TimeoutExpired:
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Sherlock scan for {username} timed out."},
+                    {"message": f"Sherlock scan for {username.value} timed out."},
                 )
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
                     {
-                        "message": f"Unexpected error in Sherlock scan for {username}: {str(e)}"
+                        "message": f"Unexpected error in Sherlock scan for {username.value}: {str(e)}"
                     },
                 )
 
@@ -109,18 +112,18 @@ class SherlockTransform(Transform):
         if not self.neo4j_conn:
             return results
 
-        for social in results:
+        for social_account in results:
             self.create_node(
                 "social",
                 "username",
-                social.username,
-                platform=social.platform,
-                url=social.url,
-                caption=social.platform,
+                social_account.username.value,
+                platform=social_account.platform,
+                url=social_account.url,
+                caption=social_account.platform,
                 type="social",
             )
             self.log_graph_message(
-                f"Found social account: {social.username} on {social.platform}"
+                f"Found social account: {social_account.username.value} on {social_account.platform}"
             )
 
         return results

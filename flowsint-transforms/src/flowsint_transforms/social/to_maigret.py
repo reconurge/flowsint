@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import List, Union
 from flowsint_core.utils import is_valid_username
 from flowsint_core.core.transform_base import Transform
-from flowsint_types.social import SocialProfile
+from flowsint_types import Username
+from flowsint_types.social_account import SocialAccount
 from flowsint_core.core.logger import Logger
 
 false_positives = ["LeagueOfLegends"]
@@ -14,8 +15,8 @@ class MaigretTransform(Transform):
     """[MAIGRET] Scans usernames for associated social accounts using Maigret."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[SocialProfile]
-    OutputType = List[SocialProfile]
+    InputType = List[Username]
+    OutputType = List[SocialAccount]
 
     @classmethod
     def name(cls) -> str:
@@ -34,13 +35,17 @@ class MaigretTransform(Transform):
         for item in data:
             obj = None
             if isinstance(item, str):
-                obj = SocialProfile(username=item)
+                obj = Username(value=item)
             elif isinstance(item, dict) and "username" in item:
-                obj = SocialProfile(username=item["username"])
-            elif isinstance(item, SocialProfile):
+                obj = Username(value=item["username"])
+            elif isinstance(item, dict) and "value" in item:
+                obj = Username(value=item["value"])
+            elif isinstance(item, SocialAccount):
+                obj = Username(value=item.username.value)
+                obj = item.username.value
+            elif isinstance(item, Username):
                 obj = item
-
-            if obj and obj.username and is_valid_username(obj.username):
+            if obj and obj.value and is_valid_username(obj.value):
                 cleaned.append(obj)
         return cleaned
 
@@ -60,10 +65,8 @@ class MaigretTransform(Transform):
             )
         return output_file
 
-    def parse_maigret_output(
-        self, username: str, output_file: Path
-    ) -> List[SocialProfile]:
-        results: List[SocialProfile] = []
+    def parse_maigret_output(self, username: str, output_file: Path) -> List[Username]:
+        results: List[SocialAccount] = []
         if not output_file.exists():
             return results
 
@@ -111,8 +114,8 @@ class MaigretTransform(Transform):
                 followers = following = posts = None
 
             results.append(
-                SocialProfile(
-                    username=username,
+                SocialAccount(
+                    username=Username(value=username),
                     profile_url=profile_url,
                     platform=platform,
                     profile_picture_url=ids.get("image"),
@@ -128,10 +131,10 @@ class MaigretTransform(Transform):
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for profile in data:
-            if not profile.username:
+            if not profile.value:
                 continue
-            output_file = self.run_maigret(profile.username)
-            parsed = self.parse_maigret_output(profile.username, output_file)
+            output_file = self.run_maigret(profile.value)
+            parsed = self.parse_maigret_output(profile.value, output_file)
             results.extend(parsed)
         return results
 
@@ -142,40 +145,37 @@ class MaigretTransform(Transform):
         for profile in results:
             # Create social profile node
             self.create_node(
-                "social_profile",
-                "profile_url",
+                "social_account",
+                "platform",
                 profile.profile_url,
-                username=profile.username,
+                username=profile.username.value,
                 platform=profile.platform,
                 profile_picture_url=profile.profile_picture_url,
                 bio=profile.bio,
                 followers_count=profile.followers_count,
                 following_count=profile.following_count,
                 posts_count=profile.posts_count,
-                label=f"{profile.platform}:{profile.username}",
-                caption=f"{profile.platform}:{profile.username}",
-                color="#1DA1F2",
-                type="social_profile",
+                label=f"{profile.username.value}",
+                type="social_account",
             )
-
             # Create username node
             self.create_node(
-                "username", "username", profile.username, username=profile.username
+                "username", "value", profile.username.value, **profile.username.__dict__
             )
 
             # Create relationship
             self.create_relationship(
                 "username",
-                "username",
-                profile.username,
-                "social_profile",
-                "profile_url",
-                profile.profile_url,
+                "value",
+                profile.username.value,
+                "social_account",
+                "platform",
+                profile.platform,
                 "HAS_SOCIAL_ACCOUNT",
             )
 
             self.log_graph_message(
-                f"{profile.username} -> account found on {profile.platform}"
+                f"{profile.username.value} -> account found on {profile.platform}"
             )
 
         return results

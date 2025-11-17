@@ -22,7 +22,7 @@ export function useSaveNodePositions(sketchId?: string) {
   const setSaveStatus = useGraphSaveStatus((state) => state.setSaveStatus)
 
   // Debounced value to trigger save (2 seconds)
-  const debouncedChangedPositions = useDebounce(changedNodePositions, 2000)
+  const debouncedChangedPositions = useDebounce(changedNodePositions, 1200)
 
   // Initialize status on mount
   useEffect(() => {

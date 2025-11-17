@@ -11,7 +11,7 @@ import ipaddress
 try:
     from flowsint_types import (
         Email, Domain, Ip, ASN, Phone, Username, Website,
-        Organization, Individual, SocialProfile, Device,
+        Organization, Individual, SocialAccount, Device,
         Credential, Malware, SSLCertificate, Document, File
     )
     FLOWSINT_TYPES_AVAILABLE = True
@@ -31,7 +31,7 @@ TYPE_REGISTRY: List[tuple] = [
     ("Username", "Username", ["username", "user", "handle", "login"], lambda d: _match_username(d)),
     ("Organization", "Organization", ["organization", "org", "company", "name"], lambda d: _match_organization(d)),
     ("Individual", "Individual", ["name", "person", "individual", "fullname"], lambda d: _match_individual(d)),
-    ("SocialProfile", "SocialProfile", ["social", "profile", "account"], lambda d: _match_social(d)),
+    ("SocialAccount", "SocialAccount", ["social", "profile", "account"], lambda d: _match_social(d)),
     ("Credential", "Credential", ["credential", "password", "creds"], lambda d: _match_credential(d)),
 ]
 

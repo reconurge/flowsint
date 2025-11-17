@@ -14,13 +14,17 @@ import {
   FunnelPlus,
   GitPullRequestArrow,
   LassoSelect,
-  Merge
+  Merge,
+  Network
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Filters from './filters'
 import { useGraphStore } from '@/stores/graph-store'
+import { useConfirm } from '@/components/use-confirm-dialog'
+import { useGraphSaveStatus } from '@/stores/graph-save-status-store'
+import { SaveStatusIndicator } from './save-status-indicator'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -67,12 +71,13 @@ export const ToolbarButton = memo(function ToolbarButton({
   )
 })
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
+  const { confirm } = useConfirm()
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
   const zoomToFit = useGraphControls((s) => s.zoomToFit)
   const zoomIn = useGraphControls((s) => s.zoomIn)
   const zoomOut = useGraphControls((s) => s.zoomOut)
-  const onLayout = useGraphControls((s) => s.onLayout)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
   const isLassoActive = useGraphControls((s) => s.isLassoActive)
   const setIsLassoActive = useGraphControls((s) => s.setIsLassoActive)
@@ -80,6 +85,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
   const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
   const filters = useGraphStore((s) => s.filters)
+  const saveStatus = useGraphSaveStatus((s) => s.saveStatus)
 
   const handleRefresh = useCallback(() => {
     try {
@@ -87,30 +93,55 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     } catch (error) {
       toast.error('Failed to refresh graph data')
     }
-  }, [refetchGraph, onLayout])
+  }, [refetchGraph])
 
-  const handleForceLayout = useCallback(() => {
-    setView('force')
-    setTimeout(() => zoomToFit(), 500)
-  }, [setView, zoomToFit])
+  const handleApplyForceLayout = useCallback(async () => {
+    console.log('[Toolbar] handleApplyForceLayout called')
 
-  const handleTableLayout = useCallback(() => {
-    setView('table')
-  }, [setView])
+    const confirmed = await confirm({
+      title: 'Apply force layout?',
+      message: 'This will reset all node positions and regenerate them using the force-directed layout algorithm. Current positions will be lost.'
+    })
 
-  const handleMapLayout = useCallback(() => {
-    setView('map')
-  }, [setView])
+    if (!confirmed) {
+      console.log('[Toolbar] User cancelled layout change')
+      return
+    }
 
-  const handleRelationshipsLayout = useCallback(() => {
-    setView('relationships')
-  }, [setView])
+    console.log('[Toolbar] Calling regenerateLayout with force')
+    try {
+      regenerateLayout('force')
+      console.log('[Toolbar] Force layout applied successfully')
+      toast.success('Force layout applied successfully')
+    } catch (error) {
+      console.error('[Toolbar] Failed to apply layout:', error)
+      toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }, [confirm, regenerateLayout])
 
-  const handleDagreLayoutTB = useCallback(() => {
-    setView('hierarchy')
-    onLayout && onLayout('dagre-tb')
-    setTimeout(() => zoomToFit(), 200)
-  }, [onLayout, setView, zoomToFit])
+  const handleApplyHierarchyLayout = useCallback(async () => {
+    console.log('[Toolbar] handleApplyHierarchyLayout called')
+
+    const confirmed = await confirm({
+      title: 'Apply hierarchy layout?',
+      message: 'This will reset all node positions and regenerate them using the hierarchical layout algorithm. Current positions will be lost.'
+    })
+
+    if (!confirmed) {
+      console.log('[Toolbar] User cancelled layout change')
+      return
+    }
+
+    console.log('[Toolbar] Calling regenerateLayout with hierarchy')
+    try {
+      regenerateLayout('hierarchy')
+      console.log('[Toolbar] Hierarchy layout applied successfully')
+      toast.success('Hierarchy layout applied successfully')
+    } catch (error) {
+      console.error('[Toolbar] Failed to apply layout:', error)
+      toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }, [confirm, regenerateLayout])
 
   const handleOpenAddRelationDialog = useCallback(() => {
     setOpenAddRelationDialog(true)
@@ -133,8 +164,8 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <div className="flex w-full justify-between gap-2 items-center">
-      <div className="flex items-center gap-2">
+    <>
+      <div className='absolute flex gap-2 left-2 top-2'>
         <TooltipProvider>
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
@@ -154,26 +185,26 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}
             tooltip="Zoom Out"
             onClick={zoomOut}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<Maximize className="h-4 w-4 opacity-70" />}
             tooltip="Fit to View"
             onClick={zoomToFit}
-            disabled={!['force', 'hierarchy'].includes(view) || isLassoActive}
+            disabled={view !== 'graph' || isLassoActive}
           />
           <ToolbarButton
             icon={<LassoSelect className="h-4 w-4 opacity-70" />}
             tooltip={'Lasso select'}
             onClick={handleLassoSelect}
             toggled={isLassoActive}
-            disabled={!['force', 'hierarchy'].includes(view)}
+            disabled={view !== 'graph'}
           />
           <Filters>
             <ToolbarButton
@@ -190,41 +221,109 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             tooltip="Refresh"
           />
         </TooltipProvider>
-      </div>
-      <div className="flex items-center gap-2">
+      </div >
+
+      {/* Center: View Toggle Group */}
+      <div className="flex-1 flex border rounded-md justify-center absolute left-1/2 top-1.5 -translate-x-1/2" >
+        <div className="flex items-center bg-muted/40 p-1 gap-0.5 rounded-md">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setView('graph')}
+                  className={cn(
+                    'h-7 px-2 rounded-sm',
+                    view === 'graph'
+                      ? 'bg-background text-foreground border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  )}
+                >
+                  <Network className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Graph view</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setView('table')}
+                  className={cn(
+                    'h-7 px-2 rounded-sm',
+                    view === 'table'
+                      ? 'bg-background text-foreground border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  )}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Table view</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setView('relationships')}
+                  className={cn(
+                    'h-7 px-2 rounded-sm',
+                    view === 'relationships'
+                      ? 'bg-background text-foreground border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  )}
+                >
+                  <ArrowRightLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Relationships view</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setView('map')}
+                  className={cn(
+                    'h-7 px-2 rounded-sm',
+                    view === 'map'
+                      ? 'bg-background text-foreground border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  )}
+                >
+                  <MapPin className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Map view</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div >
+
+      < div className="flex items-center gap-2 absolute right-2 top-2" >
         <TooltipProvider>
-          <ToolbarButton
-            icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-            tooltip={`Hierarchy`}
-            toggled={['hierarchy'].includes(view)}
-            onClick={handleDagreLayoutTB}
-          />
-          <ToolbarButton
-            icon={<Waypoints className="h-4 w-4 opacity-70" />}
-            tooltip={'Graph view'}
-            toggled={['force'].includes(view)}
-            onClick={handleForceLayout}
-          />
-          <ToolbarButton
-            icon={<List className="h-4 w-4 opacity-70" />}
-            tooltip={'Table view'}
-            toggled={['table'].includes(view)}
-            onClick={handleTableLayout}
-          />
-          <ToolbarButton
-            icon={<ArrowRightLeft className="h-4 w-4 opacity-70" />}
-            tooltip={'Relationships view'}
-            toggled={['relationships'].includes(view)}
-            onClick={handleRelationshipsLayout}
-          />
-          <ToolbarButton
-            icon={<MapPin className="h-4 w-4 opacity-70" />}
-            tooltip={'Map view'}
-            toggled={['map'].includes(view)}
-            onClick={handleMapLayout}
-          />
+          {view === 'graph' && (
+            <>
+              <ToolbarButton
+                icon={<Waypoints className="h-4 w-4 opacity-70" />}
+                tooltip={'Force layout'}
+                onClick={handleApplyForceLayout}
+                disabled={isLoading}
+              />
+              <ToolbarButton
+                icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
+                tooltip={'Hierarchy layout'}
+                onClick={handleApplyHierarchyLayout}
+                disabled={isLoading}
+              />
+            </>
+          )}
         </TooltipProvider>
-      </div>
-    </div>
+        <SaveStatusIndicator status={saveStatus} />
+      </div >
+    </ >
   )
 })

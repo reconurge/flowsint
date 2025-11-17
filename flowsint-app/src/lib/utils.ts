@@ -26,21 +26,43 @@ export const getDagreLayoutedElements = (nodes: GraphNode[],
   },) => {
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: options.direction });
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+
+  // Configure dagre with proper spacing
+  g.setGraph({
+    rankdir: options.direction,
+    nodesep: 10,  // Horizontal spacing between nodes
+    ranksep: 20,  // Vertical spacing between ranks
+    marginx: 10,
+    marginy: 10
+  });
+
+  // Set node dimensions first - use a consistent size for all nodes
+  const nodeWidth = 50;
+  const nodeHeight = 50;
+
   nodes.forEach((node) =>
     g.setNode(node.id, {
-      ...node,
-      width: node.nodeSize ?? 0,
-      height: node.nodeSize ?? 0,
+      width: nodeWidth,
+      height: nodeHeight,
     }),
   );
+
+  // Then add edges
+  // Note: react-force-graph transforms edges so source/target become node objects
+  // We need to extract the IDs for Dagre
+  edges.forEach((edge: GraphEdge | any) => {
+    const source = typeof edge.source === 'object' ? edge.source.id : edge.source;
+    const target = typeof edge.target === 'object' ? edge.target.id : edge.target;
+    g.setEdge(source, target);
+  });
+
   Dagre.layout(g);
+
   return {
     nodes: nodes.map((node) => {
       const position = g.node(node.id);
-      const x = position.x - (node.nodeSize ?? 0) / 2;
-      const y = position.y - (node.nodeSize ?? 0) / 2;
+      const x = position.x;
+      const y = position.y;
       return { ...node, x, y };
     }),
     edges,

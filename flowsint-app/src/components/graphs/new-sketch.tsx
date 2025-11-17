@@ -30,7 +30,7 @@ interface NewSketchProps {
 export default function NewSketch({ children }: NewSketchProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const { investigationId } = useParams({ strict: false })
+  const { investigationId, id: sketchId } = useParams({ strict: false })
   const queryClient = useQueryClient()
 
   const {
@@ -59,6 +59,7 @@ export default function NewSketch({ children }: NewSketchProps) {
             queryKey: queryKeys.investigations.sketches(investigationId)
           })
         }
+        if (sketchId) setOpen(false)
       } else {
         toast.error(result.error || 'Failed to create sketch.')
       }

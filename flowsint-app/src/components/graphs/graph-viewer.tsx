@@ -83,7 +83,7 @@ const CONSTANTS = {
   LINK_WIDTH: 1,
   ARROW_SIZE: 8,
   ARROW_ANGLE: Math.PI / 6,
-  MIN_ZOOM: 0.4,
+  MIN_ZOOM: 0.1,
   MAX_ZOOM: 8,
   // Dynamic label thresholds based on zoom
   MIN_VISIBLE_LABELS: 5,
@@ -196,11 +196,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const { theme } = useTheme()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
-
-  const shouldUseSimpleRendering = useMemo(
-    () => nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || currentZoom < 1.5,
-    [nodes.length, currentZoom]
-  )
 
   // Pre-compute visible labels based on zoom and node weight (O(n) once per zoom change)
   const visibleLabels = useMemo(() => {
@@ -456,6 +451,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       isGraphReadyRef.current = true
       // Only set global actions if no instanceId is provided (for main graph)
       if (!instanceId) {
+
         setActions({
           zoomIn: () => {
             if (graphRef.current && typeof graphRef.current.zoom === 'function') {
@@ -508,6 +504,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       // Wait a bit for the simulation to settle, then center
       const timer = setTimeout(() => {
         if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+
           graphRef.current.zoomToFit(400)
         }
       }, 500)
@@ -1068,6 +1065,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         width={containerSize.width}
         height={containerSize.height}
         graphData={graphData}
+        maxZoom={CONSTANTS.MAX_ZOOM}
+        minZoom={CONSTANTS.MIN_ZOOM}
         nodeLabel={() => ''}
         // nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : GRAPH_COLORS.TRANSPARENT}
         nodeRelSize={6}
@@ -1115,11 +1114,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           </div>
         </div>
       )}
-      {/* {minimap && graphData.nodes &&
-                <MiniMap zoomTransform={zoomState}
-                    canvasWidth={containerSize.width}
-                    canvasHeight={containerSize.height}
-                    nodes={graphData.nodes as GraphNode[]} />} */}
     </div>
   )
 }

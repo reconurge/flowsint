@@ -21,10 +21,11 @@ import {
 import { Ellipsis, Upload } from 'lucide-react'
 import { isMac } from '@/lib/utils'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useConfirm } from '../use-confirm-dialog'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
+import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 
 export const TopNavbar = memo(() => {
   const { investigationId, id, type } = useParams({ strict: false })
@@ -83,6 +84,18 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
   const navigate = useNavigate()
   const { confirm } = useConfirm()
+
+  useKeyboardShortcut({
+    key: 'g',
+    ctrlOrCmd: true,
+    callback: () => setSettingsModalOpen(true)
+  })
+
+  useKeyboardShortcut({
+    key: 'k',
+    ctrlOrCmd: true,
+    callback: () => setKeyboardShortcutsOpen(true)
+  })
 
   // Delete sketch mutation
   const deleteSketchMutation = useMutation({
@@ -154,8 +167,8 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleDelete} variant="destructive">
-          Delete
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          Delete sketch
+          {/* <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut> */}
         </DropdownMenuItem>
       </DropdownMenuContent>
       <ImportSheet sketchId={sketchId} />

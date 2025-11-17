@@ -1,6 +1,6 @@
 from pathlib import Path
 from flowsint_transforms.socials.maigret import MaigretTransform
-from flowsint_types.social import SocialProfile
+from flowsint_types.social import SocialAccount
 
 transform = MaigretTransform("sketch_123", "scan_123")
 
@@ -12,15 +12,15 @@ def test_unprocessed_valid_usernames():
     ]
     result = transform.preprocess(usernames)
     result_usernames = [d for d in result]
-    expected_usernames = [SocialProfile(username=d) for d in usernames]
+    expected_usernames = [SocialAccount(username=d) for d in usernames]
     assert result_usernames == expected_usernames
 
 
 def test_preprocess_invalid_usernames():
     usernames = [
-        SocialProfile(username="toto123"),
-        SocialProfile(username="DorianXd78_Official"),
-        SocialProfile(username="This is not a username"),
+        SocialAccount(username="toto123"),
+        SocialAccount(username="DorianXd78_Official"),
+        SocialAccount(username="This is not a username"),
     ]
     result = transform.preprocess(usernames)
 
@@ -34,7 +34,7 @@ def test_preprocess_multiple_formats():
     usernames = [
         {"username": "toto123"},
         {"invalid_key": "ValId_UseRnAme"},
-        SocialProfile(username="DorianXd78_Official"),
+        SocialAccount(username="DorianXd78_Official"),
         "MySimpleUsername",
     ]
     result = transform.preprocess(usernames)

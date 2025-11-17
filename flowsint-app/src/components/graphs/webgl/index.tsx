@@ -73,6 +73,10 @@ const WebGLGraphViewer: React.FC<WebGLGraphViewerProps> = ({
     height: dimensions.height,
     nodeColors,
     layoutMode,
+    dagLevelDistance: forceSettings.dagLevelDistance?.value,
+    forceLinkDistance: forceSettings.d3ForceLinkDistance?.value,
+    forceLinkStrength: forceSettings.d3ForceLinkStrength?.value,
+    forceChargeStrength: forceSettings.d3ForceChargeStrength?.value,
   })
 
   // Graph interactions (hover, click, drag)

@@ -6,7 +6,7 @@ from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
-from flowsint_types import Domain, Phrase, Ip, SocialProfile, Organization, Email, Phone
+from flowsint_types import Domain, Phrase, Ip, SocialAccount, Organization, Email, Phone
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
@@ -121,7 +121,7 @@ async def get_material_list():
         extract_input_schema_flow(Phone),
         extract_input_schema_flow(ASN),
         extract_input_schema_flow(CIDR),
-        extract_input_schema_flow(SocialProfile),
+        extract_input_schema_flow(SocialAccount),
         extract_input_schema_flow(Email),
         extract_input_schema_flow(CryptoWallet),
         extract_input_schema_flow(CryptoWalletTransaction),
@@ -193,7 +193,7 @@ def update_flow(
     for key, value in update_data.items():
         print(f"only update {key}")
         if key == "category":
-            if "SocialProfile" in value:
+            if "SocialAccount" in value:
                 value.append("Username")
         setattr(flow, key, value)
 

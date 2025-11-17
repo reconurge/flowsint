@@ -378,7 +378,10 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
                 key={presetName}
                 variant="outline"
                 size="sm"
-                onClick={() => applyPreset(presetName)}
+                onClick={() => {
+                  applyPreset(presetName)
+                  toast.success('Settings saved')
+                }}
                 className="justify-start"
               >
                 {presetName}

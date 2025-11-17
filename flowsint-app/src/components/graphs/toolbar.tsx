@@ -164,8 +164,8 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <>
-      <div className='absolute flex gap-2 left-2 top-2'>
+    <div className='flex absolute top-0 left-1 right-1 justify-between items-center gap-6 w-full'>
+      <div className='flex gap-2 left-2 top-2'>
         <TooltipProvider>
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
@@ -224,7 +224,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       </div >
 
       {/* Center: View Toggle Group */}
-      <div className="flex-1 flex border rounded-md justify-center absolute left-1/2 top-1.5 -translate-x-1/2" >
+      <div className="flex border rounded-md justify-center" >
         <div className="flex items-center bg-muted/40 p-1 gap-0.5 rounded-md">
           <TooltipProvider>
             <Tooltip>
@@ -234,7 +234,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   size="sm"
                   onClick={() => setView('graph')}
                   className={cn(
-                    'h-7 px-2 rounded-sm',
+                    'h-6 px-2 rounded-sm',
                     view === 'graph'
                       ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
@@ -252,7 +252,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   size="sm"
                   onClick={() => setView('table')}
                   className={cn(
-                    'h-7 px-2 rounded-sm',
+                    'h-6 px-2 rounded-sm',
                     view === 'table'
                       ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
@@ -270,7 +270,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   size="sm"
                   onClick={() => setView('relationships')}
                   className={cn(
-                    'h-7 px-2 rounded-sm',
+                    'h-6 px-2 rounded-sm',
                     view === 'relationships'
                       ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
@@ -288,7 +288,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                   size="sm"
                   onClick={() => setView('map')}
                   className={cn(
-                    'h-7 px-2 rounded-sm',
+                    'h-6 px-2 rounded-sm',
                     view === 'map'
                       ? 'bg-background text-foreground border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
@@ -303,7 +303,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         </div>
       </div >
 
-      < div className="flex items-center gap-2 absolute right-2 top-2" >
+      < div className="flex items-center gap-2" >
         <TooltipProvider>
           {view === 'graph' && (
             <>
@@ -324,6 +324,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         </TooltipProvider>
         <SaveStatusIndicator status={saveStatus} />
       </div >
-    </ >
+    </ div>
   )
 })

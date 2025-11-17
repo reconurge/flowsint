@@ -30,7 +30,7 @@ from .reputation_score import ReputationScore
 from .risk_profile import RiskProfile
 from .script import Script
 from .session import Session
-from .social import SocialProfile
+from .social_account import SocialAccount
 from .ssl_certificate import SSLCertificate
 from .username import Username
 from .wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
@@ -40,7 +40,7 @@ from .website import Website
 from .whois import Whois
 
 __version__ = "0.1.0"
-__author__ = "dextmorgn <dexxterrmorgan@proton.me>"
+__author__ = "dextmorgn <contact@flowsint.io>"
 
 __all__ = [
     "Location",
@@ -71,7 +71,7 @@ __all__ = [
     "RiskProfile",
     "Script",
     "Session",
-    "SocialProfile",
+    "SocialAccount",
     "SSLCertificate",
     "Node",
     "Edge",

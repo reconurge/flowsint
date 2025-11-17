@@ -309,7 +309,7 @@ class IndividualToOrgTransform(Transform):
 
             # Create individual node
             self.create_node(
-                "Individual",
+                "individual",
                 "full_name",
                 individual_id,
                 **individual.__dict__,
@@ -323,7 +323,7 @@ class IndividualToOrgTransform(Transform):
                 
                 # Create relationship between individual and organization
                 self.create_relationship(
-                    "Individual",
+                    "individual",
                     "full_name",
                     individual_id,
                     "Organization",

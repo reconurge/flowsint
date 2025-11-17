@@ -9,7 +9,7 @@ from app.api.deps import get_current_user
 from flowsint_types import (
     Domain,
     Ip,
-    SocialProfile,
+    SocialAccount,
     Organization,
     Email,
     ASN,
@@ -36,12 +36,8 @@ from flowsint_types import (
     CreditCard,
     WebTracker,
     Phrase,
-    Location
+    Location,
 )
-
-# from flowsint_types.script import Script
-# from flowsint_types.reputation_score import ReputationScore
-# from flowsint_types.risk_profile import RiskProfile
 
 router = APIRouter()
 
@@ -49,8 +45,7 @@ router = APIRouter()
 # Returns the "types" for the sketches
 @router.get("/")
 async def get_types_list(
-    db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
     types = [
         {
@@ -62,7 +57,7 @@ async def get_types_list(
             "fields": [],
             "children": [
                 extract_input_schema(Phrase, label_key="text"),
-                extract_input_schema(Location, label_key="address")
+                extract_input_schema(Location, label_key="address"),
             ],
         },
         {
@@ -74,15 +69,11 @@ async def get_types_list(
             "fields": [],
             "children": [
                 extract_input_schema(Individual, label_key="full_name"),
-                extract_input_schema(
-                    SocialProfile, label_key="username", icon="social_profile"
-                ),
+                extract_input_schema(Username, label_key="value", icon="username"),
+                # extract_input_schema(
+                #     SocialAccount, label_key="username", icon="social_account"
+                # ),
                 extract_input_schema(Organization, label_key="name"),
-                extract_input_schema(
-                    Username, label_key="username", icon="social_profile"
-                ),
-                # extract_input_schema(Alias, label_key="alias", icon="alias"),
-                # extract_input_schema(Affiliation, label_key="organization", icon="affiliation"),
             ],
         },
         {
@@ -106,8 +97,9 @@ async def get_types_list(
             "children": [
                 extract_input_schema(Phone, label_key="number"),
                 extract_input_schema(Email, label_key="email"),
+                extract_input_schema(Username, label_key="value"),
                 extract_input_schema(
-                    SocialProfile, label_key="username", icon="socialprofile"
+                    SocialAccount, label_key="username", icon="SocialAccount"
                 ),
                 extract_input_schema(Message, label_key="content", icon="message"),
             ],
@@ -145,9 +137,6 @@ async def get_types_list(
                 extract_input_schema(Device, label_key="device_id", icon="device"),
                 extract_input_schema(Malware, label_key="name", icon="malware"),
                 extract_input_schema(Weapon, label_key="name", icon="weapon"),
-                # extract_input_schema(Script, label_key="name", icon="script"),
-                # extract_input_schema(ReputationScore, label_key="entity_id", icon="reputation"),
-                # extract_input_schema(RiskProfile, label_key="entity_id", icon="risk"),
             ],
         },
         {
@@ -213,7 +202,7 @@ async def get_types_list(
         db.query(CustomType)
         .filter(
             CustomType.owner_id == current_user.id,
-            CustomType.status == "published"  # Only show published custom types
+            CustomType.status == "published",  # Only show published custom types
         )
         .all()
     )
@@ -227,38 +216,46 @@ async def get_types_list(
             required = schema.get("required", [])
 
             # Try to use the first required field, or the first property
-            label_key = required[0] if required else list(properties.keys())[0] if properties else "value"
+            label_key = (
+                required[0]
+                if required
+                else list(properties.keys())[0] if properties else "value"
+            )
 
-            custom_types_children.append({
-                "id": custom_type.id,
-                "type": custom_type.name,
-                "key": custom_type.name.lower(),
-                "label_key": label_key,
+            custom_types_children.append(
+                {
+                    "id": custom_type.id,
+                    "type": custom_type.name,
+                    "key": custom_type.name.lower(),
+                    "label_key": label_key,
+                    "icon": "custom",
+                    "label": custom_type.name,
+                    "description": custom_type.description or "",
+                    "fields": [
+                        {
+                            "name": prop,
+                            "label": info.get("title", prop),
+                            "description": info.get("description", ""),
+                            "type": "text",
+                            "required": prop in required,
+                        }
+                        for prop, info in properties.items()
+                    ],
+                    "custom": True,  # Mark as custom type
+                }
+            )
+
+        types.append(
+            {
+                "id": uuid4(),
+                "type": "custom_types_category",
+                "key": "custom_types",
                 "icon": "custom",
-                "label": custom_type.name,
-                "description": custom_type.description or "",
-                "fields": [
-                    {
-                        "name": prop,
-                        "label": info.get("title", prop),
-                        "description": info.get("description", ""),
-                        "type": "text",
-                        "required": prop in required
-                    }
-                    for prop, info in properties.items()
-                ],
-                "custom": True  # Mark as custom type
-            })
-
-        types.append({
-            "id": uuid4(),
-            "type": "custom_types_category",
-            "key": "custom_types",
-            "icon": "custom",
-            "label": "Custom types",
-            "fields": [],
-            "children": custom_types_children,
-        })
+                "label": "Custom types",
+                "fields": [],
+                "children": custom_types_children,
+            }
+        )
 
     return types
 
@@ -300,8 +297,8 @@ def resolve_field(prop: str, details: dict, schema: dict = None) -> Dict:
     """
     field = {
         "name": prop,
-        "label": details["title"],
-        "description": details["description"],
+        "label": details.get("title", prop),
+        "description": details.get("description", ""),
         "type": "text",
     }
     if has_enum(details):

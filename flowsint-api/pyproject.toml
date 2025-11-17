@@ -3,7 +3,7 @@ name = "flowsint-api"
 version = "0.1.0"
 license = "AGPL-3.0-or-later"
 description = "API server for flowsint"
-authors = ["dextmorgn <dexxterrmorgan@proton.me>"]
+authors = ["dextmorgn <contact@flowsint.io>"]
 packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]

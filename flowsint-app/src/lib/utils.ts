@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge"
 import Dagre from '@dagrejs/dagre';
 import { GraphEdge, GraphNode } from '@/types';
 import { FlowEdge, FlowNode } from "@/stores/flow-store";
+import { forceSimulation, forceLink, forceManyBody, forceCenter } from 'd3-force';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -12,6 +13,19 @@ interface LayoutOptions {
   direction?: "LR" | "TB";
   strength?: number;
   distance?: number;
+  iterations?: number;
+  dagLevelDistance?: number;
+}
+
+interface ForceLayoutOptions {
+  width?: number;
+  height?: number;
+  chargeStrength?: number;
+  linkDistance?: number;
+  linkStrength?: number;
+  alphaDecay?: number;
+  alphaMin?: number;
+  velocityDecay?: number;
   iterations?: number;
 }
 
@@ -23,15 +37,19 @@ export const getDagreLayoutedElements = (nodes: GraphNode[],
     strength: -300,
     distance: 10,
     iterations: 300,
+    dagLevelDistance: 50,
   },) => {
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
+  // Use dagLevelDistance for both node and rank separation
+  const levelDistance = options.dagLevelDistance ?? 50;
+
   // Configure dagre with proper spacing
   g.setGraph({
     rankdir: options.direction,
-    nodesep: 10,  // Horizontal spacing between nodes
-    ranksep: 20,  // Vertical spacing between ranks
+    nodesep: levelDistance,  // Horizontal spacing between nodes (fixed distance)
+    ranksep: levelDistance,  // Vertical spacing between ranks (fixed distance)
     marginx: 10,
     marginy: 10
   });
@@ -65,6 +83,79 @@ export const getDagreLayoutedElements = (nodes: GraphNode[],
       const y = position.y;
       return { ...node, x, y };
     }),
+    edges,
+  };
+};
+
+// force layout function for the main graph component
+export const getForceLayoutedElements = (
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+  options: ForceLayoutOptions = {
+    width: 800,
+    height: 600,
+    chargeStrength: -30,
+    linkDistance: 30,
+    linkStrength: 2,
+    alphaDecay: 0.045,
+    alphaMin: 0,
+    velocityDecay: 0.41,
+    iterations: 300,
+  }
+) => {
+  const {
+    width = 800,
+    height = 600,
+    chargeStrength = -30,
+    linkDistance = 30,
+    linkStrength = 2,
+    alphaDecay = 0.045,
+    alphaMin = 0,
+    velocityDecay = 0.41,
+    iterations = 300,
+  } = options;
+
+  // Create simulation nodes with initial random positions
+  const simNodes = nodes.map((node) => ({
+    ...node,
+    x: node.x ?? Math.random() * width,
+    y: node.y ?? Math.random() * height,
+  }));
+
+  // Create simulation links
+  const simLinks = edges.map((edge) => ({
+    source: typeof edge.source === 'object' ? edge.source.id : edge.source,
+    target: typeof edge.target === 'object' ? edge.target.id : edge.target,
+  }));
+
+  // Create D3 force simulation
+  const simulation = forceSimulation(simNodes as any)
+    .force(
+      'link',
+      forceLink(simLinks)
+        .id((d: any) => d.id)
+        .distance(linkDistance)
+        .strength(linkStrength)
+    )
+    .force('charge', forceManyBody().strength(chargeStrength))
+    .force('center', forceCenter(width / 2, height / 2))
+    .alphaDecay(alphaDecay)
+    .alphaMin(alphaMin)
+    .velocityDecay(velocityDecay);
+
+  // Run simulation synchronously for specified iterations
+  for (let i = 0; i < iterations; i++) {
+    simulation.tick();
+  }
+
+  simulation.stop();
+
+  return {
+    nodes: simNodes.map((node) => ({
+      ...node,
+      x: node.x,
+      y: node.y,
+    })),
     edges,
   };
 };

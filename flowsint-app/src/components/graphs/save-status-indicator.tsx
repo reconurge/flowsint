@@ -57,14 +57,14 @@ export const SaveStatusIndicator = memo(({ status }: SaveStatusIndicatorProps) =
     <div
       className={cn(
         'flex items-center gap-1.5 px-2.5 py-1.5',
-        'rounded-md border shadow-sm',
+        'rounded-md border',
         'text-xs font-medium',
         'transition-all duration-200',
         config.className
       )}
     >
       <Icon className={cn('h-3.5 w-3.5', config.iconClassName)} />
-      <span>{config.text}</span>
+      {/* <span>{config.text}</span> */}
     </div>
   )
 })

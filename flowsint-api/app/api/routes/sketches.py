@@ -203,6 +203,9 @@ async def get_sketch_nodes(
             "data": record["data"],
             "label": record["data"].get("label", "Node"),
             "idx": idx,
+            # Extract x and y positions if they exist
+            **({"x": record["data"]["x"]} if "x" in record["data"] else {}),
+            **({"y": record["data"]["y"]} if "y" in record["data"] else {}),
         }
         for idx, record in enumerate(nodes_result)
     ]
@@ -397,6 +400,60 @@ def edit_node(
     return {
         "status": "node updated",
         "node": updated_node,
+    }
+
+
+class NodePosition(BaseModel):
+    nodeId: str
+    x: float
+    y: float
+
+
+class UpdatePositionsInput(BaseModel):
+    positions: List[NodePosition]
+
+
+@router.put("/{sketch_id}/nodes/positions")
+@update_sketch_timestamp
+def update_node_positions(
+    sketch_id: str,
+    data: UpdatePositionsInput,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    Update positions (x, y) for multiple nodes in batch.
+    This is used to persist node positions after drag operations in the graph viewer.
+    """
+    # Verify the sketch exists and user has access
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
+
+    if not data.positions:
+        return {"status": "no positions to update", "count": 0}
+
+    # Convert Pydantic models to dicts for GraphRepository
+    positions = [pos.model_dump() for pos in data.positions]
+
+    # Update positions using GraphRepository
+    try:
+        graph_repo = GraphRepository(neo4j_connection)
+        updated_count = graph_repo.update_nodes_positions(
+            positions=positions,
+            sketch_id=sketch_id
+        )
+    except Exception as e:
+        print(f"Position update error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update node positions")
+
+    return {
+        "status": "positions updated",
+        "count": updated_count,
     }
 
 

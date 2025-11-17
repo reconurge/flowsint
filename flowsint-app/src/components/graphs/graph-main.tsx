@@ -1,17 +1,16 @@
 import { useGraphStore } from '@/stores/graph-store'
 import React, { useRef, useCallback } from 'react'
-// import GraphViewer from './graph-viewer'
+import GraphViewer from './graph-viewer'
 // import WebGLGraphViewer from './webgl'
 import ContextMenu from './context-menu'
-import { useGraphControls } from '@/stores/graph-controls-store'
-import GraphViewer from './graph-viewer'
+import { useParams } from '@tanstack/react-router'
 
 const GraphMain = () => {
+  const { id: sketchId } = useParams({ strict: false })
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
-  const layoutMode = useGraphControls((s) => s.layoutMode)
 
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -58,12 +57,12 @@ const GraphMain = () => {
   return (
     <div ref={containerRef} className="relative h-full w-full bg-background">
       {/* <WebGLGraphViewer
+        sketchId={sketchId as string}
         nodes={filteredNodes}
         edges={filteredEdges}
         onNodeClick={handleNodeClick}
         onNodeRightClick={onNodeContextMenu}
         onBackgroundClick={handleBackgroundClick}
-        layoutMode={layoutMode}
       /> */}
       <GraphViewer
         nodes={filteredNodes}
@@ -75,7 +74,7 @@ const GraphMain = () => {
         showIcons={true}
         onGraphRef={handleGraphRef}
         allowLasso
-        minimap={false}
+        sketchId={sketchId}
       />
 
       {menu && <ContextMenu onClick={handleBackgroundClick} {...menu} />}

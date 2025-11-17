@@ -1,9 +1,8 @@
 import { useGraphStore } from '@/stores/graph-store'
 import React, { useRef, useCallback } from 'react'
-// import GraphViewer from './graph-viewer'
+import GraphViewer from './graph-viewer'
 // import WebGLGraphViewer from './webgl'
 import ContextMenu from './context-menu'
-import GraphViewer from './graph-viewer'
 import { useParams } from '@tanstack/react-router'
 
 const GraphMain = () => {
@@ -58,12 +57,12 @@ const GraphMain = () => {
   return (
     <div ref={containerRef} className="relative h-full w-full bg-background">
       {/* <WebGLGraphViewer
+        sketchId={sketchId as string}
         nodes={filteredNodes}
         edges={filteredEdges}
         onNodeClick={handleNodeClick}
         onNodeRightClick={onNodeContextMenu}
         onBackgroundClick={handleBackgroundClick}
-        layoutMode={layoutMode}
       /> */}
       <GraphViewer
         nodes={filteredNodes}

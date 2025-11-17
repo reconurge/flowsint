@@ -301,9 +301,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             </Tooltip>
           </TooltipProvider>
         </div>
-      </div >
+      </div>
 
-      < div className="flex items-center gap-2" >
+      <div className="flex items-center gap-2" >
         <TooltipProvider>
           {view === 'graph' && (
             <>
@@ -323,7 +323,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           )}
         </TooltipProvider>
         <SaveStatusIndicator status={saveStatus} />
-      </div >
-    </ div>
+      </div>
+    </div>
   )
 })

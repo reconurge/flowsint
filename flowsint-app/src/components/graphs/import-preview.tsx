@@ -504,7 +504,7 @@ export function ImportPreview({
         </Button>
         <Button onClick={handleImport} disabled={isImporting}>
           {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} Entities`}
+          {isImporting ? 'Importing...' : `Import ${entityMappings.filter(m => m.include).length} entities`}
         </Button>
       </div>
     </div>

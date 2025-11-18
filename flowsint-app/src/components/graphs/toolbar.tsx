@@ -96,7 +96,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   }, [refetchGraph])
 
   const handleApplyForceLayout = useCallback(async () => {
-    console.log('[Toolbar] handleApplyForceLayout called')
 
     const confirmed = await confirm({
       title: 'Apply force layout?',
@@ -104,17 +103,13 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     })
 
     if (!confirmed) {
-      console.log('[Toolbar] User cancelled layout change')
       return
     }
 
-    console.log('[Toolbar] Calling regenerateLayout with force')
     try {
       regenerateLayout('force')
-      console.log('[Toolbar] Force layout applied successfully')
       toast.success('Force layout applied successfully')
     } catch (error) {
-      console.error('[Toolbar] Failed to apply layout:', error)
       toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }, [confirm, regenerateLayout])

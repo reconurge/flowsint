@@ -9,6 +9,7 @@ import { sketchService } from '@/api/sketch-service'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLayoutStore } from '@/stores/layout-store'
 import { GraphNode } from '@/types'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 
 const NodeActions = memo(
   ({ node, setMenu }: { node: GraphNode; setMenu?: (menu: any | null) => void }) => {
@@ -21,6 +22,7 @@ const NodeActions = memo(
     const openChat = useLayoutStore((s) => s.openChat)
     const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
     const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
+    const settings = useGraphSettingsStore((s) => s.settings)
 
     // Add relation dialog
     const handleOpenMainDialog = useCallback(() => {
@@ -94,23 +96,24 @@ const NodeActions = memo(
               <p>Add relation</p>
             </TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <Button
-                  onClick={handleAskAI}
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-                >
-                  <Sparkles className="h-3 w-3" strokeWidth={1.5} />
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Ask AI</p>
-            </TooltipContent>
-          </Tooltip>
+          {Boolean(settings?.general?.showFlow?.value) &&
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Button
+                    onClick={handleAskAI}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                  >
+                    <Sparkles className="h-3 w-3" strokeWidth={1.5} />
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ask AI</p>
+              </TooltipContent>
+            </Tooltip>}
           <Tooltip>
             <TooltipTrigger asChild>
               <div>

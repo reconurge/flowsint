@@ -43,7 +43,7 @@ export const StatusBar = memo(() => {
                     <Trash strokeWidth={1.4} className="h-3 w-3 opacity-60" />
                     <span>Trash</span>
                 </Button> */}
-        <Legend />
+        {/* <Legend /> */}
         <InfoDialog />
         <ModeToggle />
       </div>

@@ -1,11 +1,10 @@
 import { type ReactNode, useMemo } from 'react'
 import { Sidebar } from './sidebar'
 import { TopNavbar } from './top-navbar'
-import { StatusBar } from './status-bar'
 import SecondaryNavigation from './secondary-navigation'
 import { ConfirmContextProvider } from '@/components/use-confirm-dialog'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
-import { LogPanel } from './log-panel'
+import { PersistentLogPanel } from './persistent-log-panel'
 import { useLayoutStore } from '@/stores/layout-store'
 import NotesPanel from '../analyses/notes-panel'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
@@ -156,32 +155,8 @@ export default function RootLayout({ children }: LayoutProps) {
                   </ResizablePanelGroup>
                 </ResizablePanel>
 
-                {/* Console panel with status bar - only shown when isOpen is true */}
-                {isOpenConsole && id ? (
-                  <>
-                    <ResizableHandle />
-                    <ResizablePanel
-                      id="console"
-                      order={5}
-                      defaultSize={30}
-                      minSize={10}
-                      maxSize={50}
-                    >
-                      <div className="h-full overflow-hidden flex flex-col">
-                        <div className="h-8 shrink-0">
-                          <StatusBar />
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                          <LogPanel />
-                        </div>
-                      </div>
-                    </ResizablePanel>
-                  </>
-                ) : (
-                  <div className="h-8 shrink-0 border-t">
-                    <StatusBar />
-                  </div>
-                )}
+                {/* Console panel with status bar - uses PersistentLogPanel to maintain state */}
+                <PersistentLogPanel />
               </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>

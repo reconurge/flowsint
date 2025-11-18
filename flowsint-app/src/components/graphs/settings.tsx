@@ -380,7 +380,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
                 size="sm"
                 onClick={() => {
                   applyPreset(presetName)
-                  toast.success('Settings saved')
+                  toast.success('Settings saved. Re-apply a layout to see changes.')
                 }}
                 className="justify-start"
               >

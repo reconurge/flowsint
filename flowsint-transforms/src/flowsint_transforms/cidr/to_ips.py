@@ -81,6 +81,7 @@ class CidrToIpsTransform(Transform):
     async def scan(self, data: InputType) -> OutputType:
         """Find IP addresses from CIDR using mapcidr."""
         ips: OutputType = []
+        self._cidr_to_ips_map = []  # Store mapping for postprocess
         mapcidr = MapcidrTool()
 
         # Retrieve API key from vault or environment (optional)
@@ -88,6 +89,7 @@ class CidrToIpsTransform(Transform):
 
         for cidr in data:
             try:
+                cidr_ips = []
                 # Use mapcidr tool to get IPs from CIDR, passing the API key
                 ip_addresses = mapcidr.launch(cidr.network, api_key=api_key)
 
@@ -96,6 +98,7 @@ class CidrToIpsTransform(Transform):
                         try:
                             ip = Ip(address=ip_str.strip())
                             ips.append(ip)
+                            cidr_ips.append(ip)
                         except Exception as e:
                             Logger.error(
                                 self.sketch_id,
@@ -114,6 +117,9 @@ class CidrToIpsTransform(Transform):
                         {"message": f"[MAPCIDR] No IPs found for CIDR {cidr.network}"},
                     )
 
+                if cidr_ips:  # Only add to mapping if we found valid IPs
+                    self._cidr_to_ips_map.append((cidr, cidr_ips))
+
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
@@ -125,40 +131,83 @@ class CidrToIpsTransform(Transform):
 
     def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
-        for cidr, ip in zip(original_input, results):
-            if self.neo4j_conn:
-                # Create CIDR node
-                self.create_node(
-                    "cidr",
-                    "network",
-                    str(cidr.network),
-                    label=str(cidr.network),
-                    caption=str(cidr.network),
-                    type="cidr",
+        # Use the mapping from scan if available, else fallback to zip
+        cidr_to_ips = getattr(self, "_cidr_to_ips_map", None)
+        if cidr_to_ips is not None:
+            for cidr, ip_list in cidr_to_ips:
+                self.log_graph_message(
+                    f"Found {len(ip_list)} IPs in CIDR {cidr.network}"
                 )
+                for ip in ip_list:
+                    if self.neo4j_conn:
+                        # Create CIDR node
+                        self.create_node(
+                            "cidr",
+                            "network",
+                            str(cidr.network),
+                            label=str(cidr.network),
+                            caption=str(cidr.network),
+                            type="cidr",
+                        )
 
-                # Create IP node
-                self.create_node(
-                    "ip",
-                    "address",
-                    ip.address,
-                    label=ip.address,
-                    caption=ip.address,
-                    type="ip",
-                )
+                        # Create IP node
+                        self.create_node(
+                            "ip",
+                            "address",
+                            ip.address,
+                            label=ip.address,
+                            caption=ip.address,
+                            type="ip",
+                        )
 
-                # Create relationship
-                self.create_relationship(
-                    "cidr",
-                    "network",
-                    str(cidr.network),
-                    "ip",
-                    "address",
-                    ip.address,
-                    "CONTAINS",
-                )
+                        # Create relationship
+                        self.create_relationship(
+                            "cidr",
+                            "network",
+                            str(cidr.network),
+                            "ip",
+                            "address",
+                            ip.address,
+                            "CONTAINS",
+                        )
+        else:
+            # Fallback: original behavior (one-to-one zip)
+            for cidr, ip in zip(original_input, results):
+                if self.neo4j_conn:
+                    # Create CIDR node
+                    self.create_node(
+                        "cidr",
+                        "network",
+                        str(cidr.network),
+                        label=str(cidr.network),
+                        caption=str(cidr.network),
+                        type="cidr",
+                    )
 
-                self.log_graph_message(f"CIDR {cidr.network} contains IP {ip.address}")
+                    # Create IP node
+                    self.create_node(
+                        "ip",
+                        "address",
+                        ip.address,
+                        label=ip.address,
+                        caption=ip.address,
+                        type="ip",
+                    )
+
+                    # Create relationship
+                    self.create_relationship(
+                        "cidr",
+                        "network",
+                        str(cidr.network),
+                        "ip",
+                        "address",
+                        ip.address,
+                        "CONTAINS",
+                    )
+
+                    self.log_graph_message(
+                        f"CIDR {cidr.network} contains IP {ip.address}"
+                    )
         return results
 
 

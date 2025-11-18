@@ -14,6 +14,7 @@ import { Badge } from '../ui/badge'
 import LaunchFlow from './launch-transform'
 import { TypeBadge } from '../type-badge'
 import { useParams } from '@tanstack/react-router'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 const SelectedItemsPanel = () => {
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
 
@@ -80,6 +81,8 @@ const ActionBar = () => {
   const removeNodes = useGraphStore((s) => s.removeNodes)
   const openChat = useLayoutStore((s) => s.openChat)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
+  const settings = useGraphSettingsStore((s) => s.settings)
+
 
   // Ask AI dialog
   const handleAskAI = useCallback(
@@ -126,23 +129,24 @@ const ActionBar = () => {
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <Button
-                onClick={handleAskAI}
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
-              >
-                <Sparkles className="h-3 w-3" strokeWidth={1.5} />
-              </Button>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Ask AI</p>
-          </TooltipContent>
-        </Tooltip>
+        {Boolean(settings?.general?.showFlow?.value) &&
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  onClick={handleAskAI}
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                >
+                  <Sparkles className="h-3 w-3" strokeWidth={1.5} />
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ask AI</p>
+            </TooltipContent>
+          </Tooltip>}
         <Tooltip>
           <TooltipTrigger asChild>
             <div>

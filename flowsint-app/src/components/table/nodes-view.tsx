@@ -247,7 +247,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="all">All types</SelectItem>
             {nodeTypes.map((type) => (
               <SelectItem key={type} value={type}>
                 <span className="capitalize">{type}</span>

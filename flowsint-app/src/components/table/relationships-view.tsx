@@ -193,7 +193,7 @@ export default function RelationshipsTable() {
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="all">All types</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -257,7 +257,7 @@ export default function RelationshipsTable() {
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="all">All types</SelectItem>
             {nodeTypes.map((type) => (
               <SelectItem key={type} value={type}>
                 <span className="capitalize">{type}</span>

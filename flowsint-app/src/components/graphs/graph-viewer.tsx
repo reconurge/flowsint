@@ -1097,7 +1097,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       {allowLasso && isLassoActive && (
         <>
           <div
-            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary rounded-lg p-1 px-2 shadow-lg text-xs pointer-events-none"
+            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary/40 rounded-lg p-1 px-2 text-xs pointer-events-none"
           ><Info className='h-3 w-3 ' /> Lasso is active</div>
           <Lasso
             nodes={graphData.nodes}

@@ -54,7 +54,7 @@ export const ToolbarButton = memo(function ToolbarButton({
             className={cn(
               'h-8 w-8 relative shadow-none',
               toggled &&
-              'bg-primary/30 border-primary text-primary hover:bg-primary/40 hover:text-primary'
+              'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
             {icon}

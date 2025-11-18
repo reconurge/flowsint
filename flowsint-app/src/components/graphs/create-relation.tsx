@@ -194,7 +194,7 @@ export function NodeDisplayCard({
 
   if (variant === 'preview') {
     return (
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex min-w-[170px] items-center gap-2 min-w-0">
         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted">
           <NodeIcon size={20} />
         </div>
@@ -207,7 +207,7 @@ export function NodeDisplayCard({
     return (
       <label
         htmlFor={id}
-        className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 min-w-0"
+        className="flex min-w-[170px] items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 min-w-0"
       >
         <RadioGroupItem id={id} value={radioValue || ''} className="mt-0.5" />
         <div className="flex items-center gap-2 min-w-0">
@@ -221,7 +221,7 @@ export function NodeDisplayCard({
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors min-w-0">
+    <div className="flex min-w-[170px] items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors min-w-0">
       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
         <NodeIcon size={16} />
       </div>

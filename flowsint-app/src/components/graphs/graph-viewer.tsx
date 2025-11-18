@@ -399,35 +399,37 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Regenerate layout by removing fixed positions and reheating simulation
   const regenerateLayout = useCallback((layoutType: 'force' | 'hierarchy') => {
     if (!graphRef.current) {
-      console.error('[Graph] graphRef.current is null')
       throw new Error('Graph reference is not available')
     }
 
     if (!graphData || !graphData.nodes) {
-      console.error('[Graph] No nodes in graph data')
       throw new Error('No nodes available in graph')
     }
-
-    // Show blur effect
     setIsRegeneratingLayout(true)
 
-    // Apply layout using dedicated hook
-    applyLayout({
-      layoutType,
-      nodes: graphData.nodes,
-      edges: graphData.links,
-    })
+    // Run layout calculation in worker (non-blocking)
+    setTimeout(async () => {
+      try {
+        await applyLayout({
+          layoutType,
+          nodes: graphData.nodes,
+          edges: graphData.links,
+        })
 
-    // Zoom to fit after a delay to see the new layout
-    setTimeout(() => {
-      if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-        graphRef.current.zoomToFit(400)
-      }
-      // Hide blur effect after zoom animation completes
-      setTimeout(() => {
+        // Zoom to fit after layout is complete
+        if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+          graphRef.current.zoomToFit(400)
+        }
+
+        // Hide blur effect after zoom animation completes
+        setTimeout(() => {
+          setIsRegeneratingLayout(false)
+        }, 400)
+      } catch (error) {
+        console.error('Layout calculation failed:', error)
         setIsRegeneratingLayout(false)
-      }, 400)
-    }, 500)
+      }
+    })
   }, [graphData, applyLayout])
 
   // Optimized graph initialization callback

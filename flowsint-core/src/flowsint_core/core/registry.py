@@ -17,6 +17,7 @@ from flowsint_transforms.individual.to_domains import IndividualToDomainsTransfo
 from flowsint_transforms.ip.to_domain import ReverseResolveTransform
 from flowsint_transforms.ip.to_infos import IpToInfosTransform
 from flowsint_transforms.ip.to_asn import IpToAsnTransform
+from flowsint_transforms.ip.to_ports import IpToPortsTransform
 
 # ASN-related transforms
 from flowsint_transforms.asn.to_cidrs import AsnToCidrsTransform
@@ -160,6 +161,7 @@ TransformRegistry.register(DomainToHistoryTransform)
 # IP-related transforms
 TransformRegistry.register(IpToInfosTransform)
 TransformRegistry.register(IpToAsnTransform)
+TransformRegistry.register(IpToPortsTransform)
 
 # ASN-related transforms
 TransformRegistry.register(AsnToCidrsTransform)

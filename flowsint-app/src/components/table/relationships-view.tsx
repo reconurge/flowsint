@@ -44,40 +44,44 @@ function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItem
   return (
     <div style={style} className="px-3 pb-2">
       <Card className="h-[55px] p-0">
-        <CardContent className="p-3 h-[55px] flex items-center gap-2 min-w-0">
+        <CardContent className="p-3 h-[55px] flex items-center gap-3 min-w-0">
           {/* Source Node */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
               <SourceIcon className="h-4 w-4" />
             </div>
             <button
               onClick={handleNodeClickSource}
-              className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-left max-w-full"
+              className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-left min-w-0 flex-1"
             >
               <span className="block truncate">
                 {relationship.source.data?.label ?? relationship.source.id}
               </span>
             </button>
-            <CopyButton content={relationship.source.data?.label ?? relationship.source.id} />
+            <div className="flex-shrink-0">
+              <CopyButton content={relationship.source.data?.label ?? relationship.source.id} />
+            </div>
           </div>
 
           {/* Relationship Arrow */}
-          <div className="flex items-center justify-center px-2 flex-shrink-0 min-w-0 grow">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <div className="h-px bg-muted-foreground/30 flex-1"></div>
-              <span className="px-2 py-1 bg-muted/50 rounded-sm truncate">
+          <div className="flex items-center grow justify-center px-2 flex-shrink-0 min-w-[120px] max-w-[30%]">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground w-full">
+              <div className="h-px bg-muted-foreground/30 w-[8px]"></div>
+              <span className="px-2 py-1 bg-muted/50 rounded-sm truncate max-w-full">
                 {relationship.edge.label}
               </span>
-              <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0" />
             </div>
           </div>
 
           {/* Target Node */}
-          <div className="flex items-center gap-2 flex-1 justify-end min-w-0 truncate text-ellipsis">
-            <CopyButton content={relationship.target.data?.label ?? relationship.target.id} />
+          <div className="flex items-center gap-2 flex-1 justify-end min-w-0 max-w-[35%]">
+            <div className="flex-shrink-0">
+              <CopyButton content={relationship.target.data?.label ?? relationship.target.id} />
+            </div>
             <button
               onClick={handleNodeClickTarget}
-              className="font-medium text-sm hover:text-primary hover:underline cursor-pointer max-w-full text-right"
+              className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-right min-w-0 flex-1"
             >
               <span className="block truncate">
                 {relationship.target.data?.label || relationship.target.id}

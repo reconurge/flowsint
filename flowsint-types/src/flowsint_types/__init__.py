@@ -26,6 +26,7 @@ from .message import Message
 from .organization import Organization
 from .phone import Phone
 from .phrase import Phrase
+from .port import Port
 from .reputation_score import ReputationScore
 from .risk_profile import RiskProfile
 from .script import Script
@@ -67,6 +68,7 @@ __all__ = [
     "Organization",
     "Phone",
     "Phrase",
+    "Port",
     "ReputationScore",
     "RiskProfile",
     "Script",

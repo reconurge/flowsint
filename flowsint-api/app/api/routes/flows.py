@@ -6,7 +6,16 @@ from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
-from flowsint_types import Domain, Phrase, Ip, SocialAccount, Organization, Email, Phone, Username
+from flowsint_types import (
+    Domain,
+    Phrase,
+    Ip,
+    SocialAccount,
+    Organization,
+    Email,
+    Phone,
+    Username,
+)
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
@@ -22,6 +31,7 @@ from flowsint_types import (
     CryptoNFT,
     Website,
     Individual,
+    Port,
 )
 
 
@@ -76,7 +86,7 @@ def get_flows(
             }
             for flow in flows
         ]
-        
+
     flows = db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
     return [
         flow
@@ -118,6 +128,7 @@ async def get_material_list():
         extract_input_schema_flow(Domain),
         extract_input_schema_flow(Website),
         extract_input_schema_flow(Ip),
+        extract_input_schema_flow(Port),
         extract_input_schema_flow(Phone),
         extract_input_schema_flow(ASN),
         extract_input_schema_flow(CIDR),

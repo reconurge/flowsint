@@ -9,6 +9,7 @@ from app.api.deps import get_current_user
 from flowsint_types import (
     Domain,
     Ip,
+    Port,
     SocialAccount,
     Organization,
     Email,
@@ -117,6 +118,7 @@ async def get_types_list(
                 extract_input_schema(Domain, label_key="domain"),
                 extract_input_schema(Website, label_key="url"),
                 extract_input_schema(Ip, label_key="address"),
+                extract_input_schema(Port, label_key="number"),
                 extract_input_schema(DNSRecord, label_key="name", icon="dns"),
                 extract_input_schema(SSLCertificate, label_key="subject", icon="ssl"),
                 extract_input_schema(WebTracker, label_key="name", icon="webtracker"),

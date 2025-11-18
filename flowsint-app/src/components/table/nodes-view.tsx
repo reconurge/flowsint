@@ -162,9 +162,14 @@ export default function NodesTable({ nodes }: NodesTableProps) {
 
   const handleNodeSelectionChange = useCallback(
     (node: GraphNode, checked: boolean) => {
-      toggleNodeSelection(node, checked)
+      const isSelected = selectedNodes.some((n) => n.id === node.id)
+      if (checked && !isSelected) {
+        setSelectedNodes([...selectedNodes, node])
+      } else if (!checked && isSelected) {
+        setSelectedNodes(selectedNodes.filter((n) => n.id !== node.id))
+      }
     },
-    [toggleNodeSelection]
+    [selectedNodes, setSelectedNodes]
   )
 
   const isNodeSelected = useCallback(

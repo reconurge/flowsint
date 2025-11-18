@@ -91,49 +91,6 @@ const InfoDialog = () => {
                 </li>
               </ul>
 
-              <h3 className="font-semibold">Graph Views & Performance</h3>
-              <p>
-                Flowsint provides <strong>multiple graph visualization modes</strong> that
-                automatically adapt based on the number of nodes in your investigation. This
-                switching ensures optimal performance and usability regardless of data complexity.
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>
-                  <strong>Small to large datasets (1-1500 nodes):</strong> Optimized{' '}
-                  <strong>React Force Graph</strong> (
-                  <a
-                    href="https://github.com/vasturiano/react-force-graph"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    github.com/vasturiano/react-force-graph
-                  </a>
-                  ) layouts with force-directed algorithms that group related entities while
-                  maintaining interactive features for focused analysis.
-                </li>
-                <li>
-                  <strong>Large datasets (1550-100,000 nodes):</strong> High-performance{' '}
-                  <strong>Cosmograph</strong> (
-                  <a
-                    href="https://cosmograph.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    cosmograph.app
-                  </a>
-                  ) with advanced rendering techniques, allowing you to visualize complex networks
-                  without sacrificing responsiveness or browser stability.
-                </li>
-              </ul>
-              <p>
-                This <strong>adaptive approach</strong> means you can start with detailed
-                interactive exploration and seamlessly scale to handle massive investigation graphs
-                without performance degradation. Each view is optimized for its specific use case,
-                ensuring you always have the right tools for your data size.
-              </p>
-
               <p>
                 Flowsint is designed for <strong>professionals</strong> who need{' '}
                 <strong>full control</strong> over their investigation logic, from how data is

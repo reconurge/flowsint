@@ -42,8 +42,8 @@ function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItem
   }, [])
 
   return (
-    <div style={style} className="px-4 pb-2">
-      <Card className="h-[55px] hover:shadow-md transition-shadow duration-200 p-0">
+    <div style={style} className="px-3 pb-2">
+      <Card className="h-[55px] p-0">
         <CardContent className="p-3 h-[55px] flex items-center gap-2 min-w-0">
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0">

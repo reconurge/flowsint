@@ -56,7 +56,7 @@ export const SaveStatusIndicator = memo(({ status }: SaveStatusIndicatorProps) =
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 px-2.5 py-1.5',
+        'flex items-center h-8 gap-1.5 px-2.5 py-1.5',
         'rounded-md border',
         'text-xs font-medium',
         'transition-all duration-200',

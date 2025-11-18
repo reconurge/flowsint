@@ -241,7 +241,7 @@ class ResolveTransform(Transform):
         - Graph database operations
         - Error conditions
 
-        Check FlowSint logs for detailed resolution information.
+        Check Flowsint logs for detailed resolution information.
 
         ## Technical Details
 

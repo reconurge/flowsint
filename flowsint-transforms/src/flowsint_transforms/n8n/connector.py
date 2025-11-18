@@ -38,7 +38,7 @@ class N8nConnector(Transform):
         return """
 # n8n Connector
 
-Connect to your custom n8n workflows to process data through webhooks. This connector allows you to leverage n8n's powerful automation capabilities within your FlowSint investigations.
+Connect to your custom n8n workflows to process data through webhooks. This connector allows you to leverage n8n's powerful automation capabilities within your Flowsint investigations.
 
 ## Setup Instructions
 
@@ -204,7 +204,7 @@ The connector provides detailed logging:
 - Response status and content
 - Processing results
 
-Check FlowSint logs for detailed debugging information.
+Check Flowsint logs for detailed debugging information.
 
 ## Resources
 

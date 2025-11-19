@@ -26,22 +26,6 @@ class DomainToWebsiteTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                if is_valid_domain(item):
-                    domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                if is_valid_domain(item["domain"]):
-                    domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj:
-                cleaned.append(domain_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for domain in data:
@@ -100,34 +84,13 @@ class DomainToWebsiteTransform(Transform):
 
             if self.neo4j_conn:
                 # Create domain node
-                self.create_node(
-                    "domain", "domain", website.domain.domain, type="domain"
-                )
+                self.create_node(website.domain)
 
                 # Create website node
-                self.create_node(
-                    "website",
-                    "url",
-                    str(website.url),
-                    active=website.active,
-                    redirects=(
-                        [str(redirect) for redirect in website.redirects]
-                        if website.redirects
-                        else []
-                    ),
-                    type="website",
-                )
+                self.create_node(website)
 
                 # Create relationship
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    website.domain.domain,
-                    "website",
-                    "url",
-                    str(website.url),
-                    "HAS_WEBSITE",
-                )
+                self.create_relationship(website.domain, website, "HAS_WEBSITE")
 
             is_active_str = "active" if website.active else "inactive"
             redirects_str = (

@@ -5,6 +5,7 @@ from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.email import Email
+from flowsint_types.phone import Phone
 from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
 from flowsint_core.core.graph_db import Neo4jConnection
@@ -238,34 +239,15 @@ class EmailToDomainsTransform(Transform):
             processed_domains.add(domain_name)
 
             # Create email node
-            self.create_node(
-                "email",
-                "email",
-                email.email,
-                caption=email.email,
-                type="email",
-            )
+            self.create_node(email)
 
             # Create domain node
-            self.create_node(
-                "domain",
-                "domain",
-                domain_name,
-                label=domain_name,
-                caption=domain_name,
-                type="domain",
-            )
+            domain_obj = Domain(domain=domain_name)
+            self.create_node(domain_obj)
 
             # Create relationship between email and domain
-            self.create_relationship(
-                "email",
-                "email",
-                email.email,
-                "domain",
-                "domain",
-                domain_name,
-                "HAS_REGISTERED_DOMAIN",
-            )
+            domain_obj_email = Domain(domain=domain_name)
+            self.create_relationship(email, domain_obj_email, "HAS_REGISTERED_DOMAIN")
 
             # Process all contact types
             for contact_type, contact in contacts.items():
@@ -314,35 +296,15 @@ class EmailToDomainsTransform(Transform):
         processed_individuals.add(individual_id)
 
         # Create individual node
-        self.create_node(
-            "individual",
-            "full_name",
-            individual.full_name,
-            caption=individual.full_name,
-            type="individual",
-        )
+        self.create_node(individual)
 
         # Create relationship between individual and domain
-        self.create_relationship(
-            "individual",
-            "full_name",
-            individual.full_name,
-            "domain",
-            "domain",
-            domain_name,
-            f"IS_{contact_type}_CONTACT",
-        )
+        domain_obj_ind = Domain(domain=domain_name)
+        self.create_relationship(individual, domain_obj_ind, f"IS_{contact_type}_CONTACT")
 
         # Create relationship between individual and email
-        self.create_relationship(
-            "individual",
-            "full_name",
-            individual.full_name,
-            "email",
-            "email",
-            email_address,
-            f"WORKS_FOR",
-        )
+        email_obj_ind = Email(email=email_address)
+        self.create_relationship(individual, email_obj_ind, "WORKS_FOR")
 
         # Process email addresses
         if individual.email_addresses:
@@ -352,24 +314,11 @@ class EmailToDomainsTransform(Transform):
                     processed_emails.add(email_str)
 
                     # Create email node
-                    self.create_node(
-                        "email",
-                        "email",
-                        email_str,
-                        caption=email_str,
-                        type="email",
-                    )
+                    email_node = Email(email=email_str)
+                    self.create_node(email_node)
 
                     # Create relationship between individual and email
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        individual.full_name,
-                        "email",
-                        "email",
-                        email_str,
-                        "HAS_EMAIL",
-                    )
+                    self.create_relationship(individual, email_node, "HAS_EMAIL")
 
         # Process phone numbers
         if individual.phone_numbers:
@@ -379,24 +328,11 @@ class EmailToDomainsTransform(Transform):
                     processed_phones.add(phone_str)
 
                     # Create phone node
-                    self.create_node(
-                        "phone",
-                        "number",
-                        phone_str,
-                        caption=phone_str,
-                        type="phone",
-                    )
+                    phone_node = Phone(number=phone_str)
+                    self.create_node(phone_node)
 
                     # Create relationship between individual and phone
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        individual.full_name,
-                        "phone",
-                        "number",
-                        phone_str,
-                        "HAS_PHONE",
-                    )
+                    self.create_relationship(individual, phone_node, "HAS_PHONE")
 
         # Process physical address
         address = self.__extract_physical_address(contact)
@@ -408,24 +344,10 @@ class EmailToDomainsTransform(Transform):
                 processed_addresses.add(address_id)
 
                 # Create address node
-                self.create_node(
-                    "location",
-                    "address",
-                    address.address,
-                    caption=f"{address.address}, {address.city}",
-                    type="location",
-                )
+                self.create_node(address)
 
                 # Create relationship between individual and address
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    "location",
-                    "address",
-                    address.address,
-                    "LIVES_AT",
-                )
+                self.create_relationship(individual, address, "LIVES_AT")
 
 
 InputType = EmailToDomainsTransform.InputType

@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, List
+from pydantic import Field, HttpUrl, model_validator
+from typing import Optional, List, Self
+from .flowsint_base import FlowsintType
 
 
-class Gravatar(BaseModel):
+class Gravatar(FlowsintType):
     """Represents a Gravatar profile with image and user information."""
 
     src: HttpUrl = Field(..., description="Gravatar image URL", title="Image URL")
@@ -42,3 +43,12 @@ class Gravatar(BaseModel):
     large_url: Optional[HttpUrl] = Field(
         None, description="Larger version of the image", title="Large Image URL"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use display name if available, otherwise hash
+        if self.display_name:
+            self.label = f"{self.display_name}"
+        else:
+            self.label = f"{self.hash}"
+        return self

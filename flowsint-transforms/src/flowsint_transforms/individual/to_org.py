@@ -293,12 +293,7 @@ class IndividualToOrgTransform(Transform):
                 continue
             processed_organizations.add(org_key)
 
-            self.create_node(
-                "Organization",
-                "org_id",
-                org_key,
-                **org.__dict__,
-            )
+            self.create_node(org)
 
         # Then, create all individual nodes
         for individual in original_input:
@@ -308,12 +303,7 @@ class IndividualToOrgTransform(Transform):
             processed_individuals.add(individual_id)
 
             # Create individual node
-            self.create_node(
-                "individual",
-                "full_name",
-                individual_id,
-                **individual.__dict__,
-            )
+            self.create_node(individual)
 
         # Finally, create relationships between all individuals and all organizations
         for individual in original_input:
@@ -322,15 +312,7 @@ class IndividualToOrgTransform(Transform):
                 org_key = f"{org.name}_FR"
                 
                 # Create relationship between individual and organization
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual_id,
-                    "Organization",
-                    "org_id",
-                    org_key,
-                    "WORKS_FOR",
-                )
+                self.create_relationship(individual, org, "WORKS_FOR")
 
         self.log_graph_message(
             f"Created {len(results)} organizations and {len(original_input)} individuals with relationships"

@@ -1,9 +1,10 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field, HttpUrl
+from typing import List, Optional, Self
+from pydantic import Field, HttpUrl, model_validator
 from .domain import Domain
+from .flowsint_base import FlowsintType
 
 
-class Website(BaseModel):
+class Website(FlowsintType):
     """Represents a website with its URL, domain, and redirect information."""
 
     url: HttpUrl = Field(
@@ -18,3 +19,8 @@ class Website(BaseModel):
     active: Optional[bool] = Field(
         False, description="Whether the website is active", title="Is Active"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = str(self.url)
+        return self

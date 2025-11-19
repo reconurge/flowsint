@@ -24,19 +24,6 @@ class OrgToInfosTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        if not isinstance(data, list):
-            raise ValueError(f"Expected list input, got {type(data).__name__}")
-        cleaned: InputType = []
-        for item in data:
-            if isinstance(item, str) and item != "":
-                cleaned.append(Organization(name=item))
-            elif isinstance(item, dict) and "name" in item and item["name"] != "":
-                cleaned.append(Organization(**item))
-            elif isinstance(item, Organization):
-                cleaned.append(item)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
 
         results: OutputType = []
@@ -266,35 +253,7 @@ class OrgToInfosTransform(Transform):
         for org in results:
             # Create or update the organization node with all SIRENE properties
             org_key = f"{org.name}_FR"
-            self.create_node(
-                "Organization",
-                "org_id",
-                org_key,
-                name=org.name,
-                country="FR",
-                siren=org.siren,
-                siege_siret=org.siege_siret,
-                nom_complet=org.nom_complet,
-                nom_raison_sociale=org.nom_raison_sociale,
-                sigle=org.sigle,
-                nombre_etablissements=org.nombre_etablissements,
-                nombre_etablissements_ouverts=org.nombre_etablissements_ouverts,
-                activite_principale=org.activite_principale,
-                section_activite_principale=org.section_activite_principale,
-                categorie_entreprise=org.categorie_entreprise,
-                annee_categorie_entreprise=org.annee_categorie_entreprise,
-                caractere_employeur=org.caractere_employeur,
-                tranche_effectif_salarie=org.tranche_effectif_salarie,
-                annee_tranche_effectif_salarie=org.annee_tranche_effectif_salarie,
-                date_creation=org.date_creation,
-                date_fermeture=org.date_fermeture,
-                date_mise_a_jour=org.date_mise_a_jour,
-                date_mise_a_jour_insee=org.date_mise_a_jour_insee,
-                date_mise_a_jour_rne=org.date_mise_a_jour_rne,
-                nature_juridique=org.nature_juridique,
-                statut_diffusion=org.statut_diffusion,
-                type="organization",
-            )
+            self.create_node(org)
 
             if org.siren:
                 self.log_graph_message(f"{org.name}: SIREN {org.siren} -> {org.name}")
@@ -308,27 +267,9 @@ class OrgToInfosTransform(Transform):
             # Add dirigeants (leaders) as Individual nodes with relationships
             if org.dirigeants:
                 for dirigeant in org.dirigeants:
-                    self.create_node(
-                        "individual",
-                        "full_name",
-                        dirigeant.full_name,
-                        first_name=dirigeant.first_name,
-                        last_name=dirigeant.last_name,
-                        birth_date=dirigeant.birth_date,
-                        gender=dirigeant.gender,
-                        caption=dirigeant.full_name,
-                        type="individual",
-                    )
+                    self.create_node(dirigeant)
 
-                    self.create_relationship(
-                        "organization",
-                        "org_id",
-                        org_key,
-                        "individual",
-                        "full_name",
-                        dirigeant.full_name,
-                        "HAS_LEADER",
-                    )
+                    self.create_relationship(org, dirigeant, "HAS_LEADER")
                     self.log_graph_message(
                         f"{org.name}: HAS_LEADER -> {dirigeant.full_name}"
                     )
@@ -337,30 +278,9 @@ class OrgToInfosTransform(Transform):
             if org.siege_geo_adresse:
                 address = org.siege_geo_adresse
                 address_key = f"{address.address}_{address.city}_{address.country}"
-                self.create_node(
-                    "location",
-                    "address_id",
-                    address_key,
-                    address=address.address,
-                    city=address.city,
-                    country=address.country,
-                    zip=address.zip,
-                    latitude=address.latitude,
-                    longitude=address.longitude,
-                    label=f"{address.address}, {address.city}",
-                    caption=f"{address.address}, {address.city}",
-                    type="location",
-                )
+                self.create_node(address)
 
-                self.create_relationship(
-                    "organization",
-                    "org_id",
-                    org_key,
-                    "location",
-                    "address_id",
-                    address_key,
-                    "HAS_ADDRESS",
-                )
+                self.create_relationship(org, address, "HAS_ADDRESS")
                 self.log_graph_message(
                     f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}"
                 )
@@ -383,15 +303,15 @@ class OrgToInfosTransform(Transform):
                     type="location",
                 )
 
-                self.create_relationship(
-                    "organization",
-                    "org_id",
-                    org_key,
-                    "Location",
-                    "location_id",
-                    location_key,
-                    "LOCATED_AT",
+                location_obj = Location(
+                    latitude=float(org.siege_latitude),
+                    longitude=float(org.siege_longitude),
+                    address=org.siege_adresse,
+                    city=org.siege_libelle_commune,
+                    country="FR",
+                    zip=org.siege_code_postal,
                 )
+                self.create_relationship(org, location_obj, "LOCATED_AT")
                 self.log_graph_message(
                     f"{org.name}: LOCATED_AT -> {org.siege_libelle_commune or 'Unknown'}"
                 )

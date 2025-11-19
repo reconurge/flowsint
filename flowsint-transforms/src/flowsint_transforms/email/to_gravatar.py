@@ -25,20 +25,6 @@ class EmailToGravatarTransform(Transform):
     def key(cls) -> str:
         return "email"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            email_obj = None
-            if isinstance(item, str):
-                email_obj = Email(email=item)
-            elif isinstance(item, dict) and "email" in item:
-                email_obj = Email(email=item["email"])
-            elif isinstance(item, Email):
-                email_obj = item
-            if email_obj:
-                cleaned.append(email_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
 
@@ -100,26 +86,13 @@ class EmailToGravatarTransform(Transform):
         for email_obj, gravatar_obj in zip(original_input, results):
             if not self.neo4j_conn:
                 continue
-
             # Create email node
-            self.create_node("email", "email", email_obj.email, **email_obj.__dict__)
-
+            self.create_node(email_obj)
             # Create gravatar node
             gravatar_key = f"{email_obj.email}_{self.sketch_id}"
-            self.create_node(
-                "gravatar", "gravatar_id", gravatar_key, **gravatar_obj.__dict__
-            )
-
+            self.create_node(gravatar_obj)
             # Create relationship between email and gravatar
-            self.create_relationship(
-                "email",
-                "email",
-                email_obj.email,
-                "gravatar",
-                "gravatar_id",
-                gravatar_key,
-                "HAS_GRAVATAR",
-            )
+            self.create_relationship(email_obj, gravatar_obj, "HAS_GRAVATAR")
 
             self.log_graph_message(
                 f"Gravatar found for email {email_obj.email} -> hash: {gravatar_obj.hash}"

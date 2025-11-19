@@ -1,10 +1,11 @@
-from pydantic import BaseModel, Field, model_validator
-from typing import Any, Optional, List
+from pydantic import Field, model_validator
+from typing import Any, Optional, List, Self
 from .individual import Individual
 from .address import Location
+from .flowsint_base import FlowsintType
 
 
-class Organization(BaseModel):
+class Organization(FlowsintType):
     """Represents an organization with detailed business and administrative information."""
 
     # Basic information
@@ -369,3 +370,14 @@ class Organization(BaseModel):
     complements_type_siae: Optional[Any] = Field(
         None, description="Complements SIAE type", title="SIAE Type"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use the full name if available, otherwise use name
+        if self.nom_complet:
+            self.label = str(self.nom_complet)
+        elif self.nom_raison_sociale:
+            self.label = str(self.nom_raison_sociale)
+        elif self.name:
+            self.label = str(self.name)
+        return self

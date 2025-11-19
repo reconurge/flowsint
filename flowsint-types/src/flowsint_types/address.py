@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import Field, model_validator
+from typing import Optional, Self
+from .flowsint_base import FlowsintType
 
 
-class Location(BaseModel):
+class Location(FlowsintType):
     """Represents a physical address with geographical coordinates."""
 
     address: str = Field(..., description="Street address", title="Street Address")
@@ -15,3 +16,8 @@ class Location(BaseModel):
     longitude: Optional[float] = Field(
         None, description="Longitude coordinate of the address", title="Longitude"
     )
+
+    @model_validator(mode="after")
+    def compute_label(self) -> Self:
+        self.label = f"{self.address} {self.city}, {self.country}"
+        return self

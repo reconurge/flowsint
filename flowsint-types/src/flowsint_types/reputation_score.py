@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class ReputationScore(BaseModel):
+class ReputationScore(FlowsintType):
     """Represents a reputation score for an entity with historical data and trends."""
 
     entity_id: str = Field(..., description="Entity identifier", title="Entity ID")
@@ -54,3 +56,11 @@ class ReputationScore(BaseModel):
     recommendations: Optional[List[str]] = Field(
         None, description="Recommendations based on score", title="Recommendations"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = [self.entity_id]
+        if self.score is not None:
+            parts.append(f"Score: {self.score}")
+        self.label = " - ".join(parts)
+        return self

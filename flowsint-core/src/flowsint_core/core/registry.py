@@ -51,7 +51,6 @@ from flowsint_transforms.email.to_gravatar import EmailToGravatarTransform
 from flowsint_transforms.email.to_leaks import EmailToBreachesTransform
 
 # Phone-related transforms
-from flowsint_transforms.phone.to_leaks import PhoneToBreachesTransform
 
 # Individual-related transforms
 from flowsint_transforms.individual.to_org import IndividualToOrgTransform
@@ -191,9 +190,6 @@ TransformRegistry.register(WebsiteToText)
 TransformRegistry.register(EmailToGravatarTransform)
 TransformRegistry.register(EmailToBreachesTransform)
 TransformRegistry.register(EmailToDomainsTransform)
-
-# Phone-related transforms
-TransformRegistry.register(PhoneToBreachesTransform)
 
 # Individual-related transforms
 TransformRegistry.register(IndividualToOrgTransform)

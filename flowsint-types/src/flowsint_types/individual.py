@@ -1,12 +1,13 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Literal, List, Union
+from pydantic import Field, field_validator, model_validator
+from typing import Optional, Literal, List, Union, Self
 from .address import Location
 from .email import Email
 from .phone import Phone
 from .ip import Ip
+from .flowsint_base import FlowsintType
 
 
-class Individual(BaseModel):
+class Individual(FlowsintType):
     """Represents an individual person with comprehensive personal information."""
 
     # Basic Information
@@ -16,8 +17,8 @@ class Individual(BaseModel):
     last_name: str = Field(
         ..., description="Last name of the individual", title="Last Name"
     )
-    full_name: str = Field(
-        ..., description="Full name of the individual", title="Full Name"
+    full_name: Optional[str] = Field(
+        None, description="Full name of the individual", title="Full Name"
     )
     middle_name: Optional[str] = Field(
         None, description="Middle name or initial", title="Middle Name"
@@ -321,7 +322,6 @@ class Individual(BaseModel):
         for email in v:
             if not email:
                 continue
-
             try:
                 # If already an Email object, keep it
                 if isinstance(email, Email):
@@ -344,12 +344,10 @@ class Individual(BaseModel):
         """Validate phone numbers in the list and convert to Phone objects."""
         if v is None:
             return None
-
         validated_phones = []
         for phone in v:
             if not phone:
                 continue
-
             try:
                 # If already a Phone object, keep it
                 if isinstance(phone, Phone):
@@ -363,7 +361,6 @@ class Individual(BaseModel):
             except Exception:
                 # Skip invalid phone numbers
                 continue
-
         return validated_phones if validated_phones else None
 
     @field_validator('ip_addresses', mode='before')
@@ -372,12 +369,10 @@ class Individual(BaseModel):
         """Validate that all IP addresses in the list are valid and convert to Ip objects."""
         if v is None:
             return None
-
         validated_ips = []
         for ip in v:
             if not ip:
                 continue
-
             try:
                 # If already an Ip object, keep it
                 if isinstance(ip, Ip):
@@ -393,3 +388,16 @@ class Individual(BaseModel):
                 continue
 
         return validated_ips if validated_ips else None
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use full_name if available, otherwise concatenate first and last name
+        if self.full_name:
+            self.label = self.full_name
+        elif self.first_name and self.last_name:
+            self.label = f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            self.label = self.first_name
+        elif self.last_name:
+            self.label = self.last_name
+        return self

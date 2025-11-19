@@ -25,20 +25,6 @@ class WebsiteToDomainTransform(Transform):
     def key(cls) -> str:
         return "website"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            website_obj = None
-            if isinstance(item, str):
-                website_obj = Website(url=item)
-            elif isinstance(item, dict) and "url" in item:
-                website_obj = Website(url=item["url"])
-            elif isinstance(item, Website):
-                website_obj = item
-            if website_obj:
-                cleaned.append(website_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for website in data:
@@ -78,31 +64,11 @@ class WebsiteToDomainTransform(Transform):
                 website_url = str(input_website.url)
                 domain_name = result.domain
 
-                self.create_node(
-                    "website",
-                    "url",
-                    website_url,
-                    caption=website_url,
-                    type="website",
-                )
-                
+                self.create_node(input_website)
+
                 # Create relationship with the specific domain for this website
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_name,
-                    caption=domain_name,
-                    type="domain",
-                )
-                self.create_relationship(
-                    "website",
-                    "url",
-                    website_url,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    "HAS_DOMAIN",
-                )
+                self.create_node(result)
+                self.create_relationship(input_website, result, "HAS_DOMAIN")
                 self.log_graph_message(
                     f"Extracted domain {domain_name} from website {website_url}."
                 )

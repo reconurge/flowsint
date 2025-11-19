@@ -60,20 +60,6 @@ class OrgToAsnTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            org_obj = None
-            if isinstance(item, str):
-                org_obj = Organization(name=item)
-            elif isinstance(item, dict) and "name" in item:
-                org_obj = Organization(name=item["name"])
-            elif isinstance(item, Organization):
-                org_obj = item
-            if org_obj:
-                cleaned.append(org_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         """Find ASN information for organizations using asnmap."""
         results: OutputType = []
@@ -129,36 +115,13 @@ class OrgToAsnTransform(Transform):
 
             if self.neo4j_conn:
                 # Create organization node
-                self.create_node(
-                    "organization",
-                    "name",
-                    input_org.name,
-                    caption=input_org.name,
-                    type="organization",
-                )
+                self.create_node(input_org)
 
                 # Create ASN node
-                self.create_node(
-                    "asn",
-                    "number",
-                    result_asn.number,
-                    name=result_asn.name,
-                    country=result_asn.country,
-                    label=f"AS{result_asn.number}",
-                    caption=f"AS{result_asn.number} - {result_asn.name}",
-                    type="asn",
-                )
+                self.create_node(result_asn)
 
                 # Create relationship
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    input_org.name,
-                    "asn",
-                    "number",
-                    result_asn.number,
-                    "BELONGS_TO",
-                )
+                self.create_relationship(input_org, result_asn, "BELONGS_TO")
 
                 self.log_graph_message(
                     f"Found for {input_org.name} -> ASN {result_asn.number}"

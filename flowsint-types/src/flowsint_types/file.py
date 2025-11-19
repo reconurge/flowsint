@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class File(BaseModel):
+class File(FlowsintType):
     """Represents a file with metadata, type information, and security assessment."""
 
     filename: str = Field(..., description="File name", title="Filename")
@@ -61,3 +63,8 @@ class File(BaseModel):
     threat_level: Optional[str] = Field(
         None, description="Threat level assessment", title="Threat Level"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.filename
+        return self

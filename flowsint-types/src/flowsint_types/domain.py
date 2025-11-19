@@ -1,46 +1,44 @@
-from typing import Optional, Union, Any
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Optional, Self
+from pydantic import Field, field_validator, model_validator
 from urllib.parse import urlparse
 import re
+from .flowsint_base import FlowsintType
 
 
-class Domain(BaseModel):
+class Domain(FlowsintType):
     """Represents a domain name and its properties."""
 
-    domain: str = Field(..., description="Domain name", title="Domain Name")
+    domain: str = Field(
+        ...,
+        description="Domain name",
+        title="Domain name",
+        json_schema_extra={"primary": True},
+    )
     root: Optional[bool] = Field(
         True, description="Is root or not", title="Is Root Domain"
     )
 
-    @model_validator(mode='before')
-    @classmethod
-    def convert_string_to_dict(cls, data: Any) -> Any:
-        """Allow creating Domain from a string directly."""
-        if isinstance(data, str):
-            return {'domain': data}
-        return data
-
-    @field_validator('domain')
+    @field_validator("domain")
     @classmethod
     def validate_domain(cls, v: str) -> str:
-        """Validate that the domain is valid."""
         try:
-            # Parse URL to extract hostname
             parsed = urlparse(v if "://" in v else "http://" + v)
             hostname = parsed.hostname or v
-
-            # Check that domain has at least one dot
             if not hostname or "." not in hostname:
-                raise ValueError(f"Invalid domain format: {v}")
-
-            # Validate domain format with regex
+                raise ValueError
             if not re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", hostname):
-                raise ValueError(f"Invalid domain format: {v}")
-
-            # Return the cleaned hostname (without protocol)
+                raise ValueError
             return hostname
-        except Exception as e:
-            raise ValueError(f"Invalid domain: {v}") from e
+        except Exception:
+            raise ValueError(f"Invalid domain: {v}")
 
+    @model_validator(mode="after")
+    def check_root(self) -> Self:
+        parts = self.domain.split(".")
+        self.root = len(parts) == 2
+        return self
 
-Domain.model_rebuild()
+    @model_validator(mode="after")
+    def compute_label(self) -> Self:
+        self.label = self.domain
+        return self

@@ -1,9 +1,10 @@
-from typing import List, Optional, Union
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import List, Optional, Union, Self
+from pydantic import Field, field_validator, model_validator
 import re
+from .flowsint_base import FlowsintType
 
 
-class ASN(BaseModel):
+class ASN(FlowsintType):
     """Represents an Autonomous System Number with associated network information."""
 
     number: int = Field(
@@ -59,10 +60,19 @@ class ASN(BaseModel):
         return v
 
     @model_validator(mode='after')
-    def populate_asn_str(self) -> 'ASN':
+    def populate_asn_str(self) -> Self:
         """Automatically populate asn_str from number if not provided."""
         # Always set asn_str based on number to ensure consistency
         self.asn_str = f"AS{self.number}"
+        return self
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use name and ASN string if available
+        if self.name:
+            self.label = f"{self.asn_str} - {self.name}"
+        else:
+            self.label = self.asn_str
         return self
 
 

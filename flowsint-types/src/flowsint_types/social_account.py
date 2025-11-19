@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
 from .username import Username
+from .flowsint_base import FlowsintType
 
 
-class SocialAccount(BaseModel):
+class SocialAccount(FlowsintType):
     """Represents a social media account (the 'home' of a username)."""
 
     username: Username = Field(..., description="Username associated with this account", title="Username")
@@ -22,3 +23,12 @@ class SocialAccount(BaseModel):
     is_suspended: Optional[bool] = Field(None, description="Whether the account is suspended/banned", title="Is suspended")
     associated_emails: Optional[List[str]] = Field(None, description="Email addresses associated with the account", title="Associated emails")
     associated_phones: Optional[List[str]] = Field(None, description="Phone numbers associated with the account", title="Associated phones")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use display name if available, otherwise username
+        if self.display_name:
+            self.label = f"{self.display_name} (@{self.username.value})"
+        else:
+            self.label = f"@{self.username.value}"
+        return self

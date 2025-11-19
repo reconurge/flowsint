@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class WebTracker(BaseModel):
+class WebTracker(FlowsintType):
     """Represents a web tracking technology with privacy and compliance information."""
 
     tracker_id: str = Field(
@@ -57,3 +59,11 @@ class WebTracker(BaseModel):
     risk_level: Optional[str] = Field(
         None, description="Privacy risk level", title="Risk Level"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        if self.name:
+            self.label = self.name
+        else:
+            self.label = self.tracker_id
+        return self

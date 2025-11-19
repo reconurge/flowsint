@@ -1,10 +1,12 @@
-from typing import Optional, Union
-from pydantic import BaseModel, Field, field_validator
+from typing import Optional, Union, Self
+from pydantic import Field, field_validator, model_validator
 from .email import Email
 from .domain import Domain
+from .organization import Organization
+from .flowsint_base import FlowsintType
 
 
-class Whois(BaseModel):
+class Whois(FlowsintType):
     """Represents WHOIS domain registration information."""
 
     domain: Domain = Field(..., description="Domain information", title="Domain")
@@ -14,9 +16,9 @@ class Whois(BaseModel):
     registrar: Optional[str] = Field(
         None, description="Domain registrar name", title="Registrar"
     )
-    org: Optional[str] = Field(
+    organization: Optional[Organization] = Field(
         None,
-        description="Organization name associated with the domain",
+        description="Organization associated with the domain",
         title="Organization",
     )
     city: Optional[str] = Field(
@@ -46,3 +48,26 @@ class Whois(BaseModel):
         elif isinstance(v, dict):
             return Domain(**v)
         return v
+
+    @field_validator('organization', mode='before')
+    @classmethod
+    def convert_organization(cls, v: Union[str, dict, Organization, None]) -> Optional[Organization]:
+        """Convert string or dict to Organization object if needed."""
+        if v is None:
+            return None
+        if isinstance(v, Organization):
+            return v
+        elif isinstance(v, str):
+            return Organization(name=v)
+        elif isinstance(v, dict):
+            return Organization(**v)
+        return v
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use domain and organization if available
+        if self.organization:
+            self.label = f"{self.domain.domain} - {self.organization.name}"
+        else:
+            self.label = self.domain.domain
+        return self

@@ -1,4 +1,4 @@
-from flowsint_transforms.domains.resolve import ResolveTransform
+from flowsint_transforms.domain.to_ip import ResolveTransform
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
 from typing import List

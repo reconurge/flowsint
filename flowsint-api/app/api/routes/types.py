@@ -282,6 +282,8 @@ def extract_input_schema(
         "fields": [
             resolve_field(prop, details=info, schema=schema)
             for prop, info in details.get("properties", {}).items()
+            # exclude label from properties to fill
+            if prop != "label"
         ],
     }
 

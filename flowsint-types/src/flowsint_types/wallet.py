@@ -1,8 +1,10 @@
-from typing import Optional
-from pydantic import BaseModel, Field, HttpUrl
+from typing import Optional, Self
+from pydantic import Field, HttpUrl, field_validator, model_validator
+import re
+from .flowsint_base import FlowsintType
 
 
-class CryptoWallet(BaseModel):
+class CryptoWallet(FlowsintType):
     """Represents a cryptocurrency wallet."""
 
     address: str = Field(..., description="Wallet address", title="Wallet Address")
@@ -10,8 +12,41 @@ class CryptoWallet(BaseModel):
         None, description="Wallet Explorer node ID", title="Node ID"
     )
 
+    @field_validator('address')
+    @classmethod
+    def validate_address(cls, v: str) -> str:
+        """Validate that the wallet address is not empty and has a valid format."""
+        if not v or not v.strip():
+            raise ValueError("Wallet address cannot be empty")
 
-class CryptoWalletTransaction(BaseModel):
+        # Strip whitespace
+        v = v.strip()
+
+        # Basic validation: check if it looks like a valid crypto address
+        # Ethereum addresses start with 0x and are 42 characters (0x + 40 hex chars)
+        # Bitcoin addresses vary but are typically 26-35 characters
+        # We'll do a permissive check for common formats
+        if len(v) < 26:
+            raise ValueError("Wallet address is too short to be valid")
+
+        # Check for common patterns
+        ethereum_pattern = r'^0x[a-fA-F0-9]{40}$'
+        bitcoin_pattern = r'^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$'
+
+        # If it matches Ethereum pattern, validate it
+        if v.startswith('0x'):
+            if not re.match(ethereum_pattern, v):
+                raise ValueError("Invalid Ethereum address format")
+
+        return v
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.address
+        return self
+
+
+class CryptoWalletTransaction(FlowsintType):
     """Represents a cryptocurrency transaction."""
 
     source: CryptoWallet = Field(
@@ -82,8 +117,35 @@ class CryptoWalletTransaction(BaseModel):
         None, description="Error message if transaction failed", title="Error Message"
     )
 
+    @field_validator('value', 'amount', 'amount_usd')
+    @classmethod
+    def validate_positive_amounts(cls, v: Optional[float]) -> Optional[float]:
+        """Validate that monetary amounts are non-negative."""
+        if v is not None and v < 0:
+            raise ValueError("Monetary amounts must be non-negative")
+        return v
 
-class CryptoNFT(BaseModel):
+    @field_validator('gas', 'gas_price', 'gas_used', 'cumulative_gas_used', 'block_number', 'nonce', 'transaction_index', 'confirmations', 'hop')
+    @classmethod
+    def validate_non_negative_integers(cls, v: Optional[int]) -> Optional[int]:
+        """Validate that integer fields are non-negative."""
+        if v is not None and v < 0:
+            raise ValueError("Integer values must be non-negative")
+        return v
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use hash if available, otherwise create a descriptive label
+        if self.hash:
+            self.label = self.hash
+        elif self.source and self.target:
+            self.label = f"Transaction from {self.source.address[:8]}... to {self.target.address[:8]}..."
+        elif self.source:
+            self.label = f"Transaction from {self.source.address[:8]}..."
+        return self
+
+
+class CryptoNFT(FlowsintType):
     """Represents a Non-Fungible Token (NFT) held or minted by a wallet."""
 
     wallet: CryptoWallet = Field(..., description="Source wallet", title="Wallet")
@@ -134,6 +196,41 @@ class CryptoNFT(BaseModel):
     @property
     def uid(self):
         return f"{self.contract_address}:{self.token_id}"
+
+    @field_validator('contract_address')
+    @classmethod
+    def validate_contract_address(cls, v: str) -> str:
+        """Validate that the NFT contract address has a valid format."""
+        if not v or not v.strip():
+            raise ValueError("Contract address cannot be empty")
+
+        v = v.strip()
+
+        # NFT contracts are typically on Ethereum, so validate as Ethereum address
+        ethereum_pattern = r'^0x[a-fA-F0-9]{40}$'
+        if not re.match(ethereum_pattern, v):
+            raise ValueError("Invalid contract address format (expected Ethereum address: 0x followed by 40 hex characters)")
+
+        return v
+
+    @field_validator('token_id')
+    @classmethod
+    def validate_token_id(cls, v: str) -> str:
+        """Validate that the token ID is not empty."""
+        if not v or not v.strip():
+            raise ValueError("Token ID cannot be empty")
+        return v.strip()
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Prefer name, then collection_name with token_id, fallback to uid
+        if self.name:
+            self.label = self.name
+        elif self.collection_name:
+            self.label = f"{self.collection_name} #{self.token_id}"
+        else:
+            self.label = self.uid
+        return self
 
 
 # Update forward references

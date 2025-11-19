@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Alias(BaseModel):
+class Alias(FlowsintType):
     """Represents an alias or alternative name used by an entity."""
 
     alias: str = Field(..., description="Alias or alternative name", title="Alias")
@@ -43,3 +45,8 @@ class Alias(BaseModel):
     region: Optional[str] = Field(
         None, description="Geographic region where alias is used", title="Region"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.alias
+        return self

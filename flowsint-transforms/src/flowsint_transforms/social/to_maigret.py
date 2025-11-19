@@ -1,8 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Union
-from flowsint_core.utils import is_valid_username
+from typing import List
 from flowsint_core.core.transform_base import Transform
 from flowsint_types import Username
 from flowsint_types.social_account import SocialAccount
@@ -29,25 +28,6 @@ class MaigretTransform(Transform):
     @classmethod
     def key(cls) -> str:
         return "username"
-
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            obj = None
-            if isinstance(item, str):
-                obj = Username(value=item)
-            elif isinstance(item, dict) and "username" in item:
-                obj = Username(value=item["username"])
-            elif isinstance(item, dict) and "value" in item:
-                obj = Username(value=item["value"])
-            elif isinstance(item, SocialAccount):
-                obj = Username(value=item.username.value)
-                obj = item.username.value
-            elif isinstance(item, Username):
-                obj = item
-            if obj and obj.value and is_valid_username(obj.value):
-                cleaned.append(obj)
-        return cleaned
 
     def run_maigret(self, username: str) -> Path:
         output_file = Path(f"/tmp/report_{username}_simple.json")
@@ -144,43 +124,17 @@ class MaigretTransform(Transform):
 
         for profile in results:
             # Create social profile node
-            self.create_node(
-                "social_account",
-                "platform",
-                profile.profile_url,
-                username=profile.username.value,
-                platform=profile.platform,
-                profile_picture_url=profile.profile_picture_url,
-                bio=profile.bio,
-                followers_count=profile.followers_count,
-                following_count=profile.following_count,
-                posts_count=profile.posts_count,
-                label=f"{profile.username.value}",
-                type="social_account",
-            )
+            self.create_node(profile.username)
+            self.create_node(profile)
             # Create username node
-            self.create_node(
-                "username", "value", profile.username.value, **profile.username.__dict__
-            )
 
             # Create relationship
-            self.create_relationship(
-                "username",
-                "value",
-                profile.username.value,
-                "social_account",
-                "platform",
-                profile.platform,
-                "HAS_SOCIAL_ACCOUNT",
-            )
-
+            self.create_relationship(profile.username, profile, "HAS_SOCIAL_ACCOUNT")
             self.log_graph_message(
                 f"{profile.username.value} -> account found on {profile.platform}"
             )
-
         return results
 
 
-# Make types available at module level for easy access
 InputType = MaigretTransform.InputType
 OutputType = MaigretTransform.OutputType

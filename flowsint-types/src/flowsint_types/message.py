@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Message(BaseModel):
+class Message(FlowsintType):
     """Represents a message with content, metadata, and security analysis."""
 
     message_id: str = Field(
@@ -60,3 +62,13 @@ class Message(BaseModel):
     threat_level: Optional[str] = Field(
         None, description="Threat level assessment", title="Threat Level"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        if self.subject:
+            self.label = self.subject
+        else:
+            # Truncate content to first 50 characters
+            content_preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
+            self.label = content_preview
+        return self

@@ -30,22 +30,6 @@ class ReverseResolveTransform(Transform):
     def key(cls) -> str:
         return "address"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            ip_obj = None
-            if isinstance(item, str):
-                if is_valid_ip(item):
-                    ip_obj = Ip(address=item)
-            elif isinstance(item, dict) and "address" in item:
-                if is_valid_ip(item["address"]):
-                    ip_obj = Ip(address=item["address"])
-            elif isinstance(item, Ip):
-                ip_obj = item
-            if ip_obj:
-                cleaned.append(ip_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
 
@@ -89,29 +73,11 @@ class ReverseResolveTransform(Transform):
         # Create nodes and relationships for each resolved domain
         for ip_obj in original_input:
             # Create IP node
-            self.create_node("ip", "address", ip_obj.address, **ip_obj.__dict__)
-
+            self.create_node(ip_obj)
             # Create domain nodes and relationships for each resolved domain
             for domain_obj in results:
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_obj.domain,
-                    type=(
-                        "domain"
-                        if "." not in domain_obj.domain.split(".")[1:]
-                        else "subdomain"
-                    ),
-                )
-                self.create_relationship(
-                    "ip",
-                    "address",
-                    ip_obj.address,
-                    "domain",
-                    "domain",
-                    domain_obj.domain,
-                    "REVERSE_RESOLVES_TO",
-                )
+                self.create_node(domain_obj)
+                self.create_relationship(ip_obj, domain_obj, "REVERSE_RESOLVES_TO")
                 self.log_graph_message(
                     f"Domain found for IP {ip_obj.address} -> {domain_obj.domain}"
                 )
@@ -119,6 +85,5 @@ class ReverseResolveTransform(Transform):
         return results
 
 
-# Make types available at module level for easy access
 InputType = ReverseResolveTransform.InputType
 OutputType = ReverseResolveTransform.OutputType

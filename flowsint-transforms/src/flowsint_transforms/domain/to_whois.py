@@ -4,6 +4,7 @@ from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.whois import Whois
 from flowsint_types.email import Email
+from flowsint_types.organization import Organization
 from flowsint_core.core.logger import Logger
 
 
@@ -77,13 +78,18 @@ class WhoisTransform(Transform):
                     elif hasattr(whois_info, "domain_id") and whois_info.domain_id:
                         registry_domain_id = str(whois_info.domain_id)
 
+                    # Create organization object if org info is available
+                    organization = None
+                    if whois_info.org:
+                        organization = Organization(name=str(whois_info.org))
+
                     whois_obj = Whois(
                         domain=domain,
                         registry_domain_id=registry_domain_id,
                         registrar=(
                             str(whois_info.registrar) if whois_info.registrar else None
                         ),
-                        org=str(whois_info.org) if whois_info.org else None,
+                        organization=organization,
                         city=str(whois_info.city) if whois_info.city else None,
                         country=str(whois_info.country) if whois_info.country else None,
                         email=emails[0] if emails else None,
@@ -107,98 +113,62 @@ class WhoisTransform(Transform):
                 continue
 
             # Create domain node
-            self.create_node(
-                "domain",
-                "domain",
-                whois_obj.domain.domain,
-                root=whois_obj.domain.root,
-                type="domain",
-            )
+            self.create_node(whois_obj.domain)
 
-            # Create whois node
+            # Create whois node with custom key (only primitive fields)
             whois_key = f"{whois_obj.domain.domain}_{self.sketch_id}"
+            whois_props = {
+                "registry_domain_id": whois_obj.registry_domain_id,
+                "registrar": whois_obj.registrar,
+                "city": whois_obj.city,
+                "country": whois_obj.country,
+                "creation_date": whois_obj.creation_date,
+                "expiration_date": whois_obj.expiration_date,
+                "label": whois_obj.label,
+            }
+            self.create_node("whois", "whois_id", whois_key, **whois_props)
 
-            if whois_obj.registry_domain_id:
-                whois_label = whois_obj.registry_domain_id
-            else:
-                whois_label = whois_obj.domain.domain
-            self.create_node(
-                "whois",
-                "whois_id",
-                whois_key,
-                domain=whois_obj.domain.domain,
+            # Create relationship between domain and whois
+            domain_obj = Domain(domain=whois_obj.domain.domain)
+            whois_node = Whois(
+                domain=domain_obj,
                 registry_domain_id=whois_obj.registry_domain_id,
                 registrar=whois_obj.registrar,
-                org=whois_obj.org,
                 city=whois_obj.city,
                 country=whois_obj.country,
                 creation_date=whois_obj.creation_date,
                 expiration_date=whois_obj.expiration_date,
-                email=whois_obj.email.email if whois_obj.email else None,
-                label=whois_label,
-                type="whois",
             )
+            self.create_relationship(domain_obj, whois_node, "HAS_WHOIS")
 
-            # Create relationship between domain and whois
-            self.create_relationship(
-                "domain",
-                "domain",
-                whois_obj.domain.domain,
-                "whois",
-                "whois_id",
-                whois_key,
-                "HAS_WHOIS",
-            )
-
-            # Create organization node if org information is available
-            if whois_obj.org:
-                self.create_node(
-                    "organization",
-                    "name",
-                    whois_obj.org,
-                    country=whois_obj.country,
-                    founding_date=whois_obj.creation_date,
-                    description=f"Organization from WHOIS data for {whois_obj.domain.domain}",
-                    caption=whois_obj.org,
-                    type="organization",
-                )
+            # Create organization node if organization information is available
+            if whois_obj.organization:
+                self.create_node(whois_obj.organization)
 
                 # Create relationship between organization and domain
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    whois_obj.org,
-                    "domain",
-                    "domain",
-                    whois_obj.domain.domain,
-                    "HAS_DOMAIN",
-                )
+                domain_obj2 = Domain(domain=whois_obj.domain.domain)
+                self.create_relationship(whois_obj.organization, domain_obj2, "HAS_DOMAIN")
 
                 self.log_graph_message(
-                    f"{whois_obj.domain.domain} -> {whois_obj.org} (organization)"
+                    f"{whois_obj.domain.domain} -> {whois_obj.organization.name} (organization)"
                 )
 
+            # Create email node if email information is available
             if whois_obj.email:
-                self.create_node(
-                    "email", "email", whois_obj.email.email, **whois_obj.email.__dict__
+                self.create_node(whois_obj.email)
+                whois_node2 = Whois(
+                    domain=Domain(domain=whois_obj.domain.domain),
+                    registry_domain_id=whois_obj.registry_domain_id,
+                    registrar=whois_obj.registrar,
+                    city=whois_obj.city,
+                    country=whois_obj.country,
+                    creation_date=whois_obj.creation_date,
+                    expiration_date=whois_obj.expiration_date,
                 )
-                self.create_relationship(
-                    "whois",
-                    "whois_id",
-                    whois_key,
-                    "email",
-                    "email",
-                    whois_obj.email.email,
-                    "REGISTERED_BY",
-                )
+                self.create_relationship(whois_node2, whois_obj.email, "REGISTERED_BY")
 
             self.log_graph_message(
-                f"WHOIS for {whois_obj.domain.domain} -> registry_id: {whois_obj.registry_domain_id} registrar: {whois_obj.registrar} org: {whois_obj.org} city: {whois_obj.city} country: {whois_obj.country} creation_date: {whois_obj.creation_date} expiration_date: {whois_obj.expiration_date}"
+                f"WHOIS for {whois_obj.domain.domain} -> registry_id: {whois_obj.registry_domain_id} registrar: {whois_obj.registrar} org: {whois_obj.organization.name if whois_obj.organization else None} city: {whois_obj.city} country: {whois_obj.country} creation_date: {whois_obj.creation_date} expiration_date: {whois_obj.expiration_date}"
             )
 
         return results
-
-
-# Make types available at module level for easy access
-InputType = WhoisTransform.InputType
-OutputType = WhoisTransform.OutputType

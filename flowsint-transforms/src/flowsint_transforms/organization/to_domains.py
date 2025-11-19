@@ -2,6 +2,7 @@ import os
 import re
 from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
+from flowsint_types import Email
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
@@ -433,13 +434,8 @@ class OrgToDomainsTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating organization node: {org_name}"},
                 )
-                self.create_node(
-                    "organization",
-                    "name",
-                    org_name,
-                    caption=org_name,
-                    type="organization",
-                )
+                org_obj = Organization(name=org_name)
+                self.create_node(org_obj)
 
             # Create domain node if not already processed
             if domain_name not in processed_domains:
@@ -448,25 +444,13 @@ class OrgToDomainsTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating domain node: {domain_name}"},
                 )
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_name,
-                    label=domain_name,
-                    caption=domain_name,
-                    type="domain",
-                )
+                domain_obj = Domain(domain=domain_name)
+                self.create_node(domain_obj)
 
                 # Create relationship between organization and domain
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    org_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    "HAS_REGISTERED_DOMAIN",
-                )
+                org_obj_domain = Organization(name=org_name)
+                domain_obj_org = Domain(domain=domain_name)
+                self.create_relationship(org_obj_domain, domain_obj_org, "HAS_REGISTERED_DOMAIN")
 
             # Create individual node if not already processed
             individual_id = (
@@ -480,35 +464,15 @@ class OrgToDomainsTransform(Transform):
                         "message": f"[WHOXY] Creating individual node: {individual.full_name}"
                     },
                 )
-                self.create_node(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    caption=individual.full_name,
-                    type="individual",
-                )
+                self.create_node(individual)
 
                 # Create relationship between individual and domain
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    f"IS_{contact_type.upper()}_CONTACT",
-                )
+                domain_obj_ind = Domain(domain=domain_name)
+                self.create_relationship(individual, domain_obj_ind, f"IS_{contact_type.upper()}_CONTACT")
 
                 # Create relationship between individual and organization
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    "organization",
-                    "name",
-                    org_name,
-                    "WORKS_FOR",
-                )
+                org_obj_ind = Organization(name=org_name)
+                self.create_relationship(individual, org_obj_ind, "WORKS_FOR")
 
             # Process email addresses
             if individual.email_addresses:
@@ -520,22 +484,9 @@ class OrgToDomainsTransform(Transform):
                             self.sketch_id,
                             {"message": f"[WHOXY] Creating email node: {email_str}"},
                         )
-                        self.create_node(
-                            "email",
-                            "email",
-                            email_str,
-                            caption=email_str,
-                            type="email",
-                        )
-                        self.create_relationship(
-                            "individual",
-                            "full_name",
-                            individual.full_name,
-                            "email",
-                            "email",
-                            email_str,
-                            "HAS_EMAIL",
-                        )
+                        email_obj = Email(email=email_str)
+                        self.create_node(email_obj)
+                        self.create_relationship(individual, email_obj, "HAS_EMAIL")
 
             # Process phone numbers
             if individual.phone_numbers:
@@ -547,22 +498,9 @@ class OrgToDomainsTransform(Transform):
                             self.sketch_id,
                             {"message": f"[WHOXY] Creating phone node: {phone_str}"},
                         )
-                        self.create_node(
-                            "phone",
-                            "number",
-                            phone_str,
-                            caption=phone_str,
-                            type="phone",
-                        )
-                        self.create_relationship(
-                            "individual",
-                            "full_name",
-                            individual.full_name,
-                            "phone",
-                            "number",
-                            phone_str,
-                            "HAS_PHONE",
-                        )
+                        phone_obj = Phone(number=phone_str)
+                        self.create_node(phone_obj)
+                        self.create_relationship(individual, phone_obj, "HAS_PHONE")
 
             # Process physical address from contact data
             contact_data = individual_info["contact_data"]
@@ -579,22 +517,8 @@ class OrgToDomainsTransform(Transform):
                             "message": f"[WHOXY] Creating address node: {address.address}"
                         },
                     )
-                    self.create_node(
-                        "location",
-                        "address",
-                        address.address,
-                        caption=f"{address.address}, {address.city}",
-                        type="location",
-                    )
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        individual.full_name,
-                        "location",
-                        "address",
-                        address.address,
-                        "LIVES_AT",
-                    )
+                    self.create_node(address)
+                    self.create_relationship(individual, address, "LIVES_AT")
 
             self.log_graph_message(
                 f"Processed individual {individual.full_name} ({contact_type}) for domain {domain_name}"
@@ -621,13 +545,8 @@ class OrgToDomainsTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating organization node: {org_name}"},
                 )
-                self.create_node(
-                    "organization",
-                    "name",
-                    org_name,
-                    caption=org_name,
-                    type="organization",
-                )
+                org_obj = Organization(name=org_name)
+                self.create_node(org_obj)
 
             # Create domain node if not already processed
             if domain_name not in processed_domains:
@@ -636,25 +555,13 @@ class OrgToDomainsTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating domain node: {domain_name}"},
                 )
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_name,
-                    label=domain_name,
-                    caption=domain_name,
-                    type="domain",
-                )
+                domain_obj = Domain(domain=domain_name)
+                self.create_node(domain_obj)
 
                 # Create relationship between input organization and domain
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    org_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    "HAS_REGISTERED_DOMAIN",
-                )
+                org_obj_domain2 = Organization(name=org_name)
+                domain_obj_org2 = Domain(domain=domain_name)
+                self.create_relationship(org_obj_domain2, domain_obj_org2, "HAS_REGISTERED_DOMAIN")
 
             # Create extracted organization node if not already processed
             if organization.name not in processed_organizations:
@@ -665,24 +572,11 @@ class OrgToDomainsTransform(Transform):
                         "message": f"[WHOXY] Creating organization node: {organization.name}"
                     },
                 )
-                self.create_node(
-                    "organization",
-                    "name",
-                    organization.name,
-                    caption=organization.name,
-                    type="organization",
-                )
+                self.create_node(organization)
 
                 # Create relationship between extracted organization and domain
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    organization.name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    f"IS_{contact_type.upper()}_CONTACT",
-                )
+                domain_obj_extracted = Domain(domain=domain_name)
+                self.create_relationship(organization, domain_obj_extracted, f"IS_{contact_type.upper()}_CONTACT")
 
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"

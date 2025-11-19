@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class DNSRecord(BaseModel):
+class DNSRecord(FlowsintType):
     """Represents a DNS record with type, value, and security information."""
 
     record_type: str = Field(
@@ -48,3 +50,8 @@ class DNSRecord(BaseModel):
     threat_level: Optional[str] = Field(
         None, description="Threat level assessment", title="Threat Level"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = f"{self.name} ({self.record_type})"
+        return self

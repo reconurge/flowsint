@@ -24,20 +24,6 @@ class WebsiteToText(Transform):
     def key(cls) -> str:
         return "website"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            website_obj = None
-            if isinstance(item, str):
-                website_obj = Website(url=item)
-            elif isinstance(item, dict) and "url" in item:
-                website_obj = Website(url=item["url"])
-            elif isinstance(item, Website):
-                website_obj = item
-            if website_obj:
-                cleaned.append(website_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         for website in data:
@@ -67,31 +53,11 @@ class WebsiteToText(Transform):
             website_url = str(input_website.url)
 
             if self.neo4j_conn:
-                self.create_node(
-                    "website",
-                    "url",
-                    str(website_url),
-                    caption=str(website_url),
-                    type="website",
-                )
+                self.create_node(input_website)
 
                 # Create relationship with the specific phrase for this website
-                self.create_node(
-                    "phrase",
-                    "text",
-                    result.text,
-                    caption=result.text,
-                    type="phrase",
-                )
-                self.create_relationship(
-                    "website",
-                    "url",
-                    website_url,
-                    "phrase",
-                    "text",
-                    result.text,
-                    "HAS_INNER_TEXT",
-                )
+                self.create_node(result)
+                self.create_relationship(input_website, result, "HAS_INNER_TEXT")
                 self.log_graph_message(
                     f"Extracted some text from the website {website_url}."
                 )

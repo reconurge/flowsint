@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class CreditCard(BaseModel):
+class CreditCard(FlowsintType):
     """Represents a credit card with financial details and security status."""
 
     card_number: str = Field(..., description="Credit card number", title="Card Number")
@@ -56,3 +58,12 @@ class CreditCard(BaseModel):
     last_used: Optional[str] = Field(
         None, description="Last time card was used", title="Last Used"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = []
+        if self.card_type:
+            parts.append(self.card_type)
+        parts.append(f"****{self.card_number[-4:]}" if len(self.card_number) > 4 else self.card_number)
+        self.label = " ".join(parts)
+        return self

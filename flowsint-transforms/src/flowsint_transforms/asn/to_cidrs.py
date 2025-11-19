@@ -62,26 +62,6 @@ class AsnToCidrsTransform(Transform):
     def key(cls) -> str:
         return "number"
 
-    def preprocess(
-        self, data: Union[List[str], List[int], List[dict], InputType]
-    ) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            asn_obj = None
-            try:
-                if isinstance(item, (str, int)):
-                    asn_obj = ASN(number=parse_asn(str(item)))
-                elif isinstance(item, dict) and "number" in item:
-                    asn_obj = ASN(number=parse_asn(str(item["number"])))
-                elif isinstance(item, ASN):
-                    asn_obj = item
-                if asn_obj and is_valid_asn(str(asn_obj.number)):
-                    cleaned.append(asn_obj)
-            except ValueError:
-                Logger.warn(self.sketch_id, {"message": f"Invalid ASN format: {item}"})
-                continue
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         """Find CIDR from ASN using asnmap."""
         cidrs: OutputType = []
@@ -145,33 +125,11 @@ class AsnToCidrsTransform(Transform):
                     if str(cidr.network) == "0.0.0.0/0":
                         continue  # Skip default CIDR for unknown ASN
                     if self.neo4j_conn:
-                        self.create_node(
-                            "asn",
-                            "number",
-                            asn.number,
-                            label=f"AS{asn.number}",
-                            caption=f"AS{asn.number}",
-                            type="asn",
-                        )
+                        self.create_node(asn)
 
-                        self.create_node(
-                            "cidr",
-                            "network",
-                            str(cidr.network),
-                            label=str(cidr.network),
-                            caption=str(cidr.network),
-                            type="cidr",
-                        )
+                        self.create_node(cidr)
 
-                        self.create_relationship(
-                            "asn",
-                            "number",
-                            asn.number,
-                            "cidr",
-                            "network",
-                            str(cidr.network),
-                            "ANNOUNCES",
-                        )
+                        self.create_relationship(asn, cidr, "ANNOUNCES")
 
                         self.log_graph_message(
                             f"AS{asn.number} announces CIDR {cidr.network}"
@@ -200,15 +158,9 @@ class AsnToCidrsTransform(Transform):
                         type="cidr",
                     )
 
-                    self.create_relationship(
-                        "asn",
-                        "number",
-                        asn.number,
-                        "cidr",
-                        "network",
-                        str(cidr.network),
-                        "ANNOUNCES",
-                    )
+                    asn_obj = ASN(number=asn.number)
+                    cidr_obj = CIDR(network=str(cidr.network))
+                    self.create_relationship(asn_obj, cidr_obj, "ANNOUNCES")
 
                     self.log_graph_message(
                         f"AS{asn.number} announces CIDR {cidr.network}"

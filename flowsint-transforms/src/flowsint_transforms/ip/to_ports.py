@@ -107,22 +107,6 @@ class IpToPortsTransform(Transform):
     def key(cls) -> str:
         return "address"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            ip_obj = None
-            if isinstance(item, str):
-                if is_valid_ip(item):
-                    ip_obj = Ip(address=item)
-            elif isinstance(item, dict) and "address" in item:
-                if is_valid_ip(item["address"]):
-                    ip_obj = Ip(**item)
-            elif isinstance(item, Ip):
-                ip_obj = item
-            if ip_obj:
-                cleaned.append(ip_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         naabu = NaabuTool()
@@ -214,34 +198,13 @@ class IpToPortsTransform(Transform):
                 ip_address = getattr(port, "_ip_address", None)
                 if not ip_address:
                     continue
-
-                # Create Port node with composite key (ip:port) to handle multiple IPs
+                
                 port_id = f"{ip_address}:{port.number}"
-                port_label = f"{port.number}/{port.protocol}"
-                self.create_node(
-                    "port",
-                    "id",
-                    port_id,
-                    label=port_label,
-                    type="port",
-                    number=port.number,
-                    protocol=port.protocol,
-                    state=port.state,
-                    service=port.service,
-                    banner=port.banner,
-                    ip_address=ip_address,
-                )
+                self.create_node(port)
 
                 # Create relationship from IP to Port
-                self.create_relationship(
-                    "ip",
-                    "address",
-                    ip_address,
-                    "port",
-                    "id",
-                    port_id,
-                    "HAS_PORT",
-                )
+                ip_obj = Ip(address=ip_address)
+                self.create_relationship(ip_obj, port, "HAS_PORT")
 
                 service_info = f" ({port.service})" if port.service else ""
                 self.log_graph_message(

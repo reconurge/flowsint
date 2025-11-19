@@ -1,16 +1,14 @@
-from pydantic import BaseModel, Field, EmailStr, model_validator
-from typing import Any
+from pydantic import Field, EmailStr, model_validator
+from typing import Any, Self
+from .flowsint_base import FlowsintType
 
 
-class Email(BaseModel):
+class Email(FlowsintType):
     """Represents an email address."""
 
     email: EmailStr = Field(..., description="Email address", title="Email Address")
 
-    @model_validator(mode='before')
-    @classmethod
-    def convert_string_to_dict(cls, data: Any) -> Any:
-        """Allow creating Email from a string directly."""
-        if isinstance(data, str):
-            return {'email': data}
-        return data
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.email
+        return self

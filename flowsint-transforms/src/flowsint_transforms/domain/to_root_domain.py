@@ -28,22 +28,6 @@ class DomainToRootDomain(Transform):
     def key(cls) -> str:
         return "domain"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                if is_valid_domain(item):
-                    domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                if is_valid_domain(item["domain"]):
-                    domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj:
-                cleaned.append(domain_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         self.domain_root_mapping = []  # Reset mapping
@@ -73,22 +57,13 @@ class DomainToRootDomain(Transform):
             if not self.neo4j_conn:
                 continue
 
-            # Create root domain node
-            self.create_node("domain", "domain", root_domain.domain, **root_domain.__dict__)
-
-            # Create original domain node
-            self.create_node("domain", "domain", original_domain.domain, **original_domain.__dict__)
+            # New simplified pattern: pass Pydantic objects directly
+            # Override type when needed
+            self.create_node(root_domain)
+            self.create_node(original_domain)
 
             # Create relationship from root domain to original domain
-            self.create_relationship(
-                "domain",
-                "domain",
-                root_domain.domain,
-                "domain",
-                "domain",
-                original_domain.domain,
-                "HAS_SUBDOMAIN",
-            )
+            self.create_relationship(root_domain, original_domain, "HAS_SUBDOMAIN")
 
             self.log_graph_message(
                 f"{root_domain.domain} -> HAS_SUBDOMAIN -> {original_domain.domain}"

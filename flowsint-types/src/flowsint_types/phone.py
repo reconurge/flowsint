@@ -1,10 +1,11 @@
-from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Optional, Any
+from pydantic import Field, field_validator, model_validator
+from typing import Optional, Any, Self
 import phonenumbers
 from phonenumbers import NumberParseException
+from .flowsint_base import FlowsintType
 
 
-class Phone(BaseModel):
+class Phone(FlowsintType):
     """Represents a phone number with country and carrier information."""
 
     number: str = Field(..., description="Phone number", title="Phone Number")
@@ -54,3 +55,8 @@ class Phone(BaseModel):
 
         # If all attempts fail, raise an error
         raise ValueError(f"Invalid phone number: {v}. Must be in international format (+...) or a valid format for common regions.")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.number
+        return self

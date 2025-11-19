@@ -12,7 +12,7 @@ class SubdomainTransform(Transform):
     """Transform to find subdomains associated with a domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain | str]
+    InputType = List[Domain]
     OutputType = List[Domain]
 
     @classmethod
@@ -26,20 +26,6 @@ class SubdomainTransform(Transform):
     @classmethod
     def key(cls) -> str:
         return "domain"
-
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj and is_valid_domain(domain_obj.domain):
-                cleaned.append(domain_obj)
-        return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
         """Find subdomains using subfinder (Docker) or fallback to crt.sh."""
@@ -115,18 +101,12 @@ class SubdomainTransform(Transform):
                 )
 
                 # Create subdomain node
-                self.create_node("domain", "domain", subdomain, domain=subdomain)
+                parent_domain_obj = Domain(domain=domain_obj["domain"])
+                subdomain_obj = Domain(domain=subdomain)
+                self.create_node(subdomain_obj)
 
                 # Create relationship from parent domain to subdomain
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    domain_obj["domain"],
-                    "domain",
-                    "domain",
-                    subdomain,
-                    "HAS_SUBDOMAIN",
-                )
+                self.create_relationship(parent_domain_obj, subdomain_obj, "HAS_SUBDOMAIN")
 
             self.log_graph_message(
                 f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."

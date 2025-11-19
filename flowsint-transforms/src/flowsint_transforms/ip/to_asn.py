@@ -62,22 +62,6 @@ class IpToAsnTransform(Transform):
     def key(cls) -> str:
         return "address"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            ip_obj = None
-            if isinstance(item, str):
-                if is_valid_ip(item):
-                    ip_obj = Ip(address=item)
-            elif isinstance(item, dict) and "address" in item:
-                if is_valid_ip(item["address"]):
-                    ip_obj = Ip(address=item["address"])
-            elif isinstance(item, Ip):
-                ip_obj = item
-            if ip_obj:
-                cleaned.append(ip_obj)
-        return cleaned
-
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
         asnmap = AsnmapTool()
@@ -130,19 +114,11 @@ class IpToAsnTransform(Transform):
         if input_data and self.neo4j_conn:
             for ip, asn in zip(input_data, results):
                 # Create IP node
-                self.create_node("ip", "address", ip.address, label=ip.address, type="ip", **ip.__dict__)
+                self.create_node(ip)
                 # Create ASN node
-                self.create_node("asn", "number", asn.number, label=f"AS{asn.number}", type="asn", **asn.__dict__)
+                self.create_node(asn)
                 # Create relationship
-                self.create_relationship(
-                    "ip",
-                    "address",
-                    ip.address,
-                    "asn",
-                    "number",
-                    asn.number,
-                    "BELONGS_TO",
-                )
+                self.create_relationship(ip, asn, "BELONGS_TO")
                 self.log_graph_message(
                     f"IP {ip.address} belongs to AS{asn.number} ({asn.name})"
                 )

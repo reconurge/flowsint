@@ -352,8 +352,41 @@ class Transform(ABC):
         """
         return self.params.get(key_name, default)
 
-    def preprocess(self, values: List[str]) -> List[str]:
-        return values
+    def preprocess(self, values: List) -> List:
+        """
+        Generic preprocess that validates and converts input using InputType.
+        Automatically handles str, dict, and object inputs, filtering invalids silently.
+
+        Subclasses can override this method for custom preprocessing logic.
+        """
+        # If InputType is not defined, return as-is (backward compatibility)
+        if self.InputType is NotImplemented:
+            return values
+
+        from typing import get_args
+
+        # Extract base type from List[Type]
+        type_args = get_args(self.InputType)
+        if not type_args:
+            # If no type args, return as-is
+            return values
+
+        base_type = type_args[0]
+
+        # Use TypeAdapter for validation and conversion
+        adapter = TypeAdapter(base_type)
+        cleaned = []
+
+        for item in values:
+            try:
+                # TypeAdapter handles str, dict, and object automatically
+                validated = adapter.validate_python(item)
+                cleaned.append(validated)
+            except Exception:
+                # Skip invalid items silently
+                continue
+
+        return cleaned
 
     def postprocess(
         self, results: List[Dict[str, Any]], input_data: List[str] = None

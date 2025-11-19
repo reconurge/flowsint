@@ -375,16 +375,17 @@ class IndividualToDomainsTransform(Transform):
 
         # Process email addresses
         if contact_individual.email_addresses:
-            for email in contact_individual.email_addresses:
-                if email and email not in processed_emails:
-                    processed_emails.add(email)
+            for email_obj in contact_individual.email_addresses:
+                email_str = email_obj.email
+                if email_str and email_str not in processed_emails:
+                    processed_emails.add(email_str)
 
                     # Create email node
                     self.create_node(
                         "email",
                         "email",
-                        email,
-                        email=email,
+                        email_str,
+                        email=email_str,
                     )
 
                     # Create relationship between individual and email
@@ -394,22 +395,23 @@ class IndividualToDomainsTransform(Transform):
                         contact_individual.full_name,
                         "email",
                         "email",
-                        email,
+                        email_str,
                         "HAS_EMAIL",
                     )
 
         # Process phone numbers
         if contact_individual.phone_numbers:
-            for phone in contact_individual.phone_numbers:
-                if phone and phone not in processed_phones:
-                    processed_phones.add(phone)
+            for phone_obj in contact_individual.phone_numbers:
+                phone_str = phone_obj.number
+                if phone_str and phone_str not in processed_phones:
+                    processed_phones.add(phone_str)
 
                     # Create phone node
                     self.create_node(
                         "phone",
                         "number",
-                        phone,
-                        number=phone,
+                        phone_str,
+                        number=phone_str,
                     )
 
                     # Create relationship between individual and phone
@@ -419,7 +421,7 @@ class IndividualToDomainsTransform(Transform):
                         contact_individual.full_name,
                         "phone",
                         "number",
-                        phone,
+                        phone_str,
                         "HAS_PHONE",
                     )
 

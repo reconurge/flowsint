@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any, List, Union, Dict, Set, Optional
+from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
@@ -67,20 +67,6 @@ class EmailToDomainsTransform(Transform):
     @classmethod
     def key(cls) -> str:
         return "email"
-
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            email_obj = None
-            if isinstance(item, str):
-                email_obj = Email(email=item)
-            elif isinstance(item, dict) and "email" in item:
-                email_obj = Email(email=item["email"])
-            elif isinstance(item, Email):
-                email_obj = item
-            if email_obj:
-                cleaned.append(email_obj)
-        return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
         """Find domains related to emails using whoxy api."""
@@ -360,16 +346,17 @@ class EmailToDomainsTransform(Transform):
 
         # Process email addresses
         if individual.email_addresses:
-            for email in individual.email_addresses:
-                if email and email not in processed_emails:
-                    processed_emails.add(email)
+            for email_obj in individual.email_addresses:
+                email_str = email_obj.email
+                if email_str and email_str not in processed_emails:
+                    processed_emails.add(email_str)
 
                     # Create email node
                     self.create_node(
                         "email",
                         "email",
-                        email,
-                        caption=email,
+                        email_str,
+                        caption=email_str,
                         type="email",
                     )
 
@@ -380,22 +367,23 @@ class EmailToDomainsTransform(Transform):
                         individual.full_name,
                         "email",
                         "email",
-                        email,
+                        email_str,
                         "HAS_EMAIL",
                     )
 
         # Process phone numbers
         if individual.phone_numbers:
-            for phone in individual.phone_numbers:
-                if phone and phone not in processed_phones:
-                    processed_phones.add(phone)
+            for phone_obj in individual.phone_numbers:
+                phone_str = phone_obj.number
+                if phone_str and phone_str not in processed_phones:
+                    processed_phones.add(phone_str)
 
                     # Create phone node
                     self.create_node(
                         "phone",
                         "number",
-                        phone,
-                        caption=phone,
+                        phone_str,
+                        caption=phone_str,
                         type="phone",
                     )
 
@@ -406,7 +394,7 @@ class EmailToDomainsTransform(Transform):
                         individual.full_name,
                         "phone",
                         "number",
-                        phone,
+                        phone_str,
                         "HAS_PHONE",
                     )
 

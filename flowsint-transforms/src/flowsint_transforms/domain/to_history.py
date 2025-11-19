@@ -505,18 +505,19 @@ class DomainToHistoryTransform(Transform):
 
             # Process email addresses
             if individual.email_addresses:
-                for email in individual.email_addresses:
-                    if email and email not in processed_emails:
-                        processed_emails.add(email)
+                for email_obj in individual.email_addresses:
+                    email_str = email_obj.email
+                    if email_str and email_str not in processed_emails:
+                        processed_emails.add(email_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating email node: {email}"},
+                            {"message": f"[WHOXY] Creating email node: {email_str}"},
                         )
                         self.create_node(
                             "email",
                             "email",
-                            email,
-                            caption=email,
+                            email_str,
+                            caption=email_str,
                             type="email",
                         )
                         self.create_relationship(
@@ -525,24 +526,25 @@ class DomainToHistoryTransform(Transform):
                             individual.full_name,
                             "email",
                             "email",
-                            email,
+                            email_str,
                             "HAS_EMAIL",
                         )
 
             # Process phone numbers
             if individual.phone_numbers:
-                for phone in individual.phone_numbers:
-                    if phone and phone not in processed_phones:
-                        processed_phones.add(phone)
+                for phone_obj in individual.phone_numbers:
+                    phone_str = phone_obj.number
+                    if phone_str and phone_str not in processed_phones:
+                        processed_phones.add(phone_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating phone node: {phone}"},
+                            {"message": f"[WHOXY] Creating phone node: {phone_str}"},
                         )
                         self.create_node(
                             "phone",
                             "number",
-                            phone,
-                            caption=phone,
+                            phone_str,
+                            caption=phone_str,
                             type="phone",
                         )
                         self.create_relationship(
@@ -551,7 +553,7 @@ class DomainToHistoryTransform(Transform):
                             individual.full_name,
                             "phone",
                             "number",
-                            phone,
+                            phone_str,
                             "HAS_PHONE",
                         )
 

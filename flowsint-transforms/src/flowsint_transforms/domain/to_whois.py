@@ -1,12 +1,10 @@
-from typing import List, Union
+from typing import List
 import whois
-from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.transform_base import Transform
-from flowsint_types.domain import Domain, Domain
+from flowsint_types.domain import Domain
 from flowsint_types.whois import Whois
 from flowsint_types.email import Email
 from flowsint_core.core.logger import Logger
-from datetime import datetime
 
 
 class WhoisTransform(Transform):
@@ -27,22 +25,6 @@ class WhoisTransform(Transform):
     @classmethod
     def key(cls) -> str:
         return "domain"
-
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                if is_valid_domain(item):
-                    domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                if is_valid_domain(item["domain"]):
-                    domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj:
-                cleaned.append(domain_obj)
-        return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
         results: OutputType = []
@@ -85,8 +67,19 @@ class WhoisTransform(Transform):
                         else:
                             expiration_date_str = whois_info.expiration_date.isoformat()
 
+                    # Extract registry domain ID
+                    registry_domain_id = None
+                    if (
+                        hasattr(whois_info, "registry_domain_id")
+                        and whois_info.registry_domain_id
+                    ):
+                        registry_domain_id = str(whois_info.registry_domain_id)
+                    elif hasattr(whois_info, "domain_id") and whois_info.domain_id:
+                        registry_domain_id = str(whois_info.domain_id)
+
                     whois_obj = Whois(
-                        domain=domain.domain,
+                        domain=domain,
+                        registry_domain_id=registry_domain_id,
                         registrar=(
                             str(whois_info.registrar) if whois_info.registrar else None
                         ),
@@ -114,23 +107,27 @@ class WhoisTransform(Transform):
                 continue
 
             # Create domain node
-            self.create_node("domain", "domain", whois_obj.domain, **whois_obj.__dict__)
+            self.create_node(
+                "domain",
+                "domain",
+                whois_obj.domain.domain,
+                root=whois_obj.domain.root,
+                type="domain",
+            )
 
             # Create whois node
-            whois_key = f"{whois_obj.domain}_{self.sketch_id}"
-            whois_label = f"Whois-{whois_obj.domain}"
-            # Creating unique label
-            date_format = "%Y-%m-%dT%H:%M:%S"
-            try:
-                year = datetime.strptime(whois_obj.creation_date, date_format).year
-                whois_label = f"{whois_label}-{year}"
-            except Exception:
-                continue
+            whois_key = f"{whois_obj.domain.domain}_{self.sketch_id}"
+
+            if whois_obj.registry_domain_id:
+                whois_label = whois_obj.registry_domain_id
+            else:
+                whois_label = whois_obj.domain.domain
             self.create_node(
                 "whois",
                 "whois_id",
                 whois_key,
-                domain=whois_obj.domain,
+                domain=whois_obj.domain.domain,
+                registry_domain_id=whois_obj.registry_domain_id,
                 registrar=whois_obj.registrar,
                 org=whois_obj.org,
                 city=whois_obj.city,
@@ -146,7 +143,7 @@ class WhoisTransform(Transform):
             self.create_relationship(
                 "domain",
                 "domain",
-                whois_obj.domain,
+                whois_obj.domain.domain,
                 "whois",
                 "whois_id",
                 whois_key,
@@ -161,7 +158,7 @@ class WhoisTransform(Transform):
                     whois_obj.org,
                     country=whois_obj.country,
                     founding_date=whois_obj.creation_date,
-                    description=f"Organization from WHOIS data for {whois_obj.domain}",
+                    description=f"Organization from WHOIS data for {whois_obj.domain.domain}",
                     caption=whois_obj.org,
                     type="organization",
                 )
@@ -173,12 +170,12 @@ class WhoisTransform(Transform):
                     whois_obj.org,
                     "domain",
                     "domain",
-                    whois_obj.domain,
+                    whois_obj.domain.domain,
                     "HAS_DOMAIN",
                 )
 
                 self.log_graph_message(
-                    f"{whois_obj.domain} -> {whois_obj.org} (organization)"
+                    f"{whois_obj.domain.domain} -> {whois_obj.org} (organization)"
                 )
 
             if whois_obj.email:
@@ -196,7 +193,7 @@ class WhoisTransform(Transform):
                 )
 
             self.log_graph_message(
-                f"WHOIS for {whois_obj.domain} -> registrar: {whois_obj.registrar} org: {whois_obj.org} city: {whois_obj.city} country: {whois_obj.country} creation_date: {whois_obj.creation_date} expiration_date: {whois_obj.expiration_date}"
+                f"WHOIS for {whois_obj.domain.domain} -> registry_id: {whois_obj.registry_domain_id} registrar: {whois_obj.registrar} org: {whois_obj.org} city: {whois_obj.city} country: {whois_obj.country} creation_date: {whois_obj.creation_date} expiration_date: {whois_obj.expiration_date}"
             )
 
         return results

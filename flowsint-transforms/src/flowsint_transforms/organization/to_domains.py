@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any, List, Union, Dict, Set, Optional
+from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
@@ -66,20 +66,6 @@ class OrgToDomainsTransform(Transform):
     @classmethod
     def key(cls) -> str:
         return "name"
-
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            org_obj = None
-            if isinstance(item, str):
-                org_obj = Organization(name=item)
-            elif isinstance(item, dict) and "name" in item:
-                org_obj = Organization(name=item["name"])
-            elif isinstance(item, Organization):
-                org_obj = item
-            if org_obj:
-                cleaned.append(org_obj)
-        return cleaned
 
     async def scan(self, data: InputType) -> OutputType:
         """Find domains related to organizations using whoxy api."""
@@ -526,18 +512,19 @@ class OrgToDomainsTransform(Transform):
 
             # Process email addresses
             if individual.email_addresses:
-                for email in individual.email_addresses:
-                    if email and email not in processed_emails:
-                        processed_emails.add(email)
+                for email_obj in individual.email_addresses:
+                    email_str = email_obj.email
+                    if email_str and email_str not in processed_emails:
+                        processed_emails.add(email_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating email node: {email}"},
+                            {"message": f"[WHOXY] Creating email node: {email_str}"},
                         )
                         self.create_node(
                             "email",
                             "email",
-                            email,
-                            caption=email,
+                            email_str,
+                            caption=email_str,
                             type="email",
                         )
                         self.create_relationship(
@@ -546,24 +533,25 @@ class OrgToDomainsTransform(Transform):
                             individual.full_name,
                             "email",
                             "email",
-                            email,
+                            email_str,
                             "HAS_EMAIL",
                         )
 
             # Process phone numbers
             if individual.phone_numbers:
-                for phone in individual.phone_numbers:
-                    if phone and phone not in processed_phones:
-                        processed_phones.add(phone)
+                for phone_obj in individual.phone_numbers:
+                    phone_str = phone_obj.number
+                    if phone_str and phone_str not in processed_phones:
+                        processed_phones.add(phone_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating phone node: {phone}"},
+                            {"message": f"[WHOXY] Creating phone node: {phone_str}"},
                         )
                         self.create_node(
                             "phone",
                             "number",
-                            phone,
-                            caption=phone,
+                            phone_str,
+                            caption=phone_str,
                             type="phone",
                         )
                         self.create_relationship(
@@ -572,7 +560,7 @@ class OrgToDomainsTransform(Transform):
                             individual.full_name,
                             "phone",
                             "number",
-                            phone,
+                            phone_str,
                             "HAS_PHONE",
                         )
 

@@ -2,7 +2,7 @@ import os
 import re
 from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.transform_base import Transform
-from flowsint_types import Email
+from flowsint_types import Email, Phone
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
@@ -448,9 +448,15 @@ class OrgToDomainsTransform(Transform):
                 self.create_node(domain_obj)
 
                 # Create relationship between organization and domain
-                org_obj_domain = Organization(name=org_name)
-                domain_obj_org = Domain(domain=domain_name)
-                self.create_relationship(org_obj_domain, domain_obj_org, "HAS_REGISTERED_DOMAIN")
+                self.create_relationship(
+                    "organization",
+                    "name",
+                    org_name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    "HAS_REGISTERED_DOMAIN",
+                )
 
             # Create individual node if not already processed
             individual_id = (
@@ -467,12 +473,26 @@ class OrgToDomainsTransform(Transform):
                 self.create_node(individual)
 
                 # Create relationship between individual and domain
-                domain_obj_ind = Domain(domain=domain_name)
-                self.create_relationship(individual, domain_obj_ind, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    "individual",
+                    "full_name",
+                    individual.full_name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    f"IS_{contact_type.upper()}_CONTACT",
+                )
 
                 # Create relationship between individual and organization
-                org_obj_ind = Organization(name=org_name)
-                self.create_relationship(individual, org_obj_ind, "WORKS_FOR")
+                self.create_relationship(
+                    "individual",
+                    "full_name",
+                    individual.full_name,
+                    "organization",
+                    "name",
+                    org_name,
+                    "WORKS_FOR",
+                )
 
             # Process email addresses
             if individual.email_addresses:
@@ -486,7 +506,15 @@ class OrgToDomainsTransform(Transform):
                         )
                         email_obj = Email(email=email_str)
                         self.create_node(email_obj)
-                        self.create_relationship(individual, email_obj, "HAS_EMAIL")
+                        self.create_relationship(
+                            "individual",
+                            "full_name",
+                            individual.full_name,
+                            "email",
+                            "email",
+                            email_str,
+                            "HAS_EMAIL",
+                        )
 
             # Process phone numbers
             if individual.phone_numbers:
@@ -500,7 +528,15 @@ class OrgToDomainsTransform(Transform):
                         )
                         phone_obj = Phone(number=phone_str)
                         self.create_node(phone_obj)
-                        self.create_relationship(individual, phone_obj, "HAS_PHONE")
+                        self.create_relationship(
+                            "individual",
+                            "full_name",
+                            individual.full_name,
+                            "phone",
+                            "number",
+                            phone_str,
+                            "HAS_PHONE",
+                        )
 
             # Process physical address from contact data
             contact_data = individual_info["contact_data"]
@@ -518,7 +554,15 @@ class OrgToDomainsTransform(Transform):
                         },
                     )
                     self.create_node(address)
-                    self.create_relationship(individual, address, "LIVES_AT")
+                    self.create_relationship(
+                        "individual",
+                        "full_name",
+                        individual.full_name,
+                        "location",
+                        "address",
+                        address.address,
+                        "LIVES_AT",
+                    )
 
             self.log_graph_message(
                 f"Processed individual {individual.full_name} ({contact_type}) for domain {domain_name}"
@@ -559,9 +603,15 @@ class OrgToDomainsTransform(Transform):
                 self.create_node(domain_obj)
 
                 # Create relationship between input organization and domain
-                org_obj_domain2 = Organization(name=org_name)
-                domain_obj_org2 = Domain(domain=domain_name)
-                self.create_relationship(org_obj_domain2, domain_obj_org2, "HAS_REGISTERED_DOMAIN")
+                self.create_relationship(
+                    "organization",
+                    "name",
+                    org_name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    "HAS_REGISTERED_DOMAIN",
+                )
 
             # Create extracted organization node if not already processed
             if organization.name not in processed_organizations:
@@ -575,8 +625,15 @@ class OrgToDomainsTransform(Transform):
                 self.create_node(organization)
 
                 # Create relationship between extracted organization and domain
-                domain_obj_extracted = Domain(domain=domain_name)
-                self.create_relationship(organization, domain_obj_extracted, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    "organization",
+                    "name",
+                    organization.name,
+                    "domain",
+                    "domain",
+                    domain_name,
+                    f"IS_{contact_type.upper()}_CONTACT",
+                )
 
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Any, Optional, List
 from .individual import Individual
 from .address import Location
@@ -9,6 +9,14 @@ class Organization(BaseModel):
 
     # Basic information
     name: Any = Field(..., description="Organization name", title="Organization Name")
+
+    @model_validator(mode='before')
+    @classmethod
+    def convert_string_to_dict(cls, data: Any) -> Any:
+        """Allow creating Organization from a string directly."""
+        if isinstance(data, str):
+            return {'name': data}
+        return data
     siren: Optional[Any] = Field(None, description="SIREN number", title="SIREN Number")
     nom_complet: Optional[Any] = Field(
         None, description="Complete name", title="Complete Name"
@@ -72,7 +80,7 @@ class Organization(BaseModel):
     nature_juridique: Optional[Any] = Field(
         None, description="Legal nature", title="Legal Nature"
     )
-    etat_adminiAnyatif: Optional[Any] = Field(
+    etat_administratif: Optional[Any] = Field(
         None, description="AdminiAnyative status", title="AdminiAnyative Status"
     )
     statut_diffusion: Optional[Any] = Field(
@@ -82,7 +90,7 @@ class Organization(BaseModel):
     siege_activite_principale: Optional[Any] = Field(
         None, description="Siege main activity code", title="Headquarters Main Activity"
     )
-    siege_activite_principale_regiAnye_metier: Optional[Any] = Field(
+    siege_activite_principale_registre_metier: Optional[Any] = Field(
         None,
         description="Siege main activity in trade register",
         title="Headquarters Trade Register Activity",
@@ -197,7 +205,7 @@ class Organization(BaseModel):
         title="Headquarters Foreign Country Label",
     )
     siege_libelle_voie: Optional[Any] = Field(
-        None, description="Siege Anyeet label", title="Headquarters Anyeet Label"
+        None, description="Siege street label", title="Headquarters street Label"
     )
     siege_liste_enseignes: Optional[List[Any]] = Field(
         None, description="Siege list of brands", title="Headquarters Brands List"
@@ -229,7 +237,7 @@ class Organization(BaseModel):
         None, description="Siege commercial name", title="Headquarters Commercial Name"
     )
     siege_numero_voie: Optional[Any] = Field(
-        None, description="Siege Anyeet number", title="Headquarters Anyeet Number"
+        None, description="Siege street number", title="Headquarters street Number"
     )
     siege_region: Optional[Any] = Field(
         None, description="Siege region code", title="Headquarters Region"
@@ -248,7 +256,7 @@ class Organization(BaseModel):
         title="Headquarters Employee Size Range",
     )
     siege_type_voie: Optional[Any] = Field(
-        None, description="Siege Anyeet type", title="Headquarters Anyeet Type"
+        None, description="Siege street type", title="Headquarters street Type"
     )
     # Dirigeants (Leaders) - using Individual type
     dirigeants: Optional[List[Individual]] = Field(

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
@@ -18,3 +18,11 @@ class Port(BaseModel):
     banner: Optional[str] = Field(
         None, description="Service banner information", title="Banner"
     )
+
+    @field_validator('number')
+    @classmethod
+    def validate_port_number(cls, v: int) -> int:
+        """Validate that port number is in valid range (0-65535)."""
+        if not (0 <= v <= 65535):
+            raise ValueError(f"Port number must be between 0 and 65535, got {v}")
+        return v

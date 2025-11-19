@@ -62,7 +62,6 @@ export function useEvents(sketch_id: string | undefined) {
     }
 
     return () => {
-      console.log('[useSketchEvents] Closing SSE connection')
       eventSource.close()
     }
   }, [sketch_id])

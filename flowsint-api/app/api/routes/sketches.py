@@ -380,6 +380,9 @@ def edit_node(
         flattened_data = flatten(node_data)
         properties.update(flattened_data)
 
+    # Remove sketch_id from properties to avoid conflict (it's passed separately for security)
+    properties.pop("sketch_id", None)
+
     # Update node using GraphRepository
     try:
         graph_repo = GraphRepository(neo4j_connection)

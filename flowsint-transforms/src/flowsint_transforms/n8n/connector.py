@@ -12,8 +12,8 @@ class N8nConnector(Transform):
     """
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Any]
-    OutputType = List[Any]
+    InputType = Any
+    OutputType = Any
 
     def __init__(
         self,
@@ -256,7 +256,7 @@ Check Flowsint logs for detailed debugging information.
             },
         ]
 
-    async def scan(self, values: InputType) -> OutputType:
+    async def scan(self, values: List[InputType]) -> List[OutputType]:
         params = self.get_params()
         url = params["webhook_url"]
         Logger.info(self.sketch_id, {"message": f"n8n connector url: {url}"})
@@ -345,7 +345,7 @@ Check Flowsint logs for detailed debugging information.
             # Re-raise the exception so the caller knows something went wrong
             raise
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         Logger.success(
             self.sketch_id, {"message": f"n8n connector results: {json.dumps(results)}"}
         )

@@ -1,6 +1,6 @@
 PROJECT_ROOT := $(shell pwd)
 
-.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser
+.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser test
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
 open-browser:
@@ -42,6 +42,12 @@ check-env:
 			cp "$$env_example" "$$env_file"; \
 		fi; \
 	done
+
+test:
+	@echo "🔎 Running tests..."
+	cd $(PROJECT_ROOT)/flowsint-types && poetry run pytest
+	cd $(PROJECT_ROOT)/flowsint-core && poetry run pytest
+	cd $(PROJECT_ROOT)/flowsint-transforms && poetry run pytest
 
 install:
 	@echo "🚀 Installing Flowsint project modules..."

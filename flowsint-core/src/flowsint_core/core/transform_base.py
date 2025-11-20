@@ -62,9 +62,9 @@ class Transform(ABC):
     from flowsint_types import Ip
 
     class MyTransform(Transform):
-        # Define types as class attributes
-        InputType = List[Domain]
-        OutputType = List[Ip]
+        # Define types as class attributes (base types, not lists)
+        InputType = Domain
+        OutputType = Ip
 
         @classmethod
         def name(cls):
@@ -78,13 +78,14 @@ class Transform(ABC):
         def key(cls):
             return "domain"
 
-        def preprocess(self, data: InputType) -> InputType:
-            cleaned: InputType = []
-            # ... implementation
-            return cleaned
+        # preprocess receives a list and returns a list of validated InputType instances
+        def preprocess(self, data: List) -> List[InputType]:
+            # Generic implementation handles validation automatically
+            return super().preprocess(data)
 
-        async def scan(self, data: InputType) -> OutputType:
-            results: OutputType = []
+        # scan receives a list of InputType and returns a list of OutputType
+        async def scan(self, data: List[InputType]) -> List[OutputType]:
+            results: List[OutputType] = []
             # ... implementation
             return results
 
@@ -94,6 +95,7 @@ class Transform(ABC):
     ```
 
     The base class automatically provides:
+    - Generic preprocess() that validates inputs using InputType
     - input_schema() method using InputType
     - output_schema() method using OutputType
     - Error handling for missing type definitions
@@ -263,17 +265,20 @@ class Transform(ABC):
         schema = adapter.json_schema()
 
         # Handle different schema structures
-        if "$defs" in schema and schema["$defs"]:
-            # Follow the $ref in items to get the correct type (not just the first one)
-            items_ref = schema.get("items", {}).get("$ref")
-            if items_ref:
-                # Extract type name from $ref like "#/$defs/Website" -> "Website"
-                type_name = items_ref.split("/")[-1]
-                details = schema["$defs"][type_name]
-            else:
-                # Fallback: get the first type definition (for backward compatibility)
-                type_name, details = list(schema["$defs"].items())[0]
-
+        # Check for direct properties first (even if $defs exists for nested types)
+        if "properties" in schema and "title" in schema:
+            # Direct type definition (e.g., Domain, Ip, Website)
+            return {
+                "type": schema.get("title", "Any"),
+                "properties": [
+                    {"name": prop, "type": resolve_type(info, schema)}
+                    for prop, info in schema["properties"].items()
+                ],
+            }
+        elif "$defs" in schema and schema["$defs"] and "$ref" in schema:
+            # Reference to a type in $defs
+            type_name = schema["$ref"].split("/")[-1]
+            details = schema["$defs"][type_name]
             return {
                 "type": type_name,
                 "properties": [
@@ -282,7 +287,7 @@ class Transform(ABC):
                 ],
             }
         else:
-            # Handle simpler schemas
+            # Fallback for unknown schema structures
             return {
                 "type": schema.get("title", "Any"),
                 "properties": [{"name": "value", "type": "object"}],
@@ -303,17 +308,20 @@ class Transform(ABC):
         schema = adapter.json_schema()
 
         # Handle different schema structures
-        if "$defs" in schema and schema["$defs"]:
-            # Follow the $ref in items to get the correct type (not just the first one)
-            items_ref = schema.get("items", {}).get("$ref")
-            if items_ref:
-                # Extract type name from $ref like "#/$defs/Website" -> "Website"
-                type_name = items_ref.split("/")[-1]
-                details = schema["$defs"][type_name]
-            else:
-                # Fallback: get the first type definition (for backward compatibility)
-                type_name, details = list(schema["$defs"].items())[0]
-
+        # Check for direct properties first (even if $defs exists for nested types)
+        if "properties" in schema and "title" in schema:
+            # Direct type definition (e.g., Domain, Ip, Website)
+            return {
+                "type": schema.get("title", "Any"),
+                "properties": [
+                    {"name": prop, "type": resolve_type(info, schema)}
+                    for prop, info in schema["properties"].items()
+                ],
+            }
+        elif "$defs" in schema and schema["$defs"] and "$ref" in schema:
+            # Reference to a type in $defs
+            type_name = schema["$ref"].split("/")[-1]
+            details = schema["$defs"][type_name]
             return {
                 "type": type_name,
                 "properties": [
@@ -322,7 +330,7 @@ class Transform(ABC):
                 ],
             }
         else:
-            # Handle simpler schemas
+            # Fallback for unknown schema structures
             return {
                 "type": schema.get("title", "Any"),
                 "properties": [{"name": "value", "type": "object"}],
@@ -350,24 +358,24 @@ class Transform(ABC):
         Returns:
             The secret value from the vault, or default if not found
         """
-        return self.params.get(key_name, default)
+        value = self.params.get(key_name, default)
+        # If the value is None, return the default instead (allows fallback to env vars)
+        return value if value is not None else default
 
     def preprocess(self, values: List) -> List:
         """
         Generic preprocess that validates and converts input using InputType.
         Automatically handles dicts, objects, and strings (using the model's primary field).
         Invalid items are skipped silently.
+
+        Note: InputType should be defined as the base type (e.g., Ip, Domain),
+        not as a List (e.g., List[Ip]). The preprocess method expects a list of values
+        and returns a list of validated InputType instances.
         """
         if self.InputType is NotImplemented:
             return values
 
-        from typing import get_args
-
-        type_args = get_args(self.InputType)
-        if not type_args:
-            return values
-
-        base_type = type_args[0]
+        base_type = self.InputType
         adapter = TypeAdapter(base_type)
 
         # Trouver le champ primaire marqué par Field(..., primary=True)
@@ -485,8 +493,16 @@ class Transform(ABC):
             key_prop = primary_field
             key_value = getattr(obj, primary_field)
 
-            # Merge object properties with any overrides
-            obj_properties = obj.__dict__.copy()
+            # If key_value is itself a Pydantic model, extract its primary value
+            if isinstance(key_value, BaseModel):
+                key_value = self._extract_primary_value(key_value)
+
+            # Merge object properties with any overrides, but skip nested Pydantic objects
+            obj_properties = {}
+            for k, v in obj.__dict__.items():
+                # Skip nested Pydantic objects
+                if not isinstance(v, BaseModel):
+                    obj_properties[k] = v
             obj_properties.update(properties)
             properties = obj_properties
         else:
@@ -571,10 +587,18 @@ class Transform(ABC):
             from_primary_field = self._get_primary_field(from_obj)
             from_key_value = getattr(from_obj, from_primary_field)
 
+            # If key_value is a Pydantic model, extract its primary value
+            if isinstance(from_key_value, BaseModel):
+                from_key_value = self._extract_primary_value(from_key_value)
+
             # Extract to_node info
             to_node_type = to_obj.__class__.__name__.lower()
             to_primary_field = self._get_primary_field(to_obj)
             to_key_value = getattr(to_obj, to_primary_field)
+
+            # If key_value is a Pydantic model, extract its primary value
+            if isinstance(to_key_value, BaseModel):
+                to_key_value = self._extract_primary_value(to_key_value)
 
             self._graph_service.create_relationship(
                 from_type=from_node_type,
@@ -619,6 +643,20 @@ class Transform(ABC):
                 primary_field = next(iter(model_fields.keys()))
 
         return primary_field
+
+    def _extract_primary_value(self, obj: BaseModel) -> Any:
+        """
+        Extract the primitive value from a Pydantic object recursively.
+        If the primary field is itself a Pydantic object, recursively extract its primary value.
+        """
+        primary_field = self._get_primary_field(obj)
+        value = getattr(obj, primary_field)
+
+        # If the value is still a Pydantic model, recursively extract
+        if isinstance(value, BaseModel):
+            return self._extract_primary_value(value)
+
+        return value
 
     def log_graph_message(self, message: str) -> None:
         """

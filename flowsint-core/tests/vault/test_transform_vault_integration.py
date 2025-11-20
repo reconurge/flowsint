@@ -9,8 +9,8 @@ from flowsint_core.core.transform_base import Transform
 class MockTransform(Transform):
     """Mock transform for testing."""
 
-    InputType = List[str]
-    OutputType = List[str]
+    InputType = str
+    OutputType = str
 
     @classmethod
     def name(cls) -> str:
@@ -49,7 +49,7 @@ class MockTransform(Transform):
             },
         ]
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         return data
 
 
@@ -75,122 +75,168 @@ def transform(mock_vault, sketch_id):
         scan_id="scan_123",
         vault=mock_vault,
         params={},
+        params_schema=MockTransform.get_params_schema(),
     )
 
 
 class TestResolveParams:
     """Tests for resolve_params() method."""
 
-    def test_resolve_vault_secret_by_name(self, transform, mock_vault):
+    @pytest.mark.asyncio
+    async def test_resolve_vault_secret_by_name(self, transform, mock_vault):
         """Test resolving a vault secret by parameter name."""
         secret_value = "my-api-key-12345"
         mock_vault.get_secret.return_value = secret_value
 
-        resolved = transform.resolve_params()
+        await transform.async_init()
 
         # Should try to get by name "TEST_API_KEY"
         assert mock_vault.get_secret.called
-        assert "TEST_API_KEY" in resolved
-        assert resolved["TEST_API_KEY"] == secret_value
+        assert "TEST_API_KEY" in transform.params
+        assert transform.params["TEST_API_KEY"] == secret_value
 
-    def test_resolve_vault_secret_by_id(self, transform, mock_vault):
+    @pytest.mark.asyncio
+    async def test_resolve_vault_secret_by_id(self, sketch_id, mock_vault):
         """Test resolving a vault secret by vault ID."""
         secret_value = "my-api-key-12345"
         vault_id = str(uuid.uuid4())
 
-        # Set params with a vault ID
-        transform.params = {"TEST_API_KEY": vault_id}
+        # Mock vault to return secret for ID, and optional key default
+        def get_secret_side_effect(key):
+            if key == vault_id:
+                return secret_value
+            elif key == "OPTIONAL_KEY":
+                return None  # Will use default
+            return None
 
-        # First call (by ID) returns the secret
-        mock_vault.get_secret.return_value = secret_value
+        mock_vault.get_secret.side_effect = get_secret_side_effect
 
-        resolved = transform.resolve_params()
+        # Create transform with vault ID in params
+        transform = MockTransform(
+            sketch_id=sketch_id,
+            scan_id="scan_123",
+            vault=mock_vault,
+            params={"TEST_API_KEY": vault_id},
+            params_schema=MockTransform.get_params_schema(),
+        )
 
-        # Should try to get by ID first
-        mock_vault.get_secret.assert_called_with(vault_id)
-        assert "TEST_API_KEY" in resolved
-        assert resolved["TEST_API_KEY"] == secret_value
+        await transform.async_init()
 
-    def test_resolve_vault_secret_fallback_to_name(self, transform, mock_vault):
+        # Should have called get_secret with the vault ID
+        assert any(call[0][0] == vault_id for call in mock_vault.get_secret.call_args_list)
+        assert "TEST_API_KEY" in transform.params
+        assert transform.params["TEST_API_KEY"] == secret_value
+
+    @pytest.mark.asyncio
+    async def test_resolve_vault_secret_fallback_to_name(self, sketch_id, mock_vault):
         """Test that if vault ID fails, it falls back to name lookup."""
         secret_value = "my-api-key-12345"
         vault_id = str(uuid.uuid4())
 
-        # Set params with a vault ID
-        transform.params = {"TEST_API_KEY": vault_id}
+        # Mock vault: ID returns None, name returns secret, optional returns None
+        def get_secret_side_effect(key):
+            if key == vault_id:
+                return None  # Vault ID not found
+            elif key == "TEST_API_KEY":
+                return secret_value  # Fallback to name works
+            elif key == "OPTIONAL_KEY":
+                return None  # Will use default
+            return None
 
-        # First call (by ID) returns None, second call (by name) returns the secret
-        mock_vault.get_secret.side_effect = [None, secret_value]
+        mock_vault.get_secret.side_effect = get_secret_side_effect
 
-        resolved = transform.resolve_params()
+        # Create transform with vault ID in params
+        transform = MockTransform(
+            sketch_id=sketch_id,
+            scan_id="scan_123",
+            vault=mock_vault,
+            params={"TEST_API_KEY": vault_id},
+            params_schema=MockTransform.get_params_schema(),
+        )
 
-        # Should try both ID and name
-        assert mock_vault.get_secret.call_count == 2
-        assert "TEST_API_KEY" in resolved
-        assert resolved["TEST_API_KEY"] == secret_value
+        await transform.async_init()
+
+        # Should have called get_secret with both vault ID and TEST_API_KEY name
+        call_args = [call[0][0] for call in mock_vault.get_secret.call_args_list]
+        assert vault_id in call_args
+        assert "TEST_API_KEY" in call_args
+        assert "TEST_API_KEY" in transform.params
+        assert transform.params["TEST_API_KEY"] == secret_value
 
     def test_resolve_vault_secret_not_found_required(self, transform, mock_vault):
-        """Test that missing required vault secret logs error."""
+        """Test that missing required vault secret raises exception."""
         mock_vault.get_secret.return_value = None
 
-        with patch("flowsint_core.core.transform_base.Logger") as mock_logger:
-            resolved = transform.resolve_params()
+        # Should raise an exception for missing required secret
+        with pytest.raises(Exception) as exc_info:
+            transform.resolve_params()
 
-            # Should log an error for missing required secret
-            assert mock_logger.error.called
-            error_message = mock_logger.error.call_args[0][1]["message"]
-            assert "TEST_API_KEY" in error_message
-            assert "missing" in error_message.lower()
-            assert "Vault settings" in error_message
+        assert "TEST_API_KEY" in str(exc_info.value)
+        assert "missing" in str(exc_info.value).lower()
+        assert "Vault settings" in str(exc_info.value)
 
-            # Should not be in resolved params
-            assert "TEST_API_KEY" not in resolved
-
-    def test_resolve_vault_secret_optional_with_default(self, transform, mock_vault):
+    @pytest.mark.asyncio
+    async def test_resolve_vault_secret_optional_with_default(self, transform, mock_vault):
         """Test that optional vault secret uses default if not found."""
         # Only return secret for TEST_API_KEY, not OPTIONAL_KEY
         mock_vault.get_secret.side_effect = lambda key: (
             "test-api-key" if key == "TEST_API_KEY" else None
         )
 
-        resolved = transform.resolve_params()
+        await transform.async_init()
 
         # Optional key should use default value
-        assert "OPTIONAL_KEY" in resolved
-        assert resolved["OPTIONAL_KEY"] == "default_value"
+        assert "OPTIONAL_KEY" in transform.params
+        assert transform.params["OPTIONAL_KEY"] == "default_value"
 
-    def test_resolve_non_vault_param_from_params(self, transform):
+    @pytest.mark.asyncio
+    async def test_resolve_non_vault_param_from_params(self, mock_vault, sketch_id):
         """Test that non-vault params are taken from params."""
-        transform.params = {"NON_VAULT_PARAM": "custom_value"}
+        transform = MockTransform(
+            sketch_id=sketch_id,
+            scan_id="scan_123",
+            vault=mock_vault,
+            params={"NON_VAULT_PARAM": "custom_value"},
+            params_schema=MockTransform.get_params_schema(),
+        )
+        mock_vault.get_secret.return_value = "test-api-key"
 
-        resolved = transform.resolve_params()
+        await transform.async_init()
 
-        assert "NON_VAULT_PARAM" in resolved
-        assert resolved["NON_VAULT_PARAM"] == "custom_value"
+        assert "NON_VAULT_PARAM" in transform.params
+        assert transform.params["NON_VAULT_PARAM"] == "custom_value"
 
-    def test_resolve_non_vault_param_uses_default(self, transform):
+    @pytest.mark.asyncio
+    async def test_resolve_non_vault_param_uses_default(self, transform, mock_vault):
         """Test that non-vault params use default if not provided."""
-        resolved = transform.resolve_params()
+        mock_vault.get_secret.return_value = "test-api-key"
 
-        assert "NON_VAULT_PARAM" in resolved
-        assert resolved["NON_VAULT_PARAM"] == "test"
+        await transform.async_init()
+
+        assert "NON_VAULT_PARAM" in transform.params
+        assert transform.params["NON_VAULT_PARAM"] == "test"
 
     def test_resolve_params_no_vault_instance(self, sketch_id):
-        """Test that resolve_params works without a vault instance."""
+        """Test that resolve_params works without vault (uses defaults for optional params)."""
         transform = MockTransform(
             sketch_id=sketch_id,
             scan_id="scan_123",
             vault=None,  # No vault
             params={},
+            params_schema=MockTransform.get_params_schema(),
         )
 
+        # Without vault, required secrets won't be resolved, optional ones will use defaults
         resolved = transform.resolve_params()
 
-        # Should use defaults for optional params
+        # Optional params should use defaults
         assert "OPTIONAL_KEY" in resolved
         assert resolved["OPTIONAL_KEY"] == "default_value"
         assert "NON_VAULT_PARAM" in resolved
         assert resolved["NON_VAULT_PARAM"] == "test"
+
+        # Required vault secrets won't be in resolved (no exception when vault is None)
+        assert "TEST_API_KEY" not in resolved
 
 
 class TestGetSecret:
@@ -211,32 +257,53 @@ class TestGetSecret:
         assert result == secret_value
 
     @pytest.mark.asyncio
-    async def test_get_secret_not_found_uses_default(self, transform, mock_vault):
+    async def test_get_secret_not_found_uses_default(self, mock_vault, sketch_id):
         """Test get_secret returns default when secret not found."""
-        mock_vault.get_secret.return_value = None
+        mock_vault.get_secret.return_value = "test-api-key"
+
+        transform = MockTransform(
+            sketch_id=sketch_id,
+            scan_id="scan_123",
+            vault=mock_vault,
+            params={},
+            params_schema=MockTransform.get_params_schema(),
+        )
 
         # Run async_init to resolve params
         await transform.async_init()
 
-        # Get the secret with default
+        # Get the secret with default (NONEXISTENT_KEY doesn't exist in params)
         result = transform.get_secret("NONEXISTENT_KEY", "default")
 
         assert result == "default"
 
     @pytest.mark.asyncio
-    async def test_get_secret_returns_none_when_not_found_no_default(
-        self, transform, mock_vault
+    async def test_get_secret_returns_default_when_value_is_none(
+        self, mock_vault, sketch_id
     ):
-        """Test get_secret returns None when no default provided."""
-        mock_vault.get_secret.return_value = None
+        """Test get_secret returns default when value is None."""
+        mock_vault.get_secret.return_value = "test-api-key"
+
+        transform = MockTransform(
+            sketch_id=sketch_id,
+            scan_id="scan_123",
+            vault=mock_vault,
+            params={},
+            params_schema=MockTransform.get_params_schema(),
+        )
 
         # Run async_init to resolve params
         await transform.async_init()
 
-        # Get the secret without default
+        # Get a non-existent secret without default
         result = transform.get_secret("NONEXISTENT_KEY")
 
         assert result is None
+
+        # Get a non-existent secret with default
+        result = transform.get_secret("NONEXISTENT_KEY", "fallback")
+
+        assert result == "fallback"
 
 
 class TestAsyncInit:
@@ -263,6 +330,7 @@ class TestAsyncInit:
             scan_id="scan_123",
             vault=mock_vault,
             params={},  # Empty params
+            params_schema=MockTransform.get_params_schema(),
         )
 
         secret_value = "my-api-key-12345"
@@ -307,7 +375,7 @@ class TestTransformExecuteWithVault:
         assert transform.params["TEST_API_KEY"] == secret_value
 
     @pytest.mark.asyncio
-    async def test_execute_uses_resolved_secrets_in_scan(self, transform, mock_vault):
+    async def test_execute_uses_resolved_secrets_in_scan(self, mock_vault):
         """Test that scan can access resolved secrets."""
         secret_value = "my-api-key-12345"
         mock_vault.get_secret.return_value = secret_value
@@ -323,6 +391,7 @@ class TestTransformExecuteWithVault:
             scan_id="scan_123",
             vault=mock_vault,
             params={},
+            params_schema=MockTransform.get_params_schema(),
         )
 
         # Execute

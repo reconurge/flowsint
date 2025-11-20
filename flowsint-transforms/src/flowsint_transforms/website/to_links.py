@@ -11,8 +11,8 @@ class WebsiteToLinks(Transform):
     """From website to spread crawler that extracts domains and internal/external links."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[Website]
+    InputType = Website
+    OutputType = Website
 
     @classmethod
     def name(cls) -> str:
@@ -34,7 +34,7 @@ class WebsiteToLinks(Transform):
         except Exception:
             return ""
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Crawl websites using reconspread to extract internal and external links."""
         results = []
 
@@ -202,7 +202,7 @@ class WebsiteToLinks(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Neo4j nodes and relationships are created in real-time during the callback
         # No additional processing needed here
         return results

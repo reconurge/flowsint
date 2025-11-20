@@ -14,8 +14,8 @@ class AsnToCidrsTransform(Transform):
     """[ASNMAP] Takes an ASN and returns its corresponding CIDRs."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[ASN]
-    OutputType = List[CIDR]
+    InputType = ASN
+    OutputType = CIDR
 
     def __init__(
         self,
@@ -62,9 +62,9 @@ class AsnToCidrsTransform(Transform):
     def key(cls) -> str:
         return "number"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find CIDR from ASN using asnmap."""
-        cidrs: OutputType = []
+        cidrs: List[OutputType] = []
         self._asn_to_cidrs_map = []  # Store mapping for postprocess
         asnmap = AsnmapTool()
 
@@ -115,7 +115,7 @@ class AsnToCidrsTransform(Transform):
 
         return cidrs
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between ASNs and their corresponding CIDRs
         # Use the mapping from scan if available, else fallback to zip
         asn_to_cidrs = getattr(self, "_asn_to_cidrs_map", None)

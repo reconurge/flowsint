@@ -12,8 +12,8 @@ class OrgToAsnTransform(Transform):
     """Takes an organization and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Organization]
-    OutputType = List[ASN]
+    InputType = Organization
+    OutputType = ASN
 
     def __init__(
         self,
@@ -60,9 +60,9 @@ class OrgToAsnTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find ASN information for organizations using asnmap."""
-        results: OutputType = []
+        results: List[OutputType] = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -106,7 +106,7 @@ class OrgToAsnTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between organizations and their corresponding ASNs
         for input_org, result_asn in zip(original_input, results):
             # Skip if no valid ASN was found

@@ -220,10 +220,12 @@ class TestVaultEncryptionDecryption:
 
     def test_invalid_master_key_length(self, vault, monkeypatch):
         """Test that invalid master key length raises error."""
-        # Set an invalid master key (wrong length)
-        monkeypatch.setenv("MASTER_VAULT_KEY_V1", "base64:invalid")
+        import base64
+        # Set a valid base64 but wrong length (16 bytes instead of 32)
+        short_key = base64.b64encode(b"0" * 16).decode()
+        monkeypatch.setenv("MASTER_VAULT_KEY_V1", f"base64:{short_key}")
 
-        with pytest.raises(ValueError, match="Master key must be 32 bytes"):
+        with pytest.raises(ValueError, match="Master key must be 32 bytes \\(256 bits\\)"):
             vault._get_master_key()
 
     def test_missing_master_key(self, vault, monkeypatch):

@@ -15,8 +15,8 @@ class DomainToAsnTransform(Transform):
     """[ASNMAP] Takes a domain and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[ASN]
+    InputType = Domain
+    OutputType = ASN
 
     def __init__(
         self,
@@ -63,8 +63,8 @@ class DomainToAsnTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -113,8 +113,8 @@ class DomainToAsnTransform(Transform):
         return results
 
     def postprocess(
-        self, results: OutputType, input_data: InputType = None
-    ) -> OutputType:
+        self, results: List[OutputType], input_data: List[InputType] = None
+    ) -> List[OutputType]:
         # Create Neo4j relationships between domains and their corresponding ASNs
         if input_data and self.neo4j_conn:
             for domain, asn in zip(input_data, results):

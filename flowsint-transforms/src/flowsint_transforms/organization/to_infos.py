@@ -9,8 +9,8 @@ class OrgToInfosTransform(Transform):
     """Enrich Organization with data from SIRENE (France only)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Organization]
-    OutputType = List[Organization]
+    InputType = Organization
+    OutputType = Organization
 
     @classmethod
     def name(cls) -> str:
@@ -24,9 +24,9 @@ class OrgToInfosTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
 
-        results: OutputType = []
+        results: List[OutputType] = []
         for org in data:
             try:
                 sirene = SireneTool()
@@ -246,7 +246,7 @@ class OrgToInfosTransform(Transform):
             )
             return None
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 

@@ -20,8 +20,8 @@ class IndividualToDomainsTransform(Transform):
     """[WHOXY] Takes an individual and returns the domains it registered."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Individual]
-    OutputType = List[Domain]
+    InputType = Individual
+    OutputType = Domain
 
     def __init__(
         self,
@@ -68,10 +68,10 @@ class IndividualToDomainsTransform(Transform):
     def key(cls) -> str:
         return "full_name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+    def preprocess(self, data: Union[List[str], List[dict], List[InputType]]) -> List[InputType]:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
-        cleaned: InputType = []
+        cleaned: List[InputType] = []
         for item in data:
             if isinstance(item, str):
                 parts = item.strip().split()
@@ -98,9 +98,9 @@ class IndividualToDomainsTransform(Transform):
             )
         return cleaned
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find domains related to individuals using whoxy api."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
         self._extracted_data = []  # Store all extracted data for postprocess
         api_key = self.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
 
@@ -247,7 +247,7 @@ class IndividualToDomainsTransform(Transform):
 
         return Location(address=address, city=city, zip=zip_code, country=country)
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
             return results

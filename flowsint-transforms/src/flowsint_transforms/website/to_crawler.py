@@ -19,8 +19,8 @@ class WebsiteToCrawler(Transform):
     """From website to crawler."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[ReturnType]  # Simplified output type
+    InputType = Website
+    OutputType = ReturnType  # Simplified output type
 
     @classmethod
     def name(cls) -> str:
@@ -43,7 +43,7 @@ class WebsiteToCrawler(Transform):
         except Exception:
             return False
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Crawl websites to extract emails and phone numbers."""
         results = []
 
@@ -134,7 +134,7 @@ class WebsiteToCrawler(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding emails and phones
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)

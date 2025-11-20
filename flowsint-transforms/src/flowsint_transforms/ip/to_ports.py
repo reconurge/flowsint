@@ -12,8 +12,8 @@ class IpToPortsTransform(Transform):
     """[NAABU] Performs port scanning on IP addresses to discover open ports and services."""
 
     # Define types as class attributes
-    InputType = List[Ip]
-    OutputType = List[Port]
+    InputType = Ip
+    OutputType = Port
 
     def __init__(
         self,
@@ -107,8 +107,8 @@ class IpToPortsTransform(Transform):
     def key(cls) -> str:
         return "address"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         naabu = NaabuTool()
 
         # Get parameters from transform config
@@ -189,8 +189,8 @@ class IpToPortsTransform(Transform):
         return results
 
     def postprocess(
-        self, results: OutputType, input_data: InputType = None
-    ) -> OutputType:
+        self, results: List[OutputType], input_data: List[InputType] = None
+    ) -> List[OutputType]:
         """Create Neo4j nodes for ports and relationships with IP addresses"""
         if self.neo4j_conn and results:
             for port in results:

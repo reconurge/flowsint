@@ -18,8 +18,8 @@ HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 class EmailToBreachesTransform(Transform):
     """[HIBPWNED] Get the breaches the email might be invovled in."""
 
-    InputType = List[Email]
-    OutputType = List[tuple]  # List of (email, breach) tuples
+    InputType = Email
+    OutputType = tuple  # (email, breach) tuple
 
     def __init__(
         self,
@@ -73,8 +73,8 @@ class EmailToBreachesTransform(Transform):
             },
         ]
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         api_key = self.get_secret("HIBP_API_KEY", os.getenv("HIBP_API_KEY"))
         api_url = self.get_params().get("HIBP_API_URL", "https://haveibeenpwned.com/api/v3/breachedaccount/")
         headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Transform"}
@@ -131,7 +131,7 @@ class EmailToBreachesTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create email nodes first
         for email_obj in original_input:
             if not self.neo4j_conn:

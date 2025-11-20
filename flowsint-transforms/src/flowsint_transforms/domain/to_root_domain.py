@@ -8,8 +8,8 @@ from flowsint_core.core.logger import Logger
 class DomainToRootDomain(Transform):
     """Subdomain to root domain."""
 
-    InputType = List[Domain]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,8 +28,8 @@ class DomainToRootDomain(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         self.domain_root_mapping = []  # Reset mapping
 
         for domain in data:
@@ -51,7 +51,7 @@ class DomainToRootDomain(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Use the mapping we created during scan to create relationships
         for original_domain, root_domain in self.domain_root_mapping:
             if not self.neo4j_conn:

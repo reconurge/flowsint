@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Credential(BaseModel):
+class Credential(FlowsintType):
     """Represents user credentials with compromise and usage information."""
 
     username: str = Field(..., description="Username or identifier", title="Username")
@@ -62,3 +64,11 @@ class Credential(BaseModel):
     source: Optional[str] = Field(
         None, description="Source of credential information", title="Source"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        if self.service:
+            self.label = f"{self.username}@{self.service}"
+        else:
+            self.label = self.username
+        return self

@@ -18,8 +18,8 @@ HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 class EmailToBreachesTransform(Transform):
     """[HIBPWNED] Get the breaches the email might be invovled in."""
 
-    InputType = List[Email]
-    OutputType = List[tuple]  # List of (email, breach) tuples
+    InputType = Email
+    OutputType = tuple  # (email, breach) tuple
 
     def __init__(
         self,
@@ -73,22 +73,8 @@ class EmailToBreachesTransform(Transform):
             },
         ]
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            email_obj = None
-            if isinstance(item, str):
-                email_obj = Email(email=item)
-            elif isinstance(item, dict) and "email" in item:
-                email_obj = Email(email=item["email"])
-            elif isinstance(item, Email):
-                email_obj = item
-            if email_obj:
-                cleaned.append(email_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         api_key = self.get_secret("HIBP_API_KEY", os.getenv("HIBP_API_KEY"))
         api_url = self.get_params().get("HIBP_API_URL", "https://haveibeenpwned.com/api/v3/breachedaccount/")
         headers = {"hibp-api-key": api_key, "User-Agent": "FlowsInt-Transform"}
@@ -145,12 +131,12 @@ class EmailToBreachesTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create email nodes first
         for email_obj in original_input:
             if not self.neo4j_conn:
                 continue
-            self.create_node("email", "email", email_obj.email, **email_obj.__dict__)
+            self.create_node(email_obj)
 
         # Process all breaches
         for email_address, breach_obj in results:
@@ -159,25 +145,11 @@ class EmailToBreachesTransform(Transform):
 
             # Create breach node
             breach_key = f"{breach_obj.name}_{self.sketch_id}"
-            self.create_node(
-                "breach",
-                "breach_id",
-                breach_key,
-                **breach_obj.dict(),
-                label=breach_obj.name,
-                type="breach",
-            )
+            self.create_node(breach_obj)
 
             # Create relationship between the specific email and this breach
-            self.create_relationship(
-                "email",
-                "email",
-                email_address,
-                "breach",
-                "breach_id",
-                breach_key,
-                "FOUND_IN_BREACH",
-            )
+            email_obj = Email(email=email_address)
+            self.create_relationship(email_obj, breach_obj, "FOUND_IN_BREACH")
             self.log_graph_message(
                 f"Breach found for email {email_address} -> {breach_obj.name} ({breach_obj.title})"
             )

@@ -5,15 +5,14 @@ from flowsint_types.domain import Domain
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 from tools.network.subfinder import SubfinderTool
-from flowsint_core.core.logger import Logger
 
 
 class SubdomainTransform(Transform):
     """Transform to find subdomains associated with a domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain | str]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     @classmethod
     def name(cls) -> str:
@@ -27,23 +26,9 @@ class SubdomainTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj and is_valid_domain(domain_obj.domain):
-                cleaned.append(domain_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find subdomains using subfinder (Docker) or fallback to crt.sh."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
 
         for md in data:
             d = Domain(domain=md.domain)
@@ -102,8 +87,8 @@ class SubdomainTransform(Transform):
             )
         return subdomains
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
-        output: OutputType = []
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+        output: List[OutputType] = []
         for domain_obj in results:
             if not self.neo4j_conn:
                 continue
@@ -115,18 +100,12 @@ class SubdomainTransform(Transform):
                 )
 
                 # Create subdomain node
-                self.create_node("domain", "domain", subdomain, domain=subdomain)
+                parent_domain_obj = Domain(domain=domain_obj["domain"])
+                subdomain_obj = Domain(domain=subdomain)
+                self.create_node(subdomain_obj)
 
                 # Create relationship from parent domain to subdomain
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    domain_obj["domain"],
-                    "domain",
-                    "domain",
-                    subdomain,
-                    "HAS_SUBDOMAIN",
-                )
+                self.create_relationship(parent_domain_obj, subdomain_obj, "HAS_SUBDOMAIN")
 
             self.log_graph_message(
                 f"{domain_obj['domain']} -> {len(domain_obj['subdomains'])} subdomain(s) found."

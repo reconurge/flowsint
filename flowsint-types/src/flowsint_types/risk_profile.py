@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class RiskProfile(BaseModel):
+class RiskProfile(FlowsintType):
     """Represents a comprehensive risk assessment profile for an entity."""
 
     entity_id: str = Field(..., description="Entity identifier", title="Entity ID")
@@ -71,3 +73,11 @@ class RiskProfile(BaseModel):
     next_review_date: Optional[str] = Field(
         None, description="Next review date", title="Next Review Date"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = [self.entity_id]
+        if self.risk_level:
+            parts.append(f"Risk: {self.risk_level}")
+        self.label = " - ".join(parts)
+        return self

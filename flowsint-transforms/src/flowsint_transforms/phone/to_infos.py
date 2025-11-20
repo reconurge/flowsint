@@ -10,8 +10,8 @@ import httpx
 class IgnorantTransform(Transform):
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[str]  # Phone numbers as strings
-    OutputType = List[Dict[str, Any]]  # Results as dictionaries
+    InputType = Phone  # Phone objects
+    OutputType = Dict[str, Any]  # Results as dictionaries
 
     @classmethod
     def name(cls) -> str:
@@ -25,43 +25,29 @@ class IgnorantTransform(Transform):
     def key(cls) -> str:
         return "number"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for number in data:
-            phone_obj = None
-            if isinstance(number, str):
-                phone_obj = Phone(number=number)
-            elif isinstance(number, dict) and "number" in number:
-                phone_obj = Phone(number=number["number"])
-            elif isinstance(number, Phone):
-                phone_obj = number
-            if phone_obj:
-                cleaned.append(phone_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """
         Performs the Ignorant search for each specified phone number.
         """
-        results: OutputType = []
-        for phone in data:
+        results: List[OutputType] = []
+        for phone_obj in data:
             try:
-                cleaned_phone = is_valid_number(phone)
+                cleaned_phone = is_valid_number(phone_obj.number)
                 if cleaned_phone:
                     result = await self._perform_ignorant_research(cleaned_phone)
                     results.append(result)
                 else:
-                    results.append({"number": phone, "error": "Invalid phone number"})
+                    results.append({"number": phone_obj.number, "error": "Invalid phone number"})
             except Exception as e:
                 results.append(
                     {
-                        "number": phone,
+                        "number": phone_obj.number,
                         "error": f"Unexpected error in Ignorant scan: {str(e)}",
                     }
                 )
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Error scanning phone {phone}: {str(e)}"},
+                    {"message": f"Error scanning phone {phone_obj.number}: {str(e)}"},
                 )
         return results
 
@@ -91,7 +77,7 @@ class IgnorantTransform(Transform):
         except Exception as e:
             return {"number": phone, "error": f"Error in Ignorant research: {str(e)}"}
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """
         Create Neo4j relationships for found phone accounts.
         """
@@ -100,13 +86,8 @@ class IgnorantTransform(Transform):
 
         for result in results:
             if "error" not in result and "platforms" in result:
-                self.create_node(
-                    "phone",
-                    "number",
-                    result["number"],
-                    caption=result["number"],
-                    type="phone",
-                )
+                phone_obj = Phone(number=result["number"])
+                self.create_node(phone_obj)
 
                 # Create platform relationships
                 for platform_result in result["platforms"]:

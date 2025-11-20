@@ -12,8 +12,8 @@ class OrgToAsnTransform(Transform):
     """Takes an organization and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Organization]
-    OutputType = List[ASN]
+    InputType = Organization
+    OutputType = ASN
 
     def __init__(
         self,
@@ -60,23 +60,9 @@ class OrgToAsnTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            org_obj = None
-            if isinstance(item, str):
-                org_obj = Organization(name=item)
-            elif isinstance(item, dict) and "name" in item:
-                org_obj = Organization(name=item["name"])
-            elif isinstance(item, Organization):
-                org_obj = item
-            if org_obj:
-                cleaned.append(org_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find ASN information for organizations using asnmap."""
-        results: OutputType = []
+        results: List[OutputType] = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -120,46 +106,19 @@ class OrgToAsnTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between organizations and their corresponding ASNs
         for input_org, result_asn in zip(original_input, results):
             # Skip if no valid ASN was found
             if result_asn.number == 0:
                 continue
-
             if self.neo4j_conn:
                 # Create organization node
-                self.create_node(
-                    "organization",
-                    "name",
-                    input_org.name,
-                    caption=input_org.name,
-                    type="organization",
-                )
-
+                self.create_node(input_org)
                 # Create ASN node
-                self.create_node(
-                    "asn",
-                    "number",
-                    result_asn.number,
-                    name=result_asn.name,
-                    country=result_asn.country,
-                    label=f"AS{result_asn.number}",
-                    caption=f"AS{result_asn.number} - {result_asn.name}",
-                    type="asn",
-                )
-
+                self.create_node(result_asn)
                 # Create relationship
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    input_org.name,
-                    "asn",
-                    "number",
-                    result_asn.number,
-                    "BELONGS_TO",
-                )
-
+                self.create_relationship(input_org, result_asn, "BELONGS_TO")
                 self.log_graph_message(
                     f"Found for {input_org.name} -> ASN {result_asn.number}"
                 )

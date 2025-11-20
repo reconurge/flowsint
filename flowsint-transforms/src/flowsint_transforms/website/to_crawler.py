@@ -19,8 +19,8 @@ class WebsiteToCrawler(Transform):
     """From website to crawler."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[ReturnType]  # Simplified output type
+    InputType = Website
+    OutputType = ReturnType  # Simplified output type
 
     @classmethod
     def name(cls) -> str:
@@ -43,21 +43,7 @@ class WebsiteToCrawler(Transform):
         except Exception:
             return False
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            website_obj = None
-            if isinstance(item, str):
-                website_obj = Website(url=item)
-            elif isinstance(item, dict) and "url" in item:
-                website_obj = Website(url=item["url"])
-            elif isinstance(item, Website):
-                website_obj = item
-            if website_obj:
-                cleaned.append(website_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Crawl websites to extract emails and phone numbers."""
         results = []
 
@@ -148,53 +134,29 @@ class WebsiteToCrawler(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding emails and phones
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)
 
             # Create website node
             if self.neo4j_conn:
-                self.create_node(
-                    "website", "url", website_url, caption=website_url, type="website"
-                )
+                self.create_node(input_website)
 
                 # Create email nodes and relationships
                 for email in result["emails"]:
-                    self.create_node(
-                        "email", "email", email.email, caption=email.email, type="email"
-                    )
-                    self.create_relationship(
-                        "website",
-                        "url",
-                        website_url,
-                        "email",
-                        "email",
-                        email.email,
-                        "HAS_EMAIL",
-                    )
+                    self.create_node(email)
+                    website_obj = Website(url=website_url)
+                    self.create_relationship(website_obj, email, "HAS_EMAIL")
                     self.log_graph_message(
                         f"Found email {email.email} for website {website_url}"
                     )
 
                 # Create phone nodes and relationships
                 for phone in result["phones"]:
-                    self.create_node(
-                        "phone",
-                        "number",
-                        phone.number,
-                        caption=phone.number,
-                        type="phone",
-                    )
-                    self.create_relationship(
-                        "website",
-                        "url",
-                        website_url,
-                        "phone",
-                        "number",
-                        phone.number,
-                        "HAS_PHONE",
-                    )
+                    self.create_node(phone)
+                    website_obj2 = Website(url=website_url)
+                    self.create_relationship(website_obj2, phone, "HAS_PHONE")
                     self.log_graph_message(
                         f"Found phone {phone.number} for website {website_url}"
                     )

@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Script(BaseModel):
+class Script(FlowsintType):
     """Represents a script or code file with analysis and security information."""
 
     script_id: str = Field(
@@ -63,3 +65,11 @@ class Script(BaseModel):
     minified: Optional[bool] = Field(
         None, description="Whether script is minified", title="Minified"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        if self.name:
+            self.label = self.name
+        else:
+            self.label = self.script_id
+        return self

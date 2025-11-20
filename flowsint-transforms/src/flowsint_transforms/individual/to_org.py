@@ -11,8 +11,8 @@ class IndividualToOrgTransform(Transform):
     """[SIRENE] Find organization from a person with data from SIRENE (France only)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Individual]
-    OutputType = List[Organization]
+    InputType = Individual
+    OutputType = Organization
 
     @classmethod
     def name(cls) -> str:
@@ -26,10 +26,10 @@ class IndividualToOrgTransform(Transform):
     def key(cls) -> str:
         return "fullname"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+    def preprocess(self, data: Union[List[str], List[dict], List[InputType]]) -> List[InputType]:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
-        cleaned: InputType = []
+        cleaned: List[InputType] = []
         for item in data:
             if isinstance(item, str):
                 parts = item.strip().split()
@@ -56,9 +56,9 @@ class IndividualToOrgTransform(Transform):
             )
         return cleaned
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
 
-        results: OutputType = []
+        results: List[OutputType] = []
         for individual in data:
             try:
                 sirene = SireneTool()
@@ -278,7 +278,7 @@ class IndividualToOrgTransform(Transform):
             )
             return None
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 
@@ -293,12 +293,7 @@ class IndividualToOrgTransform(Transform):
                 continue
             processed_organizations.add(org_key)
 
-            self.create_node(
-                "Organization",
-                "org_id",
-                org_key,
-                **org.__dict__,
-            )
+            self.create_node(org)
 
         # Then, create all individual nodes
         for individual in original_input:
@@ -308,12 +303,7 @@ class IndividualToOrgTransform(Transform):
             processed_individuals.add(individual_id)
 
             # Create individual node
-            self.create_node(
-                "individual",
-                "full_name",
-                individual_id,
-                **individual.__dict__,
-            )
+            self.create_node(individual)
 
         # Finally, create relationships between all individuals and all organizations
         for individual in original_input:
@@ -322,15 +312,7 @@ class IndividualToOrgTransform(Transform):
                 org_key = f"{org.name}_FR"
                 
                 # Create relationship between individual and organization
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual_id,
-                    "Organization",
-                    "org_id",
-                    org_key,
-                    "WORKS_FOR",
-                )
+                self.create_relationship(individual, org, "WORKS_FOR")
 
         self.log_graph_message(
             f"Created {len(results)} organizations and {len(original_input)} individuals with relationships"

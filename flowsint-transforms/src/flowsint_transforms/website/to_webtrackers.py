@@ -12,8 +12,8 @@ class WebsiteToWebtrackersTransform(Transform):
     """From website to webtrackers."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[WebTracker]
+    InputType = Website
+    OutputType = WebTracker
 
     def __init__(
         self,
@@ -39,22 +39,8 @@ class WebsiteToWebtrackersTransform(Transform):
     def key(cls) -> str:
         return "website"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            website_obj = None
-            if isinstance(item, str):
-                website_obj = Website(url=item)
-            elif isinstance(item, dict) and "url" in item:
-                website_obj = Website(url=item["url"])
-            elif isinstance(item, Website):
-                website_obj = item
-            if website_obj:
-                cleaned.append(website_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
 
         for website in data:
             try:
@@ -84,7 +70,7 @@ class WebsiteToWebtrackersTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding trackers
         if self.neo4j_conn:
             # Group trackers by website using the mapping we created during scan
@@ -97,29 +83,14 @@ class WebsiteToWebtrackersTransform(Transform):
 
             # Create nodes and relationships for each website and its trackers
             for website_url, trackers in website_trackers.items():
-                # Create website node
-                self.create_node(
-                    "website", "url", website_url, caption=website_url, type="website"
-                )
+                # Create website node (we don't have the website object here, so keep minimal)
+                self.create_node(Website(url=website_url))
 
                 # Create tracker nodes and relationships
                 for tracker in trackers:
-                    self.create_node(
-                        "webtracker", 
-                        "tracker_id", 
-                        tracker.tracker_id, 
-                        caption=tracker.name, 
-                        type="webtracker"
-                    )
-                    self.create_relationship(
-                        "website",
-                        "url",
-                        website_url,
-                        "webtracker",
-                        "tracker_id",
-                        tracker.tracker_id,
-                        "HAS_TRACKER",
-                    )
+                    self.create_node(tracker)
+                    website_obj = Website(url=website_url)
+                    self.create_relationship(website_obj, tracker, "HAS_TRACKER")
                     self.log_graph_message(
                         f"Found tracker {tracker.name} ({tracker.tracker_id}) for website {website_url}"
                     )

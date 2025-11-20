@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Affiliation(BaseModel):
+class Affiliation(FlowsintType):
     """Represents an organizational affiliation or employment relationship."""
 
     organization: str = Field(
@@ -53,3 +55,11 @@ class Affiliation(BaseModel):
         description="Hierarchical level within organization",
         title="Hierarchy Level",
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        if self.role:
+            self.label = f"{self.role} at {self.organization}"
+        else:
+            self.label = self.organization
+        return self

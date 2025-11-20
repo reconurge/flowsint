@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Session(BaseModel):
+class Session(FlowsintType):
     """Represents a user session with device and activity information."""
 
     session_id: str = Field(
@@ -49,3 +51,15 @@ class Session(BaseModel):
     source: Optional[str] = Field(
         None, description="Source of session information", title="Source"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = []
+        if self.user_id:
+            parts.append(self.user_id)
+        if self.service:
+            parts.append(self.service)
+        if not parts:
+            parts.append(self.session_id)
+        self.label = " - ".join(parts)
+        return self

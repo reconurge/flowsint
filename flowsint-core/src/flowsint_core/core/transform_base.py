@@ -7,8 +7,6 @@ from .logger import Logger
 from .vault import VaultProtocol
 from .graph_service import GraphService, create_graph_service
 from ..utils import resolve_type
-import warnings
-
 
 class InvalidTransformParams(Exception):
     pass
@@ -498,10 +496,12 @@ class Transform(ABC):
                 key_value = self._extract_primary_value(key_value)
 
             # Merge object properties with any overrides, but skip nested Pydantic objects
+            # Use model_dump(mode="json") to properly serialize Pydantic types (e.g., HttpUrl)
+            obj_dict = obj.model_dump(mode="json") if hasattr(obj, "model_dump") else obj.dict()
             obj_properties = {}
-            for k, v in obj.__dict__.items():
-                # Skip nested Pydantic objects
-                if not isinstance(v, BaseModel):
+            for k, v in obj_dict.items():
+                # Skip nested Pydantic objects (represented as dicts after model_dump)
+                if not isinstance(v, dict):
                     obj_properties[k] = v
             obj_properties.update(properties)
             properties = obj_properties
@@ -585,20 +585,32 @@ class Transform(ABC):
             # Extract from_node info
             from_node_type = from_obj.__class__.__name__.lower()
             from_primary_field = self._get_primary_field(from_obj)
-            from_key_value = getattr(from_obj, from_primary_field)
 
-            # If key_value is a Pydantic model, extract its primary value
-            if isinstance(from_key_value, BaseModel):
-                from_key_value = self._extract_primary_value(from_key_value)
+            # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
+            from_obj_dict = from_obj.model_dump(mode="json") if hasattr(from_obj, "model_dump") else from_obj.dict()
+            from_key_value = from_obj_dict.get(from_primary_field)
+
+            # If key_value is still a dict (nested Pydantic model), extract its primary value
+            if isinstance(from_key_value, dict):
+                # Get the raw nested object to extract its primary value
+                nested_obj = getattr(from_obj, from_primary_field)
+                if isinstance(nested_obj, BaseModel):
+                    from_key_value = self._extract_primary_value(nested_obj)
 
             # Extract to_node info
             to_node_type = to_obj.__class__.__name__.lower()
             to_primary_field = self._get_primary_field(to_obj)
-            to_key_value = getattr(to_obj, to_primary_field)
 
-            # If key_value is a Pydantic model, extract its primary value
-            if isinstance(to_key_value, BaseModel):
-                to_key_value = self._extract_primary_value(to_key_value)
+            # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
+            to_obj_dict = to_obj.model_dump(mode="json") if hasattr(to_obj, "model_dump") else to_obj.dict()
+            to_key_value = to_obj_dict.get(to_primary_field)
+
+            # If key_value is still a dict (nested Pydantic model), extract its primary value
+            if isinstance(to_key_value, dict):
+                # Get the raw nested object to extract its primary value
+                nested_obj = getattr(to_obj, to_primary_field)
+                if isinstance(nested_obj, BaseModel):
+                    to_key_value = self._extract_primary_value(nested_obj)
 
             self._graph_service.create_relationship(
                 from_type=from_node_type,
@@ -648,13 +660,20 @@ class Transform(ABC):
         """
         Extract the primitive value from a Pydantic object recursively.
         If the primary field is itself a Pydantic object, recursively extract its primary value.
+        Uses model_dump to properly serialize Pydantic types like HttpUrl.
         """
         primary_field = self._get_primary_field(obj)
-        value = getattr(obj, primary_field)
 
-        # If the value is still a Pydantic model, recursively extract
-        if isinstance(value, BaseModel):
-            return self._extract_primary_value(value)
+        # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
+        obj_dict = obj.model_dump(mode="json") if hasattr(obj, "model_dump") else obj.dict()
+        value = obj_dict.get(primary_field)
+
+        # If the value is still a dict (nested Pydantic model), recursively extract
+        if isinstance(value, dict):
+            # Get the raw nested object to recursively extract
+            nested_obj = getattr(obj, primary_field)
+            if isinstance(nested_obj, BaseModel):
+                return self._extract_primary_value(nested_obj)
 
         return value
 

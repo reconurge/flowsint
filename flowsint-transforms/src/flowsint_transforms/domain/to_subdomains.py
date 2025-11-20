@@ -5,7 +5,6 @@ from flowsint_types.domain import Domain
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 from tools.network.subfinder import SubfinderTool
-from flowsint_core.core.logger import Logger
 
 
 class SubdomainTransform(Transform):

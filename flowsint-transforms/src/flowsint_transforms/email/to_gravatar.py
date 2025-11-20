@@ -10,8 +10,8 @@ from flowsint_types.gravatar import Gravatar
 class EmailToGravatarTransform(Transform):
     """From md5 hash of email to gravatar."""
 
-    InputType = List[Email]
-    OutputType = List[Gravatar]
+    InputType = Email
+    OutputType = Gravatar
 
     @classmethod
     def name(cls) -> str:
@@ -25,8 +25,8 @@ class EmailToGravatarTransform(Transform):
     def key(cls) -> str:
         return "email"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
 
         for email in data:
             try:
@@ -82,7 +82,7 @@ class EmailToGravatarTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         for email_obj, gravatar_obj in zip(original_input, results):
             if not self.neo4j_conn:
                 continue

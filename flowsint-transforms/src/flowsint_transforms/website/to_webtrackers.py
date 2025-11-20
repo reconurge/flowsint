@@ -12,8 +12,8 @@ class WebsiteToWebtrackersTransform(Transform):
     """From website to webtrackers."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[WebTracker]
+    InputType = Website
+    OutputType = WebTracker
 
     def __init__(
         self,
@@ -39,8 +39,8 @@ class WebsiteToWebtrackersTransform(Transform):
     def key(cls) -> str:
         return "website"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
 
         for website in data:
             try:
@@ -70,7 +70,7 @@ class WebsiteToWebtrackersTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding trackers
         if self.neo4j_conn:
             # Group trackers by website using the mapping we created during scan

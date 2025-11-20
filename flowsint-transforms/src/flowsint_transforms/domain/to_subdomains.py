@@ -12,8 +12,8 @@ class SubdomainTransform(Transform):
     """Transform to find subdomains associated with a domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     @classmethod
     def name(cls) -> str:
@@ -27,9 +27,9 @@ class SubdomainTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find subdomains using subfinder (Docker) or fallback to crt.sh."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
 
         for md in data:
             d = Domain(domain=md.domain)
@@ -88,8 +88,8 @@ class SubdomainTransform(Transform):
             )
         return subdomains
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
-        output: OutputType = []
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+        output: List[OutputType] = []
         for domain_obj in results:
             if not self.neo4j_conn:
                 continue

@@ -11,8 +11,8 @@ class DomainToWebsiteTransform(Transform):
     """From domain to website."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[Website]
+    InputType = Domain
+    OutputType = Website
 
     @classmethod
     def name(cls) -> str:
@@ -26,8 +26,8 @@ class DomainToWebsiteTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for domain in data:
             try:
                 # Try HTTPS first
@@ -67,7 +67,7 @@ class DomainToWebsiteTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         for website in results:
             # Log each redirect step
             if website.redirects:

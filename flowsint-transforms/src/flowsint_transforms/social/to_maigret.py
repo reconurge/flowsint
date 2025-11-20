@@ -14,8 +14,8 @@ class MaigretTransform(Transform):
     """[MAIGRET] Scans usernames for associated social accounts using Maigret."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Username]
-    OutputType = List[SocialAccount]
+    InputType = Username
+    OutputType = SocialAccount
 
     @classmethod
     def name(cls) -> str:
@@ -108,8 +108,8 @@ class MaigretTransform(Transform):
 
         return results
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for profile in data:
             if not profile.value:
                 continue
@@ -118,7 +118,7 @@ class MaigretTransform(Transform):
             results.extend(parsed)
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 

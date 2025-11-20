@@ -12,8 +12,8 @@ class CidrToIpsTransform(Transform):
     """[MAPCIDR] Takes a CIDR and returns its corresponding IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[CIDR]
-    OutputType = List[Ip]
+    InputType = CIDR
+    OutputType = Ip
 
     def __init__(
         self,
@@ -60,9 +60,9 @@ class CidrToIpsTransform(Transform):
     def category(cls) -> str:
         return "Cidr"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find IP addresses from CIDR using mapcidr."""
-        ips: OutputType = []
+        ips: List[OutputType] = []
         self._cidr_to_ips_map = []  # Store mapping for postprocess
         mapcidr = MapcidrTool()
 
@@ -111,7 +111,7 @@ class CidrToIpsTransform(Transform):
 
         return ips
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
         # Use the mapping from scan if available, else fallback to zip
         cidr_to_ips = getattr(self, "_cidr_to_ips_map", None)

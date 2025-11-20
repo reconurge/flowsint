@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 class WebsiteToText(Transform):
     """Extracts the texts in a webpage."""
 
-    InputType = List[Website]
-    OutputType = List[Phrase]
+    InputType = Website
+    OutputType = Phrase
 
     @classmethod
     def name(cls) -> str:
@@ -24,8 +24,8 @@ class WebsiteToText(Transform):
     def key(cls) -> str:
         return "website"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for website in data:
             text_data = self._extract_text(website.url)
             if text_data:
@@ -47,7 +47,7 @@ class WebsiteToText(Transform):
             print(f"An error occurred: {e}")
             return None
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding phrases
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)

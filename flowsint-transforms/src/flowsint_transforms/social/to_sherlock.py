@@ -11,8 +11,8 @@ class SherlockTransform(Transform):
     """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Username]
-    OutputType = List[SocialAccount]
+    InputType = Username
+    OutputType = SocialAccount
 
     @classmethod
     def name(cls) -> str:
@@ -26,9 +26,9 @@ class SherlockTransform(Transform):
     def key(cls) -> str:
         return "username"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Performs the scan using Sherlock on the list of usernames."""
-        results: OutputType = []
+        results: List[OutputType] = []
 
         for username in data:
             output_file = Path(f"/tmp/sherlock_{username.value}.txt")
@@ -88,7 +88,7 @@ class SherlockTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j relationships for found social accounts."""
         if not self.neo4j_conn:
             return results

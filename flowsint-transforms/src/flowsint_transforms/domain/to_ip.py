@@ -9,8 +9,8 @@ from flowsint_types.ip import Ip
 class ResolveTransform(Transform):
     """Resolve domain names to IP addresses."""
 
-    InputType = List[Domain]
-    OutputType = List[Ip]
+    InputType = Domain
+    OutputType = Ip
 
     @classmethod
     def name(cls) -> str:
@@ -29,8 +29,8 @@ class ResolveTransform(Transform):
         """Return formatted markdown documentation for the domain resolver transform."""
         return ""
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for d in data:
             try:
                 ip = socket.gethostbyname(d.domain)
@@ -43,7 +43,7 @@ class ResolveTransform(Transform):
                 continue
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         for domain_obj, ip_obj in zip(original_input, results):
             self.create_node(domain_obj)
             self.create_node(ip_obj)

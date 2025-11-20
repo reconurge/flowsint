@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from .models import Key
-from datetime import datetime
+from datetime import datetime, UTC
 import base64
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
@@ -115,7 +115,7 @@ class Vault(VaultProtocol):
             key_version=self.version,
             owner_id=self.owner_id,
             ciphertext=encrypted_key_dict.get("ciphertext"),
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         self.db.add(new_key)
         self.db.commit()

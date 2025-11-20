@@ -7,11 +7,11 @@ from flowsint_types.individual import Individual
 from typing import List
 
 
-class TestTransform(Transform):
+class MockTransform(Transform):
     """Simple transform for testing."""
 
-    InputType = List[Domain]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     @classmethod
     def name(cls) -> str:
@@ -25,13 +25,13 @@ class TestTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         return data
 
 
 def test_create_node_with_pydantic_object():
     """Test that create_node works with Pydantic objects."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     # Create a domain object
     domain = Domain(domain="example.com")
@@ -46,7 +46,7 @@ def test_create_node_with_pydantic_object():
 
 def test_create_relationship_with_pydantic_objects():
     """Test that create_relationship works with Pydantic objects."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     # Create objects
     individual = Individual(
@@ -62,7 +62,7 @@ def test_create_relationship_with_pydantic_objects():
 
 def test_create_node_legacy_signature():
     """Test that legacy create_node signature still works."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     domain = Domain(domain="example.com")
 
@@ -72,7 +72,7 @@ def test_create_node_legacy_signature():
 
 def test_create_relationship_legacy_signature():
     """Test that legacy create_relationship signature still works."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     # Legacy signature should still work
     transform.create_relationship(
@@ -88,7 +88,7 @@ def test_create_relationship_legacy_signature():
 
 def test_get_primary_field():
     """Test the _get_primary_field helper method."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     # Test with Domain (has primary field marked)
     domain = Domain(domain="example.com")
@@ -109,7 +109,7 @@ def test_get_primary_field():
 
 def test_create_node_with_property_override():
     """Test that property overrides work with Pydantic objects."""
-    transform = TestTransform(sketch_id="test", scan_id="test")
+    transform = MockTransform(sketch_id="test", scan_id="test")
 
     domain = Domain(domain="example.com")
 

@@ -1,7 +1,7 @@
 # flowsint-core
 The repository containing the core components for flowsint.
 
-It contains: 
+It contains:
 - Celery tasks
 - Authentication
 - NEO4J database connectors
@@ -10,5 +10,11 @@ It contains:
 - Transform orchestrator
 - Transform registry
 - Encrypted vault
+
+## Testing
+
+```bash
+poetry run pytest
+```
 
 > ⚠️ 🚧 Work in progress !.

@@ -10,8 +10,8 @@ import httpx
 class IgnorantTransform(Transform):
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Phone]  # Phone objects
-    OutputType = List[Dict[str, Any]]  # Results as dictionaries
+    InputType = Phone  # Phone objects
+    OutputType = Dict[str, Any]  # Results as dictionaries
 
     @classmethod
     def name(cls) -> str:
@@ -25,11 +25,11 @@ class IgnorantTransform(Transform):
     def key(cls) -> str:
         return "number"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """
         Performs the Ignorant search for each specified phone number.
         """
-        results: OutputType = []
+        results: List[OutputType] = []
         for phone_obj in data:
             try:
                 cleaned_phone = is_valid_number(phone_obj.number)
@@ -77,7 +77,7 @@ class IgnorantTransform(Transform):
         except Exception as e:
             return {"number": phone, "error": f"Error in Ignorant research: {str(e)}"}
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """
         Create Neo4j relationships for found phone accounts.
         """

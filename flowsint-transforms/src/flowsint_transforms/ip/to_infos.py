@@ -8,8 +8,8 @@ class IpToInfosTransform(Transform):
     """[ip-api.com] Get information data for IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Ip]
-    OutputType = List[Ip]
+    InputType = Ip
+    OutputType = Ip
 
     @classmethod
     def name(cls) -> str:
@@ -23,8 +23,8 @@ class IpToInfosTransform(Transform):
     def key(cls) -> str:
         return "address"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for ip in data:
             try:
                 geo_data = self.get_location_data(ip.address)
@@ -39,7 +39,7 @@ class IpToInfosTransform(Transform):
                 print(f"Error geolocating {ip.address}: {e}")
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Update IP nodes in Neo4j with geolocation information."""
         if self.neo4j_conn:
             for ip in results:

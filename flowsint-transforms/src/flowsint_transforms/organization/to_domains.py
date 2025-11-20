@@ -20,8 +20,8 @@ class OrgToDomainsTransform(Transform):
     """[WHOXY] Takes an organization and returns the domains it registered."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Organization]
-    OutputType = List[Domain]
+    InputType = Organization
+    OutputType = Domain
 
     def __init__(
         self,
@@ -68,9 +68,9 @@ class OrgToDomainsTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find domains related to organizations using whoxy api."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
         self._extracted_data = []  # Store all extracted data for postprocess
         self._extracted_individuals = []  # Store extracted individuals for testing
         self._extracted_organizations = []  # Store extracted organizations for testing
@@ -386,7 +386,7 @@ class OrgToDomainsTransform(Transform):
                     },
                 )
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
             Logger.info(

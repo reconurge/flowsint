@@ -10,8 +10,8 @@ class WebsiteToDomainTransform(Transform):
     """From website to domain."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[Domain]
+    InputType = Website
+    OutputType = Domain
 
     @classmethod
     def name(cls) -> str:
@@ -25,8 +25,8 @@ class WebsiteToDomainTransform(Transform):
     def key(cls) -> str:
         return "website"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         for website in data:
             try:
                 parsed_url = urlparse(str(website.url))
@@ -56,8 +56,8 @@ class WebsiteToDomainTransform(Transform):
         return results
 
     def postprocess(
-        self, results: OutputType, input_data: InputType = None
-    ) -> OutputType:
+        self, results: List[OutputType], input_data: List[InputType] = None
+    ) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding domains
         if input_data and self.neo4j_conn:
             for input_website, result in zip(input_data, results):

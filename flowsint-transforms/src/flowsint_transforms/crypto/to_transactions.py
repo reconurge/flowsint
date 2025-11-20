@@ -20,8 +20,8 @@ class CryptoWalletAddressToTransactions(Transform):
     """[ETHERSCAN] Resolve transactions for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[CryptoWallet]
-    OutputType = List[CryptoWalletTransaction]
+    InputType = CryptoWallet
+    OutputType = CryptoWalletTransaction
 
     def __init__(
         self,
@@ -79,8 +79,8 @@ class CryptoWalletAddressToTransactions(Transform):
     def key(cls) -> str:
         return "address"
 
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
         api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
         for d in data:
@@ -173,7 +173,7 @@ class CryptoWalletAddressToTransactions(Transform):
             )
         return transactions
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 

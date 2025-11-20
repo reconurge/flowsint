@@ -21,8 +21,8 @@ class DomainToHistoryTransform(Transform):
     """[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     def __init__(
         self,
@@ -69,9 +69,9 @@ class DomainToHistoryTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find infos related to domains using whoxy api."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
         self._extracted_data = []  # Store all extracted data for postprocess
         self._extracted_individuals = []  # Store extracted individuals for testing
         self._extracted_organizations = []  # Store extracted organizations for testing
@@ -390,7 +390,7 @@ class DomainToHistoryTransform(Transform):
                     },
                 )
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
             Logger.info(

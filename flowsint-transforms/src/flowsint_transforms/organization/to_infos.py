@@ -1,6 +1,8 @@
 from typing import List, Dict, Any, Union
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.organization import Organization
+from flowsint_types.address import Location
+from flowsint_types.individual import Individual
 from flowsint_core.core.logger import Logger
 from tools.organizations.sirene import SireneTool
 
@@ -9,8 +11,8 @@ class OrgToInfosTransform(Transform):
     """Enrich Organization with data from SIRENE (France only)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Organization]
-    OutputType = List[Organization]
+    InputType = Organization
+    OutputType = Organization
 
     @classmethod
     def name(cls) -> str:
@@ -24,22 +26,9 @@ class OrgToInfosTransform(Transform):
     def key(cls) -> str:
         return "name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        if not isinstance(data, list):
-            raise ValueError(f"Expected list input, got {type(data).__name__}")
-        cleaned: InputType = []
-        for item in data:
-            if isinstance(item, str) and item != "":
-                cleaned.append(Organization(name=item))
-            elif isinstance(item, dict) and "name" in item and item["name"] != "":
-                cleaned.append(Organization(**item))
-            elif isinstance(item, Organization):
-                cleaned.append(item)
-        return cleaned
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
 
-    async def scan(self, data: InputType) -> OutputType:
-
-        results: OutputType = []
+        results: List[OutputType] = []
         for org in data:
             try:
                 sirene = SireneTool()
@@ -63,8 +52,6 @@ class OrgToInfosTransform(Transform):
             # Create Location for siege_geo_adresse if coordinates exist
             siege_geo_adresse = None
             if siege.get("latitude") and siege.get("longitude"):
-                from flowsint_types.address import Location
-
                 siege_geo_adresse = Location(
                     address=siege.get("adresse", ""),
                     city=siege.get("libelle_commune", ""),
@@ -77,8 +64,6 @@ class OrgToInfosTransform(Transform):
             # Extract dirigeants and convert to Individual objects
             dirigeants = []
             for dirigeant_data in company.get("dirigeants", []):
-                from flowsint_types.individual import Individual
-
                 dirigeant = Individual(
                     first_name=dirigeant_data.get("prenoms", ""),
                     last_name=dirigeant_data.get("nom", ""),
@@ -259,154 +244,57 @@ class OrgToInfosTransform(Transform):
             )
             return None
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 
         for org in results:
-            # Create or update the organization node with all SIRENE properties
-            org_key = f"{org.name}_FR"
-            self.create_node(
-                "Organization",
-                "org_id",
-                org_key,
-                name=org.name,
-                country="FR",
-                siren=org.siren,
-                siege_siret=org.siege_siret,
-                nom_complet=org.nom_complet,
-                nom_raison_sociale=org.nom_raison_sociale,
-                sigle=org.sigle,
-                nombre_etablissements=org.nombre_etablissements,
-                nombre_etablissements_ouverts=org.nombre_etablissements_ouverts,
-                activite_principale=org.activite_principale,
-                section_activite_principale=org.section_activite_principale,
-                categorie_entreprise=org.categorie_entreprise,
-                annee_categorie_entreprise=org.annee_categorie_entreprise,
-                caractere_employeur=org.caractere_employeur,
-                tranche_effectif_salarie=org.tranche_effectif_salarie,
-                annee_tranche_effectif_salarie=org.annee_tranche_effectif_salarie,
-                date_creation=org.date_creation,
-                date_fermeture=org.date_fermeture,
-                date_mise_a_jour=org.date_mise_a_jour,
-                date_mise_a_jour_insee=org.date_mise_a_jour_insee,
-                date_mise_a_jour_rne=org.date_mise_a_jour_rne,
-                nature_juridique=org.nature_juridique,
-                statut_diffusion=org.statut_diffusion,
-                type="organization",
-            )
+            # Create or update the organization node (nested objects are automatically skipped)
+            self.create_node(org)
 
             if org.siren:
-                self.log_graph_message(f"{org.name}: SIREN {org.siren} -> {org.name}")
+                self.log_graph_message(f"{org.name}: SIREN {org.siren}")
 
-            # Add SIRET as identifier if available
             if org.siege_siret:
-                self.log_graph_message(
-                    f"{org.name}: SIRET {org.siege_siret} -> {org.name}"
-                )
+                self.log_graph_message(f"{org.name}: SIRET {org.siege_siret}")
 
             # Add dirigeants (leaders) as Individual nodes with relationships
             if org.dirigeants:
                 for dirigeant in org.dirigeants:
-                    self.create_node(
-                        "individual",
-                        "full_name",
-                        dirigeant.full_name,
-                        first_name=dirigeant.first_name,
-                        last_name=dirigeant.last_name,
-                        birth_date=dirigeant.birth_date,
-                        gender=dirigeant.gender,
-                        caption=dirigeant.full_name,
-                        type="individual",
-                    )
-
-                    self.create_relationship(
-                        "organization",
-                        "org_id",
-                        org_key,
-                        "individual",
-                        "full_name",
-                        dirigeant.full_name,
-                        "HAS_LEADER",
-                    )
-                    self.log_graph_message(
-                        f"{org.name}: HAS_LEADER -> {dirigeant.full_name}"
-                    )
+                    self.create_node(dirigeant)
+                    self.create_relationship(org, dirigeant, "HAS_LEADER")
+                    self.log_graph_message(f"{org.name}: HAS_LEADER -> {dirigeant.full_name}")
 
             # Add siege address as Location node if available
             if org.siege_geo_adresse:
-                address = org.siege_geo_adresse
-                address_key = f"{address.address}_{address.city}_{address.country}"
-                self.create_node(
-                    "location",
-                    "address_id",
-                    address_key,
-                    address=address.address,
-                    city=address.city,
-                    country=address.country,
-                    zip=address.zip,
-                    latitude=address.latitude,
-                    longitude=address.longitude,
-                    label=f"{address.address}, {address.city}",
-                    caption=f"{address.address}, {address.city}",
-                    type="location",
-                )
-
-                self.create_relationship(
-                    "organization",
-                    "org_id",
-                    org_key,
-                    "location",
-                    "address_id",
-                    address_key,
-                    "HAS_ADDRESS",
-                )
+                self.create_node(org.siege_geo_adresse)
+                self.create_relationship(org, org.siege_geo_adresse, "HAS_ADDRESS")
                 self.log_graph_message(
-                    f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}"
+                    f"{org.name}: HAS_ADDRESS -> {org.siege_geo_adresse.address}, {org.siege_geo_adresse.city}"
                 )
-
             # Add siege location as Location node if coordinates are available but no location
             elif org.siege_latitude and org.siege_longitude:
-                location_key = f"{org.siege_latitude}_{org.siege_longitude}"
-                self.create_node(
-                    "location",
-                    "location_id",
-                    location_key,
+                location_obj = Location(
                     latitude=float(org.siege_latitude),
                     longitude=float(org.siege_longitude),
                     address=org.siege_adresse,
                     city=org.siege_libelle_commune,
                     country="FR",
                     zip=org.siege_code_postal,
-                    label=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    caption=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    type="location",
                 )
-
-                self.create_relationship(
-                    "organization",
-                    "org_id",
-                    org_key,
-                    "Location",
-                    "location_id",
-                    location_key,
-                    "LOCATED_AT",
-                )
+                self.create_node(location_obj)
+                self.create_relationship(org, location_obj, "LOCATED_AT")
                 self.log_graph_message(
                     f"{org.name}: LOCATED_AT -> {org.siege_libelle_commune or 'Unknown'}"
                 )
 
-            # Add activity codes as Activity nodes
+            # Log activity codes
             if org.activite_principale:
-                self.log_graph_message(
-                    f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}"
-                )
+                self.log_graph_message(f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}")
 
-            # Add legal nature as LegalNature node
+            # Log legal nature
             if org.nature_juridique:
-                self.log_graph_message(
-                    f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}"
-                )
+                self.log_graph_message(f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}")
 
         return results
 

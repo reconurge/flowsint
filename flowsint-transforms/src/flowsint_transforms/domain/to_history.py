@@ -6,6 +6,8 @@ from flowsint_core.core.transform_base import Transform
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
+from flowsint_types.email import Email
+from flowsint_types.phone import Phone
 from flowsint_core.utils import is_valid_domain, is_root_domain
 from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
@@ -19,8 +21,8 @@ class DomainToHistoryTransform(Transform):
     """[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[Domain]
+    InputType = Domain
+    OutputType = Domain
 
     def __init__(
         self,
@@ -67,28 +69,9 @@ class DomainToHistoryTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                domain_obj = Domain(domain=item, root=is_root_domain(item))
-            elif isinstance(item, dict) and "domain" in item:
-                domain_obj = Domain(
-                    domain=item["domain"], root=is_root_domain(item["domain"])
-                )
-            elif isinstance(item, Domain):
-                # If the Domain object already exists, update its root field
-                domain_obj = Domain(
-                    domain=item.domain, root=is_root_domain(item.domain)
-                )
-            if domain_obj and is_valid_domain(domain_obj.domain):
-                cleaned.append(domain_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find infos related to domains using whoxy api."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
         self._extracted_data = []  # Store all extracted data for postprocess
         self._extracted_individuals = []  # Store extracted individuals for testing
         self._extracted_organizations = []  # Store extracted organizations for testing
@@ -407,7 +390,7 @@ class DomainToHistoryTransform(Transform):
                     },
                 )
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
             Logger.info(
@@ -452,25 +435,13 @@ class DomainToHistoryTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating domain node: {domain_name}"},
                 )
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_name,
-                    label=domain_name,
-                    caption=domain_name,
-                    type="domain",
-                )
+                domain_obj = Domain(domain=domain_name)
+                self.create_node(domain_obj)
 
                 # Create relationship between original domain and found domain
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    original_domain_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    "HAS_RELATED_DOMAIN",
-                )
+                original_domain_obj = Domain(domain=original_domain_name)
+                domain_obj_rel = Domain(domain=domain_name)
+                self.create_relationship(original_domain_obj, domain_obj_rel, "HAS_RELATED_DOMAIN")
 
             # Create individual node if not already processed
             individual_id = (
@@ -484,76 +455,39 @@ class DomainToHistoryTransform(Transform):
                         "message": f"[WHOXY] Creating individual node: {individual.full_name}"
                     },
                 )
-                self.create_node(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    caption=individual.full_name,
-                    type="individual",
-                )
+                self.create_node(individual)
 
                 # Create relationship between individual and domain
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    individual.full_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    f"IS_{contact_type.upper()}_CONTACT",
-                )
+                domain_obj_contact = Domain(domain=domain_name)
+                self.create_relationship(individual, domain_obj_contact, f"IS_{contact_type.upper()}_CONTACT")
 
             # Process email addresses
             if individual.email_addresses:
-                for email in individual.email_addresses:
-                    if email and email not in processed_emails:
-                        processed_emails.add(email)
+                for email_obj in individual.email_addresses:
+                    email_str = email_obj.email
+                    if email_str and email_str not in processed_emails:
+                        processed_emails.add(email_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating email node: {email}"},
+                            {"message": f"[WHOXY] Creating email node: {email_str}"},
                         )
-                        self.create_node(
-                            "email",
-                            "email",
-                            email,
-                            caption=email,
-                            type="email",
-                        )
-                        self.create_relationship(
-                            "individual",
-                            "full_name",
-                            individual.full_name,
-                            "email",
-                            "email",
-                            email,
-                            "HAS_EMAIL",
-                        )
+                        email_node = Email(email=email_str)
+                        self.create_node(email_node)
+                        self.create_relationship(individual, email_node, "HAS_EMAIL")
 
             # Process phone numbers
             if individual.phone_numbers:
-                for phone in individual.phone_numbers:
-                    if phone and phone not in processed_phones:
-                        processed_phones.add(phone)
+                for phone_obj in individual.phone_numbers:
+                    phone_str = phone_obj.number
+                    if phone_str and phone_str not in processed_phones:
+                        processed_phones.add(phone_str)
                         Logger.info(
                             self.sketch_id,
-                            {"message": f"[WHOXY] Creating phone node: {phone}"},
+                            {"message": f"[WHOXY] Creating phone node: {phone_str}"},
                         )
-                        self.create_node(
-                            "phone",
-                            "number",
-                            phone,
-                            caption=phone,
-                            type="phone",
-                        )
-                        self.create_relationship(
-                            "individual",
-                            "full_name",
-                            individual.full_name,
-                            "phone",
-                            "number",
-                            phone,
-                            "HAS_PHONE",
-                        )
+                        phone_node = Phone(number=phone_str)
+                        self.create_node(phone_node)
+                        self.create_relationship(individual, phone_node, "HAS_PHONE")
 
             # Process physical address from contact data
             contact_data = individual_info["contact_data"]
@@ -570,22 +504,8 @@ class DomainToHistoryTransform(Transform):
                             "message": f"[WHOXY] Creating address node: {address.address}"
                         },
                     )
-                    self.create_node(
-                        "location",
-                        "address",
-                        address.address,
-                        caption=f"{address.address}, {address.city}",
-                        type="location",
-                    )
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        individual.full_name,
-                        "location",
-                        "address",
-                        address.address,
-                        "LIVES_AT",
-                    )
+                    self.create_node(address)
+                    self.create_relationship(individual, address, "LIVES_AT")
 
             self.log_graph_message(
                 f"Processed individual {individual.full_name} ({contact_type}) for domain {domain_name}"
@@ -612,25 +532,13 @@ class DomainToHistoryTransform(Transform):
                     self.sketch_id,
                     {"message": f"[WHOXY] Creating domain node: {domain_name}"},
                 )
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain_name,
-                    label=domain_name,
-                    caption=domain_name,
-                    type="domain",
-                )
+                domain_obj = Domain(domain=domain_name)
+                self.create_node(domain_obj)
 
                 # Create relationship between original domain and found domain
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    original_domain_name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    "HAS_RELATED_DOMAIN",
-                )
+                original_domain_obj3 = Domain(domain=original_domain_name)
+                domain_obj_rel3 = Domain(domain=domain_name)
+                self.create_relationship(original_domain_obj3, domain_obj_rel3, "HAS_RELATED_DOMAIN")
 
             # Create organization node if not already processed
             if organization.name not in processed_organizations:
@@ -641,24 +549,11 @@ class DomainToHistoryTransform(Transform):
                         "message": f"[WHOXY] Creating organization node: {organization.name}"
                     },
                 )
-                self.create_node(
-                    "organization",
-                    "name",
-                    organization.name,
-                    caption=organization.name,
-                    type="organization",
-                )
+                self.create_node(organization)
 
                 # Create relationship between organization and domain
-                self.create_relationship(
-                    "organization",
-                    "name",
-                    organization.name,
-                    "domain",
-                    "domain",
-                    domain_name,
-                    f"IS_{contact_type.upper()}_CONTACT",
-                )
+                domain_obj_org = Domain(domain=domain_name)
+                self.create_relationship(organization, domain_obj_org, f"IS_{contact_type.upper()}_CONTACT")
 
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"

@@ -1,9 +1,13 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Literal, List
+from pydantic import Field, field_validator, model_validator
+from typing import Optional, Literal, List, Union, Self
 from .address import Location
+from .email import Email
+from .phone import Phone
+from .ip import Ip
+from .flowsint_base import FlowsintType
 
 
-class Individual(BaseModel):
+class Individual(FlowsintType):
     """Represents an individual person with comprehensive personal information."""
 
     # Basic Information
@@ -13,8 +17,8 @@ class Individual(BaseModel):
     last_name: str = Field(
         ..., description="Last name of the individual", title="Last Name"
     )
-    full_name: str = Field(
-        ..., description="Full name of the individual", title="Full Name"
+    full_name: Optional[str] = Field(
+        None, description="Full name of the individual", title="Full Name"
     )
     middle_name: Optional[str] = Field(
         None, description="Middle name or initial", title="Middle Name"
@@ -89,10 +93,10 @@ class Individual(BaseModel):
     )
 
     # Contact Information
-    phone_numbers: Optional[List[str]] = Field(
+    phone_numbers: Optional[List[Phone]] = Field(
         None, description="Known phone numbers", title="Phone Numbers"
     )
-    email_addresses: Optional[List[str]] = Field(
+    email_addresses: Optional[List[Email]] = Field(
         None, description="Known email addresses", title="Email Addresses"
     )
     social_media_profiles: Optional[List[str]] = Field(
@@ -270,7 +274,7 @@ class Individual(BaseModel):
     )
 
     # Digital Footprint
-    ip_addresses: Optional[List[str]] = Field(
+    ip_addresses: Optional[List[Ip]] = Field(
         None, description="Known IP addresses", title="IP Addresses"
     )
     usernames: Optional[List[str]] = Field(
@@ -306,3 +310,94 @@ class Individual(BaseModel):
     last_updated: Optional[str] = Field(
         None, description="Last update timestamp", title="Last Updated"
     )
+
+    @field_validator('email_addresses', mode='before')
+    @classmethod
+    def validate_email_addresses(cls, v: Optional[List[Union[str, Email]]]) -> Optional[List[Email]]:
+        """Validate that all email addresses in the list are valid and convert to Email objects."""
+        if v is None:
+            return None
+
+        validated_emails = []
+        for email in v:
+            if not email:
+                continue
+            try:
+                # If already an Email object, keep it
+                if isinstance(email, Email):
+                    validated_emails.append(email)
+                # If string, convert to Email (will validate automatically)
+                elif isinstance(email, str):
+                    validated_emails.append(Email(email=email))
+                # If dict, convert to Email
+                elif isinstance(email, dict):
+                    validated_emails.append(Email(**email))
+            except Exception:
+                # Skip invalid emails
+                continue
+
+        return validated_emails if validated_emails else None
+
+    @field_validator('phone_numbers', mode='before')
+    @classmethod
+    def validate_phone_numbers(cls, v: Optional[List[Union[str, Phone]]]) -> Optional[List[Phone]]:
+        """Validate phone numbers in the list and convert to Phone objects."""
+        if v is None:
+            return None
+        validated_phones = []
+        for phone in v:
+            if not phone:
+                continue
+            try:
+                # If already a Phone object, keep it
+                if isinstance(phone, Phone):
+                    validated_phones.append(phone)
+                # If string, convert to Phone (will validate and normalize automatically)
+                elif isinstance(phone, str):
+                    validated_phones.append(Phone(number=phone))
+                # If dict, convert to Phone
+                elif isinstance(phone, dict):
+                    validated_phones.append(Phone(**phone))
+            except Exception:
+                # Skip invalid phone numbers
+                continue
+        return validated_phones if validated_phones else None
+
+    @field_validator('ip_addresses', mode='before')
+    @classmethod
+    def validate_ip_addresses(cls, v: Optional[List[Union[str, Ip]]]) -> Optional[List[Ip]]:
+        """Validate that all IP addresses in the list are valid and convert to Ip objects."""
+        if v is None:
+            return None
+        validated_ips = []
+        for ip in v:
+            if not ip:
+                continue
+            try:
+                # If already an Ip object, keep it
+                if isinstance(ip, Ip):
+                    validated_ips.append(ip)
+                # If string, convert to Ip (will validate automatically)
+                elif isinstance(ip, str):
+                    validated_ips.append(Ip(address=ip))
+                # If dict, convert to Ip
+                elif isinstance(ip, dict):
+                    validated_ips.append(Ip(**ip))
+            except Exception:
+                # Skip invalid IPs
+                continue
+
+        return validated_ips if validated_ips else None
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use full_name if available, otherwise concatenate first and last name
+        if self.full_name:
+            self.label = self.full_name
+        elif self.first_name and self.last_name:
+            self.label = f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            self.label = self.first_name
+        elif self.last_name:
+            self.label = self.last_name
+        return self

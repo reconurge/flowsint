@@ -23,7 +23,6 @@ PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
-logger = Logger()
 
 
 @celery.task(name="run_flow", bind=True)

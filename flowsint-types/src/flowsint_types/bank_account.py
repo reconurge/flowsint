@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class BankAccount(BaseModel):
+class BankAccount(FlowsintType):
     """Represents a bank account with financial and security information."""
 
     account_number: str = Field(
@@ -61,3 +63,12 @@ class BankAccount(BaseModel):
     breach_source: Optional[str] = Field(
         None, description="Source of breach if compromised", title="Breach Source"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = []
+        if self.bank_name:
+            parts.append(self.bank_name)
+        parts.append(f"****{self.account_number[-4:]}" if len(self.account_number) > 4 else self.account_number)
+        self.label = " - ".join(parts)
+        return self

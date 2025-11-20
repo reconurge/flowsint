@@ -1,7 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import Field, EmailStr, model_validator
+from typing import Any, Self
+from .flowsint_base import FlowsintType
 
 
-class Email(BaseModel):
+class Email(FlowsintType):
     """Represents an email address."""
 
-    email: str = Field(..., description="Email address", title="Email Address")
+    email: EmailStr = Field(..., description="Email address", title="Email Address")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.email
+        return self

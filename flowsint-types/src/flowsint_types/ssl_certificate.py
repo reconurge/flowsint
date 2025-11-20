@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class SSLCertificate(BaseModel):
+class SSLCertificate(FlowsintType):
     """Represents an SSL/TLS certificate with validation and security details."""
 
     subject: str = Field(
@@ -69,3 +71,8 @@ class SSLCertificate(BaseModel):
     fingerprint_sha256: Optional[str] = Field(
         None, description="SHA256 fingerprint", title="SHA256 Fingerprint"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.subject
+        return self

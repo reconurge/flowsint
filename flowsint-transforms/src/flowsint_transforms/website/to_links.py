@@ -2,6 +2,7 @@ from typing import List, Union
 from urllib.parse import urlparse
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.website import Website
+from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 from reconspread import Crawler
 
@@ -10,8 +11,8 @@ class WebsiteToLinks(Transform):
     """From website to spread crawler that extracts domains and internal/external links."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Website]
-    OutputType = List[Website]
+    InputType = Website
+    OutputType = Website
 
     @classmethod
     def name(cls) -> str:
@@ -33,21 +34,7 @@ class WebsiteToLinks(Transform):
         except Exception:
             return ""
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            website_obj = None
-            if isinstance(item, str):
-                website_obj = Website(url=item)
-            elif isinstance(item, dict) and "url" in item:
-                website_obj = Website(url=item["url"])
-            elif isinstance(item, Website):
-                website_obj = item
-            if website_obj:
-                cleaned.append(website_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Crawl websites using reconspread to extract internal and external links."""
         results = []
 
@@ -63,30 +50,11 @@ class WebsiteToLinks(Transform):
 
                 # Create main website and domain nodes upfront
                 if self.neo4j_conn:
-                    self.create_node(
-                        "website",
-                        "url",
-                        str(website.url),
-                        caption=str(website.url),
-                        type="website",
-                    )
+                    self.create_node(website)
                     if main_domain:
-                        self.create_node(
-                            "domain",
-                            "name",
-                            main_domain,
-                            caption=main_domain,
-                            type="domain",
-                        )
-                        self.create_relationship(
-                            "website",
-                            "url",
-                            str(website.url),
-                            "domain",
-                            "name",
-                            main_domain,
-                            "BELONGS_TO_DOMAIN",
-                        )
+                        domain_obj = Domain(domain=main_domain)
+                        self.create_node(domain_obj)
+                        self.create_relationship(website, domain_obj, "BELONGS_TO_DOMAIN")
                         self.log_graph_message(
                             f"Website {str(website.url)} belongs to domain {main_domain}"
                         )
@@ -105,49 +73,20 @@ class WebsiteToLinks(Transform):
                             external_domains.add(domain)
                             # Create external website node immediately
                             if self.neo4j_conn:
-                                self.create_node(
-                                    "website", "url", url, caption=url, type="website"
-                                )
-                                self.create_relationship(
-                                    "website",
-                                    "url",
-                                    str(website.url),
-                                    "website",
-                                    "url",
-                                    url,
-                                    "LINKS_TO",
-                                )
+                                url_obj = Website(url=url)
+                                self.create_node(url_obj)
+                                self.create_relationship(website, url_obj, "LINKS_TO")
                                 self.log_graph_message(
                                     f"Website {str(website.url)} links to external website {url}"
                                 )
 
                                 # Create external domain node and link external website to its domain
                                 if domain != main_domain:
-                                    self.create_node(
-                                        "domain",
-                                        "name",
-                                        domain,
-                                        caption=domain,
-                                        type="domain",
-                                    )
-                                    self.create_relationship(
-                                        "website",
-                                        "url",
-                                        url,
-                                        "domain",
-                                        "name",
-                                        domain,
-                                        "BELONGS_TO_DOMAIN",
-                                    )
-                                    self.create_relationship(
-                                        "website",
-                                        "url",
-                                        str(website.url),
-                                        "domain",
-                                        "name",
-                                        domain,
-                                        "LINKS_TO_DOMAIN",
-                                    )
+                                    domain_obj_ext = Domain(domain=domain)
+                                    self.create_node(domain_obj_ext)
+                                    self.create_relationship(url_obj, domain_obj_ext, "BELONGS_TO_DOMAIN")
+                                    domain_obj_main = Domain(domain=main_domain)
+                                    self.create_relationship(domain_obj_main, domain_obj_ext, "LINKS_TO")
                                     self.log_graph_message(
                                         f"External website {url} belongs to domain {domain}"
                                     )
@@ -164,33 +103,17 @@ class WebsiteToLinks(Transform):
                         if self.neo4j_conn and url != str(
                             website.url
                         ):  # Don't create duplicate of main website
-                            self.create_node(
-                                "website", "url", url, caption=url, type="website"
-                            )
-                            self.create_relationship(
-                                "website",
-                                "url",
-                                str(website.url),
-                                "website",
-                                "url",
-                                url,
-                                "LINKS_TO",
-                            )
+                            internal_website = Website(url=url)
+                            self.create_node(internal_website)
+                            self.create_relationship(website, internal_website, "LINKS_TO")
                             self.log_graph_message(
                                 f"Website {str(website.url)} links to internal website {url}"
                             )
 
                             # Also link internal websites to main domain
                             if main_domain:
-                                self.create_relationship(
-                                    "website",
-                                    "url",
-                                    url,
-                                    "domain",
-                                    "name",
-                                    main_domain,
-                                    "BELONGS_TO_DOMAIN",
-                                )
+                                domain_obj_int = Domain(domain=main_domain)
+                                self.create_relationship(internal_website, domain_obj_int, "BELONGS_TO_DOMAIN")
                         Logger.info(
                             self.sketch_id, {"message": f"[INTERNAL] Found: {url}"}
                         )
@@ -256,30 +179,11 @@ class WebsiteToLinks(Transform):
                 # Still create main website and domain nodes even on error
                 main_domain = self.extract_domain(str(website.url))
                 if self.neo4j_conn:
-                    self.create_node(
-                        "website",
-                        "url",
-                        str(website.url),
-                        caption=str(website.url),
-                        type="website",
-                    )
+                    self.create_node(website)
                     if main_domain:
-                        self.create_node(
-                            "domain",
-                            "name",
-                            main_domain,
-                            caption=main_domain,
-                            type="domain",
-                        )
-                        self.create_relationship(
-                            "website",
-                            "url",
-                            str(website.url),
-                            "domain",
-                            "name",
-                            main_domain,
-                            "BELONGS_TO_DOMAIN",
-                        )
+                        domain_obj_err = Domain(domain=main_domain)
+                        self.create_node(domain_obj_err)
+                        self.create_relationship(website, domain_obj_err, "BELONGS_TO_DOMAIN")
                         self.log_graph_message(
                             f"Website {str(website.url)} belongs to domain {main_domain}"
                         )
@@ -298,7 +202,7 @@ class WebsiteToLinks(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Neo4j nodes and relationships are created in real-time during the callback
         # No additional processing needed here
         return results

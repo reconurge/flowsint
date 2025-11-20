@@ -20,8 +20,8 @@ class IndividualToDomainsTransform(Transform):
     """[WHOXY] Takes an individual and returns the domains it registered."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Individual]
-    OutputType = List[Domain]
+    InputType = Individual
+    OutputType = Domain
 
     def __init__(
         self,
@@ -68,10 +68,10 @@ class IndividualToDomainsTransform(Transform):
     def key(cls) -> str:
         return "full_name"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
+    def preprocess(self, data: Union[List[str], List[dict], List[InputType]]) -> List[InputType]:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
-        cleaned: InputType = []
+        cleaned: List[InputType] = []
         for item in data:
             if isinstance(item, str):
                 parts = item.strip().split()
@@ -98,9 +98,9 @@ class IndividualToDomainsTransform(Transform):
             )
         return cleaned
 
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find domains related to individuals using whoxy api."""
-        domains: OutputType = []
+        domains: List[OutputType] = []
         self._extracted_data = []  # Store all extracted data for postprocess
         api_key = self.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
 
@@ -139,7 +139,9 @@ class IndividualToDomainsTransform(Transform):
                 )
         return domains
 
-    def __get_infos_from_whoxy(self, individual_name: str, api_key: str) -> Dict[str, Any]:
+    def __get_infos_from_whoxy(
+        self, individual_name: str, api_key: str
+    ) -> Dict[str, Any]:
         infos: Dict[str, Any] = {}
         whoxy = WhoxyTool()
         try:
@@ -243,11 +245,9 @@ class IndividualToDomainsTransform(Transform):
         if not all([address, city, zip_code, country]):
             return None
 
-        return Location(
-            address=address, city=city, zip=zip_code, country=country
-        )
+        return Location(address=address, city=city, zip=zip_code, country=country)
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self.neo4j_conn:
             return results
@@ -269,33 +269,14 @@ class IndividualToDomainsTransform(Transform):
             if domain_name in processed_domains:
                 continue
             processed_domains.add(domain_name)
-
             # Create individual node
-            self.create_node(
-                "individual",
-                "full_name",
-                individual.full_name,
-                **individual.__dict__,
-            )
-
+            self.create_node(individual)
             # Create domain node
-            self.create_node(
-                "domain",
-                "domain",
-                domain_name,
-                **domain.__dict__,
-            )
+            self.create_node(domain)
 
             # Create relationship between individual and domain
-            self.create_relationship(
-                "individual",
-                "full_name",
-                individual.full_name,
-                "domain",
-                "domain",
-                domain_name,
-                "HAS_REGISTERED_DOMAIN",
-            )
+            domain_obj_indiv = Domain(domain=domain_name)
+            self.create_relationship(individual, domain_obj_indiv, "HAS_REGISTERED_DOMAIN")
 
             # Process all contact types
             for contact_type, contact in contacts.items():
@@ -342,86 +323,44 @@ class IndividualToDomainsTransform(Transform):
             return
 
         processed_individuals.add(individual_id)
-
         # Create individual node
-        self.create_node(
-            "individual",
-            "full_name",
-            contact_individual.full_name,
-            **contact_individual.__dict__,
-        )
+        self.create_node(contact_individual)
 
         # Create relationship between individual and domain
-        self.create_relationship(
-            "individual",
-            "full_name",
-            contact_individual.full_name,
-            "domain",
-            "domain",
-            domain_name,
-            f"IS_{contact_type}_CONTACT",
-        )
+        domain_obj_contact = Domain(domain=domain_name)
+        self.create_relationship(contact_individual, domain_obj_contact, f"IS_{contact_type}_CONTACT")
 
         # Create relationship between contact individual and main individual
-        self.create_relationship(
-            "individual",
-            "full_name",
-            contact_individual.full_name,
-            "individual",
-            "full_name",
-            individual_name,
-            f"WORKS_FOR",
-        )
+        main_individual = Individual(first_name="", last_name="", full_name=individual_name)
+        self.create_relationship(contact_individual, main_individual, "WORKS_FOR")
 
         # Process email addresses
         if contact_individual.email_addresses:
-            for email in contact_individual.email_addresses:
-                if email and email not in processed_emails:
-                    processed_emails.add(email)
+            for email_obj in contact_individual.email_addresses:
+                email_str = email_obj.email
+                if email_str and email_str not in processed_emails:
+                    processed_emails.add(email_str)
 
                     # Create email node
-                    self.create_node(
-                        "email",
-                        "email",
-                        email,
-                        email=email,
-                    )
+                    email_obj = Email(email=email_str)
+                    self.create_node(email_obj)
 
                     # Create relationship between individual and email
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        contact_individual.full_name,
-                        "email",
-                        "email",
-                        email,
-                        "HAS_EMAIL",
-                    )
+                    self.create_relationship(contact_individual, email_obj, "HAS_EMAIL")
 
         # Process phone numbers
         if contact_individual.phone_numbers:
-            for phone in contact_individual.phone_numbers:
-                if phone and phone not in processed_phones:
-                    processed_phones.add(phone)
+            for phone_obj in contact_individual.phone_numbers:
+                phone_str = phone_obj.number
+                if phone_str and phone_str not in processed_phones:
+                    processed_phones.add(phone_str)
 
                     # Create phone node
-                    self.create_node(
-                        "phone",
-                        "number",
-                        phone,
-                        number=phone,
-                    )
+                    phone_obj = Phone(number=phone_str)
+                    self.create_node(phone_obj)
 
                     # Create relationship between individual and phone
-                    self.create_relationship(
-                        "individual",
-                        "full_name",
-                        contact_individual.full_name,
-                        "phone",
-                        "number",
-                        phone,
-                        "HAS_PHONE",
-                    )
+                    self.create_relationship(contact_individual, phone_obj, "HAS_PHONE")
 
         # Process physical address
         address = self.__extract_physical_address(contact)
@@ -433,23 +372,10 @@ class IndividualToDomainsTransform(Transform):
                 processed_addresses.add(address_id)
 
                 # Create address node
-                self.create_node(
-                    "location",
-                    "address",
-                    address.address,
-                    address=address,
-                )
+                self.create_node(address)
 
                 # Create relationship between individual and address
-                self.create_relationship(
-                    "individual",
-                    "full_name",
-                    contact_individual.full_name,
-                    "location",
-                    "address",
-                    address.address,
-                    "LIVES_AT",
-                )
+                self.create_relationship(contact_individual, address, "LIVES_AT")
 
 
 # Make types available at module level for easy access

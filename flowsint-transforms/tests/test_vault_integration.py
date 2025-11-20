@@ -227,44 +227,37 @@ class TestMissingRequiredVaultSecret:
     """Tests for error handling when required vault secrets are missing."""
 
     @pytest.mark.asyncio
-    async def test_missing_required_secret_logs_error(self, mock_vault, sketch_id):
-        """Test that missing required secret logs an error message."""
+    async def test_missing_required_secret_raises_exception(self, mock_vault, sketch_id):
+        """Test that missing required secret raises an exception."""
         # Vault returns None (secret not found)
         mock_vault.get_secret.return_value = None
 
-        from unittest.mock import patch
+        transform = DomainToHistoryTransform(
+            sketch_id=sketch_id, scan_id="scan_123", vault=mock_vault, params={}
+        )
 
-        with patch("flowsint_core.core.transform_base.Logger") as mock_logger:
-            transform = DomainToHistoryTransform(
-                sketch_id=sketch_id, scan_id="scan_123", vault=mock_vault, params={}
-            )
-
+        # async_init should raise an exception when required secret is missing
+        with pytest.raises(Exception) as exc_info:
             await transform.async_init()
 
-            # Verify error was logged
-            assert mock_logger.error.called
-            error_message = mock_logger.error.call_args[0][1]["message"]
-            assert "WHOXY_API_KEY" in error_message
-            assert "missing" in error_message.lower()
-            assert "Vault settings" in error_message
+        # Verify the exception message contains the secret name
+        assert "WHOXY_API_KEY" in str(exc_info.value)
+        assert "missing" in str(exc_info.value).lower()
+        assert "Vault settings" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_transform_can_still_run_with_fallback(self, mock_vault, sketch_id):
-        """Test that transform can use environment variable fallback if vault fails."""
-        import os
-        from unittest.mock import patch
+    async def test_transform_with_provided_secret_succeeds(self, mock_vault, sketch_id):
+        """Test that transform succeeds when required secret is provided."""
+        # Vault returns the secret
+        api_key = "whoxy-api-key-12345"
+        mock_vault.get_secret.return_value = api_key
 
-        # Vault returns None
-        mock_vault.get_secret.return_value = None
+        transform = DomainToHistoryTransform(
+            sketch_id=sketch_id, scan_id="scan_123", vault=mock_vault, params={}
+        )
 
-        # Mock environment variable
-        with patch.dict(os.environ, {"WHOXY_API_KEY": "fallback-key"}):
-            transform = DomainToHistoryTransform(
-                sketch_id=sketch_id, scan_id="scan_123", vault=mock_vault, params={}
-            )
+        # async_init should succeed
+        await transform.async_init()
 
-            await transform.async_init()
-
-            # Should be able to get the fallback value
-            api_key = transform.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
-            assert api_key == "fallback-key"
+        # Secret should be accessible
+        assert transform.get_secret("WHOXY_API_KEY") == api_key

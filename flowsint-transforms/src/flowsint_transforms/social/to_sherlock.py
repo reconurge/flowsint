@@ -11,8 +11,8 @@ class SherlockTransform(Transform):
     """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Username]
-    OutputType = List[SocialAccount]
+    InputType = Username
+    OutputType = SocialAccount
 
     @classmethod
     def name(cls) -> str:
@@ -26,28 +26,9 @@ class SherlockTransform(Transform):
     def key(cls) -> str:
         return "username"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            obj = None
-            if isinstance(item, str):
-                obj = Username(value=item)
-            elif isinstance(item, dict) and "username" in item:
-                obj = Username(value=item["username"])
-            elif isinstance(item, dict) and "value" in item:
-                obj = Username(value=item["value"])
-            elif isinstance(item, SocialAccount):
-                obj = Username(value=item.username.value)
-                obj = item.username.value
-            elif isinstance(item, Username):
-                obj = item
-            if obj and obj.value and is_valid_username(obj.value):
-                cleaned.append(obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Performs the scan using Sherlock on the list of usernames."""
-        results: OutputType = []
+        results: List[OutputType] = []
 
         for username in data:
             output_file = Path(f"/tmp/sherlock_{username.value}.txt")
@@ -89,7 +70,7 @@ class SherlockTransform(Transform):
                 # Create Social objects for each found account
                 for platform, url in found_accounts.items():
                     results.append(
-                        SocialAccount(username=username, platform=platform, url=url)
+                        SocialAccount(username=username, platform=platform, profile_url=url)
                     )
 
             except subprocess.TimeoutExpired:
@@ -107,21 +88,13 @@ class SherlockTransform(Transform):
 
         return results
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j relationships for found social accounts."""
         if not self.neo4j_conn:
             return results
 
         for social_account in results:
-            self.create_node(
-                "social",
-                "username",
-                social_account.username.value,
-                platform=social_account.platform,
-                url=social_account.url,
-                caption=social_account.platform,
-                type="social",
-            )
+            self.create_node(social_account)
             self.log_graph_message(
                 f"Found social account: {social_account.username.value} on {social_account.platform}"
             )

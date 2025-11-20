@@ -20,8 +20,8 @@ class CryptoWalletAddressToTransactions(Transform):
     """[ETHERSCAN] Resolve transactions for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[CryptoWallet]
-    OutputType = List[CryptoWalletTransaction]
+    InputType = CryptoWallet
+    OutputType = CryptoWalletTransaction
 
     def __init__(
         self,
@@ -79,22 +79,8 @@ class CryptoWalletAddressToTransactions(Transform):
     def key(cls) -> str:
         return "address"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            wallet_obj = None
-            if isinstance(item, str):
-                wallet_obj = CryptoWallet(address=item)
-            elif isinstance(item, dict) and "address" in item:
-                wallet_obj = CryptoWallet(address=item["address"])
-            elif isinstance(item, CryptoWallet):
-                wallet_obj = item
-            if wallet_obj:
-                cleaned.append(wallet_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
         api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
         for d in data:
@@ -187,28 +173,15 @@ class CryptoWalletAddressToTransactions(Transform):
             )
         return transactions
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 
         for transactions in results:
             for tx in transactions:
                 # Create or update both wallet nodes
-                self.create_node(
-                    "cryptowallet",
-                    "wallet",
-                    tx.source.address,
-                    caption=tx.source.address,
-                    type="cryptowallet",
-                )
-                self.create_node(
-                    "cryptowallet",
-                    "wallet",
-                    tx.target.address,
-                    caption=tx.target.address,
-                    type="cryptowallet",
-                )
-
+                self.create_node(tx.source)
+                self.create_node(tx.target.address)
                 # Create transaction as an edge between wallets (keeping complex query for transaction properties)
                 tx_query = """
                 MATCH (source:cryptowallet {wallet: $source})

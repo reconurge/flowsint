@@ -1,8 +1,10 @@
-from typing import List, Dict, Optional
-from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Self
+from pydantic import Field, model_validator
+
+from .flowsint_base import FlowsintType
 
 
-class Leak(BaseModel):
+class Leak(FlowsintType):
     """Represents a data leak or breach with associated data."""
 
     name: str = Field(
@@ -11,3 +13,8 @@ class Leak(BaseModel):
     leak: Optional[List[Dict]] = Field(
         None, description="List of data leaks found", title="Leak Data"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.name
+        return self

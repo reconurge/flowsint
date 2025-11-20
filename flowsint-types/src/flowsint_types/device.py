@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Device(BaseModel):
+class Device(FlowsintType):
     """Represents a device with hardware, software, and network information."""
 
     device_id: str = Field(
@@ -63,3 +65,15 @@ class Device(BaseModel):
     source: Optional[str] = Field(
         None, description="Source of device information", title="Source"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = []
+        if self.manufacturer:
+            parts.append(self.manufacturer)
+        if self.model:
+            parts.append(self.model)
+        if not parts:
+            parts.append(self.device_id)
+        self.label = " ".join(parts)
+        return self

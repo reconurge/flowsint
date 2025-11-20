@@ -1,8 +1,9 @@
-from typing import List, Optional, Dict
-from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Self
+from pydantic import Field, model_validator
+from .flowsint_base import FlowsintType
 
 
-class Breach(BaseModel):
+class Breach(FlowsintType):
     """Represents a data breach incident with affected accounts and details."""
 
     name: str = Field(
@@ -66,3 +67,12 @@ class Breach(BaseModel):
         description="Full breach data as returned by the API",
         title="Full Breach Data",
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        # Use title if available, otherwise name
+        if self.title:
+            self.label = self.title
+        else:
+            self.label = self.name
+        return self

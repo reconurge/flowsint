@@ -14,8 +14,8 @@ class CryptoWalletAddressToNFTs(Transform):
     """[ETHERSCAN] Resolve NFTs for a wallet address (ETH)."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[CryptoWallet]
-    OutputType = List[CryptoNFT]
+    InputType = CryptoWallet
+    OutputType = CryptoNFT
 
     def __init__(
         self,
@@ -73,24 +73,12 @@ class CryptoWalletAddressToNFTs(Transform):
     def key(cls) -> str:
         return "address"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            wallet_obj = None
-            if isinstance(item, str):
-                wallet_obj = CryptoWallet(address=item)
-            elif isinstance(item, dict) and "address" in item:
-                wallet_obj = CryptoWallet(address=item["address"])
-            elif isinstance(item, CryptoWallet):
-                wallet_obj = item
-            if wallet_obj:
-                cleaned.append(wallet_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
-        api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
+        api_url = self.get_params().get(
+            "ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api"
+        )
         for d in data:
             try:
                 nfts = self._get_nfts(d.address, api_key, api_url)
@@ -130,47 +118,29 @@ class CryptoWalletAddressToNFTs(Transform):
             )
         return nfts
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         if not self.neo4j_conn:
             return results
 
         for nfts in results:
             for nft in nfts:
                 # Create or update wallet node
-                self.create_node(
-                    "cryptowallet",
-                    "wallet",
-                    nft.wallet.address,
-                    caption=nft.wallet.address,
-                    type="cryptowallet",
-                )
-
+                self.create_node(nft.wallet)
                 # Create or update NFT node
                 nft_key = f"{nft.contract_address}_{nft.token_id}"
-                self.create_node(
-                    "nft",
-                    "nft_id",
-                    nft_key,
+                self.create_node(nft)
+                # Create relationship from wallet to NFT
+                wallet_obj = CryptoWallet(address=nft.wallet.address)
+                nft_obj = CryptoNFT(
+                    wallet=wallet_obj,
                     contract_address=nft.contract_address,
                     token_id=nft.token_id,
                     collection_name=nft.collection_name,
                     metadata_url=nft.metadata_url,
                     image_url=nft.image_url,
                     name=nft.name,
-                    caption=nft.name,
-                    type="nft",
                 )
-
-                # Create relationship from wallet to NFT
-                self.create_relationship(
-                    "cryptowallet",
-                    "wallet",
-                    nft.wallet.address,
-                    "nft",
-                    "nft_id",
-                    nft_key,
-                    "OWNS",
-                )
+                self.create_relationship(wallet_obj, nft_obj, "OWNS")
                 self.log_graph_message(
                     f"Found NFT for {nft.wallet.address}: {nft.contract_address} - {nft.token_id}"
                 )

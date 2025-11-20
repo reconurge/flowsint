@@ -113,7 +113,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
       {data &&
         Object.entries(data)
           .filter(
-            ([key]) => !['sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y'].includes(key)
+            ([key]) => !['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y'].includes(key)
           )
           .map(([key, value], index) => {
             let val: string | null = null

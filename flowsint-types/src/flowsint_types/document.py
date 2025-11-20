@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import Field, model_validator
+from typing import Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Document(BaseModel):
+class Document(FlowsintType):
     """Represents a document with metadata, security, and content information."""
 
     title: str = Field(..., description="Document title", title="Title")
@@ -56,3 +58,8 @@ class Document(BaseModel):
     source: Optional[str] = Field(
         None, description="Source of document information", title="Source"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        self.label = self.title
+        return self

@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Literal, Optional, List
+from pydantic import Field, model_validator
+from typing import Literal, Optional, List, Self
+
+from .flowsint_base import FlowsintType
 
 
-class Weapon(BaseModel):
+class Weapon(FlowsintType):
     """Represents a weapon with detailed specifications and forensic information."""
 
     name: str = Field(..., description="Weapon name or identifier", title="Name")
@@ -112,3 +114,11 @@ class Weapon(BaseModel):
     notes: Optional[str] = Field(
         None, description="Additional notes or observations", title="Notes"
     )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        parts = [self.name]
+        if self.type:
+            parts.append(f"({self.type})")
+        self.label = " ".join(parts)
+        return self

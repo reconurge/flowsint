@@ -15,8 +15,8 @@ class DomainToAsnTransform(Transform):
     """[ASNMAP] Takes a domain and returns its corresponding ASN."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[Domain]
-    OutputType = List[ASN]
+    InputType = Domain
+    OutputType = ASN
 
     def __init__(
         self,
@@ -63,24 +63,8 @@ class DomainToAsnTransform(Transform):
     def key(cls) -> str:
         return "domain"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            domain_obj = None
-            if isinstance(item, str):
-                if is_valid_domain(item):
-                    domain_obj = Domain(domain=item)
-            elif isinstance(item, dict) and "domain" in item:
-                if is_valid_domain(item["domain"]):
-                    domain_obj = Domain(domain=item["domain"])
-            elif isinstance(item, Domain):
-                domain_obj = item
-            if domain_obj:
-                cleaned.append(domain_obj)
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
-        results: OutputType = []
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -129,41 +113,18 @@ class DomainToAsnTransform(Transform):
         return results
 
     def postprocess(
-        self, results: OutputType, input_data: InputType = None
-    ) -> OutputType:
+        self, results: List[OutputType], input_data: List[InputType] = None
+    ) -> List[OutputType]:
         # Create Neo4j relationships between domains and their corresponding ASNs
         if input_data and self.neo4j_conn:
             for domain, asn in zip(input_data, results):
                 # Create domain node
-                self.create_node(
-                    "domain",
-                    "domain",
-                    domain.domain,
-                    label=domain.domain,
-                    caption=domain.domain,
-                    type="domain",
-                )
-
+                self.create_node(domain)
                 # Create ASN node
-                self.create_node(
-                    "asn",
-                    "number",
-                    asn.number,
-                    label=f"AS{asn.number}",
-                    caption=f"AS{asn.number}",
-                    type="asn",
-                )
+                self.create_node(asn)
 
                 # Create relationship
-                self.create_relationship(
-                    "domain",
-                    "domain",
-                    domain.domain,
-                    "asn",
-                    "number",
-                    asn.number,
-                    "HOSTED_IN",
-                )
+                self.create_relationship(domain, asn, "HOSTED_IN")
 
                 self.log_graph_message(
                     f"Domain {domain.domain} is hosted in AS{asn.number} ({asn.name})"

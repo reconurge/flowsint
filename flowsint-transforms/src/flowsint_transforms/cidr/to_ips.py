@@ -12,8 +12,8 @@ class CidrToIpsTransform(Transform):
     """[MAPCIDR] Takes a CIDR and returns its corresponding IP addresses."""
 
     # Define types as class attributes - base class handles schema generation automatically
-    InputType = List[CIDR]
-    OutputType = List[Ip]
+    InputType = CIDR
+    OutputType = Ip
 
     def __init__(
         self,
@@ -60,27 +60,9 @@ class CidrToIpsTransform(Transform):
     def category(cls) -> str:
         return "Cidr"
 
-    def preprocess(self, data: Union[List[str], List[dict], InputType]) -> InputType:
-        cleaned: InputType = []
-        for item in data:
-            cidr_obj = None
-            try:
-                if isinstance(item, str):
-                    cidr_obj = CIDR(network=item)
-                elif isinstance(item, dict) and "network" in item:
-                    cidr_obj = CIDR(network=item["network"])
-                elif isinstance(item, CIDR):
-                    cidr_obj = item
-                if cidr_obj:
-                    cleaned.append(cidr_obj)
-            except ValueError:
-                Logger.warn(self.sketch_id, {"message": f"Invalid CIDR format: {item}"})
-                continue
-        return cleaned
-
-    async def scan(self, data: InputType) -> OutputType:
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
         """Find IP addresses from CIDR using mapcidr."""
-        ips: OutputType = []
+        ips: List[OutputType] = []
         self._cidr_to_ips_map = []  # Store mapping for postprocess
         mapcidr = MapcidrTool()
 
@@ -129,7 +111,7 @@ class CidrToIpsTransform(Transform):
 
         return ips
 
-    def postprocess(self, results: OutputType, original_input: InputType) -> OutputType:
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between CIDRs and their corresponding IPs
         # Use the mapping from scan if available, else fallback to zip
         cidr_to_ips = getattr(self, "_cidr_to_ips_map", None)
@@ -141,69 +123,25 @@ class CidrToIpsTransform(Transform):
                 for ip in ip_list:
                     if self.neo4j_conn:
                         # Create CIDR node
-                        self.create_node(
-                            "cidr",
-                            "network",
-                            str(cidr.network),
-                            label=str(cidr.network),
-                            caption=str(cidr.network),
-                            type="cidr",
-                        )
+                        self.create_node(cidr)
 
                         # Create IP node
-                        self.create_node(
-                            "ip",
-                            "address",
-                            ip.address,
-                            label=ip.address,
-                            caption=ip.address,
-                            type="ip",
-                        )
+                        self.create_node(ip)
 
                         # Create relationship
-                        self.create_relationship(
-                            "cidr",
-                            "network",
-                            str(cidr.network),
-                            "ip",
-                            "address",
-                            ip.address,
-                            "CONTAINS",
-                        )
+                        self.create_relationship(cidr, ip, "CONTAINS")
         else:
             # Fallback: original behavior (one-to-one zip)
             for cidr, ip in zip(original_input, results):
                 if self.neo4j_conn:
                     # Create CIDR node
-                    self.create_node(
-                        "cidr",
-                        "network",
-                        str(cidr.network),
-                        label=str(cidr.network),
-                        caption=str(cidr.network),
-                        type="cidr",
-                    )
-
+                    self.create_node(cidr)
                     # Create IP node
-                    self.create_node(
-                        "ip",
-                        "address",
-                        ip.address,
-                        label=ip.address,
-                        caption=ip.address,
-                        type="ip",
-                    )
-
+                    self.create_node(ip)
                     # Create relationship
-                    self.create_relationship(
-                        "cidr",
-                        "network",
-                        str(cidr.network),
-                        "ip",
-                        "address",
-                        ip.address,
-                        "CONTAINS",
-                    )
+                    cidr_obj = CIDR(network=str(cidr.network))
+                    ip_obj = Ip(address=ip.address)
+                    self.create_relationship(cidr_obj, ip_obj, "CONTAINS")
 
                     self.log_graph_message(
                         f"CIDR {cidr.network} contains IP {ip.address}"

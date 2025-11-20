@@ -112,17 +112,13 @@ class OrgToAsnTransform(Transform):
             # Skip if no valid ASN was found
             if result_asn.number == 0:
                 continue
-
             if self.neo4j_conn:
                 # Create organization node
                 self.create_node(input_org)
-
                 # Create ASN node
                 self.create_node(result_asn)
-
                 # Create relationship
                 self.create_relationship(input_org, result_asn, "BELONGS_TO")
-
                 self.log_graph_message(
                     f"Found for {input_org.name} -> ASN {result_asn.number}"
                 )

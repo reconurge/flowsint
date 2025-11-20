@@ -1,6 +1,8 @@
 from typing import List, Dict, Any, Union
 from flowsint_core.core.transform_base import Transform
 from flowsint_types.organization import Organization
+from flowsint_types.address import Location
+from flowsint_types.individual import Individual
 from flowsint_core.core.logger import Logger
 from tools.organizations.sirene import SireneTool
 
@@ -50,8 +52,6 @@ class OrgToInfosTransform(Transform):
             # Create Location for siege_geo_adresse if coordinates exist
             siege_geo_adresse = None
             if siege.get("latitude") and siege.get("longitude"):
-                from flowsint_types.address import Location
-
                 siege_geo_adresse = Location(
                     address=siege.get("adresse", ""),
                     city=siege.get("libelle_commune", ""),
@@ -64,8 +64,6 @@ class OrgToInfosTransform(Transform):
             # Extract dirigeants and convert to Individual objects
             dirigeants = []
             for dirigeant_data in company.get("dirigeants", []):
-                from flowsint_types.individual import Individual
-
                 dirigeant = Individual(
                     first_name=dirigeant_data.get("prenoms", ""),
                     last_name=dirigeant_data.get("nom", ""),
@@ -251,58 +249,31 @@ class OrgToInfosTransform(Transform):
             return results
 
         for org in results:
-            # Create or update the organization node with all SIRENE properties
-            org_key = f"{org.name}_FR"
+            # Create or update the organization node (nested objects are automatically skipped)
             self.create_node(org)
 
             if org.siren:
-                self.log_graph_message(f"{org.name}: SIREN {org.siren} -> {org.name}")
+                self.log_graph_message(f"{org.name}: SIREN {org.siren}")
 
-            # Add SIRET as identifier if available
             if org.siege_siret:
-                self.log_graph_message(
-                    f"{org.name}: SIRET {org.siege_siret} -> {org.name}"
-                )
+                self.log_graph_message(f"{org.name}: SIRET {org.siege_siret}")
 
             # Add dirigeants (leaders) as Individual nodes with relationships
             if org.dirigeants:
                 for dirigeant in org.dirigeants:
                     self.create_node(dirigeant)
-
                     self.create_relationship(org, dirigeant, "HAS_LEADER")
-                    self.log_graph_message(
-                        f"{org.name}: HAS_LEADER -> {dirigeant.full_name}"
-                    )
+                    self.log_graph_message(f"{org.name}: HAS_LEADER -> {dirigeant.full_name}")
 
             # Add siege address as Location node if available
             if org.siege_geo_adresse:
-                address = org.siege_geo_adresse
-                address_key = f"{address.address}_{address.city}_{address.country}"
-                self.create_node(address)
-
-                self.create_relationship(org, address, "HAS_ADDRESS")
+                self.create_node(org.siege_geo_adresse)
+                self.create_relationship(org, org.siege_geo_adresse, "HAS_ADDRESS")
                 self.log_graph_message(
-                    f"{org.name}: HAS_ADDRESS -> {address.address}, {address.city}"
+                    f"{org.name}: HAS_ADDRESS -> {org.siege_geo_adresse.address}, {org.siege_geo_adresse.city}"
                 )
-
             # Add siege location as Location node if coordinates are available but no location
             elif org.siege_latitude and org.siege_longitude:
-                location_key = f"{org.siege_latitude}_{org.siege_longitude}"
-                self.create_node(
-                    "location",
-                    "location_id",
-                    location_key,
-                    latitude=float(org.siege_latitude),
-                    longitude=float(org.siege_longitude),
-                    address=org.siege_adresse,
-                    city=org.siege_libelle_commune,
-                    country="FR",
-                    zip=org.siege_code_postal,
-                    label=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    caption=f"{org.siege_adresse or 'Unknown'}, {org.siege_libelle_commune or 'Unknown'}",
-                    type="location",
-                )
-
                 location_obj = Location(
                     latitude=float(org.siege_latitude),
                     longitude=float(org.siege_longitude),
@@ -311,22 +282,19 @@ class OrgToInfosTransform(Transform):
                     country="FR",
                     zip=org.siege_code_postal,
                 )
+                self.create_node(location_obj)
                 self.create_relationship(org, location_obj, "LOCATED_AT")
                 self.log_graph_message(
                     f"{org.name}: LOCATED_AT -> {org.siege_libelle_commune or 'Unknown'}"
                 )
 
-            # Add activity codes as Activity nodes
+            # Log activity codes
             if org.activite_principale:
-                self.log_graph_message(
-                    f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}"
-                )
+                self.log_graph_message(f"{org.name}: HAS_ACTIVITY -> {org.activite_principale}")
 
-            # Add legal nature as LegalNature node
+            # Log legal nature
             if org.nature_juridique:
-                self.log_graph_message(
-                    f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}"
-                )
+                self.log_graph_message(f"{org.name}: HAS_LEGAL_NATURE -> {org.nature_juridique}")
 
         return results
 

@@ -6,13 +6,15 @@ Architecture:
 - Immediate event emission: Real-time display in UI
 - Batched database insertion: Performance optimization
 - SOLID principles: Dependency injection via protocols
+- Ordering: Monotonic sequence number + application timestamp
 """
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Optional, Tuple
 from uuid import UUID
 import threading
 import time
 import atexit
 from queue import Queue
+from datetime import datetime, timezone
 from .enums import EventLevel
 from .models import Log
 from .postgre_db import get_db
@@ -70,8 +72,12 @@ class LoggerSingleton:
         self._batch_size = batch_size
         self._flush_interval = flush_interval
 
-        # Queue for batch insertion
+        # Queue for batch insertion (contains: sequence, timestamp, sketch_id, level, content)
         self._log_queue: Queue = Queue()
+
+        # Monotonic sequence counter for ordering (thread-safe with lock)
+        self._sequence_counter = 0
+        self._sequence_lock = threading.Lock()
 
         # Worker thread for batch processing
         self._worker_thread: Optional[threading.Thread] = None
@@ -82,6 +88,12 @@ class LoggerSingleton:
 
         if auto_start:
             self.start()
+
+    def _get_next_sequence(self) -> int:
+        """Get the next sequence number in a thread-safe manner."""
+        with self._sequence_lock:
+            self._sequence_counter += 1
+            return self._sequence_counter
 
     def start(self) -> None:
         """Start the batch worker thread."""
@@ -130,6 +142,9 @@ class LoggerSingleton:
         if not logs_to_insert:
             return
 
+        # Sort logs by sequence number to maintain order
+        logs_to_insert.sort(key=lambda x: x[0])  # x[0] is the sequence number
+
         # Batch insert to database
         try:
             db = next(get_db())
@@ -141,11 +156,12 @@ class LoggerSingleton:
 
         try:
             log_objects = []
-            for sketch_id, level, content in logs_to_insert:
+            for sequence, timestamp, sketch_id, level, content in logs_to_insert:
                 log = Log(
                     sketch_id=str(sketch_id),
                     type=level.value,
-                    content=content
+                    content=content,
+                    created_at=timestamp  # Use application-side timestamp
                 )
                 log_objects.append(log)
 
@@ -199,14 +215,19 @@ class LoggerSingleton:
         Internal logging method.
 
         Process:
-        1. Emit event immediately (real-time UI)
-        2. Queue for batch insertion (performance)
+        1. Capture timestamp and sequence number immediately
+        2. Emit event immediately (real-time UI)
+        3. Queue for batch insertion with ordering info (performance)
 
         Args:
             sketch_id: Sketch ID for log routing
             level: Log level
             content: Log content/message
         """
+        # Capture timestamp and sequence at the time of logging (not insertion)
+        sequence = self._get_next_sequence()
+        timestamp = datetime.now(timezone.utc)
+
         # Generate a temporary ID for immediate event emission
         import uuid
         temp_log_id = str(uuid.uuid4())
@@ -214,8 +235,9 @@ class LoggerSingleton:
         # 1. IMMEDIATE: Emit event for real-time display
         self._emit_event(temp_log_id, str(sketch_id), level, content)
 
-        # 2. BATCHED: Queue for database insertion
-        self._log_queue.put((str(sketch_id), level, content))
+        # 2. BATCHED: Queue for database insertion with ordering info
+        # Format: (sequence, timestamp, sketch_id, level, content)
+        self._log_queue.put((sequence, timestamp, str(sketch_id), level, content))
 
         # 3. Check if we should flush immediately (batch size reached)
         if self._log_queue.qsize() >= self._batch_size:

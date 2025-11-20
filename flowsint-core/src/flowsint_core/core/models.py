@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from flowsint_core.core.types import Role
 from sqlalchemy import (
     String,
@@ -73,7 +73,12 @@ class Log(Base):
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     content = mapped_column(JSONB, nullable=True)
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Allow both server-side default and application-side timestamp
+    created_at = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now()
+    )
     sketch_id = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),

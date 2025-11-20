@@ -70,7 +70,7 @@ class SherlockTransform(Transform):
                 # Create Social objects for each found account
                 for platform, url in found_accounts.items():
                     results.append(
-                        SocialAccount(username=username, platform=platform, url=url)
+                        SocialAccount(username=username, platform=platform, profile_url=url)
                     )
 
             except subprocess.TimeoutExpired:

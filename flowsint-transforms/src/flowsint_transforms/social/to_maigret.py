@@ -45,7 +45,7 @@ class MaigretTransform(Transform):
             )
         return output_file
 
-    def parse_maigret_output(self, username: str, output_file: Path) -> List[Username]:
+    def parse_maigret_output(self, username_obj: Username, output_file: Path) -> List[SocialAccount]:
         results: List[SocialAccount] = []
         if not output_file.exists():
             return results
@@ -56,7 +56,7 @@ class MaigretTransform(Transform):
         except Exception as e:
             Logger.error(
                 self.sketch_id,
-                {"message": f"Failed to load output file for {username}: {e}"},
+                {"message": f"Failed to load output file for {username_obj.value}: {e}"},
             )
             return results
 
@@ -93,18 +93,25 @@ class MaigretTransform(Transform):
             except ValueError:
                 followers = following = posts = None
 
-            results.append(
-                SocialAccount(
-                    username=Username(value=username),
-                    profile_url=profile_url,
-                    platform=platform,
-                    profile_picture_url=ids.get("image"),
-                    bio=None,
-                    followers_count=followers,
-                    following_count=following,
-                    posts_count=posts,
+            try:
+                results.append(
+                    SocialAccount(
+                        username=username_obj,
+                        profile_url=profile_url,
+                        platform=platform,
+                        profile_picture_url=ids.get("image"),
+                        bio=None,
+                        followers_count=followers,
+                        following_count=following,
+                        posts_count=posts,
+                    )
                 )
-            )
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Failed to create SocialAccount for {username_obj.value} on {platform}: {e}"},
+                )
+                continue
 
         return results
 
@@ -113,9 +120,16 @@ class MaigretTransform(Transform):
         for profile in data:
             if not profile.value:
                 continue
-            output_file = self.run_maigret(profile.value)
-            parsed = self.parse_maigret_output(profile.value, output_file)
-            results.extend(parsed)
+            try:
+                output_file = self.run_maigret(profile.value)
+                parsed = self.parse_maigret_output(profile, output_file)
+                results.extend(parsed)
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Failed to process username {profile.value}: {e}"},
+                )
+                continue
         return results
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
@@ -123,16 +137,22 @@ class MaigretTransform(Transform):
             return results
 
         for profile in results:
-            # Create social profile node
-            self.create_node(profile.username)
-            self.create_node(profile)
-            # Create username node
-
-            # Create relationship
-            self.create_relationship(profile.username, profile, "HAS_SOCIAL_ACCOUNT")
-            self.log_graph_message(
-                f"{profile.username.value} -> account found on {profile.platform}"
-            )
+            try:
+                # Create username node
+                self.create_node(profile.username)
+                # Create social profile node
+                self.create_node(profile)
+                # Create relationship
+                self.create_relationship(profile.username, profile, "HAS_SOCIAL_ACCOUNT")
+                self.log_graph_message(
+                    f"{profile.username.value} -> account found on {profile.platform}"
+                )
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {"message": f"Failed to create graph nodes for {profile.username.value} on {profile.platform}: {e}"},
+                )
+                continue
         return results
 
 

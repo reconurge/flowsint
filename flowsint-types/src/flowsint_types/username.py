@@ -7,7 +7,12 @@ from .flowsint_base import FlowsintType
 class Username(FlowsintType):
     """Represents a username or handle on any platform."""
 
-    value: str = Field(..., description="Username or handle string", title="Username value")
+    value: str = Field(
+        ...,
+        description="Username or handle string",
+        title="Username value",
+        json_schema_extra={"primary": True}
+    )
     platform: Optional[str] = Field(None, description="Platform name, e.g., 'twitter'", title="Username platform")
     last_seen: Optional[str] = Field(
         None, description="Last time this username was observed", title="Last seen at"
@@ -32,8 +37,5 @@ class Username(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        if self.platform:
-            self.label = f"@{self.value} ({self.platform})"
-        else:
-            self.label = f"@{self.value}"
+        self.label = f"{self.value}"
         return self

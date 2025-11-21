@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flowsint-types"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pydantic models for flowsint"
 license = "AGPL-3.0-or-later"
 authors = ["dextmorgn <contact@flowsint.io>"]
@@ -9,6 +9,8 @@ packages = [{ include = "flowsint_types", from = "src" }]
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 pydantic = "^2.0"
+email-validator = "^2.0"
+phonenumbers = "^9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"

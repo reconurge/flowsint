@@ -232,8 +232,10 @@ type GraphGeneralSettingsStore = {
   // UI State
   settingsModalOpen: boolean
   setSettingsModalOpen: (open: boolean) => void
+  toggleSettingsModal: () => void
   keyboardShortcutsOpen: boolean
   setKeyboardShortcutsOpen: (open: boolean) => void
+  toggleKeyboardShortcutsModal: () => void
   importModalOpen: boolean
   setImportModalOpen: (open: boolean) => void
 
@@ -369,6 +371,8 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
       setKeyboardShortcutsOpen: (open) => set({ keyboardShortcutsOpen: open }),
       setImportModalOpen: (open) => set({ importModalOpen: open }),
+      toggleSettingsModal: () => set({ settingsModalOpen: !get().settingsModalOpen }),
+      toggleKeyboardShortcutsModal: () => set({ keyboardShortcutsOpen: !get().keyboardShortcutsOpen }),
 
       // Helper methods
       getSettingValue: (category: string, key: string) => {

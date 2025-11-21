@@ -79,8 +79,8 @@ export const TopNavbar = memo(() => {
 })
 
 export function InvestigationMenu({ investigationId, sketchId }: { investigationId?: string, sketchId: string }) {
-  const setSettingsModalOpen = useGraphSettingsStore((s) => s.setSettingsModalOpen)
-  const setKeyboardShortcutsOpen = useGraphSettingsStore((s) => s.setKeyboardShortcutsOpen)
+  const toggleSettingsModal = useGraphSettingsStore((s) => s.toggleSettingsModal)
+  const toggleKeyboardShortcutsModal = useGraphSettingsStore((s) => s.toggleKeyboardShortcutsModal)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
   const navigate = useNavigate()
   const { confirm } = useConfirm()
@@ -88,13 +88,13 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
   useKeyboardShortcut({
     key: 'g',
     ctrlOrCmd: true,
-    callback: () => setSettingsModalOpen(true)
+    callback: toggleSettingsModal
   })
 
   useKeyboardShortcut({
     key: 'k',
     ctrlOrCmd: true,
-    callback: () => setKeyboardShortcutsOpen(true)
+    callback: toggleKeyboardShortcutsModal
   })
 
   // Delete sketch mutation

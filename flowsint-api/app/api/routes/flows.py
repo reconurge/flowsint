@@ -6,6 +6,7 @@ from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
 from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
+from flowsint_core.core.graph_repository import GraphRepository
 from flowsint_types import (
     Domain,
     Phrase,
@@ -15,6 +16,7 @@ from flowsint_types import (
     Email,
     Phone,
     Username,
+    clean_neo4j_node_data,
 )
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
@@ -52,7 +54,7 @@ class StepSimulationRequest(BaseModel):
 
 
 class launchFlowPayload(BaseModel):
-    values: List[str]
+    node_ids: List[str]
     sketch_id: str
 
 
@@ -242,24 +244,44 @@ async def launch_flow(
         flow = db.query(Flow).filter(Flow.id == flow_id).first()
         if flow is None:
             raise HTTPException(status_code=404, detail="flow not found")
+
+        # Retrieve nodes from Neo4J by their element IDs
+        graph_repo = GraphRepository()
+        nodes_data = graph_repo.get_nodes_by_ids(payload.node_ids, payload.sketch_id)
+
+        if not nodes_data:
+            raise HTTPException(status_code=404, detail="No nodes found with provided IDs")
+
+        # Clean Neo4J-specific fields from node data
+        # The transform's preprocess() will handle Pydantic validation
+        cleaned_nodes = [clean_neo4j_node_data(node_data) for node_data in nodes_data]
+
+        # Compute flow branches
         nodes = [Node(**node) for node in flow.flow_schema["nodes"]]
         edges = [Edge(**edge) for edge in flow.flow_schema["edges"]]
-        flow_branches = compute_flow_branches(payload.values, nodes, edges)
+
+        # For flow computation, we still need a sample value
+        # Use the label from the first node data
+        sample_value = nodes_data[0].get('label', 'sample_value') if nodes_data else 'sample_value'
+        flow_branches = compute_flow_branches(sample_value, nodes, edges)
         serializable_branches = [branch.model_dump() for branch in flow_branches]
+
         task = celery.send_task(
             "run_flow",
             args=[
                 serializable_branches,
-                payload.values,
+                cleaned_nodes,
                 payload.sketch_id,
                 str(current_user.id),
             ],
         )
         return {"id": task.id}
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=404, detail="flow not found")
+        raise HTTPException(status_code=500, detail=f"Error launching flow: {str(e)}")
 
 
 @router.post("/{flow_id}/compute", response_model=FlowComputationResponse)

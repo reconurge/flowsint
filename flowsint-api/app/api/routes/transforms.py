@@ -5,6 +5,8 @@ from flowsint_core.core.registry import TransformRegistry
 from flowsint_core.core.celery import celery
 from flowsint_core.core.types import Node, Edge, FlowBranch
 from flowsint_core.core.models import CustomType, Profile
+from flowsint_core.core.graph_repository import GraphRepository
+from flowsint_types import clean_neo4j_node_data
 from app.api.deps import get_current_user
 from flowsint_core.core.postgre_db import get_db
 from sqlalchemy.orm import Session
@@ -28,7 +30,7 @@ class StepSimulationRequest(BaseModel):
 
 
 class launchTransformPayload(BaseModel):
-    values: List[str]
+    node_ids: List[str]
     sketch_id: str
 
 
@@ -68,17 +70,30 @@ async def launch_transform(
     current_user: Profile = Depends(get_current_user),
 ):
     try:
+        # Retrieve nodes from Neo4J by their element IDs
+        graph_repo = GraphRepository()
+        nodes_data = graph_repo.get_nodes_by_ids(payload.node_ids, payload.sketch_id)
+
+        if not nodes_data:
+            raise HTTPException(status_code=404, detail="No nodes found with provided IDs")
+
+        # Clean Neo4J-specific fields from node data
+        # The transform's preprocess() will handle Pydantic validation
+        cleaned_nodes = [clean_neo4j_node_data(node_data) for node_data in nodes_data]
+
         task = celery.send_task(
             "run_transform",
             args=[
                 transform_name,
-                payload.values,
+                cleaned_nodes,
                 payload.sketch_id,
                 str(current_user.id),
             ],
         )
         return {"id": task.id}
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=500, detail=f"Error launching transform: {str(e)}")

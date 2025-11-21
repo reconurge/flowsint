@@ -8,7 +8,7 @@ export function useLaunchTransform(askUser: boolean = false) {
   const openClonsole = useLayoutStore(s => s.openConsole)
 
   const launchTransform = async (
-    values: string[],
+    node_ids: string[],
     transformName: string,
     sketch_id: string | null | undefined
   ) => {
@@ -16,17 +16,16 @@ export function useLaunchTransform(askUser: boolean = false) {
     if (askUser) {
       const confirmed = await confirm({
         title: `${transformName} scan`,
-        message: `You're about to launch ${transformName} transform on ${values.length} items.`
+        message: `You're about to launch ${transformName} transform on ${node_ids.length} items.`
       })
       if (!confirmed) return
     }
-    const body = JSON.stringify({ values, sketch_id })
-    const sliced = values.slice(0, 2)
-    const left = values.length - sliced.length
+    const body = JSON.stringify({ node_ids, sketch_id })
+    const count = node_ids.length
     toast.promise(transformService.launch(transformName, body), {
       loading: 'Loading...',
       success: () =>
-        `Transform ${transformName} has been launched on ${sliced.join(', ')}${left > 0 ? ` and ${left} others` : ''}.`,
+        `Transform ${transformName} has been launched on ${count} node${count > 1 ? 's' : ''}.`,
       error: () => `An error occurred launching transform.`
     })
     openClonsole()

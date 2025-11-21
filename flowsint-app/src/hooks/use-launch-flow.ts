@@ -26,7 +26,7 @@ export function useLaunchFlow(askUser: boolean = false) {
   })
 
   const launchFlow = async (
-    values: string[],
+    node_ids: string[],
     flow_id: string,
     sketch_id: string | null | undefined
   ) => {
@@ -34,18 +34,17 @@ export function useLaunchFlow(askUser: boolean = false) {
     if (askUser) {
       const confirmed = await confirm({
         title: `${flow_id} scan`,
-        message: `You're about to launch ${flow_id} flow on ${values.length} items.`
+        message: `You're about to launch ${flow_id} flow on ${node_ids.length} items.`
       })
       if (!confirmed) return
     }
-    const body = JSON.stringify({ values, sketch_id })
-    const sliced = values.slice(0, 2)
-    const left = values.length - sliced.length
+    const body = JSON.stringify({ node_ids, sketch_id })
+    const count = node_ids.length
 
     toast.promise(launchFlowMutation.mutateAsync({ flowId: flow_id, body }), {
       loading: 'Loading...',
       success: () =>
-        `Flow ${flow_id} has been launched on "${sliced.join(',')}" ${left > 0 && ` and ${left} others`}.`,
+        `Flow ${flow_id} has been launched on ${count} node${count > 1 ? 's' : ''}.`,
       error: () => `An error occurred launching flow.`
     })
     return

@@ -42,7 +42,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div>
-                  <LaunchFlow values={[node.data.label]} type={node.data?.type}>
+                  <LaunchFlow values={[node.data.id]} type={node.data?.type}>
                     <Button
                       variant="ghost"
                       size="sm"

@@ -82,13 +82,13 @@ export default function ContextMenu({
 
   const handleFlowClick = (e: React.MouseEvent, flowId: string) => {
     e.stopPropagation()
-    launchFlow([node.data.label], flowId, sketchId)
+    launchFlow([node.id], flowId, sketchId)
     setMenu(null)
   }
 
   const handleTransformClick = (e: React.MouseEvent, transformName: string) => {
     e.stopPropagation()
-    launchTransform([node.data.label], transformName, sketchId)
+    launchTransform([node.id], transformName, sketchId)
     setMenu(null)
   }
 

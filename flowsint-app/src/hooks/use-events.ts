@@ -64,7 +64,7 @@ export function useEvents(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id])
+  }, [sketch_id, refetchGraph])
 
   const logs = useMemo(
     () => [...previousLogs, ...liveLogs].slice(-100),

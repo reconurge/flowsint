@@ -64,10 +64,10 @@ const DEFAULT_SETTINGS = {
     },
     d3ForceLinkDistance: {
       type: 'number',
-      value: 50,
+      value: 10,
       min: 10,
-      max: 2000,
-      step: 50,
+      max: 200,
+      step: 1,
       description:
         'Target distance between connected nodes (higher = nodes further apart)'
     },
@@ -168,7 +168,7 @@ const FORCE_PRESETS = {
     d3AlphaMin: 0.001,
     d3VelocityDecay: 0.8,
     d3ForceChargeStrength: -50,
-    d3ForceLinkDistance: 20,
+    d3ForceLinkDistance: 10,
     d3ForceLinkStrength: 2,
     cooldownTicks: 300,
     cooldownTime: 20000
@@ -178,7 +178,7 @@ const FORCE_PRESETS = {
     d3AlphaMin: 0.001,
     d3VelocityDecay: 0.7,
     d3ForceChargeStrength: -80,
-    d3ForceLinkDistance: 30,
+    d3ForceLinkDistance: 20,
     d3ForceLinkStrength: 2,
     cooldownTicks: 250,
     cooldownTime: 18000
@@ -188,7 +188,7 @@ const FORCE_PRESETS = {
     d3AlphaMin: 0,
     d3VelocityDecay: 0.6,
     d3ForceChargeStrength: -120,
-    d3ForceLinkDistance: 50,
+    d3ForceLinkDistance: 30,
     d3ForceLinkStrength: 2,
     cooldownTicks: 200,
     cooldownTime: 15000
@@ -198,7 +198,7 @@ const FORCE_PRESETS = {
     d3AlphaMin: 0,
     d3VelocityDecay: 0.4,
     d3ForceChargeStrength: -200,
-    d3ForceLinkDistance: 80,
+    d3ForceLinkDistance: 30,
     d3ForceLinkStrength: 2,
     cooldownTicks: 150,
     cooldownTime: 12000
@@ -208,7 +208,7 @@ const FORCE_PRESETS = {
     d3AlphaMin: 0,
     d3VelocityDecay: 0.3,
     d3ForceChargeStrength: -300,
-    d3ForceLinkDistance: 120,
+    d3ForceLinkDistance: 20,
     d3ForceLinkStrength: 2,
     cooldownTicks: 100,
     cooldownTime: 10000

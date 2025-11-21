@@ -124,7 +124,7 @@ const ActionBar = () => {
   const type = selectedNodes[0].data.type
   const isSametype = (node: GraphNode) => node.data.type === type
   const shareSameType = selectedNodes.every(isSametype)
-  const values = !shareSameType ? [] : selectedNodes.map((node: GraphNode) => node.data.id)
+  const values = !shareSameType ? [] : selectedNodes.map((node: GraphNode) => node.id)
 
   return (
     <div className="flex items-center gap-1">

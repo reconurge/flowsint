@@ -29,7 +29,7 @@ db: Session = next(get_db())
 def run_transform(
     self,
     transform_name: str,
-    values: List[str],
+    serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
 ):
@@ -68,7 +68,9 @@ def run_transform(
             vault=vault,
         )
 
-        results = asyncio.run(transform.execute(values=values))
+        # Deserialize objects back into Pydantic models
+        # The preprocess method in Transform will handle these already-parsed objects
+        results = asyncio.run(transform.execute(values=serialized_objects))
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

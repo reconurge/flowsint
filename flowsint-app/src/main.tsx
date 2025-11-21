@@ -18,6 +18,7 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   // Keep components mounted but hidden during transitions
+  // @ts-ignore
   defaultPendingComponent: ({ children }: { children: React.ReactNode }) => children,
   defaultPendingMs: 0
 })

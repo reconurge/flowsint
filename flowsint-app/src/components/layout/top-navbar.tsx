@@ -2,7 +2,7 @@ import { Command } from '../command'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import InvestigationSelector from './investigation-selector'
 import SketchSelector from './sketch-selector'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback } from 'react'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { useLayoutStore } from '@/stores/layout-store'
@@ -144,11 +144,11 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuLabel>Settings</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => setSettingsModalOpen(true)}>
+          <DropdownMenuItem onClick={toggleSettingsModal}>
             General
             <DropdownMenuShortcut>⌘G</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setKeyboardShortcutsOpen(true)}>
+          <DropdownMenuItem onClick={toggleKeyboardShortcutsModal}>
             Keyboard shortcuts
             <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
           </DropdownMenuItem>

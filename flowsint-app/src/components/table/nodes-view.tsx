@@ -60,12 +60,22 @@ const NodeItem = memo(function NodeItem({
     }
   }, [])
 
+  const formatNodeData = useCallback((data: any) => {
+    if (!data) return ''
+    const omitKeys = ['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y']
+    const entries = Object.entries(data)
+      .filter(([key]) => !omitKeys.includes(key))
+      .map(([key, value]) => `${key}:${value}`)
+      .join(', ')
+    return entries
+  }, [])
+
   return (
     <div className="px-4">
       <div
         className="grid items-center h-[56px] gap-3 text-sm border-b last:border-b-0"
         style={{
-          gridTemplateColumns: '24px 32px 1fr 140px 160px 32px'
+          gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px'
         }}
       >
         {/* Checkbox */}
@@ -88,6 +98,13 @@ const NodeItem = memo(function NodeItem({
           >
             <span className="block truncate">{node.data?.label ?? node.id}</span>
           </button>
+        </div>
+
+        {/* Data */}
+        <div className="min-w-0">
+          <span className="text-xs text-muted-foreground truncate block">
+            {formatNodeData(node.data)}
+          </span>
         </div>
 
         {/* Type */}
@@ -264,7 +281,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       {/* Table Header */}
       <div
         className="grid items-center h-[44px] px-4 bg-muted/50 p-2 rounded-t-lg border text-sm font-medium text-muted-foreground"
-        style={{ gridTemplateColumns: '24px 32px 1fr 140px 160px 32px' }}
+        style={{ gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px' }}
       >
         <div className="flex items-center">
           <Checkbox
@@ -279,6 +296,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
         </div>
         <div></div> {/* Icon */}
         <div className="text-left">Label</div>
+        <div>Data</div>
         <div>Type</div>
         <div>Created</div>
         <div></div> {/* Actions */}

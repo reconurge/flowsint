@@ -12,7 +12,6 @@ class DNSRecord(FlowsintType):
         description="Type of DNS record (A, AAAA, CNAME, MX, etc.)",
         title="Record Type",
     )
-    name: str = Field(..., description="Domain name", title="Domain Name")
     value: str = Field(..., description="Record value", title="Record Value")
     ttl: Optional[int] = Field(None, description="Time to live in seconds", title="TTL")
     priority: Optional[int] = Field(

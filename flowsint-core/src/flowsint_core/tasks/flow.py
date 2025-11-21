@@ -29,7 +29,7 @@ db: Session = next(get_db())
 def run_flow(
     self,
     transform_branches,
-    values: List[str],
+    serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
 ):
@@ -69,7 +69,8 @@ def run_flow(
         )
 
         # Use the synchronous scan method which internally handles the async operations
-        results = transform.scan(values=values)
+        # Pass serialized objects instead of strings - the preprocess will handle them
+        results = transform.scan(values=serialized_objects)
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

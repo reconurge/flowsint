@@ -581,6 +581,38 @@ class GraphRepository:
         result = self._connection.query(query, params)
         return result[0]["updated_count"] if result else 0
 
+    def get_nodes_by_ids(
+        self,
+        node_ids: List[str],
+        sketch_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Get nodes by their element IDs.
+
+        Args:
+            node_ids: List of Neo4j element IDs
+            sketch_id: Investigation sketch ID (for safety)
+
+        Returns:
+            List of node properties dictionaries
+        """
+        if not self._connection or not node_ids:
+            return []
+
+        query = """
+        UNWIND $node_ids AS node_id
+        MATCH (n)
+        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
+        RETURN properties(n) as data
+        """
+
+        result = self._connection.query(
+            query,
+            {"node_ids": node_ids, "sketch_id": sketch_id}
+        )
+
+        return [record["data"] for record in result] if result else []
+
     def __enter__(self):
         """Context manager entry."""
         return self

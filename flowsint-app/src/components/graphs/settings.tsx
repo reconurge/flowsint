@@ -784,23 +784,30 @@ export function KeyboardShortcuts() {
 
   const shortcuts = [
     {
-      category: 'Navigation & Panels',
+      category: 'Navigation & panels',
       items: [
-        { key: `${modKey}+L`, description: 'Toggle Analysis Panel' },
-        { key: `${modKey}+B`, description: 'Toggle Panel' },
-        { key: `${modKey}+D`, description: 'Toggle Console' },
-        { key: `${modKey}+J`, description: 'Open Command Palette' }
+        { key: `${modKey}+L`, description: 'Toggle analysis panel' },
+        { key: `${modKey}+B`, description: 'Toggle panel' },
+        { key: `${modKey}+D`, description: 'Toggle console' },
+        { key: `${modKey}+J`, description: 'Open command palette' }
       ]
     },
     {
-      category: 'Chat & Assistant',
+      category: 'Settings',
       items: [
-        { key: `${modKey}+E`, description: 'Toggle Chat Assistant' },
-        { key: 'Escape', description: 'Close Chat Assistant' }
+        { key: `${modKey}+G`, description: 'Toggle graph settings' },
+        { key: `${modKey}+K`, description: 'Toggle keyboard shortcuts' },
       ]
     },
     {
-      category: 'File Operations',
+      category: 'Chat & assistant',
+      items: [
+        { key: `${modKey}+E`, description: 'Toggle chat assistant' },
+        { key: 'Escape', description: 'Close chat assistant' }
+      ]
+    },
+    {
+      category: 'File operations',
       items: [{ key: `${modKey}+S`, description: 'Save (Analysis/Flow)' }]
     }
   ]

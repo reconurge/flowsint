@@ -70,7 +70,7 @@ export const SaveStatusIndicator = memo(({ status }: SaveStatusIndicatorProps) =
           {/* <span>{config.text}</span> */}
         </div>
       </TooltipTrigger>
-      <TooltipContent>{"All nodes aved"}</TooltipContent>
+      <TooltipContent>{config.text}</TooltipContent>
     </Tooltip>
   )
 })

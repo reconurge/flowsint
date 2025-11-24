@@ -12,7 +12,7 @@ const MapPanel = () => {
       label: node.data.label || ''
     }))
   return (
-    <div className="w-full grow h-full z-10">
+    <div className="w-full grow h-full">
       <MapFromAddress locations={locationNodes as LocationPoint[]} />
     </div>
   )

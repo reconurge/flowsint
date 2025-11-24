@@ -164,7 +164,7 @@ export default function RelationshipsTable() {
 
   if (isLoading) {
     return (
-      <div className="w-full grow h-full flex flex-col pt-18 p-4 px-6">
+      <div className="w-full grow h-full flex flex-col p-4 px-6">
         {/* Header with stats */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">

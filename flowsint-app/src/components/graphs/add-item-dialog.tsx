@@ -18,6 +18,7 @@ import { useLayoutStore } from '@/stores/layout-store'
 import { useActionItems } from '@/hooks/use-action-items'
 import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { useGraphControls } from '@/stores/graph-controls-store'
 
 export default function AddItemDialog() {
   const handleOpenFormModal = useGraphStore((state) => state.handleOpenFormModal)
@@ -34,6 +35,9 @@ export default function AddItemDialog() {
   const replaceNodeId = useGraphStore((state) => state.replaceNodeId)
   const setActiveTab = useLayoutStore((state) => state.setActiveTab)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
+  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
 
@@ -150,6 +154,13 @@ export default function AddItemDialog() {
     } catch (error) {
       console.error(error)
       toast.error('Failed to sync node with server. Please refresh.')
+    }
+    finally {
+      setTimeout(() => {
+        if (currentLayoutType && regenerateLayout) {
+          regenerateLayout(currentLayoutType)
+        }
+      }, 500)
     }
   }
 

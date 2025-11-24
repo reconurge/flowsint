@@ -82,7 +82,7 @@ export const ItemsPanel = memo(function LeftPanel() {
         </div>
       </div>
       <div className='my-1'>
-        <Button onClick={handleOpenImportModal} className="w-full" variant={"outline"}><Download /> Import entities</Button>
+        <Button onClick={handleOpenImportModal} className="w-full shadow-none" variant={"outline"}><Download /> Import entities</Button>
       </div>
       <div className="flex flex-col gap-3">
         {isLoading ? (

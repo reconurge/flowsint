@@ -91,9 +91,9 @@ const DEFAULT_SETTINGS = {
     },
     linkDirectionalArrowLength: {
       type: 'number',
-      value: 3,
+      value: 1,
       min: 1,
-      max: 100,
+      max: 10,
       step: 0.1,
       description: 'Length of the arrow heads that indicate link direction'
     },
@@ -258,7 +258,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
     (set, get) => ({
       // Settings state
       settings: DEFAULT_SETTINGS,
-      currentPreset: 'Balanced Layout',
+      currentPreset: 'High Energy',
       forceSettings: DEFAULT_SETTINGS.graph,
       // UI State
       settingsModalOpen: false,

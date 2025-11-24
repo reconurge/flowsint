@@ -52,6 +52,10 @@ class NodeDeleteInput(BaseModel):
     nodeIds: List[str]
 
 
+class RelationshipDeleteInput(BaseModel):
+    relationshipIds: List[str]
+
+
 class NodeEditInput(BaseModel):
     nodeId: str
     data: NodeData = Field(
@@ -486,6 +490,34 @@ def delete_nodes(
         raise HTTPException(status_code=500, detail="Failed to delete nodes")
 
     return {"status": "nodes deleted", "count": deleted_count}
+
+
+@router.delete("/{sketch_id}/relationships")
+@update_sketch_timestamp
+def delete_relationships(
+    sketch_id: str,
+    relationships: RelationshipDeleteInput,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    # First verify the sketch exists and belongs to the user
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
+
+    # Delete relationships using GraphRepository
+    try:
+        graph_repo = GraphRepository(neo4j_connection)
+        deleted_count = graph_repo.delete_relationships(relationships.relationshipIds, sketch_id)
+    except Exception as e:
+        print(f"Relationship deletion error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete relationships")
+
+    return {"status": "relationships deleted", "count": deleted_count}
 
 
 @router.post("/{sketch_id}/nodes/merge")

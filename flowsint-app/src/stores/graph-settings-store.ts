@@ -14,9 +14,9 @@ const DEFAULT_SETTINGS = {
   graph: {
     nodeSize: {
       type: 'number',
-      value: 14,
+      value: 1,
       min: 1,
-      max: 100,
+      max: 20,
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
     },

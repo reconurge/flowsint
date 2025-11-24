@@ -51,6 +51,12 @@ export const sketchService = {
       body: body
     })
   },
+  deleteEdges: async (sketchId: string, body: BodyInit): Promise<any> => {
+    return fetchWithAuth(`/api/sketches/${sketchId}/relationships`, {
+      method: 'DELETE',
+      body: body
+    })
+  },
   updateNode: async (sketchId: string, body: BodyInit): Promise<any> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/edit`, {
       method: 'PUT',

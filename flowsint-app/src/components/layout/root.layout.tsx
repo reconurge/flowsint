@@ -10,6 +10,7 @@ import NotesPanel from '../analyses/notes-panel'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import { useParams } from '@tanstack/react-router'
 import DetailsPanel from '../graphs/details-panel/details-panel'
+import EdgeDetailsPanel from '../graphs/details-panel/edge-details-panel'
 import { useGraphStore } from '@/stores/graph-store'
 
 interface LayoutProps {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps) {
   const openPanel = useLayoutStore((s) => s.openPanel)
   const closeDetails = useLayoutStore((s) => s.closeDetails)
   const currentNode = useGraphStore((s) => s.currentNode)
+  const currentEdge = useGraphStore((s) => s.currentEdge)
   const { id, type } = useParams({ strict: false })
 
   // Set up keyboard shortcut for chat panel
@@ -73,8 +75,11 @@ export default function RootLayout({ children }: LayoutProps) {
       )
     }
 
-    // Priority 2: DetailsPanel when currentNode exists (auto-opens via useEffect)
-    if (currentNode) {
+    // Priority 2: Show DetailsPanel and/or EdgeDetailsPanel when currentNode/currentEdge exist
+    const hasNode = !!currentNode
+    const hasEdge = !!currentEdge
+
+    if (hasNode || hasEdge) {
       return (
         <>
           <ResizableHandle withHandle />
@@ -89,7 +94,24 @@ export default function RootLayout({ children }: LayoutProps) {
             collapsible={true}
             collapsedSize={2}
           >
-            <DetailsPanel node={currentNode} />
+            {hasNode && hasEdge ? (
+              // Both node and edge: show both in a vertical split
+              <ResizablePanelGroup direction="vertical" className="h-full">
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <DetailsPanel node={currentNode} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <EdgeDetailsPanel edge={currentEdge} />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            ) : hasNode ? (
+              // Only node
+              <DetailsPanel node={currentNode} />
+            ) : (
+              // Only edge
+              <EdgeDetailsPanel edge={currentEdge} />
+            )}
           </ResizablePanel>
         </>
       )
@@ -97,7 +119,7 @@ export default function RootLayout({ children }: LayoutProps) {
 
     // No panel should be shown
     return null
-  }, [id, currentNode?.id, currentNode?.data, isOpenAnalysis, closeDetails])
+  }, [id, currentNode?.id, currentNode?.data, currentEdge?.id, isOpenAnalysis, closeDetails])
 
   // Memoize the entire layout content to prevent unnecessary re-renders
   const layoutContent = useMemo(

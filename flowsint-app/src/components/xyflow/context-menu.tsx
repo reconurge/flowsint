@@ -1,4 +1,5 @@
 import React from 'react'
+import { useKeyboard } from '@/hooks/use-keyboard'
 
 interface ContextMenuProps {
   top?: number
@@ -11,6 +12,8 @@ interface ContextMenuProps {
   // Raw position for overflow calculation
   rawTop?: number
   rawLeft?: number
+  // Callback to close menu
+  setMenu?: (menu: any | null) => void
 }
 
 export default function ContextMenu({
@@ -22,9 +25,15 @@ export default function ContextMenu({
   wrapperHeight,
   rawTop,
   rawLeft,
+  setMenu,
   children,
   ...props
 }: ContextMenuProps): JSX.Element {
+  // Close menu on ESC key
+  useKeyboard('Escape', () => {
+    setMenu?.(null)
+  })
+
   // If raw position is provided, calculate overflow and adjust position
   let finalTop = top
   let finalLeft = left

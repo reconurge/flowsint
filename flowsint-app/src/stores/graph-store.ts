@@ -31,11 +31,17 @@ interface GraphState {
 
   // === Selection & Current ===
   currentNode: GraphNode | null
+  currentEdge: GraphEdge | null
   selectedNodes: GraphNode[]
+  selectedEdges: GraphEdge[]
   setCurrentNode: (node: GraphNode | null) => void
+  setCurrentEdge: (edge: GraphEdge | null) => void
   setSelectedNodes: (nodes: GraphNode[]) => void
+  setSelectedEdges: (edges: GraphEdge[]) => void
   clearSelectedNodes: () => void
+  clearSelectedEdges: () => void
   toggleNodeSelection: (node: GraphNode, multiSelect?: boolean) => void
+  toggleEdgeSelection: (edge: GraphEdge, multiSelect?: boolean) => void
 
   // === Relation ===
   relatedNodeToAdd: GraphNode | null
@@ -216,7 +222,9 @@ export const useGraphStore = create<GraphState>()(
 
       // === Selection & Current ===
       currentNode: null,
+      currentEdge: null,
       selectedNodes: [],
+      selectedEdges: [],
       setCurrentNode: (node) => {
         const { currentNode } = get()
         // Only update if the node is actually different
@@ -224,8 +232,17 @@ export const useGraphStore = create<GraphState>()(
           set({ currentNode: node })
         }
       },
+      setCurrentEdge: (edge) => {
+        const { currentEdge } = get()
+        // Only update if the edge is actually different
+        if (currentEdge?.id !== edge?.id) {
+          set({ currentEdge: edge })
+        }
+      },
       setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
+      setSelectedEdges: (edges) => set({ selectedEdges: edges }),
       clearSelectedNodes: () => set({ selectedNodes: [], currentNode: null }),
+      clearSelectedEdges: () => set({ selectedEdges: [] }),
       toggleNodeSelection: (node, multiSelect = false) => {
         const { selectedNodes, currentNode } = get()
         const isSelected = selectedNodes.some((n) => n.id === node.id)
@@ -255,6 +272,28 @@ export const useGraphStore = create<GraphState>()(
             selectedNodes: newSelected,
             currentNode: newCurrentNode
           })
+        }
+      },
+      toggleEdgeSelection: (edge, multiSelect = false) => {
+        const { selectedEdges } = get()
+        const isSelected = selectedEdges.some((e) => e.id === edge.id)
+        let newSelected: GraphEdge[]
+
+        if (multiSelect) {
+          newSelected = isSelected
+            ? selectedEdges.filter((e) => e.id !== edge.id)
+            : [...selectedEdges, edge]
+        } else {
+          newSelected = isSelected && selectedEdges.length === 1 ? [] : [edge]
+        }
+
+        // Only update if there are actual changes
+        const hasSelectionChanges =
+          newSelected.length !== selectedEdges.length ||
+          newSelected.some((e, i) => e.id !== selectedEdges[i]?.id)
+
+        if (hasSelectionChanges) {
+          set({ selectedEdges: newSelected })
         }
       },
 
@@ -378,7 +417,9 @@ export const useGraphStore = create<GraphState>()(
       reset: () => {
         set({
           currentNode: null,
+          currentEdge: null,
           selectedNodes: [],
+          selectedEdges: [],
           relatedNodeToAdd: null,
           openMainDialog: false,
           openFormDialog: false,

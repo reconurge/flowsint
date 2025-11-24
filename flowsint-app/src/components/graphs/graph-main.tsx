@@ -4,6 +4,7 @@ import GraphViewer from './graph-viewer'
 // import WebGLGraphViewer from './webgl'
 import NodeContextMenu from './node-context-menu'
 import BackgroundContextMenu from './background-context-menu'
+import EdgeContextMenu from './edge-context-menu'
 import { useParams } from '@tanstack/react-router'
 
 const GraphMain = () => {
@@ -12,11 +13,15 @@ const GraphMain = () => {
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
+  const clearSelectedEdges = useGraphStore((s) => s.clearSelectedEdges)
+  const setCurrentEdge = useGraphStore((s) => s.setCurrentEdge)
   const selectedNodes = useGraphStore(s => s.selectedNodes)
+  const selectedEdges = useGraphStore(s => s.selectedEdges)
 
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [nodeMenu, setNodeMenu] = React.useState<any>(null)
+  const [edgeMenu, setEdgeMenu] = React.useState<any>(null)
   const [background, setBackgroundMenu] = React.useState<any>(null)
 
   const handleNodeClick = useCallback(
@@ -29,9 +34,12 @@ const GraphMain = () => {
 
   const handleBackgroundClick = useCallback(() => {
     clearSelectedNodes()
+    clearSelectedEdges()
+    setCurrentEdge(null)
     setNodeMenu(null)
+    setEdgeMenu(null)
     setBackgroundMenu(null)
-  }, [clearSelectedNodes])
+  }, [clearSelectedNodes, clearSelectedEdges, setCurrentEdge])
 
   const onNodeContextMenu = useCallback((node: any, event: MouseEvent) => {
     if (!containerRef.current || !node) return
@@ -71,6 +79,42 @@ const GraphMain = () => {
     })
   }, [selectedNodes])
 
+  const onEdgeContextMenu = useCallback((edge: any, event: MouseEvent) => {
+    if (!containerRef.current || !edge) return
+
+    const pane = containerRef.current.getBoundingClientRect()
+    const relativeX = event.clientX - pane.left
+    const relativeY = event.clientY - pane.top
+
+    // If multiple edges are selected, show multi-select menu
+    if (selectedEdges.length > 0) {
+      setEdgeMenu({
+        edges: selectedEdges,
+        rawTop: relativeY,
+        rawLeft: relativeX,
+        wrapperWidth: pane.width,
+        wrapperHeight: pane.height,
+        setMenu: setEdgeMenu,
+        onClick: handleBackgroundClick
+      })
+    } else {
+      // Otherwise show single edge menu
+      setEdgeMenu({
+        edge: {
+          id: edge.id || '',
+          label: edge.label || edge.edgeLabel || ''
+        },
+        rawTop: relativeY,
+        rawLeft: relativeX,
+        wrapperWidth: pane.width,
+        wrapperHeight: pane.height,
+        setMenu: setEdgeMenu,
+        onClick: handleBackgroundClick
+      })
+    }
+    setNodeMenu(null)
+    setBackgroundMenu(null)
+  }, [selectedEdges, handleBackgroundClick])
 
   const onBackgroundContextMenu = useCallback((event: MouseEvent) => {
     if (!containerRef.current) return
@@ -107,6 +151,7 @@ const GraphMain = () => {
         edges={filteredEdges}
         onNodeClick={handleNodeClick}
         onNodeRightClick={onNodeContextMenu}
+        onEdgeRightClick={onEdgeContextMenu}
         onBackgroundRightClick={onBackgroundContextMenu}
         onBackgroundClick={handleBackgroundClick}
         showLabels={true}
@@ -119,6 +164,12 @@ const GraphMain = () => {
         <NodeContextMenu
           onClick={handleBackgroundClick}
           {...nodeMenu}
+        />
+      )}
+      {edgeMenu && (
+        <EdgeContextMenu
+          onClick={handleBackgroundClick}
+          {...edgeMenu}
         />
       )}
       {(background || (nodeMenu && selectedNodes.length > 0)) && (

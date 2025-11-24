@@ -3,6 +3,7 @@ import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useGraphStore } from '@/stores/graph-store'
 import { ItemType, useNodesDisplaySettings } from '@/stores/node-display-settings'
 import React, { useCallback, useMemo, useEffect, useState, useRef } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import ForceGraph2D from 'react-force-graph-2d'
 import { Button } from '../ui/button'
 import { useTheme } from '@/components/theme-provider'
@@ -22,6 +23,7 @@ interface GraphViewerProps {
   edges: GraphEdge[]
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
+  onEdgeRightClick?: (edge: GraphEdge, event: MouseEvent) => void
   onBackgroundClick?: () => void
   onBackgroundRightClick: (event: MouseEvent) => void
   showLabels?: boolean
@@ -120,6 +122,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   edges,
   onNodeClick,
   onNodeRightClick,
+  onEdgeRightClick,
   onBackgroundClick,
   onBackgroundRightClick,
   showLabels = true,
@@ -165,11 +168,41 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
-  const currentNode = useGraphStore((s) => s.currentNode)
-  const selectedNodes = useGraphStore((s) => s.selectedNodes)
+
+  // Combine graph store selectors with useShallow for better performance
+  const { currentNode, currentEdge, selectedNodes, selectedEdges, toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, setOpenMainDialog } = useGraphStore(
+    useShallow((s) => ({
+      currentNode: s.currentNode,
+      currentEdge: s.currentEdge,
+      selectedNodes: s.selectedNodes,
+      selectedEdges: s.selectedEdges,
+      toggleEdgeSelection: s.toggleEdgeSelection,
+      setCurrentEdge: s.setCurrentEdge,
+      clearSelectedEdges: s.clearSelectedEdges,
+      setOpenMainDialog: s.setOpenMainDialog
+    }))
+  )
+
   const { theme } = useTheme()
-  const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
+
+  // Create Sets for O(1) lookups instead of O(n) array operations
+  const selectedNodeIds = useMemo(
+    () => new Set(selectedNodes.map(n => n.id)),
+    [selectedNodes]
+  )
+  const selectedEdgeIds = useMemo(
+    () => new Set(selectedEdges.map(e => e.id)),
+    [selectedEdges]
+  )
+  const currentNodeId = currentNode?.id
+  const currentEdgeId = currentEdge?.id
+
+  // Create edgeMap for O(1) edge lookups in handleEdgeClick
+  const edgeMap = useMemo(
+    () => new Map(edges.map(e => [e.id, e])),
+    [edges]
+  )
 
   // Add state for tooltip
   const [tooltip, setTooltip] = useState<{
@@ -196,18 +229,15 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     []
   )
 
+  // O(1) lookups instead of O(n)
   const isCurrent = useCallback(
-    (nodeId: string) => {
-      return currentNode?.id === nodeId
-    },
-    [currentNode]
+    (nodeId: string) => nodeId === currentNodeId,
+    [currentNodeId]
   )
 
   const isSelected = useCallback(
-    (nodeId: string) => {
-      return selectedNodes.some((node) => node.id === nodeId)
-    },
-    [selectedNodes]
+    (nodeId: string) => selectedNodeIds.has(nodeId),
+    [selectedNodeIds]
   )
 
   // Preload icons when nodes change
@@ -290,6 +320,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     })
     // Create a map for quick node lookup
     const nodeMap = new Map(transformedNodes.map((node) => [node.id, node]))
+
     // Group and transform edges
     const edgeGroups = new Map<string, GraphEdge[]>()
     edges.forEach((edge) => {
@@ -313,22 +344,35 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         groupSize
       }
     })
-    // Build node relationships (neighbors and links)
+
+    // Build node relationships (neighbors and links) with O(1) Set lookups
+    const neighborsMap = new Map<string, Set<any>>()
+    const linksMap = new Map<string, any[]>()
+
     transformedEdges.forEach((link) => {
       const sourceNode = nodeMap.get(link.source)
       const targetNode = nodeMap.get(link.target)
       if (sourceNode && targetNode) {
-        // Add neighbors
-        if (!sourceNode.neighbors.includes(targetNode)) {
-          sourceNode.neighbors.push(targetNode)
-        }
-        if (!targetNode.neighbors.includes(sourceNode)) {
-          targetNode.neighbors.push(sourceNode)
-        }
+        // Initialize Sets if they don't exist
+        if (!neighborsMap.has(sourceNode.id)) neighborsMap.set(sourceNode.id, new Set())
+        if (!neighborsMap.has(targetNode.id)) neighborsMap.set(targetNode.id, new Set())
+        if (!linksMap.has(sourceNode.id)) linksMap.set(sourceNode.id, [])
+        if (!linksMap.has(targetNode.id)) linksMap.set(targetNode.id, [])
+
+        // Add neighbors using Set (O(1) instead of includes O(n))
+        neighborsMap.get(sourceNode.id)!.add(targetNode)
+        neighborsMap.get(targetNode.id)!.add(sourceNode)
+
         // Add links
-        sourceNode.links.push(link)
-        targetNode.links.push(link)
+        linksMap.get(sourceNode.id)!.push(link)
+        linksMap.get(targetNode.id)!.push(link)
       }
+    })
+
+    // Assign neighbors and links to nodes (convert Set to Array for ForceGraph)
+    transformedNodes.forEach((node) => {
+      node.neighbors = Array.from(neighborsMap.get(node.id) || [])
+      node.links = linksMap.get(node.id) || []
     })
 
     // Always use force layout - positions are preserved if they exist (fx/fy set above)
@@ -472,6 +516,35 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       onNodeRightClick?.(node, event)
     },
     [onNodeRightClick]
+  )
+
+  const handleEdgeRightClick = useCallback(
+    (edge: any, event: MouseEvent) => {
+      onEdgeRightClick?.(edge, event)
+    },
+    [onEdgeRightClick]
+  )
+
+  const handleEdgeClick = useCallback(
+    (edge: any, event: MouseEvent) => {
+      event.stopPropagation()
+      const isMultiSelect = event.ctrlKey || event.shiftKey
+
+      // O(1) lookup using edgeMap instead of O(n) find
+      const fullEdge = edgeMap.get(edge.id)
+
+      if (!fullEdge) return
+
+      if (isMultiSelect) {
+        // Multi-select: toggle edge in selection
+        toggleEdgeSelection(fullEdge, true)
+      } else {
+        // Single select: set as current edge and clear selections
+        setCurrentEdge(fullEdge)
+        clearSelectedEdges()
+      }
+    },
+    [toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, edgeMap]
   )
 
   const handleBackgroundClick = useCallback(() => {
@@ -751,13 +824,25 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       if (typeof start !== 'object' || typeof end !== 'object') return
       const linkKey = `${start.id}-${end.id}`
       const isHighlighted = highlightLinks.has(linkKey)
+      const isSelected = selectedEdges.some((e) => e.id === link.id)
+      const isCurrent = currentEdge?.id === link.id
       const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
       const linkWidth = forceSettings?.linkWidth?.value ?? 2
       const nodeSize = forceSettings?.nodeSize?.value ?? 14
       let strokeStyle: string
       let lineWidth: number
       let fillStyle: string
-      if (isHighlighted) {
+      if (isCurrent) {
+        // Current edge: use blue/primary color with thicker line
+        strokeStyle = 'rgba(59, 130, 246, 0.95)'
+        fillStyle = 'rgba(59, 130, 246, 0.95)'
+        lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.3)
+      } else if (isSelected) {
+        // Selected edges: use orange/highlight color with thicker line
+        strokeStyle = 'rgba(255, 115, 0, 0.9)'
+        fillStyle = 'rgba(255, 115, 0, 0.9)'
+        lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.5)
+      } else if (isHighlighted) {
         strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
         fillStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
         lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 3)
@@ -914,7 +999,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.restore()
       }
     },
-    [forceSettings, theme, highlightLinks, highlightNodes]
+    [forceSettings, theme, highlightLinks, highlightNodes, selectedEdges, currentEdge]
   )
 
   // Clear highlights when graph data changes
@@ -1042,6 +1127,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onNodeClick={handleNodeClick}
         onBackgroundClick={handleBackgroundClick}
         onBackgroundRightClick={handleBackgroundRightClick}
+        onLinkClick={handleEdgeClick}
+        onLinkRightClick={handleEdgeRightClick}
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNode}
         onNodeDragEnd={handleNodeDragEnd}

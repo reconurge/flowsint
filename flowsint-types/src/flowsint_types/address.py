@@ -19,5 +19,5 @@ class Location(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = f"{self.address} {self.city}, {self.country}"
+        self.label = f"{self.address}, {self.city}, {self.country}"
         return self

@@ -8,7 +8,8 @@ import ForceGraph2D from 'react-force-graph-2d'
 import { Button } from '../ui/button'
 import { useTheme } from '@/components/theme-provider'
 import { Info, Loader2, Plus, Share2, Type, Upload } from 'lucide-react'
-import Lasso from './lasso'
+import Lasso from './selectors/lasso'
+import Rectangle from './selectors/rectangle'
 import { GraphNode, GraphEdge } from '@/types'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
 import { useLayout } from '@/hooks/use-layout'
@@ -136,7 +137,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   sketchId
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
-  const isLassoActive = useGraphControls((s) => s.isLassoActive)
+  const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
+  const selectionMode = useGraphControls((s) => s.selectionMode)
   // Hover highlighting state
   const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set())
   const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set())
@@ -1148,18 +1150,31 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onNodeHover={handleNodeHoverWithTooltip}
         onLinkHover={handleLinkHover}
       />
-      {allowLasso && isLassoActive && (
+      {allowLasso && isSelectorModeActive && (
         <>
           <div
             className="absolute z-20 top-3 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary/40 rounded-lg p-1 px-2 text-xs pointer-events-none"
-          ><Info className='h-3 w-3 ' /> Lasso is active</div>
-          <Lasso
-            nodes={graphData.nodes}
-            graph2ScreenCoords={graph2ScreenCoords}
-            partial={true}
-            width={containerSize.width}
-            height={containerSize.height}
-          />
+          >
+            <Info className='h-3 w-3 ' />
+            {selectionMode === 'lasso' ? 'Lasso' : 'Rectangle'} selection is active
+          </div>
+          {selectionMode === 'lasso' ? (
+            <Lasso
+              nodes={graphData.nodes}
+              graph2ScreenCoords={graph2ScreenCoords}
+              partial={true}
+              width={containerSize.width}
+              height={containerSize.height}
+            />
+          ) : (
+            <Rectangle
+              nodes={graphData.nodes}
+              graph2ScreenCoords={graph2ScreenCoords}
+              partial={true}
+              width={containerSize.width}
+              height={containerSize.height}
+            />
+          )}
         </>
       )}
       {isRegeneratingLayout && (

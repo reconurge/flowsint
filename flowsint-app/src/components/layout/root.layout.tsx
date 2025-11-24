@@ -97,11 +97,11 @@ export default function RootLayout({ children }: LayoutProps) {
             {hasNode && hasEdge ? (
               // Both node and edge: show both in a vertical split
               <ResizablePanelGroup direction="vertical" className="h-full">
-                <ResizablePanel defaultSize={50} minSize={30}>
+                <ResizablePanel defaultSize={70} minSize={30}>
                   <DetailsPanel node={currentNode} />
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={50} minSize={30}>
+                <ResizablePanel defaultSize={30} minSize={20}>
                   <EdgeDetailsPanel edge={currentEdge} />
                 </ResizablePanel>
               </ResizablePanelGroup>

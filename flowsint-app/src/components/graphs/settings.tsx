@@ -793,6 +793,13 @@ export function KeyboardShortcuts() {
       ]
     },
     {
+      category: 'Graph',
+      items: [
+        { key: `S`, description: 'Hold to activate selection' },
+        { key: `Shift`, description: 'Hold while clicking on nodes to add to selection' },
+      ]
+    },
+    {
       category: 'Settings',
       items: [
         { key: `${modKey}+G`, description: 'Toggle graph settings' },
@@ -834,7 +841,7 @@ export function KeyboardShortcuts() {
                     className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50"
                   >
                     <span className="text-sm text-muted-foreground">{item.description}</span>
-                    <kbd className="inline-flex items-center gap-1 rounded border bg-background px-2 py-1 text-xs font-mono font-medium text-foreground shadow-sm">
+                    <kbd className="inline-flex items-center gap-1 rounded border bg-background px-2 py-1 text-xs font-mono font-medium text-foreground">
                       {item.key}
                     </kbd>
                   </div>

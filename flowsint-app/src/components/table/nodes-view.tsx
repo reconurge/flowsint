@@ -65,7 +65,7 @@ const NodeItem = memo(function NodeItem({
     const omitKeys = ['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y']
     const entries = Object.entries(data)
       .filter(([key]) => !omitKeys.includes(key))
-      .map(([key, value]) => `${key}:${value}`)
+      .map(([key, value]) => `${key}:${Boolean(value) ? value : "N/A"}`)
       .join(', ')
     return entries
   }, [])
@@ -141,7 +141,6 @@ export default function NodesTable({ nodes }: NodesTableProps) {
   const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
-  const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
 
   const onNodeClick = useCallback(
     (node: GraphNode) => {
@@ -224,7 +223,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
 
   if (!nodes || nodes.length === 0) {
     return (
-      <div className="w-full pt-18 flex items-center justify-center h-full">
+      <div className="w-full flex items-center justify-center h-full">
         <div className="text-center space-y-4">
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
@@ -237,7 +236,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
   }
 
   return (
-    <div className="w-full grow flex flex-col pt-18 p-4 px-6">
+    <div className="w-full grow h-full flex flex-col p-4 px-6">
       {/* Header with stats */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -280,7 +279,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       </div>
       {/* Table Header */}
       <div
-        className="grid items-center h-[44px] px-4 bg-muted/50 p-2 rounded-t-lg border text-sm font-medium text-muted-foreground"
+        className="grid items-center h-[44px] px-4 bg-muted/50 p-2 rounded-t-md border text-sm font-medium text-muted-foreground"
         style={{ gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px' }}
       >
         <div className="flex items-center">
@@ -288,7 +287,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
             checked={isAllSelected}
             ref={(el) => {
               if (el && 'indeterminate' in el) {
-                ;(el as HTMLInputElement).indeterminate = isIndeterminate
+                ; (el as HTMLInputElement).indeterminate = isIndeterminate
               }
             }}
             onCheckedChange={handleSelectAll}
@@ -303,7 +302,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       </div>
 
       {/* Virtualized List */}
-      <div ref={parentRef} className="grow overflow-auto rounded-b-lg border border-t-0">
+      <div ref={parentRef} className="grow overflow-auto rounded-b-md border border-t-0">
         <div
           style={{
             height: `${virtualizer.getTotalSize()}px`,

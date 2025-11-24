@@ -9,9 +9,11 @@ interface CopyButtonProps {
   content: string
   delay?: number
   className?: string
+  size?: "icon" | "default" | "sm" | "lg" | null | undefined
+  label?: string
 }
 
-export function CopyButton({ content, className, delay = 2000 }: CopyButtonProps) {
+export function CopyButton({ content, className, label, delay = 2000, size = "icon" }: CopyButtonProps) {
   const [isCopied, setIsCopied] = useState(false)
 
   const handleCopy = useCallback(
@@ -37,8 +39,8 @@ export function CopyButton({ content, className, delay = 2000 }: CopyButtonProps
     <Tooltip open={isCopied}>
       <TooltipTrigger asChild>
         <Button
-          className={cn('h-7 w-7', className)}
-          size={'icon'}
+          className={cn('h-7', className)}
+          size={label ? "default" : size}
           variant="ghost"
           onClick={handleCopy}
           aria-label="Copy content"
@@ -47,7 +49,7 @@ export function CopyButton({ content, className, delay = 2000 }: CopyButtonProps
             <CheckIcon className="!h-3.5 !w-3.5 text-primary" />
           ) : (
             <CopyIcon className="!h-3.5 !w-3.5 opacity-50" />
-          )}
+          )}{label && <span className='text-xs'>{label}</span>}
         </Button>
       </TooltipTrigger>
       <TooltipContent>Copied !</TooltipContent>

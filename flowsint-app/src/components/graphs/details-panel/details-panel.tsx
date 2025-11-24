@@ -34,8 +34,8 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-card">
       {/* <ItemHero node={node} /> */}
-      <div className="flex items-center bg-card sticky w-full top-0 border-b justify-start px-4 py-2 gap-2 z-1">
-        <p className="text-md font-semibold truncate">{node.data?.label}</p>
+      <div className="flex items-center bg-card h-10 sticky w-full top-0 border-b justify-start px-4 gap-2 z-1">
+        <p className="text-sm font-semibold truncate">{node.data?.label}</p>
         <div className="grow" />
         <div className="flex items-center">
           <TooltipProvider>

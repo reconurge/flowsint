@@ -8,7 +8,7 @@ export type ItemType =
   | 'email'
   | 'ip'
   | 'port'
-  | 'social_account'
+  | 'socialaccount'
   | 'organization'
   | 'vehicle'
   | 'car'
@@ -65,7 +65,7 @@ export const ITEM_TYPES: ItemType[] = [
   'email',
   'ip',
   'port',
-  'social_account',
+  'socialaccount',
   'organization',
   'vehicle',
   'car',
@@ -122,7 +122,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
   email: '#8E7CC3', // violet pastel
   ip: '#5AA1C8', // orange chaud
   port: '#4CB5DA', // cyan clair
-  social_account: '#A76DAA', // mauve
+  socialaccount: '#A76DAA', // mauve
   organization: '#BCA18A', // taupe clair
   vehicle: '#E1B84D', // jaune doux
   car: '#BFAF7A', // olive beige
@@ -180,7 +180,7 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
   email: '✉️',
   ip: '🌐',
   port: '🔌',
-  social_account: '📱',
+  socialaccount: '📱',
   organization: '🏢',
   vehicle: '🚗',
   car: '🚗',
@@ -237,7 +237,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
   email: 14, // Medium
   ip: 16, // Medium-large
   port: 14, // Medium
-  social_account: 14, // Medium
+  socialaccount: 14, // Medium
   organization: 28, // Very large - important entities
   vehicle: 12, // Small-medium
   car: 12, // Small-medium

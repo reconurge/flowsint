@@ -30,6 +30,7 @@ export const DraggableItem = memo(function DraggableItem({
   const { actionItems } = useActionItems()
   const [isDragging, setIsDragging] = useState(false)
   const colors = useNodesDisplaySettings((s) => s.colors)
+  // @ts-ignore
   const colorStr = colors[icon as string] || color
   const IconComponent = useIcon(icon)
 

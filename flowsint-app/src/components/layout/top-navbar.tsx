@@ -36,7 +36,7 @@ export const TopNavbar = memo(() => {
 
   return (
     <header
-      className="flex items-center bg-card h-12 border-b shrink-0 px-4"
+      className="flex items-center bg-card h-11 border-b shrink-0 px-4"
       data-tour-id="navigation"
     >
       <div className="flex items-center gap-4">

@@ -160,7 +160,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <div className='flex justify-between h-10 z-50 items-center gap-6 w-full border-b bg-card p-1 px-2'>
+    <div className='flex justify-between h-10 z-50 items-center gap-6 overflow-x-auto overflow-y-hidden hide-scrollbar w-full border-b bg-card p-1 px-2'>
       <div className='flex h-full items-center gap-2'>
         <div className='flex gap-1'>
           <ToolbarButton

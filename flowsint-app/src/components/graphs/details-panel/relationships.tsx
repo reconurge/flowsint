@@ -78,7 +78,7 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
   })
 
   return (
-    <div ref={parentRef} className="h-full overflow-auto">
+    <div ref={parentRef} className="h-full py-1.5 overflow-auto">
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,

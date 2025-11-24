@@ -62,7 +62,7 @@ function computeDagreLayout(
   // Configure dagre with proper spacing
   g.setGraph({
     rankdir: "TB",
-    ranker: "tight-tree",   // 🔥 plus compact
+    ranker: "tight-tree",
     nodesep: 20,
     ranksep: 40,
   })
@@ -142,7 +142,7 @@ function computeForceLayout(
     .force('center', forceCenter(width / 2, height / 2))
     // Add collision force with larger radius to account for label space below nodes
     // Radius ~3x node size to prevent label overlap
-    .force('collide', forceCollide().radius(30).strength(0.7))
+    // .force('collide', forceCollide().radius(30).strength(0.7))
     .alphaDecay(alphaDecay)
     .alphaMin(alphaMin)
     .velocityDecay(velocityDecay)

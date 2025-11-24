@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { PlusIcon, Search } from 'lucide-react'
+import { Download, PlusIcon, Search } from 'lucide-react'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { type ActionItem } from '@/lib/action-items'
 import { DraggableItem } from './draggable-item'
@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input'
 import { useActionItems } from '@/hooks/use-action-items'
 import { SkeletonList } from '../shared/skeleton-list'
 import { useGraphStore } from '@/stores/graph-store'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 
 export const ItemsPanel = memo(function LeftPanel() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
+  const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -19,6 +21,10 @@ export const ItemsPanel = memo(function LeftPanel() {
   const handleOpenNewAddItemDialog = useCallback(() => {
     setOpenMainDialog(true)
   }, [setOpenMainDialog])
+
+  const handleOpenImportModal = useCallback(() => {
+    setImportModalOpen(true)
+  }, [setImportModalOpen])
 
   const { actionItems, isLoading } = useActionItems()
 
@@ -30,7 +36,6 @@ export const ItemsPanel = memo(function LeftPanel() {
     return actionItems
       .map((item) => {
         const parentMatches = item.label.toLowerCase().includes(query)
-
         if (item.children && item.children.length > 0) {
           const filteredChildren = item.children.filter((child) => {
             const childMatchesLabel = child.label.toLowerCase().includes(query)
@@ -44,7 +49,6 @@ export const ItemsPanel = memo(function LeftPanel() {
           }
           return null
         }
-
         const itemMatchesFields = (item.fields || []).some(
           (f) => f.label.toLowerCase().includes(query) || f.name.toLowerCase().includes(query)
         )
@@ -76,6 +80,9 @@ export const ItemsPanel = memo(function LeftPanel() {
             onChange={handleSearchChange}
           />
         </div>
+      </div>
+      <div className='my-1'>
+        <Button onClick={handleOpenImportModal} className="w-full" variant={"outline"}><Download /> Import entities</Button>
       </div>
       <div className="flex flex-col gap-3">
         {isLoading ? (

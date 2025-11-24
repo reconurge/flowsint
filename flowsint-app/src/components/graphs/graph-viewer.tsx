@@ -20,12 +20,10 @@ function truncateText(text: string, limit: number = 16) {
 interface GraphViewerProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
-  // Remove width and height props - component will handle its own sizing
-  nodeColors?: Record<string, string>
-  nodeSizes?: Record<string, number>
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
   onBackgroundClick?: () => void
+  onBackgroundRightClick: (event: MouseEvent) => void
   showLabels?: boolean
   showIcons?: boolean
   backgroundColor?: string
@@ -45,56 +43,39 @@ export const GRAPH_COLORS = {
   LINK_DIMMED: 'rgba(133, 133, 133, 0.23)',
   LINK_LABEL_HIGHLIGHTED: 'rgba(255, 115, 0, 0.9)',
   LINK_LABEL_DEFAULT: 'rgba(180, 180, 180, 0.75)',
-
   // Node highlight colors
   NODE_HIGHLIGHT_HOVER: 'rgba(255, 0, 0, 0.3)',
   NODE_HIGHLIGHT_DEFAULT: 'rgba(255, 165, 0, 0.3)',
-
   LASSO_FILL: 'rgba(255, 115, 0, 0.07)',
   LASSO_STROKE: 'rgba(255, 115, 0, 0.56)',
-
   // Text colors
   TEXT_LIGHT: '#161616',
   TEXT_DARK: '#FFFFFF',
-
   // Background colors
   BACKGROUND_LIGHT: '#FFFFFF',
   BACKGROUND_DARK: '#161616',
-
   // Transparent colors
   TRANSPARENT: '#00000000',
-
   // Default node color
   NODE_DEFAULT: '#0074D9'
 } as const
 
 const CONSTANTS = {
-  NODE_COUNT_THRESHOLD: 400,
   NODE_DEFAULT_SIZE: 10,
-  NODE_LABEL_FONT_SIZE: 3.5,
   LABEL_FONT_SIZE: 2.5,
   NODE_FONT_SIZE: 3.5,
-  LABEL_NODE_MARGIN: 18,
   PADDING_RATIO: 0.2,
   HALF_PI: Math.PI / 2,
   PI: Math.PI,
-  MEASURE_FONT: '1px Sans-Serif',
   MIN_FONT_SIZE: 0.5,
   LINK_WIDTH: 1,
-  ARROW_SIZE: 8,
-  ARROW_ANGLE: Math.PI / 6,
   MIN_ZOOM: 0.1,
   MAX_ZOOM: 8,
-  // Dynamic label thresholds based on zoom
-  MIN_VISIBLE_LABELS: 5,
-  MAX_VISIBLE_LABELS_PER_ZOOM: 15
-}
-
-interface LabelRenderingCompound {
-  weightList: Map<string, number>
-  constants: {
-    nodesLength: number
-  }
+  // LOD threshold (same for labels, icons, and links)
+  ZOOM_NODE_DETAIL_THRESHOLD: 2,
+  ZOOM_EDGE_DETAIL_THRESHOLD: 1,
+  // Size multiplier for nodes when zoomed out (to make them visible from afar)
+  ZOOMED_OUT_SIZE_MULTIPLIER: 3
 }
 
 // Reusable objects to avoid allocations
@@ -137,10 +118,10 @@ const preloadImage = (iconType: string): Promise<HTMLImageElement> => {
 const GraphViewer: React.FC<GraphViewerProps> = ({
   nodes,
   edges,
-  // Remove width and height from destructuring
   onNodeClick,
   onNodeRightClick,
   onBackgroundClick,
+  onBackgroundRightClick,
   showLabels = true,
   showIcons = true,
   backgroundColor = 'transparent',
@@ -157,8 +138,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set())
   const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set())
   const [hoverNode, setHoverNode] = useState<string | null>(null)
-  const [currentZoom, setCurrentZoom] = useState<number>(1)
-  const zoomRef = useRef({ k: 1, x: 0, y: 0 })
+  // const [currentZoom, setCurrentZoom] = useState<number>(1)
+  // const zoomRef = useRef({ k: 1, x: 0, y: 0 })
   const hoverFrameRef = useRef<number | null>(null)
   const [isRegeneratingLayout, setIsRegeneratingLayout] = useState(false)
 
@@ -175,13 +156,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     saveAllNodePositions,
   })
 
-  // The ref for the node weighlist.
-  const labelRenderingCompound = useRef<LabelRenderingCompound>({
-    weightList: new Map(),
-    constants: {
-      nodesLength: 0
-    }
-  })
   // Store references
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -189,45 +163,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
-  const getSize = useNodesDisplaySettings((s) => s.getSize)
   const setActions = useGraphControls((s) => s.setActions)
   const currentNode = useGraphStore((s) => s.currentNode)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const { theme } = useTheme()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
-
-  // Pre-compute visible labels based on zoom and node weight (O(n) once per zoom change)
-  const visibleLabels = useMemo(() => {
-    if (!showLabels || labelRenderingCompound.current.weightList.size === 0) {
-      return new Set<string>()
-    }
-
-    const totalNodes = labelRenderingCompound.current.constants.nodesLength
-    if (totalNodes === 0) return new Set<string>()
-
-    // Calculate how many labels to show based on zoom
-    // More zoom = more labels (progressive disclosure)
-    const zoomFactor = Math.max(CONSTANTS.MIN_ZOOM, Math.min(CONSTANTS.MAX_ZOOM, currentZoom))
-    const zoomRatio = (zoomFactor - CONSTANTS.MIN_ZOOM) / (CONSTANTS.MAX_ZOOM - CONSTANTS.MIN_ZOOM)
-
-    // Scale from MIN_VISIBLE_LABELS to a percentage of total nodes
-    const maxLabelsAtZoom = Math.floor(
-      CONSTANTS.MIN_VISIBLE_LABELS +
-      zoomRatio * Math.min(totalNodes * 0.5, CONSTANTS.MAX_VISIBLE_LABELS_PER_ZOOM * zoomFactor)
-    )
-
-    // Take the top N nodes by weight (connection count)
-    const visibleSet = new Set<string>()
-    let count = 0
-    for (const [nodeId] of labelRenderingCompound.current.weightList) {
-      if (count >= maxLabelsAtZoom) break
-      visibleSet.add(nodeId)
-      count++
-    }
-
-    return visibleSet
-  }, [currentZoom, showLabels, labelRenderingCompound.current.weightList.size, labelRenderingCompound.current.constants.nodesLength])
 
   // Add state for tooltip
   const [tooltip, setTooltip] = useState<{
@@ -278,14 +219,15 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [nodes, showIcons])
 
-  const handleZoom = useCallback((zoom: any) => {
-    zoomRef.current = zoom
-    // Only update state if zoom changed significantly (reduces re-renders)
-    const newZoom = zoom.k
-    if (Math.abs(newZoom - currentZoom) > 0.1) {
-      setCurrentZoom(newZoom)
-    }
-  }, [currentZoom])
+  // const handleZoom = useCallback((zoom: any) => {
+  //   const prevZoom = zoomRef.current.k
+  //   zoomRef.current = zoom
+  //   // Only update state if zoom changed significantly (reduces re-renders)
+  //   const newZoom = zoom.k
+  //   if (Math.abs(newZoom - prevZoom) > 0.1) {
+  //     setCurrentZoom(newZoom)
+  //   }
+  // }, [])
 
   // Handle container size changes
   useEffect(() => {
@@ -318,13 +260,19 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     // Transform nodes
     const transformedNodes = nodes.map((node) => {
       const type = node.data?.type as ItemType
+
+      // Calculate base node size (used for rendering calculations)
+      const baseNodeSize = CONSTANTS.NODE_DEFAULT_SIZE
+
       const transformed = {
         ...node,
         nodeLabel: node.data?.label || node.id,
         nodeColor: nodeColors[type] || GRAPH_COLORS.NODE_DEFAULT,
-        nodeSize: CONSTANTS.NODE_DEFAULT_SIZE,
+        nodeSize: baseNodeSize,
         nodeType: type,
-        val: CONSTANTS.NODE_DEFAULT_SIZE,
+        // val is used by ForceGraph2D for collision detection and forces
+        // Set it to the "zoomed out" size to ensure proper spacing
+        val: baseNodeSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER / 5,
         neighbors: [] as any[],
         links: [] as any[]
       } as GraphNode & { neighbors: any[]; links: any[] }
@@ -381,20 +329,13 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         targetNode.links.push(link)
       }
     })
-    // feed the labelRenderingCompound
-    labelRenderingCompound.current.weightList = new Map(
-      transformedNodes
-        .sort((a, b) => b.neighbors.length - a.neighbors.length)
-        .map((node) => [node.id, node.neighbors.length])
-    )
-    labelRenderingCompound.current.constants = { nodesLength: transformedNodes.length }
 
     // Always use force layout - positions are preserved if they exist (fx/fy set above)
     return {
       nodes: transformedNodes,
       links: transformedEdges
     }
-  }, [nodes, edges, nodeColors, getSize])
+  }, [nodes, edges, nodeColors])
 
   // Regenerate layout by removing fixed positions and reheating simulation
   const regenerateLayout = useCallback((layoutType: 'force' | 'hierarchy') => {
@@ -533,6 +474,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     onBackgroundClick?.()
   }, [onBackgroundClick])
 
+  const handleBackgroundRightClick = useCallback((event: MouseEvent) => {
+    onBackgroundRightClick?.(event)
+  }, [onBackgroundRightClick])
+
   const handleOpenNewAddItemDialog = useCallback(() => {
     setOpenMainDialog(true)
   }, [setOpenMainDialog])
@@ -665,39 +610,56 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     })
   }, [])
 
-  // Optimized node rendering with proper icon caching
+  // Optimized node rendering with zoom-based LOD
   const renderNode = useCallback(
     (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      const shouldUseSimpleRendering =
-        nodes.length > CONSTANTS.NODE_COUNT_THRESHOLD || globalScale < 1.5
-      const size =
-        Math.min(node.nodeSize + node.neighbors.length / 5, 20) *
-        (forceSettings.nodeSize.value / 100 + 0.4)
-      node.val = size / 5
+      // Calculate render size based on node properties and settings
+      // Note: node.val is already set in graphData and should not be modified here
+      const sizeMultiplier = forceSettings.nodeSize.value / 100 + 0.2
+      const neighborBonus = Math.min(node.neighbors.length / 5, 5)
+      const baseSize = (node.nodeSize + neighborBonus) * sizeMultiplier
+
+      // LOD: Check if we should render details (labels, icons)
+      const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
+
+      // For rendering: when zoomed out, make nodes bigger (more visible from afar)
+      // When zoomed in, keep them smaller to make room for labels
+      const size = shouldRenderDetails
+        ? baseSize
+        : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+
       const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id)
       const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
       const isHovered = hoverNode === node.id || isCurrent(node.id)
-      // Draw highlight ring for highlighted nodes
+
+      // Draw highlight ring for highlighted nodes with constant border width
       if (isHighlighted) {
+        // Border width adapts to zoom level for consistent visual appearance
+        const borderWidth = 3 / globalScale
         ctx.beginPath()
-        ctx.arc(node.x, node.y, size * 1.2, 0, 2 * Math.PI)
+        ctx.arc(node.x, node.y, size + borderWidth, 0, 2 * Math.PI)
         ctx.fillStyle = isHovered
           ? GRAPH_COLORS.NODE_HIGHLIGHT_HOVER
           : GRAPH_COLORS.NODE_HIGHLIGHT_DEFAULT
         ctx.fill()
       }
+
       // Set node color based on highlight state
       if (hasAnyHighlight) {
         ctx.fillStyle = isHighlighted ? node.nodeColor : `${node.nodeColor}7D`
       } else {
         ctx.fillStyle = node.nodeColor
       }
+
+      // Draw node circle
       ctx.beginPath()
       ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
       ctx.fill()
-      // Early exit for simple rendering
-      if (shouldUseSimpleRendering && !isHovered) return
-      // Optimized icon rendering with cached images
+
+      // Early exit if not zoomed in enough for details
+      if (!shouldRenderDetails) return
+
+      // Render icons when zoomed in
       if (showIcons && node.nodeType) {
         const cachedImage = imageCache.get(node.nodeType)
         if (cachedImage && cachedImage.complete) {
@@ -708,16 +670,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           }
         }
       }
-      // Optimized label rendering with layered display
+
+      // Render labels when zoomed in
       if (showLabels) {
         const label = truncateText(node.nodeLabel || node.label || node.id, 58)
         if (label) {
-          // Check if this node's label should be visible (O(1) lookup)
-          const shouldShowLabel = visibleLabels.has(node.id)
-          // Always show labels for highlighted nodes
-          if (!shouldShowLabel && !isHighlighted) {
-            return
-          }
           const baseFontSize = Math.max(
             CONSTANTS.MIN_FONT_SIZE,
             (CONSTANTS.NODE_FONT_SIZE * (size / 2)) / globalScale + 2
@@ -756,7 +713,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           ctx.strokeStyle = theme === 'light'
             ? 'rgba(0, 0, 0, 0.1)'
             : 'rgba(255, 255, 255, 0.1)'
-          ctx.lineWidth = 0.5
+          ctx.lineWidth = 0.1
           ctx.stroke()
 
           // Draw text
@@ -777,14 +734,15 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       theme,
       highlightNodes,
       highlightLinks,
-      hoverNode,
-      visibleLabels,
-      nodes.length
+      hoverNode
     ]
   )
 
   const renderLink = useCallback(
     (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      // LOD: Skip rendering links entirely when zoomed out (performance optimization)
+      if (globalScale < CONSTANTS.ZOOM_EDGE_DETAIL_THRESHOLD) return
+
       const { source: start, target: end } = link
       if (typeof start !== 'object' || typeof end !== 'object') return
       const linkKey = `${start.id}-${end.id}`
@@ -860,9 +818,13 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         if (arrowRelPos === 1) {
           const tan = bezierTangent(0.99)
           const tanLen = Math.hypot(tan.x, tan.y) || 1
-          const targetNodeSize =
-            (end.nodeSize || CONSTANTS.NODE_DEFAULT_SIZE) *
-            (nodeSize / 100 + 0.4)
+          // Calculate target node size consistently with renderNode logic
+          const sizeMultiplier = nodeSize / 100 + 0.2
+          const neighborBonus = Math.min(end.neighbors?.length / 5 || 0, 5)
+          const baseTargetSize = (end.nodeSize + neighborBonus) * sizeMultiplier
+          const targetNodeSize = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
+            ? baseTargetSize
+            : baseTargetSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
           arrowX = end.x - (tan.x / tanLen) * targetNodeSize
           arrowY = end.y - (tan.y / tanLen) * targetNodeSize
         }
@@ -883,8 +845,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       }
       // Early exit if no label
       if (!link.label) return
-      // Always show labels for highlighted links (even in simple rendering mode for better UX)
-      if (isHighlighted) {
+      // LOD: Only show labels for highlighted links when zoomed in enough
+      if (isHighlighted && globalScale > CONSTANTS.ZOOM_EDGE_DETAIL_THRESHOLD) {
         // Calculate label position and angle along straight/curved link
         let textAngle: number
         if ((link.curvature || 0) !== 0) {
@@ -948,7 +910,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         ctx.restore()
       }
     },
-    [forceSettings, theme, highlightLinks, highlightNodes, nodes.length]
+    [forceSettings, theme, highlightLinks, highlightNodes]
   )
 
   // Clear highlights when graph data changes
@@ -1004,7 +966,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
               <strong>Explore:</strong> Try searching for domains, emails, or other entities
             </p>
             <p>
-              <strong>Labels:</strong> Zoom in to see node labels progressively by connection weight
+              <strong>Labels:</strong> Zoom in (over 2x) to see all labels, icons, and edges
             </p>
           </div>
           <div className='flex flex-col justify-center gap-1'>
@@ -1071,10 +1033,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         minZoom={CONSTANTS.MIN_ZOOM}
         nodeLabel={() => ''}
         // nodeColor={node => shouldUseSimpleRendering ? node.nodeColor : GRAPH_COLORS.TRANSPARENT}
-        nodeRelSize={6}
+        nodeRelSize={3}
         onNodeRightClick={handleNodeRightClick}
         onNodeClick={handleNodeClick}
         onBackgroundClick={handleBackgroundClick}
+        onBackgroundRightClick={handleBackgroundRightClick}
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNode}
         onNodeDragEnd={handleNodeDragEnd}
@@ -1086,8 +1049,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         warmupTicks={forceSettings?.warmupTicks?.value ?? 0}
         dagLevelDistance={forceSettings.dagLevelDistance.value}
         backgroundColor={backgroundColor}
-        onZoom={handleZoom}
-        onZoomEnd={handleZoom}
+        // onZoom={handleZoom}
+        // onZoomEnd={handleZoom}
         linkCanvasObject={renderLink}
         enableNodeDrag={true}
         autoPauseRedraw={true}
@@ -1097,7 +1060,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       {allowLasso && isLassoActive && (
         <>
           <div
-            className="absolute z-20 top-14 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary/40 rounded-lg p-1 px-2 text-xs pointer-events-none"
+            className="absolute z-20 top-3 flex items-center gap-1 left-3 bg-primary/20 text-primary border border-primary/40 rounded-lg p-1 px-2 text-xs pointer-events-none"
           ><Info className='h-3 w-3 ' /> Lasso is active</div>
           <Lasso
             nodes={graphData.nodes}

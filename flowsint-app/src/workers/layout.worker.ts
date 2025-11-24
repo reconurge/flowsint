@@ -55,25 +55,20 @@ function computeDagreLayout(
   edges: GraphEdge[],
   options: DagreLayoutOptions = {}
 ) {
-  const {
-    direction = 'TB',
-    dagLevelDistance = 50,
-  } = options
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
   // Configure dagre with proper spacing
   g.setGraph({
-    rankdir: direction,
-    nodesep: dagLevelDistance,
-    ranksep: dagLevelDistance,
-    marginx: 10,
-    marginy: 10,
+    rankdir: "TB",
+    ranker: "tight-tree",   // 🔥 plus compact
+    nodesep: 20,
+    ranksep: 40,
   })
 
   // Set node dimensions
-  const nodeWidth = 50
-  const nodeHeight = 50
+  const nodeWidth = 10
+  const nodeHeight = 20
 
   nodes.forEach((node) =>
     g.setNode(node.id, {

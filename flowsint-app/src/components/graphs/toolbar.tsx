@@ -1,30 +1,30 @@
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useConfirm } from '@/components/use-confirm-dialog'
+import { cn } from '@/lib/utils'
 import { useGraphControls } from '@/stores/graph-controls-store'
+import { useGraphSaveStatus } from '@/stores/graph-save-status-store'
+import { useGraphStore } from '@/stores/graph-store'
 import {
-  Maximize,
-  Minus,
-  ZoomIn,
-  RotateCw,
-  Waypoints,
-  MapPin,
-  List,
-  GitFork,
-  ArrowRightLeft,
   FunnelPlus,
+  GitFork,
   GitPullRequestArrow,
   LassoSelect,
+  Maximize,
   Merge,
-  Network
+  Minus,
+  RotateCw,
+  ZoomIn
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import Filters from './filters'
-import { useGraphStore } from '@/stores/graph-store'
-import { useConfirm } from '@/components/use-confirm-dialog'
-import { useGraphSaveStatus } from '@/stores/graph-save-status-store'
 import { SaveStatusIndicator } from './save-status-indicator'
+import { Separator } from '../ui/separator'
+import { ViewToggle } from './view-toggle'
+import { NetworkIcon } from '../icons/network'
+import { useKeyboard } from '@/hooks/use-keyboard'
+import { isMac } from '@/lib/utils'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -33,7 +33,8 @@ export const ToolbarButton = memo(function ToolbarButton({
   onClick,
   disabled = false,
   badge = null,
-  toggled = false
+  toggled = false,
+  showLabel = false
 }: {
   icon: React.ReactNode
   tooltip: string | React.ReactNode
@@ -41,6 +42,7 @@ export const ToolbarButton = memo(function ToolbarButton({
   disabled?: boolean
   badge?: number | null
   toggled?: boolean | null
+  showLabel?: boolean
 }) {
   return (
     <Tooltip>
@@ -49,17 +51,18 @@ export const ToolbarButton = memo(function ToolbarButton({
           <Button
             onClick={onClick}
             disabled={disabled}
-            variant="outline"
-            size="icon"
+            variant="ghost"
+            size={showLabel ? "sm" : "icon"}
             className={cn(
-              'h-8 w-8 relative shadow-none',
+              'h-7 relative items-center shadow-none',
+              !showLabel && "w-7",
               toggled &&
               'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
-            {icon}
+            {icon} {showLabel && <span className='hidden md:block'>{tooltip}</span>}
             {badge && (
-              <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 !z-[500] bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">
                 {badge}
               </span>
             )}
@@ -86,6 +89,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
   const filters = useGraphStore((s) => s.filters)
   const saveStatus = useGraphSaveStatus((s) => s.saveStatus)
+
+  useKeyboard(
+    "s",
+    () => setIsLassoActive(true),
+    () => setIsLassoActive(false),
+  );
 
   const handleRefresh = useCallback(() => {
     try {
@@ -115,25 +124,18 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   }, [confirm, regenerateLayout])
 
   const handleApplyHierarchyLayout = useCallback(async () => {
-    console.log('[Toolbar] handleApplyHierarchyLayout called')
-
     const confirmed = await confirm({
       title: 'Apply hierarchy layout?',
       message: 'This will reset all node positions and regenerate them using the hierarchical layout algorithm. Current positions will be lost.'
     })
 
     if (!confirmed) {
-      console.log('[Toolbar] User cancelled layout change')
       return
     }
-
-    console.log('[Toolbar] Calling regenerateLayout with hierarchy')
     try {
       regenerateLayout('hierarchy')
-      console.log('[Toolbar] Hierarchy layout applied successfully')
       toast.success('Hierarchy layout applied successfully')
     } catch (error) {
-      console.error('[Toolbar] Failed to apply layout:', error)
       toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }, [confirm, regenerateLayout])
@@ -159,9 +161,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <div className='flex absolute top-0 left-1 right-1 justify-between items-center gap-6 w-full'>
-      <div className='flex gap-2 left-2 top-2'>
-        <TooltipProvider>
+    <div className='flex justify-between h-10 z-50 items-center gap-6 w-full border-b bg-card p-1 px-2'>
+      <div className='flex h-full items-center gap-2'>
+        <div className='flex gap-1'>
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
             tooltip="Connect"
@@ -176,6 +178,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             disabled={!areMergeable}
             badge={areMergeable ? selectedNodes.length : null}
           />
+        </div>
+        <Separator decorative orientation="vertical" />
+        <div className='flex gap-1'>
           <ToolbarButton
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
@@ -194,9 +199,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             onClick={zoomToFit}
             disabled={view !== 'graph' || isLassoActive}
           />
+        </div>
+        <Separator decorative orientation="vertical" />
+        <div className='flex gap-1'>
           <ToolbarButton
             icon={<LassoSelect className="h-4 w-4 opacity-70" />}
-            tooltip={'Lasso select'}
+            tooltip={'Lasso select (hold S)'}
             onClick={handleLassoSelect}
             toggled={isLassoActive}
             disabled={view !== 'graph'}
@@ -206,119 +214,41 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
               disabled={isLoading}
               icon={<FunnelPlus className={cn('h-4 w-4 opacity-70')} />}
               tooltip="Filters"
+              showLabel
               toggled={hasFilters}
             />
           </Filters>
-          <ToolbarButton
-            onClick={handleRefresh}
-            disabled={isLoading}
-            icon={<RotateCw className={cn('h-4 w-4 opacity-70', isLoading && 'animate-spin')} />}
-            tooltip="Refresh"
-          />
-        </TooltipProvider>
-      </div >
-
-      {/* Center: View Toggle Group */}
-      <div className="flex border rounded-md justify-center" >
-        <div className="flex items-center bg-muted/40 p-1 gap-0.5 rounded-md">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setView('graph')}
-                  className={cn(
-                    'h-6 px-2 rounded-sm',
-                    view === 'graph'
-                      ? 'bg-background text-foreground border'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  )}
-                >
-                  <Network className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Graph view</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setView('table')}
-                  className={cn(
-                    'h-6 px-2 rounded-sm',
-                    view === 'table'
-                      ? 'bg-background text-foreground border'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  )}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Table view</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setView('relationships')}
-                  className={cn(
-                    'h-6 px-2 rounded-sm',
-                    view === 'relationships'
-                      ? 'bg-background text-foreground border'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  )}
-                >
-                  <ArrowRightLeft className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Relationships view</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setView('map')}
-                  className={cn(
-                    'h-6 px-2 rounded-sm',
-                    view === 'map'
-                      ? 'bg-background text-foreground border'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  )}
-                >
-                  <MapPin className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Map view</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
+        <Separator orientation="vertical" />
+        <div className="flex items-center gap-1" >
+          <>
+            <ToolbarButton
+              icon={<NetworkIcon className="h-4 w-4 opacity-70" />}
+              tooltip={'Force layout'}
+              onClick={handleApplyForceLayout}
+              disabled={isLoading || view !== 'graph'}
+            />
+            <ToolbarButton
+              icon={<GitFork strokeWidth={1.4} className="h-4 w-4 opacity-70 rotate-180" />}
+              tooltip={'Hierarchy layout'}
+              onClick={handleApplyHierarchyLayout}
+              disabled={isLoading || view !== 'graph'}
+            />
+          </>
+        </div>
+        <Separator decorative orientation="vertical" />
+        {/* Center: View Toggle Group */}
+        <ViewToggle view={view} setView={setView} />
       </div>
-
-      <div className="flex items-center gap-2" >
-        <TooltipProvider>
-          {view === 'graph' && (
-            <>
-              <ToolbarButton
-                icon={<Waypoints className="h-4 w-4 opacity-70" />}
-                tooltip={'Force layout'}
-                onClick={handleApplyForceLayout}
-                disabled={isLoading}
-              />
-              <ToolbarButton
-                icon={<GitFork className="h-4 w-4 opacity-70 rotate-180" />}
-                tooltip={'Hierarchy layout'}
-                onClick={handleApplyHierarchyLayout}
-                disabled={isLoading}
-              />
-            </>
-          )}
-        </TooltipProvider>
+      <div className='flex item-center gap-2'>
+        <ToolbarButton
+          onClick={handleRefresh}
+          disabled={isLoading}
+          icon={<RotateCw className={cn('h-4 w-4 opacity-70', isLoading && 'animate-spin')} />}
+          tooltip="Refresh"
+        />
         <SaveStatusIndicator status={saveStatus} />
       </div>
-    </div>
+    </div >
   )
 })

@@ -14,7 +14,7 @@ const GraphNavigation = () => {
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const selectedNodesSome = selectedNodes.length > 0
   return (
-    <div className="h-full w-full min-h-0">
+    <div className="h-full h-10 w-full min-h-0">
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}

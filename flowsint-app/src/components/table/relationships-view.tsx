@@ -164,7 +164,7 @@ export default function RelationshipsTable() {
 
   if (isLoading) {
     return (
-      <div className="w-full p-4 px-6 space-y-4 pt-18">
+      <div className="w-full grow h-full flex flex-col pt-18 p-4 px-6">
         {/* Header with stats */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -216,7 +216,7 @@ export default function RelationshipsTable() {
 
   if (!relationships || relationships.length === 0) {
     return (
-      <div className="w-full pt-18 flex items-center justify-center h-full">
+      <div className="w-full flex items-center justify-center h-full">
         <div className="text-center space-y-4">
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
@@ -229,7 +229,7 @@ export default function RelationshipsTable() {
   }
 
   return (
-    <div className="w-full grow flex flex-col pt-18 space-y-4 p-4 px-6">
+    <div className="w-full grow h-full flex flex-col p-4 px-6">
       {/* Header with stats */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -245,7 +245,7 @@ export default function RelationshipsTable() {
       </div>
 
       {/* Search and Filter */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 my-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

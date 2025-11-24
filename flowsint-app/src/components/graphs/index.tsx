@@ -116,13 +116,12 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   }
 
   return (
-    <div
-      className="h-full w-full flex relative outline-2 outline-transparent bg-background"
-      onDragOver={handleDragOver}
+    <div onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-    >
+      className="h-full w-full flex flex-col relative outline-2 outline-transparent bg-background">
+      <Toolbar isLoading={isLoading} />
       <Suspense
         fallback={
           <div className="h-full w-full flex items-center justify-center">
@@ -132,17 +131,14 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
           </div>
         }
       >
-        <>
+        <div className="flex-1 min-h-0">
           {view === 'graph' && <GraphMain />}
           {view === 'table' && <NodesTable />}
           {view === 'map' && <MapPanel />}
           {view === 'relationships' && <RelationshipsTable />}
-        </>
+        </div>
       </Suspense>
       <DragOverlay isDragging={isDraggingOver} />
-      <div className="absolute z-21 left-3 top-3 right-3">
-        <Toolbar isLoading={isLoading} />
-      </div>
       <NewActions />
       <CreateRelationDialog />
       <MergeDialog />
@@ -150,6 +146,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
       <Settings />
       <KeyboardShortcuts />
     </div>
+
   )
 }
 

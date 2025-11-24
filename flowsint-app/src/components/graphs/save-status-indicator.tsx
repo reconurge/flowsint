@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Cloud, CloudOff, Loader2, Check, AlertCircle } from 'lucide-react'
 import { SaveStatus } from '@/hooks/use-save-node-positions'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface SaveStatusIndicatorProps {
   status: SaveStatus
@@ -54,18 +55,23 @@ export const SaveStatusIndicator = memo(({ status }: SaveStatusIndicatorProps) =
   const Icon = config.icon
 
   return (
-    <div
-      className={cn(
-        'flex items-center h-8 gap-1.5 px-2.5 py-1.5',
-        'rounded-md border',
-        'text-xs font-medium',
-        'transition-all duration-200',
-        config.className
-      )}
-    >
-      <Icon className={cn('h-3.5 w-3.5', config.iconClassName)} />
-      {/* <span>{config.text}</span> */}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={cn(
+            'flex items-center h-8 gap-1.5 px-2.5 py-1.5',
+            'rounded-md border',
+            'text-xs font-medium',
+            'transition-all duration-200',
+            config.className
+          )}
+        >
+          <Icon className={cn('h-3.5 w-3.5', config.iconClassName)} />
+          {/* <span>{config.text}</span> */}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>{"All nodes aved"}</TooltipContent>
+    </Tooltip>
   )
 })
 

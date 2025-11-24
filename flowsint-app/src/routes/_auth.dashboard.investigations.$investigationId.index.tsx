@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { investigationService } from '@/api/investigation-service'
 import { analysisService } from '@/api/analysis-service'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -177,7 +177,7 @@ function InvestigationPage() {
               <span>
                 {investigation.owner
                   ? `${investigation.owner.first_name || ''} ${investigation.owner.last_name || ''}`.trim() ||
-                    'Unknown'
+                  'Unknown'
                   : 'Unknown'}
               </span>
             </div>
@@ -266,33 +266,21 @@ function InvestigationPage() {
                     }
                     className="hover:shadow-lg py-4 transition-all duration-200 cursor-pointer group border hover:border-primary/20"
                   >
-                    <CardContent className="h-full flex flex-col">
-                      {/* Header with title and count */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Waypoints className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                              {sketch.title}
-                            </h3>
-                          </div>
-                        </div>
+                    <CardHeader>
+                      <CardTitle>{sketch.title}</CardTitle>
+                      <CardDescription className='mt-2'>{Boolean(sketch.description) ? sketch.description : <span>No description provided</span>}</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          Updated{' '}
+                          {formatDistanceToNow(new Date(sketch.last_updated_at), {
+                            addSuffix: true
+                          })}
+                        </span>
                       </div>
-                      {/* Footer with timestamp */}
-                      <div className="mt-auto">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          <span>
-                            Updated{' '}
-                            {formatDistanceToNow(new Date(sketch.last_updated_at), {
-                              addSuffix: true
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
+                    </CardFooter>
                   </Card>
                 ))}
               </div>

@@ -164,6 +164,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const setActions = useGraphControls((s) => s.setActions)
+  const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
   const currentNode = useGraphStore((s) => s.currentNode)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const { theme } = useTheme()
@@ -346,6 +347,9 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     if (!graphData || !graphData.nodes) {
       throw new Error('No nodes available in graph')
     }
+
+    // Save the layout type in store for auto-regenerate after refetch
+    setCurrentLayoutType(layoutType)
     setIsRegeneratingLayout(true)
 
     // Run layout calculation in worker (non-blocking)
@@ -371,7 +375,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         setIsRegeneratingLayout(false)
       }
     })
-  }, [graphData, applyLayout])
+  }, [graphData, applyLayout, setCurrentLayoutType])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(

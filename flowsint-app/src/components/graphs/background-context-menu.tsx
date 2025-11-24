@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert, Plus, Download } from 'lucide-react'
+import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert, Plus, Download, Trash2 } from 'lucide-react'
 import { Transform, Flow, GraphNode } from '@/types'
 import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchTransform } from '@/hooks/use-launch-transform'
@@ -16,8 +16,10 @@ import { capitalizeFirstLetter } from '@/lib/utils'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
 import { CopyButton } from '../copy'
-import { Badge } from '../ui/badge'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { useConfirm } from '../use-confirm-dialog'
+import { toast } from 'sonner'
+import { sketchService } from '@/api/sketch-service'
 
 interface GraphContextMenuProps {
   nodes: GraphNode[]
@@ -56,6 +58,9 @@ export default function BackgroundContextMenu({
   const { launchTransform } = useLaunchTransform(false)
   const selectedNodes = useGraphStore(s => s.selectedNodes)
   const selectedNodeIds = selectedNodes.map((n) => n.id)
+  const { confirm } = useConfirm()
+  const removeNodes = useGraphStore((s) => s.removeNodes)
+  const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
 
   let sharedType = selectedNodes?.[0]?.data?.type
   const isSameType = selectedNodes.every((n) => n.data.type === sharedType)
@@ -104,6 +109,33 @@ export default function BackgroundContextMenu({
     setMenu(null)
   }
 
+  const handleDeleteNodes = useCallback(async () => {
+    if (!selectedNodes.length || !sketchId) return
+    if (
+      !(await confirm({
+        title: `You are about to delete ${selectedNodes.length} node(s).`,
+        message: 'The action is irreversible.'
+      }))
+    )
+      return
+
+    toast.promise(
+      (async () => {
+        removeNodes(selectedNodes.map((n) => n.id))
+        clearSelectedNodes()
+        return sketchService.deleteNodes(
+          sketchId as string,
+          JSON.stringify({ nodeIds: selectedNodes.map((n) => n.id) })
+        )
+      })(),
+      {
+        loading: `Deleting ${selectedNodes.length} node(s)...`,
+        success: 'Nodes deleted successfully.',
+        error: 'Failed to delete selectedNodes.'
+      }
+    )
+  }, [selectedNodes, confirm, removeNodes, clearSelectedNodes, sketchId])
+
   return (
     <BaseContextMenu
       top={top}
@@ -120,8 +152,28 @@ export default function BackgroundContextMenu({
           {/* Header with title and action buttons */}
           <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between flex-shrink-0">
             <div className="flex text-xs items-center gap-1 truncate">
-              <span className="block truncate">{selectedNodes.length} selected</span> -{' '}
-              <span className="block">{sharedType}</span>
+              <span className="block truncate">{selectedNodes.length} selected</span>
+              {isSameType && <span className="block">-{' '}{sharedType}</span>}
+            </div>
+            <div className='grow' />
+            <div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                      onClick={handleDeleteNodes}
+                    >
+                      <Trash2 className="h-3 w-3" strokeWidth={1.5} /> Delete {selectedNodeIds.length}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete {selectedNodeIds.length} node(s)</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
 

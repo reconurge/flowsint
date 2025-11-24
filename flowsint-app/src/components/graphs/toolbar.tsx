@@ -24,7 +24,6 @@ import { Separator } from '../ui/separator'
 import { ViewToggle } from './view-toggle'
 import { NetworkIcon } from '../icons/network'
 import { useKeyboard } from '@/hooks/use-keyboard'
-import { isMac } from '@/lib/utils'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({

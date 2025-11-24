@@ -289,7 +289,7 @@ type SubActionsProps = {
 }
 const SubActions = memo(({ node, handleOpenNodeDetails }: SubActionsProps) => {
   return (
-    <div className='flex gap-1'>
+    <div className='flex'>
       <CopyButton size={"icon"} content={node?.data?.label} />
       <Button onClick={handleOpenNodeDetails} size={'icon'} className='h-7 w-7' variant="ghost"><SquareArrowOutUpRight className='!h-3.5 !w-3.5 opacity-50' /></Button>
     </div>)

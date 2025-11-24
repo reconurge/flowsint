@@ -1,5 +1,6 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
+// @ts-ignore
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme-provider'
@@ -187,7 +188,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   // Don't render if we don't have any valid coordinates
   if (validCoordinates.length === 0) {
     return (
-      <div className="w-full pt-18 flex items-center justify-center h-full">
+      <div className="w-full flex items-center justify-center h-full">
         <div className="text-center space-y-4">
           <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
@@ -199,5 +200,5 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     )
   }
 
-  return <div id={mapId} style={{ minHeight: height, height: '100%', width: '100%' }} />
+  return <div id={mapId} style={{ minHeight: height, height: '100%', width: '100%', zIndex: 0 }} />
 }

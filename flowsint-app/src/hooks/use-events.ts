@@ -12,6 +12,8 @@ export function useEvents(sketch_id: string | undefined) {
   const [liveLogs, setLiveLogs] = useState<Event[]>([])
   // const [graphUpdates, setGraphUpdates] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }[]>([])
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
+  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
 
   const { data: previousLogs = [], refetch } = useQuery({
     queryKey: queryKeys.logs.bySketch(sketch_id as string),
@@ -41,7 +43,15 @@ export function useEvents(sketch_id: string | undefined) {
         const raw = JSON.parse(e.data) as any
         const event = JSON.parse(raw.data) as Event
         if (event.type === EventLevel.COMPLETED) {
+          // Refetch graph data
           refetchGraph()
+          // Auto-regenerate layout after refetch with 500ms delay
+          setTimeout(() => {
+            if (currentLayoutType && regenerateLayout) {
+              regenerateLayout(currentLayoutType)
+            }
+          }, 500)
+
           // const nodes = event.payload.nodes as GraphNode[]
           // const edges = event.payload.edges as GraphEdge[]
           // if (nodes && edges) {
@@ -64,7 +74,7 @@ export function useEvents(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id, refetchGraph])
+  }, [sketch_id, refetchGraph, currentLayoutType, regenerateLayout])
 
   const logs = useMemo(
     () => [...previousLogs, ...liveLogs].slice(-100),

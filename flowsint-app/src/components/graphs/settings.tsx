@@ -278,10 +278,10 @@ function NodeColorsSection() {
       </div>
 
       <div className="border-b flex items-center gap-2 pb-4">
-        <Button variant="outline" size="sm" onClick={handleReset} className="grow">
+        <Button variant="outline" size="sm" onClick={handleReset} className="grow shadow-none">
           Reset to default colors
         </Button>
-        <Button variant="outline" size="sm" onClick={handleRandomizeColors} className="grow">
+        <Button variant="outline" size="sm" onClick={handleRandomizeColors} className="grow shadow-none">
           Randomize
         </Button>
       </div>
@@ -382,14 +382,14 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
                   applyPreset(presetName)
                   toast.success('Settings saved. Re-apply a layout to see changes.')
                 }}
-                className="justify-start"
+                className="justify-start shadow-none"
               >
                 {presetName}
               </Button>
             ))}
           </div>
           <div className="mt-4">
-            <Button variant="outline" size="sm" onClick={() => resetSettings()} className="w-full">
+            <Button variant="outline" size="sm" onClick={() => resetSettings()} className="w-full shadow-none">
               Reset to defaults
             </Button>
           </div>
@@ -547,7 +547,7 @@ export default function GlobalSettings() {
       return (
         <div className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-foreground">General Information</h3>
+            <h3 className="text-lg font-semibold text-foreground">Sketch information</h3>
             <p className="text-sm text-muted-foreground">
               Configure the basic details and metadata for your sketch.
             </p>
@@ -587,7 +587,7 @@ export default function GlobalSettings() {
 
           <div className="flex gap-3 pt-6">
             <SheetClose asChild>
-              <Button variant="outline" type="button" className="flex-1">
+              <Button variant="outline" type="button" className="flex-1 shadow-none">
                 Cancel
               </Button>
             </SheetClose>
@@ -595,7 +595,7 @@ export default function GlobalSettings() {
               type="submit"
               disabled={updateMutation.isPending}
               onClick={handleSubmit}
-              className="flex-1"
+              className="flex-1 shadow-none"
             >
               {updateMutation.isPending ? 'Saving...' : 'Save changes'}
             </Button>
@@ -734,7 +734,7 @@ function TextareaSetting({
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
-        className="resize-none"
+        className="resize-none shadow-none"
       />
     </SettingItem>
   )

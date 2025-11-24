@@ -4,6 +4,7 @@ import {
   forceLink,
   forceManyBody,
   forceCenter,
+  forceCollide,
 } from 'd3-force'
 
 export interface GraphNode {
@@ -66,9 +67,9 @@ function computeDagreLayout(
     ranksep: 40,
   })
 
-  // Set node dimensions
+  // Set node dimensions (height includes space for label below node)
   const nodeWidth = 10
-  const nodeHeight = 20
+  const nodeHeight = 50  // Increased from 20 to account for label space
 
   nodes.forEach((node) =>
     g.setNode(node.id, {
@@ -139,6 +140,9 @@ function computeForceLayout(
     )
     .force('charge', forceManyBody().strength(chargeStrength))
     .force('center', forceCenter(width / 2, height / 2))
+    // Add collision force with larger radius to account for label space below nodes
+    // Radius ~3x node size to prevent label overlap
+    .force('collide', forceCollide().radius(30).strength(0.7))
     .alphaDecay(alphaDecay)
     .alphaMin(alphaMin)
     .velocityDecay(velocityDecay)

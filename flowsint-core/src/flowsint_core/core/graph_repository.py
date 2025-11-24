@@ -376,6 +376,38 @@ class GraphRepository:
         )
         return result[0]["deleted_count"] if result else 0
 
+    def delete_relationships(
+        self,
+        relationship_ids: List[str],
+        sketch_id: str
+    ) -> int:
+        """
+        Delete relationships by their element IDs.
+
+        Args:
+            relationship_ids: List of Neo4j element IDs
+            sketch_id: Investigation sketch ID (for safety)
+
+        Returns:
+            Number of relationships deleted
+        """
+        if not self._connection or not relationship_ids:
+            return 0
+
+        query = """
+        UNWIND $relationship_ids AS rel_id
+        MATCH ()-[r]->()
+        WHERE elementId(r) = rel_id AND r.sketch_id = $sketch_id
+        DELETE r
+        RETURN count(r) as deleted_count
+        """
+
+        result = self._connection.query(
+            query,
+            {"relationship_ids": relationship_ids, "sketch_id": sketch_id}
+        )
+        return result[0]["deleted_count"] if result else 0
+
     def delete_all_sketch_nodes(self, sketch_id: str) -> int:
         """
         Delete all nodes and relationships for a sketch.

@@ -1,5 +1,5 @@
 import { isMac } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 type ShortcutOptions = {
   key: string

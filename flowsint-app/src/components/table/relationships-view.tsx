@@ -7,7 +7,7 @@ import { useRef, useState, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search, ArrowRight, Users, Link, Filter } from 'lucide-react'
+import { Search, ArrowRight, Users, Link, Filter, Trash2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useIcon } from '@/hooks/use-icon'
 import {
@@ -19,7 +19,11 @@ import {
 } from '@/components/ui/select'
 import { CopyButton } from '../copy'
 import { RelationshipType } from '@/types'
-import { GraphNode } from '@/types'
+import { GraphNode, GraphEdge } from '@/types'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { useConfirm } from '@/components/use-confirm-dialog'
+import { toast } from 'sonner'
 
 const ITEM_HEIGHT = 67 // Balanced spacing between items (55px card + 12px padding)
 
@@ -28,9 +32,11 @@ interface RelationshipItemProps {
   relationship: RelationshipType
   style: React.CSSProperties
   onNodeClick: (node: GraphNode) => void
+  isSelected: boolean
+  onSelectionChange: (edge: GraphEdge, checked: boolean) => void
 }
 
-function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItemProps) {
+function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSelectionChange }: RelationshipItemProps) {
   const SourceIcon = useIcon(relationship.source.data?.type, relationship.source.data?.src)
   const TargetIcon = useIcon(relationship.target.data?.type, relationship.target.data?.src)
 
@@ -41,10 +47,22 @@ function RelationshipItem({ relationship, style, onNodeClick }: RelationshipItem
     onNodeClick(relationship.target)
   }, [])
 
+  const handleCheckboxChange = useCallback(
+    (checked: boolean) => {
+      onSelectionChange(relationship.edge, checked)
+    },
+    [onSelectionChange, relationship.edge]
+  )
+
   return (
     <div style={style} className="px-3 pb-2">
       <Card className="h-[55px] p-0">
         <CardContent className="p-3 h-[55px] flex items-center gap-3 min-w-0">
+          {/* Checkbox */}
+          <div className="flex items-center flex-shrink-0">
+            <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
+          </div>
+
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
@@ -111,6 +129,11 @@ export default function RelationshipsTable() {
   const [selectedType, setSelectedType] = useState<string>('all')
   const parentRef = useRef<HTMLDivElement>(null)
   const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const selectedEdges = useGraphStore((s) => s.selectedEdges)
+  const setSelectedEdges = useGraphStore((s) => s.setSelectedEdges)
+  const removeEdges = useGraphStore((s) => s.removeEdges)
+  const clearSelectedEdges = useGraphStore((s) => s.clearSelectedEdges)
+  const { confirm } = useConfirm()
   // const setOpenNodeEditorModal = useGraphStore(s => s.setOpenNodeEditorModal)
 
   const onNodeClick = useCallback(
@@ -154,6 +177,76 @@ export default function RelationshipsTable() {
     })
     return Array.from(types).sort()
   }, [relationships])
+
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedEdges(filteredRelationships.map((rel: RelationshipType) => rel.edge))
+      } else {
+        setSelectedEdges([])
+      }
+    },
+    [setSelectedEdges, filteredRelationships]
+  )
+
+  const handleEdgeSelectionChange = useCallback(
+    (edge: GraphEdge, checked: boolean) => {
+      const isSelected = selectedEdges.some((e) => e.id === edge.id)
+      if (checked && !isSelected) {
+        setSelectedEdges([...selectedEdges, edge])
+      } else if (!checked && isSelected) {
+        setSelectedEdges(selectedEdges.filter((e) => e.id !== edge.id))
+      }
+    },
+    [selectedEdges, setSelectedEdges]
+  )
+
+  const isEdgeSelected = useCallback(
+    (edgeId: string) => {
+      return selectedEdges.some((edge) => edge.id === edgeId)
+    },
+    [selectedEdges]
+  )
+
+  const isAllSelected = useMemo(() => {
+    return filteredRelationships.length > 0 && filteredRelationships.every((rel: RelationshipType) => isEdgeSelected(rel.edge.id))
+  }, [filteredRelationships, isEdgeSelected])
+
+  const isIndeterminate = useMemo(() => {
+    const selectedCount = filteredRelationships.filter((rel: RelationshipType) => isEdgeSelected(rel.edge.id)).length
+    return selectedCount > 0 && selectedCount < filteredRelationships.length
+  }, [filteredRelationships, isEdgeSelected])
+
+  const handleDeleteSelected = useCallback(async () => {
+    if (selectedEdges.length === 0 || !sketchId) return
+
+    const count = selectedEdges.length
+    if (
+      !(await confirm({
+        title: `You are about to delete ${count} relationship${count > 1 ? 's' : ''}?`,
+        message: 'The action is irreversible.'
+      }))
+    ) {
+      return
+    }
+
+    toast.promise(
+      (async () => {
+        const edgeIds = selectedEdges.map((e) => e.id)
+        removeEdges(edgeIds)
+        clearSelectedEdges()
+        return sketchService.deleteEdges(
+          sketchId as string,
+          JSON.stringify({ relationshipIds: edgeIds })
+        )
+      })(),
+      {
+        loading: `Deleting ${count} relationship${count > 1 ? 's' : ''}...`,
+        success: `Relationship${count > 1 ? 's' : ''} deleted successfully.`,
+        error: 'Failed to delete relationships.'
+      }
+    )
+  }, [selectedEdges, sketchId, confirm, removeEdges, clearSelectedEdges])
 
   const virtualizer = useVirtualizer({
     count: filteredRelationships.length,
@@ -271,6 +364,39 @@ export default function RelationshipsTable() {
         </Select>
       </div>
 
+      {/* Selection Controls */}
+      {filteredRelationships.length > 0 && (
+        <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={isAllSelected}
+              ref={(el) => {
+                if (el && 'indeterminate' in el) {
+                  (el as HTMLInputElement).indeterminate = isIndeterminate
+                }
+              }}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm text-muted-foreground">
+              {selectedEdges.length > 0
+                ? `${selectedEdges.length} selected`
+                : 'Select all'}
+            </span>
+          </div>
+          {selectedEdges.length > 0 && (
+            <Button
+              onClick={handleDeleteSelected}
+              variant="destructive"
+              size="sm"
+              className="h-8"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1" />
+              Delete {selectedEdges.length}
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Virtualized List */}
       <div ref={parentRef} className="grow overflow-auto py-4 rounded-lg border">
         <div
@@ -289,6 +415,8 @@ export default function RelationshipsTable() {
                 key={virtualRow.index}
                 relationship={relationship}
                 onNodeClick={onNodeClick}
+                isSelected={isEdgeSelected(relationship.edge.id)}
+                onSelectionChange={handleEdgeSelectionChange}
                 style={{
                   position: 'absolute',
                   top: 0,

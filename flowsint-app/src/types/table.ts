@@ -1,4 +1,4 @@
-import { GraphNode } from '@/stores/graph-store'
+import { GraphNode, GraphEdge } from "./graph"
 
 export type Row = {
   id: string
@@ -10,5 +10,5 @@ export type Row = {
 export type RelationshipType = {
   source: GraphNode
   target: GraphNode
-  edge: { label: string }
+  edge: GraphEdge
 }

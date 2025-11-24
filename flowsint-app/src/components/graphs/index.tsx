@@ -146,7 +146,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
       <Settings />
       <KeyboardShortcuts />
     </div>
-
   )
 }
 

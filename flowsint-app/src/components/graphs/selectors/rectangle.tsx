@@ -1,27 +1,10 @@
 import { memo, useRef, type PointerEvent } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
 import { GraphNode } from '@/types'
-import { GRAPH_COLORS } from './graph-viewer'
+import { GRAPH_COLORS } from '../graph-viewer'
 
 type NodePoints = ([number, number] | [number, number, number])[]
 type NodePointObject = Record<string, NodePoints>
-
-// Utilitaire pour générer un chemin SVG fermé à partir de points
-function getSvgPathFromStroke(stroke: number[][]): string {
-  if (!stroke.length) return ''
-
-  const d = stroke.reduce(
-    (acc, [x0, y0], i, arr) => {
-      const [x1, y1] = arr[(i + 1) % arr.length]
-      acc.push(x0, y0, ',', (x0 + x1) / 2, (y0 + y1) / 2)
-      return acc
-    },
-    ['M', ...stroke[0], 'Q']
-  )
-
-  d.push('Z')
-  return d.join(' ')
-}
 
 // Coordonnées relatives au canvas (évite le décalage)
 function getRelativeCoordinates(
@@ -33,7 +16,7 @@ function getRelativeCoordinates(
   return [e.clientX - rect.left, e.clientY - rect.top]
 }
 
-export function Lasso({
+export function Rectangle({
   partial,
   width,
   height,
@@ -51,7 +34,7 @@ export function Lasso({
   const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
-  const pointRef = useRef<[number, number][]>([])
+  const startPointRef = useRef<[number, number] | null>(null)
   const nodePointsRef = useRef<NodePointObject>({})
   const lastSelectedIds = useRef<Set<string>>(new Set())
 
@@ -60,7 +43,7 @@ export function Lasso({
     if (!canvas) return
 
     canvas.setPointerCapture(e.pointerId)
-    pointRef.current = [getRelativeCoordinates(e, canvas)]
+    startPointRef.current = getRelativeCoordinates(e, canvas)
 
     nodePointsRef.current = {}
     for (const node of nodes) {
@@ -79,9 +62,10 @@ export function Lasso({
     if (!ctx) return
 
     ctxRef.current = ctx
-    ctx.lineWidth = 1
+    ctx.lineWidth = 1.5
     ctx.fillStyle = `${GRAPH_COLORS.LASSO_FILL}`
     ctx.strokeStyle = GRAPH_COLORS.LASSO_STROKE
+    ctx.setLineDash([5, 5]) // Dashed pattern: 5px dash, 5px gap
   }
 
   function handlePointerMove(e: PointerEvent) {
@@ -89,12 +73,21 @@ export function Lasso({
 
     const canvas = canvasRef.current
     const ctx = ctxRef.current
-    if (!canvas || !ctx) return
+    const startPoint = startPointRef.current
+    if (!canvas || !ctx || !startPoint) return
 
-    pointRef.current.push(getRelativeCoordinates(e, canvas))
+    const currentPoint = getRelativeCoordinates(e, canvas)
 
-    const path = new Path2D(getSvgPathFromStroke(pointRef.current))
+    // Calculer les coordonnées du rectangle
+    const x = Math.min(startPoint[0], currentPoint[0])
+    const y = Math.min(startPoint[1], currentPoint[1])
+    const rectWidth = Math.abs(currentPoint[0] - startPoint[0])
+    const rectHeight = Math.abs(currentPoint[1] - startPoint[1])
+
+    // Dessiner le rectangle
     ctx.clearRect(0, 0, width, height)
+    const path = new Path2D()
+    path.rect(x, y, rectWidth, rectHeight)
     ctx.fill(path)
     ctx.stroke(path)
 
@@ -105,8 +98,8 @@ export function Lasso({
       if (!node) continue
 
       const isSelected = partial
-        ? points.some(([x, y]) => ctx.isPointInPath(path, x, y))
-        : points.every(([x, y]) => ctx.isPointInPath(path, x, y))
+        ? points.some(([px, py]) => ctx.isPointInPath(path, px, py))
+        : points.every(([px, py]) => ctx.isPointInPath(path, px, py))
 
       if (isSelected) {
         localSelectedNodes.push(node)
@@ -133,7 +126,7 @@ export function Lasso({
 
   function handlePointerUp(e: PointerEvent) {
     canvasRef.current?.releasePointerCapture(e.pointerId)
-    pointRef.current = []
+    startPointRef.current = null
     if (selectedNodes.length === 1) setCurrentNode(selectedNodes[0])
     ctxRef.current?.clearRect(0, 0, width, height)
   }
@@ -151,4 +144,4 @@ export function Lasso({
   )
 }
 
-export default memo(Lasso)
+export default memo(Rectangle)

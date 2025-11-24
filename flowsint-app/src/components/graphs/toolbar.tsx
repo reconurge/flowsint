@@ -14,7 +14,10 @@ import {
   Merge,
   Minus,
   RotateCw,
-  ZoomIn
+  ZoomIn,
+  RectangleHorizontal,
+  ChevronDown,
+  SquareDashed
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -24,6 +27,12 @@ import { Separator } from '../ui/separator'
 import { ViewToggle } from './view-toggle'
 import { NetworkIcon } from '../icons/network'
 import { useKeyboard } from '@/hooks/use-keyboard'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -81,8 +90,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const zoomOut = useGraphControls((s) => s.zoomOut)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const isLassoActive = useGraphControls((s) => s.isLassoActive)
-  const setIsLassoActive = useGraphControls((s) => s.setIsLassoActive)
+  const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
+  const setIsSelectorModeActive = useGraphControls((s) => s.setIsSelectorModeActive)
+  const selectionMode = useGraphControls((s) => s.selectionMode)
+  const setSelectionMode = useGraphControls((s) => s.setSelectionMode)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
   const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
@@ -91,8 +102,8 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
 
   useKeyboard(
     "s",
-    () => setIsLassoActive(true),
-    () => setIsLassoActive(false),
+    () => setIsSelectorModeActive(true),
+    () => setIsSelectorModeActive(false),
   );
 
   const handleRefresh = useCallback(() => {
@@ -147,9 +158,16 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     setOpenMergeDialog(true)
   }, [setOpenMergeDialog])
 
-  const handleLassoSelect = useCallback(() => {
-    setIsLassoActive(!isLassoActive)
-  }, [setIsLassoActive, isLassoActive])
+  const handleToggleSelector = useCallback(() => {
+    setIsSelectorModeActive(!isSelectorModeActive)
+  }, [setIsSelectorModeActive, isSelectorModeActive])
+
+  const handleSelectMode = useCallback((mode: 'lasso' | 'rectangle') => {
+    setSelectionMode(mode)
+    if (!isSelectorModeActive) {
+      setIsSelectorModeActive(true)
+    }
+  }, [setSelectionMode, isSelectorModeActive, setIsSelectorModeActive])
 
   const areExactlyTwoSelected = selectedNodes.length === 2
   const areMergeable =
@@ -184,30 +202,89 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={view !== 'graph' || isLassoActive}
+            disabled={view !== 'graph' || isSelectorModeActive}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}
             tooltip="Zoom Out"
             onClick={zoomOut}
-            disabled={view !== 'graph' || isLassoActive}
+            disabled={view !== 'graph' || isSelectorModeActive}
           />
           <ToolbarButton
             icon={<Maximize className="h-4 w-4 opacity-70" />}
             tooltip="Fit to View"
             onClick={zoomToFit}
-            disabled={view !== 'graph' || isLassoActive}
+            disabled={view !== 'graph' || isSelectorModeActive}
           />
         </div>
         <Separator decorative orientation="vertical" />
-        <div className='flex gap-1'>
-          <ToolbarButton
-            icon={<LassoSelect className="h-4 w-4 opacity-70" />}
-            tooltip={'Lasso select (hold S)'}
-            onClick={handleLassoSelect}
-            toggled={isLassoActive}
-            disabled={view !== 'graph'}
-          />
+        <div className='flex gap-0.5'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleSelector}
+                disabled={view !== 'graph'}
+                className={cn(
+                  'h-7 w-7 rounded relative items-center shadow-none',
+                  isSelectorModeActive &&
+                  'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                )}
+              >
+                {selectionMode === 'lasso' ? (
+                  <LassoSelect className="h-4 w-4 opacity-70" />
+                ) : (
+                  <SquareDashed className="h-4 w-4 opacity-70" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Select (hold S)</TooltipContent>
+          </Tooltip>
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={view !== 'graph'}
+                        className={cn(
+                          'h-7 w-5 px-0 rounded relative items-center shadow-none',
+                          isSelectorModeActive &&
+                          'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                        )}
+                      >
+                        <ChevronDown className="h-3 w-3 opacity-50" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Selection mode</TooltipContent>
+                  </Tooltip>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[140px]">
+                <DropdownMenuItem
+                  onClick={() => handleSelectMode('lasso')}
+                  className={cn(selectionMode === 'lasso' && 'bg-accent')}
+                >
+                  <LassoSelect className="h-4 w-4 mr-2" />
+                  Lasso
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleSelectMode('rectangle')}
+                  className={cn(selectionMode === 'rectangle' && 'bg-accent')}
+                >
+                  <SquareDashed className="h-4 w-4 mr-2" />
+                  Rectangle
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        <Separator orientation="vertical" />
+        <div>
           <Filters>
             <ToolbarButton
               disabled={isLoading}

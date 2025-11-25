@@ -372,12 +372,8 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   )
 
   const handleSaveFlow = useCallback(async () => {
-    if (!flowId) {
-      setShowModal(true)
-    } else {
-      await saveFlow(flow?.name || '', flow?.description || '')
-    }
-  }, [flowId, saveFlow, flow])
+    setShowModal(true)
+  }, [setShowModal])
 
   const handleDeleteFlow = useCallback(async () => {
     if (!flowId) return
@@ -686,6 +682,8 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
         onOpenChange={setShowModal}
         onSave={saveFlow}
         isLoading={loading}
+        initialName={flow?.name}
+        initialDescription={flow?.description}
       />
     </>
   )

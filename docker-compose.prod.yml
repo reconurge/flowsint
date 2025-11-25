@@ -84,6 +84,8 @@ services:
       - AUTH_SECRET=${AUTH_SECRET}
       - MASTER_VAULT_KEY_V1=${MASTER_VAULT_KEY_V1}
       - REDIS_URL=redis://redis:6379/0
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+
     depends_on:
       postgres:
         condition: service_healthy

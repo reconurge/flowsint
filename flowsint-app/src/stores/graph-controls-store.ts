@@ -10,6 +10,7 @@ type GraphControlsStore = {
   isSelectorModeActive: boolean
   selectionMode: SelectionMode
   currentLayoutType: LayoutType
+  shouldRegenerateLayoutOnNextRefetch: boolean
   zoomToFit: () => void
   zoomIn: () => void
   zoomOut: () => void
@@ -18,6 +19,7 @@ type GraphControlsStore = {
   refetchGraph: () => void
   regenerateLayout: (layoutType: LayoutType) => void
   setCurrentLayoutType: (layoutType: LayoutType) => void
+  setShouldRegenerateLayoutOnNextRefetch: (should: boolean) => void
   setView: (view: 'graph' | 'table' | 'map' | 'relationships') => void
   setIsSelectorModeActive: (active: boolean) => void
   setSelectionMode: (mode: SelectionMode) => void
@@ -30,6 +32,7 @@ export const useGraphControls = create<GraphControlsStore>()(
       isSelectorModeActive: false,
       selectionMode: 'lasso',
       currentLayoutType: 'force',
+      shouldRegenerateLayoutOnNextRefetch: false,
       zoomToFit: () => { },
       zoomIn: () => { },
       zoomOut: () => { },
@@ -38,6 +41,7 @@ export const useGraphControls = create<GraphControlsStore>()(
       refetchGraph: () => { },
       regenerateLayout: () => { },
       setCurrentLayoutType: (layoutType) => set({ currentLayoutType: layoutType }),
+      setShouldRegenerateLayoutOnNextRefetch: (should) => set({ shouldRegenerateLayoutOnNextRefetch: should }),
       setView: (view) => set({ view }),
       setIsSelectorModeActive: (active) => set({ isSelectorModeActive: active }),
       setSelectionMode: (mode) => set({ selectionMode: mode })

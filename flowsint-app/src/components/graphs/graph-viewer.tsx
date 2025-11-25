@@ -169,7 +169,10 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const setActions = useGraphControls((s) => s.setActions)
+  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
+  const shouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.shouldRegenerateLayoutOnNextRefetch)
+  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
 
   // Combine graph store selectors with useShallow for better performance
   const { currentNode, currentEdge, selectedNodes, selectedEdges, toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, setOpenMainDialog } = useGraphStore(
@@ -193,12 +196,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     () => new Set(selectedNodes.map(n => n.id)),
     [selectedNodes]
   )
-  const selectedEdgeIds = useMemo(
-    () => new Set(selectedEdges.map(e => e.id)),
-    [selectedEdges]
-  )
   const currentNodeId = currentNode?.id
-  const currentEdgeId = currentEdge?.id
 
   // Create edgeMap for O(1) edge lookups in handleEdgeClick
   const edgeMap = useMemo(
@@ -504,6 +502,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       return () => clearTimeout(timer)
     }
   }, [graphData.nodes.length, containerSize.width])
+
+  // Auto-regenerate layout when new nodes are added via refetch (from useEvents)
+  useEffect(() => {
+    if (shouldRegenerateLayoutOnNextRefetch && nodes.length > 0 && currentLayoutType) {
+      setShouldRegenerateLayoutOnNextRefetch(false)
+      regenerateLayout(currentLayoutType)
+    }
+  }, [nodes, shouldRegenerateLayoutOnNextRefetch, currentLayoutType, regenerateLayout, setShouldRegenerateLayoutOnNextRefetch])
 
   // Event handlers with proper memoization
   const handleNodeClick = useCallback(

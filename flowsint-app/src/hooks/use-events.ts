@@ -10,10 +10,8 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export function useEvents(sketch_id: string | undefined) {
   const [liveLogs, setLiveLogs] = useState<Event[]>([])
-  // const [graphUpdates, setGraphUpdates] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }[]>([])
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
-  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
 
   const { data: previousLogs = [], refetch } = useQuery({
     queryKey: queryKeys.logs.bySketch(sketch_id as string),
@@ -43,22 +41,9 @@ export function useEvents(sketch_id: string | undefined) {
         const raw = JSON.parse(e.data) as any
         const event = JSON.parse(raw.data) as Event
         if (event.type === EventLevel.COMPLETED) {
-          // Refetch graph data
+          // Set flag to regenerate layout after refetch completes
+          setShouldRegenerateLayoutOnNextRefetch(true)
           refetchGraph()
-          // Auto-regenerate layout after refetch with 500ms delay
-          setTimeout(() => {
-            if (currentLayoutType && regenerateLayout) {
-              regenerateLayout(currentLayoutType)
-            }
-          }, 500)
-
-          // const nodes = event.payload.nodes as GraphNode[]
-          // const edges = event.payload.edges as GraphEdge[]
-          // if (nodes && edges) {
-          //     setGraphUpdates((prev) => [...prev, { nodes: nodes, edges: edges }])
-          // } else {
-          //     console.error("[useSketchEvents] Graph append event has no nodes or edges")
-          // }
         }
         setLiveLogs((prev) => [...prev.slice(-99), event])
       } catch (error) {
@@ -74,7 +59,7 @@ export function useEvents(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id, refetchGraph, currentLayoutType, regenerateLayout])
+  }, [sketch_id, refetchGraph])
 
   const logs = useMemo(
     () => [...previousLogs, ...liveLogs].slice(-100),

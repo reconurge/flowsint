@@ -26,7 +26,7 @@ interface GraphViewerProps {
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
   onEdgeRightClick?: (edge: GraphEdge, event: MouseEvent) => void
   onBackgroundClick?: () => void
-  onBackgroundRightClick: (event: MouseEvent) => void
+  onBackgroundRightClick?: (event: MouseEvent) => void
   showLabels?: boolean
   showIcons?: boolean
   backgroundColor?: string
@@ -36,6 +36,7 @@ interface GraphViewerProps {
   instanceId?: string // Add instanceId prop for instance-specific actions
   allowLasso?: boolean
   sketchId?: string // Add sketchId for saving node positions
+  allowForces?: boolean
 }
 
 // Graph viewer specific colors
@@ -134,7 +135,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   onGraphRef,
   instanceId,
   allowLasso = false,
-  sketchId
+  sketchId,
+  allowForces = false
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
@@ -1140,7 +1142,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNode}
         onNodeDragEnd={handleNodeDragEnd}
-        cooldownTicks={forceSettings.cooldownTicks.value}
+        cooldownTicks={allowForces ? forceSettings.cooldownTicks.value : 0}
         cooldownTime={forceSettings.cooldownTime.value}
         d3AlphaDecay={forceSettings.d3AlphaDecay.value}
         d3AlphaMin={forceSettings.d3AlphaMin.value}

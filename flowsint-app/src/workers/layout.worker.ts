@@ -41,6 +41,7 @@ interface ForceLayoutOptions {
   alphaMin?: number
   velocityDecay?: number
   iterations?: number
+  maxRadius?: number
 }
 
 interface LayoutMessage {
@@ -114,6 +115,7 @@ function computeForceLayout(
     alphaMin = 0,
     velocityDecay = 0.41,
     iterations = 300,
+    maxRadius,
   } = options
 
   // Create simulation nodes with initial random positions
@@ -151,8 +153,27 @@ function computeForceLayout(
   // Send progress updates every 10 iterations
   const progressInterval = Math.max(1, Math.floor(iterations / 10))
 
+  const centerX = width / 2
+  const centerY = height / 2
+
   for (let i = 0; i < iterations; i++) {
     simulation.tick()
+
+    // Apply circular boundary constraint if maxRadius is specified
+    if (maxRadius !== undefined && maxRadius > 0) {
+      simNodes.forEach((node: any) => {
+        const dx = node.x - centerX
+        const dy = node.y - centerY
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        // If node is outside the circle, push it back to the edge
+        if (distance > maxRadius) {
+          const ratio = maxRadius / distance
+          node.x = centerX + dx * ratio
+          node.y = centerY + dy * ratio
+        }
+      })
+    }
 
     // Send progress updates
     if (i % progressInterval === 0 || i === iterations - 1) {

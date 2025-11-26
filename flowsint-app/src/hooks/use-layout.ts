@@ -102,13 +102,18 @@ export function useLayout({
             },
           })
         } else {
+          const width = containerSize.width || 800
+          const height = containerSize.height || 600
+          // Calculate maxRadius as 40% of the smallest dimension to keep nodes in view
+          const maxRadius = Math.min(width, height) *2
+
           worker.postMessage({
             type: 'force',
             nodes: nodes.map(n => ({ ...n })),
             edges: edges.map(e => ({ ...e })),
             options: {
-              width: containerSize.width || 800,
-              height: containerSize.height || 600,
+              width,
+              height,
               chargeStrength: forceSettings.d3ForceChargeStrength?.value ?? -30,
               linkDistance: forceSettings.d3ForceLinkDistance?.value ?? 30,
               linkStrength: forceSettings.d3ForceLinkStrength?.value ?? 2,
@@ -116,6 +121,7 @@ export function useLayout({
               alphaMin: forceSettings.d3AlphaMin?.value ?? 0,
               velocityDecay: forceSettings.d3VelocityDecay?.value ?? 0.41,
               iterations: forceSettings.cooldownTicks?.value ?? 300,
+              maxRadius,
             },
           })
         }

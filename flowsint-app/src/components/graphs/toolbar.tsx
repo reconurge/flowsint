@@ -15,14 +15,13 @@ import {
   Minus,
   RotateCw,
   ZoomIn,
-  RectangleHorizontal,
   ChevronDown,
   SquareDashed,
   Focus
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
-import Filters from './filters'
+import Filters from './filtering/filters'
 import { SaveStatusIndicator } from './save-status-indicator'
 import { Separator } from '../ui/separator'
 import { ViewToggle } from './view-toggle'
@@ -176,7 +175,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     selectedNodes.length > 1 &&
     selectedNodes.every((n) => n.data.type === selectedNodes[0].data.type)
   const hasFilters = !(
-    filters.types.every((t) => t.checked) || filters.types.every((t) => !t.checked)
+    Object.keys(filters).every((key: string) => filters[key].checked) || Object.keys(filters).every((key: string) => !filters[key].checked)
   )
 
   return (

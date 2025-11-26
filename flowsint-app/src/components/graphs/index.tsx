@@ -63,13 +63,14 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     if (graphData?.nds && graphData?.rls) {
       updateGraphData(graphData.nds, graphData.rls)
       const types = new Set(graphData.nds.map((n) => n.data.type))
-      setFilters({
-        ...filters,
-        types: Array.from(types).map((t) => ({
-          type: t,
-          checked: true
-        }))
+      const newFilters = {}
+      types.forEach((type: string) => {
+        //@ts-ignore
+        newFilters[type] = {
+          type, checked: true
+        }
       })
+      setFilters(newFilters)
     }
   }, [graphData?.nds, graphData?.rls, setFilters])
 

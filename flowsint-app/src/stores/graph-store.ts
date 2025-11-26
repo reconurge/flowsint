@@ -1,15 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GraphNode, GraphEdge, NodeData } from '@/types'
+import type { GraphNode, GraphEdge, NodeData, Filters, Filter } from '@/types'
 import { type ActionItem } from '@/lib/action-items'
-
-export type TypeFilter = {
-  type: string
-  checked: boolean
-}
-export type Filters = {
-  types: TypeFilter[]
-}
+import { computeFilteredNodes } from '@/workers/filter.worker'
 
 interface GraphState {
   // === Graph ===
@@ -70,7 +63,7 @@ interface GraphState {
   // === Filters ===
   filters: Filters
   setFilters: (filters: Filters) => void
-  toggleTypeFilter: (filter: TypeFilter) => void
+  toggleTypeFilter: (filter: Filter) => void
 
   // === Collapse/Expand logic ===
   toggleCollapse: (nodeId: string) => void
@@ -80,16 +73,6 @@ interface GraphState {
   edgesLength: number
   getNodesLength: () => number
   getEdgesLength: () => number
-}
-
-// --- Helpers ---
-const computeFilteredNodes = (nodes: GraphNode[], filters: Filters): GraphNode[] => {
-  // types
-  const areAllToggled = filters.types.every((t) => t.checked)
-  const areNoneToggled = filters.types.every((t) => !t.checked)
-  if (areNoneToggled || areAllToggled) return nodes
-  const types = filters.types.filter((t) => !t.checked).map((t) => t.type)
-  return nodes.filter((node) => !types.includes(node.data.type))
 }
 
 const computeFilteredEdges = (edges: GraphEdge[], filteredNodes: GraphNode[]): GraphEdge[] => {
@@ -338,22 +321,7 @@ export const useGraphStore = create<GraphState>()(
       },
 
       // === Filters ===
-      filters: {
-        types: [
-          {
-            type: 'domain',
-            checked: true
-          },
-          {
-            type: 'ip',
-            checked: true
-          },
-          {
-            type: 'individual',
-            checked: true
-          }
-        ]
-      },
+      filters: {},
       setFilters: (filters) => {
         const { nodes, edges } = get()
         const filteredNodes = computeFilteredNodes(nodes, filters)
@@ -363,15 +331,7 @@ export const useGraphStore = create<GraphState>()(
 
       toggleTypeFilter: (filter) => {
         const { filters, nodes, edges } = get()
-        const newTypes = filters.types.map((f: TypeFilter) => {
-          if (f.type === filter.type)
-            return {
-              type: f.type,
-              checked: !f.checked
-            }
-          return f
-        })
-        const newFilters = { ...filters, types: newTypes }
+        const newFilters = { ...filters, [filter.type]: { ...filter, checked: !filter.checked } }
         const filteredNodes = computeFilteredNodes(nodes, newFilters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         set({ filters: newFilters, filteredNodes, filteredEdges })

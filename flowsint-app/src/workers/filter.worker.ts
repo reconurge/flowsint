@@ -1,26 +1,49 @@
 import { Filters, GraphNode } from "@/types"
+type OperatorFn = (value: any, pattern: any) => boolean;
 
-const operators = {
-    is: (value: string, pattern: string) => value === pattern,
-    not: (value: string, pattern: string) => value !== pattern,
-    contains: (value: string, pattern: string) => value?.includes(pattern),
-    startsWith: (value: string, pattern: string) => value?.startsWith(pattern),
-    endsWith: (value: string, pattern: string) => value?.endsWith(pattern),
+const operatorMap: Record<string, OperatorFn> = {
+    is: (v, p) => v === p,
+    contains: (v, p) => typeof v === "string" && v.includes(p),
+    startsWith: (v, p) => typeof v === "string" && v.startsWith(p),
+    endsWith: (v, p) => typeof v === "string" && v.endsWith(p),
+    // ajoute les tiens si besoin
 };
 
 export const computeFilteredNodes = (nodes: GraphNode[], filters: Filters): GraphNode[] => {
-    const areAllToggled = Object.keys(filters).every((key: string) => filters[key].checked)
-    const areNoneToggled = Object.keys(filters).every((key: string) => !filters[key].checked)
-    if (areNoneToggled || areAllToggled) return nodes
-    // first filter on the actual node types
-    const types = Object.keys(filters).filter((key: string) => !filters[key].checked).map((key: string) => filters[key].type)
-    return nodes.filter((node) => !types.includes(node.data.type))
-}
+    const filterKeys = Object.keys(filters);
+    // if "regular", not advanced, case where "fields" key is undefined
+    if (filterKeys.every(key => !filters[key].fields)) {
+        const areAllToggled = filterKeys.every(key => filters[key].checked);
+        const areNoneToggled = filterKeys.every(key => !filters[key].checked);
+        if (areAllToggled || areNoneToggled) return nodes;
+    }
+    // Step 1 — filtrer les types désactivés (catégories)
+    const disabledTypes = filterKeys
+        .filter(key => !filters[key].checked)
+        .map(key => filters[key].type);
 
+    let result = nodes.filter(node => !disabledTypes.includes(node.data.type));
 
-// Pour chaque catégorie c:
-//   Pour chaque field activé:
-//     Comparer la valeur du node[field.name]
-//     Avec operator/pattern
-// Si tous les critères matchent → node visible
-// Sinon → node filtré
+    // Step 2 — filtrer les nodes selon les fields des types activés
+    result = result.filter(node => {
+        const type = node.data.type;
+        const filterDef = filters[type];
+        if (!filterDef) return true; // pas de filtre pour ce type
+
+        const activeFields = filterDef?.fields?.filter(f => f.checked);
+        for (const field of activeFields) {
+            if (!field.operator) throw Error(`Missing operator for checked field ${field.name}`)
+            const opFn = operatorMap[field.operator];
+            if (!opFn) continue;
+
+            const nodeValue = node.data[field.name];
+            const match = opFn(nodeValue, field.pattern);
+
+            if (!match) return false; // un seul field non match → node exclu
+        }
+
+        return true;
+    });
+
+    return result;
+};

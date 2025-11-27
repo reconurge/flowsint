@@ -8,7 +8,7 @@ class Affiliation(FlowsintType):
     """Represents an organizational affiliation or employment relationship."""
 
     organization: str = Field(
-        ..., description="Organization or group name", title="Organization"
+        ..., description="Organization or group name", title="Organization", json_schema_extra={"primary": True}
     )
     role: Optional[str] = Field(
         None, description="Role or position within organization", title="Role"

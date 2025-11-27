@@ -8,7 +8,7 @@ class SSLCertificate(FlowsintType):
     """Represents an SSL/TLS certificate with validation and security details."""
 
     subject: str = Field(
-        ..., description="Certificate subject (domain name)", title="Subject"
+        ..., description="Certificate subject (domain name)", title="Subject", json_schema_extra={"primary": True}
     )
     issuer: Optional[str] = Field(
         None,

@@ -7,7 +7,7 @@ class Breach(FlowsintType):
     """Represents a data breach incident with affected accounts and details."""
 
     name: str = Field(
-        ..., description="The name of the breach or service", title="Breach Name"
+        ..., description="The name of the breach or service", title="Breach Name", json_schema_extra={"primary": True}
     )
     title: Optional[str] = Field(
         None, description="Title of the breach", title="Breach Title"

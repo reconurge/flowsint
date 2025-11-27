@@ -8,7 +8,7 @@ class BankAccount(FlowsintType):
     """Represents a bank account with financial and security information."""
 
     account_number: str = Field(
-        ..., description="Bank account number", title="Account Number"
+        ..., description="Bank account number", title="Account Number", json_schema_extra={"primary": True}
     )
     bank_name: Optional[str] = Field(None, description="Bank name", title="Bank Name")
     account_type: Optional[str] = Field(

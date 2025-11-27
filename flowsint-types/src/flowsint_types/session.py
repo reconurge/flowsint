@@ -8,7 +8,7 @@ class Session(FlowsintType):
     """Represents a user session with device and activity information."""
 
     session_id: str = Field(
-        ..., description="Unique session identifier", title="Session ID"
+        ..., description="Unique session identifier", title="Session ID", json_schema_extra={"primary": True}
     )
     user_id: Optional[str] = Field(None, description="User identifier", title="User ID")
     service: Optional[str] = Field(

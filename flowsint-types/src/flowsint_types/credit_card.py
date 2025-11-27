@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class CreditCard(FlowsintType):
     """Represents a credit card with financial details and security status."""
 
-    card_number: str = Field(..., description="Credit card number", title="Card Number")
+    card_number: str = Field(..., description="Credit card number", title="Card Number", json_schema_extra={"primary": True})
     card_type: Optional[str] = Field(
         None, description="Type of card (Visa, Mastercard, etc.)", title="Card Type"
     )

@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class Weapon(FlowsintType):
     """Represents a weapon with detailed specifications and forensic information."""
 
-    name: str = Field(..., description="Weapon name or identifier", title="Name")
+    name: str = Field(..., description="Weapon name or identifier", title="Name", json_schema_extra={"primary": True})
     type: Optional[
         Literal[
             "firearm",

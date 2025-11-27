@@ -8,7 +8,7 @@ class Message(FlowsintType):
     """Represents a message with content, metadata, and security analysis."""
 
     message_id: str = Field(
-        ..., description="Unique message identifier", title="Message ID"
+        ..., description="Unique message identifier", title="Message ID", json_schema_extra={"primary": True}
     )
     content: str = Field(..., description="Message content", title="Content")
     sender: Optional[str] = Field(None, description="Message sender", title="Sender")

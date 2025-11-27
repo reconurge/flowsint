@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class Document(FlowsintType):
     """Represents a document with metadata, security, and content information."""
 
-    title: str = Field(..., description="Document title", title="Title")
+    title: str = Field(..., description="Document title", title="Title", json_schema_extra={"primary": True})
     doc_type: Optional[str] = Field(
         None, description="Type of document (PDF, DOC, etc.)", title="Document Type"
     )

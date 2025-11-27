@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class CryptoWallet(FlowsintType):
     """Represents a cryptocurrency wallet."""
 
-    address: str = Field(..., description="Wallet address", title="Wallet Address")
+    address: str = Field(..., description="Wallet address", title="Wallet Address", json_schema_extra={"primary": True})
     node_id: Optional[str] = Field(
         None, description="Wallet Explorer node ID", title="Node ID"
     )
@@ -56,7 +56,7 @@ class CryptoWalletTransaction(FlowsintType):
         None, description="Target wallet", title="Target Wallet"
     )
     hash: Optional[str] = Field(
-        None, description="Transaction hash", title="Transaction Hash"
+        None, description="Transaction hash", title="Transaction Hash", json_schema_extra={"primary": True}
     )
     value: Optional[float] = Field(
         None, description="Transaction value in cryptocurrency", title="Value"
@@ -158,6 +158,7 @@ class CryptoNFT(FlowsintType):
         ...,
         description="Unique token ID of the NFT within the contract",
         title="Token ID",
+        json_schema_extra={"primary": True}
     )
     collection_name: Optional[str] = Field(
         None, description="Name of the NFT collection", title="Collection Name"

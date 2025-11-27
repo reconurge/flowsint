@@ -8,7 +8,7 @@ class Phrase(FlowsintType):
     """Represents a phrase or text content."""
 
     text: Any = Field(
-        ..., description="The content of the phrase.", title="Phrase text value."
+        ..., description="The content of the phrase.", title="Phrase text value.", json_schema_extra={"primary": True}
     )
 
     @model_validator(mode='after')

@@ -6,7 +6,7 @@ from .flowsint_base import FlowsintType
 class Port(FlowsintType):
     """Represents an open network port related to an IP address."""
 
-    number: int = Field(..., description="Port number", title="Port Number")
+    number: int = Field(..., description="Port number", title="Port Number", json_schema_extra={"primary": True})
     protocol: Optional[str] = Field(
         None, description="Protocol (TCP, UDP, etc.)", title="Protocol"
     )

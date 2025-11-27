@@ -8,7 +8,7 @@ class WebTracker(FlowsintType):
     """Represents a web tracking technology with privacy and compliance information."""
 
     tracker_id: str = Field(
-        ..., description="Unique tracker identifier", title="Tracker ID"
+        ..., description="Unique tracker identifier", title="Tracker ID", json_schema_extra={"primary": True}
     )
     name: Optional[str] = Field(None, description="Tracker name", title="Name")
     type: Optional[str] = Field(

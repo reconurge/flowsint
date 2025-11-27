@@ -105,7 +105,7 @@ export function useLayout({
           const width = containerSize.width || 800
           const height = containerSize.height || 600
           // Calculate maxRadius as 40% of the smallest dimension to keep nodes in view
-          const maxRadius = Math.min(width, height) *2
+          // const maxRadius = Math.min(width, height) * 500
 
           worker.postMessage({
             type: 'force',
@@ -114,14 +114,17 @@ export function useLayout({
             options: {
               width,
               height,
-              chargeStrength: forceSettings.d3ForceChargeStrength?.value ?? -30,
-              linkDistance: forceSettings.d3ForceLinkDistance?.value ?? 30,
-              linkStrength: forceSettings.d3ForceLinkStrength?.value ?? 2,
-              alphaDecay: forceSettings.d3AlphaDecay?.value ?? 0.045,
-              alphaMin: forceSettings.d3AlphaMin?.value ?? 0,
-              velocityDecay: forceSettings.d3VelocityDecay?.value ?? 0.41,
+              chargeStrength: forceSettings.d3ForceChargeStrength?.value ?? -150,
+              linkDistance: forceSettings.d3ForceLinkDistance?.value ?? 35,
+              linkStrength: forceSettings.d3ForceLinkStrength?.value ?? 1.0,
+              alphaDecay: forceSettings.d3AlphaDecay?.value ?? 0.06,
+              alphaMin: forceSettings.d3AlphaMin?.value ?? 0.001,
+              velocityDecay: forceSettings.d3VelocityDecay?.value ?? 0.75,
               iterations: forceSettings.cooldownTicks?.value ?? 300,
-              maxRadius,
+              collisionRadius: forceSettings.collisionRadius?.value ?? 22,
+              collisionStrength: forceSettings.collisionStrength?.value ?? 0.95,
+              centerGravity: forceSettings.centerGravity?.value ?? 0.15,
+              // maxRadius,
             },
           })
         }

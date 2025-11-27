@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
     nodeSize: {
       type: 'number',
       value: 1,
-      min: 1,
+      min: .2,
       max: 20,
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
@@ -55,16 +55,16 @@ const DEFAULT_SETTINGS = {
     },
     d3ForceChargeStrength: {
       type: 'number',
-      value: -120,
+      value: -150,
       min: -500,
       max: 0,
       step: 5,
       description:
-        'Strength of repulsion between nodes (negative = repel, more negative = stronger repulsion, nodes further apart)'
+        'Base repulsion strength (adaptive: highly connected nodes/cluster hubs repel 2-3x more to separate clusters)'
     },
     d3ForceLinkDistance: {
       type: 'number',
-      value: 10,
+      value: 35,
       min: 10,
       max: 200,
       step: 1,
@@ -73,12 +73,12 @@ const DEFAULT_SETTINGS = {
     },
     d3ForceLinkStrength: {
       type: 'number',
-      value: 2,
+      value: 1.0,
       min: 0,
       max: 2,
       step: 0.1,
       description:
-        'Strength of links to maintain their target distance (higher = more rigid links, nodes stay closer to target distance, 2 = fixed distance)'
+        'Strength of links to maintain their target distance (higher = stronger cluster cohesion, lower = weaker clusters)'
     },
     linkDirectionalArrowRelPos: {
       type: 'number',
@@ -133,7 +133,7 @@ const DEFAULT_SETTINGS = {
     },
     d3AlphaMin: {
       type: 'number',
-      value: 0,
+      value: 0.001,
       min: 0,
       max: 0.1,
       step: 0.001,
@@ -142,12 +142,39 @@ const DEFAULT_SETTINGS = {
     },
     d3VelocityDecay: {
       type: 'number',
-      value: 0.6,
+      value: 0.75,
       min: 0,
       max: 1,
       step: 0.01,
       description:
         'Velocity decay factor that simulates friction/resistance (higher = more damping, nodes slow down faster)'
+    },
+    collisionRadius: {
+      type: 'number',
+      value: 22,
+      min: 10,
+      max: 50,
+      step: 1,
+      description:
+        'Radius of collision detection around nodes (prevents node overlap and improves readability)'
+    },
+    collisionStrength: {
+      type: 'number',
+      value: 0.95,
+      min: 0,
+      max: 1,
+      step: 0.05,
+      description:
+        'Strength of collision force (1 = fully rigid collision, 0 = no collision)'
+    },
+    centerGravity: {
+      type: 'number',
+      value: 0.15,
+      min: 0,
+      max: 1,
+      step: 0.05,
+      description:
+        'Gravity force pulling all nodes toward the center (prevents clusters from drifting apart, higher = stronger pull to center)'
     },
     // warmupTicks: {
     //   type: 'number',
@@ -171,7 +198,10 @@ const FORCE_PRESETS = {
     d3ForceLinkDistance: 10,
     d3ForceLinkStrength: 2,
     cooldownTicks: 300,
-    cooldownTime: 20000
+    cooldownTime: 20000,
+    collisionRadius: 15,
+    collisionStrength: 0.7,
+    centerGravity: 0.2
   },
   'Compact Network': {
     d3AlphaDecay: 0.08,
@@ -181,7 +211,10 @@ const FORCE_PRESETS = {
     d3ForceLinkDistance: 20,
     d3ForceLinkStrength: 2,
     cooldownTicks: 250,
-    cooldownTime: 18000
+    cooldownTime: 18000,
+    collisionRadius: 18,
+    collisionStrength: 0.75,
+    centerGravity: 0.18
   },
   'Balanced Layout': {
     d3AlphaDecay: 0.06,
@@ -191,7 +224,10 @@ const FORCE_PRESETS = {
     d3ForceLinkDistance: 30,
     d3ForceLinkStrength: 2,
     cooldownTicks: 200,
-    cooldownTime: 15000
+    cooldownTime: 15000,
+    collisionRadius: 22,
+    collisionStrength: 0.8,
+    centerGravity: 0.15
   },
   'Loose Organic': {
     d3AlphaDecay: 0.04,
@@ -201,7 +237,10 @@ const FORCE_PRESETS = {
     d3ForceLinkDistance: 30,
     d3ForceLinkStrength: 2,
     cooldownTicks: 150,
-    cooldownTime: 12000
+    cooldownTime: 12000,
+    collisionRadius: 25,
+    collisionStrength: 0.85,
+    centerGravity: 0.12
   },
   'High Energy': {
     d3AlphaDecay: 0.02,
@@ -211,7 +250,49 @@ const FORCE_PRESETS = {
     d3ForceLinkDistance: 20,
     d3ForceLinkStrength: 2,
     cooldownTicks: 100,
-    cooldownTime: 10000
+    cooldownTime: 10000,
+    collisionRadius: 20,
+    collisionStrength: 0.8,
+    centerGravity: 0.08
+  },
+  'Readable clusters': {
+    d3AlphaDecay: 0.06,
+    d3AlphaMin: 0.001,
+    d3VelocityDecay: 0.75,
+    d3ForceChargeStrength: -150,
+    d3ForceLinkDistance: 35,
+    d3ForceLinkStrength: 1.0,
+    cooldownTicks: 300,
+    cooldownTime: 20000,
+    collisionRadius: 22,
+    collisionStrength: 0.95,
+    centerGravity: 0.15
+  },
+  'Medium spacing': {
+    d3AlphaDecay: 0.055,
+    d3AlphaMin: 0.001,
+    d3VelocityDecay: 0.7,
+    d3ForceChargeStrength: -200,
+    d3ForceLinkDistance: 40,
+    d3ForceLinkStrength: 0.8,
+    cooldownTicks: 320,
+    cooldownTime: 22000,
+    collisionRadius: 26,
+    collisionStrength: 0.9,
+    centerGravity: 0.2
+  },
+  'Osint friendly': {
+    d3AlphaDecay: 0.07,
+    d3AlphaMin: 0.001,
+    d3VelocityDecay: 0.8,
+    d3ForceChargeStrength: -100,
+    d3ForceLinkDistance: 28,
+    d3ForceLinkStrength: 1.4,
+    cooldownTicks: 280,
+    cooldownTime: 18000,
+    collisionRadius: 18,
+    collisionStrength: 1.0,
+    centerGravity: 0.25
   }
 }
 
@@ -258,7 +339,7 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
     (set, get) => ({
       // Settings state
       settings: DEFAULT_SETTINGS,
-      currentPreset: 'High Energy',
+      currentPreset: '🎯 Clusters Lisibles',
       forceSettings: DEFAULT_SETTINGS.graph,
       // UI State
       settingsModalOpen: false,

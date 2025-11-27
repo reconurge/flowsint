@@ -19,6 +19,7 @@ import GraphMain from './graph-main'
 import Settings, { KeyboardShortcuts } from './settings'
 import { type GraphNode, type GraphEdge } from '@/types'
 import { MergeDialog } from './merge-nodes'
+import { useGraphRefresh } from '@/hooks/use-graph-refresh'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 
 // Separate component for the drag overlay
@@ -50,10 +51,13 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   const filters = useGraphStore((s) => s.filters)
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
 
-  const { sketch } = useLoaderData({
+  const { params, sketch } = useLoaderData({
     from: '/_auth/dashboard/investigations/$investigationId/$type/$id'
   })
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+
+  // Dedicated hook for graph refresh on transform completion
+  useGraphRefresh(params.id)
 
   useEffect(() => {
     if (graphData?.nds && graphData?.rls) {

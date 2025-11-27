@@ -100,6 +100,25 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   React.useEffect(() => {
     if (validCoordinates.length === 0) return
 
+    // Create custom icon using SVG
+    const customIcon = L.divIcon({
+      html: `
+        <div style="
+          background-color: ${theme === 'dark' ? '#3b82f6' : '#2563eb'};
+          width: 24px;
+          height: 24px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        "></div>
+      `,
+      className: 'custom-marker',
+      iconSize: [24, 24],
+      iconAnchor: [12, 24],
+      popupAnchor: [0, -24]
+    })
+
     const map = L.map(mapId)
 
     const source = theme === 'dark' ? 'alidade_smooth_dark' : 'alidade_smooth'
@@ -114,7 +133,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     processedLocations.forEach((location) => {
       if (!location.coordinates) return
 
-      const marker = L.marker([location.coordinates.lat, location.coordinates.lon]).addTo(map)
+      const marker = L.marker([location.coordinates.lat, location.coordinates.lon], { icon: customIcon }).addTo(map)
 
       // Create popup text
       const popupText =

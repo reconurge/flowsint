@@ -1,0 +1,569 @@
+{
+  "sketch_id": "6aa808e4-1360-4c4a-b94f-4bed6c914836",
+  "scan_id": "365ae9ba-ee95-4b25-91a9-c4235f3edd96",
+  "created_at": "2025-10-26T15:58:37.609070",
+  "updated_at": "2025-10-26T15:58:43.648709",
+  "status": "completed",
+  "transform_branches": [
+    {
+      "id": "branch-0",
+      "name": "Main Flow",
+      "steps": [
+        {
+          "nodeId": "Domain-1761469976169",
+          "params": {},
+          "type": "type",
+          "inputs": {},
+          "outputs": {
+            "domain": [
+              "alliage.io"
+            ]
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 0
+        },
+        {
+          "nodeId": "domain_to_ip-1761469978018",
+          "params": {},
+          "type": "transform",
+          "inputs": {
+            "Domain": null
+          },
+          "outputs": {
+            "address": "example.com",
+            "latitude": "example.com",
+            "longitude": "example.com",
+            "country": "example.com",
+            "city": "example.com",
+            "isp": "example.com"
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 1
+        }
+      ]
+    },
+    {
+      "id": "branch-0-1",
+      "name": "Main Flow (Branch 1)",
+      "steps": [
+        {
+          "nodeId": "Domain-1761469976169",
+          "params": {},
+          "type": "type",
+          "inputs": {},
+          "outputs": {
+            "domain": [
+              "alliage.io"
+            ]
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 0
+        },
+        {
+          "nodeId": "domain_to_subdomains-1761490690642",
+          "params": {},
+          "type": "transform",
+          "inputs": {
+            "Domain": null
+          },
+          "outputs": {
+            "domain": "sub.example.com",
+            "root": "sub.example.com"
+          },
+          "status": "pending",
+          "branchId": "branch-0-1",
+          "depth": 1
+        },
+        {
+          "nodeId": "domain_to_ip-1761490693790",
+          "params": {},
+          "type": "transform",
+          "inputs": {
+            "Domain": null
+          },
+          "outputs": {
+            "address": "example.com",
+            "latitude": "example.com",
+            "longitude": "example.com",
+            "country": "example.com",
+            "city": "example.com",
+            "isp": "example.com"
+          },
+          "status": "pending",
+          "branchId": "branch-0-1",
+          "depth": 2
+        }
+      ]
+    }
+  ],
+  "execution_log": [
+    {
+      "step_id": "branch-0_domain_to_ip-1761469978018",
+      "branch_id": "branch-0",
+      "branch_name": "Main Flow",
+      "node_id": "domain_to_ip-1761469978018",
+      "transform_name": "domain_to_ip",
+      "inputs": [
+        "alliage.io"
+      ],
+      "outputs": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ],
+      "status": "completed",
+      "error": null,
+      "timestamp": "2025-10-26T15:58:37.726396",
+      "execution_time_ms": 129,
+      "cache_hit": false
+    },
+    {
+      "step_id": "branch-0-1_domain_to_subdomains-1761490690642",
+      "branch_id": "branch-0-1",
+      "branch_name": "Main Flow (Branch 1)",
+      "node_id": "domain_to_subdomains-1761490690642",
+      "transform_name": "domain_to_subdomains",
+      "inputs": [
+        "alliage.io"
+      ],
+      "outputs": [
+        {
+          "domain": "api.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cdn.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cicd.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "community.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "doc.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "kong.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "maven2.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "releases.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "repo.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "studio.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "supabase.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "www.alliage.io",
+          "root": true
+        }
+      ],
+      "status": "completed",
+      "error": null,
+      "timestamp": "2025-10-26T15:58:37.856244",
+      "execution_time_ms": 5216,
+      "cache_hit": false
+    },
+    {
+      "step_id": "branch-0-1_domain_to_ip-1761490693790",
+      "branch_id": "branch-0-1",
+      "branch_name": "Main Flow (Branch 1)",
+      "node_id": "domain_to_ip-1761490693790",
+      "transform_name": "domain_to_ip",
+      "inputs": [
+        {
+          "domain": "api.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cdn.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cicd.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "community.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "doc.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "kong.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "maven2.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "releases.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "repo.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "studio.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "supabase.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "www.alliage.io",
+          "root": true
+        }
+      ],
+      "outputs": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "54.38.31.209",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "51.68.117.245",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ],
+      "status": "completed",
+      "error": null,
+      "timestamp": "2025-10-26T15:58:43.073798",
+      "execution_time_ms": 566,
+      "cache_hit": false
+    }
+  ],
+  "summary": {
+    "total_steps": 3,
+    "completed_steps": 3,
+    "failed_steps": 0,
+    "total_execution_time_ms": 5911
+  },
+  "final_results": {
+    "initial_values": [
+      "alliage.io"
+    ],
+    "branches": [
+      {
+        "id": "branch-0",
+        "name": "Main Flow",
+        "steps": [
+          {
+            "nodeId": "domain_to_ip-1761469978018",
+            "transform": "domain_to_ip",
+            "status": "completed",
+            "outputs": [
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "branch-0-1",
+        "name": "Main Flow (Branch 1)",
+        "steps": [
+          {
+            "nodeId": "domain_to_subdomains-1761490690642",
+            "transform": "domain_to_subdomains",
+            "status": "completed",
+            "outputs": [
+              {
+                "domain": "api.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "cdn.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "cicd.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "community.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "doc.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "kong.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "maven2.tdp.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "releases.tdp.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "repo.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "studio.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "supabase.alliage.io",
+                "root": true
+              },
+              {
+                "domain": "www.alliage.io",
+                "root": true
+              }
+            ]
+          },
+          {
+            "nodeId": "domain_to_ip-1761490693790",
+            "transform": "domain_to_ip",
+            "status": "completed",
+            "outputs": [
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              },
+              {
+                "address": "54.38.31.209",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              },
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              },
+              {
+                "address": "51.68.117.245",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              },
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              },
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "results": {
+      "domain_to_ip-1761469978018": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ],
+      "domain_to_subdomains-1761490690642": [
+        {
+          "domain": "api.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cdn.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "cicd.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "community.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "doc.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "kong.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "maven2.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "releases.tdp.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "repo.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "studio.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "supabase.alliage.io",
+          "root": true
+        },
+        {
+          "domain": "www.alliage.io",
+          "root": true
+        }
+      ],
+      "domain_to_ip-1761490693790": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "54.38.31.209",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "51.68.117.245",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        },
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ]
+    },
+    "reference_mapping": {}
+  }
+}

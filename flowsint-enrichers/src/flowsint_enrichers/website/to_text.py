@@ -1,0 +1,69 @@
+from typing import List, Union
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_types.phrase import Phrase
+from flowsint_types.website import Website
+import requests
+from bs4 import BeautifulSoup
+
+
+class WebsiteToText(Enricher):
+    """Extracts the texts in a webpage."""
+
+    InputType = Website
+    OutputType = Phrase
+
+    @classmethod
+    def name(cls) -> str:
+        return "website_to_text"
+
+    @classmethod
+    def category(cls) -> str:
+        return "Website"
+
+    @classmethod
+    def key(cls) -> str:
+        return "website"
+
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
+        for website in data:
+            text_data = self._extract_text(website.url)
+            if text_data:
+                phrase_obj = Phrase(text=text_data)
+                results.append(phrase_obj)
+        return results
+
+    def _extract_text(self, website_url: str) -> str:
+        try:
+            response = requests.get(website_url, timeout=8)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            text = soup.get_text()
+            return text
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching the URL: {e}")
+            return None
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
+    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+        # Create Neo4j relationships between websites and their corresponding phrases
+        for input_website, result in zip(original_input, results):
+            website_url = str(input_website.url)
+
+            if self.neo4j_conn:
+                self.create_node(input_website)
+
+                # Create relationship with the specific phrase for this website
+                self.create_node(result)
+                self.create_relationship(input_website, result, "HAS_INNER_TEXT")
+                self.log_graph_message(
+                    f"Extracted some text from the website {website_url}."
+                )
+        return results
+
+
+# Make types available at module level for easy access
+InputType = WebsiteToText.InputType
+OutputType = WebsiteToText.OutputType

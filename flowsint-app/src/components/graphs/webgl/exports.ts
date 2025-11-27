@@ -13,7 +13,7 @@ export type {
   SimulationLink,
   GraphControlActions,
   HighlightState,
-  TransformState,
+  EnricherState,
   VisibilitySettings,
   ForceSettings,
   NodeLabelObjects,

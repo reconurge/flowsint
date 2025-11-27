@@ -47,7 +47,7 @@ test:
 	@echo "🔎 Running tests..."
 	cd $(PROJECT_ROOT)/flowsint-types && poetry run pytest
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run pytest
-	cd $(PROJECT_ROOT)/flowsint-transforms && poetry run pytest
+	cd $(PROJECT_ROOT)/flowsint-enrichers && poetry run pytest
 
 install:
 	@echo "🚀 Installing Flowsint project modules..."
@@ -62,7 +62,7 @@ install:
 	docker compose up -d postgres redis neo4j
 	poetry install
 	cd $(PROJECT_ROOT)/flowsint-core && poetry install
-	cd $(PROJECT_ROOT)/flowsint-transforms && poetry install
+	cd $(PROJECT_ROOT)/flowsint-enrichers && poetry install
 	cd $(PROJECT_ROOT)/flowsint-api && poetry install && poetry run alembic upgrade head
 	@echo "✅ All modules installed successfully!"
 
@@ -121,6 +121,6 @@ clean:
 	-docker compose down -v --rmi all --remove-orphans
 	rm -rf $(PROJECT_ROOT)/flowsint-app/node_modules
 	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv
-	rm -rf $(PROJECT_ROOT)/flowsint-transforms/.venv
+	rm -rf $(PROJECT_ROOT)/flowsint-enrichers/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-api/.venv
 	@echo "✅ Cleanup complete!"

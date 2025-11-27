@@ -114,7 +114,7 @@ export const clearScreen = (): string => {
 export const formatWelcomeMessage = (): string => {
   return (
     `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}╭───────────────────────────────────────────╮${ANSI.RESET}\r\n` +
-    `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}  ${ANSI.BRIGHT_WHITE}⚡ Flowsint transforms terminal${ANSI.RESET}   ${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}\r\n` +
+    `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}  ${ANSI.BRIGHT_WHITE}⚡ Flowsint enrichers terminal${ANSI.RESET}   ${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}\r\n` +
     `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}╰───────────────────────────────────────────╯${ANSI.RESET}\r\n` +
     `${ANSI.DIM}Waiting for investigation activity...${ANSI.RESET}\r\n\r\n`
   )

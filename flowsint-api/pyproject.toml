@@ -10,7 +10,7 @@ packages = [{ include = "app" }]
 python = ">=3.12,<4.0"
 flowsint-core = { path = "../flowsint-core", develop = true }
 flowsint-types = { path = "../flowsint-types", develop = true }
-flowsint-transforms = { path = "../flowsint-transforms", develop = true }
+flowsint-enrichers = { path = "../flowsint-enrichers", develop = true }
 fastapi = "^0.115.0"
 uvicorn = "^0.32.0"
 redis = "^5.0"

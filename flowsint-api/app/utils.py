@@ -204,9 +204,9 @@ def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
     return None
 
 
-def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
-    nodes = transform["nodes"]
-    edges = transform["edges"]
+def extract_enricher(enricher: Dict[str, Any]) -> Dict[str, Any]:
+    nodes = enricher["nodes"]
+    edges = enricher["edges"]
 
     input_node = next((node for node in nodes if node["data"]["type"] == "type"), None)
     if not input_node:
@@ -214,18 +214,18 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
     input_output = input_node["data"]["outputs"]
     node_lookup = {node["id"]: node for node in nodes}
 
-    transforms = []
+    enrichers = []
     for edge in edges:
         target_id = edge["target"]
         source_handle = edge["sourceHandle"]
         target_handle = edge["targetHandle"]
 
-        transform_node = node_lookup.get(target_id)
-        if transform_node and transform_node["data"]["type"] == "transform":
-            transforms.append(
+        enricher_node = node_lookup.get(target_id)
+        if enricher_node and enricher_node["data"]["type"] == "enricher":
+            enrichers.append(
                 {
-                    "transform_name": transform_node["data"]["name"],
-                    "module": transform_node["data"]["module"],
+                    "enricher_name": enricher_node["data"]["name"],
+                    "module": enricher_node["data"]["module"],
                     "input": source_handle,
                     "output": target_handle,
                 }
@@ -236,8 +236,8 @@ def extract_transform(transform: Dict[str, Any]) -> Dict[str, Any]:
             "name": input_node["data"]["name"],
             "outputs": input_output,
         },
-        "transforms": transforms,
-        "transform_names": [transform["transform_name"] for transform in transforms],
+        "enrichers": enrichers,
+        "enricher_names": [enricher["enricher_name"] for enricher in enrichers],
     }
 
 

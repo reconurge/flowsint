@@ -192,4 +192,4 @@ def test_location_label():
         country="France",
         zip="75001"
     )
-    assert location.label == "123 Main St Paris, France"
+    assert location.label == "123 Main St, Paris, France"

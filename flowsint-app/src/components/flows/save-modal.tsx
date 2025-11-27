@@ -23,14 +23,14 @@ interface SaveModalProps {
 }
 
 export function SaveModal({ open, onOpenChange, onSave, isLoading, initialName, initialDescription }: SaveModalProps) {
-  const [name, setName] = useState(initialName || 'My Transform')
+  const [name, setName] = useState(initialName || 'My Enricher')
   const [description, setDescription] = useState(initialDescription || '')
   const [nameError, setNameError] = useState('')
 
   // Update state when modal opens with new initial values
   useEffect(() => {
     if (open) {
-      setName(initialName || 'My Transform')
+      setName(initialName || 'My Enricher')
       setDescription(initialDescription || '')
       setNameError('')
     }

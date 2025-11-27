@@ -1,6 +1,6 @@
 # flowsint-types
 
-The types used in the flowsint transforms and core for flowsint.
+The types used in the flowsint enrichers and core for flowsint.
 
 ## Testing
 

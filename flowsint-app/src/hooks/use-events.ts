@@ -1,8 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { logService } from '@/api/log-service'
-import { EventLevel } from '@/types'
-import { useGraphControls } from '@/stores/graph-controls-store'
 import { queryKeys } from '@/api/query-keys'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -10,8 +8,6 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export function useEvents(sketch_id: string | undefined) {
   const [liveLogs, setLiveLogs] = useState<Event[]>([])
-  const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
 
   const { data: previousLogs = [], refetch } = useQuery({
     queryKey: queryKeys.logs.bySketch(sketch_id as string),
@@ -38,16 +34,28 @@ export function useEvents(sketch_id: string | undefined) {
 
     eventSource.onmessage = (e) => {
       try {
-        const raw = JSON.parse(e.data) as any
-        const event = JSON.parse(raw.data) as Event
-        if (event.type === EventLevel.COMPLETED) {
-          // Set flag to regenerate layout after refetch completes
-          setShouldRegenerateLayoutOnNextRefetch(true)
-          refetchGraph()
+        // Handle malformed SSE data (connection message has extra "data: " prefix)
+        let dataStr = e.data
+        if (dataStr.startsWith('data: ')) {
+          dataStr = dataStr.substring(6) // Remove "data: " prefix
         }
+
+        const raw = JSON.parse(dataStr) as any
+
+        // Ignore connection messages
+        if (raw.event === 'connected') {
+          return
+        }
+
+        // Only process log events
+        if (raw.event !== 'log') {
+          return
+        }
+
+        const event = JSON.parse(raw.data) as Event
         setLiveLogs((prev) => [...prev.slice(-99), event])
       } catch (error) {
-        console.error('[useSketchEvents] Failed to parse SSE event:', error)
+        console.error('[useSketchEvents] Failed to parse SSE event:', error, e.data)
       }
     }
 
@@ -59,7 +67,7 @@ export function useEvents(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id, refetchGraph])
+  }, [sketch_id])
 
   const logs = useMemo(
     () => [...previousLogs, ...liveLogs].slice(-100),

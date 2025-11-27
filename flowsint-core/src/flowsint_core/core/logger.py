@@ -269,6 +269,18 @@ class LoggerSingleton:
         """Log a completed message."""
         self._log(sketch_id, EventLevel.COMPLETED, message)
 
+        # Also publish to status channel for graph refresh
+        try:
+            import uuid
+            temp_log_id = str(uuid.uuid4())
+            from ..tasks.event import emit_status_event_task
+            emit_status_event_task.apply(
+                args=[temp_log_id, str(sketch_id), EventLevel.COMPLETED, message]
+            )
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to emit status event: {e}")
+
     def pending(self, sketch_id: Union[str, UUID], message: Dict) -> None:
         """Log a pending message."""
         self._log(sketch_id, EventLevel.PENDING, message)

@@ -37,6 +37,7 @@ export default function AddItemDialog() {
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+  const getViewportCenter = useGraphControls((s) => s.getViewportCenter)
 
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
@@ -77,26 +78,37 @@ export default function AddItemDialog() {
     const type = currentNodeType.type
     const label = data[label_key as keyof typeof data]
 
+    // Get viewport center for positioning new node
+    const center = getViewportCenter()
+    const nodeX = center?.x ?? 0
+    const nodeY = center?.y ?? 0
+
+    // Node data for API (with correct structure)
     const newNode = {
-      type: 'custom',
+      type: type.toLowerCase(), // Required at root level for API validation
       label: label,
       data: {
         ...flattenObj(data),
         label,
-        type: type.toLowerCase()
+        type: type.toLowerCase(),
+        x: nodeX, // Position at viewport center
+        y: nodeY
       }
     }
 
     // Generate temporary ID for optimistic update
     const tempId = generateTempId()
-    // Optimistically add the node to local state with temporary ID
+    // Optimistically add the node to local state with temporary ID and position fields
     const nodeWithTempId: GraphNode = {
       id: tempId,
       data: {
         ...newNode.data,
         id: tempId,
         created_at: new Date().toISOString()
-      }
+      },
+      // Position fields for client-side graph rendering (at viewport center)
+      x: nodeX,
+      y: nodeY,
     }
     if (addNode) {
       addNode(nodeWithTempId)
@@ -155,13 +167,13 @@ export default function AddItemDialog() {
       console.error(error)
       toast.error('Failed to sync node with server. Please refresh.')
     }
-    finally {
-      setTimeout(() => {
-        if (currentLayoutType && regenerateLayout) {
-          regenerateLayout(currentLayoutType)
-        }
-      }, 500)
-    }
+    // finally {
+    //   setTimeout(() => {
+    //     if (currentLayoutType && regenerateLayout) {
+    //       regenerateLayout(currentLayoutType)
+    //     }
+    //   }, 500)
+    // }
   }
 
   const navigateToSubItems = (item: ActionItem) => {

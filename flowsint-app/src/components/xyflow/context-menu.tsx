@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { JSX, useEffect, useRef } from 'react'
 import { useKeyboard } from '@/hooks/use-keyboard'
 
 interface ContextMenuProps {
@@ -29,10 +29,35 @@ export default function ContextMenu({
   children,
   ...props
 }: ContextMenuProps): JSX.Element {
+  const menuRef = useRef<HTMLDivElement>(null)
+
   // Close menu on ESC key
   useKeyboard('Escape', () => {
     setMenu?.(null)
   })
+
+  // Close menu on click outside or blur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenu?.(null)
+      }
+    }
+
+    const handleBlur = () => {
+      setMenu?.(null)
+    }
+
+    // Add listeners
+    document.addEventListener('mousedown', handleClickOutside)
+    window.addEventListener('blur', handleBlur)
+
+    return () => {
+      // Cleanup
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('blur', handleBlur)
+    }
+  }, [setMenu])
 
   // If raw position is provided, calculate overflow and adjust position
   let finalTop = top
@@ -115,6 +140,7 @@ export default function ContextMenu({
 
   return (
     <div
+      ref={menuRef}
       style={dynamicStyles}
       className="bg-background/90 backdrop-blur-sm border border-border flex flex-col rounded-lg shadow-lg absolute z-50"
       onClick={handleMenuClick}

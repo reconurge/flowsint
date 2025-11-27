@@ -76,12 +76,14 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
     firstItem: virtualItems[0],
     parentRefCurrent: parentRef.current
   })
+  const totalSize
+    = virtualizer.getTotalSize()
 
   return (
     <div ref={parentRef} className="h-full py-1.5 overflow-auto">
       <div
         style={{
-          height: `${virtualizer.getTotalSize()}px`,
+          height: `${totalSize}px`,
           width: '100%',
           position: 'relative',
           paddingTop: '0.75rem',
@@ -105,27 +107,27 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
               className="pb-1 px-3"
             >
               <Badge variant={'outline'} className="h-8 px-2 py-1 w-full block">
-                  <div className="flex items-center gap-1 w-full min-w-0 h-full">
-                    <div className="min-w-0 flex-1 flex items-center">
-                      <RelationshipItem node={rel.source} />
-                    </div>
-                    <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
-                    <div className="min-w-0 flex-1 flex items-center justify-center">
-                      <span className="opacity-60 text-xs truncate block">{rel.edge.label}</span>
-                    </div>
-                    <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
-                    <div className="min-w-0 flex-1 flex items-center justify-end">
-                      <RelationshipItem node={rel.target} />
-                    </div>
+                <div className="flex items-center gap-1 w-full min-w-0 h-full">
+                  <div className="min-w-0 flex-1 flex items-center">
+                    <RelationshipItem node={rel.source} />
                   </div>
-                </Badge>
-              </div>
-            )
-          })}
-        </div>
+                  <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
+                  <div className="min-w-0 flex-1 flex items-center justify-center">
+                    <span className="opacity-60 text-xs truncate block">{rel.edge.label}</span>
+                  </div>
+                  <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
+                  <div className="min-w-0 flex-1 flex items-center justify-end">
+                    <RelationshipItem node={rel.target} />
+                  </div>
+                </div>
+              </Badge>
+            </div>
+          )
+        })}
       </div>
-    )
-  }
+    </div>
+  )
+}
 )
 
 export default Relationships

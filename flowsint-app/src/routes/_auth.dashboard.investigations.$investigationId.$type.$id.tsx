@@ -45,8 +45,18 @@ const GraphPageContent = () => {
   }, [id, reset])
 
   useEffect(() => {
-    setActions({ refetchGraph: refetch })
-  }, [refetch, setActions, id])
+    const refetchWithCallback = async (onSuccess?: () => void) => {
+      const result = await refetch()
+      // Execute callback after refetch completes and data is updated
+      if (onSuccess) {
+        // Small delay to ensure React Query has updated the data in the store
+        setTimeout(() => {
+          onSuccess()
+        }, 100)
+      }
+    }
+    setActions({ refetchGraph: refetchWithCallback })
+  }, [refetch, setActions, id, data])
 
   if (type === 'graph') {
     return <GraphPanel isLoading={isLoading} isRefetching={isRefetching} graphData={data} />

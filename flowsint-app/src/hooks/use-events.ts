@@ -34,11 +34,28 @@ export function useEvents(sketch_id: string | undefined) {
 
     eventSource.onmessage = (e) => {
       try {
-        const raw = JSON.parse(e.data) as any
+        // Handle malformed SSE data (connection message has extra "data: " prefix)
+        let dataStr = e.data
+        if (dataStr.startsWith('data: ')) {
+          dataStr = dataStr.substring(6) // Remove "data: " prefix
+        }
+
+        const raw = JSON.parse(dataStr) as any
+
+        // Ignore connection messages
+        if (raw.event === 'connected') {
+          return
+        }
+
+        // Only process log events
+        if (raw.event !== 'log') {
+          return
+        }
+
         const event = JSON.parse(raw.data) as Event
         setLiveLogs((prev) => [...prev.slice(-99), event])
       } catch (error) {
-        console.error('[useSketchEvents] Failed to parse SSE event:', error)
+        console.error('[useSketchEvents] Failed to parse SSE event:', error, e.data)
       }
     }
 

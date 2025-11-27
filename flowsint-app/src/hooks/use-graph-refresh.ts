@@ -1,72 +1,85 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { EventLevel } from '@/types'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-/**
- * Dedicated hook for graph refresh on transform completion.
- *
- * This hook listens ONLY to COMPLETED events via SSE and triggers
- * a graph refetch followed by layout regeneration. It's completely
- * separate from the logging system (use-events.ts).
- *
- * Architecture:
- * - Transform completes → Logger.completed() → SSE event
- * - This hook receives COMPLETED event
- * - Calls refetchGraph() with callback
- * - Callback triggers regenerateLayout() with fresh data
- */
 export function useGraphRefresh(sketch_id: string | undefined) {
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
+  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
   const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+
+  // Use refs to avoid reconnecting SSE when functions change
+  const refetchGraphRef = useRef(refetchGraph)
+  const setShouldRegenerateRef = useRef(setShouldRegenerateLayoutOnNextRefetch)
+  const currentLayoutTypeRef = useRef(currentLayoutType)
+
+  // Keep refs updated
+  useEffect(() => {
+    refetchGraphRef.current = refetchGraph
+    setShouldRegenerateRef.current = setShouldRegenerateLayoutOnNextRefetch
+    currentLayoutTypeRef.current = currentLayoutType
+  }, [refetchGraph, setShouldRegenerateLayoutOnNextRefetch, currentLayoutType])
 
   useEffect(() => {
     if (!sketch_id) return
 
-    console.log('[useGraphRefresh] Connecting to SSE for sketch:', sketch_id)
     const eventSource = new EventSource(
-      `${API_URL}/api/events/sketch/${sketch_id}/stream`
+      `${API_URL}/api/events/sketch/${sketch_id}/status/stream`
     )
-
-    eventSource.onopen = () => {
-      console.log('[useGraphRefresh] SSE connection opened')
-    }
 
     eventSource.onmessage = (e) => {
       try {
-        const raw = JSON.parse(e.data) as any
+        // Handle malformed SSE data (connection message has extra "data: " prefix)
+        let dataStr = e.data
+        if (dataStr.startsWith('data: ')) {
+          dataStr = dataStr.substring(6) // Remove "data: " prefix
+        }
+
+        const raw = JSON.parse(dataStr) as any
+
+        // Ignore connection messages
+        if (raw.event === 'connected') {
+          return
+        }
+
+        // Only process status events
+        if (raw.event !== 'status') {
+          return
+        }
+
         const event = JSON.parse(raw.data) as any
-        console.log('[useGraphRefresh] Received event:', event.type, event)
 
         // Only handle COMPLETED events
         if (event.type === EventLevel.COMPLETED) {
-          console.log('[useGraphRefresh] COMPLETED event detected, triggering refetch')
-          console.log('[useGraphRefresh] refetchGraph function:', refetchGraph)
-          console.log('[useGraphRefresh] currentLayoutType:', currentLayoutType)
+          const refetch = refetchGraphRef.current
+          const setShouldRegenerate = setShouldRegenerateRef.current
+          const layoutType = currentLayoutTypeRef.current
 
-          // Refetch graph data, then regenerate layout with fresh data
-          refetchGraph(() => {
-            console.log('[useGraphRefresh] Refetch callback executing, regenerating layout')
-            if (currentLayoutType) {
-              regenerateLayout(currentLayoutType)
-            }
-          })
+          if (typeof refetch !== 'function') {
+            return
+          }
+
+          // Set flag to regenerate layout when new data arrives
+          if (layoutType && typeof setShouldRegenerate === 'function') {
+            setShouldRegenerate(true)
+          }
+
+          // Refetch graph data - the regeneration will happen automatically
+          // via the useEffect in graph-viewer.tsx when nodes change
+          refetch()
         }
       } catch (error) {
-        console.error('[useGraphRefresh] Failed to parse SSE event:', error)
+        console.error('[useGraphRefresh] Failed to parse SSE event:', error, e.data)
       }
     }
 
-    eventSource.onerror = (error) => {
-      console.error('[useGraphRefresh] EventSource error:', error)
+    eventSource.onerror = () => {
       eventSource.close()
     }
 
     return () => {
-      console.log('[useGraphRefresh] Disconnecting SSE')
       eventSource.close()
     }
-  }, [sketch_id, refetchGraph, regenerateLayout, currentLayoutType])
+  }, [sketch_id]) // Only reconnect when sketch_id changes
 }

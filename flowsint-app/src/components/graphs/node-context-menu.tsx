@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
-import { transformService } from '@/api/transform-service'
+import { enricherService } from '@/api/enricher-service'
 import { flowService } from '@/api/flow-service'
 import { useQuery } from '@tanstack/react-query'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert, SquareArrowOutUpRight } from 'lucide-react'
-import { Transform, Flow, GraphNode } from '@/types'
+import { Enricher, Flow, GraphNode } from '@/types'
 import { useLaunchFlow } from '@/hooks/use-launch-flow'
-import { useLaunchTransform } from '@/hooks/use-launch-transform'
+import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
 import { useParams } from '@tanstack/react-router'
 import { capitalizeFirstLetter } from '@/lib/utils'
 import NodeActions from '@/components/graphs/node-actions'
@@ -48,16 +48,16 @@ export default function ContextMenu({
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
-  const [activeTab, setActiveTab] = useState('transforms')
-  const [transformsSearchQuery, setTransformsSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState('enrichers')
+  const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
   const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
   const { launchFlow } = useLaunchFlow(false)
-  const { launchTransform } = useLaunchTransform(false)
+  const { launchEnricher } = useLaunchEnricher(false)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
 
-  const { data: transforms, isLoading: isLoadingTransforms } = useQuery({
-    queryKey: ['transforms', node.data.type],
-    queryFn: () => transformService.get(capitalizeFirstLetter(node.data.type))
+  const { data: enrichers, isLoading: isLoadingEnrichers } = useQuery({
+    queryKey: ['enrichers', node.data.type],
+    queryFn: () => enricherService.get(capitalizeFirstLetter(node.data.type))
   })
 
   const { data: flows, isLoading: isLoadingFlows } = useQuery({
@@ -65,12 +65,12 @@ export default function ContextMenu({
     queryFn: () => flowService.get(capitalizeFirstLetter(node.data.type))
   })
 
-  const filteredTransforms =
-    transforms?.filter((transform: Transform) => {
-      if (!transformsSearchQuery.trim()) return true
-      const query = transformsSearchQuery.toLowerCase().trim()
-      const matchesName = transform.name?.toLowerCase().includes(query)
-      const matchesDescription = transform.description?.toLowerCase().includes(query)
+  const filteredEnrichers =
+    enrichers?.filter((enricher: Enricher) => {
+      if (!enrichersSearchQuery.trim()) return true
+      const query = enrichersSearchQuery.toLowerCase().trim()
+      const matchesName = enricher.name?.toLowerCase().includes(query)
+      const matchesDescription = enricher.description?.toLowerCase().includes(query)
       return matchesName || matchesDescription
     }) || []
 
@@ -89,9 +89,9 @@ export default function ContextMenu({
     setMenu(null)
   }
 
-  const handleTransformClick = (e: React.MouseEvent, transformName: string) => {
+  const handleEnricherClick = (e: React.MouseEvent, enricherName: string) => {
     e.stopPropagation()
-    launchTransform([node.id], transformName, sketchId)
+    launchEnricher([node.id], enricherName, sketchId)
     setMenu(null)
   }
 
@@ -123,9 +123,9 @@ export default function ContextMenu({
       <div className="px-3 py-2 border-b border-border flex-shrink-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full h-9">
-            <TabsTrigger value="transforms" className="flex-1" onClick={(e) => e.stopPropagation()}>
+            <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
               <Zap className="h-3 w-3 mr-1" />
-              Transforms
+              Enrichers
             </TabsTrigger>
             <TabsTrigger value="flows" className="flex-1" onClick={(e) => e.stopPropagation()}>
               <FileCode2 className="h-3 w-3 mr-1" />
@@ -137,19 +137,19 @@ export default function ContextMenu({
 
       {/* Tab Content */}
       <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
-        {/* Transforms Tab */}
-        <TabsContent value="transforms" className="flex-1 flex flex-col min-h-0 mt-0">
-          {/* Transforms Search */}
+        {/* Enrichers Tab */}
+        <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
+          {/* Enrichers Search */}
           <div className="px-3 py-2 border-b border-border flex-shrink-0">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search transforms..."
-                value={transformsSearchQuery}
+                placeholder="Search enrichers..."
+                value={enrichersSearchQuery}
                 onChange={(e) => {
                   e.stopPropagation()
-                  setTransformsSearchQuery(e.target.value)
+                  setEnrichersSearchQuery(e.target.value)
                 }}
                 onClick={(e) => e.stopPropagation()}
                 className="h-7 pl-7 text-xs"
@@ -157,9 +157,9 @@ export default function ContextMenu({
             </div>
           </div>
 
-          {/* Transforms List */}
+          {/* Enrichers List */}
           <div className="flex-1 grow overflow-auto min-h-0">
-            {isLoadingTransforms ? (
+            {isLoadingEnrichers ? (
               <div className="p-2 space-y-2">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="flex items-center gap-2 p-2 rounded-md">
@@ -171,28 +171,28 @@ export default function ContextMenu({
                   </div>
                 ))}
               </div>
-            ) : filteredTransforms.length > 0 ? (
+            ) : filteredEnrichers.length > 0 ? (
               <div className="p-1">
-                {filteredTransforms.map((transform: Transform) => (
+                {filteredEnrichers.map((enricher: Enricher) => (
                   <button
-                    key={transform.id}
+                    key={enricher.id}
                     className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
-                    onClick={(e) => handleTransformClick(e, transform.name)}
+                    onClick={(e) => handleEnricherClick(e, enricher.name)}
                   >
                     <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium flex gap-1 items-center truncate">
-                        <span>{transform.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {transform.name || '(Unnamed transform)'}
+                        <span>{enricher.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {enricher.name || '(Unnamed enricher)'}
                       </p>
-                      {transform.description && (
+                      {enricher.description && (
                         <p className="text-xs text-muted-foreground truncate">
-                          {transform.description}
+                          {enricher.description}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
                       {/* <FavoriteButton isFavorite={false} /> */}
-                      <InfoButton description={transform.description ?? ''} />
+                      <InfoButton description={enricher.description ?? ''} />
                     </div>
                   </button>
                 ))}
@@ -200,7 +200,7 @@ export default function ContextMenu({
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {transformsSearchQuery ? 'No transforms found' : 'No transforms available'}
+                  {enrichersSearchQuery ? 'No enrichers found' : 'No enrichers available'}
                 </p>
               </div>
             )}

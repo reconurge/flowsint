@@ -4,7 +4,7 @@ from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
-from flowsint_core.core.registry import TransformRegistry
+from flowsint_core.core.registry import EnricherRegistry
 from flowsint_core.core.celery import celery
 from flowsint_core.core.graph_repository import GraphRepository
 from flowsint_types import (
@@ -100,27 +100,27 @@ def get_flows(
 # Returns the "raw_materials" for the flow editor
 @router.get("/raw_materials")
 async def get_material_list():
-    transforms = TransformRegistry.list_by_categories()
-    transform_categories = {
+    enrichers = EnricherRegistry.list_by_categories()
+    enricher_categories = {
         category: [
             {
-                "class_name": transform.get("class_name"),
-                "category": transform.get("category"),
-                "name": transform.get("name"),
-                "module": transform.get("module"),
-                "documentation": transform.get("documentation"),
-                "description": transform.get("description"),
-                "inputs": transform.get("inputs"),
-                "outputs": transform.get("outputs"),
-                "type": "transform",
-                "params": transform.get("params"),
-                "params_schema": transform.get("params_schema"),
-                "required_params": transform.get("required_params"),
-                "icon": transform.get("icon"),
+                "class_name": enricher.get("class_name"),
+                "category": enricher.get("category"),
+                "name": enricher.get("name"),
+                "module": enricher.get("module"),
+                "documentation": enricher.get("documentation"),
+                "description": enricher.get("description"),
+                "inputs": enricher.get("inputs"),
+                "outputs": enricher.get("outputs"),
+                "type": "enricher",
+                "params": enricher.get("params"),
+                "params_schema": enricher.get("params_schema"),
+                "required_params": enricher.get("required_params"),
+                "icon": enricher.get("icon"),
             }
-            for transform in transform_list
+            for enricher in enricher_list
         ]
-        for category, transform_list in transforms.items()
+        for category, enricher_list in enrichers.items()
     }
 
     object_inputs = [
@@ -142,18 +142,18 @@ async def get_material_list():
         extract_input_schema_flow(CryptoNFT),
     ]
 
-    # Put types first, then add all transform categories
-    flattened_transforms = {"types": object_inputs}
-    flattened_transforms.update(transform_categories)
+    # Put types first, then add all enricher categories
+    flattened_enrichers = {"types": object_inputs}
+    flattened_enrichers.update(enricher_categories)
 
-    return {"items": flattened_transforms}
+    return {"items": flattened_enrichers}
 
 
 # Returns the "raw_materials" for the flow editor
 @router.get("/input_type/{input_type}")
 async def get_material_list(input_type: str):
-    transforms = TransformRegistry.list_by_input_type(input_type)
-    return {"items": transforms}
+    enrichers = EnricherRegistry.list_by_input_type(input_type)
+    return {"items": enrichers}
 
 
 # Create a new flow
@@ -253,7 +253,7 @@ async def launch_flow(
             raise HTTPException(status_code=404, detail="No nodes found with provided IDs")
 
         # Clean Neo4J-specific fields from node data
-        # The transform's preprocess() will handle Pydantic validation
+        # The enricher's preprocess() will handle Pydantic validation
         cleaned_nodes = [clean_neo4j_node_data(node_data) for node_data in nodes_data]
 
         # Compute flow branches
@@ -346,8 +346,8 @@ def compute_flow_branches(
     node_map = {node.id: node for node in nodes}
     branches = []
     branch_counter = 0
-    # Track transform outputs across all branches
-    transform_outputs = {}
+    # Track enricher outputs across all branches
+    enricher_outputs = {}
 
     def calculate_path_length(start_node: str, visited: set = None) -> int:
         """Calculate the shortest possible path length from a node to any leaf"""
@@ -390,7 +390,7 @@ def compute_flow_branches(
             params=node_params,
             inputs={} if is_input_node else input_data,
             outputs=outputs,
-            type="type" if is_input_node else "transform",
+            type="type" if is_input_node else "enricher",
             status="pending",
             branchId=branch_id,
             depth=depth,
@@ -426,13 +426,13 @@ def compute_flow_branches(
             )
             current_outputs = {first_output_name: initial_value}
         else:
-            # Check if we already have outputs for this transform
-            if current_node_id in transform_outputs:
-                current_outputs = transform_outputs[current_node_id]
+            # Check if we already have outputs for this enricher
+            if current_node_id in enricher_outputs:
+                current_outputs = enricher_outputs[current_node_id]
             else:
                 current_outputs = process_node_data(current_node, input_data)
                 # Store the outputs for future use
-                transform_outputs[current_node_id] = current_outputs
+                enricher_outputs[current_node_id] = current_outputs
 
         # Extract node parameters
         node_params = current_node.data.get("params", {})
@@ -543,49 +543,49 @@ def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
     for output in output_types:
         output_name = output.get("name", "output")
         class_name = node.data.get("class_name", "")
-        # For simulation purposes, we'll return a placeholder value based on the transform type
-        if class_name in ["ReverseResolveTransform", "ResolveTransform"]:
-            # IP/Domain resolution transforms
+        # For simulation purposes, we'll return a placeholder value based on the enricher type
+        if class_name in ["ReverseResolveEnricher", "ResolveEnricher"]:
+            # IP/Domain resolution enrichers
             outputs[output_name] = (
                 "192.168.1.1" if "ip" in output_name.lower() else "example.com"
             )
-        elif class_name == "SubdomainTransform":
-            # Subdomain transform
+        elif class_name == "SubdomainEnricher":
+            # Subdomain enricher
             outputs[output_name] = f"sub.{inputs.get('input', 'example.com')}"
 
-        elif class_name == "WhoisTransform":
-            # WHOIS transform
+        elif class_name == "WhoisEnricher":
+            # WHOIS enricher
             outputs[output_name] = {
                 "domain": inputs.get("input", "example.com"),
                 "registrar": "Example Registrar",
                 "creation_date": "2020-01-01",
             }
 
-        elif class_name == "IpToInfosTransform":
-            # Geolocation transform
+        elif class_name == "IpToInfosEnricher":
+            # Geolocation enricher
             outputs[output_name] = {
                 "country": "France",
                 "city": "Paris",
                 "coordinates": {"lat": 48.8566, "lon": 2.3522},
             }
 
-        elif class_name == "MaigretTransform":
-            # Social media transform
+        elif class_name == "MaigretEnricher":
+            # Social media enricher
             outputs[output_name] = {
                 "username": inputs.get("input", "user123"),
                 "platforms": ["twitter", "github", "linkedin"],
             }
 
-        elif class_name == "HoleheTransform":
-            # Email verification transform
+        elif class_name == "HoleheEnricher":
+            # Email verification enricher
             outputs[output_name] = {
                 "email": inputs.get("input", "user@example.com"),
                 "exists": True,
                 "platforms": ["gmail", "github"],
             }
 
-        elif class_name == "SireneTransform":
-            # Organization transform
+        elif class_name == "SireneEnricher":
+            # Organization enricher
             outputs[output_name] = {
                 "name": inputs.get("input", "Example Corp"),
                 "siret": "12345678901234",
@@ -593,7 +593,7 @@ def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         else:
-            # For unknown transforms, pass through the input
+            # For unknown enrichers, pass through the input
             outputs[output_name] = inputs.get("input") or f"flowed_{output_name}"
 
     return outputs

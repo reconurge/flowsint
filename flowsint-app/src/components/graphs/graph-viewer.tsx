@@ -290,7 +290,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   // Memoized graph data transformation with proper memoization dependencies
   const graphData = useMemo(() => {
-    // Transform nodes
+    // Enricher nodes
     const transformedNodes = nodes.map((node) => {
       const type = node.data?.type as ItemType
 

@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { cn } from '@/lib/utils'
 import { CopyButton } from '@/components/copy'
 import { Check, Rocket, X, MousePointer } from 'lucide-react'
-import LaunchFlow from '../launch-transform'
+import LaunchFlow from '../launch-enricher'
 import NodeActions from '../node-actions'
 import { Button } from '../../ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
@@ -54,7 +54,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Launch transform</p>
+                <p>Launch enricher</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

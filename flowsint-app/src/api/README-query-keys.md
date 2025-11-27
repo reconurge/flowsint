@@ -152,9 +152,9 @@ const updateAnalysisMutation = useMutation({
 - `queryKeys.scans.list`
 - `queryKeys.scans.detail(scanId)`
 
-### Transforms
-- `queryKeys.transforms.list`
-- `queryKeys.transforms.detail(transformId)`
+### Enrichers
+- `queryKeys.enrichers.list`
+- `queryKeys.enrichers.detail(enricherId)`
 
 ## Migration Guide
 

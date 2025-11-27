@@ -77,7 +77,7 @@ services:
       - ./flowsint-api:/app/flowsint-api
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
-      - ./flowsint-transforms:/app/flowsint-transforms
+      - ./flowsint-enrichers:/app/flowsint-enrichers
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
@@ -115,7 +115,7 @@ services:
       - ./flowsint-api:/app/flowsint-api
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
-      - ./flowsint-transforms:/app/flowsint-transforms
+      - ./flowsint-enrichers:/app/flowsint-enrichers
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint

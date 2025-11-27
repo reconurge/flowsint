@@ -10,7 +10,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { TriangleAlert, Loader2, ArrowRight } from 'lucide-react'
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
-import { Transform } from '@/types/transform'
+import { Enricher } from '@/types/enricher'
 import { useQuery } from '@tanstack/react-query'
 import { Input } from '../ui/input'
 import { Alert, AlertDescription } from '../ui/alert'
@@ -37,49 +37,49 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
   })
   const [searchTerm, setSearchTerm] = useState<string>('')
 
-  const filteredTransforms = useMemo(() => {
+  const filteredEnrichers = useMemo(() => {
     if (!materials?.items || !selectedNode) return []
     if (!searchTerm.trim()) {
       return materials?.items
     }
     const term = searchTerm.toLowerCase()
-    return materials?.items.filter((transform: Transform) => {
+    return materials?.items.filter((enricher: Enricher) => {
       return (
-        transform.class_name.toLowerCase().includes(term) ||
-        transform.name.toLowerCase().includes(term) ||
-        transform.module.toLowerCase().includes(term) ||
-        transform.inputs.type.toLowerCase().includes(term) ||
-        transform.outputs.type.toLowerCase().includes(term) ||
-        (transform.documentation && transform.documentation.toLowerCase().includes(term))
+        enricher.class_name.toLowerCase().includes(term) ||
+        enricher.name.toLowerCase().includes(term) ||
+        enricher.module.toLowerCase().includes(term) ||
+        enricher.inputs.type.toLowerCase().includes(term) ||
+        enricher.outputs.type.toLowerCase().includes(term) ||
+        (enricher.documentation && enricher.documentation.toLowerCase().includes(term))
       )
     })
   }, [searchTerm, materials?.items, selectedNode])
 
   const handleClick = useCallback(
-    (transform: Transform) => {
+    (enricher: Enricher) => {
       if (!selectedNode) return
       const position = { x: selectedNode.position.x + 350, y: selectedNode.position.y }
       const newNode: FlowNode = {
-        id: `${transform.name}-${Date.now()}`,
-        type: transform.type === 'type' ? 'type' : 'transform',
+        id: `${enricher.name}-${Date.now()}`,
+        type: enricher.type === 'type' ? 'type' : 'enricher',
         position,
         data: {
-          id: transform.id,
-          class_name: transform.class_name,
-          module: transform.module || '',
-          key: transform.name,
-          color: colors[transform.category.toLowerCase()] || '#94a3b8',
-          name: transform.name,
-          category: transform.category,
-          type: transform.type,
-          inputs: transform.inputs,
-          outputs: transform.outputs,
-          documentation: transform.documentation,
-          description: transform.description,
-          required_params: transform.required_params,
-          params: transform.params,
-          params_schema: transform.params_schema,
-          icon: transform.icon
+          id: enricher.id,
+          class_name: enricher.class_name,
+          module: enricher.module || '',
+          key: enricher.name,
+          color: colors[enricher.category.toLowerCase()] || '#94a3b8',
+          name: enricher.name,
+          category: enricher.category,
+          type: enricher.type,
+          inputs: enricher.inputs,
+          outputs: enricher.outputs,
+          documentation: enricher.documentation,
+          description: enricher.description,
+          required_params: enricher.required_params,
+          params: enricher.params,
+          params_schema: enricher.params_schema,
+          icon: enricher.icon
         }
       }
       setNodes((prev) => [...prev, newNode])
@@ -89,7 +89,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
         source: selectedNode.id,
         target: newNode.id,
         sourceHandle: selectedNode.data.outputs.type,
-        targetHandle: transform.inputs.type
+        targetHandle: enricher.inputs.type
       }
       setEdges((prev) => [...prev, connection])
       // onLayout && onLayout()
@@ -106,11 +106,11 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
             <SheetTitle>
               Add connector to <span className="text-primary">{selectedNode?.data.class_name}</span>
             </SheetTitle>
-            <SheetDescription>Choose a transform to launch from the list below.</SheetDescription>
+            <SheetDescription>Choose an enricher to launch from the list below.</SheetDescription>
           </SheetHeader>
           <div className="p-4 grow overflow-auto border-t">
             <Input
-              placeholder="Search transforms..."
+              placeholder="Search enrichers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="mb-4"
@@ -119,31 +119,31 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
             {isLoading && (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Loading transforms...</span>
+                <span className="ml-2">Loading enrichers...</span>
               </div>
             )}
 
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <TriangleAlert className="h-4 w-4" />
-                <AlertDescription>Failed to load transforms. Please try again.</AlertDescription>
+                <AlertDescription>Failed to load enrichers. Please try again.</AlertDescription>
               </Alert>
             )}
 
             {!isLoading && !error && (
               <div className="flex flex-col gap-2">
-                {filteredTransforms.length === 0 ? (
+                {filteredEnrichers.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     {searchTerm.trim()
-                      ? 'No transforms found matching your search.'
-                      : 'No transforms available for this node type.'}
+                      ? 'No enrichers found matching your search.'
+                      : 'No enrichers available for this node type.'}
                   </div>
                 ) : (
-                  filteredTransforms.map((transform: Transform) => (
-                    <TransformItem
-                      key={transform.id}
-                      transform={transform}
-                      onClick={() => handleClick(transform)}
+                  filteredEnrichers.map((enricher: Enricher) => (
+                    <EnricherItem
+                      key={enricher.id}
+                      enricher={enricher}
+                      onClick={() => handleClick(enricher)}
                     />
                   ))
                 )}
@@ -158,27 +158,27 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
 
 export default FlowSheet
 
-// Custom equality function for TransformItem
-function areEqual(prevProps: { transform: Transform }, nextProps: { transform: Transform }) {
+// Custom equality function for EnricherItem
+function areEqual(prevProps: { enricher: Enricher }, nextProps: { enricher: Enricher }) {
   return (
-    prevProps.transform.class_name === nextProps.transform.class_name &&
-    prevProps.transform.name === nextProps.transform.name &&
-    prevProps.transform.module === nextProps.transform.module &&
-    prevProps.transform.documentation === nextProps.transform.documentation
+    prevProps.enricher.class_name === nextProps.enricher.class_name &&
+    prevProps.enricher.name === nextProps.enricher.name &&
+    prevProps.enricher.module === nextProps.enricher.module &&
+    prevProps.enricher.documentation === nextProps.enricher.documentation
   )
 }
 
-// Memoized transform item component for the sidebar
-const TransformItem = memo(
-  ({ transform, onClick }: { transform: Transform; onClick: () => void }) => {
+// Memoized enricher item component for the sidebar
+const EnricherItem = memo(
+  ({ enricher, onClick }: { enricher: Enricher; onClick: () => void }) => {
     const colors = useNodesDisplaySettings((s) => s.colors)
-    const borderInputColor = colors[transform.inputs.type.toLowerCase()]
-    const borderOutputColor = colors[transform.outputs.type.toLowerCase()]
+    const borderInputColor = colors[enricher.inputs.type.toLowerCase()]
+    const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
     const Icon =
-      transform.type === 'type'
-        ? useIcon(transform.outputs.type.toLowerCase() as string, null)
-        : transform.icon
-          ? useIcon(transform.icon, null)
+      enricher.type === 'type'
+        ? useIcon(enricher.outputs.type.toLowerCase() as string, null)
+        : enricher.icon
+          ? useIcon(enricher.icon, null)
           : null
 
     return (
@@ -200,17 +200,17 @@ const TransformItem = memo(
                 <div className="flex items-center gap-2 truncate text-ellipsis">
                   {Icon && <Icon size={24} />}
                   <h3 className="text-sm font-medium truncate text-ellipsis">
-                    {transform.class_name}
+                    {enricher.class_name}
                   </h3>
                 </div>
                 <p className="text-sm font-normal opacity-60 truncate text-ellipsis">
-                  {transform.description}
+                  {enricher.description}
                 </p>
                 <div className="mt-2 flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1">
                     <span className="text-muted-foreground">Takes</span>
                     <span className="font-bold truncate text-ellipsis">
-                      {transform.inputs.type}
+                      {enricher.inputs.type}
                     </span>
                   </div>
                   <span>
@@ -219,14 +219,14 @@ const TransformItem = memo(
                   <div className="flex items-center gap-1">
                     <span className="text-muted-foreground">Returns</span>
                     <span className="font-bold truncate text-ellipsis">
-                      {transform.outputs.type}
+                      {enricher.outputs.type}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          {transform.required_params && (
+          {enricher.required_params && (
             <div className="absolute bottom-3 right-3">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -245,4 +245,4 @@ const TransformItem = memo(
   areEqual
 )
 
-TransformItem.displayName = 'TransformItem'
+EnricherItem.displayName = 'EnricherItem'

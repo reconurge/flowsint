@@ -31,7 +31,7 @@ def get_scan_by_id(
 ):
     scan = db.query(Scan).filter(Scan.id == id).first()
     if not scan:
-        raise HTTPException(status_code=404, detail="Transform not found")
+        raise HTTPException(status_code=404, detail="Enricher not found")
     return scan
 
 

@@ -60,7 +60,7 @@ export interface HighlightState {
 }
 
 /**
- * Transform state for zoom/pan
+ * Enricher state for zoom/pan
  */
 export interface TransformState {
   k: number // scale

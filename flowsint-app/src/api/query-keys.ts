@@ -70,10 +70,10 @@ export const queryKeys = {
     detail: (scanId: string) => ['scans', scanId]
   },
 
-  // Transforms
-  transforms: {
-    list: ['transforms', 'list'],
-    detail: (transformId: string) => ['transforms', transformId]
+  // Enrichers
+  enrichers: {
+    list: ['enrichers', 'list'],
+    detail: (enricherId: string) => ['enrichers', enricherId]
   }
 }
 
@@ -88,4 +88,4 @@ export const keyKeys = queryKeys.keys
 export const logKeys = queryKeys.logs
 export const actionItemKeys = queryKeys.actionItems
 export const scanKeys = queryKeys.scans
-export const transformKeys = queryKeys.transforms
+export const enricherKeys = queryKeys.enrichers

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Graphics, FederatedPointerEvent } from 'pixi.js'
 import { GRAPH_CONSTANTS } from '../constants'
-import type { SimulationNode, HighlightState, TransformState } from '../types/graph.types'
+import type { SimulationNode, HighlightState, EnricherState } from '../types/graph.types'
 import type { Simulation } from 'd3-force'
 import type { GraphNode } from '@/types'
 
@@ -31,7 +31,7 @@ export function useGraphInteractions({
   })
   const [isDragging, setIsDragging] = useState(false)
 
-  const transformRef = useRef<TransformState>({ k: 1, x: 0, y: 0 })
+  const transformRef = useRef<EnricherState>({ k: 1, x: 0, y: 0 })
   const nodeWasClickedRef = useRef(false)
 
   /**
@@ -165,7 +165,7 @@ export function useGraphInteractions({
   /**
    * Update transform reference (for drag calculations)
    */
-  const updateTransform = useCallback((transform: TransformState) => {
+  const updateEnricher = useCallback((transform: EnricherState) => {
     transformRef.current = transform
   }, [])
 
@@ -178,6 +178,6 @@ export function useGraphInteractions({
     createNodePointerDownHandler,
     createNodeRightClickHandler,
     handleBackgroundClick,
-    updateTransform,
+    updateEnricher,
   }
 }

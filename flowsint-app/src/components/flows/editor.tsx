@@ -17,9 +17,9 @@ import {
 import '@xyflow/react/dist/style.css'
 import { Play, Pause, SkipForward, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import TransformNode from './transform-node'
+import EnricherNode from './enricher-node'
 import TypeNode from './type-node'
-import { type TransformNodeData } from '@/types/transform'
+import { type EnricherNodeData } from '@/types/enricher'
 import { FlowControls } from './controls'
 import { getFlowDagreLayoutedElements } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -45,7 +45,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
 
 const nodeTypes: NodeTypes = {
-  transform: TransformNode,
+  enricher: EnricherNode,
   type: TypeNode
 }
 
@@ -82,7 +82,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
   const [flowBranches, setFlowBranches] = useState<any[]>([])
 
-  // #### Transform Store State ####
+  // #### Enricher Store State ####
   const nodes = useFlowStore((state) => state.nodes)
   const edges = useFlowStore((state) => state.edges)
   const loading = useFlowStore((state) => state.loading)
@@ -100,12 +100,12 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const createFlowMutation = useMutation({
     mutationFn: flowService.create,
     onSuccess: (data) => {
-      toast.success('Transform saved successfully.')
+      toast.success('Enricher saved successfully.')
       router.navigate({ to: `/dashboard/flows/${data.id}` })
     },
     onError: (error) => {
       toast.error(
-        'Error creating transform: ' + (error instanceof Error ? error.message : 'Unknown error')
+        'Error creating enricher: ' + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -115,7 +115,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
       flowService.update(flowId, body),
     onSuccess: () => {
-      toast.success('Transform saved successfully.')
+      toast.success('Enricher saved successfully.')
       // Invalidate the flow detail query
       if (flowId) {
         queryClient.invalidateQueries({
@@ -125,7 +125,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     },
     onError: (error) => {
       toast.error(
-        'Error saving transform: ' + (error instanceof Error ? error.message : 'Unknown error')
+        'Error saving enricher: ' + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -236,13 +236,13 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       event.preventDefault()
       if (!reactFlowWrapper.current || !reactFlowInstance) return
       const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-      const transformData = JSON.parse(
+      const enricherData = JSON.parse(
         event.dataTransfer.getData('application/json')
-      ) as TransformNodeData & {
+      ) as EnricherNodeData & {
         category: string
       }
 
-      if (transformData.type === 'type') {
+      if (enricherData.type === 'type') {
         const existsType = nodes.find((node) => node.data.type === 'type')
         if (existsType) {
           return toast.error('Only one type node is allowed')
@@ -253,27 +253,27 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
         y: event.clientY - reactFlowBounds.top
       })
       const newNode: FlowNode = {
-        id: `${transformData.name}-${Date.now()}`,
-        type: transformData.type === 'type' ? 'type' : 'transform',
+        id: `${enricherData.name}-${Date.now()}`,
+        type: enricherData.type === 'type' ? 'type' : 'enricher',
         position,
         data: {
-          id: transformData.id,
-          class_name: transformData.class_name,
-          module: transformData.module || '',
-          key: transformData.name,
+          id: enricherData.id,
+          class_name: enricherData.class_name,
+          module: enricherData.module || '',
+          key: enricherData.name,
           // @ts-ignore
-          color: colors[transformData.category.toLowerCase()] || '#94a3b8',
-          name: transformData.name,
-          category: transformData.category,
-          type: transformData.type,
-          inputs: transformData.inputs,
-          outputs: transformData.outputs,
-          documentation: transformData.documentation,
-          description: transformData.description,
-          required_params: transformData.required_params,
-          params: transformData.params,
-          params_schema: transformData.params_schema,
-          icon: transformData.icon
+          color: colors[enricherData.category.toLowerCase()] || '#94a3b8',
+          name: enricherData.name,
+          category: enricherData.category,
+          type: enricherData.type,
+          inputs: enricherData.inputs,
+          outputs: enricherData.outputs,
+          documentation: enricherData.documentation,
+          description: enricherData.description,
+          required_params: enricherData.required_params,
+          params: enricherData.params,
+          params_schema: enricherData.params_schema,
+          icon: enricherData.icon
         }
       }
       const updatedNodes = [...nodes, newNode]
@@ -335,14 +335,14 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     }, 100)
   }, [nodes, edges, setNodes, setEdges, fitView])
 
-  // #### Transform CRUD Operations ####
+  // #### Enricher CRUD Operations ####
   const saveFlow = useCallback(
     async (name: string, description: string) => {
       setLoading(true)
       try {
         const inputType = nodes.find((node) => node.data.type === 'type')?.data?.class_name
         if (!inputType) {
-          toast.error('Make sure your transform contains an input type.')
+          toast.error('Make sure your enricher contains an input type.')
           return
         }
 
@@ -695,7 +695,7 @@ FlowEditorComp.displayName = 'FlowEditorComp'
 function FlowEditorComp({ initialEdges = [], initialNodes = [], flow }: FlowEditorProps) {
   const { theme } = useTheme()
 
-  // Transform any plain edges into edges with required properties
+  // Enricher any plain edges into edges with required properties
   const enhancedEdges = initialEdges.map((edge) => ({
     ...edge,
     animated: true,

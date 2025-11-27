@@ -12,7 +12,7 @@ interface UseZoomPanProps {
   height: number
   isDragging: boolean
   simulationNodes: SimulationNode[]
-  onTransformChange: (transform: TransformState) => void
+  onEnricherChange: (transform: TransformState) => void
   onZoomChange: (zoomLevel: number) => void
 }
 
@@ -29,12 +29,12 @@ export function useZoomPan({
   height,
   isDragging,
   simulationNodes,
-  onTransformChange,
+  onEnricherChange,
   onZoomChange,
 }: UseZoomPanProps) {
   const zoomBehaviorRef = useRef<ZoomBehavior<HTMLCanvasElement, unknown> | null>(null)
   const canvasSelectionRef = useRef<any>(null)
-  const currentTransformRef = useRef<TransformState>({ k: 1, x: 0, y: 0 })
+  const currentEnricherRef = useRef<TransformState>({ k: 1, x: 0, y: 0 })
 
   useEffect(() => {
     if (!app || !stage) return
@@ -48,10 +48,10 @@ export function useZoomPan({
       .filter(() => !isDragging) // Don't zoom/pan while dragging nodes
       .on('zoom', (event: any) => {
         const { transform } = event
-        currentTransformRef.current = transform
+        currentEnricherRef.current = transform
         stage.scale.set(transform.k, transform.k)
         stage.position.set(transform.x, transform.y)
-        onTransformChange(transform)
+        onEnricherChange(transform)
         onZoomChange(transform.k)
       })
 
@@ -66,7 +66,7 @@ export function useZoomPan({
       zoomBehaviorRef.current = null
       canvasSelectionRef.current = null
     }
-  }, [app, stage, width, height, isDragging, onTransformChange, onZoomChange])
+  }, [app, stage, width, height, isDragging, onEnricherChange, onZoomChange])
 
   /**
    * Zoom in
@@ -74,7 +74,7 @@ export function useZoomPan({
   const zoomIn = useCallback(() => {
     if (!canvasSelectionRef.current || !zoomBehaviorRef.current) return
 
-    const currentZoom = currentTransformRef.current.k
+    const currentZoom = currentEnricherRef.current.k
     const newZoom = Math.min(
       currentZoom * GRAPH_CONSTANTS.ZOOM_IN_FACTOR,
       GRAPH_CONSTANTS.MAX_ZOOM
@@ -92,7 +92,7 @@ export function useZoomPan({
   const zoomOut = useCallback(() => {
     if (!canvasSelectionRef.current || !zoomBehaviorRef.current) return
 
-    const currentZoom = currentTransformRef.current.k
+    const currentZoom = currentEnricherRef.current.k
     const newZoom = Math.max(
       currentZoom * GRAPH_CONSTANTS.ZOOM_OUT_FACTOR,
       GRAPH_CONSTANTS.MIN_ZOOM

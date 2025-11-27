@@ -5,6 +5,7 @@ import {
   forceManyBody,
   forceCenter,
   forceCollide,
+  forceRadial,
 } from 'd3-force'
 
 export interface GraphNode {
@@ -42,6 +43,9 @@ interface ForceLayoutOptions {
   velocityDecay?: number
   iterations?: number
   maxRadius?: number
+  collisionRadius?: number
+  collisionStrength?: number
+  centerGravity?: number
 }
 
 interface LayoutMessage {
@@ -108,14 +112,17 @@ function computeForceLayout(
   const {
     width = 800,
     height = 600,
-    chargeStrength = -30,
-    linkDistance = 30,
-    linkStrength = 2,
-    alphaDecay = 0.045,
-    alphaMin = 0,
-    velocityDecay = 0.41,
+    chargeStrength = -150,
+    linkDistance = 35,
+    linkStrength = 1.0,
+    alphaDecay = 0.06,
+    alphaMin = 0.001,
+    velocityDecay = 0.75,
     iterations = 300,
     maxRadius,
+    collisionRadius = 22,
+    collisionStrength = 0.95,
+    centerGravity = 0.15,
   } = options
 
   // Create simulation nodes with initial random positions
@@ -131,7 +138,20 @@ function computeForceLayout(
     target: typeof edge.target === 'object' ? edge.target.id : edge.target,
   }))
 
+  // Calculate node degrees (number of connections) for adaptive repulsion
+  const nodeDegrees = new Map<string, number>()
+  simNodes.forEach((node: any) => nodeDegrees.set(node.id, 0))
+  simLinks.forEach((link: any) => {
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.source
+    const targetId = typeof link.target === 'object' ? link.target.id : link.target
+    nodeDegrees.set(sourceId, (nodeDegrees.get(sourceId) || 0) + 1)
+    nodeDegrees.set(targetId, (nodeDegrees.get(targetId) || 0) + 1)
+  })
+
   // Create D3 force simulation
+  const centerX = width / 2
+  const centerY = height / 2
+
   const simulation = forceSimulation(simNodes as any)
     .force(
       'link',
@@ -140,11 +160,29 @@ function computeForceLayout(
         .distance(linkDistance)
         .strength(linkStrength)
     )
-    .force('charge', forceManyBody().strength(chargeStrength))
-    .force('center', forceCenter(width / 2, height / 2))
-    // Add collision force with larger radius to account for label space below nodes
-    // Radius ~3x node size to prevent label overlap
-    // .force('collide', forceCollide().radius(30).strength(0.7))
+    // Adaptive charge: nodes with more connections (cluster hubs) repel more
+    .force('charge', forceManyBody().strength((node: any) => {
+      const degree = nodeDegrees.get(node.id) || 1
+      // Scale repulsion by degree: hubs repel 2-3x more than isolated nodes
+      const scaleFactor = 1 + Math.log(degree + 1) / Math.log(10)
+      return chargeStrength * scaleFactor
+    }))
+    .force('center', forceCenter(centerX, centerY))
+    // Add collision force to prevent node overlap
+    .force('collide', forceCollide()
+      .radius(collisionRadius)
+      .strength(collisionStrength)
+    )
+    // Add radial gravity to pull all nodes toward center
+    .force('gravity', (alpha) => {
+      const strength = centerGravity * alpha
+      simNodes.forEach((node: any) => {
+        const dx = centerX - node.x
+        const dy = centerY - node.y
+        node.vx += dx * strength
+        node.vy += dy * strength
+      })
+    })
     .alphaDecay(alphaDecay)
     .alphaMin(alphaMin)
     .velocityDecay(velocityDecay)
@@ -152,9 +190,6 @@ function computeForceLayout(
   // Run simulation synchronously for specified iterations
   // Send progress updates every 10 iterations
   const progressInterval = Math.max(1, Math.floor(iterations / 10))
-
-  const centerX = width / 2
-  const centerY = height / 2
 
   for (let i = 0; i < iterations; i++) {
     simulation.tick()

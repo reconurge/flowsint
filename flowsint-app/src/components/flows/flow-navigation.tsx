@@ -1,25 +1,25 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UserPlus, Users } from 'lucide-react'
 import RawMaterial from './raw-material'
-import TransformsList from './flow-list'
+import EnrichersList from './flow-list'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 const FlowNavigation = () => {
   const { flowId } = useParams({ strict: false })
-  const activeTransformTab = useLayoutStore((s) => s.activeTransformTab)
-  const setActiveTransformTab = useLayoutStore((s) => s.setActiveTransformTab)
+  const activeEnricherTab = useLayoutStore((s) => s.activeEnricherTab)
+  const setActiveEnricherTab = useLayoutStore((s) => s.setActiveEnricherTab)
 
   useEffect(() => {
-    setActiveTransformTab(flowId ? 'items' : 'flows')
-  }, [setActiveTransformTab, flowId])
+    setActiveEnricherTab(flowId ? 'items' : 'flows')
+  }, [setActiveEnricherTab, flowId])
 
   return (
     <div className="h-full w-full bg-card flex flex-col min-h-0" data-tour-id="flow-sidebar">
       <Tabs
-        value={activeTransformTab}
-        onValueChange={setActiveTransformTab}
+        value={activeEnricherTab}
+        onValueChange={setActiveEnricherTab}
         defaultValue="flows"
         className="w-full h-full flex flex-col gap-0 min-h-0"
       >
@@ -37,7 +37,7 @@ const FlowNavigation = () => {
           value="flows"
           className="my-0 w-full flex-1 flex flex-col min-h-0 overflow-hidden"
         >
-          <TransformsList />
+          <EnrichersList />
         </TabsContent>
         {flowId && (
           <TabsContent

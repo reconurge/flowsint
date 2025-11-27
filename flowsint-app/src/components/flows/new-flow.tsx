@@ -31,7 +31,7 @@ const NewFlow = ({ children }: { children: ReactNode }) => {
     }
   })
 
-  const handleCreateTransform = useCallback(async () => {
+  const handleCreateFlow = useCallback(async () => {
     toast.promise(
       createFlowMutation.mutateAsync(
         JSON.stringify({
@@ -42,8 +42,8 @@ const NewFlow = ({ children }: { children: ReactNode }) => {
         })
       ),
       {
-        loading: 'Creating transform...',
-        success: 'Transform created successfully.',
+        loading: 'Creating flow...',
+        success: 'Flow created successfully.',
         error: 'Failed to create flow.'
       }
     )
@@ -54,7 +54,7 @@ const NewFlow = ({ children }: { children: ReactNode }) => {
   }
 
   return cloneElement(children as React.ReactElement<any>, {
-    onClick: handleCreateTransform
+    onClick: handleCreateFlow
   })
 }
 export default NewFlow

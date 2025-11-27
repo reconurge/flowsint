@@ -4,7 +4,7 @@ import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useIcon } from '@/hooks/use-icon'
 import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
-import { type TransformNodeProps } from '@/types/transform'
+import { type EnricherNodeProps } from '@/types/enricher'
 import { ButtonHandle } from '@/components/xyflow/button-handle'
 import { Button } from '../ui/button'
 import {
@@ -16,7 +16,7 @@ import { BaseNode, BaseNodeContent } from '@/components/xyflow/base-node'
 import { FlowNode, useFlowStore } from '@/stores/flow-store'
 
 // Custom equality function to prevent unnecessary re-renders
-function areEqual(prevProps: TransformNodeProps, nextProps: TransformNodeProps) {
+function areEqual(prevProps: EnricherNodeProps, nextProps: EnricherNodeProps) {
   return (
     prevProps.data.class_name === nextProps.data.class_name &&
     prevProps.data.name === nextProps.data.name &&
@@ -26,7 +26,7 @@ function areEqual(prevProps: TransformNodeProps, nextProps: TransformNodeProps) 
 }
 
 // Type node component for data types (domains, websites, IPs, etc.)
-const TypeNode = memo(({ data }: TransformNodeProps) => {
+const TypeNode = memo(({ data }: EnricherNodeProps) => {
   const colors = useNodesDisplaySettings((s) => s.colors)
   const outputColor = colors[data.outputs.type.toLowerCase()]
   const Icon = useIcon(data.outputs.type.toLowerCase() as string, null)

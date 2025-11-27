@@ -2,8 +2,8 @@ from typing import List, Dict, Any
 from datetime import datetime
 import time
 from pydantic import ValidationError
-from .transform_base import Transform
-from .registry import TransformRegistry
+from .enricher_base import Enricher
+from .registry import EnricherRegistry
 from .types import FlowBranch, FlowStep
 from .logger import Logger
 from ..utils import to_json_serializable
@@ -12,41 +12,41 @@ import json
 import os
 
 
-class FlowOrchestrator(Transform):
+class FlowOrchestrator(Enricher):
     """
-    Orchestrator for running a list of transforms.
+    Orchestrator for running a list of enrichers.
     """
 
     def __init__(
         self,
         sketch_id: str,
         scan_id: str,
-        transform_branches: List[FlowBranch],
+        enricher_branches: List[FlowBranch],
         neo4j_conn=None,
         vault=None,
     ):
         super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn, vault=vault)
-        self.transform_branches = transform_branches
-        self.transforms = {}  # Map of nodeId -> transform instance
+        self.enricher_branches = enricher_branches
+        self.enrichers = {}  # Map of nodeId -> enricher instance
         self.execution_log_file = None  # Path to the execution log file
         self._create_execution_log()
-        self._load_transforms()
+        self._load_enrichers()
 
     def _create_execution_log(self) -> None:
         """
-        Create the initial execution log JSON file with transform configuration.
+        Create the initial execution log JSON file with enricher configuration.
         """
         try:
-            # Create a directory for storing transform files if it doesn't exist
-            transform_dir = "transform_logs"
-            os.makedirs(transform_dir, exist_ok=True)
+            # Create a directory for storing enricher files if it doesn't exist
+            enricher_dir = "enricher_logs"
+            os.makedirs(enricher_dir, exist_ok=True)
 
             # Create filename with sketch_id and scan_id
-            filename = f"transform_execution_{self.sketch_id}_{self.scan_id}.json"
-            self.execution_log_file = os.path.join(transform_dir, filename)
+            filename = f"enricher_execution_{self.sketch_id}_{self.scan_id}.json"
+            self.execution_log_file = os.path.join(enricher_dir, filename)
 
-            # Serialize the transform branches
-            serialized_branches = to_json_serializable(self.transform_branches)
+            # Serialize the enricher branches
+            serialized_branches = to_json_serializable(self.enricher_branches)
 
             # Create initial log structure
             initial_log = {
@@ -55,7 +55,7 @@ class FlowOrchestrator(Transform):
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
                 "status": "initialized",
-                "transform_branches": serialized_branches,
+                "enricher_branches": serialized_branches,
                 "execution_log": [],
                 "summary": {
                     "total_steps": 0,
@@ -68,7 +68,7 @@ class FlowOrchestrator(Transform):
 
             # Count total steps
             total_steps = 0
-            for branch in self.transform_branches:
+            for branch in self.enricher_branches:
                 for step in branch.steps:
                     if step.type != "type":
                         total_steps += 1
@@ -81,7 +81,7 @@ class FlowOrchestrator(Transform):
             Logger.info(
                 self.sketch_id,
                 {
-                    "message": f"Transform execution log created at {self.execution_log_file}"
+                    "message": f"Enricher execution log created at {self.execution_log_file}"
                 },
             )
 
@@ -160,7 +160,7 @@ class FlowOrchestrator(Transform):
             Logger.info(
                 self.sketch_id,
                 {
-                    "message": f"Transform execution log finalized at {self.execution_log_file}"
+                    "message": f"Enricher execution log finalized at {self.execution_log_file}"
                 },
             )
 
@@ -170,21 +170,21 @@ class FlowOrchestrator(Transform):
                 {"message": f"Failed to finalize execution log: {str(e)}"},
             )
 
-    def _save_transform_branches(self) -> None:
+    def _save_enricher_branches(self) -> None:
         """
-        Save the transform branches to a JSON file for debugging and persistence.
+        Save the enricher branches to a JSON file for debugging and persistence.
         """
         try:
-            # Create a directory for storing transform files if it doesn't exist
-            transform_dir = "transform_logs"
-            os.makedirs(transform_dir, exist_ok=True)
+            # Create a directory for storing enricher files if it doesn't exist
+            enricher_dir = "enricher_logs"
+            os.makedirs(enricher_dir, exist_ok=True)
 
             # Create filename with sketch_id and scan_id
-            filename = f"transform_branches_{self.sketch_id}_{self.scan_id}.json"
-            filepath = os.path.join(transform_dir, filename)
+            filename = f"enricher_branches_{self.sketch_id}_{self.scan_id}.json"
+            filepath = os.path.join(enricher_dir, filename)
 
-            # Serialize the transform branches
-            serialized_branches = to_json_serializable(self.transform_branches)
+            # Serialize the enricher branches
+            serialized_branches = to_json_serializable(self.enricher_branches)
 
             # Save to JSON file
             with open(filepath, "w", encoding="utf-8") as f:
@@ -193,7 +193,7 @@ class FlowOrchestrator(Transform):
                         "sketch_id": self.sketch_id,
                         "scan_id": self.scan_id,
                         "timestamp": datetime.now().isoformat(),
-                        "transform_branches": serialized_branches,
+                        "enricher_branches": serialized_branches,
                     },
                     f,
                     indent=2,
@@ -201,53 +201,53 @@ class FlowOrchestrator(Transform):
                 )
 
             Logger.info(
-                self.sketch_id, {"message": f"Transform branches saved to {filepath}"}
+                self.sketch_id, {"message": f"Enricher branches saved to {filepath}"}
             )
 
         except Exception as e:
             Logger.error(
                 self.sketch_id,
-                {"message": f"Failed to save transform branches: {str(e)}"},
+                {"message": f"Failed to save enricher branches: {str(e)}"},
             )
 
-    def _load_transforms(self) -> None:
-        if not self.transform_branches:
-            raise ValueError("No transform branches provided")
+    def _load_enrichers(self) -> None:
+        if not self.enricher_branches:
+            raise ValueError("No enricher branches provided")
 
-        # Collect all transform nodes across all branches
-        transform_nodes = []
-        for branch in self.transform_branches:
+        # Collect all enricher nodes across all branches
+        enricher_nodes = []
+        for branch in self.enricher_branches:
             for step in branch.steps:
                 if step.type == "type":
                     continue
-                transform_nodes.append(step)
+                enricher_nodes.append(step)
 
-        if not transform_nodes:
-            raise ValueError("No transform nodes found in transform branches")
+        if not enricher_nodes:
+            raise ValueError("No enricher nodes found in enricher branches")
 
-        # Create transform instances for each node
-        for node in transform_nodes:
+        # Create enricher instances for each node
+        for node in enricher_nodes:
             node_id = node.nodeId
 
-            # Extract transform name from nodeId (assuming format like "transform_name-1234567890")
-            transform_name = node_id.split("-")[0]
+            # Extract enricher name from nodeId (assuming format like "enricher_name-1234567890")
+            enricher_name = node_id.split("-")[0]
 
-            if not TransformRegistry.transform_exists(transform_name):
-                raise ValueError(f"Transform '{transform_name}' not found in registry")
+            if not EnricherRegistry.enricher_exists(enricher_name):
+                raise ValueError(f"Enricher '{enricher_name}' not found in registry")
 
-            # Pass the step params to the transform instance
-            transform_params = (
+            # Pass the step params to the enricher instance
+            enricher_params = (
                 node.params if hasattr(node, "params") and node.params else {}
             )
-            transform = TransformRegistry.get_transform(
-                transform_name,
+            enricher = EnricherRegistry.get_enricher(
+                enricher_name,
                 self.sketch_id,
                 self.scan_id,
                 neo4j_conn=self.neo4j_conn,
                 vault=self.vault,
-                params=transform_params,
+                params=enricher_params,
             )
-            self.transforms[node_id] = transform
+            self.enrichers[node_id] = enricher
 
     def resolve_reference(self, ref_value: str, results_mapping: Dict[str, Any]) -> Any:
         """
@@ -258,11 +258,11 @@ class FlowOrchestrator(Transform):
             return results_mapping[ref_value]
         return None
 
-    def prepare_transform_inputs(
+    def prepare_enricher_inputs(
         self, step: FlowStep, results_mapping: Dict[str, Any], initial_values: List[str]
     ) -> List[Any]:
         """
-        Prepare the inputs for a transform based on the references and previous results.
+        Prepare the inputs for an enricher based on the references and previous results.
         Handles single references, lists, and direct values.
         """
         inputs = {}
@@ -290,12 +290,12 @@ class FlowOrchestrator(Transform):
 
         # Si aucun input n'a été résolu, utiliser les valeurs initiales
         if not inputs:
-            transform = self.transforms.get(step.nodeId)
-            if transform:
-                primary_key = transform.key()
+            enricher = self.enrichers.get(step.nodeId)
+            if enricher:
+                primary_key = enricher.key()
                 return {primary_key: initial_values}
         else:
-            transform = self.transforms.get(step.nodeId)
+            enricher = self.enrichers.get(step.nodeId)
         return inputs[input_key]
 
     def update_results_mapping(
@@ -305,7 +305,7 @@ class FlowOrchestrator(Transform):
         results_mapping: Dict[str, Any],
     ) -> None:
         """
-        Update the results mapping with new outputs from a transform.
+        Update the results mapping with new outputs from an enricher.
         """
         for output_key, output_ref in step_outputs.items():
             if output_key in outputs:
@@ -313,7 +313,7 @@ class FlowOrchestrator(Transform):
 
     @classmethod
     def name(cls) -> str:
-        return "transform_orchestrator"
+        return "enricher_orchestrator"
 
     @classmethod
     def category(cls) -> str:
@@ -351,44 +351,44 @@ class FlowOrchestrator(Transform):
         self._update_execution_log(None, "running")
 
         results = {"initial_values": values, "branches": [], "results": {}}
-        Logger.pending(self.sketch_id, {"message": "Starting transform..."})
+        Logger.pending(self.sketch_id, {"message": "Starting enricher..."})
 
         # Global mapping of output references to actual values
         results_mapping = {}
-        # Cache for transform results to avoid recomputation
-        transform_results_cache = {}
+        # Cache for enricher results to avoid recomputation
+        enricher_results_cache = {}
 
-        total_steps = sum(len(branch.steps) for branch in self.transform_branches)
+        total_steps = sum(len(branch.steps) for branch in self.enricher_branches)
         completed_steps = 0
 
         # Process each branch
-        for branch in self.transform_branches:
+        for branch in self.enricher_branches:
             branch_id = branch.id
             branch_name = branch.name
             branch_results = {"id": branch_id, "name": branch_name, "steps": []}
 
             # Process each step in the branch
-            transform_inputs = values
+            enricher_inputs = values
             for step in branch.steps:
                 if step.type == "type":
                     continue
 
                 node_id = step.nodeId
-                transform = self.transforms.get(node_id)
+                enricher = self.enrichers.get(node_id)
 
-                if not transform:
+                if not enricher:
                     Logger.error(
                         self.sketch_id,
-                        {"message": f"Transform not found for node {node_id}"},
+                        {"message": f"Enricher not found for node {node_id}"},
                     )
                     continue
 
-                transform_name = transform.name()
+                enricher_name = enricher.name()
                 step_start_time = time.time()
 
                 step_result = {
                     "nodeId": node_id,
-                    "transform": transform_name,
+                    "enricher": enricher_name,
                     "status": "error",  # Default to error, will update on success
                 }
 
@@ -398,8 +398,8 @@ class FlowOrchestrator(Transform):
                     "branch_id": branch_id,
                     "branch_name": branch_name,
                     "node_id": node_id,
-                    "transform_name": transform_name,
-                    "inputs": to_json_serializable(transform_inputs),
+                    "enricher_name": enricher_name,
+                    "inputs": to_json_serializable(enricher_inputs),
                     "outputs": None,
                     "status": "running",
                     "error": None,
@@ -410,7 +410,7 @@ class FlowOrchestrator(Transform):
                 try:
                     # Update status for current step
                     completed_steps += 1
-                    if not transform_inputs:
+                    if not enricher_inputs:
                         error_msg = "No inputs available"
                         step_result["error"] = error_msg
                         log_entry["status"] = "error"
@@ -422,20 +422,20 @@ class FlowOrchestrator(Transform):
                         branch_results["steps"].append(step_result)
                         continue
 
-                    # Check if we already have results for this transform with these inputs
-                    cache_key = f"{node_id}:{str(transform_inputs)}"
-                    if cache_key in transform_results_cache:
-                        outputs = transform_results_cache[cache_key]
+                    # Check if we already have results for this enricher with these inputs
+                    cache_key = f"{node_id}:{str(enricher_inputs)}"
+                    if cache_key in enricher_results_cache:
+                        outputs = enricher_results_cache[cache_key]
                         log_entry["cache_hit"] = True
                     else:
-                        # Execute the transform
-                        outputs = await transform.execute(transform_inputs)
+                        # Execute the enricher
+                        outputs = await enricher.execute(enricher_inputs)
                         if not isinstance(outputs, (dict, list)):
                             raise ValueError(
-                                f"Transform '{transform_name}' returned unsupported output format"
+                                f"Enricher '{enricher_name}' returned unsupported output format"
                             )
                         # Cache the results
-                        transform_results_cache[cache_key] = outputs
+                        enricher_results_cache[cache_key] = outputs
                         log_entry["cache_hit"] = False
 
                     # Store the outputs in the step result (serialize to avoid JSON issues)
@@ -453,7 +453,7 @@ class FlowOrchestrator(Transform):
                     self.update_results_mapping(outputs, step.outputs, results_mapping)
                     # Also store the raw outputs in the main results
                     results["results"][node_id] = outputs
-                    transform_inputs = outputs
+                    enricher_inputs = outputs
 
                 except ValidationError as e:
                     error_msg = f"Validation error: {str(e)}"
@@ -488,7 +488,7 @@ class FlowOrchestrator(Transform):
             results["branches"].append(branch_results)
 
         Logger.completed(
-            self.sketch_id, {"message": "Transform completed successfully."}
+            self.sketch_id, {"message": "Enricher completed successfully."}
         )
 
         # Include the final reference mapping for debugging

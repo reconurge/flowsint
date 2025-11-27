@@ -12,14 +12,14 @@ import {
   applyEdgeChanges
 } from '@xyflow/react'
 import { toast } from 'sonner'
-import { type TransformNodeData } from '@/types/transform'
+import { type EnricherNodeData } from '@/types/enricher'
 
-export type NodeData = TransformNodeData
+export type NodeData = EnricherNodeData
 
 export type FlowNode = Node<NodeData>
 export type FlowEdge = Edge
 
-export interface TransformState {
+export interface EnricherState {
   // Node State
   nodes: FlowNode[]
   selectedNode: FlowNode | null
@@ -45,10 +45,6 @@ export interface TransformState {
   setOpenFlowSheet: (openFlowSheet: boolean, node?: FlowNode) => void
 }
 
-// ================================
-// DEFAULT STYLES & CONFIGURATION
-// ================================
-
 const defaultEdgeStyle = { stroke: '#64748b' }
 const defaultMarkerEnd: EdgeMarker = {
   type: MarkerType.ArrowClosed,
@@ -57,15 +53,7 @@ const defaultMarkerEnd: EdgeMarker = {
   color: '#64748b'
 }
 
-// ================================
-// TRANSFORM STORE IMPLEMENTATION
-// ================================
-
-export const useFlowStore = create<TransformState>((set, get) => ({
-  // ================================
-  // STATE INITIALIZATION
-  // ================================
-  // Node State
+export const useFlowStore = create<EnricherState>((set, get) => ({
   nodes: [] as FlowNode[],
   selectedNode: null,
   // Edge State

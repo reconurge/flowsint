@@ -235,7 +235,7 @@ export function Command() {
                     >
                       <div className="flex items-center gap-2">
                         <Workflow className="h-4 w-4" />
-                        <span>Transforms</span>
+                        <span>Enrichers</span>
                       </div>
                     </CommandItem>
                   </CommandGroup>

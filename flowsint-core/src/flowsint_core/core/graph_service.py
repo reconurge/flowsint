@@ -24,7 +24,7 @@ class GraphService:
     """
     High-level service for graph operations.
 
-    This service provides a clean interface for transform operations,
+    This service provides a clean interface for enricher operations,
     handling both graph persistence and logging with proper separation of concerns.
     """
 

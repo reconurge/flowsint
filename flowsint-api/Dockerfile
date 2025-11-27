@@ -23,7 +23,7 @@ ENV APP_ENV=development
 
 COPY flowsint-core /app/flowsint-core
 COPY flowsint-types /app/flowsint-types
-COPY flowsint-transforms /app/flowsint-transforms
+COPY flowsint-enrichers /app/flowsint-enrichers
 
 COPY flowsint-api /app/flowsint-api
 
@@ -43,7 +43,7 @@ ENV APP_ENV=production
 
 COPY flowsint-core /app/flowsint-core
 COPY flowsint-types /app/flowsint-types
-COPY flowsint-transforms /app/flowsint-transforms
+COPY flowsint-enrichers /app/flowsint-enrichers
 
 COPY flowsint-api /app/flowsint-api
 

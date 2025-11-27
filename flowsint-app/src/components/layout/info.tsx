@@ -40,7 +40,7 @@ const InfoDialog = () => {
                   <strong>investigative graph</strong>.
                 </li>
                 <li>
-                  Offers <strong>visual transforms</strong> to pivot from one entity to related
+                  Offers <strong>visual enrichers</strong> to pivot from one entity to related
                   ones: find <strong>connected individuals</strong>, discover{' '}
                   <strong>infrastructure</strong>, uncover <strong>aliases</strong>.
                 </li>
@@ -49,7 +49,7 @@ const InfoDialog = () => {
                   explore multiple hypotheses or revisit older threads without losing context.
                 </li>
                 <li>
-                  Supports <strong>live data enrichment</strong> from custom or built-in transforms,
+                  Supports <strong>live data enrichment</strong> from custom or built-in enrichers,
                   giving you <strong>actionable insights</strong> as you explore.
                 </li>
               </ul>
@@ -58,7 +58,7 @@ const InfoDialog = () => {
               <ul className="list-disc list-inside space-y-1">
                 <li>
                   Built for <strong>speed and clarity</strong> — fast graph rendering, clean UI,
-                  responsive transforms.
+                  responsive enrichers.
                 </li>
                 <li>
                   <strong>Flexible graph model</strong> that mirrors how investigators think — not

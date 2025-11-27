@@ -6,9 +6,9 @@ It contains:
 - Authentication
 - NEO4J database connectors
 - POSTGRESQL database connectors
-- Transform base class
-- Transform orchestrator
-- Transform registry
+- Enricher base class
+- Enricher orchestrator
+- Enricher registry
 - Encrypted vault
 
 ## Testing

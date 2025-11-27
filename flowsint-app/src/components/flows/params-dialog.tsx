@@ -2,7 +2,7 @@ import { useFlowStore } from '@/stores/flow-store'
 import { DialogHeader, DialogFooter, Dialog, DialogContent, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { useCallback, useState, useEffect } from 'react'
-import { TransformParamSchemaItem } from '@/types'
+import { EnricherParamSchemaItem } from '@/types'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import KeySelector from '../keys/key-select'
@@ -78,7 +78,7 @@ const ParamsDialog = () => {
           </TabsList>
           <TabsContent value="parameters" className="space-y-4 mt-4">
             <div className="grid gap-4">
-              {selectedNode?.data?.params_schema?.map((param: TransformParamSchemaItem) => (
+              {selectedNode?.data?.params_schema?.map((param: EnricherParamSchemaItem) => (
                 <div className="space-y-2" key={param.name}>
                   <div className="flex items-start flex-col">
                     <Label htmlFor={param.name} className="text-sm font-medium">

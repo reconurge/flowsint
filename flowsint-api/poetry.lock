@@ -1585,7 +1585,7 @@ bcrypt = ">=4.0.0,<5.0.0"
 celery = "^5.3"
 cryptography = "^45.0.7"
 docker = "^7.1.0"
-flowsint-transforms = {path = "../flowsint-transforms", develop = true}
+flowsint-enrichers = {path = "../flowsint-enrichers", develop = true}
 neo4j = "^5.0"
 networkx = "^2.6.3"
 openpyxl = "^3.1"
@@ -1607,9 +1607,9 @@ type = "directory"
 url = "../flowsint-core"
 
 [[package]]
-name = "flowsint-transforms"
+name = "flowsint-enrichers"
 version = "0.2.0"
-description = "Transform modules for flowsint"
+description = "Enricher modules for flowsint"
 optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
@@ -1639,7 +1639,7 @@ spacy = "^3.7"
 
 [package.source]
 type = "directory"
-url = "../flowsint-transforms"
+url = "../flowsint-enrichers"
 
 [[package]]
 name = "flowsint-types"
@@ -2564,7 +2564,7 @@ yarl = "^1.20.1"
 type = "git"
 url = "https://github.com/soxoj/maigret"
 reference = "HEAD"
-resolved_reference = "6a7f778c8028ce3919d1fb044f60eeca776d2711"
+resolved_reference = "941a5171ae470f9860df681652efb83e13e80ec7"
 
 [[package]]
 name = "mako"
@@ -4327,14 +4327,14 @@ files = [
 
 [[package]]
 name = "pydantic"
-version = "2.12.4"
+version = "2.12.5"
 description = "Data validation using Python type hints"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic-2.12.4-py3-none-any.whl", hash = "sha256:92d3d202a745d46f9be6df459ac5a064fdaa3c1c4cd8adcfa332ccf3c05f871e"},
-    {file = "pydantic-2.12.4.tar.gz", hash = "sha256:0f8cb9555000a4b5b617f66bfd2566264c4984b27589d3b845685983e8ea85ac"},
+    {file = "pydantic-2.12.5-py3-none-any.whl", hash = "sha256:e561593fccf61e8a20fc46dfc2dfe075b8be7d0188df33f221ad1f0139180f9d"},
+    {file = "pydantic-2.12.5.tar.gz", hash = "sha256:4d351024c75c0f085a9febbb665ce8c0c6ec5d30e903bdb6394b7ede26aebb49"},
 ]
 
 [package.dependencies]
@@ -4523,14 +4523,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyhanko"
-version = "0.31.0"
+version = "0.32.0"
 description = "Tools for stamping and signing PDF files"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pyhanko-0.31.0-py3-none-any.whl", hash = "sha256:be4baab844026d44206685eb87569b3a203ac7499dce0c03ec6488f288e10c50"},
-    {file = "pyhanko-0.31.0.tar.gz", hash = "sha256:e866a565ebc89a0ce0aa9f58d0aa81099485fc254bd7e9d13ea7840d5605d606"},
+    {file = "pyhanko-0.32.0-py3-none-any.whl", hash = "sha256:04bb04e7791aeed626e32264b2eb273ed73104f7ad3a47e27a69b7faedfd3451"},
+    {file = "pyhanko-0.32.0.tar.gz", hash = "sha256:47df283f14289b9df72071c3e5c52c426998f1850e21bff9d6451e4369595820"},
 ]
 
 [package.dependencies]
@@ -4546,8 +4546,8 @@ tzlocal = ">=4.3"
 async-http = ["aiohttp (>=3.9,<3.13)"]
 etsi = ["signxml (>=4.2.0)", "xsdata (>=24.4,<26.0)"]
 image-support = ["Pillow (>=7.2.0)", "python-barcode (==0.15.1)"]
-opentype = ["fonttools (>=4.33.3)", "uharfbuzz (>=0.25.0,<0.51.0)"]
-pkcs11 = ["python-pkcs11 (>=0.9.0,<0.10.0)"]
+opentype = ["fonttools (>=4.33.3)", "uharfbuzz (>=0.25.0,<0.53.0)"]
+pkcs11 = ["python-pkcs11 (>=0.9.2,<0.10.0)"]
 qr = ["qrcode (>=7.3.1)"]
 
 [[package]]
@@ -4607,14 +4607,14 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pypdf"
-version = "6.3.0"
+version = "6.4.0"
 description = "A pure-python PDF library capable of splitting, merging, cropping, and transforming PDF files"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pypdf-6.3.0-py3-none-any.whl", hash = "sha256:2d5f9741e851e378908692d571374b3cbd94582fdd1c740fcf7c029ec35ac0e6"},
-    {file = "pypdf-6.3.0.tar.gz", hash = "sha256:d066a2fdf8195e1811ae5a9d5a2f97f5bed0e1e7954297295eadee6357e76c5d"},
+    {file = "pypdf-6.4.0-py3-none-any.whl", hash = "sha256:55ab9837ed97fd7fcc5c131d52fcc2223bc5c6b8a1488bbf7c0e27f1f0023a79"},
+    {file = "pypdf-6.4.0.tar.gz", hash = "sha256:4769d471f8ddc3341193ecc5d6560fa44cf8cd0abfabf21af4e195cc0c224072"},
 ]
 
 [package.extras]
@@ -6235,14 +6235,14 @@ torch = ["torch (>=1.6.0)"]
 
 [[package]]
 name = "tinycss2"
-version = "1.5.0"
+version = "1.5.1"
 description = "A tiny CSS parser"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "tinycss2-1.5.0-py3-none-any.whl", hash = "sha256:6645326e562ea497d6d11cfa608ce3ad30c1e96576b0e43d678dcf6275df6761"},
-    {file = "tinycss2-1.5.0.tar.gz", hash = "sha256:6a7be7a654f38a2a55b61d2d97b1f65a7eb40d1cb4057ac37145f675f16efdf9"},
+    {file = "tinycss2-1.5.1-py3-none-any.whl", hash = "sha256:3415ba0f5839c062696996998176c4a3751d18b7edaaeeb658c9ce21ec150661"},
+    {file = "tinycss2-1.5.1.tar.gz", hash = "sha256:d339d2b616ba90ccce58da8495a78f46e55d4d25f9fd71dfd526f07e7d53f957"},
 ]
 
 [package.dependencies]
@@ -6884,4 +6884,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "8710d27214ea96dac5faffac26452b104208c533f6ec6682fcd244882eb26c91"
+content-hash = "2bf066862393faf39c17d8acc2d71419eeb980457e5b858b79659eb9645d8d94"

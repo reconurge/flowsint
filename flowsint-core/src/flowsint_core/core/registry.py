@@ -1,100 +1,100 @@
 import inspect
 from typing import Dict, Optional, Type, List, Any
-from flowsint_core.core.transform_base import Transform
+from flowsint_core.core.enricher_base import Enricher
 
-# Domain-related transforms
-from flowsint_transforms.domain.to_subdomains import SubdomainTransform
-from flowsint_transforms.domain.to_whois import WhoisTransform
-from flowsint_transforms.domain.to_ip import ResolveTransform
-from flowsint_transforms.domain.to_website import DomainToWebsiteTransform
-from flowsint_transforms.domain.to_root_domain import DomainToRootDomain
-from flowsint_transforms.domain.to_asn import DomainToAsnTransform
-from flowsint_transforms.domain.to_history import DomainToHistoryTransform
+# Domain-related enrichers
+from flowsint_enrichers.domain.to_subdomains import SubdomainEnricher
+from flowsint_enrichers.domain.to_whois import WhoisEnricher
+from flowsint_enrichers.domain.to_ip import ResolveEnricher
+from flowsint_enrichers.domain.to_website import DomainToWebsiteEnricher
+from flowsint_enrichers.domain.to_root_domain import DomainToRootDomain
+from flowsint_enrichers.domain.to_asn import DomainToAsnEnricher
+from flowsint_enrichers.domain.to_history import DomainToHistoryEnricher
 
-# IP-related transforms
-from flowsint_transforms.email.to_domains import EmailToDomainsTransform
-from flowsint_transforms.individual.to_domains import IndividualToDomainsTransform
-from flowsint_transforms.ip.to_domain import ReverseResolveTransform
-from flowsint_transforms.ip.to_infos import IpToInfosTransform
-from flowsint_transforms.ip.to_asn import IpToAsnTransform
-from flowsint_transforms.ip.to_ports import IpToPortsTransform
+# IP-related enrichers
+from flowsint_enrichers.email.to_domains import EmailToDomainsEnricher
+from flowsint_enrichers.individual.to_domains import IndividualToDomainsEnricher
+from flowsint_enrichers.ip.to_domain import ReverseResolveEnricher
+from flowsint_enrichers.ip.to_infos import IpToInfosEnricher
+from flowsint_enrichers.ip.to_asn import IpToAsnEnricher
+from flowsint_enrichers.ip.to_ports import IpToPortsEnricher
 
-# ASN-related transforms
-from flowsint_transforms.asn.to_cidrs import AsnToCidrsTransform
+# ASN-related enrichers
+from flowsint_enrichers.asn.to_cidrs import AsnToCidrsEnricher
 
-# CIDR-related transforms
-from flowsint_transforms.cidr.to_ips import CidrToIpsTransform
+# CIDR-related enrichers
+from flowsint_enrichers.cidr.to_ips import CidrToIpsEnricher
 
-# Social media transforms
-from flowsint_transforms.organization.to_domains import OrgToDomainsTransform
-from flowsint_transforms.social.to_maigret import MaigretTransform
+# Social media enrichers
+from flowsint_enrichers.organization.to_domains import OrgToDomainsEnricher
+from flowsint_enrichers.social.to_maigret import MaigretEnricher
 
-# Organization-related transforms
-from flowsint_transforms.organization.to_asn import OrgToAsnTransform
-from flowsint_transforms.organization.to_infos import OrgToInfosTransform
+# Organization-related enrichers
+from flowsint_enrichers.organization.to_asn import OrgToAsnEnricher
+from flowsint_enrichers.organization.to_infos import OrgToInfosEnricher
 
-# Cryptocurrency transforms
-from flowsint_transforms.crypto.to_transactions import (
+# Cryptocurrency enrichers
+from flowsint_enrichers.crypto.to_transactions import (
     CryptoWalletAddressToTransactions,
 )
-from flowsint_transforms.crypto.to_nfts import CryptoWalletAddressToNFTs
+from flowsint_enrichers.crypto.to_nfts import CryptoWalletAddressToNFTs
 
-# Website-related transforms
-from flowsint_transforms.website.to_crawler import WebsiteToCrawler
-from flowsint_transforms.website.to_links import WebsiteToLinks
-from flowsint_transforms.website.to_domain import WebsiteToDomainTransform
-from flowsint_transforms.website.to_text import WebsiteToText
-from flowsint_transforms.website.to_webtrackers import WebsiteToWebtrackersTransform
+# Website-related enrichers
+from flowsint_enrichers.website.to_crawler import WebsiteToCrawler
+from flowsint_enrichers.website.to_links import WebsiteToLinks
+from flowsint_enrichers.website.to_domain import WebsiteToDomainEnricher
+from flowsint_enrichers.website.to_text import WebsiteToText
+from flowsint_enrichers.website.to_webtrackers import WebsiteToWebtrackersEnricher
 
-# Email-related transforms
-from flowsint_transforms.email.to_gravatar import EmailToGravatarTransform
-from flowsint_transforms.email.to_leaks import EmailToBreachesTransform
+# Email-related enrichers
+from flowsint_enrichers.email.to_gravatar import EmailToGravatarEnricher
+from flowsint_enrichers.email.to_leaks import EmailToBreachesEnricher
 
-# Phone-related transforms
+# Phone-related enrichers
 
-# Individual-related transforms
-from flowsint_transforms.individual.to_org import IndividualToOrgTransform
+# Individual-related enrichers
+from flowsint_enrichers.individual.to_org import IndividualToOrgEnricher
 
-# Integration transforms
-from flowsint_transforms.n8n.connector import N8nConnector
+# Integration enrichers
+from flowsint_enrichers.n8n.connector import N8nConnector
 
 
-class TransformRegistry:
+class EnricherRegistry:
 
-    _transforms: Dict[str, Type[Transform]] = {}
-
-    @classmethod
-    def register(cls, transform_class: Type[Transform]) -> None:
-        cls._transforms[transform_class.name()] = transform_class
+    _enrichers: Dict[str, Type[Enricher]] = {}
 
     @classmethod
-    def transform_exists(cls, name: str) -> bool:
-        return name in cls._transforms
+    def register(cls, enricher_class: Type[Enricher]) -> None:
+        cls._enrichers[enricher_class.name()] = enricher_class
 
     @classmethod
-    def get_transform(
+    def enricher_exists(cls, name: str) -> bool:
+        return name in cls._enrichers
+
+    @classmethod
+    def get_enricher(
         cls, name: str, sketch_id: str, scan_id: str, **kwargs
-    ) -> Transform:
-        if name not in cls._transforms:
-            raise Exception(f"Transform '{name}' not found")
-        return cls._transforms[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
+    ) -> Enricher:
+        if name not in cls._enrichers:
+            raise Exception(f"Enricher '{name}' not found")
+        return cls._enrichers[name](sketch_id=sketch_id, scan_id=scan_id, **kwargs)
 
     @classmethod
-    def _create_transform_metadata(cls, transform: Type[Transform]) -> Dict[str, str]:
-        """Helper method to create transform metadata dictionary."""
+    def _create_enricher_metadata(cls, enricher: Type[Enricher]) -> Dict[str, str]:
+        """Helper method to create enricher metadata dictionary."""
         return {
-            "class_name": transform.__name__,
-            "name": transform.name(),
-            "module": transform.__module__,
-            "description": transform.__doc__,
-            "documentation": inspect.cleandoc(transform.documentation()),
-            "category": transform.category(),
-            "inputs": transform.input_schema(),
-            "outputs": transform.output_schema(),
+            "class_name": enricher.__name__,
+            "name": enricher.name(),
+            "module": enricher.__module__,
+            "description": enricher.__doc__,
+            "documentation": inspect.cleandoc(enricher.documentation()),
+            "category": enricher.category(),
+            "inputs": enricher.input_schema(),
+            "outputs": enricher.output_schema(),
             "params": {},
-            "params_schema": transform.get_params_schema(),
-            "required_params": transform.required_params(),
-            "icon": transform.icon(),
+            "params_schema": enricher.get_params_schema(),
+            "required_params": enricher.required_params(),
+            "icon": enricher.icon(),
         }
 
     @classmethod
@@ -105,24 +105,24 @@ class TransformRegistry:
             exclude = []
         return [
             {
-                **cls._create_transform_metadata(transform),
+                **cls._create_enricher_metadata(enricher),
                 "wobblyType": wobbly_type,
             }
-            for transform in cls._transforms.values()
-            if transform.name() not in exclude
+            for enricher in cls._enrichers.values()
+            if enricher.name() not in exclude
         ]
 
     @classmethod
     def list_by_categories(cls) -> Dict[str, List[Dict[str, str]]]:
-        transforms_by_category = {}
-        for _, transform in cls._transforms.items():
-            category = transform.category()
-            if category not in transforms_by_category:
-                transforms_by_category[category] = []
-            transforms_by_category[category].append(
-                cls._create_transform_metadata(transform)
+        enrichers_by_category = {}
+        for _, enricher in cls._enrichers.items():
+            category = enricher.category()
+            if category not in enrichers_by_category:
+                enrichers_by_category[category] = []
+            enrichers_by_category[category].append(
+                cls._create_enricher_metadata(enricher)
             )
-        return transforms_by_category
+        return enrichers_by_category
 
     @classmethod
     def list_by_input_type(
@@ -132,68 +132,68 @@ class TransformRegistry:
 
         if input_type_lower == "any":
             return [
-                cls._create_transform_metadata(transform)
-                for transform in cls._transforms.values()
-                if transform.name() not in exclude
+                cls._create_enricher_metadata(enricher)
+                for enricher in cls._enrichers.values()
+                if enricher.name() not in exclude
             ]
 
         return [
-            cls._create_transform_metadata(transform)
-            for transform in cls._transforms.values()
-            if transform.input_schema()["type"].lower() in ["any", input_type_lower]
-            and transform.name() not in exclude
+            cls._create_enricher_metadata(enricher)
+            for enricher in cls._enrichers.values()
+            if enricher.input_schema()["type"].lower() in ["any", input_type_lower]
+            and enricher.name() not in exclude
         ]
 
 
-# Register all transforms
+# Register all enrichers
 
-# Domain-related transforms
-TransformRegistry.register(ReverseResolveTransform)
-TransformRegistry.register(ResolveTransform)
-TransformRegistry.register(SubdomainTransform)
-TransformRegistry.register(WhoisTransform)
-TransformRegistry.register(DomainToWebsiteTransform)
-TransformRegistry.register(DomainToRootDomain)
-TransformRegistry.register(DomainToAsnTransform)
-TransformRegistry.register(DomainToHistoryTransform)
+# Domain-related enrichers
+EnricherRegistry.register(ReverseResolveEnricher)
+EnricherRegistry.register(ResolveEnricher)
+EnricherRegistry.register(SubdomainEnricher)
+EnricherRegistry.register(WhoisEnricher)
+EnricherRegistry.register(DomainToWebsiteEnricher)
+EnricherRegistry.register(DomainToRootDomain)
+EnricherRegistry.register(DomainToAsnEnricher)
+EnricherRegistry.register(DomainToHistoryEnricher)
 
-# IP-related transforms
-TransformRegistry.register(IpToInfosTransform)
-TransformRegistry.register(IpToAsnTransform)
-TransformRegistry.register(IpToPortsTransform)
+# IP-related enrichers
+EnricherRegistry.register(IpToInfosEnricher)
+EnricherRegistry.register(IpToAsnEnricher)
+EnricherRegistry.register(IpToPortsEnricher)
 
-# ASN-related transforms
-TransformRegistry.register(AsnToCidrsTransform)
+# ASN-related enrichers
+EnricherRegistry.register(AsnToCidrsEnricher)
 
-# CIDR-related transforms
-TransformRegistry.register(CidrToIpsTransform)
+# CIDR-related enrichers
+EnricherRegistry.register(CidrToIpsEnricher)
 
-# Social media transforms
-TransformRegistry.register(MaigretTransform)
+# Social media enrichers
+EnricherRegistry.register(MaigretEnricher)
 
-# Organization-related transforms
-TransformRegistry.register(OrgToAsnTransform)
-TransformRegistry.register(OrgToInfosTransform)
-TransformRegistry.register(OrgToDomainsTransform)
-# Cryptocurrency transforms
-TransformRegistry.register(CryptoWalletAddressToTransactions)
-TransformRegistry.register(CryptoWalletAddressToNFTs)
+# Organization-related enrichers
+EnricherRegistry.register(OrgToAsnEnricher)
+EnricherRegistry.register(OrgToInfosEnricher)
+EnricherRegistry.register(OrgToDomainsEnricher)
+# Cryptocurrency enrichers
+EnricherRegistry.register(CryptoWalletAddressToTransactions)
+EnricherRegistry.register(CryptoWalletAddressToNFTs)
 
-# Website-related transforms
-TransformRegistry.register(WebsiteToCrawler)
-TransformRegistry.register(WebsiteToLinks)
-TransformRegistry.register(WebsiteToDomainTransform)
-TransformRegistry.register(WebsiteToWebtrackersTransform)
-TransformRegistry.register(WebsiteToText)
+# Website-related enrichers
+EnricherRegistry.register(WebsiteToCrawler)
+EnricherRegistry.register(WebsiteToLinks)
+EnricherRegistry.register(WebsiteToDomainEnricher)
+EnricherRegistry.register(WebsiteToWebtrackersEnricher)
+EnricherRegistry.register(WebsiteToText)
 
-# Email-related transforms
-TransformRegistry.register(EmailToGravatarTransform)
-TransformRegistry.register(EmailToBreachesTransform)
-TransformRegistry.register(EmailToDomainsTransform)
+# Email-related enrichers
+EnricherRegistry.register(EmailToGravatarEnricher)
+EnricherRegistry.register(EmailToBreachesEnricher)
+EnricherRegistry.register(EmailToDomainsEnricher)
 
-# Individual-related transforms
-TransformRegistry.register(IndividualToOrgTransform)
-TransformRegistry.register(IndividualToDomainsTransform)
+# Individual-related enrichers
+EnricherRegistry.register(IndividualToOrgEnricher)
+EnricherRegistry.register(IndividualToDomainsEnricher)
 
-# Integration transforms
-TransformRegistry.register(N8nConnector)
+# Integration enrichers
+EnricherRegistry.register(N8nConnector)

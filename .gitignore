@@ -6,7 +6,7 @@ __pycache__/
 /node_modules/
 # C extensions
 *.so
-*transform_logs
+*enricher_logs
 # Distribution / packaging
 .Python
 build/

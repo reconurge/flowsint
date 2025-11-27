@@ -16,20 +16,20 @@ export const tutorialSteps: Record<string, Step[]> = {
   '/dashboard/flows/$flowId': [
     {
       target: '[data-tour-id="flow-sidebar"]',
-      content: 'Welcome to the flow editor! Use the sidebar to drag transforms into your flow.',
+      content: 'Welcome to the flow editor! Use the sidebar to drag enrichers into your flow.',
       disableBeacon: true,
     },
     {
       target: '[data-tour-id="flow-canvas"]',
-      content: 'The canvas is your workspace. Drag and drop transforms here and connect them to create your data pipeline.',
+      content: 'The canvas is your workspace. Drag and drop enrichers here and connect them to create your data pipeline.',
     },
     {
       target: '[data-tour-id="add-type-node"]',
       content: 'Start by adding a Type node to define the input data type for your flow.',
     },
     {
-      target: '[data-tour-id="add-transform-node"]',
-      content: 'Then add transforms to process your data. Connect them by clicking on the connection points.',
+      target: '[data-tour-id="add-enricher-node"]',
+      content: 'Then add enrichers to process your data. Connect them by clicking on the connection points.',
     },
     {
       target: '[data-tour-id="node-params"]',
@@ -56,7 +56,7 @@ export const tutorialSteps: Record<string, Step[]> = {
   '/dashboard/flows': [
     {
       target: '[data-tour-id="create-flow"]',
-      content: 'Click here to create a new data transformation flow.',
+      content: 'Click here to create a new data enrichment flow.',
       disableBeacon: true,
     },
     {

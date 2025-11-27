@@ -51,15 +51,15 @@ class Edge(BaseModel):
 
 
 class FlowStep(BaseModel):
-    """Represents a single step in a transformation flow with execution status."""
+    """Represents a single step in an enrichment flow with execution status."""
 
     nodeId: str = Field(..., description="ID of the associated node", title="Node ID")
     params: Optional[Dict[str, Any]] = Field(
         None, description="Parameters for the step", title="Parameters"
     )
-    type: Literal["type", "transform"] = Field(
+    type: Literal["type", "enricher"] = Field(
         ...,
-        description="Type of step - either type transformation or transform",
+        description="Type of step - either type transformation or enricher",
         title="Step Type",
     )
     inputs: Dict[str, Any] = Field(
@@ -80,7 +80,7 @@ class FlowStep(BaseModel):
 
 
 class FlowBranch(BaseModel):
-    """Represents a branch containing a sequence of transformation steps."""
+    """Represents a branch containing a sequence of enrichment steps."""
 
     id: str = Field(
         ..., description="Unique identifier for the branch", title="Branch ID"

@@ -89,7 +89,7 @@ const WebGLGraphViewer: React.FC<WebGLGraphViewerProps> = ({
     createNodePointerDownHandler,
     createNodeRightClickHandler,
     handleBackgroundClick,
-    updateTransform,
+    updateEnricher,
   } = useGraphInteractions({
     simulation,
     onNodeClick,
@@ -134,7 +134,7 @@ const WebGLGraphViewer: React.FC<WebGLGraphViewerProps> = ({
     height: dimensions.height,
     isDragging,
     simulationNodes,
-    onTransformChange: updateTransform,
+    onEnricherChange: updateEnricher,
     onZoomChange: (zoom) => {
       handleZoomChange(zoom)
       // Uncomment if using LODIndicator:

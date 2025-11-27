@@ -9,7 +9,7 @@ from .flowsint_base import FlowsintType
 class Whois(FlowsintType):
     """Represents WHOIS domain registration information."""
 
-    domain: Domain = Field(..., description="Domain information", title="Domain")
+    domain: Domain = Field(..., description="Domain information", title="Domain", json_schema_extra={"primary": True})
     registry_domain_id: Optional[str] = Field(
         None, description="Registry Domain ID (unique identifier)", title="Registry Domain ID"
     )

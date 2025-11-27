@@ -6,7 +6,7 @@ from .flowsint_base import FlowsintType
 class Location(FlowsintType):
     """Represents a physical address with geographical coordinates."""
 
-    address: str = Field(..., description="Street address", title="Street Address")
+    address: str = Field(..., description="Street address", title="Street Address", json_schema_extra={"primary": True})
     city: str = Field(..., description="City name", title="City")
     country: str = Field(..., description="Country name", title="Country")
     zip: str = Field(..., description="ZIP or postal code", title="ZIP/Postal Code")

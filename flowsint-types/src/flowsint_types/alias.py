@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class Alias(FlowsintType):
     """Represents an alias or alternative name used by an entity."""
 
-    alias: str = Field(..., description="Alias or alternative name", title="Alias")
+    alias: str = Field(..., description="Alias or alternative name", title="Alias", json_schema_extra={"primary": True})
     type: Optional[str] = Field(
         None,
         description="Type of alias (nickname, code name, etc.)",

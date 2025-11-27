@@ -8,7 +8,7 @@ class Device(FlowsintType):
     """Represents a device with hardware, software, and network information."""
 
     device_id: str = Field(
-        ..., description="Unique device identifier", title="Device ID"
+        ..., description="Unique device identifier", title="Device ID", json_schema_extra={"primary": True}
     )
     type: Optional[str] = Field(
         None,

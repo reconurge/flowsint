@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class ReputationScore(FlowsintType):
     """Represents a reputation score for an entity with historical data and trends."""
 
-    entity_id: str = Field(..., description="Entity identifier", title="Entity ID")
+    entity_id: str = Field(..., description="Entity identifier", title="Entity ID", json_schema_extra={"primary": True})
     entity_type: Optional[str] = Field(
         None,
         description="Type of entity (domain, IP, email, etc.)",

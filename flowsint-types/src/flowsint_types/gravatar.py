@@ -7,7 +7,7 @@ class Gravatar(FlowsintType):
     """Represents a Gravatar profile with image and user information."""
 
     src: HttpUrl = Field(..., description="Gravatar image URL", title="Image URL")
-    hash: str = Field(..., description="Gravatar hash", title="Hash")
+    hash: str = Field(..., description="Gravatar hash", title="Hash", json_schema_extra={"primary": True})
     size: Optional[int] = Field(
         None, description="Image size in pixels", title="Image Size"
     )

@@ -18,7 +18,7 @@ class Individual(FlowsintType):
         ..., description="Last name of the individual", title="Last Name"
     )
     full_name: Optional[str] = Field(
-        None, description="Full name of the individual", title="Full Name"
+        None, description="Full name of the individual", title="Full Name", json_schema_extra={"primary": True}
     )
     middle_name: Optional[str] = Field(
         None, description="Middle name or initial", title="Middle Name"

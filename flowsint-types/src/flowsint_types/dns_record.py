@@ -7,12 +7,17 @@ from .flowsint_base import FlowsintType
 class DNSRecord(FlowsintType):
     """Represents a DNS record with type, value, and security information."""
 
+    value: str = Field(
+        ...,
+        description="Record value",
+        title="Record Value",
+        json_schema_extra={"primary": True},
+    )
     record_type: str = Field(
         ...,
         description="Type of DNS record (A, AAAA, CNAME, MX, etc.)",
         title="Record Type",
     )
-    value: str = Field(..., description="Record value", title="Record Value")
     ttl: Optional[int] = Field(None, description="Time to live in seconds", title="TTL")
     priority: Optional[int] = Field(
         None, description="Priority for MX records", title="Priority"
@@ -50,7 +55,7 @@ class DNSRecord(FlowsintType):
         None, description="Threat level assessment", title="Threat Level"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.label = self.value
         return self

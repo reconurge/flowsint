@@ -8,7 +8,7 @@ class Script(FlowsintType):
     """Represents a script or code file with analysis and security information."""
 
     script_id: str = Field(
-        ..., description="Unique script identifier", title="Script ID"
+        ..., description="Unique script identifier", title="Script ID", json_schema_extra={"primary": True}
     )
     name: Optional[str] = Field(None, description="Script name", title="Name")
     language: Optional[str] = Field(

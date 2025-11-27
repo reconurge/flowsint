@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class Credential(FlowsintType):
     """Represents user credentials with compromise and usage information."""
 
-    username: str = Field(..., description="Username or identifier", title="Username")
+    username: str = Field(..., description="Username or identifier", title="Username", json_schema_extra={"primary": True})
     service: Optional[str] = Field(
         None,
         description="Service or platform where credential is used",

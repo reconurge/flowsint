@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class File(FlowsintType):
     """Represents a file with metadata, type information, and security assessment."""
 
-    filename: str = Field(..., description="File name", title="Filename")
+    filename: str = Field(..., description="File name", title="Filename", json_schema_extra={"primary": True})
     file_type: Optional[str] = Field(
         None, description="File type or extension", title="File Type"
     )

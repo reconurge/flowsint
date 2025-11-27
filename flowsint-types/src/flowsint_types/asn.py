@@ -11,7 +11,7 @@ class ASN(FlowsintType):
         ..., description="Autonomous System Number (e.g., 15169)", title="ASN Number"
     )
     asn_str: Optional[str] = Field(
-        None, description="ASN in string format (e.g., 'AS15169')", title="ASN String"
+        None, description="ASN in string format (e.g., 'AS15169')", title="ASN String", json_schema_extra={"primary": True}
     )
     name: Optional[str] = Field(
         None,

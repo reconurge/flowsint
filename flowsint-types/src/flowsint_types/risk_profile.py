@@ -7,7 +7,7 @@ from .flowsint_base import FlowsintType
 class RiskProfile(FlowsintType):
     """Represents a comprehensive risk assessment profile for an entity."""
 
-    entity_id: str = Field(..., description="Entity identifier", title="Entity ID")
+    entity_id: str = Field(..., description="Entity identifier", title="Entity ID", json_schema_extra={"primary": True})
     entity_type: Optional[str] = Field(
         None, description="Type of entity", title="Entity Type"
     )

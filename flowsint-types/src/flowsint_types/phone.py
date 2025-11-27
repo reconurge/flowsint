@@ -8,7 +8,7 @@ from .flowsint_base import FlowsintType
 class Phone(FlowsintType):
     """Represents a phone number with country and carrier information."""
 
-    number: str = Field(..., description="Phone number", title="Phone Number")
+    number: str = Field(..., description="Phone number", title="Phone Number", json_schema_extra={"primary": True})
     country: Optional[str] = Field(
         None, description="Country code (ISO 3166-1 alpha-2)", title="Country Code"
     )

@@ -9,7 +9,7 @@ class Organization(FlowsintType):
     """Represents an organization with detailed business and administrative information."""
 
     # Basic information
-    name: Any = Field(..., description="Organization name", title="Organization Name")
+    name: Any = Field(..., description="Organization name", title="Organization Name", json_schema_extra={"primary": True})
 
     @model_validator(mode='before')
     @classmethod

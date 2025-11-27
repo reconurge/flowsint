@@ -463,7 +463,22 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
               graphRef.current.zoomToFit(400)
             }
           },
-          regenerateLayout: regenerateLayout
+          regenerateLayout: regenerateLayout,
+          getViewportCenter: () => {
+            if (!graphRef.current || !containerRef.current) return null
+
+            // Get screen center coordinates
+            const rect = containerRef.current.getBoundingClientRect()
+            const screenCenterX = rect.width / 2
+            const screenCenterY = rect.height / 2
+
+            // Convert screen coordinates to graph coordinates
+            if (typeof graphRef.current.screen2GraphCoords === 'function') {
+              return graphRef.current.screen2GraphCoords(screenCenterX, screenCenterY)
+            }
+
+            return { x: 0, y: 0 }
+          }
         })
       }
       // Call external ref callback
@@ -483,7 +498,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           zoomIn: () => { },
           zoomOut: () => { },
           zoomToFit: () => { },
-          regenerateLayout: () => { }
+          regenerateLayout: () => { },
+          getViewportCenter: () => null
         })
         isGraphReadyRef.current = false
       }
@@ -494,24 +510,24 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   useEffect(() => {
     // Only auto-center if we have nodes and the graph is ready
     if (graphRef.current && graphData.nodes.length > 0 && containerSize.width > 0) {
-      // Wait a bit for the simulation to settle, then center
+      // If flag is set, regenerate layout instead of just zooming
+      if (shouldRegenerateLayoutOnNextRefetch && currentLayoutType) {
+        setShouldRegenerateLayoutOnNextRefetch(false)
+        const timer = setTimeout(() => {
+          regenerateLayout(currentLayoutType)
+        }, 500)
+        return () => clearTimeout(timer)
+      }
+
+      // Otherwise just zoom to fit on initial load
       const timer = setTimeout(() => {
         if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-
           graphRef.current.zoomToFit(400)
         }
       }, 500)
       return () => clearTimeout(timer)
     }
-  }, [graphData.nodes.length, containerSize.width])
-
-  // Auto-regenerate layout when new nodes are added via refetch (from useEvents)
-  useEffect(() => {
-    if (shouldRegenerateLayoutOnNextRefetch && nodes.length > 0 && currentLayoutType) {
-      setShouldRegenerateLayoutOnNextRefetch(false)
-      regenerateLayout(currentLayoutType)
-    }
-  }, [nodes, shouldRegenerateLayoutOnNextRefetch, currentLayoutType, regenerateLayout, setShouldRegenerateLayoutOnNextRefetch])
+  }, [graphData.nodes.length, containerSize.width, shouldRegenerateLayoutOnNextRefetch, currentLayoutType, regenerateLayout, setShouldRegenerateLayoutOnNextRefetch])
 
   // Event handlers with proper memoization
   const handleNodeClick = useCallback(

@@ -28,7 +28,7 @@ export function useLaunchEnricher(askUser: boolean = false) {
         `Enricher ${enricherName} has been launched on ${count} node${count > 1 ? 's' : ''}.`,
       error: () => `An error occurred launching enricher.`
     })
-    openClonsole()
+    // openClonsole()
     return
   }
   return {

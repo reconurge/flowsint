@@ -70,13 +70,6 @@ export const TerminalLogViewer = ({
 
     const previousLogs = previousLogsRef.current
     const currentLogs = logs
-
-    console.log('[TerminalLogViewer] Log update', {
-      previousCount: previousLogs.length,
-      currentCount: currentLogs.length,
-      latestLogs: currentLogs.slice(-3)
-    })
-
     // Find new logs by comparing timestamps and messages
     // This works even when the total length stays the same (e.g., 100 logs with slice)
     const newLogs = currentLogs.filter((currentLog) => {

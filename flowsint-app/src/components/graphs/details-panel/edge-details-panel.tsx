@@ -78,11 +78,11 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
 
   if (!edge) {
     return (
-      <div className="flex p-12 rounded-xl border flex-col items-center justify-center h-full text-center p-8">
-        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-          <MousePointer className="h-8 w-8 text-muted-foreground" />
+      <div className="flex p-12 flex-col items-center justify-center h-full text-center p-8">
+        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
+          <MousePointer className="h-4 w-4 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">No Relationship Selected</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">No relationship selected</h3>
         <p className="text-sm text-muted-foreground max-w-xs">
           Click on any relationship in the graph to view its details
         </p>

@@ -15,7 +15,7 @@ export function useLaunchFlow(askUser: boolean = false) {
     mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
       flowService.launch(flowId, body),
     onSuccess: (_, variables) => {
-      openClonsole()
+      // openClonsole()
       queryClient.invalidateQueries({
         queryKey: queryKeys.flows.detail(variables.flowId)
       })

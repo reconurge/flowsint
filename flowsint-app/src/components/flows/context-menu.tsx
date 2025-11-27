@@ -59,7 +59,7 @@ export default function ContextMenu({
         </div>
       </div>
       <div className="flex flex-col gap-1 p-1">
-        {/* Transforms list */}
+        {/* Enrichers list */}
         <button
           onClick={handleOpenParamsModal}
           className="w-full flex items-center gap-2 p-2 rounded-sm hover:bg-muted text-left transition-colors"

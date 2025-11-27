@@ -11,7 +11,7 @@ import { useLayoutStore } from '@/stores/layout-store'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import type { ItemType } from '@/stores/node-display-settings'
 import { Badge } from '../ui/badge'
-import LaunchFlow from './launch-transform'
+import LaunchFlow from './launch-enricher'
 import { TypeBadge } from '../type-badge'
 import { useParams } from '@tanstack/react-router'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
@@ -184,7 +184,7 @@ const ActionBar = () => {
             {!shareSameType ? (
               <p>All selected items are not the same type</p>
             ) : (
-              <p>Launch transform</p>
+              <p>Launch enricher</p>
             )}
           </TooltipContent>
         </Tooltip>

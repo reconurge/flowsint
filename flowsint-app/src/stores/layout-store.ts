@@ -23,9 +23,9 @@ interface LayoutStore {
   closeDetails: () => void
   setChatDimensions: (width: number, height: number) => void
   activeTab: string
-  activeTransformTab: string
+  activeEnricherTab: string
   setActiveTab: (tab: 'entities' | 'items' | string) => void
-  setActiveTransformTab: (tab: 'flows' | 'items' | string) => void
+  setActiveEnricherTab: (tab: 'flows' | 'items' | string) => void
 }
 
 export const useLayoutStore = create<LayoutStore>()(
@@ -39,7 +39,7 @@ export const useLayoutStore = create<LayoutStore>()(
       chatWidth: 500,
       chatHeight: 600,
       activeTab: 'entities',
-      activeTransformTab: 'flows',
+      activeEnricherTab: 'flows',
       openConsole: () => set(() => ({ isOpenConsole: true })),
       toggleConsole: () => set((state) => ({ isOpenConsole: !state.isOpenConsole })),
       togglePanel: () => set((state) => ({ isOpenPanel: !state.isOpenPanel })),
@@ -55,7 +55,7 @@ export const useLayoutStore = create<LayoutStore>()(
       setChatDimensions: (width: number, height: number) =>
         set({ chatWidth: width, chatHeight: height }),
       setActiveTab: (tab: string) => set({ activeTab: tab }),
-      setActiveTransformTab: (tab: string) => set({ activeTransformTab: tab })
+      setActiveEnricherTab: (tab: string) => set({ activeEnricherTab: tab })
     }),
     {
       name: 'layout-storage',
@@ -66,7 +66,7 @@ export const useLayoutStore = create<LayoutStore>()(
         chatWidth: state.chatWidth,
         chatHeight: state.chatHeight,
         activeTab: state.activeTab,
-        activeTransformTab: state.activeTransformTab
+        activeEnricherTab: state.activeEnricherTab
       })
     }
   )

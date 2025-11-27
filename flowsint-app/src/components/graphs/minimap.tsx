@@ -2,14 +2,14 @@ import { GraphNode } from '@/types'
 import { useMemo } from 'react'
 import { GRAPH_COLORS } from './graph-viewer'
 
-interface zoomTransform {
+interface zoomEnricher {
   x: number
   y: number
   k: number
 }
 interface MinimapProps {
   nodes: GraphNode[]
-  zoomTransform: zoomTransform
+  zoomEnricher: zoomEnricher
   width?: number
   height?: number
   canvasWidth: number
@@ -17,19 +17,19 @@ interface MinimapProps {
 }
 const Minimap = ({
   nodes,
-  zoomTransform,
+  zoomEnricher,
   width = 160,
   height = 120,
   canvasWidth = 800,
   canvasHeight = 600
 }: MinimapProps) => {
   // Calculate the visible viewport in world coordinates
-  const invScale = 1 / zoomTransform.k
+  const invScale = 1 / zoomEnricher.k
 
   // The viewport center in world coordinates
-  // zoomTransform.x and zoomTransform.y are screen offsets, so we need to convert them
-  const viewportCenterX = zoomTransform.x * invScale
-  const viewportCenterY = zoomTransform.y * invScale
+  // zoomEnricher.x and zoomEnricher.y are screen offsets, so we need to convert them
+  const viewportCenterX = zoomEnricher.x * invScale
+  const viewportCenterY = zoomEnricher.y * invScale
 
   // Viewport dimensions in world coordinates
   const viewportWidth = canvasWidth * invScale

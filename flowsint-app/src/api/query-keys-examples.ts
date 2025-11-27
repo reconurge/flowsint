@@ -10,7 +10,7 @@ import { chatCRUDService } from './chat-service'
 import { KeyService } from './key-service'
 import { logService } from './log-service'
 import { scanService } from './scan-service'
-import { transformService } from './transform-service'
+import { enricherService } from './enricher-service'
 
 // Example 1: Using the query keys directly
 export const useInvestigationsList = () => {
@@ -153,11 +153,11 @@ export const useScanDetail = (scanId: string) => {
   })
 }
 
-// Example 8: Using with transforms
-export const useTransformsList = () => {
+// Example 8: Using with enrichers
+export const useEnrichersList = () => {
   return useQuery({
-    queryKey: queryKeys.transforms.list,
-    queryFn: transformService.get
+    queryKey: queryKeys.enrichers.list,
+    queryFn: enricherService.get
   })
 }
 

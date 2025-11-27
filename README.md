@@ -38,11 +38,11 @@ Then go to [http://localhost:5173/register](http://localhost:5173/register) and 
 
 ## What is it?
 
-Flowsint is a graph-based investigation tool focused on reconnaissance and OSINT (Open Source Intelligence). It allows you to explore relationships between entities through a visual graph interface and automated transforms.
+Flowsint is a graph-based investigation tool focused on reconnaissance and OSINT (Open Source Intelligence). It allows you to explore relationships between entities through a visual graph interface and automated enrichers.
 
-### Available Transforms
+### Available Enrichers
 
-**Domain Transforms**
+**Domain Enrichers**
 - Reverse DNS Resolution - Find domains pointing to an IP
 - DNS Resolution - Resolve domain to IP addresses
 - Subdomain Discovery - Enumerate subdomains
@@ -52,48 +52,48 @@ Flowsint is a graph-based investigation tool focused on reconnaissance and OSINT
 - Domain to ASN - Find ASN associated with domain
 - Domain History - Retrieve historical domain data
 
-**IP Transforms**
+**IP Enrichers**
 - IP Information - Get geolocation and network details
 - IP to ASN - Find ASN for IP address
 
-**ASN Transforms**
+**ASN Enrichers**
 - ASN to CIDRs - Get IP ranges for an ASN
 
-**CIDR Transforms**
+**CIDR Enrichers**
 - CIDR to IPs - Enumerate IPs in a range
 
-**Social Media Transforms**
+**Social Media Enrichers**
 - Maigret - Username search across social platforms
 
-**Organization Transforms**
+**Organization Enrichers**
 - Organization to ASN - Find ASNs owned by organization
 - Organization Information - Get company details
 - Organization to Domains - Find domains owned by organization
 
-**Cryptocurrency Transforms**
+**Cryptocurrency Enrichers**
 - Wallet to Transactions - Get transaction history
 - Wallet to NFTs - Find NFTs owned by wallet
 
-**Website Transforms**
+**Website Enrichers**
 - Website Crawler - Crawl and map website structure
 - Website to Links - Extract all links
 - Website to Domain - Extract domain from URL
 - Website to Webtrackers - Identify tracking scripts
 - Website to Text - Extract text content
 
-**Email Transforms**
+**Email Enrichers**
 - Email to Gravatar - Find Gravatar profile
 - Email to Breaches - Check data breach databases
 - Email to Domains - Find associated domains
 
-**Phone Transforms**
+**Phone Enrichers**
 - Phone to Breaches - Check phone number in breaches
 
-**Individual Transforms**
+**Individual Enrichers**
 - Individual to Organization - Find organizational affiliations
 - Individual to Domains - Find domains associated with person
 
-**Integration Transforms**
+**Integration Enrichers**
 - N8n Connector - Connect to N8n workflows
 
 ## Project structure
@@ -104,7 +104,7 @@ The project is organized into autonomous modules:
 
 - **flowsint-core**: Core utilities, orchestrator, vault, celery tasks, and base classes
 - **flowsint-types**: Pydantic models and type definitions
-- **flowsint-transforms**: Transform modules, scanning logic, and tools
+- **flowsint-enrichers**: Enricher modules, scanning logic, and tools
 - **flowsint-api**: FastAPI server, API routes, and schemas only
 - **flowsint-app**: Frontend application
 
@@ -117,7 +117,7 @@ flowsint-api (API server)
     ↓
 flowsint-core (orchestrator, tasks, vault)
     ↓
-flowsint-transforms (transforms & tools)
+flowsint-enrichers (enrichers & tools)
     ↓
 flowsint-types (types)
 ```
@@ -150,7 +150,7 @@ Core utilities and base classes used by all other modules:
 - Authentication and authorization
 - Logging and event handling
 - Configuration management
-- Base classes for transforms and tools
+- Base classes for enrichers and tools
 - Utility functions
 
 ### flowsint-types
@@ -163,15 +163,15 @@ Pydantic models for all data types:
 - Crypto wallets, Transactions, NFTs
 - And many more...
 
-### flowsint-transforms
+### flowsint-enrichers
 
-Transform modules that process data:
+Enricher modules that process data:
 
-- Domain transforms (subdomains, WHOIS, resolution)
-- IP transforms (geolocation, ASN lookup)
-- Social media transforms (Maigret, Sherlock)
-- Email transforms (breaches, Gravatar)
-- Crypto transforms (transactions, NFTs)
+- Domain enrichers (subdomains, WHOIS, resolution)
+- IP enrichers (geolocation, ASN lookup)
+- Social media enrichers (Maigret, Sherlock)
+- Email enrichers (breaches, Gravatar)
+- Crypto enrichers (transactions, NFTs)
 - And many more...
 
 ### flowsint-api
@@ -193,7 +193,7 @@ Frontend application.
 ## Development workflow
 
 1. **Adding new types**: Add to `flowsint-types` module
-2. **Adding new transforms**: Add to `flowsint-transforms` module
+2. **Adding new enrichers**: Add to `flowsint-enrichers` module
 3. **Adding new API endpoints**: Add to `flowsint-api` module
 4. **Adding new utilities**: Add to `flowsint-core` module
 
@@ -210,8 +210,8 @@ poetry run pytest
 cd ../flowsint-types
 poetry run pytest
 
-# Test transforms module
-cd ../flowsint-transforms
+# Test enrichers module
+cd ../flowsint-enrichers
 poetry run pytest
 
 # Test API module

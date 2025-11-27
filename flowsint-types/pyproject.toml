@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flowsint-types"
-version = "0.2.0"
+version = "1.0.0"
 description = "Pydantic models for flowsint"
 license = "AGPL-3.0-or-later"
 authors = ["dextmorgn <contact@flowsint.io>"]

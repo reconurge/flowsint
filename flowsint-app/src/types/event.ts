@@ -7,7 +7,7 @@ export enum EventLevel {
   FAILED = 'FAILED',
   SUCCESS = 'SUCCESS',
   DEBUG = 'DEBUG',
-  // Transform-specific statuses
+  // Enricher-specific statuses
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
   COMPLETED = 'COMPLETED',

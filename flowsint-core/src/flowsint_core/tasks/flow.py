@@ -28,7 +28,7 @@ db: Session = next(get_db())
 @celery.task(name="run_flow", bind=True)
 def run_flow(
     self,
-    transform_branches,
+    enricher_branches,
     serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
@@ -36,8 +36,8 @@ def run_flow(
     session = SessionLocal()
 
     try:
-        if not transform_branches:
-            raise ValueError("transform_branches not provided in the input transform")
+        if not enricher_branches:
+            raise ValueError("enricher_branches not provided in the input enricher")
 
         scan_id = uuid.UUID(self.request.id)
 
@@ -59,18 +59,18 @@ def run_flow(
                     sketch_id, {"message": f"Failed to create vault: {str(e)}"}
                 )
 
-        transform_branches = [FlowBranch(**branch) for branch in transform_branches]
-        transform = FlowOrchestrator(
+        enricher_branches = [FlowBranch(**branch) for branch in enricher_branches]
+        enricher = FlowOrchestrator(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
-            transform_branches=transform_branches,
+            enricher_branches=enricher_branches,
             neo4j_conn=neo4j_connection,
             vault=vault,
         )
 
         # Use the synchronous scan method which internally handles the async operations
         # Pass serialized objects instead of strings - the preprocess will handle them
-        results = transform.scan(values=serialized_objects)
+        results = enricher.scan(values=serialized_objects)
 
         scan.status = EventLevel.COMPLETED
         scan.results = to_json_serializable(results)

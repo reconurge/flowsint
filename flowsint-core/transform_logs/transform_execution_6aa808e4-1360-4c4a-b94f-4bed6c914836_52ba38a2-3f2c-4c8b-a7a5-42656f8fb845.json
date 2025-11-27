@@ -1,0 +1,122 @@
+{
+  "sketch_id": "6aa808e4-1360-4c4a-b94f-4bed6c914836",
+  "scan_id": "52ba38a2-3f2c-4c8b-a7a5-42656f8fb845",
+  "created_at": "2025-10-26T15:57:52.243549",
+  "updated_at": "2025-10-26T15:57:52.424052",
+  "status": "completed",
+  "transform_branches": [
+    {
+      "id": "branch-0",
+      "name": "Main Flow",
+      "steps": [
+        {
+          "nodeId": "Domain-1761469976169",
+          "params": {},
+          "type": "type",
+          "inputs": {},
+          "outputs": {
+            "domain": [
+              "alliage.io"
+            ]
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 0
+        },
+        {
+          "nodeId": "domain_to_ip-1761469978018",
+          "params": {},
+          "type": "transform",
+          "inputs": {
+            "Domain": null
+          },
+          "outputs": {
+            "address": "example.com",
+            "latitude": "example.com",
+            "longitude": "example.com",
+            "country": "example.com",
+            "city": "example.com",
+            "isp": "example.com"
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 1
+        }
+      ]
+    }
+  ],
+  "execution_log": [
+    {
+      "step_id": "branch-0_domain_to_ip-1761469978018",
+      "branch_id": "branch-0",
+      "branch_name": "Main Flow",
+      "node_id": "domain_to_ip-1761469978018",
+      "transform_name": "domain_to_ip",
+      "inputs": [
+        "alliage.io"
+      ],
+      "outputs": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ],
+      "status": "completed",
+      "error": null,
+      "timestamp": "2025-10-26T15:57:52.274147",
+      "execution_time_ms": 144,
+      "cache_hit": false
+    }
+  ],
+  "summary": {
+    "total_steps": 1,
+    "completed_steps": 1,
+    "failed_steps": 0,
+    "total_execution_time_ms": 144
+  },
+  "final_results": {
+    "initial_values": [
+      "alliage.io"
+    ],
+    "branches": [
+      {
+        "id": "branch-0",
+        "name": "Main Flow",
+        "steps": [
+          {
+            "nodeId": "domain_to_ip-1761469978018",
+            "transform": "domain_to_ip",
+            "status": "completed",
+            "outputs": [
+              {
+                "address": "87.98.177.115",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "results": {
+      "domain_to_ip-1761469978018": [
+        {
+          "address": "87.98.177.115",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ]
+    },
+    "reference_mapping": {}
+  }
+}

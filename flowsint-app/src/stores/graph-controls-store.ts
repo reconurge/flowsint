@@ -18,6 +18,7 @@ type GraphControlsStore = {
   setActions: (actions: Partial<GraphControlsStore>) => void
   refetchGraph: (onSuccess?: () => void) => void
   regenerateLayout: (layoutType: LayoutType) => void
+  getViewportCenter: () => { x: number; y: number } | null
   setCurrentLayoutType: (layoutType: LayoutType) => void
   setShouldRegenerateLayoutOnNextRefetch: (should: boolean) => void
   setView: (view: 'graph' | 'table' | 'map' | 'relationships') => void
@@ -40,6 +41,7 @@ export const useGraphControls = create<GraphControlsStore>()(
       setActions: (actions) => set(actions),
       refetchGraph: (onSuccess) => { },
       regenerateLayout: () => { },
+      getViewportCenter: () => null,
       setCurrentLayoutType: (layoutType) => set({ currentLayoutType: layoutType }),
       setShouldRegenerateLayoutOnNextRefetch: (should) => set({ shouldRegenerateLayoutOnNextRefetch: should }),
       setView: (view) => set({ view }),

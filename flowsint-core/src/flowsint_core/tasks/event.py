@@ -21,3 +21,17 @@ def emit_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: 
         redis_client.publish(sketch_id, event)
     except Exception as e:
         raise
+
+
+@celery.task(name="emit_status_event")
+def emit_status_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: Dict):
+    """Celery task to emit a status event (COMPLETED) to status channel"""
+    try:
+        event = Event(
+            id=log_id, sketch_id=sketch_id, type=log_type, payload=content
+        ).model_dump_json()
+        redis_client = redis.from_url(os.environ["REDIS_URL"])
+        # Publish to status channel
+        redis_client.publish(f"{sketch_id}_status", event)
+    except Exception as e:
+        raise

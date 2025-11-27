@@ -16,7 +16,7 @@ type GraphControlsStore = {
   zoomOut: () => void
   onLayout: (layout: any) => void
   setActions: (actions: Partial<GraphControlsStore>) => void
-  refetchGraph: () => void
+  refetchGraph: (onSuccess?: () => void) => void
   regenerateLayout: (layoutType: LayoutType) => void
   setCurrentLayoutType: (layoutType: LayoutType) => void
   setShouldRegenerateLayoutOnNextRefetch: (should: boolean) => void
@@ -38,7 +38,7 @@ export const useGraphControls = create<GraphControlsStore>()(
       zoomOut: () => { },
       onLayout: () => { },
       setActions: (actions) => set(actions),
-      refetchGraph: () => { },
+      refetchGraph: (onSuccess) => { },
       regenerateLayout: () => { },
       setCurrentLayoutType: (layoutType) => set({ currentLayoutType: layoutType }),
       setShouldRegenerateLayoutOnNextRefetch: (should) => set({ shouldRegenerateLayoutOnNextRefetch: should }),

@@ -45,7 +45,19 @@ const GraphPageContent = () => {
   }, [id, reset])
 
   useEffect(() => {
-    setActions({ refetchGraph: refetch })
+    const refetchWithCallback = async (onSuccess?: () => void) => {
+      console.log('[Route] refetchWithCallback called with callback:', !!onSuccess)
+      await refetch()
+      console.log('[Route] refetch completed')
+      // Execute callback after refetch completes and data is updated
+      if (onSuccess) {
+        console.log('[Route] executing callback after refetch')
+        // Small delay to ensure React Query has updated the data in the store
+        setTimeout(onSuccess, 0)
+      }
+    }
+    console.log('[Route] Setting refetchGraph in store')
+    setActions({ refetchGraph: refetchWithCallback })
   }, [refetch, setActions, id])
 
   if (type === 'graph') {

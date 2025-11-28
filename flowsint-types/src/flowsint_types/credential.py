@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Credential(FlowsintType):
     """Represents user credentials with compromise and usage information."""
 
@@ -72,3 +74,13 @@ class Credential(FlowsintType):
         else:
             self.label = self.username
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a credential from a raw string."""
+        return cls(username=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Credential cannot be reliably detected from a single line of text."""
+        return False

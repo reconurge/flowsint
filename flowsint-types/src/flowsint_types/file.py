@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class File(FlowsintType):
     """Represents a file with metadata, type information, and security assessment."""
 
@@ -68,3 +70,13 @@ class File(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.filename
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a file from a raw string."""
+        return cls(filename=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """File cannot be reliably detected from a single line of text."""
+        return False

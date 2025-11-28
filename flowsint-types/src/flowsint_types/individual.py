@@ -5,8 +5,10 @@ from .email import Email
 from .phone import Phone
 from .ip import Ip
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Individual(FlowsintType):
     """Represents an individual person with comprehensive personal information."""
 
@@ -18,7 +20,10 @@ class Individual(FlowsintType):
         ..., description="Last name of the individual", title="Last Name"
     )
     full_name: Optional[str] = Field(
-        None, description="Full name of the individual", title="Full Name", json_schema_extra={"primary": True}
+        None,
+        description="Full name of the individual",
+        title="Full Name",
+        json_schema_extra={"primary": True},
     )
     middle_name: Optional[str] = Field(
         None, description="Middle name or initial", title="Middle Name"
@@ -311,9 +316,11 @@ class Individual(FlowsintType):
         None, description="Last update timestamp", title="Last Updated"
     )
 
-    @field_validator('email_addresses', mode='before')
+    @field_validator("email_addresses", mode="before")
     @classmethod
-    def validate_email_addresses(cls, v: Optional[List[Union[str, Email]]]) -> Optional[List[Email]]:
+    def validate_email_addresses(
+        cls, v: Optional[List[Union[str, Email]]]
+    ) -> Optional[List[Email]]:
         """Validate that all email addresses in the list are valid and convert to Email objects."""
         if v is None:
             return None
@@ -338,9 +345,11 @@ class Individual(FlowsintType):
 
         return validated_emails if validated_emails else None
 
-    @field_validator('phone_numbers', mode='before')
+    @field_validator("phone_numbers", mode="before")
     @classmethod
-    def validate_phone_numbers(cls, v: Optional[List[Union[str, Phone]]]) -> Optional[List[Phone]]:
+    def validate_phone_numbers(
+        cls, v: Optional[List[Union[str, Phone]]]
+    ) -> Optional[List[Phone]]:
         """Validate phone numbers in the list and convert to Phone objects."""
         if v is None:
             return None
@@ -363,9 +372,11 @@ class Individual(FlowsintType):
                 continue
         return validated_phones if validated_phones else None
 
-    @field_validator('ip_addresses', mode='before')
+    @field_validator("ip_addresses", mode="before")
     @classmethod
-    def validate_ip_addresses(cls, v: Optional[List[Union[str, Ip]]]) -> Optional[List[Ip]]:
+    def validate_ip_addresses(
+        cls, v: Optional[List[Union[str, Ip]]]
+    ) -> Optional[List[Ip]]:
         """Validate that all IP addresses in the list are valid and convert to Ip objects."""
         if v is None:
             return None
@@ -389,7 +400,7 @@ class Individual(FlowsintType):
 
         return validated_ips if validated_ips else None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Use full_name if available, otherwise concatenate first and last name
         if self.full_name:
@@ -401,3 +412,35 @@ class Individual(FlowsintType):
         elif self.last_name:
             self.label = self.last_name
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an individual from a raw string (full name).
+
+        Splits the string on space to extract first_name and last_name.
+        Example: "John Doe" -> first_name="John", last_name="Doe"
+        """
+        line = line.strip()
+        parts = line.split(maxsplit=1)
+
+        if len(parts) == 1:
+            # Only one name provided, use it as first_name
+            return cls(first_name=parts[0], last_name="")
+        elif len(parts) >= 2:
+            # At least two parts, first is first_name, rest is last_name
+            return cls(first_name=parts[0], last_name=parts[1])
+        else:
+            # Empty string
+            return cls(first_name="", last_name="")
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """We can detect an individual only if we can split value in exactly 2 string"""
+        line = line.strip()
+        if not line:
+            return False
+        fullname = " ".split(line)
+        if len(fullname) == 2:
+            return True
+
+        return False

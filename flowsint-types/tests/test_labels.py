@@ -176,12 +176,12 @@ def test_cidr_label():
 
 
 def test_asn_label_with_name():
-    asn = ASN(number=15169, name="Google LLC")
+    asn = ASN(asn_str="AS15169", name="Google LLC")
     assert asn.label == "AS15169 - Google LLC"
 
 
 def test_asn_label_without_name():
-    asn = ASN(number=15169)
+    asn = ASN(asn_str="AS15169")
     assert asn.label == "AS15169"
 
 

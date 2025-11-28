@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Message(FlowsintType):
     """Represents a message with content, metadata, and security analysis."""
 
@@ -72,3 +74,8 @@ class Message(FlowsintType):
             content_preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
             self.label = content_preview
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Message cannot be reliably detected from a single line of text."""
+        return False

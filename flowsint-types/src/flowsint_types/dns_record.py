@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class DNSRecord(FlowsintType):
     """Represents a DNS record with type, value, and security information."""
 
@@ -59,3 +61,8 @@ class DNSRecord(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.value
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """DNSRecord cannot be reliably detected from a single line of text."""
+        return False

@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Affiliation(FlowsintType):
     """Represents an organizational affiliation or employment relationship."""
 
@@ -63,3 +65,13 @@ class Affiliation(FlowsintType):
         else:
             self.label = self.organization
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an affiliation from a raw string."""
+        return cls(organization=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Affiliation cannot be reliably detected from a single line of text."""
+        return False

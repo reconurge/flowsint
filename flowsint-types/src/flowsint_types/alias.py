@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Alias(FlowsintType):
     """Represents an alias or alternative name used by an entity."""
 
@@ -50,3 +52,13 @@ class Alias(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.alias
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an alias from a raw string."""
+        return cls(alias=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Alias cannot be reliably detected from a single line of text."""
+        return False

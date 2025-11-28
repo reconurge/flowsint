@@ -58,6 +58,10 @@ from flowsint_enrichers.individual.to_org import IndividualToOrgEnricher
 # Integration enrichers
 from flowsint_enrichers.n8n.connector import N8nConnector
 
+# Dummy
+from flowsint_enrichers.ip.to_dummy_domains import IpToDummyDomainsEnricher
+from flowsint_enrichers.domain.to_dummy_ip import DomainToDummyIpEnricher
+
 
 class EnricherRegistry:
 
@@ -197,3 +201,7 @@ EnricherRegistry.register(IndividualToDomainsEnricher)
 
 # Integration enrichers
 EnricherRegistry.register(N8nConnector)
+
+# Dummy
+EnricherRegistry.register(IpToDummyDomainsEnricher)
+EnricherRegistry.register(DomainToDummyIpEnricher)

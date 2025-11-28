@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Literal, Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Weapon(FlowsintType):
     """Represents a weapon with detailed specifications and forensic information."""
 
@@ -122,3 +124,13 @@ class Weapon(FlowsintType):
             parts.append(f"({self.type})")
         self.label = " ".join(parts)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a weapon from a raw string."""
+        return cls(name=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Weapon cannot be reliably detected from a single line of text."""
+        return False

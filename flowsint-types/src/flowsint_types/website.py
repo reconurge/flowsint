@@ -1,9 +1,12 @@
 from typing import List, Optional, Self
 from pydantic import Field, HttpUrl, model_validator
+import re
 from .domain import Domain
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Website(FlowsintType):
     """Represents a website with its URL, domain, and redirect information."""
 
@@ -24,3 +27,19 @@ class Website(FlowsintType):
     def compute_label(self) -> Self:
         self.label = str(self.url)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a website from a raw string."""
+        return cls(url=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Detect if a line of text contains a website URL."""
+        line = line.strip()
+        if not line:
+            return False
+
+        # URL pattern: must start with http:// or https://
+        url_pattern = r'^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$'
+        return bool(re.match(url_pattern, line))

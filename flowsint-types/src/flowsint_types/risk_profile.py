@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class RiskProfile(FlowsintType):
     """Represents a comprehensive risk assessment profile for an entity."""
 
@@ -81,3 +83,13 @@ class RiskProfile(FlowsintType):
             parts.append(f"Risk: {self.risk_level}")
         self.label = " - ".join(parts)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a risk profile from a raw string."""
+        return cls(entity_id=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """RiskProfile cannot be reliably detected from a single line of text."""
+        return False

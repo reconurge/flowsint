@@ -56,7 +56,7 @@ function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSele
 
   return (
     <div style={style} className="px-3 pb-2">
-      <Card className="h-[55px] p-0">
+      <Card className="h-[55px] p-0 rounded-md">
         <CardContent className="p-3 h-[55px] flex items-center gap-3 min-w-0">
           {/* Checkbox */}
           <div className="flex items-center flex-shrink-0">
@@ -398,7 +398,7 @@ export default function RelationshipsTable() {
       )}
 
       {/* Virtualized List */}
-      <div ref={parentRef} className="grow overflow-auto py-4 rounded-lg border">
+      <div ref={parentRef} className="grow overflow-auto py-4 rounded border">
         <div
           style={{
             height: `${virtualizer.getTotalSize()}px`,

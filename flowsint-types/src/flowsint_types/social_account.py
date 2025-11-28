@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 from .username import Username
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class SocialAccount(FlowsintType):
     """Represents a social media account (the 'home' of a username)."""
 
@@ -44,3 +46,8 @@ class SocialAccount(FlowsintType):
         else:
             self.label = f"@{self.username.value}"
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """SocialAccount cannot be reliably detected from a single line of text."""
+        return False

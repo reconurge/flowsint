@@ -1,8 +1,10 @@
 from pydantic import Field, HttpUrl, model_validator
 from typing import Optional, List, Self
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Gravatar(FlowsintType):
     """Represents a Gravatar profile with image and user information."""
 
@@ -52,3 +54,8 @@ class Gravatar(FlowsintType):
         else:
             self.label = f"{self.hash}"
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Gravatar cannot be reliably detected from a single line of text."""
+        return False

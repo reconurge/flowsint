@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class WebTracker(FlowsintType):
     """Represents a web tracking technology with privacy and compliance information."""
 
@@ -67,3 +69,13 @@ class WebTracker(FlowsintType):
         else:
             self.label = self.tracker_id
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a web tracker from a raw string."""
+        return cls(tracker_id=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """WebTracker cannot be reliably detected from a single line of text."""
+        return False

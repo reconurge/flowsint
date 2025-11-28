@@ -2,8 +2,10 @@ from pydantic import Field, field_validator, model_validator
 from typing import Optional, Any, Self
 import re
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Username(FlowsintType):
     """Represents a username or handle on any platform."""
 
@@ -39,3 +41,19 @@ class Username(FlowsintType):
     def compute_label(self) -> Self:
         self.label = f"{self.value}"
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a username from a raw string."""
+        return cls(value=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Detect if a line of text contains a username."""
+        line = line.strip()
+        if not line:
+            return False
+
+        # Username pattern: 3-80 characters, only letters, numbers, underscores, hyphens
+        # Note: This is intentionally restrictive to avoid false positives
+        return bool(re.match(r"^[a-zA-Z0-9_-]{3,80}$", line))

@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class BankAccount(FlowsintType):
     """Represents a bank account with financial and security information."""
 
@@ -72,3 +74,13 @@ class BankAccount(FlowsintType):
         parts.append(f"****{self.account_number[-4:]}" if len(self.account_number) > 4 else self.account_number)
         self.label = " - ".join(parts)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a bank account from a raw string."""
+        return cls(account_number=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """BankAccount cannot be reliably detected from a single line of text."""
+        return False

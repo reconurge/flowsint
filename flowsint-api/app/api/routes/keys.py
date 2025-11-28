@@ -66,7 +66,6 @@ def create_key(
             )
         return key
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=500, detail="An error occured creating the key."
         )

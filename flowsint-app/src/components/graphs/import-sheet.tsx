@@ -7,7 +7,7 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Upload, FileText, FileSpreadsheet } from 'lucide-react'
+import { Upload, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ImportPreview } from './import-preview'
 import { sketchService } from '@/api/sketch-service'
@@ -39,30 +39,11 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
     setIsDragging(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-
-    const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) {
-      handleFileSelect(droppedFile)
-    }
-  }, [])
-
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      handleFileSelect(selectedFile)
-    }
-  }, [])
-
-  const handleFileSelect = async (selectedFile: File) => {
-    // Validate file type
-    const validExtensions = ['.csv', '.txt', '.xlsx', '.xls']
+  const handleFileSelect = useCallback(async (selectedFile: File) => {
+    // Validate file type - only TXT files are supported
     const fileExtension = selectedFile.name.toLowerCase().substring(selectedFile.name.lastIndexOf('.'))
-    if (!validExtensions.includes(fileExtension)) {
-      alert('Please upload a CSV, TXT, or XLSX file')
+    if (fileExtension !== '.txt') {
+      toast.error('Only .txt files are supported. Please upload a text file with one value per line.')
       return
     }
     setFile(selectedFile)
@@ -76,46 +57,60 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [sketchId])
 
-  const handleReset = () => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const droppedFile = e.dataTransfer.files[0]
+    if (droppedFile) {
+      handleFileSelect(droppedFile)
+    }
+  }, [handleFileSelect])
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      handleFileSelect(selectedFile)
+    }
+  }, [handleFileSelect])
+
+  const handleReset = useCallback(() => {
     setFile(null)
     setAnalysisResult(null)
     setIsAnalyzing(false)
-  }
+  }, [])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     handleReset()
     onOpenChange(false)
-  }
+  }, [handleReset, onOpenChange])
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'))
-    if (extension === '.csv' || extension === '.txt') {
-      return <FileText className="h-8 w-8" />
-    }
-    return <FileSpreadsheet className="h-8 w-8" />
-  }
+  const getFileIcon = useCallback(() => {
+    return <FileText className="h-8 w-8" />
+  }, [])
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent
         side="right"
         className={cn(
-          "flex flex-col h-full overflow-hidden", // full height, vertical layout
+          "flex flex-col h-full overflow-hidden py-2", // full height, vertical layout
           analysisResult ? "sm:max-w-[85vw]" : "sm:max-w-2xl"
         )}
       >
         {/* Header stays fixed */}
-        <SheetHeader className="shrink-0 border-b bg-background px-6 py-4">
+        <SheetHeader className="shrink-0 border-b bg-background p-0 h-19 px-6 justify-center flex-col flex items-start">
           <SheetTitle>Import entities</SheetTitle>
           <SheetDescription>
-            Upload a CSV, TXT, or XLSX file to import entities into your sketch
+            Upload a TXT file with one value per line to import entities into your sketch
           </SheetDescription>
         </SheetHeader>
 
         {/* Optional beta banner */}
-        <div className="px-6 shrink-0">
+        {/* <div className="px-6 shrink-0">
           <div className="mt-3 rounded-md border border-primary bg-primary/20 px-3 py-2 text-xs text-primary">
             This import feature is in beta. There may be minor side effects. If you see any issue, please{" "}
             <a
@@ -127,7 +122,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
             </a>{" "}
             to help out the community.
           </div>
-        </div>
+        </div> */}
 
         {/* Main scrollable zone */}
         <div className="flex flex-col flex-grow overflow-hidden p-6">
@@ -153,7 +148,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
                   type="file"
                   id="file-upload"
                   className="hidden"
-                  accept=".csv,.txt,.xlsx,.xls"
+                  accept=".txt"
                   onChange={handleFileInputChange}
                 />
                 <Button asChild variant="outline">
@@ -162,7 +157,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
                   </label>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Supported formats: CSV, TXT, XLSX
+                  Supported format: TXT (one value per line)
                 </p>
               </div>
             </div>
@@ -177,7 +172,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
 
           {file && !isAnalyzing && !analysisResult && (
             <div className="flex items-center gap-4 p-4 border rounded-lg">
-              {getFileIcon(file.name)}
+              {getFileIcon()}
               <div className="flex-1">
                 <p className="font-medium">{file.name}</p>
                 <p className="text-sm text-muted-foreground">
@@ -192,10 +187,9 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
 
           {/* Scrollable Import Preview */}
           {analysisResult && file && (
-            <div className="flex flex-col flex-grow overflow-hidden">
+            <div className="flex flex-col  flex-grow overflow-hidden">
               <ImportPreview
                 analysisResult={analysisResult}
-                file={file}
                 sketchId={sketchId}
                 onSuccess={handleClose}
                 onCancel={handleReset}

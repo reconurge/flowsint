@@ -95,5 +95,4 @@ async def launch_enricher(
     except HTTPException:
         raise
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=f"Error launching enricher: {str(e)}")

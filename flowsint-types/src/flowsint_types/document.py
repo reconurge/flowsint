@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Document(FlowsintType):
     """Represents a document with metadata, security, and content information."""
 
@@ -63,3 +65,13 @@ class Document(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.title
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a document from a raw string."""
+        return cls(title=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Document cannot be reliably detected from a single line of text."""
+        return False

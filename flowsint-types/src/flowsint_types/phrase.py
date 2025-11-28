@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Any, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Phrase(FlowsintType):
     """Represents a phrase or text content."""
 
@@ -17,3 +19,13 @@ class Phrase(FlowsintType):
         # Truncate to 100 characters for display
         self.label = text_str[:100] + "..." if len(text_str) > 100 else text_str
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a phrase from a raw string."""
+        return cls(text=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Phrase is a fallback type and should not be auto-detected to avoid false positives."""
+        return False

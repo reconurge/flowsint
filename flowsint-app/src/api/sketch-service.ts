@@ -90,11 +90,9 @@ export const sketchService = {
   },
   executeImport: async (
     sketchId: string,
-    file: File,
-    entityMappings: Array<{ row_index: number; entity_type: string; include: boolean; label?: string }>,
+    entityMappings: Array<{ id: string; entity_type: string; include: boolean; label: string; data: Record<string, any> }>,
   ): Promise<any> => {
     const formData = new FormData()
-    formData.append('file', file)
     formData.append('entity_mappings_json', JSON.stringify(entityMappings))
 
     return fetchWithAuth(`/api/sketches/${sketchId}/import/execute`, {

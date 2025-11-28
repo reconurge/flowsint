@@ -2,6 +2,9 @@
 Flowsint Types - Pydantic models for flowsint
 """
 
+# Import registry first to ensure it's ready for auto-registration
+from .registry import TYPE_REGISTRY, flowsint_type, get_type
+
 from .address import Location
 from .affiliation import Affiliation
 from .alias import Alias
@@ -39,6 +42,9 @@ from .weapon import Weapon
 from .web_tracker import WebTracker
 from .website import Website
 from .whois import Whois
+
+# Import base
+from .flowsint_base import FlowsintType
 
 from typing import Dict, Type, Any, Optional
 from pydantic import BaseModel
@@ -88,13 +94,18 @@ __all__ = [
     "WebTracker",
     "Website",
     "Whois",
-    # Type registry utilities
+    # Type registry utilities (legacy)
     "TYPE_TO_MODEL",
     "get_model_for_type",
     "clean_neo4j_node_data",
     "parse_node_to_pydantic",
     "serialize_pydantic_for_transport",
     "deserialize_pydantic_from_transport",
+    # New type registry
+    "TYPE_REGISTRY",
+    "flowsint_type",
+    "get_type",
+    "FlowsintType",
 ]
 
 
@@ -140,6 +151,7 @@ TYPE_TO_MODEL: Dict[str, Type[BaseModel]] = {
     "webtracker": WebTracker,
     "weapon": Weapon,
     "whois": Whois,
+    "FlowsintType": FlowsintType,
 }
 
 
@@ -182,11 +194,11 @@ def clean_neo4j_node_data(node_data: Dict[str, Any]) -> Dict[str, Any]:
     cleaned = {}
     for k, v in node_data.items():
         # Skip Neo4j-specific fields (including 'type' which is the node type in Neo4j)
-        if k in ['sketch_id', 'created_at', 'type', 'x', 'y', 'caption', 'color']:
+        if k in ["sketch_id", "created_at", "type", "x", "y", "caption", "color"]:
             continue
 
         # Skip empty values (empty strings, None, empty lists, etc.)
-        if v in ('', None, [], {}):
+        if v in ("", None, [], {}):
             continue
 
         cleaned[k] = v
@@ -215,10 +227,10 @@ def parse_node_to_pydantic(node_data: Dict[str, Any]) -> Optional[BaseModel]:
         >>> isinstance(result, Domain)
         True
     """
-    if not node_data or 'type' not in node_data:
+    if not node_data or "type" not in node_data:
         return None
 
-    node_type = node_data.get('type')
+    node_type = node_data.get("type")
     model_class = get_model_for_type(node_type)
 
     if not model_class:
@@ -246,10 +258,12 @@ def serialize_pydantic_for_transport(obj: BaseModel) -> Dict[str, Any]:
     Returns:
         Dictionary representation suitable for JSON serialization
     """
-    return obj.model_dump(mode='json')
+    return obj.model_dump(mode="json")
 
 
-def deserialize_pydantic_from_transport(data: Dict[str, Any], type_name: str) -> Optional[BaseModel]:
+def deserialize_pydantic_from_transport(
+    data: Dict[str, Any], type_name: str
+) -> Optional[BaseModel]:
     """
     Deserialize a dictionary back into a Pydantic model instance.
 

@@ -2,8 +2,10 @@ from typing import List, Dict, Optional, Self
 from pydantic import Field, model_validator
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Leak(FlowsintType):
     """Represents a data leak or breach with associated data."""
 
@@ -18,3 +20,13 @@ class Leak(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.name
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a leak from a raw string."""
+        return cls(name=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Leak cannot be reliably detected from a single line of text."""
+        return False

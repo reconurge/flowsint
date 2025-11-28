@@ -3,8 +3,10 @@ from typing import Any, Optional, List, Self
 from .individual import Individual
 from .address import Location
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Organization(FlowsintType):
     """Represents an organization with detailed business and administrative information."""
 
@@ -381,3 +383,13 @@ class Organization(FlowsintType):
         elif self.name:
             self.label = str(self.name)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an organization from a raw string."""
+        return cls(name=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Organization cannot be reliably detected from a single line of text."""
+        return False

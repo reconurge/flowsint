@@ -1,8 +1,10 @@
 from typing import List, Optional, Dict, Self
 from pydantic import Field, model_validator
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Breach(FlowsintType):
     """Represents a data breach incident with affected accounts and details."""
 
@@ -76,3 +78,13 @@ class Breach(FlowsintType):
         else:
             self.label = self.name
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a breach from a raw string."""
+        return cls(name=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Breach cannot be reliably detected from a single line of text."""
+        return False

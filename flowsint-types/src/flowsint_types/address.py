@@ -1,8 +1,10 @@
 from pydantic import Field, model_validator
 from typing import Optional, Self
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Location(FlowsintType):
     """Represents a physical address with geographical coordinates."""
 
@@ -21,3 +23,8 @@ class Location(FlowsintType):
     def compute_label(self) -> Self:
         self.label = f"{self.address}, {self.city}, {self.country}"
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Location cannot be reliably detected from a single line of text."""
+        return False

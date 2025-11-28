@@ -9,6 +9,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timezone
 from .graph_db import Neo4jConnection
 from .graph_serializer import GraphSerializer
+from flowsint_types.registry import get_type
 
 
 class GraphRepository:
@@ -30,6 +31,36 @@ class GraphRepository:
         self._connection = neo4j_connection or Neo4jConnection.get_instance()
         self._batch_operations: List[Tuple[str, Dict[str, Any]]] = []
         self._batch_size = 100
+
+    @staticmethod
+    def _get_primary_field_for_type(type_name: str) -> Optional[str]:
+        """
+        Get the primary field name for a given type.
+
+        Args:
+            type_name: The type name (e.g., "Ip", "Domain", or lowercase variants)
+
+        Returns:
+            The primary field name, or None if type not found
+        """
+        # Get the type class from registry
+        type_class = get_type(type_name, case_sensitive=False)
+        if not type_class:
+            return None
+
+        # Find the primary field (marked with json_schema_extra={"primary": True})
+        model_fields = type_class.model_fields
+        for field_name, field_info in model_fields.items():
+            if field_info.json_schema_extra and field_info.json_schema_extra.get("primary"):
+                return field_name
+
+        # Fallback: use first required field or first field
+        for field_name, field_info in model_fields.items():
+            if field_info.is_required():
+                return field_name
+
+        # Last resort: first field
+        return next(iter(model_fields.keys())) if model_fields else None
 
     def create_node(
         self,
@@ -264,14 +295,14 @@ class GraphRepository:
         **properties: Any
     ) -> Optional[str]:
         """
-        Create a node from import operation (MERGE on sketch_id + label).
+        Create a node from import operation using the type's primary key.
 
-        This method is specifically designed for bulk imports where nodes
-        are identified by their label within a sketch, rather than by
-        a type-specific key property.
+        This method uses the same MERGE strategy as enrichers: it identifies nodes
+        by their primary key field (e.g., "address" for IP, "domain" for Domain)
+        combined with sketch_id, preventing duplicates between imports and enrichers.
 
         Args:
-            node_type: Node label (e.g., "Domain", "Ip")
+            node_type: Node label (e.g., "Domain", "Ip") - will be normalized to lowercase
             label: Human-readable label for the node
             sketch_id: Investigation sketch ID
             **properties: All additional node properties
@@ -282,24 +313,46 @@ class GraphRepository:
         if not self._connection:
             return None
 
+        # Normalize node_type to lowercase (same as enrichers)
+        node_type = node_type.lower()
+
+        # Get the primary key field for this type
+        key_prop = self._get_primary_field_for_type(node_type)
+        if not key_prop:
+            # Fallback: if type not found in registry, use "label" as key
+            key_prop = "label"
+            key_value = label
+        else:
+            # Extract the primary key value from properties
+            key_value = properties.get(key_prop)
+            if not key_value:
+                # Fallback: if primary key not in properties, use label
+                key_value = label
+
         # Serialize and prepare all properties
         serialized_props = GraphSerializer.serialize_properties(properties)
         serialized_props["type"] = node_type.lower()
+        serialized_props["sketch_id"] = sketch_id
         serialized_props["label"] = label
         serialized_props["caption"] = label
-        serialized_props["created_at"] = datetime.now(timezone.utc).isoformat()
 
-        query = f"""
-        MERGE (n:`{node_type}` {{sketch_id: $sketch_id, label: $label}})
-        ON CREATE SET n += $props
-        RETURN elementId(n) as id
-        """
+        # Build SET clauses (exclude sketch_id as it's in MERGE, but include key_prop)
+        set_clauses = [f"n.{prop} = ${prop}" for prop in serialized_props.keys()
+                      if prop != "sketch_id"]
 
         params = {
-            "sketch_id": sketch_id,
-            "label": label,
-            "props": serialized_props
+            key_prop: key_value,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            **serialized_props
         }
+
+        # MERGE on primary key + sketch_id (same as enrichers)
+        query = f"""
+        MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
+        ON CREATE SET n.created_at = $created_at
+        SET {', '.join(set_clauses)}
+        RETURN elementId(n) as id
+        """
 
         result = self._connection.query(query, params)
         return result[0]["id"] if result else None

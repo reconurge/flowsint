@@ -2,8 +2,10 @@ from pydantic import Field, field_validator, model_validator
 from typing import Optional, Any, Self
 import ipaddress
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Ip(FlowsintType):
     """Represents an IP address with geolocation and ISP information."""
 
@@ -43,3 +45,21 @@ class Ip(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.address
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an IP address from a raw string."""
+        return cls(address=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Detect if a line of text contains an IP address."""
+        line = line.strip()
+        if not line:
+            return False
+
+        try:
+            ipaddress.ip_address(line)
+            return True
+        except ValueError:
+            return False

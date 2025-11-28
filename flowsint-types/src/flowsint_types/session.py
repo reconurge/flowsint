@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Session(FlowsintType):
     """Represents a user session with device and activity information."""
 
@@ -63,3 +65,13 @@ class Session(FlowsintType):
             parts.append(self.session_id)
         self.label = " - ".join(parts)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a session from a raw string."""
+        return cls(session_id=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Session cannot be reliably detected from a single line of text."""
+        return False

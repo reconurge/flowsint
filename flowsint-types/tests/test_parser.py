@@ -496,7 +496,7 @@ class TestAllTypes:
         'organization': {'name': 'ACME Corp'},
         'individual': {'first_name': 'John', 'last_name': 'Doe'},
         'socialaccount': {'username': {'value': 'johndoe'}},
-        'asn': {'number': 15169},
+        'asn': {'asn_str': 'AS15169'},
         'cidr': {'network': '192.168.1.0/24'},
         'cryptowallet': {'address': '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'},
         'cryptowallettransaction': {'source': {'address': '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'}},

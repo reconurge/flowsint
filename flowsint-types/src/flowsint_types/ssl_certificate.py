@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class SSLCertificate(FlowsintType):
     """Represents an SSL/TLS certificate with validation and security details."""
 
@@ -76,3 +78,13 @@ class SSLCertificate(FlowsintType):
     def compute_label(self) -> Self:
         self.label = self.subject
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse an SSL certificate from a raw string."""
+        return cls(subject=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """SSLCertificate cannot be reliably detected from a single line of text."""
+        return False

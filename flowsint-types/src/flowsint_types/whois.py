@@ -4,8 +4,10 @@ from .email import Email
 from .domain import Domain
 from .organization import Organization
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Whois(FlowsintType):
     """Represents WHOIS domain registration information."""
 
@@ -71,3 +73,8 @@ class Whois(FlowsintType):
         else:
             self.label = self.domain.domain
         return self
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Whois cannot be reliably detected from a single line of text."""
+        return False

@@ -1,8 +1,10 @@
 from pydantic import Field, field_validator, model_validator
 from typing import Optional, Self
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Port(FlowsintType):
     """Represents an open network port related to an IP address."""
 
@@ -38,3 +40,21 @@ class Port(FlowsintType):
             parts.append(f"({self.protocol})")
         self.label = " ".join(parts)
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a port from a raw string."""
+        return cls(number=int(line.strip()))
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Detect if a line of text contains a port number."""
+        line = line.strip()
+        if not line or not line.isdigit():
+            return False
+
+        try:
+            port = int(line)
+            return 0 <= port <= 65535
+        except ValueError:
+            return False

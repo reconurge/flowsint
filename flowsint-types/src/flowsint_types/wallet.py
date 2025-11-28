@@ -2,8 +2,10 @@ from typing import Optional, Self
 from pydantic import Field, HttpUrl, field_validator, model_validator
 import re
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class CryptoWallet(FlowsintType):
     """Represents a cryptocurrency wallet."""
 
@@ -45,7 +47,37 @@ class CryptoWallet(FlowsintType):
         self.label = self.address
         return self
 
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a crypto wallet from a raw string."""
+        return cls(address=line.strip())
 
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Detect if a line of text contains a cryptocurrency wallet address."""
+        line = line.strip()
+        if not line or len(line) < 26:
+            return False
+
+        # Ethereum pattern: 0x followed by 40 hex characters
+        ethereum_pattern = r'^0x[a-fA-F0-9]{40}$'
+        if re.match(ethereum_pattern, line):
+            return True
+
+        # Bitcoin legacy pattern: starts with 1 or 3, 26-35 characters
+        bitcoin_legacy_pattern = r'^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$'
+        if re.match(bitcoin_legacy_pattern, line):
+            return True
+
+        # Bitcoin SegWit pattern: starts with bc1, 39-59 characters
+        bitcoin_segwit_pattern = r'^bc1[a-z0-9]{39,59}$'
+        if re.match(bitcoin_segwit_pattern, line):
+            return True
+
+        return False
+
+
+@flowsint_type
 class CryptoWalletTransaction(FlowsintType):
     """Represents a cryptocurrency transaction."""
 
@@ -145,6 +177,7 @@ class CryptoWalletTransaction(FlowsintType):
         return self
 
 
+@flowsint_type
 class CryptoNFT(FlowsintType):
     """Represents a Non-Fungible Token (NFT) held or minted by a wallet."""
 

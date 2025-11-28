@@ -2,8 +2,10 @@ from pydantic import Field, model_validator
 from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
+from .registry import flowsint_type
 
 
+@flowsint_type
 class Script(FlowsintType):
     """Represents a script or code file with analysis and security information."""
 
@@ -73,3 +75,13 @@ class Script(FlowsintType):
         else:
             self.label = self.script_id
         return self
+
+    @classmethod
+    def from_string(cls, line: str):
+        """Parse a script from a raw string."""
+        return cls(script_id=line.strip())
+
+    @classmethod
+    def detect(cls, line: str) -> bool:
+        """Script cannot be reliably detected from a single line of text."""
+        return False

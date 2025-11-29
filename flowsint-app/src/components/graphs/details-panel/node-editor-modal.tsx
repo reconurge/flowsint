@@ -145,19 +145,19 @@ export const NodeEditorModal: React.FC = () => {
       <SheetContent className="!w-full !max-w-2xl h-full !duration-100 p-0 flex flex-col h-full">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <SheetHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+          <SheetHeader className="px-6 py-4 border-b h-21 flex justify-center bg-muted/30 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Edit3 className="h-5 w-5 text-primary" />
               </div>
               <div className="flex gap-3">
                 <SheetTitle className="text-lg font-semibold">Edit Node Properties</SheetTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                {/* <p className="text-sm text-muted-foreground mt-1">
                   {currentNode.data.label || currentNode.id}
                 </p>
                 <Badge variant="outline" className="text-xs">
                   {currentNode.data.type || 'Unknown Type'}
-                </Badge>
+                </Badge> */}
               </div>
             </div>
           </SheetHeader>
@@ -166,7 +166,7 @@ export const NodeEditorModal: React.FC = () => {
           <div className="flex-1 px-6 py-6 grow overflow-y-auto">
             <div className="space-y-6">
               {/* Preview Section */}
-              <div className="p-4 rounded-lg bg-background border">
+              <div className="p-4 rounded-md bg-background border">
                 <div className="flex items-center gap-4">
                   <div className="relative flex-shrink-0">
                     {currentNode.data.src ? (

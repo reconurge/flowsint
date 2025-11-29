@@ -100,7 +100,7 @@ async def get_types_list(
                 extract_input_schema(Email, label_key="email"),
                 extract_input_schema(Username, label_key="value"),
                 extract_input_schema(
-                    SocialAccount, label_key="username", icon="SocialAccount"
+                    SocialAccount, label_key="username", icon="socialaccount"
                 ),
                 extract_input_schema(Message, label_key="content", icon="message"),
             ],

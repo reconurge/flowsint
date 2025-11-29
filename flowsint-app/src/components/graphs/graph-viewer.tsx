@@ -476,6 +476,13 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
               graphRef.current.zoomToFit(400)
             }
           },
+          zoomToSelection: () => {
+            if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+              // Filter only selected nodes
+              const nodeFilterFn = (node: any) => selectedNodeIds.has(node.id)
+              graphRef.current.zoomToFit(400, 50, nodeFilterFn)
+            }
+          },
           centerOnNode: (x: number, y: number) => {
             if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
               graphRef.current.centerAt(x, y, 400)
@@ -505,7 +512,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       // Call external ref callback
       onGraphRef?.(graphInstance)
     },
-    [setActions, onGraphRef, instanceId, regenerateLayout, graphData.nodes.length]
+    [setActions, onGraphRef, instanceId, regenerateLayout, graphData.nodes.length, selectedNodeIds]
   )
 
   // Initialize graph once ready
@@ -519,6 +526,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           zoomIn: () => { },
           zoomOut: () => { },
           zoomToFit: () => { },
+          zoomToSelection: () => { },
           centerOnNode: () => { },
           regenerateLayout: () => { },
           getViewportCenter: () => null

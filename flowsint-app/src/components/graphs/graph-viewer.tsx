@@ -203,6 +203,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   )
   const currentNodeId = currentNode?.id
 
+  // Ref for selectedNodeIds to avoid re-triggering initializeGraph
+  const selectedNodeIdsRef = useRef(selectedNodeIds)
+  useEffect(() => {
+    selectedNodeIdsRef.current = selectedNodeIds
+  }, [selectedNodeIds])
+
   // Create edgeMap for O(1) edge lookups in handleEdgeClick
   const edgeMap = useMemo(
     () => new Map(edges.map(e => [e.id, e])),
@@ -478,8 +484,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           },
           zoomToSelection: () => {
             if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-              // Filter only selected nodes
-              const nodeFilterFn = (node: any) => selectedNodeIds.has(node.id)
+              // Filter only selected nodes using ref to avoid re-triggering initializeGraph
+              const nodeFilterFn = (node: any) => selectedNodeIdsRef.current.has(node.id)
               graphRef.current.zoomToFit(400, 50, nodeFilterFn)
             }
           },
@@ -512,7 +518,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       // Call external ref callback
       onGraphRef?.(graphInstance)
     },
-    [setActions, onGraphRef, instanceId, regenerateLayout, graphData.nodes.length, selectedNodeIds]
+    [setActions, onGraphRef, instanceId, regenerateLayout, graphData.nodes.length]
   )
 
   // Initialize graph once ready

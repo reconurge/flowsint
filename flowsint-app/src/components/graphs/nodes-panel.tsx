@@ -2,6 +2,8 @@ import type React from 'react'
 import { memo, useMemo, useState, useCallback, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useGraphStore } from '@/stores/graph-store'
+import { useGraphControls } from '@/stores/graph-controls-store'
+import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/type-badge'
@@ -27,15 +29,28 @@ const NodeRenderer = memo(
     setCurrentNode,
     onCheckboxChange,
     isNodeChecked,
-    isCurrent
+    isCurrent,
+    centerOnNode,
+    autoZoomOnCurrentNode
   }: {
     node: any
     setCurrentNode: (node: GraphNode) => void
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
     isCurrent: (nodeId: string) => boolean
+    centerOnNode: (x: number, y: number) => void
+    autoZoomOnCurrentNode: boolean
   }) => {
-    const handleClick = useCallback(() => setCurrentNode(node), [node, setCurrentNode])
+    const handleClick = useCallback(() => {
+      setCurrentNode(node)
+      // Auto-zoom if enabled and node has coordinates
+      if (autoZoomOnCurrentNode && node?.x !== undefined && node?.y !== undefined) {
+        setTimeout(() => {
+          centerOnNode(node.x, node.y)
+        }, 100)
+      }
+    }, [node, setCurrentNode, centerOnNode, autoZoomOnCurrentNode])
+
     const handleCheckboxChange = useCallback(
       (checked: boolean) => {
         onCheckboxChange(node, checked)
@@ -78,7 +93,9 @@ const VirtualizedItem = memo(
     setCurrentNode,
     onCheckboxChange,
     isNodeChecked,
-    isCurrent
+    isCurrent,
+    centerOnNode,
+    autoZoomOnCurrentNode
   }: {
     index: number
     node: GraphNode
@@ -86,6 +103,8 @@ const VirtualizedItem = memo(
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
     isCurrent: (nodeId: string) => boolean
+    centerOnNode: (x: number, y: number) => void
+    autoZoomOnCurrentNode: boolean
   }) => {
     return (
       <NodeRenderer
@@ -94,6 +113,8 @@ const VirtualizedItem = memo(
         setCurrentNode={setCurrentNode}
         onCheckboxChange={onCheckboxChange}
         isNodeChecked={isNodeChecked}
+        centerOnNode={centerOnNode}
+        autoZoomOnCurrentNode={autoZoomOnCurrentNode}
       />
     )
   }
@@ -104,6 +125,8 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
   const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
   const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
   const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
+  const centerOnNode = useGraphControls((state) => state.centerOnNode)
+  const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [filters, setFilters] = useState<string[] | null>(null)
 
@@ -341,6 +364,8 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                       setCurrentNode={setCurrentNode}
                       onCheckboxChange={handleCheckboxChange}
                       isNodeChecked={isNodeChecked}
+                      centerOnNode={centerOnNode}
+                      autoZoomOnCurrentNode={autoZoomOnCurrentNode}
                     />
                   </div>
                 )

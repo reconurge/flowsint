@@ -47,7 +47,7 @@ const NodeRenderer = memo(
       if (autoZoomOnCurrentNode && node?.x !== undefined && node?.y !== undefined) {
         setTimeout(() => {
           centerOnNode(node.x, node.y)
-        }, 100)
+        }, 200)
       }
     }, [node, setCurrentNode, centerOnNode, autoZoomOnCurrentNode])
 

@@ -77,10 +77,11 @@ interface DynamicSettingProps {
 function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: DynamicSettingProps) {
   // For force settings, always use slider regardless of type
   const shouldUseSlider = categoryId === 'graph' || setting.type === 'slider'
+  const displayName = setting.name || settingKey
 
   if (shouldUseSlider && (setting.type === 'number' || setting.type === 'slider')) {
     return (
-      <SettingItem label={settingKey} description={setting.description} inline={false}>
+      <SettingItem label={displayName} description={setting.description} inline={false}>
         <div className="flex items-center space-x-3">
           <Slider
             value={[setting.value]}
@@ -107,7 +108,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
   switch (setting.type) {
     case 'boolean':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={true}>
+        <SettingItem label={displayName} description={setting.description} inline={true}>
           <div className="flex items-center space-x-2">
             <Switch checked={setting.value} onCheckedChange={onValueChange} />
             <span className="text-sm text-muted-foreground">
@@ -119,7 +120,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     case 'select':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={true}>
+        <SettingItem label={displayName} description={setting.description} inline={true}>
           <Select value={setting.value} onValueChange={onValueChange}>
             <SelectTrigger className="h-9 w-48">
               <SelectValue placeholder="Select option" />
@@ -137,7 +138,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     case 'text':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={false}>
+        <SettingItem label={displayName} description={setting.description} inline={false}>
           <Input
             type="text"
             value={setting.value}
@@ -150,7 +151,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     case 'textarea':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={false}>
+        <SettingItem label={displayName} description={setting.description} inline={false}>
           <Textarea
             value={setting.value}
             onChange={(e) => onValueChange(e.target.value)}
@@ -163,7 +164,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     case 'color':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={true}>
+        <SettingItem label={displayName} description={setting.description} inline={true}>
           <div className="flex items-center space-x-2">
             <Input
               type="color"
@@ -184,7 +185,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     case 'number':
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={true}>
+        <SettingItem label={displayName} description={setting.description} inline={true}>
           <Input
             type="number"
             value={setting.value}
@@ -200,7 +201,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 
     default:
       return (
-        <SettingItem label={settingKey} description={setting.description} inline={false}>
+        <SettingItem label={displayName} description={setting.description} inline={false}>
           <div className="text-sm text-muted-foreground">Unknown setting type: {setting.type}</div>
         </SettingItem>
       )

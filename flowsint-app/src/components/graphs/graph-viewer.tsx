@@ -167,6 +167,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const isGraphReadyRef = useRef(false)
+  const hasInitialZoomedRef = useRef(false)
+  const previousNodeCountRef = useRef(0)
 
   // Store selectors
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
@@ -175,6 +177,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
   const shouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.shouldRegenerateLayoutOnNextRefetch)
   const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
+  const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
 
   // Combine graph store selectors with useShallow for better performance
   const { currentNode, currentEdge, selectedNodes, selectedEdges, toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, setOpenMainDialog } = useGraphStore(
@@ -421,7 +424,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         setIsRegeneratingLayout(false)
       }
     })
-  }, [graphData, applyLayout, setCurrentLayoutType])
+  }, [applyLayout, setCurrentLayoutType])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(
@@ -442,6 +445,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       }
       if (isGraphReadyRef.current) return
       isGraphReadyRef.current = true
+
+      // Center graph immediately once ready
+      if (graphData.nodes.length > 0) {
+        setTimeout(() => {
+          if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+            graphRef.current.zoomToFit(400)
+          }
+        }, 50)
+      }
+
       // Only set global actions if no instanceId is provided (for main graph)
       if (!instanceId) {
 
@@ -461,6 +474,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           zoomToFit: () => {
             if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
               graphRef.current.zoomToFit(400)
+            }
+          },
+          centerOnNode: (x: number, y: number) => {
+            if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
+              graphRef.current.centerAt(x, y, 400)
+              if (typeof graphRef.current.zoom === 'function') {
+                graphRef.current.zoom(6, 400)
+              }
             }
           },
           regenerateLayout: regenerateLayout,
@@ -484,7 +505,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       // Call external ref callback
       onGraphRef?.(graphInstance)
     },
-    [setActions, onGraphRef, instanceId, regenerateLayout]
+    [setActions, onGraphRef, instanceId, regenerateLayout, graphData.nodes.length]
   )
 
   // Initialize graph once ready
@@ -498,6 +519,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           zoomIn: () => { },
           zoomOut: () => { },
           zoomToFit: () => { },
+          centerOnNode: () => { },
           regenerateLayout: () => { },
           getViewportCenter: () => null
         })
@@ -506,26 +528,34 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [initializeGraph, instanceId, setActions])
 
-  // Auto-center graph on initial load
+  // Auto-center graph on initial load ONLY
   useEffect(() => {
-    // Only auto-center if we have nodes and the graph is ready
-    if (graphRef.current && graphData.nodes.length > 0 && containerSize.width > 0) {
+    const currentNodeCount = graphData.nodes.length
+
+    // Reset zoom flag if node count changed significantly (new graph loaded or major changes)
+    if (previousNodeCountRef.current !== currentNodeCount) {
+      hasInitialZoomedRef.current = false
+      previousNodeCountRef.current = currentNodeCount
+    }
+
+    // Only auto-center if we have nodes, the graph is ready, and we haven't zoomed yet
+    if (graphRef.current && currentNodeCount > 0 && containerSize.width > 0 && !hasInitialZoomedRef.current) {
       // If flag is set, regenerate layout instead of just zooming
       if (shouldRegenerateLayoutOnNextRefetch && currentLayoutType) {
         setShouldRegenerateLayoutOnNextRefetch(false)
+        hasInitialZoomedRef.current = true
         const timer = setTimeout(() => {
           regenerateLayout(currentLayoutType)
-        }, 500)
+        }, 100)
         return () => clearTimeout(timer)
       }
 
       // Otherwise just zoom to fit on initial load
-      const timer = setTimeout(() => {
-        if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-          graphRef.current.zoomToFit(400)
-        }
-      }, 500)
-      return () => clearTimeout(timer)
+      hasInitialZoomedRef.current = true
+      // Zoom immediately when graph is ready
+      if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
+        graphRef.current.zoomToFit(400)
+      }
     }
   }, [graphData.nodes.length, containerSize.width, shouldRegenerateLayoutOnNextRefetch, currentLayoutType, regenerateLayout, setShouldRegenerateLayoutOnNextRefetch])
 
@@ -533,8 +563,21 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const handleNodeClick = useCallback(
     (node: any, event: MouseEvent) => {
       onNodeClick?.(node, event)
+
+      // Auto-zoom to clicked node if enabled and not multi-selecting
+      const isMultiSelect = event.ctrlKey || event.shiftKey
+      if (autoZoomOnCurrentNode && !isMultiSelect && node?.x && node?.y && graphRef.current) {
+        setTimeout(() => {
+          if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
+            graphRef.current.centerAt(node.x, node.y, 400)
+            if (typeof graphRef.current.zoom === 'function') {
+              graphRef.current.zoom(6, 400)
+            }
+          }
+        }, 100)
+      }
     },
-    [onNodeClick]
+    [onNodeClick, autoZoomOnCurrentNode]
   )
 
   const handleNodeRightClick = useCallback(

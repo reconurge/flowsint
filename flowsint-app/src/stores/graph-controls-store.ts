@@ -14,6 +14,7 @@ type GraphControlsStore = {
   zoomToFit: () => void
   zoomIn: () => void
   zoomOut: () => void
+  centerOnNode: (x: number, y: number) => void
   onLayout: (layout: any) => void
   setActions: (actions: Partial<GraphControlsStore>) => void
   refetchGraph: (onSuccess?: () => void) => void
@@ -37,6 +38,7 @@ export const useGraphControls = create<GraphControlsStore>()(
       zoomToFit: () => { },
       zoomIn: () => { },
       zoomOut: () => { },
+      centerOnNode: () => { },
       onLayout: () => { },
       setActions: (actions) => set(actions),
       refetchGraph: (onSuccess) => { },

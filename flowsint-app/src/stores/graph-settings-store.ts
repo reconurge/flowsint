@@ -10,6 +10,11 @@ const DEFAULT_SETTINGS = {
       value: false,
       description: 'Display Flo, your AI assistant.'
     },
+    autoZoomOnCurrentNode: {
+      type: 'boolean',
+      value: true,
+      description: 'Automatically zoom to the current node when it changes.'
+    },
   },
   graph: {
     nodeSize: {

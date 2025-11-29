@@ -17,7 +17,8 @@ import {
   ZoomIn,
   RectangleHorizontal,
   ChevronDown,
-  SquareDashed
+  SquareDashed,
+  Focus
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -86,6 +87,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
   const zoomToFit = useGraphControls((s) => s.zoomToFit)
+  const zoomToSelection = useGraphControls((s) => s.zoomToSelection)
   const zoomIn = useGraphControls((s) => s.zoomIn)
   const zoomOut = useGraphControls((s) => s.zoomOut)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
@@ -215,6 +217,12 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             tooltip="Fit to View"
             onClick={zoomToFit}
             disabled={view !== 'graph' || isSelectorModeActive}
+          />
+          <ToolbarButton
+            icon={<Focus className="h-4 w-4 opacity-70" />}
+            tooltip="Zoom to Selection"
+            onClick={zoomToSelection}
+            disabled={view !== 'graph' || isSelectorModeActive || selectedNodes.length < 2}
           />
         </div>
         <Separator decorative orientation="vertical" />

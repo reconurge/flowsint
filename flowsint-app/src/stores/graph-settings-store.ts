@@ -6,11 +6,13 @@ const DEFAULT_SETTINGS = {
   information: {},
   general: {
     showFlow: {
+      name: 'Show Flow Assistant',
       type: 'boolean',
       value: false,
       description: 'Display Flo, your AI assistant.'
     },
     autoZoomOnCurrentNode: {
+      name: 'Auto-zoom on Node Selection',
       type: 'boolean',
       value: true,
       description: 'Automatically zoom to the current node when it changes.'
@@ -18,6 +20,7 @@ const DEFAULT_SETTINGS = {
   },
   graph: {
     nodeSize: {
+      name: 'Node Size',
       type: 'number',
       value: 1,
       min: .2,
@@ -26,6 +29,7 @@ const DEFAULT_SETTINGS = {
       description: 'Defines the width of the link between two nodes.'
     },
     linkWidth: {
+      name: 'Link Width',
       type: 'number',
       value: 2,
       min: 1,
@@ -34,6 +38,7 @@ const DEFAULT_SETTINGS = {
       description: 'Defines the width of the link between two nodes.'
     },
     nodeLabelFontSize: {
+      name: 'Node Label Font Size',
       type: 'number',
       value: 100,
       min: 50,
@@ -42,6 +47,7 @@ const DEFAULT_SETTINGS = {
       description: 'Adjusts the font size of node labels (percentage of base size, scales with zoom)'
     },
     linkLabelFontSize: {
+      name: 'Link Label Font Size',
       type: 'number',
       value: 100,
       min: 50,
@@ -50,6 +56,7 @@ const DEFAULT_SETTINGS = {
       description: 'Adjusts the font size of link labels (percentage of base size, scales with zoom)'
     },
     dagLevelDistance: {
+      name: 'DAG Level Distance',
       type: 'number',
       value: 50,
       min: 0,
@@ -59,6 +66,7 @@ const DEFAULT_SETTINGS = {
         'Distance between different graph depths when using DAG (directed acyclic graph) layout mode'
     },
     d3ForceChargeStrength: {
+      name: 'Force Charge Strength',
       type: 'number',
       value: -150,
       min: -500,
@@ -68,6 +76,7 @@ const DEFAULT_SETTINGS = {
         'Base repulsion strength (adaptive: highly connected nodes/cluster hubs repel 2-3x more to separate clusters)'
     },
     d3ForceLinkDistance: {
+      name: 'Force Link Distance',
       type: 'number',
       value: 35,
       min: 10,
@@ -77,6 +86,7 @@ const DEFAULT_SETTINGS = {
         'Target distance between connected nodes (higher = nodes further apart)'
     },
     d3ForceLinkStrength: {
+      name: 'Force Link Strength',
       type: 'number',
       value: 1.0,
       min: 0,
@@ -86,6 +96,7 @@ const DEFAULT_SETTINGS = {
         'Strength of links to maintain their target distance (higher = stronger cluster cohesion, lower = weaker clusters)'
     },
     linkDirectionalArrowRelPos: {
+      name: 'Arrow Relative Position',
       type: 'number',
       value: 1,
       min: 0,
@@ -95,6 +106,7 @@ const DEFAULT_SETTINGS = {
         'Position of directional arrows along the link line (0 = source node, 1 = target node, 0.5 = middle)'
     },
     linkDirectionalArrowLength: {
+      name: 'Arrow Length',
       type: 'number',
       value: 1,
       min: 1,
@@ -103,6 +115,7 @@ const DEFAULT_SETTINGS = {
       description: 'Length of the arrow heads that indicate link direction'
     },
     linkDirectionalParticleSpeed: {
+      name: 'Particle Speed',
       type: 'number',
       value: 0.005,
       min: 0,
@@ -111,6 +124,7 @@ const DEFAULT_SETTINGS = {
       description: 'Speed of moving particles along links (higher = faster movement)'
     },
     cooldownTicks: {
+      name: 'Cooldown Ticks',
       type: 'number',
       value: 200,
       min: 50,
@@ -119,6 +133,7 @@ const DEFAULT_SETTINGS = {
       description: 'Number of simulation frames to render before stopping and freezing the layout'
     },
     cooldownTime: {
+      name: 'Cooldown Time',
       type: 'number',
       value: 15000,
       min: 1000,
@@ -128,6 +143,7 @@ const DEFAULT_SETTINGS = {
         'Maximum time in milliseconds to run the simulation before stopping (15000 = 15 seconds)'
     },
     d3AlphaDecay: {
+      name: 'Alpha Decay',
       type: 'number',
       value: 0.06,
       min: 0,
@@ -137,6 +153,7 @@ const DEFAULT_SETTINGS = {
         'Rate at which the simulation intensity decays (higher = faster convergence, lower = longer simulation)'
     },
     d3AlphaMin: {
+      name: 'Alpha Minimum',
       type: 'number',
       value: 0.001,
       min: 0,
@@ -146,6 +163,7 @@ const DEFAULT_SETTINGS = {
         'Minimum simulation intensity threshold - simulation stops when reaching this value'
     },
     d3VelocityDecay: {
+      name: 'Velocity Decay',
       type: 'number',
       value: 0.75,
       min: 0,
@@ -155,6 +173,7 @@ const DEFAULT_SETTINGS = {
         'Velocity decay factor that simulates friction/resistance (higher = more damping, nodes slow down faster)'
     },
     collisionRadius: {
+      name: 'Collision Radius',
       type: 'number',
       value: 22,
       min: 10,
@@ -164,6 +183,7 @@ const DEFAULT_SETTINGS = {
         'Radius of collision detection around nodes (prevents node overlap and improves readability)'
     },
     collisionStrength: {
+      name: 'Collision Strength',
       type: 'number',
       value: 0.95,
       min: 0,
@@ -173,6 +193,7 @@ const DEFAULT_SETTINGS = {
         'Strength of collision force (1 = fully rigid collision, 0 = no collision)'
     },
     centerGravity: {
+      name: 'Center Gravity',
       type: 'number',
       value: 0.15,
       min: 0,
@@ -328,6 +349,7 @@ type GraphGeneralSettingsStore = {
   // Helper methods
   getSettingValue: (category: string, key: string) => any
   getSettingType: (category: string, key: string) => string | undefined
+  getSettingName: (category: string, key: string) => string | undefined
   getSettingOptions: (
     category: string,
     key: string
@@ -468,6 +490,10 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       getSettingType: (category: string, key: string) => {
         const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
         return categorySettings?.[key]?.type
+      },
+      getSettingName: (category: string, key: string) => {
+        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        return categorySettings?.[key]?.name
       },
       getSettingOptions: (category: string, key: string) => {
         const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any

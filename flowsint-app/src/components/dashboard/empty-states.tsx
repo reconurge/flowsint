@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Plus, Upload } from "lucide-react"
+import NewSketch from "../sketches/new-sketch"
+import NewAnalysis from "../analyses/new-analysis"
 
 interface EmptyStateProps {
     onAction?: () => void
@@ -58,10 +60,12 @@ export function EmptySketches({ onAction }: EmptyStateProps) {
             <p className="text-xs text-muted-foreground text-center max-w-[200px] mb-4">
                 Visualize relationships between entities, infrastructure, and actors
             </p>
-            <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
-                <Plus className="w-3.5 h-3.5" />
-                Create sketch
-            </Button>
+            <NewSketch>
+                <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
+                    <Plus className="w-3.5 h-3.5" />
+                    Create sketch
+                </Button>
+            </NewSketch>
         </div>
     )
 }
@@ -89,10 +93,12 @@ export function EmptyAnalyses({ onAction }: EmptyStateProps) {
             <p className="text-xs text-muted-foreground text-center max-w-[200px] mb-4">
                 Document findings, patterns, and conclusions from your investigation
             </p>
-            <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
-                <Plus className="w-3.5 h-3.5" />
-                Write analysis
-            </Button>
+            <NewAnalysis>
+                <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
+                    <Plus className="w-3.5 h-3.5" />
+                    Write analysis
+                </Button>
+            </NewAnalysis>
         </div>
     )
 }

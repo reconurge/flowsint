@@ -1,11 +1,11 @@
-"use client"
 
 import { Button } from "@/components/ui/button"
 import { Plus, ArrowUpRight } from "lucide-react"
-import { EmptySketches } from "./empty-states"
+import { EmptySketches } from "../empty-states"
 import { Sketch } from "@/types"
 import { formatDistanceToNow } from "date-fns"
 import { Link } from "@tanstack/react-router"
+import NewSketch from "@/components/sketches/new-sketch"
 
 interface SketchesSectionProps {
   sketches: Sketch[]
@@ -15,14 +15,16 @@ interface SketchesSectionProps {
 export function SketchesSection({ sketches }: SketchesSectionProps) {
   const isEmpty = sketches.length === 0
   return (
-    <section>
+    <section className="my-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-medium text-foreground">Sketches</h2>
         {!isEmpty && (
-          <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
-            <Plus className="w-3.5 h-3.5" />
-            New
-          </Button>
+          <NewSketch>
+            <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+              <Plus className="w-3.5 h-3.5" />
+              New
+            </Button>
+          </NewSketch>
         )}
       </div>
 

@@ -20,6 +20,7 @@ export function useLayout({
   onProgress,
 }: UseLayoutProps) {
   const workerRef = useRef<Worker | null>(null)
+  const setNodes = useGraphStore(s => s.setNodes)
   const nodes = useGraphStore(s => s.nodes)
   const edges = useGraphStore(s => s.edges)
 
@@ -56,7 +57,7 @@ export function useLayout({
           } else if (event.data.type === 'complete') {
             const { nodes: layoutedNodes } = event.data.result
 
-            // Apply the calculated positions to the graph nodes
+            // // Apply the calculated positions to the graph nodes
             layoutedNodes.forEach((layoutedNode: any) => {
               const graphNode = nodes.find((n: any) => n.id === layoutedNode.id) as any
               if (graphNode && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
@@ -66,7 +67,7 @@ export function useLayout({
                 graphNode.fy = layoutedNode.y
               }
             })
-
+            setNodes(layoutedNodes)
             // Save all node positions
             saveAllNodePositions(nodes, true)
 

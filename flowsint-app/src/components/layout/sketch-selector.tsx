@@ -11,7 +11,7 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 import { investigationService } from '@/api/investigation-service'
 import { analysisService } from '@/api/analysis-service'
 import { Waypoints, FileText, Search, ChevronDown, Plus, ArrowLeft, Home } from 'lucide-react'
-import NewSketch from '@/components/graphs/new-sketch'
+import NewSketch from '@/components/sketches/new-sketch'
 import { queryKeys } from '@/api/query-keys'
 
 export default function CaseSelector() {

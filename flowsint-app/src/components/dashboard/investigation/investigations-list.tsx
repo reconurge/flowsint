@@ -1,5 +1,3 @@
-"use client"
-
 import { FolderOpen, MoreHorizontal, FileText, Network } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
@@ -14,12 +12,13 @@ interface InvestigationsListProps {
   setFilter: (filter: "all" | "active" | "closed") => void
   casesCount: number,
   activeCasesCount: number
+  search: string
 }
 
-export function InvestigationsList({ investigations, view, filter, setFilter, casesCount, activeCasesCount }: InvestigationsListProps) {
+export function InvestigationsList({ investigations, view, filter, setFilter, casesCount, activeCasesCount, search }: InvestigationsListProps) {
   const filteredInvestigations = investigations.filter((inv) => {
-    if (filter === "all") return true
-    return inv.status === filter
+    if (filter === "all") return inv.name.toLowerCase().includes(search.toLowerCase())
+    return inv.status === filter && inv.name.toLowerCase().includes(search.toLowerCase())
   })
 
   const filters = useMemo(() => [
@@ -58,6 +57,11 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
               </tr>
             </thead>
             <tbody>
+              {filteredInvestigations.length === 0 && <div className="flex items-center justify-center p-4">
+                <tr
+                  className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group"
+                >No investigation found.</tr>
+              </div>}
               {filteredInvestigations.map((inv) => (
                 <tr
                   key={inv.id}
@@ -97,7 +101,10 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
           </table>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          {filteredInvestigations.length === 0 && <div>
+            No investigation found.
+          </div>}
           {filteredInvestigations.map((inv) => (
             <Link
               to="/dashboard/investigations/$investigationId"

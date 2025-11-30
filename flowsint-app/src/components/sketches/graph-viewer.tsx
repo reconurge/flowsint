@@ -37,6 +37,7 @@ interface GraphViewerProps {
   allowLasso?: boolean
   sketchId?: string // Add sketchId for saving node positions
   allowForces?: boolean
+  autoZoomOnNode?: boolean
 }
 
 // Graph viewer specific colors
@@ -136,7 +137,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   instanceId,
   allowLasso = false,
   sketchId,
-  allowForces = false
+  allowForces = false,
+  autoZoomOnNode = true
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
@@ -580,7 +582,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       const isMultiSelect = event.ctrlKey || event.shiftKey
       if (autoZoomOnCurrentNode && !isMultiSelect && node?.x && node?.y && graphRef.current) {
         setTimeout(() => {
-          if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
+          if (graphRef.current && autoZoomOnNode && typeof graphRef.current.centerAt === 'function') {
             graphRef.current.centerAt(node.x, node.y, 400)
             if (typeof graphRef.current.zoom === 'function') {
               graphRef.current.zoom(6, 400)
@@ -589,7 +591,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         }, 100)
       }
     },
-    [onNodeClick, autoZoomOnCurrentNode]
+    [onNodeClick, autoZoomOnCurrentNode, autoZoomOnNode]
   )
 
   const handleNodeRightClick = useCallback(

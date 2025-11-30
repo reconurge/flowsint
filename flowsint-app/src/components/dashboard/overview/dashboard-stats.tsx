@@ -1,8 +1,6 @@
 import { FolderOpen, FileText, Network, Clock } from "lucide-react"
 import { useMemo } from "react"
 
-
-
 type DashboardStatsProps = {
   casesCount: number,
   activeCasesCount: number,

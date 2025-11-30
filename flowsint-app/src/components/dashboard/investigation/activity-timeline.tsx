@@ -1,5 +1,3 @@
-"use client"
-
 import { Network, FileText, Upload, AlertCircle, CheckCircle } from "lucide-react"
 
 const activities = [

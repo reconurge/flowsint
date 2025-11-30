@@ -1,10 +1,12 @@
 from typing import List, Union
 from flowsint_enrichers.utils import is_valid_domain, get_root_domain
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 
 
+@flowsint_enricher
 class DomainToRootDomain(Enricher):
     """Subdomain to root domain."""
 

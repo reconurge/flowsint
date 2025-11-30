@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.ip import Ip
 from flowsint_types.port import Port
@@ -8,6 +9,7 @@ from flowsint_core.core.logger import Logger
 from tools.network.naabu import NaabuTool
 
 
+@flowsint_enricher
 class IpToPortsEnricher(Enricher):
     """[NAABU] Performs port scanning on IP addresses to discover open ports and services."""
 

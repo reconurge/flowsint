@@ -3,6 +3,7 @@ import re
 import json
 from typing import Any, List, Union, Dict, Set, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
@@ -17,6 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+@flowsint_enricher
 class DomainToHistoryEnricher(Enricher):
     """[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."""
 

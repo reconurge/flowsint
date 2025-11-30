@@ -2,11 +2,13 @@ import hashlib
 from typing import List, Union
 import requests
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.gravatar import Gravatar
 
 
+@flowsint_enricher
 class EmailToGravatarEnricher(Enricher):
     """From md5 hash of email to gravatar."""
 

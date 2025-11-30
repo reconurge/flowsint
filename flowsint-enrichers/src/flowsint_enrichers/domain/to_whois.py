@@ -1,6 +1,7 @@
 from typing import List
 import whois
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.whois import Whois
 from flowsint_types.email import Email
@@ -8,6 +9,7 @@ from flowsint_types.organization import Organization
 from flowsint_core.core.logger import Logger
 
 
+@flowsint_enricher
 class WhoisEnricher(Enricher):
     """Scan for WHOIS information of a domain."""
 

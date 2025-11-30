@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from typing import List
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types import Username
 from flowsint_types.social_account import SocialAccount
 from flowsint_core.core.logger import Logger
@@ -10,6 +11,7 @@ from flowsint_core.core.logger import Logger
 false_positives = ["LeagueOfLegends"]
 
 
+@flowsint_enricher
 class MaigretEnricher(Enricher):
     """[MAIGRET] Scans usernames for associated social accounts using Maigret."""
 

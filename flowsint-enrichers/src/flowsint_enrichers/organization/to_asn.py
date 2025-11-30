@@ -1,6 +1,7 @@
 import os
 from typing import List, Dict, Any, Union, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.organization import Organization
 from flowsint_types.asn import ASN
@@ -8,6 +9,7 @@ from flowsint_core.core.logger import Logger
 from tools.network.asnmap import AsnmapTool
 
 
+@flowsint_enricher
 class OrgToAsnEnricher(Enricher):
     """Takes an organization and returns its corresponding ASN."""
 

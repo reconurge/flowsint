@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 from pydantic import ValidationError
 from .enricher_base import Enricher
-from .registry import EnricherRegistry
+from flowsint_enrichers import ENRICHER_REGISTRY
 from .types import FlowBranch, FlowStep
 from .logger import Logger
 from ..utils import to_json_serializable
@@ -232,14 +232,14 @@ class FlowOrchestrator(Enricher):
             # Extract enricher name from nodeId (assuming format like "enricher_name-1234567890")
             enricher_name = node_id.split("-")[0]
 
-            if not EnricherRegistry.enricher_exists(enricher_name):
+            if not ENRICHER_REGISTRY.enricher_exists(enricher_name):
                 raise ValueError(f"Enricher '{enricher_name}' not found in registry")
 
             # Pass the step params to the enricher instance
             enricher_params = (
                 node.params if hasattr(node, "params") and node.params else {}
             )
-            enricher = EnricherRegistry.get_enricher(
+            enricher = ENRICHER_REGISTRY.get_enricher(
                 enricher_name,
                 self.sketch_id,
                 self.scan_id,

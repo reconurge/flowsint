@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Any, Optional
 from pydantic import BaseModel
-from flowsint_core.core.registry import EnricherRegistry
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
 from flowsint_core.core.celery import celery
 from flowsint_core.core.types import Node, Edge, FlowBranch
 from flowsint_core.core.models import CustomType, Profile
@@ -11,6 +11,9 @@ from app.api.deps import get_current_user
 from flowsint_core.core.postgre_db import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+
+# Auto-discover and register all enrichers
+load_all_enrichers()
 
 
 class FlowComputationRequest(BaseModel):
@@ -45,7 +48,7 @@ def get_enrichers(
     current_user: Profile = Depends(get_current_user),
 ):
     if not category or category.lower() == "undefined":
-        return EnricherRegistry.list(exclude=["n8n_connector"])
+        return ENRICHER_REGISTRY.list(exclude=["n8n_connector"])
     # Si catégorie custom
     custom_type = (
         db.query(CustomType)
@@ -58,9 +61,9 @@ def get_enrichers(
     )
 
     if custom_type:
-        return EnricherRegistry.list(exclude=["n8n_connector"], wobbly_type=True)
+        return ENRICHER_REGISTRY.list(exclude=["n8n_connector"], wobbly_type=True)
 
-    return EnricherRegistry.list_by_input_type(category, exclude=["n8n_connector"])
+    return ENRICHER_REGISTRY.list_by_input_type(category, exclude=["n8n_connector"])
 
 
 @router.post("/{enricher_name}/launch")

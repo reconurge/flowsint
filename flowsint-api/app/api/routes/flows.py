@@ -4,7 +4,10 @@ from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from flowsint_core.utils import extract_input_schema_flow
-from flowsint_core.core.registry import EnricherRegistry
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+
+# Auto-discover and register all enrichers
+load_all_enrichers()
 from flowsint_core.core.celery import celery
 from flowsint_core.core.graph_repository import GraphRepository
 from flowsint_types import (
@@ -100,7 +103,7 @@ def get_flows(
 # Returns the "raw_materials" for the flow editor
 @router.get("/raw_materials")
 async def get_material_list():
-    enrichers = EnricherRegistry.list_by_categories()
+    enrichers = ENRICHER_REGISTRY.list_by_categories()
     enricher_categories = {
         category: [
             {
@@ -152,7 +155,7 @@ async def get_material_list():
 # Returns the "raw_materials" for the flow editor
 @router.get("/input_type/{input_type}")
 async def get_material_list(input_type: str):
-    enrichers = EnricherRegistry.list_by_input_type(input_type)
+    enrichers = ENRICHER_REGISTRY.list_by_input_type(input_type)
     return {"items": enrichers}
 
 

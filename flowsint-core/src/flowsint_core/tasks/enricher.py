@@ -4,7 +4,7 @@ import asyncio
 from dotenv import load_dotenv
 from typing import List, Optional
 from celery import states
-from flowsint_core.core.registry import EnricherRegistry
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
 from ..core.celery import celery
 from ..core.postgre_db import SessionLocal, get_db
 from ..core.graph_db import Neo4jConnection
@@ -16,6 +16,9 @@ from ..core.enums import EventLevel
 from flowsint_core.utils import to_json_serializable
 
 load_dotenv()
+
+# Auto-discover and register all enrichers
+load_all_enrichers()
 
 URI = os.getenv("NEO4J_URI_BOLT")
 USERNAME = os.getenv("NEO4J_USERNAME")
@@ -57,10 +60,10 @@ def run_enricher(
                     sketch_id, {"message": f"Failed to create vault: {str(e)}"}
                 )
 
-        if not EnricherRegistry.enricher_exists(enricher_name):
+        if not ENRICHER_REGISTRY.enricher_exists(enricher_name):
             raise ValueError(f"Enricher '{enricher_name}' not found in registry")
 
-        enricher = EnricherRegistry.get_enricher(
+        enricher = ENRICHER_REGISTRY.get_enricher(
             name=enricher_name,
             sketch_id=sketch_id,
             scan_id=scan_id,

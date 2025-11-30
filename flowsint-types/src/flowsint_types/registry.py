@@ -2,10 +2,16 @@
 This module provides an automatic type registration system using decorators.
 All FlowsintType subclasses can be decorated with @flowsint_type to automatically
 register themselves in the global TYPE_REGISTRY.
+
+Auto-discovery is performed by calling load_all_types() which imports all modules
+in the flowsint_types package, triggering the @flowsint_type decorators.
 """
 
 from typing import Dict, Type, TypeVar, Optional
 from pydantic import BaseModel
+import importlib
+import pkgutil
+import sys
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -135,3 +141,56 @@ def get_type(type_name: str, case_sensitive: bool = False) -> Optional[Type[Base
         return TYPE_REGISTRY.get(type_name)
     else:
         return TYPE_REGISTRY.get_lowercase(type_name)
+
+
+# Auto-discovery cache
+_types_loaded = False
+
+
+def load_all_types() -> None:
+    """
+    Automatically discover and import all type modules in the flowsint_types package.
+
+    This function uses importlib to dynamically import all Python modules in the
+    flowsint_types package, which triggers the @flowsint_type decorators and
+    registers all types in TYPE_REGISTRY.
+
+    Features:
+    - Only imports modules once (cached via _types_loaded flag)
+    - Ignores private modules (starting with _)
+    - Only imports .py files
+    - Uses pkgutil for high performance iteration
+
+    This function is idempotent - calling it multiple times is safe and efficient.
+    """
+    global _types_loaded
+
+    # Early return if already loaded
+    if _types_loaded:
+        return
+
+    # Get the flowsint_types package
+    import flowsint_types
+    package = flowsint_types
+    package_path = package.__path__
+    package_name = package.__name__
+
+    # Iterate over all modules in the package
+    for importer, modname, ispkg in pkgutil.iter_modules(package_path, prefix=f"{package_name}."):
+        # Skip private modules
+        if modname.split('.')[-1].startswith('_'):
+            continue
+
+        # Skip if already imported
+        if modname in sys.modules:
+            continue
+
+        # Import the module to trigger @flowsint_type decorators
+        try:
+            importlib.import_module(modname)
+        except Exception as e:
+            # Log but don't fail - some modules might have optional dependencies
+            print(f"Warning: Failed to import {modname}: {e}", file=sys.stderr)
+
+    # Mark as loaded
+    _types_loaded = True

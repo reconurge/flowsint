@@ -1,4 +1,3 @@
-"use client"
 
 import { List, ArrowRightLeft, MapPin, ChevronDown } from "lucide-react"
 import {

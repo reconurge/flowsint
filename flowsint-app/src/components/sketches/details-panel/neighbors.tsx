@@ -38,6 +38,7 @@ const NeighborsGraph = memo(
               backgroundColor="transparent"
               instanceId="neighbors"
               allowForces={true}
+              autoZoomOnNode={false}
             />
           </>
         )}

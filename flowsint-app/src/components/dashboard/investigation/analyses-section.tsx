@@ -1,10 +1,9 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { Analysis } from "@/types"
 import { formatDistanceToNow } from "date-fns"
 import { Plus, FileText, ChevronRight } from "lucide-react"
-import { EmptyAnalyses } from "./empty-states"
+import { EmptyAnalyses } from "../empty-states"
+import NewAnalysis from "@/components/analyses/new-analysis"
 
 interface AnalysesSectionProps {
   analyses: Analysis[]
@@ -15,10 +14,12 @@ export function AnalysesSection({ analyses }: AnalysesSectionProps) {
     <section>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-medium text-foreground">Analyses</h2>
-        <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
-          <Plus className="w-3.5 h-3.5" />
-          New
-        </Button>
+        <NewAnalysis>
+          <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+            <Plus className="w-3.5 h-3.5" />
+            New
+          </Button>
+        </NewAnalysis>
       </div>
 
       {analyses.length === 0 ?

@@ -1,4 +1,3 @@
-"use client"
 
 import { Button } from "@/components/ui/button"
 import { Plus, FileCode, FileImage, FileText, File } from "lucide-react"

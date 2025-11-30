@@ -3,7 +3,7 @@ import { investigationService } from '@/api/investigation-service'
 import { analysisService } from '@/api/analysis-service'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { CaseOverviewPage } from "@/components/dashboard/case-overview-page"
+import { CaseOverviewPage } from "@/components/dashboard/investigation/case-overview-page"
 
 
 function InvestigationSkeleton() {

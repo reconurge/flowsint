@@ -2,10 +2,12 @@ import json
 import aiohttp
 from typing import List, Dict, Any, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
 from flowsint_core.core.graph_db import Neo4jConnection
 
 
+@flowsint_enricher
 class N8nConnector(Enricher):
     """
     Connect to your custom n8n workflows to process data through webhooks.

@@ -2,6 +2,7 @@ import os
 import re
 from typing import Any, List, Union, Dict, Set, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
@@ -16,6 +17,7 @@ load_dotenv()
 WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
 
 
+@flowsint_enricher
 class IndividualToDomainsEnricher(Enricher):
     """[WHOXY] Takes an individual and returns the domains it registered."""
 

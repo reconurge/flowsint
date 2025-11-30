@@ -44,7 +44,6 @@ def test_detection_mixed():
     results = []
     for obj in raw_obj:
         DetectedType = detect_type(obj)
-        print(DetectedType)
         if DetectedType:
             py_obj = DetectedType.from_string(obj)
             results.append(py_obj)

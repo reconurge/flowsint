@@ -1,11 +1,13 @@
 from typing import List, Union
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.phrase import Phrase
 from flowsint_types.website import Website
 import requests
 from bs4 import BeautifulSoup
 
 
+@flowsint_enricher
 class WebsiteToText(Enricher):
     """Extracts the texts in a webpage."""
 

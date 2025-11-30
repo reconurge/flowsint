@@ -1,5 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react'
-import { GraphNode, GraphEdge } from '@/types'
+import { GraphNode } from '@/types'
+import { useGraphStore } from '@/stores/graph-store';
 
 interface UseLayoutProps {
   forceSettings: any
@@ -10,8 +11,6 @@ interface UseLayoutProps {
 
 interface LayoutOptions {
   layoutType: 'force' | 'hierarchy'
-  nodes: GraphNode[]
-  edges: GraphEdge[]
 }
 
 export function useLayout({
@@ -21,6 +20,9 @@ export function useLayout({
   onProgress,
 }: UseLayoutProps) {
   const workerRef = useRef<Worker | null>(null)
+  const setNodes = useGraphStore(s => s.setNodes)
+  const nodes = useGraphStore(s => s.nodes)
+  const edges = useGraphStore(s => s.edges)
 
   // Initialize worker once
   useEffect(() => {
@@ -28,7 +30,6 @@ export function useLayout({
       new URL('../workers/layout.worker.ts', import.meta.url),
       { type: 'module' }
     )
-
     return () => {
       // Cleanup worker on unmount
       workerRef.current?.terminate()
@@ -36,7 +37,7 @@ export function useLayout({
   }, [])
 
   const applyLayout = useCallback(
-    async ({ layoutType, nodes, edges }: LayoutOptions) => {
+    async ({ layoutType }: LayoutOptions) => {
       if (!workerRef.current) {
         throw new Error('Layout worker not initialized')
       }
@@ -56,7 +57,7 @@ export function useLayout({
           } else if (event.data.type === 'complete') {
             const { nodes: layoutedNodes } = event.data.result
 
-            // Apply the calculated positions to the graph nodes
+            // // Apply the calculated positions to the graph nodes
             layoutedNodes.forEach((layoutedNode: any) => {
               const graphNode = nodes.find((n: any) => n.id === layoutedNode.id) as any
               if (graphNode && layoutedNode.x !== undefined && layoutedNode.y !== undefined) {
@@ -66,7 +67,7 @@ export function useLayout({
                 graphNode.fy = layoutedNode.y
               }
             })
-
+            setNodes(layoutedNodes)
             // Save all node positions
             saveAllNodePositions(nodes, true)
 

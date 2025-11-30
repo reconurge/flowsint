@@ -7,7 +7,7 @@ import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { useLayoutStore } from '@/stores/layout-store'
 import { Button } from '@/components/ui/button'
-import { ImportSheet } from '../graphs/import-sheet'
+import { ImportSheet } from '../sketches/import-sheet'
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../ui/dialog'
-import { DynamicForm } from '../graphs/dynamic-form'
+import { DynamicForm } from '../sketches/dynamic-form'
 
 interface TestFlowProps {
   open: boolean

@@ -1,6 +1,6 @@
 import { useLocation, useParams } from '@tanstack/react-router'
 import InvestigationList from '../investigations/investigation-list'
-import GraphNavigation from '../graphs/graph-navigation'
+import GraphNavigation from '../sketches/graph-navigation'
 import FlowNavigation from '../flows/flow-navigation'
 import SketchList from '../investigations/sketch-list'
 import AnalysesList from '../analyses/analyses-list'

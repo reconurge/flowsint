@@ -20,7 +20,6 @@ import { useConfirm } from '../use-confirm-dialog'
 import { Editor } from '@tiptap/core'
 import { Link, useParams } from '@tanstack/react-router'
 import { useLayoutStore } from '@/stores/layout-store'
-import default_content from './default_content.json'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   DropdownMenu,
@@ -30,6 +29,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { queryKeys } from '@/api/query-keys'
+import { useCreateAnalysis } from '@/hooks/use-create-analysis'
 
 interface AnalysisEditorProps {
   // Core data
@@ -91,6 +91,9 @@ export const AnalysisEditor = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   // Debounced save function
+
+  const createMutation = useCreateAnalysis(routeInvestigationId, onAnalysisCreate)
+
   const debouncedSave = useCallback(
     debounce(() => {
       if (analysis) {
@@ -125,31 +128,6 @@ export const AnalysisEditor = ({
       timeout = setTimeout(later, wait)
     }
   }
-
-  // Mutations
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const newAnalysis: Partial<Analysis> = {
-        title: 'Untitled Analysis',
-        investigation_id: investigationId,
-        content: default_content
-      }
-      const res = await analysisService.create(JSON.stringify(newAnalysis))
-      return res
-    },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.analyses.byInvestigation(investigationId || '')
-      })
-      onAnalysisCreate?.(investigationId)
-      toast.success('New analysis created')
-    },
-    onError: (error) => {
-      toast.error(
-        'Failed to create analysis: ' + (error instanceof Error ? error.message : 'Unknown error')
-      )
-    }
-  })
 
   const saveMutation = useMutation({
     mutationFn: async (updated: Partial<Analysis>) => {

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns"
 import { Plus, FileText, ChevronRight } from "lucide-react"
 import { EmptyAnalyses } from "../empty-states"
 import NewAnalysis from "@/components/analyses/new-analysis"
+import { Link } from "@tanstack/react-router"
 
 interface AnalysesSectionProps {
   analyses: Analysis[]
@@ -28,7 +29,13 @@ export function AnalysesSection({ analyses }: AnalysesSectionProps) {
         </div> :
         <div className="space-y-1">
           {analyses.map((analysis) => (
-            <div
+            <Link
+              to="/dashboard/investigations/$investigationId/$type/$id"
+              params={{
+                investigationId: analysis.investigation_id as string,
+                type: "analysis",
+                id: analysis.id
+              }}
               key={analysis.id}
               className="group flex items-start gap-3 p-3 -mx-3 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
             >
@@ -47,7 +54,7 @@ export function AnalysesSection({ analyses }: AnalysesSectionProps) {
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
-            </div>
+            </Link>
           ))}
         </div>}
     </section>

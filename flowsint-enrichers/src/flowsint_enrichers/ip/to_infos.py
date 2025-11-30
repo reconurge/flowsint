@@ -1,9 +1,11 @@
 import requests
 from typing import List, Dict, Any
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.ip import Ip
 
 
+@flowsint_enricher
 class IpToInfosEnricher(Enricher):
     """[ip-api.com] Get information data for IP addresses."""
 

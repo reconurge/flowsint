@@ -2,10 +2,12 @@ import socket
 from typing import List
 from flowsint_core.core.logger import Logger
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
 
 
+@flowsint_enricher
 class ResolveEnricher(Enricher):
     """Resolve domain names to IP addresses."""
 

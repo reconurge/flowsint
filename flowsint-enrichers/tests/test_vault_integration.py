@@ -1,7 +1,7 @@
 """Integration tests for enrichers using vault secrets."""
 import pytest
 import uuid
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from flowsint_enrichers.domain.to_history import DomainToHistoryEnricher
 from flowsint_enrichers.individual.to_domains import IndividualToDomainsEnricher
 from flowsint_enrichers.email.to_domains import EmailToDomainsEnricher

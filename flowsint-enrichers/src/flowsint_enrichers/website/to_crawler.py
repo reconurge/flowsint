@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 from urllib.parse import urlparse
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.website import Website
 from flowsint_types.phone import Phone
 from flowsint_types.email import Email
@@ -15,6 +16,7 @@ class ReturnType(BaseModel):
     phones: Optional[Phone]
 
 
+@flowsint_enricher
 class WebsiteToCrawler(Enricher):
     """From website to crawler."""
 

@@ -1,12 +1,14 @@
 import requests
 from typing import List, Dict, Union, Set
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
 from flowsint_core.core.logger import Logger
 from tools.organizations.sirene import SireneTool
 
 
+@flowsint_enricher
 class IndividualToOrgEnricher(Enricher):
     """[SIRENE] Find organization from a person with data from SIRENE (France only)."""
 

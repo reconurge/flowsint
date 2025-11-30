@@ -2,6 +2,7 @@ import os
 import re
 from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.individual import Individual
 from flowsint_types.email import Email
@@ -17,6 +18,7 @@ load_dotenv()
 WHOXY_API_KEY = os.getenv("WHOXY_API_KEY")
 
 
+@flowsint_enricher
 class EmailToDomainsEnricher(Enricher):
     """[WHOXY] Takes an email and returns the domains it registered."""
 

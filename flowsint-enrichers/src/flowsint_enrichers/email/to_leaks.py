@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 import requests
 from urllib.parse import urljoin
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.breach import Breach
@@ -15,6 +16,7 @@ load_dotenv()
 HIBP_API_KEY = os.getenv("HIBP_API_KEY")
 
 
+@flowsint_enricher
 class EmailToBreachesEnricher(Enricher):
     """[HIBPWNED] Get the breaches the email might be invovled in."""
 

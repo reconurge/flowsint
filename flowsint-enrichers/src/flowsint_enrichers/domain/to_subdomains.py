@@ -1,12 +1,14 @@
 import requests
 from typing import List, Union
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_core.utils import is_valid_domain
 from flowsint_core.core.logger import Logger
 from tools.network.subfinder import SubfinderTool
 
 
+@flowsint_enricher
 class SubdomainEnricher(Enricher):
     """Enricher to find subdomains associated with a domain."""
 

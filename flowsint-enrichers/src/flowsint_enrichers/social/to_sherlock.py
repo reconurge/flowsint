@@ -4,9 +4,11 @@ from typing import List, Union
 from flowsint_core.utils import is_valid_username
 from flowsint_types import SocialAccount, Username
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
 
 
+@flowsint_enricher
 class SherlockEnricher(Enricher):
     """[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."""
 

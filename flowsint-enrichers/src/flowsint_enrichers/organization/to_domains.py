@@ -2,6 +2,7 @@ import os
 import re
 from typing import Any, List, Dict, Set, Optional
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types import Email, Phone
 from flowsint_types.domain import Domain
 from flowsint_types.organization import Organization
@@ -16,6 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+@flowsint_enricher
 class OrgToDomainsEnricher(Enricher):
     """[WHOXY] Takes an organization and returns the domains it registered."""
 

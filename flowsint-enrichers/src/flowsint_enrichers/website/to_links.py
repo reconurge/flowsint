@@ -1,12 +1,14 @@
 from typing import List, Union
 from urllib.parse import urlparse
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.website import Website
 from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
 from reconspread import Crawler
 
 
+@flowsint_enricher
 class WebsiteToLinks(Enricher):
     """From website to spread crawler that extracts domains and internal/external links."""
 

@@ -412,8 +412,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       try {
         await applyLayout({
           layoutType,
-          nodes: graphData.nodes,
-          edges: graphData.links,
         })
 
         // Zoom to fit after layout is complete

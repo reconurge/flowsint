@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { customTypeService, CustomType } from '@/api/custom-type-service'
 import ErrorState from '@/components/shared/error-state'
 import { toast } from 'sonner'
-import { useState } from 'react'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { PageLayout } from '@/components/layout/page-layout'
 

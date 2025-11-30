@@ -41,8 +41,10 @@
 
 /* Appliquer sur toute la page */
 body {
-  scrollbar-width: thin;       /* Firefox */
-  scrollbar-color: #888 transparent; /* Firefox */
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: #888 transparent;
+  /* Firefox */
 }
 
 body::-webkit-scrollbar {
@@ -449,6 +451,12 @@ html {
   --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+  --success: oklch(0.6 0.12 145);
+  --warning: oklch(0.7 0.12 80);
+  --info: oklch(0.6 0.1 240);
+  --dot-color: oklch(0.3 0.002 260);
+  --dot-size: 1px;
+  --dot-spacing: 24px;
 }
 
 .dark {
@@ -550,6 +558,12 @@ html {
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
   --xy-edge-label-background-color: var(--background) !important;
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --dot-color: var(--dot-color);
+  --dot-size: var(--dot-size);
+  --dot-spacing: var(--dot-spacing);
 }
 
 .minimal-tiptap-editor .ProseMirror {

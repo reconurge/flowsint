@@ -1,12 +1,14 @@
 import asyncio
 from typing import Dict, Any, List, Union
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.utils import is_valid_number
 from flowsint_core.core.logger import Logger
 from flowsint_types.phone import Phone
 import httpx
 
 
+@flowsint_enricher
 class IgnorantEnricher(Enricher):
 
     # Define types as class attributes - base class handles schema generation automatically

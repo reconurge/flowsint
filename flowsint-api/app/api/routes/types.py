@@ -6,41 +6,15 @@ from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.models import CustomType, Profile
 from app.api.deps import get_current_user
-from flowsint_types import (
-    Domain,
-    Ip,
-    Port,
-    SocialAccount,
-    Organization,
-    Email,
-    ASN,
-    CIDR,
-    CryptoWallet,
-    CryptoWalletTransaction,
-    CryptoNFT,
-    Website,
-    Individual,
-    Phone,
-    Leak,
-    Username,
-    Credential,
-    Session,
-    DNSRecord,
-    SSLCertificate,
-    Device,
-    Document,
-    File,
-    Message,
-    Malware,
-    Weapon,
-    BankAccount,
-    CreditCard,
-    WebTracker,
-    Phrase,
-    Location,
-)
+from flowsint_types.registry import get_type
 
 router = APIRouter()
+
+
+# Helper function to get a type by name from the registry
+def get_type_from_registry(type_name: str) -> Optional[Type[BaseModel]]:
+    """Get a type from the TYPE_REGISTRY by name."""
+    return get_type(type_name, case_sensitive=True)
 
 
 # Returns the "types" for the sketches
@@ -48,7 +22,9 @@ router = APIRouter()
 async def get_types_list(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
-    types = [
+    # Define categories with type names to look up in TYPE_REGISTRY
+    # Format: (type_name, label_key, optional_icon)
+    category_definitions = [
         {
             "id": uuid4(),
             "type": "global",
@@ -57,8 +33,8 @@ async def get_types_list(
             "label": "Global",
             "fields": [],
             "children": [
-                extract_input_schema(Phrase, label_key="text"),
-                extract_input_schema(Location, label_key="address"),
+                ("Phrase", "text", None),
+                ("Location", "address", None),
             ],
         },
         {
@@ -69,12 +45,9 @@ async def get_types_list(
             "label": "Identities & Entities",
             "fields": [],
             "children": [
-                extract_input_schema(Individual, label_key="full_name"),
-                extract_input_schema(Username, label_key="value", icon="username"),
-                # extract_input_schema(
-                #     SocialAccount, label_key="username", icon="social_account"
-                # ),
-                extract_input_schema(Organization, label_key="name"),
+                ("Individual", "full_name", None),
+                ("Username", "value", "username"),
+                ("Organization", "name", None),
             ],
         },
         {
@@ -85,7 +58,7 @@ async def get_types_list(
             "label": "Organization",
             "fields": [],
             "children": [
-                extract_input_schema(Organization, label_key="name"),
+                ("Organization", "name", None),
             ],
         },
         {
@@ -96,13 +69,11 @@ async def get_types_list(
             "label": "Communication & Contact",
             "fields": [],
             "children": [
-                extract_input_schema(Phone, label_key="number"),
-                extract_input_schema(Email, label_key="email"),
-                extract_input_schema(Username, label_key="value"),
-                extract_input_schema(
-                    SocialAccount, label_key="username", icon="socialaccount"
-                ),
-                extract_input_schema(Message, label_key="content", icon="message"),
+                ("Phone", "number", None),
+                ("Email", "email", None),
+                ("Username", "value", None),
+                ("SocialAccount", "username", "socialaccount"),
+                ("Message", "content", "message"),
             ],
         },
         {
@@ -113,15 +84,15 @@ async def get_types_list(
             "label": "Network",
             "fields": [],
             "children": [
-                extract_input_schema(ASN, label_key="number"),
-                extract_input_schema(CIDR, label_key="network"),
-                extract_input_schema(Domain, label_key="domain"),
-                extract_input_schema(Website, label_key="url"),
-                extract_input_schema(Ip, label_key="address"),
-                extract_input_schema(Port, label_key="number"),
-                extract_input_schema(DNSRecord, label_key="name", icon="dns"),
-                extract_input_schema(SSLCertificate, label_key="subject", icon="ssl"),
-                extract_input_schema(WebTracker, label_key="name", icon="webtracker"),
+                ("ASN", "number", None),
+                ("CIDR", "network", None),
+                ("Domain", "domain", None),
+                ("Website", "url", None),
+                ("Ip", "address", None),
+                ("Port", "number", None),
+                ("DNSRecord", "name", "dns"),
+                ("SSLCertificate", "subject", "ssl"),
+                ("WebTracker", "name", "webtracker"),
             ],
         },
         {
@@ -132,13 +103,11 @@ async def get_types_list(
             "label": "Security & Access",
             "fields": [],
             "children": [
-                extract_input_schema(
-                    Credential, label_key="username", icon="credential"
-                ),
-                extract_input_schema(Session, label_key="session_id", icon="session"),
-                extract_input_schema(Device, label_key="device_id", icon="device"),
-                extract_input_schema(Malware, label_key="name", icon="malware"),
-                extract_input_schema(Weapon, label_key="name", icon="weapon"),
+                ("Credential", "username", "credential"),
+                ("Session", "session_id", "session"),
+                ("Device", "device_id", "device"),
+                ("Malware", "name", "malware"),
+                ("Weapon", "name", "weapon"),
             ],
         },
         {
@@ -149,8 +118,8 @@ async def get_types_list(
             "label": "Files & Documents",
             "fields": [],
             "children": [
-                extract_input_schema(Document, label_key="title", icon="document"),
-                extract_input_schema(File, label_key="filename", icon="file"),
+                ("Document", "title", "document"),
+                ("File", "filename", "file"),
             ],
         },
         {
@@ -161,12 +130,8 @@ async def get_types_list(
             "label": "Financial Data",
             "fields": [],
             "children": [
-                extract_input_schema(
-                    BankAccount, label_key="account_number", icon="creditcard"
-                ),
-                extract_input_schema(
-                    CreditCard, label_key="card_number", icon="creditcard"
-                ),
+                ("BankAccount", "account_number", "creditcard"),
+                ("CreditCard", "card_number", "creditcard"),
             ],
         },
         {
@@ -177,7 +142,7 @@ async def get_types_list(
             "label": "Leaks",
             "fields": [],
             "children": [
-                extract_input_schema(Leak, label_key="name", icon="breach"),
+                ("Leak", "name", "breach"),
             ],
         },
         {
@@ -188,16 +153,33 @@ async def get_types_list(
             "label": "Crypto",
             "fields": [],
             "children": [
-                extract_input_schema(
-                    CryptoWallet, label_key="address", icon="cryptowallet"
-                ),
-                extract_input_schema(
-                    CryptoWalletTransaction, label_key="hash", icon="cryptowallet"
-                ),
-                extract_input_schema(CryptoNFT, label_key="name", icon="cryptowallet"),
+                ("CryptoWallet", "address", "cryptowallet"),
+                ("CryptoWalletTransaction", "hash", "cryptowallet"),
+                ("CryptoNFT", "name", "cryptowallet"),
             ],
         },
     ]
+
+    # Build the types list by looking up each type in TYPE_REGISTRY
+    types = []
+    for category in category_definitions:
+        category_copy = category.copy()
+        children_schemas = []
+
+        for child_def in category["children"]:
+            type_name, label_key, icon = child_def
+            model = get_type_from_registry(type_name)
+
+            if model:
+                children_schemas.append(
+                    extract_input_schema(model, label_key=label_key, icon=icon)
+                )
+            else:
+                # Log warning but continue - type might not be available
+                print(f"Warning: Type {type_name} not found in TYPE_REGISTRY")
+
+        category_copy["children"] = children_schemas
+        types.append(category_copy)
 
     # Add custom types
     custom_types = (

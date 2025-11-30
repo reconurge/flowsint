@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router'
-import GraphPanel from '@/components/graphs'
+import GraphPanel from '@/components/sketches'
 import { sketchService } from '@/api/sketch-service'
 import { useQuery } from '@tanstack/react-query'
 import Loader from '@/components/loader'
@@ -32,6 +32,7 @@ const GraphPageContent = () => {
     refetch
   } = useQuery({
     queryKey: ['investigations', investigationId, type, id, 'data'],
+    // @ts-ignore
     queryFn: () => services[type](id),
     enabled: ['graph', 'analysis'].includes(type),
     // refetchInterval: 5000,
@@ -46,10 +47,8 @@ const GraphPageContent = () => {
 
   useEffect(() => {
     const refetchWithCallback = async (onSuccess?: () => void) => {
-      const result = await refetch()
-      // Execute callback after refetch completes and data is updated
+      await refetch()
       if (onSuccess) {
-        // Small delay to ensure React Query has updated the data in the store
         setTimeout(() => {
           onSuccess()
         }, 100)
@@ -80,6 +79,7 @@ const GraphPageContent = () => {
 
 export const Route = createFileRoute('/_auth/dashboard/investigations/$investigationId/$type/$id')({
   loader: async ({ params: { id, type, investigationId } }) => {
+    // @ts-ignore
     const sketch = await services[type](id)
     return { params: { id, type, investigationId }, sketch }
   },

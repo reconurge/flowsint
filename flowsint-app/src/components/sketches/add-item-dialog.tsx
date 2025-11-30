@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { type ActionItem, type FormField, findActionItemByKey } from '@/lib/action-items'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatePresence, motion } from 'framer-motion'
-import { DynamicForm } from '@/components/graphs/dynamic-form'
+import { DynamicForm } from '@/components/sketches/dynamic-form'
 import { Badge } from '@/components/ui/badge'
 import { useGraphStore } from '@/stores/graph-store'
 import { sketchService } from '@/api/sketch-service'

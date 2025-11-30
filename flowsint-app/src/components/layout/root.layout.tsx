@@ -9,8 +9,8 @@ import { useLayoutStore } from '@/stores/layout-store'
 import NotesPanel from '../analyses/notes-panel'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import { useParams } from '@tanstack/react-router'
-import DetailsPanel from '../graphs/details-panel/details-panel'
-import EdgeDetailsPanel from '../graphs/details-panel/edge-details-panel'
+import DetailsPanel from '../sketches/details-panel/details-panel'
+import EdgeDetailsPanel from '../sketches/details-panel/edge-details-panel'
 import { useGraphStore } from '@/stores/graph-store'
 
 interface LayoutProps {

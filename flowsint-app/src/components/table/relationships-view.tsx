@@ -65,8 +65,8 @@ function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSele
 
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
-              <SourceIcon className="h-4 w-4" />
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted flex-shrink-0">
+              <SourceIcon size={16} />
             </div>
             <button
               onClick={handleNodeClickSource}
@@ -105,8 +105,8 @@ function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSele
                 {relationship.target.data?.label || relationship.target.id}
               </span>
             </button>
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted flex-shrink-0">
-              <TargetIcon className="h-4 w-4" />
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted flex-shrink-0">
+              <TargetIcon size={16} />
             </div>
           </div>
         </CardContent>

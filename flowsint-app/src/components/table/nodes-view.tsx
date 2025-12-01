@@ -85,8 +85,8 @@ const NodeItem = memo(function NodeItem({
 
         {/* Icon */}
         <div className="flex items-center justify-center">
-          <div className="flex items-center justify-center w-6 h-6 rounded bg-muted">
-            <SourceIcon className="h-4 w-4" />
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted">
+            <SourceIcon size={16} />
           </div>
         </div>
 

@@ -17,7 +17,6 @@ export type ItemType =
   | 'plane'
   | 'website'
   | 'domain'
-  | 'subdomain'
   | 'document'
   | 'financial'
   | 'event'
@@ -74,7 +73,6 @@ export const ITEM_TYPES: ItemType[] = [
   'plane',
   'website',
   'domain',
-  'subdomain',
   'document',
   'financial',
   'event',
@@ -131,7 +129,6 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
   plane: '#C1A78E', // brun clair
   website: '#D279A6', // rose pastel
   domain: '#66A892', // vert sauge
-  subdomain: '#F4A261', // bleu ciel
   document: '#8F9CA3', // gris bleuté
   financial: '#E98973', // corail doux
   event: '#6DBBA2', // vert menthe
@@ -189,7 +186,6 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
   plane: '✈️',
   website: '🔗',
   domain: '🌍',
-  subdomain: '🧩',
   document: '📄',
   financial: '💳',
   event: '📅',
@@ -246,7 +242,6 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
   plane: 12, // Small-medium
   website: 14, // Medium
   domain: 20, // Large
-  subdomain: 16, // Medium-large
   document: 12, // Small-medium
   financial: 18, // Medium-large
   event: 12, // Small-medium

@@ -33,9 +33,6 @@ interface ImportPreviewProps {
   onCancel: () => void
 }
 
-// ============================================================================
-// FIX 1: Debounced Input component to avoid re-renders on every keystroke
-// ============================================================================
 const DebouncedInput = memo(({
   value,
   onChange,
@@ -418,9 +415,6 @@ export function ImportPreview({
   const [isImporting, setIsImporting] = useState(false)
   const [importResult, setImportResult] = useState<any>(null)
 
-  // ============================================================================
-  // FIX 7: Memoize entity types with stable reference
-  // ============================================================================
   const entityTypes = useMemo(() => {
     if (!actionItems) return []
     const types: string[] = []
@@ -434,9 +428,6 @@ export function ImportPreview({
     return [...new Set(types)]
   }, [actionItems])
 
-  // ============================================================================
-  // FIX 8: Granular update handlers - only update the specific mapping
-  // ============================================================================
   const handleIncludeChange = useCallback((id: string, include: boolean) => {
     setMappingsById(prev => {
       const mapping = prev.get(id)
@@ -488,9 +479,6 @@ export function ImportPreview({
     })
   }, [])
 
-  // ============================================================================
-  // FIX 9: Memoize mappings arrays per type to avoid recreating on every render
-  // ============================================================================
   const getMappingsForType = useCallback((typeName: string): EntityMapping[] => {
     const ids = mappingIdsByType[typeName] || []
     return ids.map(id => mappingsById.get(id)!).filter(Boolean)
@@ -508,7 +496,8 @@ export function ImportPreview({
   const handleImport = useCallback(async () => {
     setIsImporting(true)
     try {
-      const mappingsArray = Array.from(mappingsById.values())
+      const mappingsArray = Array.from(mappingsById.values()).filter(m => m.include)
+      alert(mappingsArray.length)
       const result = await sketchService.executeImport(sketchId, mappingsArray)
       setImportResult(result)
 

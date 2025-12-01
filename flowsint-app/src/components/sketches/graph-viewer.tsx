@@ -263,16 +263,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [nodes, showIcons])
 
-  // const handleZoom = useCallback((zoom: any) => {
-  //   const prevZoom = zoomRef.current.k
-  //   zoomRef.current = zoom
-  //   // Only update state if zoom changed significantly (reduces re-renders)
-  //   const newZoom = zoom.k
-  //   if (Math.abs(newZoom - prevZoom) > 0.1) {
-  //     setCurrentZoom(newZoom)
-  //   }
-  // }, [])
-
   // Handle container size changes
   useEffect(() => {
     const updateSize = () => {
@@ -414,6 +404,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       try {
         await applyLayout({
           layoutType,
+          nodes: graphData.nodes,
+          edges: graphData.links
         })
 
         // Zoom to fit after layout is complete
@@ -429,8 +421,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         console.error('Layout calculation failed:', error)
         setIsRegeneratingLayout(false)
       }
-    })
-  }, [applyLayout, setCurrentLayoutType])
+    }, 100)
+  }, [applyLayout, setCurrentLayoutType, graphData.nodes, graphData.links])
 
   // Optimized graph initialization callback
   const initializeGraph = useCallback(

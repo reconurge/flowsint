@@ -86,12 +86,12 @@ class IpToDummyDomainsEnricher(Enricher):
             ip_normalized = ip_obj.address.replace(".", "-")
 
             # Generate 20 dummy domains per IP
-            for i in range(530):
+            for i in range(20):
                 service = services[i % len(services)]
                 tld = tlds[i % len(tlds)]
 
                 # Create dummy domain with pattern: {service}-{ip}.{tld}
-                dummy_domain = f"{service}-{i}-{ip_normalized}.{tld}"
+                dummy_domain = f"{service}-{ip_normalized}.{tld}"
                 domain_obj = Domain(domain=dummy_domain)
                 results.append(domain_obj)
 

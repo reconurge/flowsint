@@ -42,7 +42,7 @@ export type ItemType =
   | 'breach'
   | 'webtracker'
   | 'session'
-  | 'dns'
+  | 'dnsrecord'
   | 'ssl'
   | 'message'
   | 'malware'
@@ -99,7 +99,7 @@ export const ITEM_TYPES: ItemType[] = [
   'breach',
   'webtracker',
   'session',
-  'dns',
+  'dnsrecord',
   'ssl',
   'message',
   'malware',
@@ -156,7 +156,7 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
   breach: '#CC7A7A', // rose chaud
   webtracker: '#C7BF50', // jaune doux
   session: '#A8BF50', // lime atténué
-  dns: '#80BF9F', // vert teal clair
+  dnsrecord: '#BFAF80', // vert teal clair
   ssl: '#BFAF80', // sable chaud
   message: '#897FC9', // violet lavande
   malware: '#4AA29E', // teal saturé
@@ -214,7 +214,7 @@ const DEFAULT_ICONS: Record<ItemType, string> = {
   breach: '🔓',
   webtracker: '🎯',
   session: '🔐',
-  dns: '🌐',
+  dnsrecord: '🌐',
   ssl: '🔒',
   message: '💬',
   malware: '🦠',
@@ -271,7 +271,7 @@ const DEFAULT_SIZES: Record<ItemType, number> = {
   breach: 20, // Large - security important
   webtracker: 12, // Small-medium
   session: 10, // Small
-  dns: 16, // Medium-large
+  dnsrecord: 16, // Medium-large
   ssl: 16, // Medium-large
   message: 12, // Small-medium
   malware: 24, // Large - security critical

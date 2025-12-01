@@ -497,7 +497,6 @@ export function ImportPreview({
     setIsImporting(true)
     try {
       const mappingsArray = Array.from(mappingsById.values()).filter(m => m.include)
-      alert(mappingsArray.length)
       const result = await sketchService.executeImport(sketchId, mappingsArray)
       setImportResult(result)
 

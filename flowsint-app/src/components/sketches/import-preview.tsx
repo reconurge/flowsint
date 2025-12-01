@@ -502,13 +502,13 @@ export function ImportPreview({
 
       if (result.status === 'completed') {
         setTimeout(onSuccess, 2000)
+        refetchGraph()
+        setIsImporting(false)
+        toast.success('Import successful!')
       }
     } catch (error) {
-      toast.error('Failed to import')
-    } finally {
-      refetchGraph()
       setIsImporting(false)
-      toast.success('Import successful!')
+      toast.error('Failed to import. Check your types and try again.')
     }
   }, [mappingsById, sketchId, onSuccess, refetchGraph])
 

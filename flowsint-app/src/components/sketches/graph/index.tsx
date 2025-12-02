@@ -22,6 +22,7 @@ import { GraphEmptyState } from './graph-empty-state'
 import { GraphTooltip } from './graph-tooltip'
 import { GraphLoadingOverlay } from './graph-loading-overlay'
 import { GraphSelectorOverlay } from './graph-selector-overlay'
+import MinimapCanvas from './minimap'
 
 const GraphViewer: React.FC<GraphViewerProps> = ({
   nodes,
@@ -41,7 +42,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   allowLasso = false,
   sketchId,
   allowForces = false,
-  autoZoomOnNode = true
+  autoZoomOnNode = true,
+  showMinimap
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const graphRef = useRef<any>(null)
@@ -55,6 +57,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
+  const showMinimapSetting = useGraphSettingsStore((s) => s.getSettingValue('general', 'showMinimap'))
   const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
@@ -342,6 +345,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           nodes={graphData.nodes}
           graph2ScreenCoords={graph2ScreenCoords}
           containerSize={containerSize}
+        />
+      )}
+      {(showMinimap ?? showMinimapSetting) && graphData.nodes.length > 0 && (
+        <MinimapCanvas
+          nodes={graphData.nodes}
+          graphRef={graphRef}
+          canvasWidth={containerSize.width}
+          canvasHeight={containerSize.height}
         />
       )}
       <GraphLoadingOverlay isVisible={isRegeneratingLayout} />

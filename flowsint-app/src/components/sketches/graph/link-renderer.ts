@@ -12,6 +12,60 @@ interface LinkRenderParams {
   currentEdge: any
 }
 
+// Helper to check if a node position is in viewport
+const isPositionInViewport = (x: number, y: number, ctx: CanvasRenderingContext2D, margin: number = 80): boolean => {
+  const transform = ctx.getTransform()
+  const canvasWidth = ctx.canvas.width
+  const canvasHeight = ctx.canvas.height
+
+  // Transform position to screen coordinates
+  const screenX = x * transform.a + transform.e
+  const screenY = y * transform.d + transform.f
+
+  // Check if within viewport bounds (with margin for smoother culling)
+  return (
+    screenX >= -margin &&
+    screenX <= canvasWidth + margin &&
+    screenY >= -margin &&
+    screenY <= canvasHeight + margin
+  )
+}
+
+// Helper to check if edge is in viewport (at least one endpoint or edge crosses viewport)
+const isEdgeInViewport = (link: any, ctx: CanvasRenderingContext2D, margin: number = 80): boolean => {
+  const { source: start, target: end } = link
+  if (typeof start !== 'object' || typeof end !== 'object') return false
+
+  // Check if either endpoint is in viewport
+  const startInView = isPositionInViewport(start.x, start.y, ctx, margin)
+  const endInView = isPositionInViewport(end.x, end.y, ctx, margin)
+
+  if (startInView || endInView) return true
+
+  // Check if edge crosses viewport (both endpoints outside but line passes through)
+  const transform = ctx.getTransform()
+  const canvasWidth = ctx.canvas.width
+  const canvasHeight = ctx.canvas.height
+
+  const screenStartX = start.x * transform.a + transform.e
+  const screenStartY = start.y * transform.d + transform.f
+  const screenEndX = end.x * transform.a + transform.e
+  const screenEndY = end.y * transform.d + transform.f
+
+  // Simple AABB intersection check
+  const minX = Math.min(screenStartX, screenEndX)
+  const maxX = Math.max(screenStartX, screenEndX)
+  const minY = Math.min(screenStartY, screenEndY)
+  const maxY = Math.max(screenStartY, screenEndY)
+
+  return !(
+    maxX < -margin ||
+    minX > canvasWidth + margin ||
+    maxY < -margin ||
+    minY > canvasHeight + margin
+  )
+}
+
 export const renderLink = ({
   link,
   ctx,
@@ -27,6 +81,9 @@ export const renderLink = ({
 
   const { source: start, target: end } = link
   if (typeof start !== 'object' || typeof end !== 'object') return
+
+  // Early exit: skip edge if outside viewport
+  if (!isEdgeInViewport(link, ctx)) return
 
   const linkKey = `${start.id}-${end.id}`
   const isHighlighted = highlightLinks.has(linkKey)

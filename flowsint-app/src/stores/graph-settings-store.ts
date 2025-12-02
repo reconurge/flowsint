@@ -17,6 +17,12 @@ const DEFAULT_SETTINGS = {
       value: true,
       description: 'Automatically zoom to the current node when it changes.'
     },
+    showMinimap: {
+      name: 'Show Minimap',
+      type: 'boolean',
+      value: true,
+      description: 'Display the minimap overview of the graph.'
+    },
   },
   graph: {
     nodeSize: {

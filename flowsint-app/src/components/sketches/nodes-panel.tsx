@@ -150,7 +150,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         )
 
       return matchesSearch && matchesFilter
-    })
+    }).sort((a, b) => a.data.type.localeCompare(b.data.type));
   }, [nodes, searchQuery, filters])
 
   // Configuration du virtualizer

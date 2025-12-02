@@ -54,9 +54,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
-  const shouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.shouldRegenerateLayoutOnNextRefetch)
-  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
-  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
   const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
@@ -206,6 +203,18 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     handleNodeDragEnd(node, graphData)
   }, [handleNodeDragEnd, graphData])
 
+  const hasPerformedInitialZoom = useRef(false)
+
+  const handleEngineStop = useCallback(() => {
+    // Perform initial zoom to fit only once when graph is first rendered
+    if (!hasPerformedInitialZoom.current && graphRef.current) {
+      hasPerformedInitialZoom.current = true
+      if (typeof graphRef.current.zoomToFit === 'function') {
+        graphRef.current.zoomToFit(400)
+      }
+    }
+  }, [])
+
   useGraphInitialization({
     graphRef,
     instanceId,
@@ -219,14 +228,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   useEffect(() => {
     clearHighlights()
   }, [nodes, edges, clearHighlights])
-
-  // Auto-regenerate layout when data is refetched (if flag is set)
-  useEffect(() => {
-    if (shouldRegenerateLayoutOnNextRefetch && currentLayoutType && graphData.nodes.length > 0) {
-      setShouldRegenerateLayoutOnNextRefetch(false)
-      regenerateLayout(currentLayoutType)
-    }
-  }, [graphData.nodes.length, shouldRegenerateLayoutOnNextRefetch, currentLayoutType, regenerateLayout, setShouldRegenerateLayoutOnNextRefetch])
 
   const handleOpenNewAddItemDialog = useCallback(() => {
     setOpenMainDialog(true)
@@ -319,6 +320,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNodeCallback}
         onNodeDragEnd={wrappedHandleNodeDragEnd}
+        onEngineStop={handleEngineStop}
         cooldownTicks={allowForces ? forceSettings.cooldownTicks.value : 0}
         cooldownTime={forceSettings.cooldownTime.value}
         d3AlphaDecay={forceSettings.d3AlphaDecay.value}

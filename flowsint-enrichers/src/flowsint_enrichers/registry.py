@@ -70,44 +70,57 @@ class EnricherRegistry:
     ) -> List[Dict[str, Any]]:
         if exclude is None:
             exclude = []
-        return [
-            {
-                **self._create_enricher_metadata(enricher),
-                "wobblyType": wobbly_type,
-            }
-            for enricher in self._enrichers.values()
-            if enricher.name() not in exclude
-        ]
+        return sorted(
+            [
+                {
+                    **self._create_enricher_metadata(enricher),
+                    "wobblyType": wobbly_type,
+                }
+                for enricher in self._enrichers.values()
+                if enricher.name() not in exclude
+            ],
+            key=lambda item: item["name"],
+        )
 
     def list_by_categories(self) -> Dict[str, List[Dict[str, str]]]:
         enrichers_by_category = {}
-        for _, enricher in self._enrichers.items():
+
+        for enricher in self._enrichers.values():
             category = enricher.category()
-            if category not in enrichers_by_category:
-                enrichers_by_category[category] = []
-            enrichers_by_category[category].append(
+            enrichers_by_category.setdefault(category, []).append(
                 self._create_enricher_metadata(enricher)
             )
-        return enrichers_by_category
+
+        for items in enrichers_by_category.values():
+            items.sort(key=lambda x: x["name"])
+
+        return {
+            category: enrichers_by_category[category]
+            for category in sorted(enrichers_by_category.keys())
+        }
 
     def list_by_input_type(
-        self, input_type: str, exclude: Optional[List[str]] = []
+        self, input_type: str, exclude: Optional[List[str]] = None
     ) -> List[Dict[str, str]]:
+        if exclude is None:
+            exclude = []
         input_type_lower = input_type.lower()
-
         if input_type_lower == "any":
-            return [
+            items = [
                 self._create_enricher_metadata(enricher)
                 for enricher in self._enrichers.values()
                 if enricher.name() not in exclude
             ]
+        else:
+            items = [
+                self._create_enricher_metadata(enricher)
+                for enricher in self._enrichers.values()
+                if enricher.input_schema()["type"].lower() in ("any", input_type_lower)
+                and enricher.name() not in exclude
+            ]
+        items.sort(key=lambda x: x["name"])
 
-        return [
-            self._create_enricher_metadata(enricher)
-            for enricher in self._enrichers.values()
-            if enricher.input_schema()["type"].lower() in ["any", input_type_lower]
-            and enricher.name() not in exclude
-        ]
+        return items
 
 
 # Global enricher registry instance
@@ -167,6 +180,7 @@ def load_all_enrichers() -> None:
     try:
         # Get the flowsint_enrichers package
         import flowsint_enrichers
+
         package = flowsint_enrichers
     except ImportError:
         # Package not available - skip auto-discovery
@@ -181,21 +195,21 @@ def load_all_enrichers() -> None:
     # Walk through all directories and files
     for root, dirs, files in os.walk(package_path):
         # Skip __pycache__ directories
-        dirs[:] = [d for d in dirs if not d.startswith('__pycache__')]
+        dirs[:] = [d for d in dirs if not d.startswith("__pycache__")]
 
         # Calculate the module prefix for this directory
         rel_path = os.path.relpath(root, package_path)
-        if rel_path == '.':
+        if rel_path == ".":
             module_prefix = package_name
         else:
             # Convert path separators to dots for module names
-            module_parts = rel_path.replace(os.sep, '.')
+            module_parts = rel_path.replace(os.sep, ".")
             module_prefix = f"{package_name}.{module_parts}"
 
         # Import all Python files in this directory
         for filename in files:
             # Skip non-Python files and private files
-            if not filename.endswith('.py') or filename.startswith('_'):
+            if not filename.endswith(".py") or filename.startswith("_"):
                 continue
 
             # Build the full module name

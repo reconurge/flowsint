@@ -1,0 +1,212 @@
+import { CONSTANTS, GRAPH_COLORS, tempPos, tempDimensions } from './constants'
+
+interface LinkRenderParams {
+  link: any
+  ctx: CanvasRenderingContext2D
+  globalScale: number
+  forceSettings: any
+  theme: string
+  highlightLinks: Set<string>
+  highlightNodes: Set<string>
+  selectedEdges: any[]
+  currentEdge: any
+}
+
+export const renderLink = ({
+  link,
+  ctx,
+  globalScale,
+  forceSettings,
+  theme,
+  highlightLinks,
+  highlightNodes,
+  selectedEdges,
+  currentEdge
+}: LinkRenderParams) => {
+  if (globalScale < CONSTANTS.ZOOM_EDGE_DETAIL_THRESHOLD) return
+
+  const { source: start, target: end } = link
+  if (typeof start !== 'object' || typeof end !== 'object') return
+
+  const linkKey = `${start.id}-${end.id}`
+  const isHighlighted = highlightLinks.has(linkKey)
+  const isSelected = selectedEdges.some((e) => e.id === link.id)
+  const isCurrent = currentEdge?.id === link.id
+  const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
+  const linkWidth = forceSettings?.linkWidth?.value ?? 2
+  const nodeSize = forceSettings?.nodeSize?.value ?? 14
+
+  let strokeStyle: string
+  let lineWidth: number
+  let fillStyle: string
+
+  if (isCurrent) {
+    strokeStyle = 'rgba(59, 130, 246, 0.95)'
+    fillStyle = 'rgba(59, 130, 246, 0.95)'
+    lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.3)
+  } else if (isSelected) {
+    strokeStyle = 'rgba(255, 115, 0, 0.9)'
+    fillStyle = 'rgba(255, 115, 0, 0.9)'
+    lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.5)
+  } else if (isHighlighted) {
+    strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
+    fillStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
+    lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 3)
+  } else if (hasAnyHighlight) {
+    strokeStyle = GRAPH_COLORS.LINK_DIMMED
+    fillStyle = GRAPH_COLORS.LINK_DIMMED
+    lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
+  } else {
+    strokeStyle = GRAPH_COLORS.LINK_DEFAULT
+    fillStyle = GRAPH_COLORS.LINK_DEFAULT
+    lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
+  }
+
+  // Draw connection line
+  const curvature: number = link.curvature || 0
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const distance = Math.sqrt(dx * dx + dy * dy) || 1
+  const midX = (start.x + end.x) * 0.5
+  const midY = (start.y + end.y) * 0.5
+  const normX = -dy / distance
+  const normY = dx / distance
+  const offset = curvature * distance
+  const ctrlX = midX + normX * offset
+  const ctrlY = midY + normY * offset
+
+  ctx.beginPath()
+  ctx.moveTo(start.x, start.y)
+  if (curvature !== 0) {
+    ctx.quadraticCurveTo(ctrlX, ctrlY, end.x, end.y)
+  } else {
+    ctx.lineTo(end.x, end.y)
+  }
+  ctx.strokeStyle = strokeStyle
+  ctx.lineWidth = lineWidth
+  ctx.stroke()
+
+  // Draw directional arrow
+  const arrowLength = forceSettings?.linkDirectionalArrowLength?.value
+  if (arrowLength && arrowLength > 0) {
+    const arrowRelPos = forceSettings?.linkDirectionalArrowRelPos?.value || 1
+
+    const bezierPoint = (t: number) => {
+      if (curvature === 0) {
+        return { x: start.x + dx * t, y: start.y + dy * t }
+      }
+      const oneMinusT = 1 - t
+      return {
+        x: oneMinusT * oneMinusT * start.x + 2 * oneMinusT * t * ctrlX + t * t * end.x,
+        y: oneMinusT * oneMinusT * start.y + 2 * oneMinusT * t * ctrlY + t * t * end.y
+      }
+    }
+
+    const bezierTangent = (t: number) => {
+      if (curvature === 0) {
+        return { x: dx, y: dy }
+      }
+      const oneMinusT = 1 - t
+      return {
+        x: 2 * oneMinusT * (ctrlX - start.x) + 2 * t * (end.x - ctrlX),
+        y: 2 * oneMinusT * (ctrlY - start.y) + 2 * t * (end.y - ctrlY)
+      }
+    }
+
+    const t = arrowRelPos
+    let { x: arrowX, y: arrowY } = bezierPoint(t)
+
+    if (arrowRelPos === 1) {
+      const tan = bezierTangent(0.99)
+      const tanLen = Math.hypot(tan.x, tan.y) || 1
+      const sizeMultiplier = nodeSize / 100 + 0.2
+      const neighborBonus = Math.min(end.neighbors?.length / 5 || 0, 5)
+      const baseTargetSize = (end.nodeSize + neighborBonus) * sizeMultiplier
+      const targetNodeSize = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
+        ? baseTargetSize
+        : baseTargetSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+      arrowX = end.x - (tan.x / tanLen) * targetNodeSize
+      arrowY = end.y - (tan.y / tanLen) * targetNodeSize
+    }
+
+    const tan = bezierTangent(t)
+    const angle = Math.atan2(tan.y, tan.x)
+
+    ctx.save()
+    ctx.translate(arrowX, arrowY)
+    ctx.rotate(angle)
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.lineTo(-arrowLength, -arrowLength * 0.5)
+    ctx.lineTo(-arrowLength, arrowLength * 0.5)
+    ctx.closePath()
+    ctx.fillStyle = fillStyle
+    ctx.fill()
+    ctx.restore()
+  }
+
+  if (!link.label) return
+
+  // Draw label for highlighted links
+  if (isHighlighted && globalScale > CONSTANTS.ZOOM_EDGE_DETAIL_THRESHOLD) {
+    let textAngle: number
+    if ((link.curvature || 0) !== 0) {
+      const t = 0.5
+      const oneMinusT = 1 - t
+      tempPos.x = oneMinusT * oneMinusT * start.x + 2 * oneMinusT * t * ctrlX + t * t * end.x
+      tempPos.y = oneMinusT * oneMinusT * start.y + 2 * oneMinusT * t * ctrlY + t * t * end.y
+      const tx = 2 * oneMinusT * (ctrlX - start.x) + 2 * t * (end.x - ctrlX)
+      const ty = 2 * oneMinusT * (ctrlY - start.y) + 2 * t * (end.y - ctrlY)
+      textAngle = Math.atan2(ty, tx)
+    } else {
+      tempPos.x = (start.x + end.x) * 0.5
+      tempPos.y = (start.y + end.y) * 0.5
+      const sdx = end.x - start.x
+      const sdy = end.y - start.y
+      textAngle = Math.atan2(sdy, sdx)
+    }
+
+    if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
+      textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI
+    }
+
+    const linkLabelSetting = forceSettings?.linkLabelFontSize?.value ?? 50
+    const linkFontSize = CONSTANTS.LABEL_FONT_SIZE * (linkLabelSetting / 100)
+    ctx.font = `${linkFontSize}px Sans-Serif`
+    const textWidth = ctx.measureText(link.label).width
+    const padding = linkFontSize * CONSTANTS.PADDING_RATIO
+    tempDimensions[0] = textWidth + padding
+    tempDimensions[1] = linkFontSize + padding
+    const halfWidth = tempDimensions[0] * 0.5
+    const halfHeight = tempDimensions[1] * 0.5
+
+    ctx.save()
+    ctx.translate(tempPos.x, tempPos.y)
+    ctx.rotate(textAngle)
+
+    const borderRadius = linkFontSize * 0.3
+    ctx.beginPath()
+    ctx.roundRect(-halfWidth, -halfHeight, tempDimensions[0], tempDimensions[1], borderRadius)
+
+    if (theme === 'light') {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
+    } else {
+      ctx.fillStyle = 'rgba(32, 32, 32, 0.95)'
+    }
+    ctx.fill()
+
+    ctx.strokeStyle = theme === 'light'
+      ? 'rgba(0, 0, 0, 0.1)'
+      : 'rgba(255, 255, 255, 0.1)'
+    ctx.lineWidth = 0.5
+    ctx.stroke()
+
+    ctx.fillStyle = isHighlighted
+      ? GRAPH_COLORS.LINK_LABEL_HIGHLIGHTED
+      : GRAPH_COLORS.LINK_LABEL_DEFAULT
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(link.label, 0, 0)
+    ctx.restore()
+  }
+}

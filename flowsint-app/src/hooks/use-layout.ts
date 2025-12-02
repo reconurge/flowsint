@@ -36,17 +36,14 @@ export function useLayout({
 
   const applyLayout = useCallback(
     async ({ nodes, edges, layoutType }: LayoutOptions) => {
-      console.log(nodes)
       if (!workerRef.current) {
         throw new Error('Layout worker not initialized')
       }
-
       // Remove fx and fy from all nodes to allow repositioning
       nodes.forEach((node: any) => {
         delete node.fx
         delete node.fy
       })
-
       return new Promise<GraphNode[]>((resolve, reject) => {
         const worker = workerRef.current!
 

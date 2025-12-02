@@ -20,7 +20,6 @@ export const useGraphInitialization = ({
   const isGraphReadyRef = useRef(false)
   const regenerateLayoutRef = useRef(regenerateLayout)
 
-  // Keep ref updated
   useEffect(() => {
     regenerateLayoutRef.current = regenerateLayout
   }, [regenerateLayout])
@@ -40,10 +39,8 @@ export const useGraphInitialization = ({
         }, 100)
         return
       }
-
       if (isGraphReadyRef.current) return
       isGraphReadyRef.current = true
-
       // Initial zoom to fit
       setTimeout(() => {
         if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
@@ -106,12 +103,28 @@ export const useGraphInitialization = ({
     [setActions, onGraphRef, instanceId, selectedNodeIdsRef, graphRef]
   )
 
+  // Poll for graphRef to be ready
   useEffect(() => {
-    if (graphRef.current) {
-      initializeGraph(graphRef.current)
+    const checkAndInitialize = () => {
+      if (graphRef.current && !isGraphReadyRef.current) {
+        initializeGraph(graphRef.current)
+      }
     }
 
+    // Check immediately
+    checkAndInitialize()
+
+    // Then check every 100ms until initialized
+    const interval = setInterval(() => {
+      if (isGraphReadyRef.current) {
+        clearInterval(interval)
+      } else {
+        checkAndInitialize()
+      }
+    }, 100)
+
     return () => {
+      clearInterval(interval)
       if (!instanceId && isGraphReadyRef.current) {
         setActions({
           zoomIn: () => { },

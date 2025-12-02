@@ -6,28 +6,26 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export function useGraphRefresh(sketch_id: string | undefined) {
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const setShouldRegenerateLayoutOnNextRefetch = useGraphControls((s) => s.setShouldRegenerateLayoutOnNextRefetch)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
 
   // Use refs to avoid reconnecting SSE when functions change
   const refetchGraphRef = useRef(refetchGraph)
-  const setShouldRegenerateRef = useRef(setShouldRegenerateLayoutOnNextRefetch)
+  const regenerateLayoutRef = useRef(regenerateLayout)
   const currentLayoutTypeRef = useRef(currentLayoutType)
 
   // Keep refs updated
   useEffect(() => {
     refetchGraphRef.current = refetchGraph
-    setShouldRegenerateRef.current = setShouldRegenerateLayoutOnNextRefetch
+    regenerateLayoutRef.current = regenerateLayout
     currentLayoutTypeRef.current = currentLayoutType
-  }, [refetchGraph, setShouldRegenerateLayoutOnNextRefetch, currentLayoutType])
+  }, [refetchGraph, regenerateLayout, currentLayoutType])
 
   useEffect(() => {
     if (!sketch_id) return
-
     const eventSource = new EventSource(
       `${API_URL}/api/events/sketch/${sketch_id}/status/stream`
     )
-
     eventSource.onmessage = (e) => {
       try {
         // Handle malformed SSE data (connection message has extra "data: " prefix)
@@ -35,39 +33,33 @@ export function useGraphRefresh(sketch_id: string | undefined) {
         if (dataStr.startsWith('data: ')) {
           dataStr = dataStr.substring(6) // Remove "data: " prefix
         }
-
         const raw = JSON.parse(dataStr) as any
-
         // Ignore connection messages
         if (raw.event === 'connected') {
           return
         }
-
         // Only process status events
         if (raw.event !== 'status') {
           return
         }
-
         const event = JSON.parse(raw.data) as any
-
         // Only handle COMPLETED events
         if (event.type === EventLevel.COMPLETED) {
           const refetch = refetchGraphRef.current
-          const setShouldRegenerate = setShouldRegenerateRef.current
+          const regenerate = regenerateLayoutRef.current
           const layoutType = currentLayoutTypeRef.current
 
           if (typeof refetch !== 'function') {
             return
           }
 
-          // Set flag to regenerate layout when new data arrives
-          if (layoutType && typeof setShouldRegenerate === 'function') {
-            setShouldRegenerate(true)
-          }
-
-          // Refetch graph data - the regeneration will happen automatically
-          // via the useEffect in graph-viewer.tsx when nodes change
-          refetch()
+          // Refetch graph data with callback to regenerate layout after
+          refetch(() => {
+            // After refetch completes, regenerate layout if we have one active
+            if (layoutType && typeof regenerate === 'function') {
+              regenerate(layoutType)
+            }
+          })
         }
       } catch (error) {
         console.error('[useGraphRefresh] Failed to parse SSE event:', error, e.data)

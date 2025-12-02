@@ -2,14 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GraphNode, GraphEdge, NodeData } from '@/types'
 import { type ActionItem } from '@/lib/action-items'
-
-export type TypeFilter = {
-  type: string
-  checked: boolean
-}
-export type Filters = {
-  types: TypeFilter[]
-}
+import { Filters, TypeFilter } from '@/types/filter'
 
 interface GraphState {
   // === Graph ===
@@ -339,20 +332,8 @@ export const useGraphStore = create<GraphState>()(
 
       // === Filters ===
       filters: {
-        types: [
-          {
-            type: 'domain',
-            checked: true
-          },
-          {
-            type: 'ip',
-            checked: true
-          },
-          {
-            type: 'individual',
-            checked: true
-          }
-        ]
+        types: [],
+        rules: [],
       },
       setFilters: (filters) => {
         const { nodes, edges } = get()

@@ -45,17 +45,19 @@ export const useGraphLayout = ({
         edges: graphData.links
       })
 
-      // Zoom to fit after layout
-      if (graphRef.current?.zoomToFit) {
-        graphRef.current.zoomToFit(400)
-      }
+      // Wait a bit for positions to be applied, then zoom to fit
+      setTimeout(() => {
+        if (graphRef.current?.zoomToFit) {
+          graphRef.current.zoomToFit(400)
+        }
+      }, 100)
     } catch (error) {
       console.error('Layout calculation failed:', error)
     } finally {
       // Keep overlay visible for smooth transition
       setTimeout(() => {
         setIsRegeneratingLayout(false)
-      }, 500)
+      }, 600)
     }
   }, [applyLayout, graphRef, graphData])
 

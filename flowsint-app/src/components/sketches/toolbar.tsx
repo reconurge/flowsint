@@ -15,14 +15,13 @@ import {
   Minus,
   RotateCw,
   ZoomIn,
-  RectangleHorizontal,
   ChevronDown,
   SquareDashed,
   Focus
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
-import Filters from './filters'
+import Filters from './filters/filters'
 import { SaveStatusIndicator } from './save-status-indicator'
 import { Separator } from '../ui/separator'
 import { ViewToggle } from './view-toggle'
@@ -126,7 +125,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     if (!confirmed) {
       return
     }
-
     try {
       regenerateLayout('force')
       toast.success('Force layout applied successfully')
@@ -204,7 +202,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={view !== 'graph' || isSelectorModeActive}
+            disabled={view !== 'graph' || isSelectorModeActive || !zoomIn}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}

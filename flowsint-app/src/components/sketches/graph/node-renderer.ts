@@ -18,7 +18,7 @@ interface NodeRenderParams {
 }
 
 // Helper to check if node is in viewport
-const isInViewport = (node: any, ctx: CanvasRenderingContext2D, margin: number = 0): boolean => {
+const isInViewport = (node: any, ctx: CanvasRenderingContext2D, margin: number = 80): boolean => {
   const transform = ctx.getTransform()
   const canvasWidth = ctx.canvas.width
   const canvasHeight = ctx.canvas.height

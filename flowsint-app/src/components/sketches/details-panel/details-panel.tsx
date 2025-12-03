@@ -19,7 +19,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
   node = nodes.find((n) => n.id === node?.id) || null
   if (!node) {
     return (
-      <div className="flex p-12 rounded-xl border flex-col items-center justify-center h-full text-center p-8">
+      <div className="flex p-12 flex-col items-center justify-center h-full text-center p-8">
         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
           <MousePointer className="h-8 w-8 text-muted-foreground" />
         </div>

@@ -12,6 +12,8 @@ import Relationships from './relationships'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../../ui/resizable'
 import { GraphNode } from '@/types'
 import { useGraphStore } from '@/stores/graph-store'
+import { Badge } from '@/components/ui/badge'
+import DOMPurify from 'dompurify'
 
 const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
   const { id: sketchId } = useParams({ strict: false })
@@ -69,7 +71,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
                 <div className="px-4 py-3 border-b border-border">
                   <div
                     className="text-sm text-muted-foreground prose dark:prose-invert prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: node.data.description }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(node.data.description) }}
                   />
                 </div>
               )}
@@ -118,8 +120,11 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
           .map(([key, value], index) => {
             let val: string | null = null
             let display: React.ReactNode = null
-
-            if (typeof value === 'boolean') {
+            if (typeof value === 'number') {
+              val = value.toString()
+              display = <StatusCodeBadge statusCode={value} />
+            }
+            else if (typeof value === 'boolean') {
               val = value.toString()
               display = value ? (
                 <Check className="h-4 w-4 text-green-600" />
@@ -170,3 +175,36 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
 }
 
 export const MemoizedKeyValueDisplay = memo(KeyValueDisplay)
+
+interface StatusCodeBadgeProps {
+  statusCode: number
+}
+export function StatusCodeBadge({ statusCode }: StatusCodeBadgeProps) {
+  const category = Math.floor(statusCode / 100)
+
+  const variants = {
+    1: 'bg-blue-100 text-blue-800 border-blue-300',
+    2: 'bg-green-100 text-green-800 border-green-300',
+    3: 'bg-purple-100 text-purple-800 border-purple-300',
+    4: 'bg-orange-100 text-orange-800 border-orange-300',
+    5: 'bg-red-100 text-red-800 border-red-300',
+  }
+
+  const labels = {
+    1: 'Informational',
+    2: 'Success',
+    3: 'Redirect',
+    4: 'Client Error',
+    5: 'Server Error',
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn("text-xs", variants[category as keyof typeof variants] || 'bg-gray-100 text-gray-800')}
+    >
+      {statusCode}
+      {/* {labels[category as keyof typeof labels]} */}
+    </Badge>
+  )
+}

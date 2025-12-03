@@ -1,5 +1,4 @@
 from typing import Optional, Self
-from flowsint_core.utils import is_root_domain
 from pydantic import Field, field_validator, model_validator
 from urllib.parse import urlparse
 import re
@@ -69,3 +68,31 @@ class Domain(FlowsintType):
             return False
 
         return True
+
+
+def is_root_domain(domain: str) -> bool:
+    try:
+        if "://" in domain:
+            parsed = urlparse(domain)
+            domain = parsed.hostname or domain
+        parts = domain.split(".")
+        common_cc_tlds = [
+            ".co.uk",
+            ".com.au",
+            ".org.uk",
+            ".net.uk",
+            ".gov.uk",
+            ".ac.uk",
+            ".co.nz",
+            ".com.sg",
+            ".co.jp",
+            ".co.kr",
+            ".com.br",
+            ".com.mx",
+        ]
+        for cc_tld in common_cc_tlds:
+            if domain.endswith(cc_tld):
+                return len(parts) == 3
+        return len(parts) == 2
+    except Exception:
+        return False

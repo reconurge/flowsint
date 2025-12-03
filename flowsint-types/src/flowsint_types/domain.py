@@ -1,4 +1,5 @@
 from typing import Optional, Self
+from flowsint_core.utils import is_root_domain
 from pydantic import Field, field_validator, model_validator
 from urllib.parse import urlparse
 import re
@@ -36,8 +37,7 @@ class Domain(FlowsintType):
 
     @model_validator(mode="after")
     def check_root(self) -> Self:
-        parts = self.domain.split(".")
-        self.root = len(parts) == 2
+        self.root = is_root_domain(self.domain)
         return self
 
     @model_validator(mode="after")
@@ -58,12 +58,14 @@ class Domain(FlowsintType):
             return False
 
         # Basic domain pattern: alphanumeric + hyphens, dots, and must have TLD
-        domain_pattern = r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+        domain_pattern = (
+            r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+        )
         if not re.match(domain_pattern, line):
             return False
 
         # Additional validation: not too many consecutive dots, no leading/trailing dots
-        if '..' in line or line.startswith('.') or line.endswith('.'):
+        if ".." in line or line.startswith(".") or line.endswith("."):
             return False
 
         return True

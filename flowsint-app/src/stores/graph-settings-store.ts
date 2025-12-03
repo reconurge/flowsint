@@ -285,7 +285,7 @@ const FORCE_PRESETS = {
     cooldownTime: 10000,
     collisionRadius: 20,
     collisionStrength: 0.8,
-    centerGravity: 0.08
+    centerGravity: 0.25
   },
   'Readable clusters': {
     d3AlphaDecay: 0.06,
@@ -367,12 +367,15 @@ type GraphGeneralSettingsStore = {
   ) => { min?: number; max?: number; step?: number } | undefined
 }
 
+// Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
+const STORAGE_VERSION = 2
+
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(
     (set, get) => ({
       // Settings state
       settings: DEFAULT_SETTINGS,
-      currentPreset: '🎯 Clusters Lisibles',
+      currentPreset: 'High Energy',
       forceSettings: DEFAULT_SETTINGS.graph,
       // UI State
       settingsModalOpen: false,
@@ -524,11 +527,42 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
     }),
     {
       name: 'graph-settings-storage',
+      version: STORAGE_VERSION,
       partialize: (state) => ({
         settings: state.settings,
         forceSettings: state.forceSettings,
         currentPreset: state.currentPreset
-      })
+      }),
+      migrate: (persistedState: any, version: number) => {
+        // If the stored version is older than current, merge with new defaults
+        if (version < STORAGE_VERSION) {
+          console.log(`[Migration] Upgrading storage from v${version} to v${STORAGE_VERSION}`)
+
+          // Deep merge function to preserve user values while adding new defaults
+          const deepMerge = (target: any, source: any): any => {
+            const result = { ...target }
+
+            for (const key in source) {
+              if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                result[key] = deepMerge(target[key] || {}, source[key])
+              } else if (!(key in target)) {
+                // Only add if the key doesn't exist in target (preserves user settings)
+                result[key] = source[key]
+              }
+            }
+
+            return result
+          }
+
+          return {
+            ...persistedState,
+            settings: deepMerge(persistedState.settings || {}, DEFAULT_SETTINGS),
+            forceSettings: deepMerge(persistedState.forceSettings || {}, DEFAULT_SETTINGS.graph)
+          }
+        }
+
+        return persistedState
+      }
     }
   )
 )

@@ -234,7 +234,7 @@ export const useGraphStore = create<GraphState>()(
       },
       setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
       setSelectedEdges: (edges) => set({ selectedEdges: edges }),
-      clearSelectedNodes: () => set({ selectedNodes: [], currentNode: null }),
+      clearSelectedNodes: () => set({ selectedNodes: [] }),
       clearSelectedEdges: () => set({ selectedEdges: [] }),
       toggleNodeSelection: (node, multiSelect = false) => {
         const { selectedNodes, currentNode } = get()

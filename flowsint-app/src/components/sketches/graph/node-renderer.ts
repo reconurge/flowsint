@@ -64,7 +64,7 @@ export const renderNode = ({
     ? baseSize
     : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
 
-  const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id)
+  const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id) || isCurrent(node.id)
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
   const isHovered = hoverNode === node.id || isCurrent(node.id)
 

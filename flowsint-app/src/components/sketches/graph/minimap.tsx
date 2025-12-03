@@ -134,7 +134,7 @@ const MinimapCanvas = ({
         ctx.fillStyle = 'rgba(255, 115, 0, 0.1)'
         ctx.lineWidth = 1.4
         ctx.beginPath()
-        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 4)
+        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 2)
         ctx.fill()
         ctx.stroke()
 

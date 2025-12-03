@@ -12,6 +12,7 @@ const GraphMain = () => {
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
+  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const clearSelectedEdges = useGraphStore((s) => s.clearSelectedEdges)
   const setCurrentEdge = useGraphStore((s) => s.setCurrentEdge)
@@ -27,19 +28,25 @@ const GraphMain = () => {
   const handleNodeClick = useCallback(
     (node: any, event: MouseEvent) => {
       const isMultiSelect = event.ctrlKey || event.shiftKey
-      toggleNodeSelection(node, isMultiSelect)
+      if (isMultiSelect) {
+        toggleNodeSelection(node, true)
+      } else {
+        setCurrentNode(node)
+        clearSelectedNodes()
+      }
     },
-    [toggleNodeSelection]
+    [toggleNodeSelection, setCurrentNode, clearSelectedNodes]
   )
 
   const handleBackgroundClick = useCallback(() => {
+    setCurrentNode(null)
     clearSelectedNodes()
     clearSelectedEdges()
     setCurrentEdge(null)
     setNodeMenu(null)
     setEdgeMenu(null)
     setBackgroundMenu(null)
-  }, [clearSelectedNodes, clearSelectedEdges, setCurrentEdge])
+  }, [setCurrentNode, clearSelectedNodes, clearSelectedEdges, setCurrentEdge])
 
   const onNodeContextMenu = useCallback((node: any, event: MouseEvent) => {
     if (!containerRef.current || !node) return

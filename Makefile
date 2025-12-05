@@ -10,14 +10,14 @@ open-browser:
 	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Flowsint ready at http://localhost:5173"
 
 dev:
-	@echo "🚀 Starting Flowsint in DEVELOPMENT mode..."
+	@echo "🐙 Starting Flowsint in DEVELOPMENT mode..."
 	$(MAKE) check-env
 	docker compose -f docker-compose.dev.yml up --build -d
 	$(MAKE) open-browser
 	docker compose -f docker-compose.dev.yml logs -f
 
 prod:
-	@echo "🚀 Starting Flowsint in PRODUCTION mode..."
+	@echo "🐙 Starting Flowsint in PRODUCTION mode..."
 	$(MAKE) check-env
 	docker compose -f docker-compose.prod.yml up --build -d
 	$(MAKE) open-browser
@@ -50,7 +50,7 @@ test:
 	cd $(PROJECT_ROOT)/flowsint-enrichers && poetry run pytest
 
 install:
-	@echo "🚀 Installing Flowsint project modules..."
+	@echo "🐙 Installing Flowsint project modules..."
 	@if ! command -v poetry >/dev/null 2>&1; then \
 		echo "⚠️ Poetry is not installed. Please install it:"; \
 		echo "pipx install poetry"; \
@@ -73,7 +73,7 @@ api:
 	cd $(PROJECT_ROOT)/flowsint-api && poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 frontend:
-	@echo "🚀 Starting frontend and opening browser..."
+	@echo "🐙 Starting frontend and opening browser..."
 	@docker compose up -d flowsint-app
 	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done; open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Frontend ready at http://localhost:5173"'
 
@@ -84,7 +84,7 @@ celery:
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
 
 run:
-	@echo "🚀 Starting all services..."
+	@echo "🐙 Starting all services..."
 	docker compose up -d
 	@echo "⏳ Waiting for frontend to be ready..."
 	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'

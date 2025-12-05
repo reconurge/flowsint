@@ -26,7 +26,7 @@ class GraphSerializer:
         - Nested objects (flattened with prefixed keys)
         - Lists (converted to primitive types)
         - Dictionaries (flattened with prefixed keys)
-        - None values (converted to empty strings)
+        - None values (skipped)
 
         Args:
             properties: Dictionary of properties to serialize
@@ -37,6 +37,8 @@ class GraphSerializer:
         serialized = {}
 
         for key, value in properties.items():
+            if key is None:
+                continue
             if value is None:
                 serialized[key] = ""
             elif GraphSerializer._is_pydantic_model(value):
@@ -84,21 +86,24 @@ class GraphSerializer:
 
         # Try Pydantic v2 first, then v1
         if hasattr(model, "model_dump"):
-            data = model.model_dump()
+            data = model.model_dump(mode="json")
         elif hasattr(model, "dict"):
             data = model.dict()
         else:
             # Fallback to __dict__
-            data = model.__dict__
+            data = {k: v for k, v in model.__dict__.items() if k is not None}
 
         for nested_key, nested_value in data.items():
-            if nested_value is not None:
-                new_key = f"{prefix}_{nested_key}"
-                if isinstance(nested_value, (str, int, float, bool)):
-                    flattened[new_key] = nested_value
-                else:
-                    # Recursively handle nested complex types
-                    flattened[new_key] = str(nested_value)
+            if nested_key is None:
+                continue
+            new_key = f"{prefix}_{nested_key}"
+            if nested_value is None:
+                flattened[new_key] = ""
+            elif isinstance(nested_value, (str, int, float, bool)):
+                flattened[new_key] = nested_value
+            else:
+                # Recursively handle nested complex types
+                flattened[new_key] = str(nested_value)
 
         return flattened
 
@@ -117,12 +122,15 @@ class GraphSerializer:
         flattened = {}
 
         for dict_key, dict_value in data.items():
-            if dict_value is not None:
-                new_key = f"{prefix}_{dict_key}"
-                if isinstance(dict_value, (str, int, float, bool)):
-                    flattened[new_key] = dict_value
-                else:
-                    flattened[new_key] = str(dict_value)
+            if dict_key is None:
+                continue
+            new_key = f"{prefix}_{dict_key}"
+            if dict_value is None:
+                flattened[new_key] = ""
+            elif isinstance(dict_value, (str, int, float, bool)):
+                flattened[new_key] = dict_value
+            else:
+                flattened[new_key] = str(dict_value)
 
         return flattened
 

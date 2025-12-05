@@ -8,6 +8,7 @@ from .vault import VaultProtocol
 from .graph_service import GraphService, create_graph_service
 from ..utils import resolve_type
 
+
 class InvalidEnricherParams(Exception):
     pass
 
@@ -413,9 +414,7 @@ class Enricher(ABC):
 
     async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
         if self.name() != "enricher_orchestrator":
-            Logger.info(
-                self.sketch_id, {"message": f"Enricher {self.name()} started."}
-            )
+            Logger.info(self.sketch_id, {"message": f"Enricher {self.name()} started."})
         try:
             await self.async_init()
             preprocessed = self.preprocess(values)
@@ -440,14 +439,9 @@ class Enricher(ABC):
                 )
             return []
 
-    def create_node(
-        self, node_type_or_obj, key_prop=None, key_value=None, **properties
-    ) -> None:
+    def create_node(self, node_obj, **properties) -> None:
         """
         Create a single Neo4j node.
-
-        This method now uses the GraphService for improved performance and
-        better separation of concerns.
 
         The following properties are automatically added to every node:
         - type: Lowercase version of node_type
@@ -455,225 +449,40 @@ class Enricher(ABC):
         - label: Automatically computed by FlowsintType, or defaults to key_value if not provided
         - created_at: ISO 8601 UTC timestamp (only on creation, not updates)
 
-        Best Practice - Use Pydantic object directly:
-            The simplest way is to pass a Pydantic object directly. The node type,
-            key property, and key value are automatically inferred:
-
+        Use Pydantic object directly:
             ```python
-            # Best: pass the Pydantic object directly
             self.create_node(ip)
-
-            # Also good if you need to override properties
-            self.create_node(domain, type="subdomain")
             ```
 
         Args:
-            node_type_or_obj: Either a Pydantic object (FlowsintType), or node label string (e.g., "domain", "ip")
-            key_prop: Property name used as unique identifier (optional if passing Pydantic object)
-            key_value: Value of the key property (optional if passing Pydantic object)
-            **properties: Additional node properties or property overrides
-
-        Note:
-            Uses MERGE semantics - if a node with the same (key_prop, sketch_id)
-            exists, it will be updated. The created_at field is only set on creation.
+            node_obj: Either a Pydantic object or node label string
+            **properties: Additional node properties or overrides
         """
-        # Check if first argument is a Pydantic object
-        if isinstance(node_type_or_obj, BaseModel):
-            obj = node_type_or_obj
-
-            # Infer node_type from class name (e.g., Ip -> "ip", Domain -> "domain")
-            node_type = obj.__class__.__name__.lower()
-
-            # Get the primary field and its value
-            primary_field = self._get_primary_field(obj)
-            key_prop = primary_field
-            key_value = getattr(obj, primary_field)
-
-            # If key_value is itself a Pydantic model, extract its primary value
-            if isinstance(key_value, BaseModel):
-                key_value = self._extract_primary_value(key_value)
-
-            # Merge object properties with any overrides, but skip nested Pydantic objects
-            # Use model_dump(mode="json") to properly serialize Pydantic types (e.g., HttpUrl)
-            obj_dict = obj.model_dump(mode="json") if hasattr(obj, "model_dump") else obj.dict()
-            obj_properties = {}
-            for k, v in obj_dict.items():
-                # Skip nested Pydantic objects (represented as dicts after model_dump)
-                if not isinstance(v, dict):
-                    obj_properties[k] = v
-            obj_properties.update(properties)
-            properties = obj_properties
-        else:
-            # Legacy signature: node_type_or_obj is the node_type string
-            node_type = node_type_or_obj
-
-        self._graph_service.create_node(
-            node_type=node_type, key_prop=key_prop, key_value=key_value, **properties
-        )
-
-    def _serialize_properties(self, properties: dict) -> dict:
-        """
-        Convert properties to Neo4j-compatible values.
-
-        DEPRECATED: This method is kept for backward compatibility.
-        New code should use GraphSerializer directly.
-
-        Args:
-            properties: Dictionary of properties to serialize
-
-        Returns:
-            Dictionary of serialized properties
-        """
-        from .graph_serializer import GraphSerializer
-
-        return GraphSerializer.serialize_properties(properties)
+        self._graph_service.create_node(node_obj=node_obj, **properties)
 
     def create_relationship(
         self,
-        from_type_or_obj,
-        from_key_or_to_obj,
-        from_value_or_rel_type=None,
-        to_type=None,
-        to_key=None,
-        to_value=None,
-        rel_type=None,
+        from_obj,
+        to_obj,
+        rel_label="IS_RELATED_TO",
     ) -> None:
         """
         Create a relationship between two nodes.
 
-        This method now uses the GraphService for improved performance and
-        better separation of concerns.
-
         Best Practice - Use Pydantic objects directly:
-            The simplest way is to pass two Pydantic objects and the relationship type:
-
             ```python
-            # Best: pass Pydantic objects directly
             self.create_relationship(individual, domain, "HAS_DOMAIN")
             self.create_relationship(email, breach, "FOUND_IN_BREACH")
             ```
 
-        Legacy Usage:
-            You can still use the explicit signature for backward compatibility:
-
-            ```python
-            # Legacy: explicit signature
-            self.create_relationship(
-                "individual", "full_name", individual.full_name,
-                "domain", "domain", domain_name,
-                "HAS_DOMAIN"
-            )
-            ```
-
         Args:
-            from_type_or_obj: Either a Pydantic object (source node) or source node label string
-            from_key_or_to_obj: Either a Pydantic object (target node) or source node key property
-            from_value_or_rel_type: Either relationship type string (if using objects) or source node key value
-            to_type: Target node label (only for legacy signature)
-            to_key: Target node key property (only for legacy signature)
-            to_value: Target node key value (only for legacy signature)
-            rel_type: Relationship type (only for legacy signature)
+            from_obj: Either a Pydantic object (source) or source node label
+            to_obj: Either a Pydantic object (target) or source node key property
+            rel_label: Either relationship type (Pydantic) or source node key value
         """
-        # Check if using new signature (Pydantic objects)
-        if isinstance(from_type_or_obj, BaseModel) and isinstance(from_key_or_to_obj, BaseModel):
-            from_obj = from_type_or_obj
-            to_obj = from_key_or_to_obj
-            relationship_type = from_value_or_rel_type
-
-            # Extract from_node info
-            from_node_type = from_obj.__class__.__name__.lower()
-            from_primary_field = self._get_primary_field(from_obj)
-
-            # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
-            from_obj_dict = from_obj.model_dump(mode="json") if hasattr(from_obj, "model_dump") else from_obj.dict()
-            from_key_value = from_obj_dict.get(from_primary_field)
-
-            # If key_value is still a dict (nested Pydantic model), extract its primary value
-            if isinstance(from_key_value, dict):
-                # Get the raw nested object to extract its primary value
-                nested_obj = getattr(from_obj, from_primary_field)
-                if isinstance(nested_obj, BaseModel):
-                    from_key_value = self._extract_primary_value(nested_obj)
-
-            # Extract to_node info
-            to_node_type = to_obj.__class__.__name__.lower()
-            to_primary_field = self._get_primary_field(to_obj)
-
-            # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
-            to_obj_dict = to_obj.model_dump(mode="json") if hasattr(to_obj, "model_dump") else to_obj.dict()
-            to_key_value = to_obj_dict.get(to_primary_field)
-
-            # If key_value is still a dict (nested Pydantic model), extract its primary value
-            if isinstance(to_key_value, dict):
-                # Get the raw nested object to extract its primary value
-                nested_obj = getattr(to_obj, to_primary_field)
-                if isinstance(nested_obj, BaseModel):
-                    to_key_value = self._extract_primary_value(nested_obj)
-
-            self._graph_service.create_relationship(
-                from_type=from_node_type,
-                from_key=from_primary_field,
-                from_value=from_key_value,
-                to_type=to_node_type,
-                to_key=to_primary_field,
-                to_value=to_key_value,
-                rel_type=relationship_type,
-            )
-        else:
-            # Legacy signature
-            self._graph_service.create_relationship(
-                from_type=from_type_or_obj,
-                from_key=from_key_or_to_obj,
-                from_value=from_value_or_rel_type,
-                to_type=to_type,
-                to_key=to_key,
-                to_value=to_value,
-                rel_type=rel_type,
-            )
-
-    def _get_primary_field(self, obj: BaseModel) -> str:
-        """Helper method to get the primary field of a Pydantic object."""
-        # Access model_fields from the class, not the instance
-        model_fields = obj.__class__.model_fields
-
-        # Find the primary field (marked with json_schema_extra={"primary": True})
-        primary_field = None
-        for field_name, field_info in model_fields.items():
-            if field_info.json_schema_extra and field_info.json_schema_extra.get("primary"):
-                primary_field = field_name
-                break
-
-        # Fallback: use first required field or first field
-        if primary_field is None:
-            for field_name, field_info in model_fields.items():
-                if field_info.is_required():
-                    primary_field = field_name
-                    break
-            if primary_field is None:
-                primary_field = next(iter(model_fields.keys()))
-
-        return primary_field
-
-    def _extract_primary_value(self, obj: BaseModel) -> Any:
-        """
-        Extract the primitive value from a Pydantic object recursively.
-        If the primary field is itself a Pydantic object, recursively extract its primary value.
-        Uses model_dump to properly serialize Pydantic types like HttpUrl.
-        """
-        primary_field = self._get_primary_field(obj)
-
-        # Use model_dump to properly serialize Pydantic types (e.g., HttpUrl)
-        obj_dict = obj.model_dump(mode="json") if hasattr(obj, "model_dump") else obj.dict()
-        value = obj_dict.get(primary_field)
-
-        # If the value is still a dict (nested Pydantic model), recursively extract
-        if isinstance(value, dict):
-            # Get the raw nested object to recursively extract
-            nested_obj = getattr(obj, primary_field)
-            if isinstance(nested_obj, BaseModel):
-                return self._extract_primary_value(nested_obj)
-
-        return value
+        self._graph_service.create_relationship(
+            from_obj=from_obj, to_obj=to_obj, rel_label=rel_label
+        )
 
     def log_graph_message(self, message: str) -> None:
         """

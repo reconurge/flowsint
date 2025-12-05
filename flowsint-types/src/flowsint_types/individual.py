@@ -411,6 +411,7 @@ class Individual(FlowsintType):
             self.label = self.first_name
         elif self.last_name:
             self.label = self.last_name
+        self.full_name = self.label
         return self
 
     @classmethod

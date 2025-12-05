@@ -13,14 +13,16 @@ class Username(FlowsintType):
         ...,
         description="Username or handle string",
         title="Username value",
-        json_schema_extra={"primary": True}
+        json_schema_extra={"primary": True},
     )
-    platform: Optional[str] = Field(None, description="Platform name, e.g., 'twitter'", title="Username platform")
+    platform: Optional[str] = Field(
+        None, description="Platform name, e.g., 'twitter'", title="Username platform"
+    )
     last_seen: Optional[str] = Field(
         None, description="Last time this username was observed", title="Last seen at"
     )
 
-    @field_validator('value')
+    @field_validator("value")
     @classmethod
     def validate_username(cls, v: str) -> str:
         """Validate username format.
@@ -31,13 +33,15 @@ class Username(FlowsintType):
         - Underscores (_)
         - Hyphens (-)
         """
+        if v.startswith("@"):
+            v = v[1:] # We remove it
         if not re.match(r"^[a-zA-Z0-9_-]{3,80}$", v):
             raise ValueError(
                 f"Invalid username: {v}. Must be 3-80 characters and contain only letters, numbers, underscores, and hyphens."
             )
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.label = f"{self.value}"
         return self

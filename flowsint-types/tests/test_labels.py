@@ -1,8 +1,21 @@
 from flowsint_types import (
-    Domain, Ip, Individual, Email, Phone, Organization,
-    Username, Credential, CryptoWallet, CryptoNFT,
-    CryptoWalletTransaction, SocialAccount, Website,
-    Port, CIDR, ASN, Location
+    Domain,
+    Ip,
+    Individual,
+    Email,
+    Phone,
+    Organization,
+    Username,
+    Credential,
+    CryptoWallet,
+    CryptoNFT,
+    CryptoWalletTransaction,
+    SocialAccount,
+    Website,
+    Port,
+    CIDR,
+    ASN,
+    Location,
 )
 
 
@@ -19,6 +32,7 @@ def test_domain_label():
 def test_individual_label():
     individual = Individual(first_name="John", last_name="Doe")
     assert individual.label == "John Doe"
+    assert individual.full_name == "John Doe"
 
 
 def test_email_label():
@@ -52,6 +66,10 @@ def test_organization_label_with_nom_raison_sociale():
 def test_username_label():
     username = Username(value="johndoe")
     assert username.label == "johndoe"
+    
+def test_username_label_2():
+    username = Username(value="@johndoe")
+    assert username.label == "johndoe"
 
 
 def test_credential_label():
@@ -77,7 +95,7 @@ def test_crypto_nft_label_with_name():
         wallet=wallet,
         contract_address="0x123d35Cc6634C0532925a3b844Bc454e4438f123",
         token_id="1234",
-        name="Cool NFT"
+        name="Cool NFT",
     )
     assert nft.label == "Cool NFT"
 
@@ -88,7 +106,7 @@ def test_crypto_nft_label_with_collection():
         wallet=wallet,
         contract_address="0x123d35Cc6634C0532925a3b844Bc454e4438f123",
         token_id="1234",
-        collection_name="Bored Apes"
+        collection_name="Bored Apes",
     )
     assert nft.label == "Bored Apes #1234"
 
@@ -98,27 +116,21 @@ def test_crypto_nft_label_fallback_uid():
     nft = CryptoNFT(
         wallet=wallet,
         contract_address="0x123d35Cc6634C0532925a3b844Bc454e4438f123",
-        token_id="1234"
+        token_id="1234",
     )
     assert nft.label == "0x123d35Cc6634C0532925a3b844Bc454e4438f123:1234"
 
 
 def test_crypto_wallet_transaction_label_with_hash():
     source_wallet = CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
-    transaction = CryptoWalletTransaction(
-        source=source_wallet,
-        hash="0xabc123def456"
-    )
+    transaction = CryptoWalletTransaction(source=source_wallet, hash="0xabc123def456")
     assert transaction.label == "0xabc123def456"
 
 
 def test_crypto_wallet_transaction_label_with_source_and_target():
     source_wallet = CryptoWallet(address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
     target_wallet = CryptoWallet(address="0x123d35Cc6634C0532925a3b844Bc454e4438f123")
-    transaction = CryptoWalletTransaction(
-        source=source_wallet,
-        target=target_wallet
-    )
+    transaction = CryptoWalletTransaction(source=source_wallet, target=target_wallet)
     assert transaction.label == "Transaction from 0x742d35... to 0x123d35..."
 
 
@@ -131,19 +143,14 @@ def test_crypto_wallet_transaction_label_source_only():
 def test_social_account_label_with_display_name():
     username = Username(value="johndoe")
     account = SocialAccount(
-        username=username,
-        display_name="John Doe",
-        platform="twitter"
+        username=username, display_name="John Doe", platform="twitter"
     )
     assert account.label == "John Doe (@johndoe)"
 
 
 def test_social_account_label_without_display_name():
     username = Username(value="johndoe")
-    account = SocialAccount(
-        username=username,
-        platform="twitter"
-    )
+    account = SocialAccount(username=username, platform="twitter")
     assert account.label == "@johndoe"
 
 
@@ -187,9 +194,6 @@ def test_asn_label_without_name():
 
 def test_location_label():
     location = Location(
-        address="123 Main St",
-        city="Paris",
-        country="France",
-        zip="75001"
+        address="123 Main St", city="Paris", country="France", zip="75001"
     )
     assert location.label == "123 Main St, Paris, France"

@@ -35,9 +35,11 @@ def mock_db_session():
 @pytest.fixture
 def mock_get_db(mock_db_session):
     """Mock the get_db generator."""
-    with patch('flowsint_core.core.logger.get_db') as mock:
-        mock.return_value = iter([mock_db_session])
-        yield mock
+    def mock_generator():
+        yield mock_db_session
+
+    with patch('flowsint_core.core.logger.get_db', mock_generator):
+        yield mock_generator
 
 
 @pytest.fixture

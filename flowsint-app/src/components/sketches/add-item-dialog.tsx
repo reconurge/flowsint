@@ -32,11 +32,9 @@ export default function AddItemDialog() {
   const setOpenFormDialog = useGraphStore((state) => state.setOpenFormDialog)
   const addNode = useGraphStore((state) => state.addNode)
   const addEdge = useGraphStore((state) => state.addEdge)
-  const replaceNodeId = useGraphStore((state) => state.replaceNodeId)
+  const replaceNode = useGraphStore((state) => state.replaceNode)
   const setActiveTab = useLayoutStore((state) => state.setActiveTab)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
-  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
-  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
   const getViewportCenter = useGraphControls((s) => s.getViewportCenter)
 
   const { id: sketch_id } = useParams({ strict: false })
@@ -148,10 +146,8 @@ export default function AddItemDialog() {
         sketch_id as string,
         JSON.stringify(newNode)
       )
-      if (newNodeResponse.node && replaceNodeId) {
-        // Replace the temporary ID with the real ID from the API
-        replaceNodeId(tempId, newNodeResponse.node.id)
-        // If we have a related node, create the edge with the real ID
+      if (newNodeResponse.node && replaceNode) {
+        replaceNode(tempId, newNodeResponse.node.data)
         if (relatedNodeToAdd && tempEdgeId) {
           const relationPayload = {
             source: relatedNodeToAdd.id,

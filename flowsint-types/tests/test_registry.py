@@ -1,4 +1,4 @@
-from flowsint_types import Domain, Ip, get_type
+from flowsint_types import Domain, Individual, Ip, get_type
 from flowsint_types.registry import TYPE_REGISTRY
 
 

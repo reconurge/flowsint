@@ -5,8 +5,9 @@ This module provides a service layer for graph operations,
 integrating repository and logging functionality.
 """
 
-from typing import Dict, Any, Optional, Protocol
+from typing import Dict, Any, Optional, Protocol, Union
 from uuid import UUID
+from pydantic import BaseModel
 from .graph_repository import GraphRepository
 from .graph_db import Neo4jConnection
 
@@ -33,7 +34,7 @@ class GraphService:
         sketch_id: str,
         neo4j_connection: Optional[Neo4jConnection] = None,
         logger: Optional[LoggerProtocol] = None,
-        enable_batching: bool = True
+        enable_batching: bool = True,
     ):
         """
         Initialize the graph service.
@@ -59,94 +60,66 @@ class GraphService:
         """Get the underlying repository."""
         return self._repository
 
-    def create_node(
-        self,
-        node_type: str,
-        key_prop: str,
-        key_value: str,
-        **properties: Any
-    ) -> None:
+    def create_node(self, node_obj: BaseModel, **properties: Any) -> None:
         """
         Create or update a node in the graph.
 
-        Automatically adds the following properties:
-        - type: Lowercase version of node_type
-        - sketch_id: Current sketch ID
-        - label: Defaults to key_value if not provided
-        - created_at: ISO 8601 UTC timestamp (only on creation via ON CREATE SET)
+        Supports one signatures:
+         - Pydantic object: create_node(obj, **overrides)
 
         Args:
-            node_type: Node label (e.g., "domain", "ip")
-            key_prop: Property name used as unique identifier
-            key_value: Value of the key property
-            **properties: Additional node properties
+            from_obj: a Pydantic object
+            **properties: Additional node properties or overrides
         """
         if self._enable_batching:
             self._repository.add_to_batch(
                 "node",
-                node_type=node_type,
-                key_prop=key_prop,
-                key_value=key_value,
+                node_obj=node_obj,
                 sketch_id=self._sketch_id,
-                **properties
+                **properties,
             )
         else:
             self._repository.create_node(
-                node_type=node_type,
-                key_prop=key_prop,
-                key_value=key_value,
+                node_obj=node_obj,
                 sketch_id=self._sketch_id,
-                **properties
+                **properties,
             )
 
     def create_relationship(
         self,
-        from_type: str,
-        from_key: str,
-        from_value: str,
-        to_type: str,
-        to_key: str,
-        to_value: str,
-        rel_type: str,
-        **properties: Any
+        from_obj: BaseModel,
+        to_obj: BaseModel,
+        rel_label: Optional[str] = None,
+        **properties: Any,
     ) -> None:
         """
         Create a relationship between two nodes.
 
+        Supports 1 signature:
+         - Pydantic objects: create_relationship(obj1, obj2, "REL_TYPE")
+
         Args:
-            from_type: Source node label
-            from_key: Source node key property
-            from_value: Source node key value
-            to_type: Target node label
-            to_key: Target node key property
-            to_value: Target node key value
-            rel_type: Relationship type
+            from_obj: Either a Pydantic object (source)
+            to_obj: Either a Pydantic object (target)
+            rel_label: Relationship label (ex: "IS_CONNECTED_TO")
             **properties: Additional relationship properties
         """
         if self._enable_batching:
             self._repository.add_to_batch(
                 "relationship",
-                from_type=from_type,
-                from_key=from_key,
-                from_value=from_value,
-                to_type=to_type,
-                to_key=to_key,
-                to_value=to_value,
-                rel_type=rel_type,
+                from_obj=from_obj,
+                to_obj=to_obj,
+                rel_label=rel_label,
                 sketch_id=self._sketch_id,
-                **properties
+                **properties,
             )
         else:
             self._repository.create_relationship(
-                from_type=from_type,
-                from_key=from_key,
-                from_value=from_value,
-                to_type=to_type,
-                to_key=to_key,
-                to_value=to_value,
-                rel_type=rel_type,
+                from_obj=from_obj,
+                to_obj=to_obj,
+                rel_label=rel_label,
                 sketch_id=self._sketch_id,
-                **properties
+                **properties,
             )
 
     def log_graph_message(self, message: str) -> None:
@@ -199,7 +172,7 @@ class GraphService:
 def create_graph_service(
     sketch_id: str,
     neo4j_connection: Optional[Neo4jConnection] = None,
-    enable_batching: bool = True
+    enable_batching: bool = True,
 ) -> GraphService:
     """
     Factory function to create a GraphService instance.
@@ -219,5 +192,5 @@ def create_graph_service(
         sketch_id=sketch_id,
         neo4j_connection=neo4j_connection,
         logger=Logger,
-        enable_batching=enable_batching
+        enable_batching=enable_batching,
     )

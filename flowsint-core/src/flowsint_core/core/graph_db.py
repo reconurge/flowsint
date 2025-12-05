@@ -91,8 +91,16 @@ class Neo4jConnection:
             List of result records as dictionaries
         """
         with self._driver.session() as session:
-            result = session.run(query, parameters or {})
+            cleaned_params = self._clean_parameters(parameters)
+            result = session.run(query, cleaned_params)
             return result.data()
+
+    @staticmethod
+    def _clean_parameters(parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove None keys from parameters dict to avoid Neo4j errors."""
+        if not parameters:
+            return {}
+        return {k: v for k, v in parameters.items() if k is not None}
 
     def execute_write(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """
@@ -106,7 +114,8 @@ class Neo4jConnection:
             List of result records as dictionaries
         """
         def _execute(tx):
-            result = tx.run(query, parameters or {})
+            cleaned_params = self._clean_parameters(parameters)
+            result = tx.run(query, cleaned_params)
             return result.data()
 
         with self._driver.session() as session:
@@ -121,7 +130,8 @@ class Neo4jConnection:
         """
         def _execute_batch(tx):
             for query, params in queries:
-                tx.run(query, params or {})
+                cleaned_params = self._clean_parameters(params)
+                tx.run(query, cleaned_params)
 
         with self._driver.session() as session:
             session.execute_write(_execute_batch)

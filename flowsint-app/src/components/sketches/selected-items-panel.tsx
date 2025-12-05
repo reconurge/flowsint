@@ -116,7 +116,7 @@ const ActionBar = () => {
       {
         loading: `Deleting ${selectedNodes.length} node(s)...`,
         success: 'Nodes deleted successfully.',
-        error: 'Failed to delete selectedNodes.'
+        error: 'Failed to delete selected nodes.'
       }
     )
   }, [selectedNodes, confirm, removeNodes, clearSelectedNodes, sketchId])

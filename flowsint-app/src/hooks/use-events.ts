@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { logService } from '@/api/log-service'
 import { queryKeys } from '@/api/query-keys'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || ""
 
 
 export function useEvents(sketch_id: string | undefined) {

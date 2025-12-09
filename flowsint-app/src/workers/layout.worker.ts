@@ -64,17 +64,15 @@ function computeDagreLayout(
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
-  // Configure dagre with proper spacing
   g.setGraph({
     rankdir: "TB",
     ranker: "tight-tree",
-    nodesep: 20,
-    ranksep: 40,
+    nodesep: 5,
+    ranksep: 5,
   })
 
-  // Set node dimensions (height includes space for label below node)
-  const nodeWidth = 10
-  const nodeHeight = 50  // Increased from 20 to account for label space
+  const nodeWidth = 12
+  const nodeHeight = 8
 
   nodes.forEach((node) =>
     g.setNode(node.id, {

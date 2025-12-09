@@ -40,9 +40,8 @@ const FormField: React.FC<FormFieldProps> = ({
         id={name}
         type={type}
         placeholder={placeholder}
-        className={`mt-1 block w-full px-3 py-2 border ${
-          fieldError ? 'border-red-300' : 'border-border'
-        } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
+        className={`mt-1 block w-full px-3 py-2 border ${fieldError ? 'border-red-300' : 'border-border'
+          } rounded-md placeholder-gray-400 focus:outline-none sm:text-sm`}
         {...(register ? register(name, registerOptions) : {})}
         {...rest}
       />

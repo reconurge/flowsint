@@ -67,7 +67,7 @@ function Register() {
               </div>
             )}
 
-            <div className="rounded-md shadow-sm space-y-4">
+            <div className="space-y-4">
               <FormField name="username" label="Username" />
               <FormField name="email" label="Email" type="email" />
               <FormField name="password" label="Password" type="password" />

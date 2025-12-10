@@ -1,5 +1,5 @@
-from pydantic import Field, model_validator
-from typing import Optional, List, Self
+from pydantic import Field, model_validator, field_validator
+from typing import Optional, List, Self, Union
 from .username import Username
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type

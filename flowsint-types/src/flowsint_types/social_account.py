@@ -16,6 +16,14 @@ class SocialAccount(FlowsintType):
         json_schema_extra={"primary": True}
     )
     username: Username = Field(..., description="Username associated with this account", title="Username")
+
+    @field_validator('username', mode='before')
+    @classmethod
+    def convert_username(cls, v: Union[str, Username]) -> Username:
+        """Convert string to Username object if needed."""
+        if isinstance(v, str):
+            return Username(value=v)
+        return v
     display_name: Optional[str] = Field(None, description="Display name or full name on the profile", title="Display name")
     profile_url: Optional[str] = Field(None, description="URL to the account profile page", title="Profile URL")
     profile_picture_url: Optional[str] = Field(None, description="URL to the profile avatar/picture", title="Image URL")

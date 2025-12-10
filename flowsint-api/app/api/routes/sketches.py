@@ -284,15 +284,25 @@ def add_node(
     if not element_id:
         raise HTTPException(status_code=400, detail="Node creation failed")
 
-    pydantic_data = pydantic_obj.model_dump(mode="json")
-    pydantic_data["id"] = element_id
-    pydantic_data["type"] = node_type
+    obj_dict = (
+        pydantic_obj.model_dump(mode="json")
+        if hasattr(pydantic_obj, "model_dump")
+        else pydantic_obj.dict()
+    )
+    # Extract only non-dict values, skip None keys
+    obj_properties = {
+        k: (v if v is not None else "")
+        for k, v in obj_dict.items()
+        if k is not None and not isinstance(v, dict)
+    }
+    obj_properties["id"] = element_id
+    obj_properties["type"] = node_type
 
     return {
         "status": "node added",
         "node": {
             "id": element_id,
-            "data": pydantic_data,
+            "data": obj_properties,
         },
     }
 

@@ -131,6 +131,9 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
               ) : (
                 <X className="h-4 w-4 text-red-600" />
               )
+            } else if (typeof value === 'object') {
+              val = value?.["label"] ?? "N/A"
+              display = val
             } else if (Array.isArray(value)) {
               val = `${value.length} items`
               display = val

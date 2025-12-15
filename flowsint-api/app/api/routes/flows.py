@@ -37,6 +37,7 @@ from flowsint_types import (
     Website,
     Individual,
     Port,
+    DNSRecord
 )
 
 
@@ -133,6 +134,7 @@ async def get_material_list():
         extract_input_schema_flow(Domain),
         extract_input_schema_flow(Website),
         extract_input_schema_flow(Ip),
+        extract_input_schema_flow(DNSRecord),
         extract_input_schema_flow(Port),
         extract_input_schema_flow(Phone),
         extract_input_schema_flow(ASN),

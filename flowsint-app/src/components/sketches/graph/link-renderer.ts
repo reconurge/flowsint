@@ -90,8 +90,13 @@ export const renderLink = ({
   const isSelected = selectedEdges.some((e) => e.id === link.id)
   const isCurrent = currentEdge?.id === link.id
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
-  const linkWidth = forceSettings?.linkWidth?.value ?? 2
+  let linkWidthBase = forceSettings?.linkWidth?.value ?? 2
   const nodeSize = forceSettings?.nodeSize?.value ?? 14
+  const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
+
+  const linkWidth = shouldRenderDetails
+    ? linkWidthBase
+    : linkWidthBase * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
 
   let strokeStyle: string
   let lineWidth: number
@@ -119,13 +124,39 @@ export const renderLink = ({
     lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
   }
 
+  // Calculate node radii to stop links at node edges
+  const calculateNodeRadius = (node: any) => {
+    const sizeMultiplier = nodeSize / 100 + 0.2
+    const neighborBonus = Math.min(node.neighbors?.length / 5 || 0, 5)
+    const baseSize = (node.nodeSize + neighborBonus) * sizeMultiplier
+    return shouldRenderDetails
+      ? baseSize
+      : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  }
+
+  const startRadius = calculateNodeRadius(start)
+  const endRadius = calculateNodeRadius(end)
+
+  const arrowLengthSetting = forceSettings?.linkDirectionalArrowLength?.value
+  const arrowLength =
+    shouldRenderDetails ? arrowLengthSetting : arrowLengthSetting * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+
   // Draw connection line
   const curvature: number = link.curvature || 0
   const dx = end.x - start.x
   const dy = end.y - start.y
   const distance = Math.sqrt(dx * dx + dy * dy) || 1
-  const midX = (start.x + end.x) * 0.5
-  const midY = (start.y + end.y) * 0.5
+
+  // Shorten the line to stop at node edges
+  const startRatio = startRadius / distance
+  const endRatio = (endRadius + arrowLength) / distance
+  const adjustedStartX = start.x + dx * startRatio
+  const adjustedStartY = start.y + dy * startRatio
+  const adjustedEndX = end.x - dx * endRatio
+  const adjustedEndY = end.y - dy * endRatio
+
+  const midX = (adjustedStartX + adjustedEndX) * 0.5
+  const midY = (adjustedStartY + adjustedEndY) * 0.5
   const normX = -dy / distance
   const normY = dx / distance
   const offset = curvature * distance
@@ -133,18 +164,17 @@ export const renderLink = ({
   const ctrlY = midY + normY * offset
 
   ctx.beginPath()
-  ctx.moveTo(start.x, start.y)
+  ctx.moveTo(adjustedStartX, adjustedStartY)
   if (curvature !== 0) {
-    ctx.quadraticCurveTo(ctrlX, ctrlY, end.x, end.y)
+    ctx.quadraticCurveTo(ctrlX, ctrlY, adjustedEndX, adjustedEndY)
   } else {
-    ctx.lineTo(end.x, end.y)
+    ctx.lineTo(adjustedEndX, adjustedEndY)
   }
   ctx.strokeStyle = strokeStyle
   ctx.lineWidth = lineWidth
   ctx.stroke()
 
   // Draw directional arrow
-  const arrowLength = forceSettings?.linkDirectionalArrowLength?.value
   if (arrowLength && arrowLength > 0) {
     const arrowRelPos = forceSettings?.linkDirectionalArrowRelPos?.value || 1
 
@@ -241,7 +271,7 @@ export const renderLink = ({
     ctx.translate(tempPos.x, tempPos.y)
     ctx.rotate(textAngle)
 
-    const borderRadius = linkFontSize * 0.3
+    const borderRadius = linkFontSize * 0.1
     ctx.beginPath()
     ctx.roundRect(-halfWidth, -halfHeight, tempDimensions[0], tempDimensions[1], borderRadius)
 
@@ -255,15 +285,20 @@ export const renderLink = ({
     ctx.strokeStyle = theme === 'light'
       ? 'rgba(0, 0, 0, 0.1)'
       : 'rgba(255, 255, 255, 0.1)'
-    ctx.lineWidth = 0.5
+    ctx.lineWidth = 0.1
     ctx.stroke()
 
     ctx.fillStyle = isHighlighted
       ? GRAPH_COLORS.LINK_LABEL_HIGHLIGHTED
       : GRAPH_COLORS.LINK_LABEL_DEFAULT
     ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(link.label, 0, 0)
+    ctx.textBaseline = 'alphabetic' // More consistent across browsers than 'middle'
+
+    // Calculate vertical center manually using font metrics
+    const labelMetrics = ctx.measureText(link.label)
+    const labelTextY = labelMetrics.actualBoundingBoxAscent * 0.5 - labelMetrics.actualBoundingBoxDescent * 0.5
+
+    ctx.fillText(link.label, 0, labelTextY)
     ctx.restore()
   }
 }

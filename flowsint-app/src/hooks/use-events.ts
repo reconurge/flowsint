@@ -2,12 +2,14 @@ import { useEffect, useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { logService } from '@/api/log-service'
 import { queryKeys } from '@/api/query-keys'
+import { useAuthStore } from '@/stores/auth-store'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 
 export function useEvents(sketch_id: string | undefined) {
   const [liveLogs, setLiveLogs] = useState<Event[]>([])
+  const token = useAuthStore((s) => s.token)
 
   const { data: previousLogs = [], refetch } = useQuery({
     queryKey: queryKeys.logs.bySketch(sketch_id as string),
@@ -26,10 +28,10 @@ export function useEvents(sketch_id: string | undefined) {
   }, [sketch_id])
 
   useEffect(() => {
-    if (!sketch_id) return
+    if (!sketch_id || !token) return
 
     const eventSource = new EventSource(
-      `${API_URL}/api/events/sketch/${sketch_id}/stream`
+      `${API_URL}/api/events/sketch/${sketch_id}/stream?token=${token}`
     )
 
     eventSource.onmessage = (e) => {
@@ -67,7 +69,7 @@ export function useEvents(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id])
+  }, [sketch_id, token])
 
   const logs = useMemo(
     () => [...previousLogs, ...liveLogs].slice(-100),

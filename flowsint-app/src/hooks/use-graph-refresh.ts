@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useGraphControls } from '@/stores/graph-controls-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { EventLevel } from '@/types'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -8,6 +9,7 @@ export function useGraphRefresh(sketch_id: string | undefined) {
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+  const token = useAuthStore((s) => s.token)
 
   // Use refs to avoid reconnecting SSE when functions change
   const refetchGraphRef = useRef(refetchGraph)
@@ -22,9 +24,9 @@ export function useGraphRefresh(sketch_id: string | undefined) {
   }, [refetchGraph, regenerateLayout, currentLayoutType])
 
   useEffect(() => {
-    if (!sketch_id) return
+    if (!sketch_id || !token) return
     const eventSource = new EventSource(
-      `${API_URL}/api/events/sketch/${sketch_id}/status/stream`
+      `${API_URL}/api/events/sketch/${sketch_id}/status/stream?token=${token}`
     )
     eventSource.onmessage = (e) => {
       try {
@@ -73,5 +75,5 @@ export function useGraphRefresh(sketch_id: string | undefined) {
     return () => {
       eventSource.close()
     }
-  }, [sketch_id]) // Only reconnect when sketch_id changes
+  }, [sketch_id, token]) // Only reconnect when sketch_id or token changes
 }

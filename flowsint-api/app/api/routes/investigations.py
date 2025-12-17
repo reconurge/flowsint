@@ -140,6 +140,7 @@ def get_sketches_by_investigation(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(current_user.id, investigation_id, actions=["read"], db=db)
     sketches = (
         db.query(Sketch).filter(Sketch.investigation_id == investigation_id).all()
     )
@@ -158,6 +159,7 @@ def update_investigation(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(current_user.id, investigation_id, actions=["write"], db=db)
     investigation = (
         db.query(Investigation).filter(Investigation.id == investigation_id).first()
     )
@@ -181,6 +183,7 @@ def delete_investigation(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
+    check_investigation_permission(current_user.id, investigation_id, actions=["delete"], db=db)
     investigation = (
         db.query(Investigation)
         .filter(

@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Log, Sketch
+from flowsint_core.core.models import Log, Sketch, Scan
 from flowsint_core.core.events import event_emitter
 from sse_starlette.sse import EventSourceResponse
 from flowsint_core.core.types import Event
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_sse
 from flowsint_core.core.models import Profile, Sketch
+from app.security.permissions import check_investigation_permission
 import json
 import asyncio
 from datetime import datetime, timedelta
@@ -20,7 +21,7 @@ def get_logs_by_sketch(
     limit: int = 100,
     since: datetime | None = None,
     db: Session = Depends(get_db),
-    # current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user)
 ):
     """Get historical logs for a specific sketch with optional filtering"""
     # Check if sketch exists
@@ -29,6 +30,10 @@ def get_logs_by_sketch(
         raise HTTPException(
             status_code=404, detail=f"Sketch with id {sketch_id} not found"
         )
+
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
 
     print(
         f"[EventEmitter] Fetching logs for sketch {sketch_id} (limit: {limit}, since: {since})"
@@ -79,7 +84,7 @@ async def stream_events(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
-    #   current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user_sse)
 ):
     """Stream events for a specific scan in real-time"""
 
@@ -89,6 +94,10 @@ async def stream_events(
         raise HTTPException(
             status_code=404, detail=f"Sketch with id {sketch_id} not found"
         )
+
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
 
     async def event_generator():
         channel = sketch_id
@@ -139,6 +148,17 @@ def delete_scan_logs(
     current_user: Profile = Depends(get_current_user),
 ):
     """Delete all logs for a specific scan"""
+    # Check if sketch exists and user has permission
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(
+            status_code=404, detail=f"Sketch with id {sketch_id} not found"
+        )
+
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["delete"], db=db
+    )
+
     try:
         db.query(Log).filter(Log.sketch_id == sketch_id).delete()
         db.commit()
@@ -153,6 +173,7 @@ async def stream_sketch_status(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user_sse)
 ):
     """Stream COMPLETED events for a specific sketch (for graph refresh)"""
 
@@ -162,6 +183,10 @@ async def stream_sketch_status(
         raise HTTPException(
             status_code=404, detail=f"Sketch with id {sketch_id} not found"
         )
+
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
 
     async def status_generator():
         channel = f"{sketch_id}_status"
@@ -202,8 +227,27 @@ async def stream_sketch_status(
 
 
 @router.get("/status/scan/{scan_id}/stream")
-async def stream_status(request: Request, scan_id: str, db: Session = Depends(get_db)):
+async def stream_status(
+    request: Request,
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user_sse)
+):
     """Stream status updates for a specific scan in real-time"""
+
+    # Check if scan exists and user has permission
+    scan = db.query(Scan).filter(Scan.id == scan_id).first()
+    if not scan:
+        raise HTTPException(
+            status_code=404, detail=f"Scan with id {scan_id} not found"
+        )
+
+    # Check investigation permission via sketch
+    sketch = db.query(Sketch).filter(Sketch.id == scan.sketch_id).first()
+    if sketch:
+        check_investigation_permission(
+            current_user.id, sketch.investigation_id, actions=["read"], db=db
+        )
 
     async def status_generator():
         print("[EventEmitter] Start status generator")

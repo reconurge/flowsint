@@ -9,11 +9,14 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import Dict, List, Optional
 from datetime import datetime
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Chat, ChatMessage, Profile
+from flowsint_core.core.models import Chat, ChatMessage, Profile, InvestigationUserRole
+from flowsint_core.core.types import Role
 from app.api.deps import get_current_user
 from app.api.schemas.chat import ChatCreate, ChatRead
+from app.security.permissions import check_investigation_permission
 
 router = APIRouter()
 

@@ -11,8 +11,7 @@ from fastapi import (
 )
 from flowsint_types import TYPE_REGISTRY
 from pydantic import BaseModel, Field
-from typing import Literal, List, Optional, Dict, Any
-from datetime import datetime, timezone
+from typing import Literal, List, Dict, Any
 from flowsint_core.utils import flatten
 from sqlalchemy.orm import Session
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
@@ -24,6 +23,9 @@ from flowsint_core.core.postgre_db import get_db
 from app.api.deps import get_current_user
 from flowsint_core.imports import FileParseResult, parse_import_file
 from app.api.sketch_utils import update_sketch_timestamp
+from flowsint_core.core.types import Role
+from sqlalchemy import or_
+
 
 router = APIRouter()
 
@@ -90,7 +92,23 @@ def create_sketch(
 def list_sketches(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
-    return db.query(Sketch).filter(Sketch.owner_id == current_user.id).all()
+    from flowsint_core.core.models import InvestigationUserRole
+
+    # Get all investigations where user has at least VIEWER role
+    allowed_roles_for_read = [Role.OWNER, Role.EDITOR, Role.VIEWER]
+
+    query = db.query(Sketch).join(
+        InvestigationUserRole,
+        InvestigationUserRole.investigation_id == Sketch.investigation_id,
+    )
+
+    query = query.filter(InvestigationUserRole.user_id == current_user.id)
+
+    # Filter by allowed roles
+    conditions = [InvestigationUserRole.roles.any(role) for role in allowed_roles_for_read]
+    query = query.filter(or_(*conditions))
+
+    return query.distinct().all()
 
 
 @router.get("/{sketch_id}")

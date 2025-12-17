@@ -3,9 +3,11 @@ from app.security.permissions import check_investigation_permission
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from datetime import datetime
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Analysis, Profile
+from flowsint_core.core.models import Analysis, Profile, InvestigationUserRole
+from flowsint_core.core.types import Role
 from app.api.deps import get_current_user
 from app.api.schemas.analysis import AnalysisRead, AnalysisCreate, AnalysisUpdate
 
@@ -17,8 +19,21 @@ router = APIRouter()
 def get_analyses(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
-    analyses = db.query(Analysis).filter(Analysis.owner_id == current_user.id).all()
-    return analyses
+    # Get all analyses from investigations where user has at least VIEWER role
+    allowed_roles_for_read = [Role.OWNER, Role.EDITOR, Role.VIEWER]
+
+    query = db.query(Analysis).join(
+        InvestigationUserRole,
+        InvestigationUserRole.investigation_id == Analysis.investigation_id,
+    )
+
+    query = query.filter(InvestigationUserRole.user_id == current_user.id)
+
+    # Filter by allowed roles
+    conditions = [InvestigationUserRole.roles.any(role) for role in allowed_roles_for_read]
+    query = query.filter(or_(*conditions))
+
+    return query.distinct().all()
 
 
 # Create a New analysis

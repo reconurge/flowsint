@@ -24,10 +24,11 @@ from flowsint_types import (
 from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
 from sqlalchemy.orm import Session
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Flow, Profile, CustomType
+from flowsint_core.core.models import Flow, Profile, CustomType, Sketch
 from app.api.deps import get_current_user
 from sqlalchemy import func
 from app.api.schemas.flow import FlowRead, FlowCreate, FlowUpdate
+from app.security.permissions import check_investigation_permission
 from flowsint_types import (
     ASN,
     CIDR,
@@ -249,6 +250,15 @@ async def launch_flow(
         flow = db.query(Flow).filter(Flow.id == flow_id).first()
         if flow is None:
             raise HTTPException(status_code=404, detail="flow not found")
+
+        # Check investigation permission via sketch
+        sketch = db.query(Sketch).filter(Sketch.id == payload.sketch_id).first()
+        if not sketch:
+            raise HTTPException(status_code=404, detail="Sketch not found")
+
+        check_investigation_permission(
+            current_user.id, sketch.investigation_id, actions=["update"], db=db
+        )
 
         # Retrieve nodes from Neo4J by their element IDs
         graph_repo = GraphRepository()

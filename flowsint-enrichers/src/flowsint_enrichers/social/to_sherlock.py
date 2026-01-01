@@ -1,11 +1,12 @@
 import subprocess
 from pathlib import Path
-from typing import List, Union
-from flowsint_core.utils import is_valid_username
-from flowsint_types import SocialAccount, Username
+from typing import List
+
 from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
+from flowsint_types import SocialAccount, Username
+
+from flowsint_enrichers.registry import flowsint_enricher
 
 
 @flowsint_enricher
@@ -72,7 +73,9 @@ class SherlockEnricher(Enricher):
                 # Create Social objects for each found account
                 for platform, url in found_accounts.items():
                     results.append(
-                        SocialAccount(username=username, platform=platform, profile_url=url)
+                        SocialAccount(
+                            username=username, platform=platform, profile_url=url
+                        )
                     )
 
             except subprocess.TimeoutExpired:
@@ -90,16 +93,34 @@ class SherlockEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Create Neo4j relationships for found social accounts."""
         if not self.neo4j_conn:
             return results
 
         for social_account in results:
-            self.create_node(social_account)
-            self.log_graph_message(
-                f"Found social account: {social_account.username.value} on {social_account.platform}"
-            )
+            try:
+                # Create username node
+                self.create_node(social_account.username)
+                # Create social account node
+                self.create_node(social_account)
+                # Create relationship
+                self.create_relationship(
+                    social_account.username, social_account, "HAS_SOCIAL_ACCOUNT"
+                )
+                self.log_graph_message(
+                    f"{social_account.username.value} -> account found on {social_account.platform}"
+                )
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Failed to create graph nodes for {social_account.username.value} on {social_account.platform}: {e}"
+                    },
+                )
+                continue
 
         return results
 

@@ -1,6 +1,8 @@
-from pydantic import Field, field_validator, model_validator
-from typing import Optional, Any, Self
 import re
+from typing import Any, Optional, Self
+
+from pydantic import Field, field_validator, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -34,11 +36,11 @@ class Username(FlowsintType):
         - Hyphens (-)
         """
         if v.startswith("@"):
-            v = v[1:] # We remove it
-        if not re.match(r"^[a-zA-Z0-9_-]{3,80}$", v):
-            raise ValueError(
-                f"Invalid username: {v}. Must be 3-80 characters and contain only letters, numbers, underscores, and hyphens."
-            )
+            v = v[1:]  # We remove it
+        # if not re.match(r"^[a-zA-Z0-9_-]{3,80}$", v):
+        #     raise ValueError(
+        #         f"Invalid username: {v}. Must be 3-80 characters and contain only letters, numbers, underscores, and hyphens."
+        #     )
         return v
 
     @model_validator(mode="after")

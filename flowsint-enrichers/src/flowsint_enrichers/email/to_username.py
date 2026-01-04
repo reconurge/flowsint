@@ -30,7 +30,6 @@ class EmailToUsernameEnricher(Enricher):
         results: List[OutputType] = []
 
         for email in data:
-            # chamyanis@gmail.com
             splitted = email.email.split("@")
             username = splitted[0]
             results.append(Username(value=username))

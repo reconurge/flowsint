@@ -110,7 +110,7 @@ services:
       target: dev
     container_name: flowsint-celery-dev
     restart: unless-stopped
-    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=threads --concurrency=10
     volumes:
       - ./flowsint-api:/app/flowsint-api
       - ./flowsint-core:/app/flowsint-core

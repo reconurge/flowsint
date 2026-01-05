@@ -107,7 +107,7 @@ services:
       target: prod
     container_name: flowsint-celery-prod
     restart: always
-    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=threads --concurrency=10
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:

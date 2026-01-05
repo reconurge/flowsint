@@ -81,7 +81,7 @@ frontend_prod:
 	cd $(PROJECT_ROOT)/flowsint-app && npm run build
 
 celery:
-	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=threads --concurrency=10
 
 run:
 	@echo "🐙 Starting all services..."

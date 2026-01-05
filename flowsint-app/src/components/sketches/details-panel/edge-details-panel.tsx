@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useRef, ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Trash2, ArrowRight, MousePointer, Link2 } from 'lucide-react'
 import { useGraphStore } from '@/stores/graph-store'
@@ -12,6 +12,7 @@ import { GraphEdge } from '@/types'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 
 const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
   const { id: sketchId } = useParams({ strict: false })
@@ -20,7 +21,9 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
   const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
   const setCurrentEdge = useGraphStore((s) => s.setCurrentEdge)
   const removeEdges = useGraphStore((s) => s.removeEdges)
+  const updateEdge = useGraphStore((s) => s.updateEdge)
   const { confirm } = useConfirm()
+  const labelRef = useRef<HTMLInputElement>(null)
 
   // Get fresh edge data from store
   edge = edges.find((e) => e.id === edge?.id) || null
@@ -29,8 +32,46 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
   const sourceNode = edge ? nodes.find((n) => n.id === edge.source) : null
   const targetNode = edge ? nodes.find((n) => n.id === edge.target) : null
 
-  const SourceIcon = useIcon(sourceNode?.data?.type ?? "default", sourceNode?.data?.src)
-  const TargetIcon = useIcon(targetNode?.data?.type ?? "default", targetNode?.data?.src)
+  const SourceIcon = useIcon(sourceNode?.data?.type ?? 'default', sourceNode?.data?.src)
+  const TargetIcon = useIcon(targetNode?.data?.type ?? 'default', targetNode?.data?.src)
+
+  const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation()
+  }, [])
+
+  const handleBlur = useCallback(async () => {
+    if (!edge || !labelRef.current?.value || !sketchId) return
+    const newLabel = labelRef.current.value.trim()
+    if (newLabel !== edge.label) {
+      const previousLabel = edge.label
+
+      // Optimistic update
+      updateEdge(edge.id, { label: newLabel })
+
+      // Call API
+      try {
+        await sketchService.updateEdge(
+          sketchId,
+          JSON.stringify({
+            relationshipId: edge.id,
+            data: { label: newLabel }
+          })
+        )
+        toast.success('Relationship updated successfully.')
+      } catch (error) {
+        // Rollback on error
+        updateEdge(edge.id, { label: previousLabel })
+        toast.error('Failed to update relationship.')
+      }
+    }
+  }, [edge, updateEdge, sketchId])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      labelRef.current?.blur()
+    }
+  }, [])
 
   const handleDelete = useCallback(async () => {
     if (!edge || !sketchId) return
@@ -78,7 +119,7 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
 
   if (!edge) {
     return (
-      <div className="flex p-12 flex-col items-center justify-center h-full text-center p-8">
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
           <MousePointer className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -94,8 +135,16 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
     <div className="flex flex-col h-full overflow-x-hidden overflow-y-auto bg-card">
       {/* Header */}
       <div className="flex items-center bg-card h-10 sticky w-full top-0 border-b justify-start px-3 gap-2 z-1">
-        <Link2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-        <p className="text-sm font-semibold truncate">{edge.label || 'Relationship'}</p>
+        <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+        <Input
+          ref={labelRef}
+          className="h-7 text-sm font-semibold border-0 px-1 focus-visible:ring-1"
+          defaultValue={edge.label || 'Relationship'}
+          onChange={handleInputChange}
+          onFocus={(e) => e.stopPropagation()}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+        />
         <div className="grow" />
         <div className="flex items-center">
           <TooltipProvider>
@@ -235,7 +284,9 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
                       style={{ width: `${Number(edge.confidence_level)}%` }}
                     />
                   </div>
-                  <span className="font-semibold text-[10px] shrink-0">{edge.confidence_level}%</span>
+                  <span className="font-semibold text-[10px] shrink-0">
+                    {edge.confidence_level}%
+                  </span>
                 </div>
               </div>
             </div>

@@ -63,6 +63,12 @@ export const sketchService = {
       body: body
     })
   },
+  updateEdge: async (sketchId: string, body: BodyInit): Promise<any> => {
+    return fetchWithAuth(`/api/sketches/${sketchId}/relationships/edit`, {
+      method: 'PUT',
+      body: body
+    })
+  },
   getNodeNeighbors: async (sketchId: string, nodeId: string): Promise<any> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/${nodeId}`, {
       method: 'GET'

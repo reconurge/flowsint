@@ -181,7 +181,7 @@ export const useGraphStore = create<GraphState>()(
       updateEdge: (edgeId, updates) => {
         const { edges, nodes, filters } = get()
         const updatedEdges = edges.map((edge) =>
-          edge.id === edgeId ? { ...edge, data: { ...edge, ...updates } as GraphEdge } : edge
+          edge.id === edgeId ? ({ ...edge, ...updates } as GraphEdge) : edge
         )
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
@@ -207,10 +207,17 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(updatedNodes, filters)
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
         // Update currentNode if it matches the old ID
-        const updatedCurrentNode = currentNode?.id === oldId
-          ? { ...currentNode, id: newData.id, data: newData }
-          : currentNode
-        set({ nodes: updatedNodes, edges: updatedEdges, filteredNodes, filteredEdges, currentNode: updatedCurrentNode })
+        const updatedCurrentNode =
+          currentNode?.id === oldId
+            ? { ...currentNode, id: newData.id, data: newData }
+            : currentNode
+        set({
+          nodes: updatedNodes,
+          edges: updatedEdges,
+          filteredNodes,
+          filteredEdges,
+          currentNode: updatedCurrentNode
+        })
       },
 
       // === Selection & Current ===
@@ -333,7 +340,7 @@ export const useGraphStore = create<GraphState>()(
       // === Filters ===
       filters: {
         types: [],
-        rules: [],
+        rules: []
       },
       setFilters: (filters) => {
         const { nodes, edges } = get()

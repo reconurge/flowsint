@@ -5,9 +5,11 @@ This module provides a repository pattern implementation for Neo4j,
 handling node and relationship operations with batching support.
 """
 
-from typing import Dict, Any, List, Optional, Tuple, Union
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from pydantic import BaseModel
+
 from .graph_db import Neo4jConnection
 from .graph_serializer import GraphSerializer
 
@@ -219,7 +221,7 @@ class GraphRepository:
         query = f"""
         MERGE (n:{node_type} {{{key_prop}: ${key_prop}, sketch_id: $sketch_id}})
         ON CREATE SET n.created_at = $created_at
-        SET {', '.join(set_clauses)}
+        SET {", ".join(set_clauses)}
         RETURN elementId(n) as id
         """
 
@@ -352,7 +354,11 @@ class GraphRepository:
                 - errors: List of error messages for failed nodes
         """
         if not self._connection:
-            return {"nodes_created": 0, "node_ids": [], "errors": ["No database connection"]}
+            return {
+                "nodes_created": 0,
+                "node_ids": [],
+                "errors": ["No database connection"],
+            }
 
         if not nodes:
             return {"nodes_created": 0, "node_ids": [], "errors": []}
@@ -394,7 +400,6 @@ class GraphRepository:
         except Exception as e:
             errors.append(f"Batch execution failed: {str(e)}")
             return {"nodes_created": 0, "node_ids": [], "errors": errors}
-
 
     def update_node(
         self,
@@ -440,7 +445,7 @@ class GraphRepository:
         query = f"""
         MATCH (n)
         WHERE elementId(n) = $element_id AND n.sketch_id = $sketch_id
-        SET {', '.join(set_clauses)}
+        SET {", ".join(set_clauses)}
         RETURN elementId(n) as id
         """
 
@@ -502,6 +507,50 @@ class GraphRepository:
         )
         return result[0]["deleted_count"] if result else 0
 
+    def update_relationship(
+        self,
+        element_id: str,
+        properties: Dict[str, Any],
+        sketch_id: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Update an existing relationship's properties.
+
+        Args:
+            element_id: Neo4j element ID of the edge to update
+            properties: Dictionary of properties to update
+            sketch_id: Investigation sketch ID (for safety)
+
+        Returns:
+            Updated edge data or None if not found
+        """
+        if not self._connection:
+            return None
+
+        # Filter out None values
+        filtered_props = {
+            k: (v if v is not None else "")
+            for k, v in properties.items()
+            if k is not None
+        }
+
+        # Serialize properties
+        serialized_props = GraphSerializer.serialize_properties(filtered_props)
+
+        # Build SET clauses
+        set_clauses = [f"r.{prop} = ${prop}" for prop in serialized_props.keys()]
+
+        query = f"""
+        MATCH ()-[r]->()
+        WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+        SET {", ".join(set_clauses)}
+        RETURN elementId(r) as id, COALESCE(r.label, type(r)) as type, properties(r) as data
+        """
+
+        params = {"element_id": element_id, "sketch_id": sketch_id, **serialized_props}
+        result = self._connection.query(query, params)
+        return result[0] if result else None
+
     def delete_all_sketch_nodes(self, sketch_id: str) -> int:
         """
         Delete all nodes and relationships for a sketch.
@@ -561,8 +610,11 @@ class GraphRepository:
         UNWIND $node_ids AS nid
         MATCH (a)-[r]->(b)
         WHERE elementId(a) = nid AND elementId(b) IN $node_ids
-        RETURN elementId(r) as id, type(r) as type, elementId(a) as source,
-               elementId(b) as target, properties(r) as data
+        RETURN elementId(r) as id,
+               COALESCE(r.label, type(r)) as type,
+               elementId(a) as source,
+               elementId(b) as target,
+               properties(r) as data
         """
         rels_result = self._connection.query(rels_query, {"node_ids": node_ids})
 
@@ -594,6 +646,9 @@ class GraphRepository:
 
         serialized_props = GraphSerializer.serialize_properties(properties)
         serialized_props["sketch_id"] = sketch_id
+        # Store label as a property so it can be updated later
+        if "label" not in serialized_props:
+            serialized_props["label"] = rel_type
 
         props_str = ", ".join([f"{k}: ${k}" for k in serialized_props.keys()])
         rel_props = f"{{{props_str}}}"
@@ -826,7 +881,7 @@ class GraphRepository:
         WHERE other.sketch_id = $sketch_id
         RETURN
             elementId(r) as rel_id,
-            type(r) as rel_type,
+            COALESCE(r.label, type(r)) as rel_type,
             properties(r) as rel_data,
             elementId(other) as other_node_id,
             labels(other) as other_node_labels,
@@ -839,7 +894,7 @@ class GraphRepository:
         WHERE other.sketch_id = $sketch_id
         RETURN
             elementId(r) as rel_id,
-            type(r) as rel_type,
+            COALESCE(r.label, type(r)) as rel_type,
             properties(r) as rel_data,
             elementId(other) as other_node_id,
             labels(other) as other_node_labels,

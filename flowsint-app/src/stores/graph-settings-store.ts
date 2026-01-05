@@ -22,14 +22,14 @@ const DEFAULT_SETTINGS = {
       type: 'boolean',
       value: true,
       description: 'Display the minimap overview of the graph.'
-    },
+    }
   },
   graph: {
     nodeSize: {
       name: 'Node Size',
       type: 'number',
       value: 1,
-      min: .2,
+      min: 0.2,
       max: 20,
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
@@ -46,20 +46,22 @@ const DEFAULT_SETTINGS = {
     nodeLabelFontSize: {
       name: 'Node Label Font Size',
       type: 'number',
-      value: 100,
-      min: 50,
+      value: 60,
+      min: 10,
       max: 200,
       step: 5,
-      description: 'Adjusts the font size of node labels (percentage of base size, scales with zoom)'
+      description:
+        'Adjusts the font size of node labels (percentage of base size, scales with zoom)'
     },
     linkLabelFontSize: {
       name: 'Link Label Font Size',
       type: 'number',
-      value: 100,
-      min: 50,
+      value: 30,
+      min: 10,
       max: 200,
       step: 5,
-      description: 'Adjusts the font size of link labels (percentage of base size, scales with zoom)'
+      description:
+        'Adjusts the font size of link labels (percentage of base size, scales with zoom)'
     },
     dagLevelDistance: {
       name: 'DAG Level Distance',
@@ -88,8 +90,7 @@ const DEFAULT_SETTINGS = {
       min: 10,
       max: 200,
       step: 1,
-      description:
-        'Target distance between connected nodes (higher = nodes further apart)'
+      description: 'Target distance between connected nodes (higher = nodes further apart)'
     },
     d3ForceLinkStrength: {
       name: 'Force Link Strength',
@@ -195,8 +196,7 @@ const DEFAULT_SETTINGS = {
       min: 0,
       max: 1,
       step: 0.05,
-      description:
-        'Strength of collision force (1 = fully rigid collision, 0 = no collision)'
+      description: 'Strength of collision force (1 = fully rigid collision, 0 = no collision)'
     },
     centerGravity: {
       name: 'Center Gravity',
@@ -207,7 +207,7 @@ const DEFAULT_SETTINGS = {
       step: 0.05,
       description:
         'Gravity force pulling all nodes toward the center (prevents clusters from drifting apart, higher = stronger pull to center)'
-    },
+    }
     // warmupTicks: {
     //   type: 'number',
     //   value: 0,
@@ -489,7 +489,8 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       setKeyboardShortcutsOpen: (open) => set({ keyboardShortcutsOpen: open }),
       setImportModalOpen: (open) => set({ importModalOpen: open }),
       toggleSettingsModal: () => set({ settingsModalOpen: !get().settingsModalOpen }),
-      toggleKeyboardShortcutsModal: () => set({ keyboardShortcutsOpen: !get().keyboardShortcutsOpen }),
+      toggleKeyboardShortcutsModal: () =>
+        set({ keyboardShortcutsOpen: !get().keyboardShortcutsOpen }),
 
       // Helper methods
       getSettingValue: (category: string, key: string) => {

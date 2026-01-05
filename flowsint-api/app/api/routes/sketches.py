@@ -1,31 +1,32 @@
-from app.security.permissions import check_investigation_permission
+from typing import Any, Dict, List, Literal
+from uuid import UUID
+
 from fastapi import (
     APIRouter,
-    HTTPException,
+    BackgroundTasks,
     Depends,
-    status,
-    UploadFile,
     File,
     Form,
-    BackgroundTasks,
+    HTTPException,
+    UploadFile,
+    status,
 )
-from flowsint_types import TYPE_REGISTRY
-from pydantic import BaseModel, Field
-from typing import Literal, List, Dict, Any
-from flowsint_core.utils import flatten
-from sqlalchemy.orm import Session
-from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
-from flowsint_core.core.models import Sketch, Profile
-from uuid import UUID
 from flowsint_core.core.graph_db import neo4j_connection
 from flowsint_core.core.graph_repository import GraphRepository
+from flowsint_core.core.models import Profile, Sketch
 from flowsint_core.core.postgre_db import get_db
-from app.api.deps import get_current_user
-from flowsint_core.imports import FileParseResult, parse_import_file
-from app.api.sketch_utils import update_sketch_timestamp
 from flowsint_core.core.types import Role
+from flowsint_core.imports import FileParseResult, parse_import_file
+from flowsint_core.utils import flatten
+from flowsint_types import TYPE_REGISTRY
+from pydantic import BaseModel, Field
 from sqlalchemy import or_
+from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
+from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
+from app.api.sketch_utils import update_sketch_timestamp
+from app.security.permissions import check_investigation_permission
 
 router = APIRouter()
 
@@ -60,6 +61,13 @@ class NodeEditInput(BaseModel):
     nodeId: str
     data: NodeData = Field(
         default_factory=NodeData, description="Updated data for the node"
+    )
+
+
+class RelationshipEditInput(BaseModel):
+    relationshipId: str
+    data: Dict[str, Any] = Field(
+        default_factory=dict, description="Updated data for the relationship"
     )
 
 
@@ -105,7 +113,9 @@ def list_sketches(
     query = query.filter(InvestigationUserRole.user_id == current_user.id)
 
     # Filter by allowed roles
-    conditions = [InvestigationUserRole.roles.any(role) for role in allowed_roles_for_read]
+    conditions = [
+        InvestigationUserRole.roles.any(role) for role in allowed_roles_for_read
+    ]
     query = query.filter(or_(*conditions))
 
     return query.distinct().all()
@@ -435,6 +445,50 @@ def edit_node(
     }
 
 
+@router.put("/{sketch_id}/relationships/edit")
+@update_sketch_timestamp
+def edit_relationship(
+    sketch_id: str,
+    relationship_edit: RelationshipEditInput,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    # First verify the sketch exists and belongs to the user
+    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["update"], db=db
+    )
+
+    # Update edge using GraphRepository
+    try:
+        graph_repo = GraphRepository(neo4j_connection)
+        result = graph_repo.update_relationship(
+            element_id=relationship_edit.relationshipId,
+            properties=relationship_edit.data,
+            sketch_id=sketch_id,
+        )
+    except Exception as e:
+        print(f"Relationship update error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update relationship")
+
+    if not result:
+        raise HTTPException(
+            status_code=404, detail="Relationship not found or not accessible"
+        )
+
+    return {
+        "status": "relationship updated",
+        "relationship": {
+            "id": result["id"],
+            "label": result["type"],
+            "data": result["data"],
+        },
+    }
+
+
 class NodePosition(BaseModel):
     nodeId: str
     x: float
@@ -741,7 +795,9 @@ async def execute_import(
         # Get the Pydantic type from registry
         DetectedType = TYPE_REGISTRY.get_lowercase(entity_type)
         if not DetectedType:
-            conversion_errors.append(f"Entity {idx + 1} ({label}): Unknown type {entity_type}")
+            conversion_errors.append(
+                f"Entity {idx + 1} ({label}): Unknown type {entity_type}"
+            )
             continue
 
         # Clean empty values and add label
@@ -758,7 +814,9 @@ async def execute_import(
     # Batch create all nodes
     graph_repo = GraphRepository(neo4j_connection)
     try:
-        result = graph_repo.batch_create_nodes(nodes=pydantic_nodes, sketch_id=sketch_id)
+        result = graph_repo.batch_create_nodes(
+            nodes=pydantic_nodes, sketch_id=sketch_id
+        )
         nodes_created = result["nodes_created"]
         batch_errors = result.get("errors", [])
         all_errors = conversion_errors + batch_errors

@@ -1,21 +1,21 @@
 from flowsint_types import (
-    Domain,
-    Ip,
-    Individual,
-    Email,
-    Phone,
-    Organization,
-    Username,
-    Credential,
-    CryptoWallet,
-    CryptoNFT,
-    CryptoWalletTransaction,
-    SocialAccount,
-    Website,
-    Port,
-    CIDR,
     ASN,
+    CIDR,
+    Credential,
+    CryptoNFT,
+    CryptoWallet,
+    CryptoWalletTransaction,
+    Domain,
+    Email,
+    Individual,
+    Ip,
     Location,
+    Organization,
+    Phone,
+    Port,
+    SocialAccount,
+    Username,
+    Website,
 )
 
 
@@ -66,7 +66,8 @@ def test_organization_label_with_nom_raison_sociale():
 def test_username_label():
     username = Username(value="johndoe")
     assert username.label == "johndoe"
-    
+
+
 def test_username_label_2():
     username = Username(value="@johndoe")
     assert username.label == "johndoe"
@@ -151,7 +152,7 @@ def test_social_account_label_with_display_name():
 def test_social_account_label_without_display_name():
     username = Username(value="johndoe")
     account = SocialAccount(username=username, platform="twitter")
-    assert account.label == "@johndoe"
+    assert account.label == "johndoe@twitter"
 
 
 def test_website_label():

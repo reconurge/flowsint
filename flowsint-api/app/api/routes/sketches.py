@@ -311,7 +311,7 @@ async def export_sketch(
                     "title": sketch.title,
                     "description": sketch.description,
                 },
-                "graph": {"nds": nodes, "rls": rels},
+                "graph": {"nodes": nodes, "edges": rels},
             }
         )
     elif format == "png":

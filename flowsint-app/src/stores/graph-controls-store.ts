@@ -24,6 +24,7 @@ type GraphControlsStore = {
   setView: (view: 'graph' | 'table' | 'map' | 'relationships') => void
   setIsSelectorModeActive: (active: boolean) => void
   setSelectionMode: (mode: SelectionMode) => void
+  exportToPNG: () => Promise<void>
 }
 
 export const useGraphControls = create<GraphControlsStore>()(
@@ -46,7 +47,8 @@ export const useGraphControls = create<GraphControlsStore>()(
       setCurrentLayoutType: (layoutType) => set({ currentLayoutType: layoutType }),
       setView: (view) => set({ view }),
       setIsSelectorModeActive: (active) => set({ isSelectorModeActive: active }),
-      setSelectionMode: (mode) => set({ selectionMode: mode })
+      setSelectionMode: (mode) => set({ selectionMode: mode }),
+      exportToPNG: async () => { }
     }),
     {
       name: 'graph-controls-storage',

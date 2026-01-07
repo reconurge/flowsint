@@ -17,7 +17,8 @@ import {
   ZoomIn,
   ChevronDown,
   SquareDashed,
-  Focus
+  Focus,
+  Download
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -31,8 +32,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { sketchService } from '@/api/sketch-service'
+import { useParams } from '@tanstack/react-router'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -60,15 +63,15 @@ export const ToolbarButton = memo(function ToolbarButton({
             onClick={onClick}
             disabled={disabled}
             variant="ghost"
-            size={showLabel ? "sm" : "icon"}
+            size={showLabel ? 'sm' : 'icon'}
             className={cn(
               'h-7 relative items-center shadow-none',
-              !showLabel && "w-7",
+              !showLabel && 'w-7',
               toggled &&
-              'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
-            {icon} {showLabel && <span className='hidden md:block'>{tooltip}</span>}
+            {icon} {showLabel && <span className="hidden md:block">{tooltip}</span>}
             {badge && (
               <span className="absolute -top-1 -right-2 !z-[500] bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">
                 {badge}
@@ -83,6 +86,7 @@ export const ToolbarButton = memo(function ToolbarButton({
 })
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
   const { confirm } = useConfirm()
+  const { id: sketchId } = useParams({ strict: false })
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
   const zoomToFit = useGraphControls((s) => s.zoomToFit)
@@ -91,6 +95,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const zoomOut = useGraphControls((s) => s.zoomOut)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
+  const exportToPNG = useGraphControls((s) => s.exportToPNG)
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
   const setIsSelectorModeActive = useGraphControls((s) => s.setIsSelectorModeActive)
   const selectionMode = useGraphControls((s) => s.selectionMode)
@@ -102,10 +107,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const saveStatus = useGraphSaveStatus((s) => s.saveStatus)
 
   useKeyboard(
-    "s",
+    's',
     () => setIsSelectorModeActive(true),
-    () => setIsSelectorModeActive(false),
-  );
+    () => setIsSelectorModeActive(false)
+  )
 
   const handleRefresh = useCallback(() => {
     try {
@@ -116,10 +121,10 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   }, [refetchGraph])
 
   const handleApplyForceLayout = useCallback(async () => {
-
     const confirmed = await confirm({
       title: 'Apply force layout?',
-      message: 'This will reset all node positions and regenerate them using the force-directed layout algorithm. Current positions will be lost.'
+      message:
+        'This will reset all node positions and regenerate them using the force-directed layout algorithm. Current positions will be lost.'
     })
 
     if (!confirmed) {
@@ -129,14 +134,17 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       regenerateLayout('force')
       toast.success('Force layout applied successfully')
     } catch (error) {
-      toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      toast.error(
+        `Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }, [confirm, regenerateLayout])
 
   const handleApplyHierarchyLayout = useCallback(async () => {
     const confirmed = await confirm({
       title: 'Apply hierarchy layout?',
-      message: 'This will reset all node positions and regenerate them using the hierarchical layout algorithm. Current positions will be lost.'
+      message:
+        'This will reset all node positions and regenerate them using the hierarchical layout algorithm. Current positions will be lost.'
     })
 
     if (!confirmed) {
@@ -146,7 +154,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       regenerateLayout('hierarchy')
       toast.success('Hierarchy layout applied successfully')
     } catch (error) {
-      toast.error(`Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      toast.error(
+        `Failed to apply layout: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }, [confirm, regenerateLayout])
 
@@ -162,12 +172,34 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
     setIsSelectorModeActive(!isSelectorModeActive)
   }, [setIsSelectorModeActive, isSelectorModeActive])
 
-  const handleSelectMode = useCallback((mode: 'lasso' | 'rectangle') => {
-    setSelectionMode(mode)
-    if (!isSelectorModeActive) {
-      setIsSelectorModeActive(true)
-    }
-  }, [setSelectionMode, isSelectorModeActive, setIsSelectorModeActive])
+  const handleSelectMode = useCallback(
+    (mode: 'lasso' | 'rectangle') => {
+      setSelectionMode(mode)
+      if (!isSelectorModeActive) {
+        setIsSelectorModeActive(true)
+      }
+    },
+    [setSelectionMode, isSelectorModeActive, setIsSelectorModeActive]
+  )
+
+  const handleExport = useCallback(
+    async (format: 'json' | 'png') => {
+      if (!sketchId) return
+      try {
+        if (format === 'png') {
+          await exportToPNG()
+        } else {
+          await sketchService.exportSketch(sketchId, format)
+        }
+        toast.success(`Sketch exported as ${format.toUpperCase()}`)
+      } catch (error) {
+        toast.error(
+          `Failed to export sketch: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+      }
+    },
+    [sketchId, exportToPNG]
+  )
 
   const areExactlyTwoSelected = selectedNodes.length === 2
   const areMergeable =
@@ -178,9 +210,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   )
 
   return (
-    <div className='flex justify-between h-10 z-50 items-center gap-6 overflow-x-auto overflow-y-hidden hide-scrollbar w-full border-b bg-card p-1 px-2'>
-      <div className='flex h-full items-center gap-2'>
-        <div className='flex gap-1'>
+    <div className="flex justify-between h-10 z-50 items-center gap-6 overflow-x-auto overflow-y-hidden hide-scrollbar w-full border-b bg-card p-1 px-2">
+      <div className="flex h-full items-center gap-2">
+        <div className="flex gap-1">
           <ToolbarButton
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
             tooltip="Connect"
@@ -197,7 +229,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           />
         </div>
         <Separator decorative orientation="vertical" />
-        <div className='flex gap-1'>
+        <div className="flex gap-1">
           <ToolbarButton
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
@@ -224,7 +256,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           />
         </div>
         <Separator decorative orientation="vertical" />
-        <div className='flex gap-0.5'>
+        <div className="flex gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -235,7 +267,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 className={cn(
                   'h-7 w-7 rounded relative items-center shadow-none',
                   isSelectorModeActive &&
-                  'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                    'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
                 )}
               >
                 {selectionMode === 'lasso' ? (
@@ -260,7 +292,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         className={cn(
                           'h-7 w-5 px-0 rounded relative items-center shadow-none',
                           isSelectorModeActive &&
-                          'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                            'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
                         )}
                       >
                         <ChevronDown className="h-3 w-3 opacity-50" />
@@ -302,7 +334,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           </Filters>
         </div>
         <Separator orientation="vertical" />
-        <div className="flex items-center gap-1" >
+        <div className="flex items-center gap-1">
           <>
             <ToolbarButton
               icon={<NetworkIcon className="h-4 w-4 opacity-70" />}
@@ -322,7 +354,30 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         {/* Center: View Toggle Group */}
         <ViewToggle view={view} setView={setView} />
       </div>
-      <div className='flex item-center gap-2'>
+      <div className="flex item-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isLoading}
+                    className="h-7 w-7 relative items-center shadow-none"
+                  >
+                    <Download className="h-4 w-4 opacity-70" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export</TooltipContent>
+              </Tooltip>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[140px]">
+            <DropdownMenuItem onClick={() => handleExport('json')}>Export as JSON</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('png')}>Export as PNG</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <ToolbarButton
           onClick={handleRefresh}
           disabled={isLoading}
@@ -331,6 +386,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         />
         <SaveStatusIndicator status={saveStatus} />
       </div>
-    </div >
+    </div>
   )
 })

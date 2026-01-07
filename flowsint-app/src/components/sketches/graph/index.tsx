@@ -56,12 +56,25 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
-  const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
-  const showMinimapSetting = useGraphSettingsStore((s) => s.getSettingValue('general', 'showMinimap'))
+  const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
+    s.getSettingValue('general', 'autoZoomOnCurrentNode')
+  )
+  const showMinimapSetting = useGraphSettingsStore((s) =>
+    s.getSettingValue('general', 'showMinimap')
+  )
   const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
-  const { currentNode, currentEdge, selectedNodes, selectedEdges, toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, setOpenMainDialog } = useGraphStore(
+  const {
+    currentNode,
+    currentEdge,
+    selectedNodes,
+    selectedEdges,
+    toggleEdgeSelection,
+    setCurrentEdge,
+    clearSelectedEdges,
+    setOpenMainDialog
+  } = useGraphStore(
     useShallow((s) => ({
       currentNode: s.currentNode,
       currentEdge: s.currentEdge,
@@ -76,10 +89,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const { theme } = useTheme()
 
-  const selectedNodeIds = useMemo(
-    () => new Set(selectedNodes.map(n => n.id)),
-    [selectedNodes]
-  )
+  const selectedNodeIds = useMemo(() => new Set(selectedNodes.map((n) => n.id)), [selectedNodes])
   const currentNodeId = currentNode?.id
 
   const selectedNodeIdsRef = useRef(selectedNodeIds)
@@ -87,28 +97,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     selectedNodeIdsRef.current = selectedNodeIds
   }, [selectedNodeIds])
 
-  const edgeMap = useMemo(
-    () => new Map(edges.map(e => [e.id, e])),
-    [edges]
-  )
+  const edgeMap = useMemo(() => new Map(edges.map((e) => [e.id, e])), [edges])
 
-  const isCurrent = useCallback(
-    (nodeId: string) => nodeId === currentNodeId,
-    [currentNodeId]
-  )
+  const isCurrent = useCallback((nodeId: string) => nodeId === currentNodeId, [currentNodeId])
 
-  const isSelected = useCallback(
-    (nodeId: string) => selectedNodeIds.has(nodeId),
-    [selectedNodeIds]
-  )
+  const isSelected = useCallback((nodeId: string) => selectedNodeIds.has(nodeId), [selectedNodeIds])
 
-  const graph2ScreenCoords = useCallback(
-    (node: any) => {
-      if (!graphRef.current) return { x: 0, y: 0 }
-      return graphRef.current.graph2ScreenCoords(node.x, node.y)
-    },
-    []
-  )
+  const graph2ScreenCoords = useCallback((node: any) => {
+    if (!graphRef.current) return { x: 0, y: 0 }
+    return graphRef.current.graph2ScreenCoords(node.x, node.y)
+  }, [])
 
   // Preload icons
   useEffect(() => {
@@ -168,12 +166,22 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     graphData
   })
 
-  const wrappedRegenerateLayout = useCallback((layoutType: 'force' | 'hierarchy') => {
-    setCurrentLayoutType(layoutType)
-    regenerateLayout(layoutType)
-  }, [regenerateLayout, setCurrentLayoutType])
+  const wrappedRegenerateLayout = useCallback(
+    (layoutType: 'force' | 'hierarchy') => {
+      setCurrentLayoutType(layoutType)
+      regenerateLayout(layoutType)
+    },
+    [regenerateLayout, setCurrentLayoutType]
+  )
 
-  const { highlightNodes, highlightLinks, hoverNode, handleNodeHover, handleLinkHover, clearHighlights } = useHighlightState()
+  const {
+    highlightNodes,
+    highlightLinks,
+    hoverNode,
+    handleNodeHover,
+    handleLinkHover,
+    clearHighlights
+  } = useHighlightState()
 
   const { tooltip, showTooltip, hideTooltip } = useTooltip(graphRef)
 
@@ -213,9 +221,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     saveAllNodePositions
   })
 
-  const wrappedHandleNodeDragEnd = useCallback((node: any) => {
-    handleNodeDragEnd(node, graphData)
-  }, [handleNodeDragEnd, graphData])
+  const wrappedHandleNodeDragEnd = useCallback(
+    (node: any) => {
+      handleNodeDragEnd(node, graphData)
+    },
+    [handleNodeDragEnd, graphData]
+  )
 
   const hasPerformedInitialZoom = useRef(false)
 
@@ -229,6 +240,36 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [])
 
+  const exportToPNG = useCallback(async () => {
+    if (!graphRef.current) {
+      throw new Error('Graph ref not available')
+    }
+    // Get the canvas element from the ForceGraph2D component
+    const canvas = containerRef.current?.querySelector('canvas')
+    if (!canvas) {
+      throw new Error('Canvas element not found')
+    }
+    return new Promise<void>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Failed to create image blob'))
+          return
+        }
+        // Create download link
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `sketch-${sketchId || 'export'}-${Date.now()}.png`
+        document.body.appendChild(a)
+        a.click()
+        // Cleanup
+        URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        resolve()
+      }, 'image/png')
+    })
+  }, [sketchId])
+
   useGraphInitialization({
     graphRef,
     instanceId,
@@ -237,6 +278,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     selectedNodeIdsRef,
     regenerateLayout: wrappedRegenerateLayout
   })
+
+  // Expose export function to global store
+  useEffect(() => {
+    setActions({ exportToPNG })
+    return () => {
+      setActions({ exportToPNG: async () => {} })
+    }
+  }, [exportToPNG, setActions])
 
   // Clear highlights when graph data changes
   useEffect(() => {
@@ -268,7 +317,17 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         hoverNode
       })
     },
-    [forceSettings, showLabels, showIcons, isCurrent, isSelected, theme, highlightNodes, highlightLinks, hoverNode]
+    [
+      forceSettings,
+      showLabels,
+      showIcons,
+      isCurrent,
+      isSelected,
+      theme,
+      highlightNodes,
+      highlightLinks,
+      hoverNode
+    ]
   )
 
   const renderLinkCallback = useCallback(
@@ -290,7 +349,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   if (!nodes.length) {
     return (
-      <div ref={containerRef} className={"h-full"} style={style}>
+      <div ref={containerRef} className={'h-full'} style={style}>
         <GraphEmptyState
           onOpenAddDialog={handleOpenNewAddItemDialog}
           onOpenImportDialog={handleOpenImportDialog}

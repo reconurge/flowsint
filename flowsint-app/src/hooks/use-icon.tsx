@@ -1,5 +1,8 @@
-import { type JSX, useMemo, useCallback } from 'react'
+import { type JSX, useCallback } from 'react'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
+import * as LucideIcons from 'lucide-react'
+import { TYPE_TO_ICON } from '@/config/icon-mapping'
+import { cn } from '@/lib/utils'
 
 export type IconType = string
 
@@ -10,24 +13,16 @@ interface IconProps {
   showBorder?: boolean
   color?: string
   type?: string
+  iconOnly?: boolean
 }
 
-// Utilisation de constantes pour les valeurs par défaut
 const DEFAULT_SIZE = 24
-const DEFAULT_COLOR = '#000000'
+const DEFAULT_COLOR = '#FFFFFF'
 const BORDER_RATIO = 8
 const CONTAINER_PADDING = 16
 const BACKGROUND_PADDING = 8
 
-// Fonctions utilitaires memoizées
-const getIconPath = (type: string): string => `/icons/${type}.svg`
-
-const getDefaultIconPath = (): string => `/icons/default.svg`
-
 export const useIcon = (type: IconType, src?: string | null) => {
-  const iconPath = useMemo(() => getIconPath(type), [type])
-  const defaultIconPath = useMemo(() => getDefaultIconPath(), [])
-
   return useCallback(
     ({
       className = '',
@@ -35,43 +30,56 @@ export const useIcon = (type: IconType, src?: string | null) => {
       style,
       showBorder = false,
       color,
-      // @ts-ignore
-      type: iconType
+      iconOnly = false
     }: IconProps): JSX.Element => {
       const colors = useNodesDisplaySettings((s) => s.colors)
       const resolvedColor = color || colors[type as keyof typeof colors] || DEFAULT_COLOR
 
-      // Gestion de l'erreur de chargement d'image
-      const handleImageError = useCallback(
-        (e: React.SyntheticEvent<HTMLImageElement>) => {
-          const target = e.currentTarget
-          if (target.src !== defaultIconPath) {
-            target.src = defaultIconPath
-          }
-        },
-        [defaultIconPath]
-      )
-
       // Use full size for src images, scaled size for icons
       const actualIconSize = src ? size : size * 0.7
 
-      const imageElement = (
-        <img
-          src={src || iconPath}
-          width={actualIconSize}
-          height={actualIconSize}
-          className={`object-contain flex-shrink-0 rounded-full ${className} p-0`}
+      // Si src est fourni, utiliser une image
+      if (src) {
+        const imageElement = (
+          <img
+            src={src}
+            width={actualIconSize}
+            height={actualIconSize}
+            className={`object-contain flex-shrink-0 rounded-full ${className} p-0`}
+            style={{
+              minWidth: actualIconSize,
+              minHeight: actualIconSize,
+              maxWidth: actualIconSize,
+              maxHeight: actualIconSize,
+              ...(showBorder ? undefined : style)
+            }}
+            alt={`${type} icon`}
+          />
+        )
+        if (iconOnly) return imageElement
+      }
+
+      // Utiliser une icône Lucide (PERFORMANT - pas de requête HTTP)
+      const iconName = TYPE_TO_ICON[type] || TYPE_TO_ICON.default
+      const LucideIcon = LucideIcons[iconName] as React.ComponentType<{
+        size?: number
+        fontSize?: number
+        className?: string
+        style?: React.CSSProperties
+      }>
+
+      const iconElement = (
+        <LucideIcon
+          size={actualIconSize}
+          fontSize={1}
+          className={cn(`flex-shrink-0`, !iconOnly && !showBorder && 'text-white', className)}
           style={{
-            minWidth: actualIconSize,
-            minHeight: actualIconSize,
-            maxWidth: actualIconSize,
-            maxHeight: actualIconSize,
             ...(showBorder ? undefined : style)
           }}
-          alt={`${type} icon`}
-          onError={handleImageError}
         />
       )
+
+      if (iconOnly) return iconElement
 
       if (showBorder) {
         const containerSize = size + CONTAINER_PADDING
@@ -91,7 +99,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
               ...style
             }}
           >
-            {imageElement}
+            {iconElement}
           </div>
         )
       }
@@ -110,10 +118,10 @@ export const useIcon = (type: IconType, src?: string | null) => {
             maxHeight: containerSize
           }}
         >
-          {imageElement}
+          {iconElement}
         </div>
       )
     },
-    [iconPath, defaultIconPath, type]
+    [type, src]
   )
 }

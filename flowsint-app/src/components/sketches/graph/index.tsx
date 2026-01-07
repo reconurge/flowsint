@@ -113,12 +113,23 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   // Preload icons
   useEffect(() => {
     if (showIcons) {
+      const isOutlined = forceSettings.nodeOutlined?.value ?? false
       const iconTypes = new Set(nodes.map((node) => node.data?.type as ItemType).filter(Boolean))
-      iconTypes.forEach((type) => {
-        preloadImage(type).catch(console.warn)
-      })
+
+      if (isOutlined) {
+        // In outlined mode, preload icons in both white and black
+        iconTypes.forEach((type) => {
+          preloadImage(type, '#FFFFFF').catch(console.warn) // for dark theme
+          preloadImage(type, '#000000').catch(console.warn) // for light theme
+        })
+      } else {
+        // In filled mode, preload icons with white color only
+        iconTypes.forEach((type) => {
+          preloadImage(type, '#FFFFFF').catch(console.warn)
+        })
+      }
     }
-  }, [nodes, showIcons])
+  }, [nodes, showIcons, forceSettings.nodeOutlined?.value])
 
   // Container size management
   useEffect(() => {

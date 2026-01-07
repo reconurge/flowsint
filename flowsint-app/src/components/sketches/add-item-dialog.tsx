@@ -106,7 +106,7 @@ export default function AddItemDialog() {
       },
       // Position fields for client-side graph rendering (at viewport center)
       x: nodeX,
-      y: nodeY,
+      y: nodeY
     }
     if (addNode) {
       addNode(nodeWithTempId)
@@ -135,9 +135,7 @@ export default function AddItemDialog() {
     setOpenFormDialog(false)
     // Show optimistic success message
     toast.success(
-      relatedNodeToAdd
-        ? `New relation added to ${relatedNodeToAdd.data.label}.`
-        : 'New node added.'
+      relatedNodeToAdd ? `New relation added to ${relatedNodeToAdd.data.label}.` : 'New node added.'
     )
     // Make API calls in the background
     try {
@@ -245,12 +243,8 @@ export default function AddItemDialog() {
                 </span>
               )}
             </div>
-            <div className='pt-6'>
-              <Button
-                size="sm"
-                onClick={handleImportData}
-                className="flex items-center gap-2"
-              >
+            <div className="pt-6">
+              <Button size="sm" onClick={handleImportData} className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
                 Import
               </Button>
@@ -323,10 +317,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
     >
       <CardContent className="p-2 relative flex flex-col items-center text-center h-full">
         <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3 mt-2">
-          <IconComponent
-            style={{ color: item.color }}
-            className={cn('h-12 w-12', item.color ? '' : 'text-primary')}
-          />
+          <IconComponent />
         </div>
         <div className="font-medium text-sm">{item.label}</div>
         {!item.children && <div className="text-sm mt-2 opacity-60">{item.description}</div>}

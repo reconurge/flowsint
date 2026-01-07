@@ -1,5 +1,5 @@
 import { CONSTANTS, GRAPH_COLORS } from './constants'
-import { getCachedImage } from './image-cache'
+import { getCachedImage, getCachedFlagImage } from './image-cache'
 import { truncateText } from './utils'
 
 interface NodeRenderParams {
@@ -60,9 +60,7 @@ export const renderNode = ({
 
   const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
 
-  const size = shouldRenderDetails
-    ? baseSize
-    : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  const size = shouldRenderDetails ? baseSize : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
 
   const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id) || isCurrent(node.id)
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
@@ -80,29 +78,94 @@ export const renderNode = ({
   }
 
   // Set node color
-  if (hasAnyHighlight) {
-    ctx.fillStyle = isHighlighted ? node.nodeColor : `${node.nodeColor}7D`
-  } else {
-    ctx.fillStyle = node.nodeColor
-  }
+  const nodeColor = hasAnyHighlight
+    ? isHighlighted
+      ? node.nodeColor
+      : `${node.nodeColor}7D`
+    : node.nodeColor
 
-  // Draw node circle
+  const isOutlined = forceSettings.nodeOutlined?.value ?? false
+
+  // Draw node circle (filled or outlined)
   ctx.beginPath()
   ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
-  ctx.fill()
+
+  if (isOutlined) {
+    ctx.strokeStyle = nodeColor
+    ctx.lineWidth = Math.max(2, size * 0.15) / globalScale
+    ctx.stroke()
+  } else {
+    ctx.fillStyle = nodeColor
+    ctx.fill()
+    // Draw subtle border for filled nodes
+    ctx.beginPath()
+    ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+    ctx.strokeStyle = theme === 'light' ? 'rgba(44, 44, 44, 0.19)' : 'rgba(222, 222, 222, 0.13)'
+    ctx.lineWidth = 0.3
+    ctx.stroke()
+  }
 
   // Only render details if zoomed in enough
   if (!shouldRenderDetails) return
 
+  // Draw flag if present
+  if (node.data?.flag) {
+    const flagColors: Record<string, { stroke: string; fill: string }> = {
+      red: { stroke: '#f87171', fill: '#fecaca' },
+      orange: { stroke: '#fb923c', fill: '#fed7aa' },
+      blue: { stroke: '#60a5fa', fill: '#bfdbfe' },
+      green: { stroke: '#4ade80', fill: '#bbf7d0' },
+      yellow: { stroke: '#facc15', fill: '#fef08a' }
+    }
+
+    const flagColor = flagColors[node.data.flag]
+    if (flagColor) {
+      const cachedFlag = getCachedFlagImage(flagColor.stroke, flagColor.fill)
+      if (cachedFlag && cachedFlag.complete) {
+        try {
+          const flagSize = size * 0.8
+          const flagX = node.x + 0.8 + size * 0.5 - flagSize / 2
+          const flagY = node.y - 1.4 - size * 0.5 - flagSize / 2
+
+          ctx.save()
+          ctx.globalAlpha = 1
+          ctx.drawImage(cachedFlag, flagX, flagY, flagSize, flagSize)
+          ctx.restore()
+        } catch (error) {
+          console.warn('[node-renderer] Failed to draw flag:', error)
+        }
+      }
+    }
+  }
+
   // Render icons
   if (showIcons && node.nodeType) {
-    const cachedImage = getCachedImage(node.nodeType)
+    // In outlined mode: white for dark theme, black for light theme
+    // In filled mode: always white
+    const iconColor = isOutlined
+      ? (theme === 'dark' ? '#FFFFFF' : '#000000')
+      : '#FFFFFF'
+    const cachedImage = getCachedImage(node.nodeType, iconColor)
     if (cachedImage && cachedImage.complete) {
       try {
-        ctx.drawImage(cachedImage, node.x - size / 2, node.y - size / 2, size, size)
-      } catch (error) {
-        // Silent fail
-      }
+        // Dessiner l'icône au centre du node
+        const iconSize = size * 1.2
+        ctx.save()
+        // Apply transparency if node is not highlighted
+        const iconAlpha = hasAnyHighlight && !isHighlighted ? 0.5 : 0.9
+        ctx.globalAlpha = iconAlpha
+        ctx.drawImage(cachedImage, node.x - iconSize / 2, node.y - iconSize / 2, iconSize, iconSize)
+        ctx.restore()
+      } catch (error) {}
+    } else {
+      console.warn(
+        '[node-renderer] No cached image for type:',
+        node.nodeType,
+        'color:',
+        iconColor,
+        'complete:',
+        cachedImage?.complete
+      )
     }
   }
 
@@ -132,28 +195,26 @@ export const renderNode = ({
       ctx.roundRect(bgX, bgY, bgWidth, bgHeight, borderRadius)
 
       if (theme === 'light') {
-        ctx.fillStyle = isHighlighted
-          ? 'rgba(255, 255, 255, 0.95)'
-          : 'rgba(255, 255, 255, 0.75)'
+        ctx.fillStyle = isHighlighted ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.75)'
       } else {
-        ctx.fillStyle = isHighlighted
-          ? 'rgba(32, 32, 32, 0.95)'
-          : 'rgba(32, 32, 32, 0.75)'
+        ctx.fillStyle = isHighlighted ? 'rgba(32, 32, 32, 0.95)' : 'rgba(32, 32, 32, 0.75)'
       }
       ctx.fill()
 
-      ctx.strokeStyle = theme === 'light'
-        ? 'rgba(0, 0, 0, 0.1)'
-        : 'rgba(255, 255, 255, 0.1)'
+      ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
       ctx.lineWidth = 0.1
       ctx.stroke()
 
-      // Draw text
+      // Draw text with consistent baseline across browsers
       const color = theme === 'light' ? GRAPH_COLORS.TEXT_LIGHT : GRAPH_COLORS.TEXT_DARK
       ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
+      ctx.textBaseline = 'alphabetic' // More consistent across browsers than 'middle'
       ctx.fillStyle = isHighlighted ? color : `${color}CC`
-      ctx.fillText(label, node.x, bgY + bgHeight / 2)
+
+      const metrics = ctx.measureText(label)
+      const textY = bgY + paddingY + metrics.actualBoundingBoxAscent
+
+      ctx.fillText(label, node.x, textY)
     }
   }
 }

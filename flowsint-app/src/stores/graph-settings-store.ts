@@ -25,6 +25,12 @@ const DEFAULT_SETTINGS = {
     }
   },
   graph: {
+    nodeOutlined: {
+      name: 'Node style (outlined/fill)',
+      type: 'boolean',
+      value: false,
+      description: 'Node style, filled by default.'
+    },
     nodeSize: {
       name: 'Node Size',
       type: 'number',
@@ -368,7 +374,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 2
+const STORAGE_VERSION = 3
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

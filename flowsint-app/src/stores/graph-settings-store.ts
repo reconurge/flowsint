@@ -40,6 +40,15 @@ const DEFAULT_SETTINGS = {
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
     },
+    nodeWeightMultiplierSize: {
+      name: 'Node Weight Multiplier',
+      type: 'number',
+      value: 1.5,
+      min: 1.0,
+      max: 8.0,
+      step: 0.01,
+      description: 'Defines how a node size varies depending on the weight (number of relations).'
+    },
     linkWidth: {
       name: 'Link Width',
       type: 'number',
@@ -121,7 +130,7 @@ const DEFAULT_SETTINGS = {
     linkDirectionalArrowLength: {
       name: 'Arrow Length',
       type: 'number',
-      value: 1,
+      value: 2,
       min: 1,
       max: 10,
       step: 0.1,
@@ -374,7 +383,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 3
+const STORAGE_VERSION = 4
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

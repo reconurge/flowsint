@@ -55,7 +55,8 @@ export const renderNode = ({
   if (!inViewport) return
 
   const sizeMultiplier = forceSettings.nodeSize.value / 100 + 0.2
-  const neighborBonus = Math.min(node.neighbors.length / 5, 5)
+  const neighborBonus =
+    Math.min(node.neighbors.length / 5, 8) * forceSettings.nodeWeightMultiplierSize.value
   const baseSize = (node.nodeSize + neighborBonus) * sizeMultiplier
 
   const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
@@ -142,9 +143,7 @@ export const renderNode = ({
   if (showIcons && node.nodeType) {
     // In outlined mode: white for dark theme, black for light theme
     // In filled mode: always white
-    const iconColor = isOutlined
-      ? (theme === 'dark' ? '#FFFFFF' : '#000000')
-      : '#FFFFFF'
+    const iconColor = isOutlined ? (theme === 'dark' ? '#FFFFFF' : '#000000') : '#FFFFFF'
     const cachedImage = getCachedImage(node.nodeType, iconColor)
     if (cachedImage && cachedImage.complete) {
       try {

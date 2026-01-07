@@ -114,5 +114,25 @@ export const sketchService = {
       method: 'PUT',
       body: JSON.stringify({ positions })
     })
+  },
+  exportSketch: async (sketchId: string, format: 'json' = 'json'): Promise<any> => {
+    const response = await fetchWithAuth(`/api/sketches/${sketchId}/export?format=${format}`, {
+      method: 'GET'
+    })
+
+    if (format === 'json') {
+      const data = await response
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `sketch-${sketchId}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    }
+
+    return response
   }
 }

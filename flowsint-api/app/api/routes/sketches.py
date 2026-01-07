@@ -247,6 +247,80 @@ async def get_sketch_nodes(
     return {"nds": nodes, "rls": rels}
 
 
+@router.get("/{id}/export")
+async def export_sketch(
+    id: str,
+    format: str = "json",
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    Export the sketch in the specified format.
+    Args:
+        id: The ID of the sketch
+        format: Export format - "json" or "png" (default: "json")
+        db: The database session
+        current_user: The current user
+    Returns:
+        The sketch data in the requested format
+    """
+    sketch = db.query(Sketch).filter(Sketch.id == id).first()
+    if not sketch:
+        raise HTTPException(status_code=404, detail="Sketch not found")
+    check_investigation_permission(
+        current_user.id, sketch.investigation_id, actions=["read"], db=db
+    )
+
+    # Get all nodes and relationships using GraphRepository
+    graph_repo = GraphRepository(neo4j_connection)
+    graph_data = graph_repo.get_sketch_graph(id, limit=100000)
+
+    nodes_result = graph_data["nodes"]
+    rels_result = graph_data["relationships"]
+
+    nodes = [
+        {
+            "id": str(record["id"]),
+            "data": record["data"],
+            "label": record["data"].get("label", "Node"),
+            "idx": idx,
+            **({"x": record["data"]["x"]} if "x" in record["data"] else {}),
+            **({"y": record["data"]["y"]} if "y" in record["data"] else {}),
+        }
+        for idx, record in enumerate(nodes_result)
+    ]
+
+    rels = [
+        {
+            "id": str(record["id"]),
+            "source": str(record["source"]),
+            "target": str(record["target"]),
+            "data": record["data"],
+            "label": record["type"],
+        }
+        for record in rels_result
+    ]
+
+    if format == "json":
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            content={
+                "sketch": {
+                    "id": str(sketch.id),
+                    "title": sketch.title,
+                    "description": sketch.description,
+                },
+                "graph": {"nds": nodes, "rls": rels},
+            }
+        )
+    elif format == "png":
+        # TODO: Implement PNG export
+        raise HTTPException(status_code=501, detail="PNG export not yet implemented")
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {format}")
+
+
 def clean_empty_values(data: dict) -> dict:
     """Remove empty string values from dict to avoid Pydantic validation errors."""
     cleaned = {}

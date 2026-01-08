@@ -282,11 +282,6 @@ export default function IconPicker({ iconType, open, setOpen }: IconPopoverProps
     if (!iconType) return
     setIcon(iconType, iconName as keyof typeof LucideIcons)
     clearIconTypeCache(iconType)
-    setTimeout(() => {
-      const customIcons = useNodesDisplaySettings.getState().customIcons
-      console.log('Updated customIcons:', customIcons)
-    }, 100)
-
     setOpen(false)
   }
 

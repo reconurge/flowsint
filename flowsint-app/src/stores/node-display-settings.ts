@@ -3,228 +3,172 @@ import { persist } from 'zustand/middleware'
 import type * as LucideIcons from 'lucide-react'
 
 export type ItemType =
-  | 'individual'
-  | 'phone'
-  | 'location'
+  | 'domain'
   | 'email'
   | 'ip'
-  | 'port'
-  | 'socialaccount'
-  | 'organization'
-  | 'vehicle'
-  | 'car'
-  | 'motorcycle'
-  | 'boat'
-  | 'plane'
-  | 'website'
-  | 'domain'
-  | 'document'
-  | 'financial'
-  | 'event'
-  | 'device'
-  | 'media'
-  | 'education'
-  | 'relationship'
-  | 'online_activity'
-  | 'digital_footprint'
-  | 'biometric'
-  | 'credential'
+  | 'phone'
   | 'username'
-  | 'siret'
-  | 'siren'
-  | 'cryptowallet'
-  | 'cryptotransaction'
-  | 'cryptonft'
+  | 'organization'
+  | 'individual'
+  | 'socialaccount'
   | 'asn'
   | 'cidr'
-  | 'whois'
-  | 'gravatar'
-  | 'breach'
-  | 'webtracker'
-  | 'session'
-  | 'dnsrecord'
-  | 'ssl'
-  | 'message'
-  | 'malware'
-  | 'weapon'
-  | 'script'
-  | 'reputation'
-  | 'risk'
-  | 'file'
-  | 'bank'
-  | 'creditcard'
-  | 'alias'
-  | 'affiliation'
+  | 'cryptowallet'
+  | 'cryptowallettransaction'
+  | 'cryptonft'
+  | 'website'
+  | 'port'
   | 'phrase'
+  | 'breach'
+  | 'credential'
+  | 'device'
+  | 'document'
+  | 'file'
+  | 'malware'
+  | 'sslcertificate'
+  | 'location'
+  | 'affiliation'
+  | 'alias'
+  | 'bankaccount'
+  | 'creditcard'
+  | 'dnsrecord'
+  | 'gravatar'
+  | 'leak'
+  | 'message'
+  | 'reputationscore'
+  | 'riskprofile'
+  | 'script'
+  | 'session'
+  | 'webtracker'
+  | 'weapon'
+  | 'whois'
 
 export const ITEM_TYPES: ItemType[] = [
-  'individual',
-  'phone',
-  'location',
+  'domain',
   'email',
   'ip',
-  'port',
-  'socialaccount',
-  'organization',
-  'vehicle',
-  'car',
-  'motorcycle',
-  'boat',
-  'plane',
-  'website',
-  'domain',
-  'document',
-  'financial',
-  'event',
-  'device',
-  'media',
-  'education',
-  'relationship',
-  'online_activity',
-  'digital_footprint',
-  'biometric',
-  'credential',
+  'phone',
   'username',
-  'siret',
-  'siren',
-  'cryptowallet',
-  'cryptotransaction',
-  'cryptonft',
+  'organization',
+  'individual',
+  'socialaccount',
   'asn',
   'cidr',
-  'whois',
-  'gravatar',
+  'cryptowallet',
+  'cryptowallettransaction',
+  'cryptonft',
+  'website',
+  'port',
+  'phrase',
   'breach',
-  'webtracker',
-  'session',
-  'dnsrecord',
-  'ssl',
-  'message',
-  'malware',
-  'weapon',
-  'script',
-  'reputation',
-  'risk',
+  'credential',
+  'device',
+  'document',
   'file',
-  'bank',
-  'creditcard',
-  'alias',
+  'malware',
+  'sslcertificate',
+  'location',
   'affiliation',
-  'phrase'
+  'alias',
+  'bankaccount',
+  'creditcard',
+  'dnsrecord',
+  'gravatar',
+  'leak',
+  'message',
+  'reputationscore',
+  'riskprofile',
+  'script',
+  'session',
+  'webtracker',
+  'weapon',
+  'whois'
 ]
 
 // Icon mapping for each item type (Lucide icons)
 export const TYPE_TO_ICON: Record<string, keyof typeof LucideIcons> = {
-  individual: 'User',
-  phone: 'Phone',
-  location: 'MapPin',
+  domain: 'Globe',
   email: 'Mail',
   ip: 'Network',
-  port: 'Plug',
-  socialaccount: 'Share2',
-  organization: 'Building2',
-  vehicle: 'Car',
-  car: 'Car',
-  motorcycle: 'Bike',
-  boat: 'Ship',
-  plane: 'Plane',
-  website: 'Globe',
-  domain: 'Globe',
-  document: 'FileText',
-  financial: 'DollarSign',
-  event: 'Calendar',
-  device: 'Smartphone',
-  media: 'Image',
-  education: 'GraduationCap',
-  relationship: 'Users',
-  online_activity: 'Activity',
-  digital_footprint: 'Footprints',
-  biometric: 'Fingerprint',
-  credential: 'Key',
+  phone: 'Phone',
   username: 'UserPlus',
-  siret: 'Building',
-  siren: 'Building',
-  cryptowallet: 'Wallet',
-  cryptotransaction: 'ArrowRightLeft',
-  cryptonft: 'Image',
+  organization: 'Building2',
+  individual: 'User',
+  socialaccount: 'Share2',
   asn: 'Network',
   cidr: 'Network',
-  whois: 'Info',
-  gravatar: 'UserCircle',
-  breach: 'ShieldAlert',
-  webtracker: 'Target',
-  session: 'Clock',
-  dnsrecord: 'Database',
-  ssl: 'Lock',
-  message: 'MessageSquare',
-  malware: 'Bug',
-  weapon: 'Sword',
-  script: 'FileCode',
-  reputation: 'Star',
-  risk: 'AlertTriangle',
-  file: 'File',
-  bank: 'Landmark',
-  creditcard: 'CreditCard',
-  alias: 'UserCog',
-  affiliation: 'Link2',
+  cryptowallet: 'Wallet',
+  cryptowallettransaction: 'ArrowRightLeft',
+  cryptonft: 'Image',
+  website: 'Globe',
+  port: 'Plug',
   phrase: 'Quote',
+  breach: 'ShieldAlert',
+  credential: 'Key',
+  device: 'Smartphone',
+  document: 'FileText',
+  file: 'File',
+  malware: 'Bug',
+  sslcertificate: 'Lock',
+  location: 'MapPin',
+  affiliation: 'Link2',
+  alias: 'UserCog',
+  bankaccount: 'Landmark',
+  creditcard: 'CreditCard',
+  dnsrecord: 'Database',
+  gravatar: 'UserCircle',
+  leak: 'Droplet',
+  message: 'MessageSquare',
+  reputationscore: 'Star',
+  riskprofile: 'AlertTriangle',
+  script: 'FileCode',
+  session: 'Clock',
+  webtracker: 'Target',
+  weapon: 'Sword',
+  whois: 'Info',
   default: 'Circle'
 }
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
-  individual: '#4C8EDA', // bleu moyen
-  phone: '#4CB5AE', // teal doux
-  location: '#E57373', // rouge rosé
+  domain: '#66A892', // vert sauge
   email: '#8E7CC3', // violet pastel
   ip: '#5AA1C8', // orange chaud
-  port: '#4CB5DA', // cyan clair
-  socialaccount: '#A76DAA', // mauve
-  organization: '#BCA18A', // taupe clair
-  vehicle: '#E1B84D', // jaune doux
-  car: '#BFAF7A', // olive beige
-  motorcycle: '#A78B6C', // brun taupe
-  boat: '#6FB1C5', // bleu teal
-  plane: '#C1A78E', // brun clair
-  website: '#D279A6', // rose pastel
-  domain: '#66A892', // vert sauge
-  document: '#8F9CA3', // gris bleuté
-  financial: '#E98973', // corail doux
-  event: '#6DBBA2', // vert menthe
-  device: '#E3A857', // orange sable
-  media: '#C97C73', // terracotta
-  education: '#6C8CBF', // bleu acier
-  relationship: '#B18B84', // brun rosé
-  online_activity: '#7EAD6F', // vert sauge
-  digital_footprint: '#B97777', // brique
+  phone: '#4CB5AE', // teal doux
   username: '#8B83C1', // pervenche
-  credential: '#D4B030', // doré doux
-  biometric: '#7F868D', // gris ardoise
-  siret: '#7D8B99', // gris bleu
-  siren: '#687684', // gris foncé
-  cryptowallet: '#D4B030', // or clair
-  cryptotransaction: '#BFA750', // or chaud
-  cryptonft: '#A5BF50', // vert lime doux
+  organization: '#BCA18A', // taupe clair
+  individual: '#4C8EDA', // bleu moyen
+  socialaccount: '#A76DAA', // mauve
   asn: '#D97474', // pêche rosée
   cidr: '#80BF80', // vert menthe
-  whois: '#9B6F9B', // violet doux
-  gravatar: '#6CB7CA', // cyan clair
+  cryptowallet: '#D4B030', // or clair
+  cryptowallettransaction: '#BFA750', // or chaud
+  cryptonft: '#A5BF50', // vert lime doux
+  website: '#D279A6', // rose pastel
+  port: '#4CB5DA', // cyan clair
+  phrase: '#BFA77A', // beige chaud
   breach: '#CC7A7A', // rose chaud
-  webtracker: '#C7BF50', // jaune doux
-  session: '#A8BF50', // lime atténué
-  dnsrecord: '#BFAF80', // vert teal clair
-  ssl: '#BFAF80', // sable chaud
-  message: '#897FC9', // violet lavande
-  malware: '#4AA29E', // teal saturé
-  weapon: '#E98973', // corail brun
-  script: '#A36FA3', // violet doux
-  reputation: '#6FA8DC', // bleu clair
-  risk: '#D97474', // rouge doux
+  credential: '#D4B030', // doré doux
+  device: '#E3A857', // orange sable
+  document: '#8F9CA3', // gris bleuté
   file: '#8F9CA3', // gris bleuté
-  bank: '#D4B030', // or clair
-  creditcard: '#285E8E', // bleu profond
-  alias: '#A36FA3', // violet
+  malware: '#4AA29E', // teal saturé
+  sslcertificate: '#BFAF80', // sable chaud
+  location: '#E57373', // rouge rosé
   affiliation: '#66A892', // vert sauge
-  phrase: '#BFA77A' // beige chaud
+  alias: '#A36FA3', // violet
+  bankaccount: '#D4B030', // or clair
+  creditcard: '#285E8E', // bleu profond
+  dnsrecord: '#BFAF80', // vert teal clair
+  gravatar: '#6CB7CA', // cyan clair
+  leak: '#7C9CBF', // bleu acier
+  message: '#897FC9', // violet lavande
+  reputationscore: '#6FA8DC', // bleu clair
+  riskprofile: '#D97474', // rouge doux
+  script: '#A36FA3', // violet doux
+  session: '#A8BF50', // lime atténué
+  webtracker: '#C7BF50', // jaune doux
+  weapon: '#E98973', // corail brun
+  whois: '#9B6F9B' // violet doux
 }
 
 const hslToHex = (h: number, s: number, l: number): string => {

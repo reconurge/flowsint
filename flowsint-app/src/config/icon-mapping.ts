@@ -27,7 +27,7 @@ export const TYPE_TO_ICON: Record<string, keyof typeof LucideIcons> = {
   digital_footprint: 'Footprints',
   biometric: 'Fingerprint',
   credential: 'Key',
-  username: 'UserCircle',
+  username: 'UserPlus',
   siret: 'Building',
   siren: 'Building',
   cryptowallet: 'Wallet',

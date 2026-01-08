@@ -1,7 +1,6 @@
 import { type JSX, useCallback } from 'react'
-import { useNodesDisplaySettings } from '@/stores/node-display-settings'
+import { useNodesDisplaySettings, TYPE_TO_ICON } from '@/stores/node-display-settings'
 import * as LucideIcons from 'lucide-react'
-import { TYPE_TO_ICON } from '@/config/icon-mapping'
 import { cn } from '@/lib/utils'
 
 export type IconType = string
@@ -23,6 +22,13 @@ const CONTAINER_PADDING = 16
 const BACKGROUND_PADDING = 8
 
 export const useIcon = (type: IconType, src?: string | null) => {
+  // Subscribe to store changes
+  const colors = useNodesDisplaySettings((s) => s.colors)
+  const customIcons = useNodesDisplaySettings((s) => s.customIcons)
+
+  // Get icon name, checking custom icons first
+  const iconName = customIcons[type] || TYPE_TO_ICON[type] || TYPE_TO_ICON.default
+
   return useCallback(
     ({
       className = '',
@@ -32,7 +38,6 @@ export const useIcon = (type: IconType, src?: string | null) => {
       color,
       iconOnly = false
     }: IconProps): JSX.Element => {
-      const colors = useNodesDisplaySettings((s) => s.colors)
       const resolvedColor = color || colors[type as keyof typeof colors] || DEFAULT_COLOR
 
       // Use full size for src images, scaled size for icons
@@ -60,8 +65,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
       }
 
       // Utiliser une icône Lucide (PERFORMANT - pas de requête HTTP)
-      const iconName = TYPE_TO_ICON[type] || TYPE_TO_ICON.default
-      const LucideIcon = LucideIcons[iconName] as React.ComponentType<{
+      const LucideIcon = (LucideIcons as any)[iconName] as React.ComponentType<{
         size?: number
         fontSize?: number
         className?: string
@@ -122,6 +126,6 @@ export const useIcon = (type: IconType, src?: string | null) => {
         </div>
       )
     },
-    [type, src]
+    [type, src, colors, iconName]
   )
 }

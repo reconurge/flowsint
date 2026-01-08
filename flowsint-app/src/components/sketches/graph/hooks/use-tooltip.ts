@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { TooltipState } from './types'
+import { TooltipState } from '../utils/types'
 
 export const useTooltip = (graphRef: React.RefObject<any>) => {
   const [tooltip, setTooltip] = useState<TooltipState>({

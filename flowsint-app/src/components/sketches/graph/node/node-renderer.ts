@@ -1,6 +1,6 @@
-import { CONSTANTS, GRAPH_COLORS } from './constants'
-import { getCachedImage, getCachedFlagImage } from './image-cache'
-import { truncateText } from './utils'
+import { CONSTANTS, GRAPH_COLORS } from '../utils/constants'
+import { getCachedImage, getCachedFlagImage } from '../utils/image-cache'
+import { truncateText, calculateNodeSize } from '../utils/utils'
 
 interface NodeRenderParams {
   node: any
@@ -54,14 +54,8 @@ export const renderNode = ({
   const inViewport = isInViewport(node, ctx)
   if (!inViewport) return
 
-  const sizeMultiplier = forceSettings.nodeSize.value / 100 + 0.2
-  const neighborBonus =
-    Math.min(node.neighbors.length / 5, 8) * forceSettings.nodeWeightMultiplierSize.value
-  const baseSize = (node.nodeSize + neighborBonus) * sizeMultiplier
-
   const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
-
-  const size = shouldRenderDetails ? baseSize : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  const size = calculateNodeSize(node, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
 
   const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id) || isCurrent(node.id)
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
@@ -92,6 +86,10 @@ export const renderNode = ({
   ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
 
   if (isOutlined) {
+    // Fill background: white in light mode, dark in dark mode
+    ctx.fillStyle = theme === 'light' ? '#FFFFFF' : '#1a1a1a'
+    ctx.fill()
+    // Draw colored outline
     ctx.strokeStyle = nodeColor
     ctx.lineWidth = Math.max(2, size * 0.15) / globalScale
     ctx.stroke()

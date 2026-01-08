@@ -1,10 +1,10 @@
 import { useGraphStore } from '@/stores/graph-store'
 import React, { useRef, useCallback } from 'react'
-import GraphViewer from './graph-viewer'
+import GraphViewer from '../index'
 // import WebGLGraphViewer from './webgl'
-import NodeContextMenu from './node-context-menu'
-import BackgroundContextMenu from './background-context-menu'
-import EdgeContextMenu from './edge-context-menu'
+import NodeContextMenu from '../context-menu/node-context-menu'
+import BackgroundContextMenu from '../context-menu/background-context-menu'
+import EdgeContextMenu from '../context-menu/edge-context-menu'
 import { useParams } from '@tanstack/react-router'
 
 const GraphMain = () => {

@@ -1,4 +1,5 @@
-import { CONSTANTS, GRAPH_COLORS, tempPos, tempDimensions } from './constants'
+import { CONSTANTS, GRAPH_COLORS, tempPos, tempDimensions } from '../utils/constants'
+import { calculateNodeSize } from '../utils/utils'
 
 interface LinkRenderParams {
   link: any
@@ -91,7 +92,6 @@ export const renderLink = ({
   const isCurrent = currentEdge?.id === link.id
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
   let linkWidthBase = forceSettings?.linkWidth?.value ?? 2
-  const nodeSize = forceSettings?.nodeSize?.value ?? 14
   const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
 
   const linkWidth = shouldRenderDetails
@@ -125,17 +125,9 @@ export const renderLink = ({
   }
 
   // Calculate node radii to stop links at node edges
-  const calculateNodeRadius = (node: any) => {
-    const sizeMultiplier = nodeSize / 100 + 0.2
-    const neighborBonus = Math.min(node.neighbors?.length / 5 || 0, 5)
-    const baseSize = (node.nodeSize + neighborBonus) * sizeMultiplier
-    return shouldRenderDetails
-      ? baseSize
-      : baseSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
-  }
-
-  const startRadius = calculateNodeRadius(start)
-  const endRadius = calculateNodeRadius(end)
+  // Uses the shared calculateNodeSize function to ensure consistency with node-renderer
+  const startRadius = calculateNodeSize(start, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
+  const endRadius = calculateNodeSize(end, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
 
   const arrowLengthSetting = forceSettings?.linkDirectionalArrowLength?.value
   const arrowLength =
@@ -206,12 +198,8 @@ export const renderLink = ({
     if (arrowRelPos === 1) {
       const tan = bezierTangent(0.99)
       const tanLen = Math.hypot(tan.x, tan.y) || 1
-      const sizeMultiplier = nodeSize / 100 + 0.2
-      const neighborBonus = Math.min(end.neighbors?.length / 5 || 0, 5)
-      const baseTargetSize = (end.nodeSize + neighborBonus) * sizeMultiplier
-      const targetNodeSize = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
-        ? baseTargetSize
-        : baseTargetSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+      // Use the same calculation as above to ensure consistency
+      const targetNodeSize = calculateNodeSize(end, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
       arrowX = end.x - (tan.x / tanLen) * targetNodeSize
       arrowY = end.y - (tan.y / tanLen) * targetNodeSize
     }

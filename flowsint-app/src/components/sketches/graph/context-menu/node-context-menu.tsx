@@ -13,10 +13,10 @@ import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
 import { useParams } from '@tanstack/react-router'
 import { capitalizeFirstLetter } from '@/lib/utils'
-import NodeActions from '@/components/sketches/node-actions'
+import NodeActions from '../actions/node-actions'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
-import { CopyButton } from '../copy'
+import { CopyButton } from '@/components/copy'
 
 interface GraphContextMenuProps {
   node: GraphNode

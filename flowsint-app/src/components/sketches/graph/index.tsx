@@ -7,22 +7,22 @@ import { useGraphStore } from '@/stores/graph-store'
 import { ItemType, useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useTheme } from '@/components/theme-provider'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
-import { CONSTANTS } from './constants'
-import { GraphViewerProps } from './types'
-import { preloadImage } from './image-cache'
-import { renderNode } from './node-renderer'
-import { renderLink } from './link-renderer'
-import { useHighlightState } from './use-highlight-state'
-import { useTooltip } from './use-tooltip'
-import { transformGraphData } from './graph-data-transformer'
-import { useGraphLayout } from './use-graph-layout'
-import { useGraphEvents } from './use-graph-events'
-import { useGraphInitialization } from './use-graph-initialization'
-import { GraphEmptyState } from './graph-empty-state'
-import { GraphTooltip } from './graph-tooltip'
-import { GraphLoadingOverlay } from './graph-loading-overlay'
-import { GraphSelectorOverlay } from './graph-selector-overlay'
-import MinimapCanvas from './minimap'
+import { CONSTANTS } from './utils/constants'
+import { GraphViewerProps } from './utils/types'
+import { preloadImage } from './utils/image-cache'
+import { renderNode } from './node/node-renderer'
+import { renderLink } from './edge/link-renderer'
+import { useHighlightState } from './hooks/use-highlight-state'
+import { useTooltip } from './hooks/use-tooltip'
+import { transformGraphData } from './utils/graph-data-transformer'
+import { useGraphLayout } from './hooks/use-graph-layout'
+import { useGraphEvents } from './hooks/use-graph-events'
+import { useGraphInitialization } from './hooks/use-graph-initialization'
+import { GraphEmptyState } from './components/graph-empty-state'
+import { GraphTooltip } from './components/graph-tooltip'
+import { GraphLoadingOverlay } from './components/graph-loading-overlay'
+import { GraphSelectorOverlay } from './components/graph-selector-overlay'
+import MinimapCanvas from './components/minimap'
 
 const GraphViewer: React.FC<GraphViewerProps> = ({
   nodes,
@@ -54,6 +54,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
   const selectionMode = useGraphControls((s) => s.selectionMode)
   const nodeColors = useNodesDisplaySettings((s) => s.colors)
+  const customIcons = useNodesDisplaySettings((s) => s.customIcons)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
@@ -127,7 +128,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         })
       }
     }
-  }, [nodes, showIcons, forceSettings.nodeOutlined?.value])
+  }, [nodes, showIcons, forceSettings.nodeOutlined?.value, customIcons])
 
   // Container size management
   useEffect(() => {
@@ -431,4 +432,5 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 }
 
 export default GraphViewer
-export { GRAPH_COLORS } from './constants'
+export { GRAPH_COLORS } from './utils/constants'
+export { default as GraphMain } from './components/graph-main'

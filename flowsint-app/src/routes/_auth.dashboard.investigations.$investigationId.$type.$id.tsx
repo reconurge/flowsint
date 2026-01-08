@@ -124,7 +124,7 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
         <div className="space-y-3">
           <button
             onClick={() => window.location.reload()}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90
                                  px-4 py-2 rounded-md font-medium transition-colors
                                  flex items-center justify-center gap-2"
           >

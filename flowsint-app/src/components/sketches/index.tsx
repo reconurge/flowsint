@@ -5,7 +5,7 @@ import { Toolbar } from './toolbar'
 import { cn } from '@/lib/utils'
 import { ArrowDownToLineIcon } from 'lucide-react'
 import { CreateRelationDialog } from './create-relation'
-import GraphLoader from './graph-loader'
+import GraphLoader from './graph/components/graph-loader'
 import Loader from '../loader'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { NodeEditorModal } from './details-panel/node-editor-modal'
@@ -15,10 +15,10 @@ import { useActionItems } from '@/hooks/use-action-items'
 import { toast } from 'sonner'
 import MapPanel from '../map/map-panel'
 import NewActions from './add-item-dialog'
-import GraphMain from './graph-main'
-import Settings, { KeyboardShortcuts } from './settings'
+import GraphMain from './graph/components/graph-main'
+import Settings, { KeyboardShortcuts } from './settings/settings'
 import { type GraphNode, type GraphEdge } from '@/types'
-import { MergeDialog } from './merge-nodes'
+import { MergeDialog } from './graph/actions/merge-nodes'
 import { useGraphRefresh } from '@/hooks/use-graph-refresh'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 
@@ -120,11 +120,13 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   }
 
   return (
-    <div onDragOver={handleDragOver}
+    <div
+      onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="h-full w-full flex flex-col relative outline-2 outline-transparent bg-background">
+      className="h-full w-full flex flex-col relative outline-2 outline-transparent bg-background"
+    >
       <Toolbar isLoading={isLoading} />
       <Suspense
         fallback={

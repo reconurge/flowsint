@@ -1,4 +1,4 @@
-import { TYPE_TO_ICON } from '@/config/icon-mapping'
+import { TYPE_TO_ICON, useNodesDisplaySettings } from '@/stores/node-display-settings'
 //@ts-ignore
 import * as lucideIcons from 'lucide-react/dist/esm/icons'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -7,7 +7,9 @@ const imageCache = new Map<string, HTMLImageElement>()
 const imageLoadPromises = new Map<string, Promise<HTMLImageElement>>()
 
 const createSvgDataUrl = (iconType: string, color: string = '#FFFFFF'): string => {
-  const iconName = TYPE_TO_ICON[iconType] || TYPE_TO_ICON.default
+  // Check custom icons first, then fall back to default mapping
+  const customIcons = useNodesDisplaySettings.getState().customIcons
+  const iconName = customIcons[iconType] || TYPE_TO_ICON[iconType] || TYPE_TO_ICON.default
   const IconComponent = (lucideIcons as any)[iconName]
 
   let svgString: string
@@ -128,4 +130,19 @@ export const clearImageCache = (): void => {
   imageCache.clear()
   imageLoadPromises.clear()
   console.log('[image-cache] Cache cleared')
+}
+
+export const clearIconTypeCache = (iconType: string): void => {
+  // Clear all cached versions of this icon type (different colors)
+  const keysToDelete: string[] = []
+  imageCache.forEach((_, key) => {
+    if (key.startsWith(`${iconType}-`)) {
+      keysToDelete.push(key)
+    }
+  })
+  keysToDelete.forEach((key) => {
+    imageCache.delete(key)
+    imageLoadPromises.delete(key)
+  })
+  console.log(`[image-cache] Cleared cache for icon type: ${iconType}`)
 }

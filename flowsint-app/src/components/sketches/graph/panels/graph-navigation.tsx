@@ -3,7 +3,7 @@ import NodesPanel from './nodes-panel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UserPlus, Users } from 'lucide-react'
 import { ItemsPanel } from './items-panel'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { useLayoutStore } from '@/stores/layout-store'
 import SelectedItemsPanel from './selected-items-panel'
 

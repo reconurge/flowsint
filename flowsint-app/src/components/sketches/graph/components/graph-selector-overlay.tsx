@@ -1,6 +1,6 @@
 import { Info } from 'lucide-react'
-import Lasso from '../selectors/lasso'
-import Rectangle from '../selectors/rectangle'
+import Lasso from '../../selectors/lasso'
+import Rectangle from '../../selectors/rectangle'
 
 interface GraphSelectorOverlayProps {
   isActive: boolean

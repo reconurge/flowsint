@@ -4,7 +4,6 @@ import {
   SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet'
@@ -31,8 +30,10 @@ import { useParams } from '@tanstack/react-router'
 import { sketchService } from '@/api/sketch-service'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { queryKeys } from '@/api/query-keys'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
+import { NodeIconTrigger } from './icon-picker/trigger'
+import IconPicker from './icon-picker/popup'
 
 // SettingItem Components
 interface SettingItemProps {
@@ -211,8 +212,14 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
 function NodeColorsSection() {
   const storeColors = useNodesDisplaySettings((s) => s.colors)
   const setColor = useNodesDisplaySettings((s) => s.setColor)
-  const resetColors = useNodesDisplaySettings((s) => s.resetColors)
+  const resetSettings = useNodesDisplaySettings((s) => s.resetSettings)
   const randomizeColors = useNodesDisplaySettings((s) => s.randomizeColors)
+  const [openIconPicker, setOpenIconPicker] = useState(false)
+  const [currentType, setCurrentType] = useState<string | null>(null)
+  const handleOpenIconPicker = useCallback((type: string) => {
+    setOpenIconPicker(true)
+    setCurrentType(type)
+  }, [])
 
   // Local state for immediate UI updates
   const [localColors, setLocalColors] = useState(storeColors)
@@ -258,8 +265,8 @@ function NodeColorsSection() {
     debounceTimers.current.forEach((timer) => clearTimeout(timer))
     debounceTimers.current.clear()
     // Reset colors in store
-    resetColors()
-  }, [resetColors])
+    resetSettings()
+  }, [resetSettings])
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -272,17 +279,22 @@ function NodeColorsSection() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold text-foreground">Node colors</h3>
+        <h3 className="text-lg font-semibold text-foreground">Node</h3>
         <p className="text-sm text-muted-foreground">
-          Customize the colors for each node type in the graph visualization.
+          Customize the node styles for each type in the graph visualization.
         </p>
       </div>
 
       <div className="border-b flex items-center gap-2 pb-4">
         <Button variant="outline" size="sm" onClick={handleReset} className="grow shadow-none">
-          Reset to default colors
+          Reset to default
         </Button>
-        <Button variant="outline" size="sm" onClick={handleRandomizeColors} className="grow shadow-none">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRandomizeColors}
+          className="grow shadow-none"
+        >
           Randomize
         </Button>
       </div>
@@ -296,6 +308,7 @@ function NodeColorsSection() {
                   className="w-6 h-6 rounded border border-border shrink-0"
                   style={{ backgroundColor: localColors[itemType] }}
                 />
+                <NodeIconTrigger onClick={() => handleOpenIconPicker(itemType)} type={itemType} />
                 <Label className="text-sm font-medium text-foreground capitalize">
                   {itemType.replace(/_/g, ' ')}
                 </Label>
@@ -319,6 +332,7 @@ function NodeColorsSection() {
           ))}
         </div>
       </div>
+      <IconPicker open={openIconPicker} setOpen={setOpenIconPicker} iconType={currentType} />
     </div>
   )
 }
@@ -390,7 +404,12 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
             ))}
           </div>
           <div className="mt-4">
-            <Button variant="outline" size="sm" onClick={() => resetSettings()} className="w-full shadow-none">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => resetSettings()}
+              className="w-full shadow-none"
+            >
               Reset to defaults
             </Button>
           </div>
@@ -642,16 +661,12 @@ export default function GlobalSettings() {
           <div className="px-6 pb-4 border-b">
             <TabsList className="w-full h-auto flex">
               {Object.keys(settings).map((category: string) => (
-                <TabsTrigger
-                  key={category}
-                  value={category}
-                  className="capitalize h-9"
-                >
+                <TabsTrigger key={category} value={category} className="capitalize h-9">
                   {category}
                 </TabsTrigger>
               ))}
               <TabsTrigger value="nodecolors" className="h-9">
-                Node colors
+                Node
               </TabsTrigger>
             </TabsList>
           </div>
@@ -659,18 +674,11 @@ export default function GlobalSettings() {
           {/* Content panel */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {Object.keys(settings).map((category: string) => (
-              <TabsContent
-                key={category}
-                value={category}
-                className="mt-0 h-full flex flex-col"
-              >
+              <TabsContent key={category} value={category} className="mt-0 h-full flex flex-col">
                 {getSelectedSectionPanel(category)}
               </TabsContent>
             ))}
-            <TabsContent
-              value="nodecolors"
-              className="mt-0 h-full flex flex-col"
-            >
+            <TabsContent value="nodecolors" className="mt-0 h-full flex flex-col">
               {getSelectedSectionPanel('nodecolors')}
             </TabsContent>
           </div>
@@ -797,14 +805,14 @@ export function KeyboardShortcuts() {
       category: 'Graph',
       items: [
         { key: `S`, description: 'Hold to activate selection' },
-        { key: `Shift`, description: 'Hold while clicking on nodes to add to selection' },
+        { key: `Shift`, description: 'Hold while clicking on nodes to add to selection' }
       ]
     },
     {
       category: 'Settings',
       items: [
         { key: `${modKey}+G`, description: 'Toggle graph settings' },
-        { key: `${modKey}+K`, description: 'Toggle keyboard shortcuts' },
+        { key: `${modKey}+K`, description: 'Toggle keyboard shortcuts' }
       ]
     },
     {
@@ -825,9 +833,7 @@ export function KeyboardShortcuts() {
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto py-3">
         <SheetHeader>
           <SheetTitle>Keyboard Shortcuts</SheetTitle>
-          <SheetDescription>
-            Here is the list of all available keyboard shortcuts.
-          </SheetDescription>
+          <SheetDescription>Here is the list of all available keyboard shortcuts.</SheetDescription>
         </SheetHeader>
         <div className="space-y-6 mt-6  p-4">
           {shortcuts.map((category) => (

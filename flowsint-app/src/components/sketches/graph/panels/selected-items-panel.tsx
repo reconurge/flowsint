@@ -10,9 +10,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useLayoutStore } from '@/stores/layout-store'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import type { ItemType } from '@/stores/node-display-settings'
-import { Badge } from '../ui/badge'
-import LaunchFlow from './launch-enricher'
-import { TypeBadge } from '../type-badge'
+import { Badge } from '@/components/ui/badge'
+import LaunchFlow from '../../launch-enricher'
+import { TypeBadge } from '@/components/type-badge'
 import { useParams } from '@tanstack/react-router'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 const SelectedItemsPanel = () => {

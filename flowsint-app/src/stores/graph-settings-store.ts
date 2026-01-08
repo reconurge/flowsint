@@ -53,9 +53,9 @@ const DEFAULT_SETTINGS = {
       name: 'Link Width',
       type: 'number',
       value: 2,
-      min: 1,
+      min: 0.3,
       max: 10,
-      step: 0.1,
+      step: 0.05,
       description: 'Defines the width of the link between two nodes.'
     },
     nodeLabelFontSize: {

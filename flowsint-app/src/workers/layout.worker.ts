@@ -5,7 +5,7 @@ import {
   forceManyBody,
   forceCenter,
   forceCollide,
-  forceRadial,
+  forceRadial
 } from 'd3-force'
 
 export interface GraphNode {
@@ -61,23 +61,23 @@ function computeDagreLayout(
   edges: GraphEdge[],
   options: DagreLayoutOptions = {}
 ) {
-
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
+  // Configure dagre with proper spacing
   g.setGraph({
-    rankdir: "TB",
-    ranker: "tight-tree",
+    rankdir: 'TB',
+    ranker: 'tight-tree',
     nodesep: 5,
-    ranksep: 5,
+    ranksep: 5
   })
 
-  const nodeWidth = 12
-  const nodeHeight = 8
+  const nodeWidth = 15
+  const nodeHeight = 15
 
   nodes.forEach((node) =>
     g.setNode(node.id, {
       width: nodeWidth,
-      height: nodeHeight,
+      height: nodeHeight
     })
   )
 
@@ -94,7 +94,7 @@ function computeDagreLayout(
     return {
       ...node,
       x: nodeWithPosition.x,
-      y: nodeWithPosition.y,
+      y: nodeWithPosition.y
     }
   })
 
@@ -120,20 +120,20 @@ function computeForceLayout(
     maxRadius,
     collisionRadius = 22,
     collisionStrength = 0.95,
-    centerGravity = 0.15,
+    centerGravity = 0.15
   } = options
 
   // Create simulation nodes with initial random positions
   const simNodes = nodes.map((node) => ({
     ...node,
     x: node.x ?? Math.random() * width,
-    y: node.y ?? Math.random() * height,
+    y: node.y ?? Math.random() * height
   }))
 
   // Create simulation links
   const simLinks = edges.map((edge) => ({
     source: typeof edge.source === 'object' ? edge.source.id : edge.source,
-    target: typeof edge.target === 'object' ? edge.target.id : edge.target,
+    target: typeof edge.target === 'object' ? edge.target.id : edge.target
   }))
 
   // Calculate node degrees (number of connections) for adaptive repulsion
@@ -159,20 +159,20 @@ function computeForceLayout(
         .strength(linkStrength)
     )
     // Adaptive charge: nodes with more connections (cluster hubs) repel more
-    .force('charge', forceManyBody().strength((node: any) => {
-      const degree = nodeDegrees.get(node.id) || 1
-      // Scale repulsion by degree: hubs repel 2-3x more than isolated nodes
-      const scaleFactor = 1 + Math.log(degree + 1) / Math.log(10)
-      return chargeStrength * scaleFactor
-    }))
+    .force(
+      'charge',
+      forceManyBody().strength((node: any) => {
+        const degree = nodeDegrees.get(node.id) || 1
+        // Scale repulsion by degree: hubs repel 2-3x more than isolated nodes
+        const scaleFactor = 1 + Math.log(degree + 1) / Math.log(10)
+        return chargeStrength * scaleFactor
+      })
+    )
     .force('center', forceCenter(centerX, centerY))
     // Add collision force to prevent node overlap
-    .force('collide', forceCollide()
-      .radius(collisionRadius)
-      .strength(collisionStrength)
-    )
+    .force('collide', forceCollide().radius(collisionRadius).strength(collisionStrength))
     // Add radial gravity to pull all nodes toward center
-    .force('gravity', (alpha) => {
+    .force('gravity', (alpha: number) => {
       const strength = centerGravity * alpha
       simNodes.forEach((node: any) => {
         const dx = centerX - node.x
@@ -212,7 +212,7 @@ function computeForceLayout(
     if (i % progressInterval === 0 || i === iterations - 1) {
       self.postMessage({
         type: 'progress',
-        progress: (i + 1) / iterations,
+        progress: (i + 1) / iterations
       })
     }
   }
@@ -223,9 +223,9 @@ function computeForceLayout(
     nodes: simNodes.map((node) => ({
       ...node,
       x: node.x,
-      y: node.y,
+      y: node.y
     })),
-    edges,
+    edges
   }
 }
 
@@ -247,13 +247,13 @@ self.addEventListener('message', (event: MessageEvent<LayoutMessage>) => {
     // Send the result back to the main thread
     self.postMessage({
       type: 'complete',
-      result,
+      result
     })
   } catch (error) {
     // Send error back to the main thread
     self.postMessage({
       type: 'error',
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : String(error)
     })
   }
 })

@@ -395,7 +395,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 5
+const STORAGE_VERSION = 6
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

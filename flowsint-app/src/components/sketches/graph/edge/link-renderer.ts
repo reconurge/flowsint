@@ -11,10 +11,16 @@ interface LinkRenderParams {
   highlightNodes: Set<string>
   selectedEdges: any[]
   currentEdge: any
+  autoColorLinksByNodeType?: boolean
 }
 
 // Helper to check if a node position is in viewport
-const isPositionInViewport = (x: number, y: number, ctx: CanvasRenderingContext2D, margin: number = 80): boolean => {
+const isPositionInViewport = (
+  x: number,
+  y: number,
+  ctx: CanvasRenderingContext2D,
+  margin: number = 80
+): boolean => {
   const transform = ctx.getTransform()
   const canvasWidth = ctx.canvas.width
   const canvasHeight = ctx.canvas.height
@@ -33,7 +39,11 @@ const isPositionInViewport = (x: number, y: number, ctx: CanvasRenderingContext2
 }
 
 // Helper to check if edge is in viewport (at least one endpoint or edge crosses viewport)
-const isEdgeInViewport = (link: any, ctx: CanvasRenderingContext2D, margin: number = 80): boolean => {
+const isEdgeInViewport = (
+  link: any,
+  ctx: CanvasRenderingContext2D,
+  margin: number = 80
+): boolean => {
   const { source: start, target: end } = link
   if (typeof start !== 'object' || typeof end !== 'object') return false
 
@@ -76,7 +86,8 @@ export const renderLink = ({
   highlightLinks,
   highlightNodes,
   selectedEdges,
-  currentEdge
+  currentEdge,
+  autoColorLinksByNodeType
 }: LinkRenderParams) => {
   if (globalScale < CONSTANTS.ZOOM_EDGE_DETAIL_THRESHOLD) return
 
@@ -98,6 +109,10 @@ export const renderLink = ({
     ? linkWidthBase
     : linkWidthBase * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
 
+  const targetNodeColor = autoColorLinksByNodeType
+    ? end.nodeColor || GRAPH_COLORS.LINK_DEFAULT
+    : GRAPH_COLORS.LINK_DEFAULT
+
   let strokeStyle: string
   let lineWidth: number
   let fillStyle: string
@@ -107,8 +122,8 @@ export const renderLink = ({
     fillStyle = 'rgba(59, 130, 246, 0.95)'
     lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.3)
   } else if (isSelected) {
-    strokeStyle = 'rgba(255, 115, 0, 0.9)'
-    fillStyle = 'rgba(255, 115, 0, 0.9)'
+    strokeStyle = autoColorLinksByNodeType ? targetNodeColor : GRAPH_COLORS.LINK_HIGHLIGHTED
+    fillStyle = autoColorLinksByNodeType ? targetNodeColor : GRAPH_COLORS.LINK_HIGHLIGHTED
     lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 2.5)
   } else if (isHighlighted) {
     strokeStyle = GRAPH_COLORS.LINK_HIGHLIGHTED
@@ -119,19 +134,30 @@ export const renderLink = ({
     fillStyle = GRAPH_COLORS.LINK_DIMMED
     lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
   } else {
-    strokeStyle = GRAPH_COLORS.LINK_DEFAULT
-    fillStyle = GRAPH_COLORS.LINK_DEFAULT
+    strokeStyle = autoColorLinksByNodeType ? targetNodeColor : GRAPH_COLORS.LINK_DEFAULT
+    fillStyle = autoColorLinksByNodeType ? targetNodeColor : GRAPH_COLORS.LINK_DEFAULT
     lineWidth = CONSTANTS.LINK_WIDTH * (linkWidth / 5)
   }
 
   // Calculate node radii to stop links at node edges
   // Uses the shared calculateNodeSize function to ensure consistency with node-renderer
-  const startRadius = calculateNodeSize(start, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
-  const endRadius = calculateNodeSize(end, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
+  const startRadius = calculateNodeSize(
+    start,
+    forceSettings,
+    shouldRenderDetails,
+    CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  )
+  const endRadius = calculateNodeSize(
+    end,
+    forceSettings,
+    shouldRenderDetails,
+    CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  )
 
   const arrowLengthSetting = forceSettings?.linkDirectionalArrowLength?.value
-  const arrowLength =
-    shouldRenderDetails ? arrowLengthSetting : arrowLengthSetting * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  const arrowLength = shouldRenderDetails
+    ? arrowLengthSetting
+    : arrowLengthSetting * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
 
   // Draw connection line
   const curvature: number = link.curvature || 0
@@ -199,7 +225,12 @@ export const renderLink = ({
       const tan = bezierTangent(0.99)
       const tanLen = Math.hypot(tan.x, tan.y) || 1
       // Use the same calculation as above to ensure consistency
-      const targetNodeSize = calculateNodeSize(end, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
+      const targetNodeSize = calculateNodeSize(
+        end,
+        forceSettings,
+        shouldRenderDetails,
+        CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+      )
       arrowX = end.x - (tan.x / tanLen) * targetNodeSize
       arrowY = end.y - (tan.y / tanLen) * targetNodeSize
     }
@@ -270,9 +301,7 @@ export const renderLink = ({
     }
     ctx.fill()
 
-    ctx.strokeStyle = theme === 'light'
-      ? 'rgba(0, 0, 0, 0.1)'
-      : 'rgba(255, 255, 255, 0.1)'
+    ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
     ctx.lineWidth = 0.1
     ctx.stroke()
 
@@ -284,7 +313,8 @@ export const renderLink = ({
 
     // Calculate vertical center manually using font metrics
     const labelMetrics = ctx.measureText(link.label)
-    const labelTextY = labelMetrics.actualBoundingBoxAscent * 0.5 - labelMetrics.actualBoundingBoxDescent * 0.5
+    const labelTextY =
+      labelMetrics.actualBoundingBoxAscent * 0.5 - labelMetrics.actualBoundingBoxDescent * 0.5
 
     ctx.fillText(link.label, 0, labelTextY)
     ctx.restore()

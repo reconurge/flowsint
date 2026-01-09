@@ -30,9 +30,9 @@ const NeighborsGraph = memo(
             <ForceGraphViewer
               nodes={neighborsData.nds}
               edges={neighborsData.rls}
-              onNodeClick={() => { }}
-              onNodeRightClick={() => { }}
-              onBackgroundClick={() => { }}
+              onNodeClick={() => {}}
+              onNodeRightClick={() => {}}
+              onBackgroundClick={() => {}}
               showLabels={true}
               showIcons={true}
               backgroundColor="transparent"
@@ -40,6 +40,7 @@ const NeighborsGraph = memo(
               allowForces={true}
               autoZoomOnNode={false}
               showMinimap={false}
+              showMinimalControls={true}
             />
           </>
         )}

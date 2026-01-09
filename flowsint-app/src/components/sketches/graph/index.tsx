@@ -23,6 +23,10 @@ import { GraphTooltip } from './components/graph-tooltip'
 import { GraphLoadingOverlay } from './components/graph-loading-overlay'
 import { GraphSelectorOverlay } from './components/graph-selector-overlay'
 import MinimapCanvas from './components/minimap'
+import { Background } from './background'
+import { BackgroundVariant } from './background/background-types'
+import { Maximize } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const GraphViewer: React.FC<GraphViewerProps> = ({
   nodes,
@@ -43,6 +47,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   sketchId,
   allowForces = false,
   autoZoomOnNode = true,
+  showMinimalControls = false,
   showMinimap
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
@@ -57,9 +62,16 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const customIcons = useNodesDisplaySettings((s) => s.customIcons)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
+  const autoColorLinksByNodeType = useGraphSettingsStore((s) =>
+    s.getSettingValue('general', 'autoColorLinksByNodeType')
+  )
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
     s.getSettingValue('general', 'autoZoomOnCurrentNode')
   )
+  const showBackgroundSetting = useGraphSettingsStore((s) =>
+    s.getSettingValue('general', 'showBackground')
+  )
+
   const showMinimapSetting = useGraphSettingsStore((s) =>
     s.getSettingValue('general', 'showMinimap')
   )
@@ -241,6 +253,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [])
 
+  const handleZoomToFitLocal = useCallback(() => {
+    if (typeof graphRef.current.zoomToFit === 'function') {
+      graphRef.current.zoomToFit(400)
+    }
+  }, [])
+
   const exportToPNG = useCallback(async () => {
     if (!graphRef.current) {
       throw new Error('Graph ref not available')
@@ -342,10 +360,11 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         highlightLinks,
         highlightNodes,
         selectedEdges,
-        currentEdge
+        currentEdge,
+        autoColorLinksByNodeType
       })
     },
-    [forceSettings, theme, highlightLinks, highlightNodes, selectedEdges, currentEdge]
+    [forceSettings, theme, highlightLinks, highlightNodes, selectedEdges, currentEdge, autoColorLinksByNodeType]
   )
 
   if (!nodes.length) {
@@ -376,6 +395,20 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       }}
     >
       <GraphTooltip tooltip={tooltip} />
+      {showBackgroundSetting && containerSize.width > 0 && containerSize.height > 0 && (
+        <Background
+          key={`background-${instanceId || 'main'}`}
+          id={instanceId || 'main'}
+          variant={BackgroundVariant.Dots}
+          gap={4}
+          size={0.25}
+          color="rgba(128, 128, 128, 0.47)"
+          bgColor="transparent"
+          graphRef={graphRef}
+          canvasWidth={containerSize.width}
+          canvasHeight={containerSize.height}
+        />
+      )}
       <ForceGraph2D
         ref={graphRef}
         width={containerSize.width}
@@ -426,6 +459,19 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           canvasHeight={containerSize.height}
         />
       )}
+      {showMinimalControls && (
+        <div className="absolute top-1 right-1">
+          <Button
+            onClick={handleZoomToFitLocal}
+            variant={'ghost'}
+            size={'icon'}
+            className="h-6 w-6"
+          >
+            <Maximize className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </div>
+      )}
+      ·
       <GraphLoadingOverlay isVisible={isRegeneratingLayout} />
     </div>
   )

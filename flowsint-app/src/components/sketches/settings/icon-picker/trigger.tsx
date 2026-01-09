@@ -8,8 +8,13 @@ type NodeIconTriggerProps = {
 export const NodeIconTrigger = ({ type, onClick }: NodeIconTriggerProps) => {
   const Icon = useIcon(type)
   return (
-    <Button onClick={onClick} variant={'ghost'} size={'icon'}>
-      <Icon size={16} />
+    <Button
+      className="cursor-pointer hover:bg-muted"
+      onClick={onClick}
+      variant={'ghost'}
+      size={'icon'}
+    >
+      <Icon size={24} />
     </Button>
   )
 }

@@ -22,6 +22,18 @@ const DEFAULT_SETTINGS = {
       type: 'boolean',
       value: true,
       description: 'Display the minimap overview of the graph.'
+    },
+    showBackground: {
+      name: 'Show Background',
+      type: 'boolean',
+      value: true,
+      description: 'Display the dotted background pattern on the graph.'
+    },
+    autoColorLinksByNodeType: {
+      name: 'Auto Color Links by Node Type',
+      type: 'boolean',
+      value: true,
+      description: 'Automatically color links based on their target node type.'
     }
   },
   graph: {
@@ -383,7 +395,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 4
+const STORAGE_VERSION = 5
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

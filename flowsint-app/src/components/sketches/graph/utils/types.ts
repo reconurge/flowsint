@@ -19,6 +19,7 @@ export interface GraphViewerProps {
   sketchId?: string
   allowForces?: boolean
   autoZoomOnNode?: boolean
+  showMinimalControls?: boolean
   showMinimap?: boolean
 }
 

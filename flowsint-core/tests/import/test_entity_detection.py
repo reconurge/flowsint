@@ -1,4 +1,5 @@
 from flowsint_types import Domain, Ip, Phone
+
 from flowsint_core.imports import detect_type
 
 

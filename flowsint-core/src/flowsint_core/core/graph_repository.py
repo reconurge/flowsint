@@ -401,6 +401,171 @@ class GraphRepository:
             errors.append(f"Batch execution failed: {str(e)}")
             return {"nodes_created": 0, "node_ids": [], "errors": errors}
 
+    def batch_create_edges(
+        self,
+        edges: List[Dict[str, Any]],
+        sketch_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Create multiple edges/relationships in a single batch transaction.
+
+        Args:
+            edges: List of edge dictionaries, each with:
+                - from_obj: Source node Pydantic model
+                - to_obj: Target node Pydantic model
+                - rel_label: Relationship type/label
+                - properties: Optional dict of relationship properties
+            sketch_id: Investigation sketch ID
+
+        Returns:
+            Dictionary with:
+                - edges_created: Number of successfully created edges
+                - errors: List of error messages for failed edges
+        """
+        if not self._connection:
+            return {"edges_created": 0, "errors": ["No database connection"]}
+
+        if not edges:
+            return {"edges_created": 0, "errors": []}
+
+        # Build all queries
+        batch_operations = []
+        errors = []
+
+        for idx, edge in enumerate(edges):
+            try:
+                from_obj = edge.get("from_obj")
+                to_obj = edge.get("to_obj")
+                rel_label = edge.get("rel_label")
+                properties = edge.get("properties", {})
+
+                if not from_obj or not to_obj or not rel_label:
+                    errors.append(
+                        f"Edge {idx}: Missing required fields (from_obj, to_obj, or rel_label)"
+                    )
+                    continue
+
+                query, params = self._build_relationship_query(
+                    from_obj=from_obj,
+                    to_obj=to_obj,
+                    rel_label=rel_label,
+                    sketch_id=sketch_id,
+                    **properties,
+                )
+                batch_operations.append((query, params))
+            except Exception as e:
+                errors.append(f"Edge {idx}: {str(e)}")
+
+        # Execute batch
+        if not batch_operations:
+            return {"edges_created": 0, "errors": errors}
+
+        try:
+            # Execute all operations in a single transaction
+            self._connection.execute_batch(batch_operations)
+
+            return {
+                "edges_created": len(batch_operations),
+                "errors": errors,
+            }
+        except Exception as e:
+            errors.append(f"Batch execution failed: {str(e)}")
+            return {"edges_created": 0, "errors": errors}
+
+    def batch_create_edges_by_element_id(
+        self,
+        edges: List[Dict[str, Any]],
+        sketch_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Create multiple edges/relationships using element IDs in a single batch transaction.
+
+        This method is more reliable than batch_create_edges when you have the element IDs,
+        as it doesn't need to match nodes by their properties.
+
+        Args:
+            edges: List of edge dictionaries, each with:
+                - from_element_id: Source node element ID
+                - to_element_id: Target node element ID
+                - rel_type: Relationship type/label
+                - properties: Optional dict of relationship properties
+            sketch_id: Investigation sketch ID
+
+        Returns:
+            Dictionary with:
+                - edges_created: Number of successfully created edges
+                - errors: List of error messages for failed edges
+        """
+        if not self._connection:
+            return {"edges_created": 0, "errors": ["No database connection"]}
+
+        if not edges:
+            return {"edges_created": 0, "errors": []}
+
+        # Build all queries
+        batch_operations = []
+        errors = []
+
+        for idx, edge in enumerate(edges):
+            try:
+                from_element_id = edge.get("from_element_id")
+                to_element_id = edge.get("to_element_id")
+                rel_type = edge.get("rel_type", "RELATED_TO")
+                properties = edge.get("properties", {})
+
+                if not from_element_id or not to_element_id:
+                    errors.append(
+                        f"Edge {idx}: Missing required fields (from_element_id or to_element_id)"
+                    )
+                    continue
+
+                # Serialize properties
+                serialized_props = GraphSerializer.serialize_properties(properties)
+                serialized_props["sketch_id"] = sketch_id
+
+                # Build relationship properties string
+                props_str = ", ".join(
+                    [f"{k}: ${k}_{idx}" for k in serialized_props.keys()]
+                )
+                rel_props = (
+                    f"{{{props_str}}}" if props_str else "{sketch_id: $sketch_id}"
+                )
+
+                query = f"""
+                MATCH (from) WHERE elementId(from) = $from_id_{idx}
+                MATCH (to) WHERE elementId(to) = $to_id_{idx}
+                MERGE (from)-[r:`{rel_type}` {rel_props}]->(to)
+                """
+
+                # Build params with unique keys for batch execution
+                params = {
+                    f"from_id_{idx}": from_element_id,
+                    f"to_id_{idx}": to_element_id,
+                }
+                # Add serialized properties with index suffix
+                for k, v in serialized_props.items():
+                    params[f"{k}_{idx}"] = v
+
+                batch_operations.append((query, params))
+            except Exception as e:
+                errors.append(f"Edge {idx}: {str(e)}")
+
+        # Execute batch
+        if not batch_operations:
+            return {"edges_created": 0, "errors": errors}
+
+        try:
+            # Execute all operations in a single transaction
+            self._connection.execute_batch(batch_operations)
+
+            return {
+                "edges_created": len(batch_operations),
+                "errors": errors,
+            }
+        except Exception as e:
+            errors.append(f"Batch execution failed: {str(e)}")
+            return {"edges_created": 0, "errors": errors}
+
     def update_node(
         self,
         element_id: str,
@@ -507,6 +672,76 @@ class GraphRepository:
         )
         return result[0]["deleted_count"] if result else 0
 
+    def delete_all_sketch_nodes(self, sketch_id: str) -> int:
+        """
+        Delete all nodes and relationships for a sketch.
+
+        Args:
+            sketch_id: Investigation sketch ID
+
+        Returns:
+            Number of nodes deleted
+        """
+        if not self._connection:
+            return 0
+
+        query = """
+        OPTIONAL MATCH (n {sketch_id: $sketch_id})
+        WHERE n IS NOT NULL
+        DETACH DELETE n
+        RETURN count(n) as deleted_count
+        """
+
+        result = self._connection.query(query, {"sketch_id": sketch_id})
+        return result[0]["deleted_count"] if result else 0
+
+    def get_sketch_graph(
+        self, sketch_id: str, limit: int = 100000
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get all nodes and relationships for a sketch.
+
+        Args:
+            sketch_id: Investigation sketch ID
+            limit: Maximum number of nodes to return
+
+        Returns:
+            Dictionary with 'nodes' and 'relationships' lists
+        """
+        if not self._connection:
+            return {"nodes": [], "relationships": []}
+
+        # Get all nodes for the sketch
+        # Use OPTIONAL MATCH to avoid Neo4j warning when sketch_id property doesn't exist yet
+        nodes_query = """
+        OPTIONAL MATCH (n)
+        WHERE n.sketch_id = $sketch_id
+        WITH n
+        WHERE n IS NOT NULL
+        RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
+        LIMIT $limit
+        """
+        nodes_result = self._connection.query(
+            nodes_query, {"sketch_id": sketch_id, "limit": limit}
+        )
+
+        if not nodes_result:
+            return {"nodes": [], "relationships": []}
+
+        node_ids = [record["id"] for record in nodes_result]
+
+        # Get all relationships between these nodes
+        rels_query = """
+        UNWIND $node_ids AS nid
+        MATCH (a)-[r]->(b)
+        WHERE elementId(a) = nid AND elementId(b) IN $node_ids
+        RETURN elementId(r) as id, type(r) as type, elementId(a) as source,
+               elementId(b) as target, properties(r) as data
+        """
+        rels_result = self._connection.query(rels_query, {"node_ids": node_ids})
+
+        return {"nodes": nodes_result, "relationships": rels_result or []}
+
     def update_relationship(
         self,
         element_id: str,
@@ -541,84 +776,15 @@ class GraphRepository:
         set_clauses = [f"r.{prop} = ${prop}" for prop in serialized_props.keys()]
 
         query = f"""
-        MATCH ()-[r]->()
-        WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
-        SET {", ".join(set_clauses)}
-        RETURN elementId(r) as id, COALESCE(r.label, type(r)) as type, properties(r) as data
-        """
+            MATCH ()-[r]->()
+            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+            SET {", ".join(set_clauses)}
+            RETURN elementId(r) as id, COALESCE(r.label, type(r)) as type, properties(r) as data
+            """
 
         params = {"element_id": element_id, "sketch_id": sketch_id, **serialized_props}
         result = self._connection.query(query, params)
         return result[0] if result else None
-
-    def delete_all_sketch_nodes(self, sketch_id: str) -> int:
-        """
-        Delete all nodes and relationships for a sketch.
-
-        Args:
-            sketch_id: Investigation sketch ID
-
-        Returns:
-            Number of nodes deleted
-        """
-        if not self._connection:
-            return 0
-
-        query = """
-        MATCH (n {sketch_id: $sketch_id})
-        DETACH DELETE n
-        RETURN count(n) as deleted_count
-        """
-
-        result = self._connection.query(query, {"sketch_id": sketch_id})
-        return result[0]["deleted_count"] if result else 0
-
-    def get_sketch_graph(
-        self, sketch_id: str, limit: int = 100000
-    ) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Get all nodes and relationships for a sketch.
-
-        Args:
-            sketch_id: Investigation sketch ID
-            limit: Maximum number of nodes to return
-
-        Returns:
-            Dictionary with 'nodes' and 'relationships' lists
-        """
-        if not self._connection:
-            return {"nodes": [], "relationships": []}
-
-        # Get all nodes for the sketch
-        nodes_query = """
-        MATCH (n)
-        WHERE n.sketch_id = $sketch_id
-        RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
-        LIMIT $limit
-        """
-        nodes_result = self._connection.query(
-            nodes_query, {"sketch_id": sketch_id, "limit": limit}
-        )
-
-        if not nodes_result:
-            return {"nodes": [], "relationships": []}
-
-        node_ids = [record["id"] for record in nodes_result]
-
-        # Get all relationships between these nodes
-        rels_query = """
-        UNWIND $node_ids AS nid
-        MATCH (a)-[r]->(b)
-        WHERE elementId(a) = nid AND elementId(b) IN $node_ids
-        RETURN elementId(r) as id,
-               COALESCE(r.label, type(r)) as type,
-               elementId(a) as source,
-               elementId(b) as target,
-               properties(r) as data
-        """
-        rels_result = self._connection.query(rels_query, {"node_ids": node_ids})
-
-        return {"nodes": nodes_result, "relationships": rels_result or []}
 
     def create_relationship_by_element_id(
         self,
@@ -646,9 +812,6 @@ class GraphRepository:
 
         serialized_props = GraphSerializer.serialize_properties(properties)
         serialized_props["sketch_id"] = sketch_id
-        # Store label as a property so it can be updated later
-        if "label" not in serialized_props:
-            serialized_props["label"] = rel_type
 
         props_str = ", ".join([f"{k}: ${k}" for k in serialized_props.keys()])
         rel_props = f"{{{props_str}}}"
@@ -670,7 +833,7 @@ class GraphRepository:
         return result[0]["rel"] if result else None
 
     def query(
-        self, cypher: str, parameters: Dict[str, Any] = None
+        self, cypher: str, parameters: Dict[str, Any] = {}
     ) -> List[Dict[str, Any]]:
         """
         Execute a custom Cypher query.
@@ -881,7 +1044,7 @@ class GraphRepository:
         WHERE other.sketch_id = $sketch_id
         RETURN
             elementId(r) as rel_id,
-            COALESCE(r.label, type(r)) as rel_type,
+            type(r) as rel_type,
             properties(r) as rel_data,
             elementId(other) as other_node_id,
             labels(other) as other_node_labels,
@@ -894,7 +1057,7 @@ class GraphRepository:
         WHERE other.sketch_id = $sketch_id
         RETURN
             elementId(r) as rel_id,
-            COALESCE(r.label, type(r)) as rel_type,
+            type(r) as rel_type,
             properties(r) as rel_data,
             elementId(other) as other_node_id,
             labels(other) as other_node_labels,
@@ -970,6 +1133,48 @@ class GraphRepository:
         all_nodes = [center_node] + related_nodes
 
         return {"nds": all_nodes, "rls": relationships}
+
+    def count_nodes_by_sketch(self, sketch_id: str) -> int:
+        """
+        Count total number of nodes for a given sketch.
+
+        Args:
+            sketch_id: The sketch ID to count nodes for
+
+        Returns:
+            int: Total number of nodes
+        """
+        query = """
+        OPTIONAL MATCH (n)
+        WHERE n.sketch_id = $sketch_id AND n IS NOT NULL
+        RETURN count(n) as total
+        """
+
+        with self._connection.get_driver().session() as session:
+            result = session.run(query, sketch_id=sketch_id)
+            record = result.single()
+            return record["total"] if record else 0
+
+    def count_edges_by_sketch(self, sketch_id: str) -> int:
+        """
+        Count total number of relationships/edges for a given sketch.
+
+        Args:
+            sketch_id: The sketch ID to count edges for
+
+        Returns:
+            int: Total number of relationships
+        """
+        query = """
+        OPTIONAL MATCH (n)-[r]->(m)
+        WHERE n.sketch_id = $sketch_id AND m.sketch_id = $sketch_id
+        RETURN count(r) as total
+        """
+
+        with self._connection.get_driver().session() as session:
+            result = session.run(query, sketch_id=sketch_id)
+            record = result.single()
+            return record["total"] if record else 0
 
     def __enter__(self):
         """Context manager entry."""

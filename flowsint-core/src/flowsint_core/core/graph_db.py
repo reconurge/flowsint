@@ -121,20 +121,26 @@ class Neo4jConnection:
         with self._driver.session() as session:
             return session.execute_write(_execute)
 
-    def execute_batch(self, queries: List[tuple[str, Dict[str, Any]]]) -> None:
+    def execute_batch(self, queries: List[tuple[str, Dict[str, Any]]]) -> List[List[Dict[str, Any]]]:
         """
         Execute multiple queries in a single transaction.
 
         Args:
             queries: List of (query, parameters) tuples
+
+        Returns:
+            List of results, one for each query
         """
         def _execute_batch(tx):
+            results = []
             for query, params in queries:
                 cleaned_params = self._clean_parameters(params)
-                tx.run(query, cleaned_params)
+                result = tx.run(query, cleaned_params)
+                results.append(result.data())
+            return results
 
         with self._driver.session() as session:
-            session.execute_write(_execute_batch)
+            return session.execute_write(_execute_batch)
 
     def close(self) -> None:
         """Close the driver connection."""

@@ -5,11 +5,13 @@ This module provides a service layer for graph operations,
 integrating repository and logging functionality.
 """
 
-from typing import Dict, Any, Optional, Protocol, Union
+from typing import Any, Dict, Optional, Protocol, Union
 from uuid import UUID
+
 from pydantic import BaseModel
-from .graph_repository import GraphRepository
+
 from .graph_db import Neo4jConnection
+from .graph_repository import GraphRepository
 
 
 class LoggerProtocol(Protocol):

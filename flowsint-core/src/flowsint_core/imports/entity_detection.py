@@ -2,7 +2,9 @@
 Entity type detection utilities for import feature.
 Provides basic pattern matching for common entity types.
 """
+
 from typing import Optional, Type
+
 from flowsint_types import TYPE_REGISTRY, FlowsintType
 
 

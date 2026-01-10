@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { sketchService } from '@/api/sketch-service'
 import { useActionItems } from '@/hooks/use-action-items'
@@ -23,6 +24,7 @@ interface EntityMapping {
   entity_type: string
   include: boolean
   label: string
+  node_id?: string
   data: Record<string, any>
 }
 
@@ -33,152 +35,168 @@ interface ImportPreviewProps {
   onCancel: () => void
 }
 
-const DebouncedInput = memo(({
-  value,
-  onChange,
-  disabled,
-  placeholder,
-  className,
-  debounceMs = 150
-}: {
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
-  placeholder?: string
-  className?: string
-  debounceMs?: number
-}) => {
-  const [localValue, setLocalValue] = useState(value)
-  const timeoutRef = useRef<NodeJS.Timeout>(null)
+const DebouncedInput = memo(
+  ({
+    value,
+    onChange,
+    disabled,
+    placeholder,
+    className,
+    debounceMs = 150
+  }: {
+    value: string
+    onChange: (value: string) => void
+    disabled?: boolean
+    placeholder?: string
+    className?: string
+    debounceMs?: number
+  }) => {
+    const [localValue, setLocalValue] = useState(value)
+    const timeoutRef = useRef<NodeJS.Timeout>(null)
 
-  // Sync from parent when value changes externally
-  useEffect(() => {
-    setLocalValue(value)
-  }, [value])
+    // Sync from parent when value changes externally
+    useEffect(() => {
+      setLocalValue(value)
+    }, [value])
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setLocalValue(newValue)
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value
+        setLocalValue(newValue)
 
-    // Clear previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
+        // Clear previous timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
 
-    // Debounce the parent update
-    timeoutRef.current = setTimeout(() => {
-      onChange(newValue)
-    }, debounceMs)
-  }, [onChange, debounceMs])
+        // Debounce the parent update
+        timeoutRef.current = setTimeout(() => {
+          onChange(newValue)
+        }, debounceMs)
+      },
+      [onChange, debounceMs]
+    )
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
       }
-    }
-  }, [])
+    }, [])
 
-  return (
-    <Input
-      className={className}
-      value={localValue}
-      onChange={handleChange}
-      disabled={disabled}
-      placeholder={placeholder}
-    />
-  )
-})
+    return (
+      <Input
+        className={className}
+        value={localValue}
+        onChange={handleChange}
+        disabled={disabled}
+        placeholder={placeholder}
+      />
+    )
+  }
+)
 DebouncedInput.displayName = 'DebouncedInput'
 
-const EntityRow = memo(({
-  mapping,
-  fields,
-  entityTypes,
-  isDisabled,
-  onIncludeChange,
-  onTypeChange,
-  onLabelChange,
-  onFieldChange
-}: {
-  mapping: EntityMapping
-  fields: string[]
-  entityTypes: string[]
-  isDisabled: boolean
-  onIncludeChange: (id: string, include: boolean) => void
-  onTypeChange: (id: string, type: string) => void
-  onLabelChange: (id: string, label: string) => void
-  onFieldChange: (id: string, field: string, value: string) => void
-}) => {
-  // Create stable callbacks for this specific row
-  const handleInclude = useCallback((checked: boolean) => {
-    onIncludeChange(mapping.id, checked)
-  }, [mapping.id, onIncludeChange])
+const EntityRow = memo(
+  ({
+    mapping,
+    fields,
+    entityTypes,
+    isDisabled,
+    onIncludeChange,
+    onTypeChange,
+    onLabelChange,
+    onFieldChange
+  }: {
+    mapping: EntityMapping
+    fields: string[]
+    entityTypes: string[]
+    isDisabled: boolean
+    onIncludeChange: (id: string, include: boolean) => void
+    onTypeChange: (id: string, type: string) => void
+    onLabelChange: (id: string, label: string) => void
+    onFieldChange: (id: string, field: string, value: string) => void
+  }) => {
+    // Create stable callbacks for this specific row
+    const handleInclude = useCallback(
+      (checked: boolean) => {
+        onIncludeChange(mapping.id, checked)
+      },
+      [mapping.id, onIncludeChange]
+    )
 
-  const handleType = useCallback((value: string) => {
-    onTypeChange(mapping.id, value)
-  }, [mapping.id, onTypeChange])
+    const handleType = useCallback(
+      (value: string) => {
+        onTypeChange(mapping.id, value)
+      },
+      [mapping.id, onTypeChange]
+    )
 
-  const handleLabel = useCallback((value: string) => {
-    onLabelChange(mapping.id, value)
-  }, [mapping.id, onLabelChange])
+    const handleLabel = useCallback(
+      (value: string) => {
+        onLabelChange(mapping.id, value)
+      },
+      [mapping.id, onLabelChange]
+    )
 
-  return (
-    <div className={`flex border-b ${!mapping.include ? 'opacity-50' : ''}`}>
-      <div className="px-3 py-2 border-r w-[60px] shrink-0 flex items-center">
-        <Checkbox
-          checked={mapping.include}
-          onCheckedChange={handleInclude}
-        />
-      </div>
-      <div className="px-3 py-2 border-r w-[160px] shrink-0">
-        <Select
-          value={mapping.entity_type}
-          onValueChange={handleType}
-          disabled={!mapping.include || isDisabled}
-        >
-          <SelectTrigger className="h-8 w-full text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {entityTypes.map((type) => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="px-3 py-2 border-r w-[200px] shrink-0">
-        <DebouncedInput
-          className="h-8 w-full text-xs"
-          value={mapping.label}
-          onChange={handleLabel}
-          disabled={!mapping.include}
-          placeholder="Label..."
-        />
-      </div>
-      {fields.map((field) => (
-        <div key={field} className="px-3 py-2 border-r w-[200px] shrink-0">
+    return (
+      <div className={`flex border-b ${!mapping.include ? 'opacity-50' : ''}`}>
+        <div className="px-3 py-2 border-r w-[60px] shrink-0 flex items-center">
+          <Checkbox checked={mapping.include} onCheckedChange={handleInclude} />
+        </div>
+        <div className="px-3 py-2 border-r w-40 shrink-0">
+          <Select
+            value={mapping.entity_type}
+            onValueChange={handleType}
+            disabled={!mapping.include || isDisabled}
+          >
+            <SelectTrigger className="h-8 w-full text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {entityTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="px-3 py-2 border-r w-[200px] shrink-0">
           <DebouncedInput
             className="h-8 w-full text-xs"
-            value={mapping.data[field] || ''}
-            onChange={(value) => onFieldChange(mapping.id, field, value)}
+            value={mapping.label}
+            onChange={handleLabel}
             disabled={!mapping.include}
-            placeholder="-"
+            placeholder="Label..."
           />
         </div>
-      ))}
-    </div>
-  )
-}, (prevProps, nextProps) => {
-  // Custom comparison for better memoization
-  return (
-    prevProps.mapping === nextProps.mapping &&
-    prevProps.fields === nextProps.fields &&
-    prevProps.entityTypes === nextProps.entityTypes &&
-    prevProps.isDisabled === nextProps.isDisabled
-  )
-})
+        {fields.map((field) => (
+          <div key={field} className="px-3 py-2 border-r w-[200px] shrink-0">
+            <DebouncedInput
+              className="h-8 w-full text-xs"
+              value={mapping.data[field] || ''}
+              onChange={(value) => onFieldChange(mapping.id, field, value)}
+              disabled={!mapping.include}
+              placeholder="-"
+            />
+          </div>
+        ))}
+      </div>
+    )
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for better memoization
+    return (
+      prevProps.mapping === nextProps.mapping &&
+      prevProps.fields === nextProps.fields &&
+      prevProps.entityTypes === nextProps.entityTypes &&
+      prevProps.isDisabled === nextProps.isDisabled
+    )
+  }
+)
 EntityRow.displayName = 'EntityRow'
 
 interface TypeTableProps {
@@ -196,129 +214,137 @@ interface TypeTableProps {
   onFieldChange: (id: string, field: string, value: string) => void
 }
 
-const SimpleTypeTable = memo(({
-  mappings,
-  fields,
-  entityTypes,
-  isDisabled,
-  currentPage,
-  itemsPerPage,
-  onPageChange,
-  onItemsPerPageChange,
-  onIncludeChange,
-  onTypeChange,
-  onLabelChange,
-  onFieldChange
-}: TypeTableProps) => {
-  const totalPages = Math.ceil(mappings.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
+const SimpleTypeTable = memo(
+  ({
+    mappings,
+    fields,
+    entityTypes,
+    isDisabled,
+    currentPage,
+    itemsPerPage,
+    onPageChange,
+    onItemsPerPageChange,
+    onIncludeChange,
+    onTypeChange,
+    onLabelChange,
+    onFieldChange
+  }: TypeTableProps) => {
+    const totalPages = Math.ceil(mappings.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
 
-  const paginatedMappings = useMemo(
-    () => mappings.slice(startIndex, endIndex),
-    [mappings, startIndex, endIndex]
-  )
+    const paginatedMappings = useMemo(
+      () => mappings.slice(startIndex, endIndex),
+      [mappings, startIndex, endIndex]
+    )
 
-  const handleItemsPerPageChange = useCallback((value: string) => {
-    onItemsPerPageChange(Number(value))
-  }, [onItemsPerPageChange])
+    const handleItemsPerPageChange = useCallback(
+      (value: string) => {
+        onItemsPerPageChange(Number(value))
+      },
+      [onItemsPerPageChange]
+    )
 
-  const handlePrevPage = useCallback(() => {
-    onPageChange(currentPage - 1)
-  }, [currentPage, onPageChange])
+    const handlePrevPage = useCallback(() => {
+      onPageChange(currentPage - 1)
+    }, [currentPage, onPageChange])
 
-  const handleNextPage = useCallback(() => {
-    onPageChange(currentPage + 1)
-  }, [currentPage, onPageChange])
+    const handleNextPage = useCallback(() => {
+      onPageChange(currentPage + 1)
+    }, [currentPage, onPageChange])
 
-  const totalWidth = 60 + 160 + 200 + (fields.length * 200)
+    const totalWidth = 60 + 160 + 200 + fields.length * 200
 
-  return (
-    <div className="h-full flex flex-col">
-      <div className="border rounded-lg overflow-auto flex-1 min-h-0">
-        <div style={{ minWidth: totalWidth }}>
-          {/* Sticky header */}
-          <div className="flex bg-muted sticky top-0 z-10 border-b">
-            <div className="px-3 py-2 text-left text-xs font-medium border-r w-[60px] shrink-0">
-              Include
-            </div>
-            <div className="px-3 py-2 text-left text-xs font-medium border-r w-[160px] shrink-0">
-              Type
-            </div>
-            <div className="px-3 py-2 text-left text-xs font-medium border-r w-[200px] shrink-0">
-              Label
-            </div>
-            {fields.map((field) => (
-              <div key={field} className="px-3 py-2 text-left text-xs font-medium border-r w-[200px] shrink-0">
-                {field}
+    return (
+      <div className="h-full flex flex-col">
+        <div className="border rounded-lg overflow-auto flex-1 min-h-0">
+          <div style={{ minWidth: totalWidth }}>
+            {/* Sticky header */}
+            <div className="flex bg-muted sticky top-0 z-10 border-b">
+              <div className="px-3 py-2 text-left text-xs font-medium border-r w-[60px] shrink-0">
+                Include
               </div>
-            ))}
+              <div className="px-3 py-2 text-left text-xs font-medium border-r w-[160px] shrink-0">
+                Type
+              </div>
+              <div className="px-3 py-2 text-left text-xs font-medium border-r w-[200px] shrink-0">
+                Label
+              </div>
+              {fields.map((field) => (
+                <div
+                  key={field}
+                  className="px-3 py-2 text-left text-xs font-medium border-r w-[200px] shrink-0"
+                >
+                  {field}
+                </div>
+              ))}
+            </div>
+
+            {/* Simple body - no virtualization */}
+            <div>
+              {paginatedMappings.map((mapping) => (
+                <EntityRow
+                  key={mapping.id}
+                  mapping={mapping}
+                  fields={fields}
+                  entityTypes={entityTypes}
+                  isDisabled={isDisabled}
+                  onIncludeChange={onIncludeChange}
+                  onTypeChange={onTypeChange}
+                  onLabelChange={onLabelChange}
+                  onFieldChange={onFieldChange}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Pagination controls */}
+        <div className="flex items-center justify-between pt-3 gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Rows per page:</span>
+            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Simple body - no virtualization */}
-          <div>
-            {paginatedMappings.map((mapping) => (
-              <EntityRow
-                key={mapping.id}
-                mapping={mapping}
-                fields={fields}
-                entityTypes={entityTypes}
-                isDisabled={isDisabled}
-                onIncludeChange={onIncludeChange}
-                onTypeChange={onTypeChange}
-                onLabelChange={onLabelChange}
-                onFieldChange={onFieldChange}
-              />
-            ))}
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground">
+              {startIndex + 1}-{Math.min(endIndex, mappings.length)} of {mappings.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Pagination controls */}
-      <div className="flex items-center justify-between pt-3 gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Rows per page:</span>
-          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-muted-foreground">
-            {startIndex + 1}-{Math.min(endIndex, mappings.length)} of {mappings.length}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-})
+    )
+  }
+)
 SimpleTypeTable.displayName = 'SimpleTypeTable'
 
 export function ImportPreview({
@@ -329,14 +355,14 @@ export function ImportPreview({
 }: ImportPreviewProps) {
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-
+  console.log(analysisResult)
   const fieldsByType = useMemo(() => {
     if (!actionItems) return {}
     const fields: Record<string, string[]> = {}
 
-    actionItems.forEach(item => {
+    actionItems.forEach((item) => {
       if (item.children) {
-        item.children.forEach(child => {
+        item.children.forEach((child) => {
           fields[child.label] = child.fields
             .filter((f: any) => f.name !== 'label')
             .map((f: any) => f.name)
@@ -352,6 +378,7 @@ export function ImportPreview({
   }, [actionItems])
 
   const [mappingsById, setMappingsById] = useState<Map<string, EntityMapping>>(new Map())
+  const edges = analysisResult.edges
   const [mappingIdsByType, setMappingIdsByType] = useState<Record<string, string[]>>({})
   const [isInitialized, setIsInitialized] = useState(false)
 
@@ -367,7 +394,7 @@ export function ImportPreview({
 
       group.results.forEach((entity: any) => {
         const data: Record<string, any> = {}
-        typeFields.forEach(field => {
+        typeFields.forEach((field) => {
           data[field] = entity.obj[field] ?? ''
         })
         data.label = entity.obj.label
@@ -380,6 +407,7 @@ export function ImportPreview({
           entity_type: entity.detected_type,
           include: true,
           label: entity.obj.label,
+          node_id: entity.node_id,
           data
         })
       })
@@ -392,21 +420,29 @@ export function ImportPreview({
     setIsInitialized(true)
   }, [actionItems, analysisResult.entities, fieldsByType, isInitialized])
 
-  const [paginationByType, setPaginationByType] = useState<Record<string, { page: number; perPage: number }>>({})
+  const [paginationByType, setPaginationByType] = useState<
+    Record<string, { page: number; perPage: number }>
+  >({})
 
-  const getPagination = useCallback((typeName: string) => {
-    return paginationByType[typeName] || { page: 1, perPage: 20 }
-  }, [paginationByType])
+  const getPagination = useCallback(
+    (typeName: string) => {
+      return paginationByType[typeName] || { page: 1, perPage: 20 }
+    },
+    [paginationByType]
+  )
 
-  const setPageForType = useCallback((typeName: string, page: number) => {
-    setPaginationByType(prev => ({
-      ...prev,
-      [typeName]: { ...getPagination(typeName), page }
-    }))
-  }, [getPagination])
+  const setPageForType = useCallback(
+    (typeName: string, page: number) => {
+      setPaginationByType((prev) => ({
+        ...prev,
+        [typeName]: { ...getPagination(typeName), page }
+      }))
+    },
+    [getPagination]
+  )
 
   const setPerPageForType = useCallback((typeName: string, perPage: number) => {
-    setPaginationByType(prev => ({
+    setPaginationByType((prev) => ({
       ...prev,
       [typeName]: { page: 1, perPage } // Reset to page 1 when changing items per page
     }))
@@ -418,7 +454,7 @@ export function ImportPreview({
   const entityTypes = useMemo(() => {
     if (!actionItems) return []
     const types: string[] = []
-    actionItems.forEach(item => {
+    actionItems.forEach((item) => {
       if (item.children) {
         item.children.forEach((c: any) => c.label && types.push(c.label))
       } else if (item.label) {
@@ -429,7 +465,7 @@ export function ImportPreview({
   }, [actionItems])
 
   const handleIncludeChange = useCallback((id: string, include: boolean) => {
-    setMappingsById(prev => {
+    setMappingsById((prev) => {
       const mapping = prev.get(id)
       if (!mapping) return prev
       const newMap = new Map(prev)
@@ -438,26 +474,29 @@ export function ImportPreview({
     })
   }, [])
 
-  const handleTypeChange = useCallback((id: string, newType: string) => {
-    setMappingsById(prev => {
-      const mapping = prev.get(id)
-      if (!mapping || mapping.entity_type === newType) return prev
+  const handleTypeChange = useCallback(
+    (id: string, newType: string) => {
+      setMappingsById((prev) => {
+        const mapping = prev.get(id)
+        if (!mapping || mapping.entity_type === newType) return prev
 
-      const newFields = fieldsByType[newType] || []
-      const newData: Record<string, any> = {}
-      newFields.forEach(field => {
-        newData[field] = mapping.data[field] ?? ''
+        const newFields = fieldsByType[newType] || []
+        const newData: Record<string, any> = {}
+        newFields.forEach((field) => {
+          newData[field] = mapping.data[field] ?? ''
+        })
+        newData.label = mapping.label
+
+        const newMap = new Map(prev)
+        newMap.set(id, { ...mapping, entity_type: newType, data: newData })
+        return newMap
       })
-      newData.label = mapping.label
-
-      const newMap = new Map(prev)
-      newMap.set(id, { ...mapping, entity_type: newType, data: newData })
-      return newMap
-    })
-  }, [fieldsByType])
+    },
+    [fieldsByType]
+  )
 
   const handleLabelChange = useCallback((id: string, label: string) => {
-    setMappingsById(prev => {
+    setMappingsById((prev) => {
       const mapping = prev.get(id)
       if (!mapping) return prev
       const newMap = new Map(prev)
@@ -467,7 +506,7 @@ export function ImportPreview({
   }, [])
 
   const handleFieldChange = useCallback((id: string, field: string, value: string) => {
-    setMappingsById(prev => {
+    setMappingsById((prev) => {
       const mapping = prev.get(id)
       if (!mapping) return prev
       const newMap = new Map(prev)
@@ -479,15 +518,18 @@ export function ImportPreview({
     })
   }, [])
 
-  const getMappingsForType = useCallback((typeName: string): EntityMapping[] => {
-    const ids = mappingIdsByType[typeName] || []
-    return ids.map(id => mappingsById.get(id)!).filter(Boolean)
-  }, [mappingIdsByType, mappingsById])
+  const getMappingsForType = useCallback(
+    (typeName: string): EntityMapping[] => {
+      const ids = mappingIdsByType[typeName] || []
+      return ids.map((id) => mappingsById.get(id)!).filter(Boolean)
+    },
+    [mappingIdsByType, mappingsById]
+  )
 
   // Pre-compute mappings for all types to ensure stable references
   const mappingsByType = useMemo(() => {
     const result: Record<string, EntityMapping[]> = {}
-    Object.keys(mappingIdsByType).forEach(typeName => {
+    Object.keys(mappingIdsByType).forEach((typeName) => {
       result[typeName] = getMappingsForType(typeName)
     })
     return result
@@ -496,8 +538,8 @@ export function ImportPreview({
   const handleImport = useCallback(async () => {
     setIsImporting(true)
     try {
-      const mappingsArray = Array.from(mappingsById.values()).filter(m => m.include)
-      const result = await sketchService.executeImport(sketchId, mappingsArray)
+      const mappingsArray = Array.from(mappingsById.values()).filter((m) => m.include)
+      const result = await sketchService.executeImport(sketchId, mappingsArray, edges)
       setImportResult(result)
 
       if (result.status === 'completed') {
@@ -508,7 +550,7 @@ export function ImportPreview({
       }
     } catch (error) {
       setIsImporting(false)
-      toast.error('Failed to import. Check your types and try again.')
+      toast.error(error?.message)
     }
   }, [mappingsById, sketchId, onSuccess, refetchGraph])
 
@@ -524,20 +566,22 @@ export function ImportPreview({
 
   const includedCount = useMemo(() => {
     let count = 0
-    mappingsById.forEach(m => {
+    mappingsById.forEach((m) => {
       if (m.include) count++
     })
     return count
   }, [mappingsById])
 
-
-  const getFieldsForType = useCallback((typeName: string): string[] => {
-    return fieldsByType[typeName] || []
-  }, [fieldsByType])
+  const getFieldsForType = useCallback(
+    (typeName: string): string[] => {
+      return fieldsByType[typeName] || []
+    },
+    [fieldsByType]
+  )
 
   const fieldsPerType = useMemo(() => {
     const result: Record<string, string[]> = {}
-    typeNames.forEach(name => {
+    typeNames.forEach((name) => {
       result[name] = getFieldsForType(name)
     })
     return result
@@ -580,14 +624,18 @@ export function ImportPreview({
                   <Label>Errors:</Label>
                   <div className="h-32 w-full rounded-md border p-2 mt-2 overflow-auto">
                     {importResult.errors.map((error: string, idx: number) => (
-                      <p key={idx} className="text-xs text-red-500 mb-1">{error}</p>
+                      <p key={idx} className="text-xs text-red-500 mb-1">
+                        {error}
+                      </p>
                     ))}
                   </div>
                 </div>
               )}
             </>
           )}
-          <Button onClick={onSuccess} className="mt-4">Close</Button>
+          <Button onClick={onSuccess} className="mt-4">
+            Close
+          </Button>
         </div>
       </div>
     )
@@ -595,7 +643,11 @@ export function ImportPreview({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex-1 flex flex-col overflow-hidden"
+      >
         <div className="px-4 pt-4">
           <TabsList className="w-full justify-start">
             {typeNames.map((name) => (
@@ -603,6 +655,9 @@ export function ImportPreview({
                 {name} ({mappingsByType[name]?.length || 0})
               </TabsTrigger>
             ))}
+            <TabsTrigger key={'edges'} value={'edges'} className="flex-1">
+              Edges ({edges.length})
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -634,6 +689,15 @@ export function ImportPreview({
               </TabsContent>
             )
           })}
+          <TabsContent
+            key={'edges'}
+            value={'edges'}
+            className="h-full mt-0 overflow-auto"
+            forceMount
+            hidden={activeTab !== 'edges'}
+          >
+            <EdgesPanel edges={edges} />
+          </TabsContent>
         </div>
       </Tabs>
 
@@ -646,6 +710,29 @@ export function ImportPreview({
           {isImporting ? 'Importing...' : `Import ${includedCount} entities`}
         </Button>
       </div>
+    </div>
+  )
+}
+
+type PreviewEdge = {
+  from_id: string
+  to_id: string
+  from_obj: { label: string }
+  to_obj: { label: string }
+  label: string
+}
+type EdgesPanelProps = {
+  edges: PreviewEdge[]
+}
+const EdgesPanel = ({ edges }: EdgesPanelProps) => {
+  return (
+    <div>
+      {edges.map((edge) => (
+        <div>
+          <Badge variant="outline">{edge.from_obj.label}</Badge> - {edge.label} -{' '}
+          <Badge variant="outline">{edge.to_obj.label}</Badge>
+        </div>
+      ))}
     </div>
   )
 }

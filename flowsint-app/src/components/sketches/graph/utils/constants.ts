@@ -23,7 +23,7 @@ export const GRAPH_COLORS = {
 } as const
 
 export const CONSTANTS = {
-  NODE_DEFAULT_SIZE: 10,
+  NODE_DEFAULT_SIZE: 5,
   LABEL_FONT_SIZE: 2.5,
   NODE_FONT_SIZE: 3.5,
   PADDING_RATIO: 0.2,

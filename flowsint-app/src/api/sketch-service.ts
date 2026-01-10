@@ -96,10 +96,18 @@ export const sketchService = {
   },
   executeImport: async (
     sketchId: string,
-    entityMappings: Array<{ id: string; entity_type: string; include: boolean; label: string; data: Record<string, any> }>,
+    entityMappings: Array<{
+      id: string
+      entity_type: string
+      include: boolean
+      label: string
+      node_id?: string
+      data: Record<string, any>
+    }>,
+    edges: any
   ): Promise<any> => {
     const formData = new FormData()
-    formData.append('entity_mappings_json', JSON.stringify(entityMappings))
+    formData.append('entity_mappings_json', JSON.stringify({ nodes: entityMappings, edges: edges }))
 
     return fetchWithAuth(`/api/sketches/${sketchId}/import/execute`, {
       method: 'POST',

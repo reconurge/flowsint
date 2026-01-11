@@ -3,15 +3,18 @@ Flowsint Types - Pydantic models for flowsint
 """
 
 # Import registry first to ensure it's ready for auto-registration
-from .registry import TYPE_REGISTRY, flowsint_type, get_type, load_all_types
-
 # Import base class
 from .flowsint_base import FlowsintType
+from .registry import TYPE_REGISTRY, flowsint_type, get_type, load_all_types
 
 # Auto-discover and register all types
 load_all_types()
 
 # For backward compatibility, explicitly import commonly used types
+from typing import Any, Dict, Optional, Type
+
+from pydantic import BaseModel
+
 from .address import Location
 from .affiliation import Affiliation
 from .alias import Alias
@@ -44,14 +47,11 @@ from .session import Session
 from .social_account import SocialAccount
 from .ssl_certificate import SSLCertificate
 from .username import Username
-from .wallet import CryptoWallet, CryptoWalletTransaction, CryptoNFT
+from .wallet import CryptoNFT, CryptoWallet, CryptoWalletTransaction
 from .weapon import Weapon
 from .web_tracker import WebTracker
 from .website import Website
 from .whois import Whois
-
-from typing import Dict, Type, Any, Optional
-from pydantic import BaseModel
 
 __version__ = "0.1.0"
 __author__ = "dextmorgn <contact@flowsint.io>"
@@ -88,8 +88,6 @@ __all__ = [
     "Session",
     "SocialAccount",
     "SSLCertificate",
-    "Node",
-    "Edge",
     "Username",
     "CryptoWallet",
     "CryptoWalletTransaction",

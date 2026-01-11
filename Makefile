@@ -19,7 +19,7 @@ dev:
 prod:
 	@echo "🐙 Starting Flowsint in PRODUCTION mode..."
 	$(MAKE) check-env
-	docker compose -f docker-compose.prod.yml up --build -d
+	docker compose -f docker-compose.prod.yml up -d
 	$(MAKE) open-browser
 
 build-dev:

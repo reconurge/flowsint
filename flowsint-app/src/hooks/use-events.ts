@@ -4,7 +4,7 @@ import { logService } from '@/api/log-service'
 import { queryKeys } from '@/api/query-keys'
 import { useAuthStore } from '@/stores/auth-store'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || ""
 
 
 export function useEvents(sketch_id: string | undefined) {

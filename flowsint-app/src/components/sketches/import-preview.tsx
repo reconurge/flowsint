@@ -355,7 +355,9 @@ export function ImportPreview({
 }: ImportPreviewProps) {
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  console.log(analysisResult)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
+  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
+
   const fieldsByType = useMemo(() => {
     if (!actionItems) return {}
     const fields: Record<string, string[]> = {}
@@ -407,7 +409,7 @@ export function ImportPreview({
           entity_type: entity.detected_type,
           include: true,
           label: entity.obj.label,
-          node_id: entity.node_id,
+          node_id: entity?.node_id?.toString(),
           data
         })
       })
@@ -546,7 +548,14 @@ export function ImportPreview({
         setTimeout(onSuccess, 2000)
         refetchGraph()
         setIsImporting(false)
-        toast.success('Import successful!')
+        toast(`Import successful !`, {
+          duration: 6000,
+          description: `${result.nodes_created} entities were imported. You can now display them with the layout commands.`,
+          action: {
+            label: 'Beautify layout',
+            onClick: () => regenerateLayout(currentLayoutType)
+          }
+        })
       }
     } catch (error) {
       setIsImporting(false)
@@ -649,7 +658,7 @@ export function ImportPreview({
         className="flex-1 flex flex-col overflow-hidden"
       >
         <div className="px-4 pt-4">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full justify-start overflow-x-auto">
             {typeNames.map((name) => (
               <TabsTrigger key={name} value={name} className="flex-1">
                 {name} ({mappingsByType[name]?.length || 0})

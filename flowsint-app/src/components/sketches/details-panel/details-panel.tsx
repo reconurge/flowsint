@@ -1,7 +1,7 @@
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { CopyButton } from '@/components/copy'
-import { Check, Rocket, X, MousePointer } from 'lucide-react'
+import { Check, Rocket, X, MousePointer, Link2 } from 'lucide-react'
 import LaunchFlow from '../launch-enricher'
 import NodeActions from '../graph/actions/node-actions'
 import { Button } from '../../ui/button'
@@ -14,14 +14,21 @@ import { GraphNode } from '@/types'
 import { useGraphStore } from '@/stores/graph-store'
 import { Badge } from '@/components/ui/badge'
 import DOMPurify from 'dompurify'
+import { useIcon } from '@/hooks/use-icon'
 
 const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
   const { id: sketchId } = useParams({ strict: false })
   const nodes = useGraphStore((s) => s.nodes)
+  const NodeIcon = useIcon(node?.data?.type || 'default')
+  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
   node = nodes.find((n) => n.id === node?.id) || null
+
+  const handleClose = useCallback(() => {
+    setCurrentNode(null)
+  }, [])
   if (!node) {
     return (
-      <div className="flex p-12 flex-col items-center justify-center h-full text-center p-8">
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
           <MousePointer className="h-8 w-8 text-muted-foreground" />
         </div>
@@ -35,9 +42,15 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-card">
-      {/* <ItemHero node={node} /> */}
-      <div className="flex items-center bg-card h-10 sticky w-full top-0 border-b justify-start px-4 gap-2 z-1">
-        <p className="text-sm font-semibold truncate">{node.data?.label}</p>
+      <div className="flex items-center sticky w-full top-0 border-b justify-start pr-4 pl-2 py-2 h-10 gap-2 bg-card/90 backdrop-blur-md ">
+        <Button
+          onClick={handleClose}
+          size={'icon'}
+          variant={'ghost'}
+          className="h-7 w-7 hover:bg-accent rounded-full"
+        >
+          <X />
+        </Button>
         <div className="grow" />
         <div className="flex items-center">
           <TooltipProvider>
@@ -61,6 +74,27 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
             </Tooltip>
           </TooltipProvider>
           <NodeActions node={node} />
+        </div>
+      </div>
+      <div className="px-4 pt-4 pb-4 border-b">
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className="shrink-0">
+            <NodeIcon size={38} />
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold truncate">{node.data?.label}</h2>
+              <CopyButton className="h-4 w-4" content={node.data.label} />
+            </div>
+            {node.data?.type && (
+              <Badge variant="secondary" className="text-xs">
+                {node.data.type}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex-1 min-h-0">
@@ -115,7 +149,10 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
       {data &&
         Object.entries(data)
           .filter(
-            ([key]) => !['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y'].includes(key)
+            ([key]) =>
+              !['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y'].includes(
+                key
+              )
           )
           .map(([key, value], index) => {
             let val: string | null = null
@@ -123,8 +160,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
             if (typeof value === 'number') {
               val = value.toString()
               display = <StatusCodeBadge statusCode={value} />
-            }
-            else if (typeof value === 'boolean') {
+            } else if (typeof value === 'boolean') {
               val = value.toString()
               display = value ? (
                 <Check className="h-4 w-4 text-green-600" />
@@ -132,7 +168,7 @@ function KeyValueDisplay({ data, className }: KeyValueDisplayProps) {
                 <X className="h-4 w-4 text-red-600" />
               )
             } else if (typeof value === 'object') {
-              val = value?.["label"] ?? "N/A"
+              val = value?.['label'] ?? 'N/A'
               display = val
             } else if (Array.isArray(value)) {
               val = `${value.length} items`
@@ -190,7 +226,7 @@ export function StatusCodeBadge({ statusCode }: StatusCodeBadgeProps) {
     2: 'bg-green-100 text-green-800 border-green-300',
     3: 'bg-purple-100 text-purple-800 border-purple-300',
     4: 'bg-orange-100 text-orange-800 border-orange-300',
-    5: 'bg-red-100 text-red-800 border-red-300',
+    5: 'bg-red-100 text-red-800 border-red-300'
   }
 
   const labels = {
@@ -198,13 +234,16 @@ export function StatusCodeBadge({ statusCode }: StatusCodeBadgeProps) {
     2: 'Success',
     3: 'Redirect',
     4: 'Client Error',
-    5: 'Server Error',
+    5: 'Server Error'
   }
 
   return (
     <Badge
       variant="outline"
-      className={cn("text-xs", variants[category as keyof typeof variants] || 'bg-gray-100 text-gray-800')}
+      className={cn(
+        'text-xs',
+        variants[category as keyof typeof variants] || 'bg-gray-100 text-gray-800'
+      )}
     >
       {statusCode}
       {/* {labels[category as keyof typeof labels]} */}

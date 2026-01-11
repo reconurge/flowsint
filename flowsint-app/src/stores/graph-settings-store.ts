@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS = {
       name: 'Node Weight Multiplier',
       type: 'number',
       value: 1.5,
-      min: 1.0,
+      min: 0.1,
       max: 8.0,
       step: 0.01,
       description: 'Defines how a node size varies depending on the weight (number of relations).'

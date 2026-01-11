@@ -30,6 +30,8 @@ export default function AddItemDialog() {
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const openFormDialog = useGraphStore((state) => state.openFormDialog)
   const setOpenFormDialog = useGraphStore((state) => state.setOpenFormDialog)
+  const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
+  const currentLayoutType = useGraphControls((s) => s.currentLayoutType)
   const addNode = useGraphStore((state) => state.addNode)
   const addEdge = useGraphStore((state) => state.addEdge)
   const replaceNode = useGraphStore((state) => state.replaceNode)
@@ -134,9 +136,15 @@ export default function AddItemDialog() {
     setOpenMainDialog(false)
     setOpenFormDialog(false)
     // Show optimistic success message
-    toast.success(
-      relatedNodeToAdd ? `New relation added to ${relatedNodeToAdd.data.label}.` : 'New node added.'
-    )
+    toast(`New ${type.toLowerCase()} added to sketch.`, {
+      description: relatedNodeToAdd
+        ? `A new ${type.toLowerCase()} "${label}" was added to relation ${relatedNodeToAdd.data.label}.`
+        : `A new ${type.toLowerCase()} "${label}" was added.`,
+      action: {
+        label: 'Beautify layout',
+        onClick: () => regenerateLayout(currentLayoutType)
+      }
+    })
     // Make API calls in the background
     try {
       // Create the node via API to get the real database ID

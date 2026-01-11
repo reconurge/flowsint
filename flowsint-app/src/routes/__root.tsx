@@ -14,7 +14,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     const { theme } = useTheme()
     return (
       <TutorialProvider>
-        <Toaster theme={theme} position="top-right" richColors />
+        <Toaster offset={{ top: '90px' }} theme={theme} position="top-center" />
         <Outlet />
       </TutorialProvider>
     )

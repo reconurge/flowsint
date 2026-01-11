@@ -61,11 +61,13 @@ class NodeEditInput(BaseModel):
         default_factory=NodeData, description="Updated data for the node"
     )
 
+
 class RelationshipEditInput(BaseModel):
     relationshipId: str
     data: Dict[str, Any] = Field(
         default_factory=dict, description="Updated data for the relationship"
     )
+
 
 class NodeMergeInput(BaseModel):
     id: str
@@ -536,6 +538,7 @@ def delete_relationships(
 
     return {"status": "relationships deleted", "count": deleted_count}
 
+
 @router.put("/{sketch_id}/relationships/edit")
 @update_sketch_timestamp
 def edit_relationship(
@@ -742,6 +745,7 @@ async def execute_import(
     Uses the entity mappings provided by the frontend (no file re-parsing needed).
     """
     import json
+
     # Verify sketch exists and user has access
     sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
     if not sketch:
@@ -930,7 +934,8 @@ async def export_sketch(
                     "title": sketch.title,
                     "description": sketch.description,
                 },
-                "graph": {"nodes": nodes, "edges": rels},
+                "nodes": nodes,
+                "edges": rels,
             }
         )
 

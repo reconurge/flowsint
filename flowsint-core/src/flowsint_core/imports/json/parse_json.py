@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List
 
-from flowsint_types import TYPE_REGISTRY
+from flowsint_types import TYPE_REGISTRY, Individual
 
 from ..types import Edge, Entity, EntityPreview, FileParseResult
 from ..utils import create_entity_preview
@@ -105,7 +105,11 @@ def _parse_node(nodeDict: dict) -> EntityPreview | None:
         # Type not recognized, fall back to generic
         return create_entity_preview(label)
 
-    node = DetectedType.from_string(label)
+    if hasattr(DetectedType, "from_string"):
+        node = DetectedType.from_string(label)
+    else:
+        # Default to Individual node type
+        node = Individual.from_string(label)
 
     detected_type = DetectedType.__name__
     return EntityPreview(obj=node, detected_type=detected_type)

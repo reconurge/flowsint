@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   PlusIcon,
   Trash2,
-  Save,
   ChevronDown,
   ChevronsRight,
   ExternalLink,
@@ -30,11 +29,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { queryKeys } from '@/api/query-keys'
 import { useCreateAnalysis } from '@/hooks/use-create-analysis'
+import { SaveStatusBadge } from '@/components/shared/save-status-badge'
 
 interface AnalysisEditorProps {
   // Core data
   analysis: Analysis | null
   investigationId: string
+  ownerId?: string
 
   // Callbacks
   onAnalysisUpdate?: (analysis: Analysis) => void
@@ -83,7 +84,6 @@ export const AnalysisEditor = ({
     type: string
   }
   const queryClient = useQueryClient()
-
   // State/refs for editor
   const editorContentRef = useRef<any>('')
   const [titleValue, setTitleValue] = useState('')
@@ -340,7 +340,7 @@ export const AnalysisEditor = ({
                   />
                 ) : (
                   <span
-                    className="text-md font-medium cursor-pointer hover:text-primary truncate min-w-0 flex-1"
+                    className={`text-md font-medium truncate min-w-0 flex-1 ${'cursor-pointer hover:text-primary'}`}
                     onClick={() => setIsEditingTitle(true)}
                   >
                     {titleValue || 'Untitled Analysis'}
@@ -352,32 +352,7 @@ export const AnalysisEditor = ({
             {/* Action buttons */}
             {showActions && (
               <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleManualSave}
-                  disabled={!analysis || saveMutation.isPending}
-                  title={
-                    saveStatus === 'saved'
-                      ? 'Saved'
-                      : saveStatus === 'saving'
-                        ? 'Saving...'
-                        : 'Save'
-                  }
-                  className="h-8 w-8 relative"
-                >
-                  <Save className="w-4 h-4" strokeWidth={1.5} />
-                  {saveStatus === 'saved' && (
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
-                  )}
-                  {saveStatus === 'saving' && (
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                  )}
-                  {saveStatus === 'unsaved' && (
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                  )}
-                </Button>
-
+                <SaveStatusBadge status={saveStatus} />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div>
@@ -402,6 +377,7 @@ export const AnalysisEditor = ({
                         </Link>
                       </DropdownMenuItem>
                     )}
+
                     {type !== 'analysis' && (
                       <DropdownMenuItem
                         onClick={() => createMutation.mutate()}
@@ -454,10 +430,9 @@ export const AnalysisEditor = ({
               className="w-full h-full"
               editorContentClassName="p-5 min-h-[300px]"
               output="json"
-              placeholder="Enter your analysis..."
+              placeholder={'Enter your analysis...'}
               autofocus={true}
               showToolbar={showToolbar}
-              editable={true}
               editorClassName="focus:outline-hidden"
               onEditorReady={setEditor}
             />

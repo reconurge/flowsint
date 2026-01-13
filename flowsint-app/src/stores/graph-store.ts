@@ -55,6 +55,7 @@ interface GraphState {
   // === Action Type for Form ===
   currentNodeType: ActionItem | null
   setCurrentNodeType: (nodeType: ActionItem | null) => void
+  setCurrentNodeFromId: (nodeId: string) => GraphNode | null
   handleOpenFormModal: (selectedItem: ActionItem | undefined) => void
 
   // === Action Type for Edit form ===
@@ -231,6 +232,18 @@ export const useGraphStore = create<GraphState>()(
         if (currentNode?.id !== node?.id) {
           set({ currentNode: node })
         }
+      },
+      setCurrentNodeFromId: (nodeId) => {
+        const { currentNode, nodes } = get()
+        // Only update if the node is actually different
+        if (currentNode?.id !== nodeId) {
+          const node = nodes.find((n) => n.id === nodeId)
+          if (node) {
+            set({ currentNode: node })
+            return node
+          }
+        }
+        return null
       },
       setCurrentEdge: (edge) => {
         const { currentEdge } = get()

@@ -16,7 +16,8 @@ import {
   Color,
   UnsetAllMarks,
   ResetMarksOnEnter,
-  FileHandler
+  FileHandler,
+  Mention
 } from '../extensions'
 import { cn } from '@/lib/utils'
 import { fileToBase64, getOutput, randomId } from '../utils'
@@ -166,6 +167,7 @@ const createExtensions = ({
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
+  Mention,
   Placeholder.configure({ placeholder: () => placeholder })
 ]
 

@@ -56,7 +56,7 @@ export const useGraphInitialization = ({
         if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
           graphRef.current.centerAt(x, y, 400)
           if (typeof graphRef.current.zoom === 'function') {
-            graphRef.current.zoom(6, 400)
+            graphRef.current.zoom(12, 400)
           }
         }
       },
@@ -78,12 +78,12 @@ export const useGraphInitialization = ({
 
     return () => {
       setActions({
-        zoomIn: () => { },
-        zoomOut: () => { },
-        zoomToFit: () => { },
-        zoomToSelection: () => { },
-        centerOnNode: () => { },
-        regenerateLayout: () => { },
+        zoomIn: () => {},
+        zoomOut: () => {},
+        zoomToFit: () => {},
+        zoomToSelection: () => {},
+        centerOnNode: () => {},
+        regenerateLayout: () => {},
         getViewportCenter: () => null
       })
     }
@@ -95,10 +95,7 @@ export const useGraphInitialization = ({
     if (!graphInstance || isGraphReadyRef.current) return
 
     // Wait for graph methods to be available
-    if (
-      typeof graphInstance.zoom !== 'function' ||
-      typeof graphInstance.zoomToFit !== 'function'
-    ) {
+    if (typeof graphInstance.zoom !== 'function' || typeof graphInstance.zoomToFit !== 'function') {
       return
     }
 

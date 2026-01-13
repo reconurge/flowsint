@@ -2157,6 +2157,11 @@
   resolved "https://registry.npmjs.org/@tiptap/extension-list-item/-/extension-list-item-2.26.4.tgz"
   integrity sha512-mSIkBqAwSG1ABRfaUvMjsUMrVotjDDw6LZZ2MdF48d/PDiCXDrBe/BHXPyD8lUZpVRTBbw4U95ai4RP/urSimg==
 
+"@tiptap/extension-mention@2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-mention/-/extension-mention-2.12.0.tgz#e1dc28de92bad7a1bfa66a162b18ece4588d787f"
+  integrity sha512-+b/fqOU+pRWWAo0ZfyInkhkvV0Ub5RpNrYZ45v2nn5PjbXbxyxNQ51zT6cGk2F6Jmc6UBmlR8iqqNTIQY9ieEg==
+
 "@tiptap/extension-ordered-list@^2.26.4":
   version "2.26.4"
   resolved "https://registry.npmjs.org/@tiptap/extension-ordered-list/-/extension-ordered-list-2.26.4.tgz"
@@ -2290,6 +2295,11 @@
     "@tiptap/extension-text" "^2.26.4"
     "@tiptap/extension-text-style" "^2.26.4"
     "@tiptap/pm" "^2.26.4"
+
+"@tiptap/suggestion@^3.15.3":
+  version "3.15.3"
+  resolved "https://registry.yarnpkg.com/@tiptap/suggestion/-/suggestion-3.15.3.tgz#e560baf5c7f9218a9b421fbbc348055eff448b32"
+  integrity sha512-+CbaHhPfKUe+fNpUIQaOPhh6xI+xL5jbK1zw++U+CZIRrVAAmHRhO+D0O2HdiE1RK7596y8bRqMiB2CRHF7emA==
 
 "@tweenjs/tween.js@18 - 25":
   version "25.0.0"

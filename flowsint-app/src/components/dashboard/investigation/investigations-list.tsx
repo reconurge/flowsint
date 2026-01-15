@@ -1,31 +1,42 @@
-import { FolderOpen, MoreHorizontal, FileText, Network } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Link } from "@tanstack/react-router"
-import { Investigation } from "@/types"
-import { formatDistanceToNow } from "date-fns"
-import { useMemo } from "react"
+import { FolderOpen, MoreHorizontal, FileText, Network } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Link } from '@tanstack/react-router'
+import { Investigation } from '@/types'
+import { formatDistanceToNow } from 'date-fns'
+import { useMemo } from 'react'
 
 interface InvestigationsListProps {
   investigations: Investigation[]
-  view: "grid" | "list"
-  filter: "all" | "active" | "closed"
-  setFilter: (filter: "all" | "active" | "closed") => void
-  casesCount: number,
+  view: 'grid' | 'list'
+  filter: 'all' | 'active' | 'closed'
+  setFilter: (filter: 'all' | 'active' | 'closed') => void
+  casesCount: number
   activeCasesCount: number
   search: string
 }
 
-export function InvestigationsList({ investigations, view, filter, setFilter, casesCount, activeCasesCount, search }: InvestigationsListProps) {
+export function InvestigationsList({
+  investigations,
+  view,
+  filter,
+  setFilter,
+  casesCount,
+  activeCasesCount,
+  search
+}: InvestigationsListProps) {
   const filteredInvestigations = investigations.filter((inv) => {
-    if (filter === "all") return inv.name.toLowerCase().includes(search.toLowerCase())
+    if (filter === 'all') return inv.name.toLowerCase().includes(search.toLowerCase())
     return inv.status === filter && inv.name.toLowerCase().includes(search.toLowerCase())
   })
 
-  const filters = useMemo(() => [
-    { label: "All", value: "all", count: casesCount },
-    { label: "Active", value: "active", count: activeCasesCount },
-    { label: "Closed", value: "closed", count: casesCount - activeCasesCount },
-  ], [casesCount, activeCasesCount])
+  const filters = useMemo(
+    () => [
+      { label: 'All', value: 'all', count: casesCount },
+      { label: 'Active', value: 'active', count: activeCasesCount },
+      { label: 'Closed', value: 'closed', count: casesCount - activeCasesCount }
+    ],
+    [casesCount, activeCasesCount]
+  )
 
   return (
     <div>
@@ -33,10 +44,12 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
         {filters.map((f) => (
           <button
             key={f.value}
-            onClick={() => setFilter(f.value as "all" | "active" | "closed")}
+            onClick={() => setFilter(f.value as 'all' | 'active' | 'closed')}
             className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors",
-              filter === f.value ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+              'px-3 py-1.5 text-sm rounded-md transition-colors',
+              filter === f.value
+                ? 'bg-muted text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {f.label}
@@ -45,23 +58,31 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
         ))}
       </div>
 
-      {view === "list" ? (
+      {view === 'list' ? (
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Name</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-24">Status</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-28">Updated</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">
+                  Name
+                </th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-24">
+                  Status
+                </th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-28">
+                  Updated
+                </th>
                 <th className="w-10"></th>
               </tr>
             </thead>
             <tbody>
-              {filteredInvestigations.length === 0 && <div className="flex items-center justify-center p-4">
-                <tr
-                  className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group"
-                >No investigation found.</tr>
-              </div>}
+              {filteredInvestigations.length === 0 && (
+                <div className="flex items-center justify-center p-4">
+                  <tr className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group">
+                    No investigation found.
+                  </tr>
+                </div>
+              )}
               {filteredInvestigations.map((inv) => (
                 <tr
                   key={inv.id}
@@ -77,7 +98,9 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
                         <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{inv.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{inv.description}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {inv.description}
+                          </p>
                         </div>
                       </div>
                     </Link>
@@ -86,15 +109,17 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
                     <StatusBadge status={inv.status} />
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(inv.last_updated_at), {
-                      addSuffix: true
-                    })}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(inv.last_updated_at), {
+                        addSuffix: true
+                      })}
+                    </span>
                   </td>
-                  <td className="px-4 py-3">
+                  {/*<td className="px-4 py-3">
                     <button className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
                       <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                     </button>
-                  </td>
+                  </td>*/}
                 </tr>
               ))}
             </tbody>
@@ -102,9 +127,7 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3">
-          {filteredInvestigations.length === 0 && <div>
-            No investigation found.
-          </div>}
+          {filteredInvestigations.length === 0 && <div>No investigation found.</div>}
           {filteredInvestigations.map((inv) => (
             <Link
               to="/dashboard/investigations/$investigationId"
@@ -116,9 +139,9 @@ export function InvestigationsList({ investigations, view, filter, setFilter, ca
                   <FolderOpen className="w-4 h-4 text-muted-foreground" />
                   <StatusBadge status={inv.status} />
                 </div>
-                <button className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                {/*<button className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
                   <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                </button>
+                </button>*/}
               </div>
               <h3 className="text-sm font-medium text-foreground mb-1 truncate">{inv.name}</h3>
               <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{inv.description}</p>
@@ -154,21 +177,21 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs",
-        status === "active" && "text-success",
-        status === "closed" && "text-muted-foreground",
-        status === "on-hold" && "text-warning",
+        'inline-flex items-center gap-1.5 text-xs',
+        status === 'active' && 'text-success',
+        status === 'closed' && 'text-muted-foreground',
+        status === 'on-hold' && 'text-warning'
       )}
     >
       <span
         className={cn(
-          "w-1.5 h-1.5 rounded-full",
-          status === "active" && "bg-success",
-          status === "closed" && "bg-muted-foreground/50",
-          status === "on-hold" && "bg-warning",
+          'w-1.5 h-1.5 rounded-full',
+          status === 'active' && 'bg-success',
+          status === 'closed' && 'bg-muted-foreground/50',
+          status === 'on-hold' && 'bg-warning'
         )}
       />
-      {status === "on-hold" ? "On Hold" : status.charAt(0).toUpperCase() + status.slice(1)}
+      {status === 'on-hold' ? 'On Hold' : status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   )
 }

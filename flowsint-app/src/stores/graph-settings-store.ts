@@ -46,7 +46,7 @@ const DEFAULT_SETTINGS = {
     nodeSize: {
       name: 'Node Size',
       type: 'number',
-      value: 1,
+      value: 6,
       min: 0.2,
       max: 20,
       step: 0.1,
@@ -55,7 +55,7 @@ const DEFAULT_SETTINGS = {
     nodeWeightMultiplierSize: {
       name: 'Node Weight Multiplier',
       type: 'number',
-      value: 1.5,
+      value: 1.2,
       min: 0.1,
       max: 8.0,
       step: 0.01,
@@ -64,7 +64,7 @@ const DEFAULT_SETTINGS = {
     linkWidth: {
       name: 'Link Width',
       type: 'number',
-      value: 2,
+      value: 0.8,
       min: 0.3,
       max: 10,
       step: 0.05,
@@ -83,7 +83,7 @@ const DEFAULT_SETTINGS = {
     linkLabelFontSize: {
       name: 'Link Label Font Size',
       type: 'number',
-      value: 30,
+      value: 60,
       min: 10,
       max: 200,
       step: 5,
@@ -142,7 +142,7 @@ const DEFAULT_SETTINGS = {
     linkDirectionalArrowLength: {
       name: 'Arrow Length',
       type: 'number',
-      value: 2,
+      value: 1.2,
       min: 1,
       max: 10,
       step: 0.1,
@@ -395,7 +395,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 6
+const STORAGE_VERSION = 7
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

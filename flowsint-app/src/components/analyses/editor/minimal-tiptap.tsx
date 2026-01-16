@@ -89,7 +89,7 @@ export const MinimalTiptapEditor = React.forwardRef<HTMLDivElement, MinimalTipta
         className={cn('flex hide-scrollbar w-full flex-col', className)}
       >
         {showToolbar && (
-          <div className="border-t sticky top-11 bg-card/90 z-20 backdrop-blur-md">
+          <div className="sticky top-10 bg-card/90 z-20 backdrop-blur-md">
             <Toolbar editor={editor} />
           </div>
         )}

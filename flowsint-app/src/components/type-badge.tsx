@@ -18,7 +18,7 @@ function TypeBadgeComponent({ type, children, className }: TypeBadgeProps) {
     <Badge
       variant="outline"
       style={{ backgroundColor: hexToRgba(color, 0.5) }}
-      className={cn('font-medium border-transparent', className)}
+      className={cn('font-medium rounded border-transparent', className)}
     >
       {children ?? type}
     </Badge>

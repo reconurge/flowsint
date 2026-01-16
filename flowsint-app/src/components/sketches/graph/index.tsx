@@ -79,22 +79,22 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
   const {
-    currentNode,
+    currentNodeId,
     currentEdge,
     selectedNodes,
     selectedEdges,
     toggleEdgeSelection,
-    setCurrentEdge,
+    setCurrentEdgeId,
     clearSelectedEdges,
     setOpenMainDialog
   } = useGraphStore(
     useShallow((s) => ({
-      currentNode: s.currentNode,
-      currentEdge: s.currentEdge,
+      currentNodeId: s.currentNodeId,
+      currentEdge: s.getCurrentEdge(),
       selectedNodes: s.selectedNodes,
       selectedEdges: s.selectedEdges,
       toggleEdgeSelection: s.toggleEdgeSelection,
-      setCurrentEdge: s.setCurrentEdge,
+      setCurrentEdgeId: s.setCurrentEdgeId,
       clearSelectedEdges: s.clearSelectedEdges,
       setOpenMainDialog: s.setOpenMainDialog
     }))
@@ -103,7 +103,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const { theme } = useTheme()
 
   const selectedNodeIds = useMemo(() => new Set(selectedNodes.map((n) => n.id)), [selectedNodes])
-  const currentNodeId = currentNode?.id
 
   const selectedNodeIdsRef = useRef(selectedNodeIds)
   useEffect(() => {
@@ -229,7 +228,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     graphRef,
     edgeMap,
     toggleEdgeSelection,
-    setCurrentEdge,
+    setCurrentEdgeId,
     clearSelectedEdges,
     saveAllNodePositions
   })
@@ -251,7 +250,12 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         graphRef.current.zoomToFit(400)
       }
     }
-  }, [])
+  }, [sketchId])
+
+  // reset hasPerformedInitialZoom on sketch change
+  useEffect(() => {
+    if (hasPerformedInitialZoom.current) hasPerformedInitialZoom.current = false
+  }, [sketchId])
 
   const handleZoomToFitLocal = useCallback(() => {
     if (typeof graphRef.current.zoomToFit === 'function') {
@@ -364,7 +368,15 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         autoColorLinksByNodeType
       })
     },
-    [forceSettings, theme, highlightLinks, highlightNodes, selectedEdges, currentEdge, autoColorLinksByNodeType]
+    [
+      forceSettings,
+      theme,
+      highlightLinks,
+      highlightNodes,
+      selectedEdges,
+      currentEdge,
+      autoColorLinksByNodeType
+    ]
   )
 
   if (!nodes.length) {

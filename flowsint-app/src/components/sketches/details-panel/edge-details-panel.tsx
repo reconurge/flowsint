@@ -8,25 +8,21 @@ import { useIcon } from '@/hooks/use-icon'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { sketchService } from '@/api/sketch-service'
 import { CopyButton } from '@/components/copy'
-import { GraphEdge } from '@/types'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 
-const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
+const EdgeDetailsPanel = memo(() => {
   const { id: sketchId } = useParams({ strict: false })
-  const edges = useGraphStore((s) => s.edges)
   const nodes = useGraphStore((s) => s.nodes)
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
-  const setCurrentEdge = useGraphStore((s) => s.setCurrentEdge)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
+  const setCurrentEdgeId = useGraphStore((s) => s.setCurrentEdgeId)
   const removeEdges = useGraphStore((s) => s.removeEdges)
   const updateEdge = useGraphStore((s) => s.updateEdge)
   const { confirm } = useConfirm()
   const labelRef = useRef<HTMLInputElement>(null)
-
-  // Get fresh edge data from store
-  edge = edges.find((e) => e.id === edge?.id) || null
+  const edge = useGraphStore((s) => s.getCurrentEdge())
 
   // Find source and target nodes
   const sourceNode = edge ? nodes.find((n) => n.id === edge.source) : null
@@ -86,7 +82,7 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
     }
 
     // Close panel
-    setCurrentEdge(null)
+    setCurrentEdgeId(null)
 
     // Optimistic delete + API call with toast
     toast.promise(
@@ -103,19 +99,19 @@ const EdgeDetailsPanel = memo(({ edge }: { edge: GraphEdge | null }) => {
         error: 'Failed to delete relationship.'
       }
     )
-  }, [edge, sketchId, confirm, removeEdges, setCurrentEdge])
+  }, [edge, sketchId, confirm, removeEdges, setCurrentEdgeId])
 
   const handleJumpToSource = useCallback(() => {
     if (sourceNode) {
-      setCurrentNode(sourceNode)
+      setCurrentNodeId(sourceNode.id)
     }
-  }, [sourceNode, setCurrentNode])
+  }, [sourceNode, setCurrentNodeId])
 
   const handleJumpToTarget = useCallback(() => {
     if (targetNode) {
-      setCurrentNode(targetNode)
+      setCurrentNodeId(targetNode.id)
     }
-  }, [targetNode, setCurrentNode])
+  }, [targetNode, setCurrentNodeId])
 
   if (!edge) {
     return (

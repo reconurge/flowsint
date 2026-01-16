@@ -23,7 +23,7 @@ import { useGraphControls } from '@/stores/graph-controls-store'
 export default function AddItemDialog() {
   const handleOpenFormModal = useGraphStore((state) => state.handleOpenFormModal)
   const currentNodeType = useGraphStore((state) => state.currentNodeType)
-  const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((state) => state.setCurrentNodeId)
   const relatedNodeToAdd = useGraphStore((state) => state.relatedNodeToAdd)
   const setRelatedNodeToAdd = useGraphStore((state) => state.setRelatedNodeToAdd)
   const openMainDialog = useGraphStore((state) => state.openMainDialog)
@@ -128,8 +128,8 @@ export default function AddItemDialog() {
       }
     }
     // Set current node optimistically
-    if (setCurrentNode) {
-      setCurrentNode(nodeWithTempId)
+    if (setCurrentNodeId) {
+      setCurrentNodeId(nodeWithTempId.id)
     }
     setActiveTab('entities')
     // Close dialogs immediately for better UX

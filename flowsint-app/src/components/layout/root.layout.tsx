@@ -28,8 +28,8 @@ export default function RootLayout({ children }: LayoutProps) {
   const closePanel = useLayoutStore((s) => s.closePanel)
   const openPanel = useLayoutStore((s) => s.openPanel)
   const closeDetails = useLayoutStore((s) => s.closeDetails)
-  const currentNode = useGraphStore((s) => s.currentNode)
-  const currentEdge = useGraphStore((s) => s.currentEdge)
+  const currentNode = useGraphStore((s) => s.getCurrentNode())
+  const currentEdge = useGraphStore((s) => s.getCurrentEdge())
   const { id, type } = useParams({ strict: false })
 
   // Set up keyboard shortcut for chat panel
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: LayoutProps) {
             minSize={16}
             maxSize={40}
             onCollapse={closeDetails}
-            onExpand={() => {}} // No auto-open here
+            onExpand={() => { }} // No auto-open here
             collapsible={true}
             collapsedSize={2}
           >
@@ -90,7 +90,7 @@ export default function RootLayout({ children }: LayoutProps) {
             minSize={16}
             maxSize={40}
             onCollapse={closeDetails}
-            onExpand={() => {}} // No auto-open here
+            onExpand={() => { }} // No auto-open here
             collapsible={true}
             collapsedSize={2}
           >
@@ -98,19 +98,19 @@ export default function RootLayout({ children }: LayoutProps) {
               // Both node and edge: show both in a vertical split
               <ResizablePanelGroup direction="vertical" className="h-full">
                 <ResizablePanel defaultSize={70} minSize={30}>
-                  <DetailsPanel node={currentNode} />
+                  <DetailsPanel />
                 </ResizablePanel>
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={30} minSize={20}>
-                  <EdgeDetailsPanel edge={currentEdge} />
+                  <EdgeDetailsPanel />
                 </ResizablePanel>
               </ResizablePanelGroup>
             ) : hasNode ? (
               // Only node
-              <DetailsPanel node={currentNode} />
+              <DetailsPanel />
             ) : (
               // Only edge
-              <EdgeDetailsPanel edge={currentEdge} />
+              <EdgeDetailsPanel />
             )}
           </ResizablePanel>
         </>

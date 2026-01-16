@@ -12,10 +12,10 @@ const GraphMain = () => {
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const clearSelectedEdges = useGraphStore((s) => s.clearSelectedEdges)
-  const setCurrentEdge = useGraphStore((s) => s.setCurrentEdge)
+  const setCurrentEdgeId = useGraphStore((s) => s.setCurrentEdgeId)
   const selectedNodes = useGraphStore(s => s.selectedNodes)
   const selectedEdges = useGraphStore(s => s.selectedEdges)
 
@@ -31,22 +31,22 @@ const GraphMain = () => {
       if (isMultiSelect) {
         toggleNodeSelection(node, true)
       } else {
-        setCurrentNode(node)
+        setCurrentNodeId(node.id)
         clearSelectedNodes()
       }
     },
-    [toggleNodeSelection, setCurrentNode, clearSelectedNodes]
+    [toggleNodeSelection, setCurrentNodeId, clearSelectedNodes]
   )
 
   const handleBackgroundClick = useCallback(() => {
-    setCurrentNode(null)
+    setCurrentNodeId(null)
     clearSelectedNodes()
     clearSelectedEdges()
-    setCurrentEdge(null)
+    setCurrentEdgeId(null)
     setNodeMenu(null)
     setEdgeMenu(null)
     setBackgroundMenu(null)
-  }, [setCurrentNode, clearSelectedNodes, clearSelectedEdges, setCurrentEdge])
+  }, [setCurrentNodeId, clearSelectedNodes, clearSelectedEdges, setCurrentEdgeId])
 
   const onNodeContextMenu = useCallback((node: any, event: MouseEvent) => {
     if (!containerRef.current || !node) return

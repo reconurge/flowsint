@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Edit3, Save, X, Hash, Type, FileText, Check, Loader2 } from 'lucide-react'
+import { Edit3, Save, X, Type, FileText, Check, Loader2 } from 'lucide-react'
 import type { NodeData } from '@/types'
 import { useGraphStore } from '@/stores/graph-store'
 import { MapFromAddress } from '../../map/map'
@@ -18,11 +18,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
 
 export const NodeEditorModal: React.FC = () => {
-  const currentNode = useGraphStore((state) => state.currentNode)
+  const currentNode = useGraphStore((state) => state.getCurrentNode())
   const openNodeEditorModal = useGraphStore((state) => state.openNodeEditorModal)
   const setOpenNodeEditorModal = useGraphStore((state) => state.setOpenNodeEditorModal)
   const updateNode = useGraphStore((state) => state.updateNode)
-  const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
   const { id: sketchId } = useParams({ strict: false })
   const IconComponent = useIcon(
     currentNode?.data.type as string,
@@ -58,16 +57,8 @@ export const NodeEditorModal: React.FC = () => {
     },
     onSuccess: (result, variables) => {
       if (result.status === 'node updated' && currentNode) {
-        // Update the local store
+        // Update the local store (this also updates the hashmap)
         updateNode(currentNode.id, formData)
-        setCurrentNode({
-          ...currentNode,
-          data: {
-            ...currentNode.data,
-            ...formData
-          }
-        })
-
         // Invalidate related queries
         if (sketchId) {
           queryClient.invalidateQueries({

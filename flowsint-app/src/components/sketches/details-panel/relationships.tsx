@@ -76,8 +76,7 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
     firstItem: virtualItems[0],
     parentRefCurrent: parentRef.current
   })
-  const totalSize
-    = virtualizer.getTotalSize()
+  const totalSize = virtualizer.getTotalSize()
 
   return (
     <div ref={parentRef} className="h-full py-1.5 overflow-auto">
@@ -127,16 +126,15 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
       </div>
     </div>
   )
-}
-)
+})
 
 export default Relationships
 
 const RelationshipItem = memo(({ node }: { node: GraphNode }) => {
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const handleClick = useCallback(() => {
-    setCurrentNode(node)
-  }, [setCurrentNode, node])
+    setCurrentNodeId(node.id)
+  }, [setCurrentNodeId, node.id])
   return (
     <button
       className="w-full h-full text-left hover:underline cursor-pointer flex items-center"

@@ -48,7 +48,7 @@ export function Lasso({
 }) {
   const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const pointRef = useRef<[number, number][]>([])
@@ -134,7 +134,7 @@ export function Lasso({
   function handlePointerUp(e: PointerEvent) {
     canvasRef.current?.releasePointerCapture(e.pointerId)
     pointRef.current = []
-    if (selectedNodes.length === 1) setCurrentNode(selectedNodes[0])
+    if (selectedNodes.length === 1) setCurrentNodeId(selectedNodes[0].id)
     ctxRef.current?.clearRect(0, 0, width, height)
   }
 

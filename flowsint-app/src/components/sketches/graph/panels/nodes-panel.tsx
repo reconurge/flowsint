@@ -26,7 +26,7 @@ const ITEM_HEIGHT = 40
 const NodeRenderer = memo(
   ({
     node,
-    setCurrentNode,
+    setCurrentNodeId,
     onCheckboxChange,
     isNodeChecked,
     isCurrent,
@@ -34,7 +34,7 @@ const NodeRenderer = memo(
     autoZoomOnCurrentNode
   }: {
     node: any
-    setCurrentNode: (node: GraphNode) => void
+    setCurrentNodeId: (nodeId: string | null) => void
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
     isCurrent: (nodeId: string) => boolean
@@ -42,14 +42,14 @@ const NodeRenderer = memo(
     autoZoomOnCurrentNode: boolean
   }) => {
     const handleClick = useCallback(() => {
-      setCurrentNode(node)
+      setCurrentNodeId(node.id)
       // Auto-zoom if enabled and node has coordinates
       if (autoZoomOnCurrentNode && node?.x !== undefined && node?.y !== undefined) {
         setTimeout(() => {
           centerOnNode(node.x, node.y)
         }, 200)
       }
-    }, [node, setCurrentNode, centerOnNode, autoZoomOnCurrentNode])
+    }, [node, setCurrentNodeId, centerOnNode, autoZoomOnCurrentNode])
 
     const handleCheckboxChange = useCallback(
       (checked: boolean) => {
@@ -90,7 +90,7 @@ const NodeRenderer = memo(
 const VirtualizedItem = memo(
   ({
     node,
-    setCurrentNode,
+    setCurrentNodeId,
     onCheckboxChange,
     isNodeChecked,
     isCurrent,
@@ -99,7 +99,7 @@ const VirtualizedItem = memo(
   }: {
     index: number
     node: GraphNode
-    setCurrentNode: (node: GraphNode) => void
+    setCurrentNodeId: (nodeId: string | null) => void
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
     isCurrent: (nodeId: string) => boolean
@@ -110,7 +110,7 @@ const VirtualizedItem = memo(
       <NodeRenderer
         node={node}
         isCurrent={isCurrent}
-        setCurrentNode={setCurrentNode}
+        setCurrentNodeId={setCurrentNodeId}
         onCheckboxChange={onCheckboxChange}
         isNodeChecked={isNodeChecked}
         centerOnNode={centerOnNode}
@@ -121,8 +121,8 @@ const VirtualizedItem = memo(
 )
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?: boolean }) => {
-  const currentNode = useGraphStore((state) => state.currentNode)
-  const setCurrentNode = useGraphStore((state) => state.setCurrentNode)
+  const currentNodeId = useGraphStore((state) => state.currentNodeId)
+  const setCurrentNodeId = useGraphStore((state) => state.setCurrentNodeId)
   const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
   const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
@@ -194,9 +194,9 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
 
   const isCurrent = useCallback(
     (nodeId: string) => {
-      return currentNode?.id === nodeId
+      return currentNodeId === nodeId
     },
-    [currentNode]
+    [currentNodeId]
   )
 
   const handleCheckAll = useCallback(
@@ -361,7 +361,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                       index={virtualItem.index}
                       node={node}
                       isCurrent={isCurrent}
-                      setCurrentNode={setCurrentNode}
+                      setCurrentNodeId={setCurrentNodeId}
                       onCheckboxChange={handleCheckboxChange}
                       isNodeChecked={isNodeChecked}
                       centerOnNode={centerOnNode}

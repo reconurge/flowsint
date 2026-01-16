@@ -20,7 +20,7 @@ const NodeActions = memo(
     const removeNodes = useGraphStore((s) => s.removeNodes)
     const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
     const openChat = useLayoutStore((s) => s.openChat)
-    const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+    const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
     const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
     const settings = useGraphSettingsStore((s) => s.settings)
 
@@ -46,12 +46,11 @@ const NodeActions = memo(
     const handleEditNode = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation()
-        const typedNode = node as GraphNode
-        setCurrentNode(typedNode)
+        setCurrentNodeId(node.id)
         setOpenNodeEditorModal(true)
         setMenu?.(null)
       },
-      [node, setCurrentNode, setOpenNodeEditorModal]
+      [node, setCurrentNodeId, setOpenNodeEditorModal]
     )
 
     // Delete node
@@ -96,7 +95,7 @@ const NodeActions = memo(
               <p>Add relation</p>
             </TooltipContent>
           </Tooltip>
-          {Boolean(settings?.general?.showFlow?.value) &&
+          {Boolean(settings?.general?.showFlow?.value) && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <div>
@@ -113,7 +112,8 @@ const NodeActions = memo(
               <TooltipContent>
                 <p>Ask AI</p>
               </TooltipContent>
-            </Tooltip>}
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <div>

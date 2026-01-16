@@ -138,15 +138,15 @@ export default function NodesTable({ nodes }: NodesTableProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
   const parentRef = useRef<HTMLDivElement>(null)
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
 
   const onNodeClick = useCallback(
     (node: GraphNode) => {
-      setCurrentNode(node)
+      setCurrentNodeId(node.id)
     },
-    [setCurrentNode]
+    [setCurrentNodeId]
   )
 
   // Filter nodes based on search and type

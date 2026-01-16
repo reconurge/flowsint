@@ -10,22 +10,22 @@ import { useParams } from '@tanstack/react-router'
 import NeighborsGraph from './neighbors'
 import Relationships from './relationships'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../../ui/resizable'
-import { GraphNode } from '@/types'
 import { useGraphStore } from '@/stores/graph-store'
 import { Badge } from '@/components/ui/badge'
 import DOMPurify from 'dompurify'
 import { useIcon } from '@/hooks/use-icon'
 
-const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
+const DetailsPanel = memo(() => {
   const { id: sketchId } = useParams({ strict: false })
-  const nodes = useGraphStore((s) => s.nodes)
+  const nodesLength = useGraphStore((s) => s.nodesLength)
+  const node = useGraphStore((s) => s.getCurrentNode())
   const NodeIcon = useIcon(node?.data?.type || 'default')
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
-  node = nodes.find((n) => n.id === node?.id) || null
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
 
   const handleClose = useCallback(() => {
-    setCurrentNode(null)
+    setCurrentNodeId(null)
   }, [])
+
   if (!node) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -73,7 +73,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <NodeActions node={node} />
+          {node && <NodeActions node={node} />}
         </div>
       </div>
       <div className="px-4 pt-4 pb-4 border-b">
@@ -116,7 +116,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full w-full p-3">
               <NeighborsGraph
-                nodeLength={nodes.length}
+                nodeLength={nodesLength}
                 sketchId={sketchId as string}
                 nodeId={node.id}
               />
@@ -125,7 +125,7 @@ const DetailsPanel = memo(({ node }: { node: GraphNode | null }) => {
           <ResizableHandle />
           <ResizablePanel defaultSize={30} minSize={20}>
             <Relationships
-              nodeLength={nodes.length}
+              nodeLength={nodesLength}
               sketchId={sketchId as string}
               nodeId={node.id}
             />

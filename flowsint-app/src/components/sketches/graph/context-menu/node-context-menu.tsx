@@ -7,7 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert, SquareArrowOutUpRight } from 'lucide-react'
+import {
+  FileCode2,
+  Search,
+  Info,
+  Zap,
+  BadgeCheck,
+  BadgeAlert,
+  SquareArrowOutUpRight
+} from 'lucide-react'
 import { Enricher, Flow, GraphNode } from '@/types'
 import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
@@ -95,10 +103,13 @@ export default function ContextMenu({
     setMenu(null)
   }
 
-  const handleOpenNodeDetails = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    toggleNodeSelection(node, false)
-  }, [toggleNodeSelection, node])
+  const handleOpenNodeDetails = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      toggleNodeSelection(node, false)
+    },
+    [toggleNodeSelection, node]
+  )
 
   return (
     <BaseContextMenu
@@ -111,7 +122,7 @@ export default function ContextMenu({
       {...props}
     >
       {/* Header with title and action buttons */}
-      <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between flex-shrink-0">
+      <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between shrink-0">
         <div className="flex text-xs items-center gap-1 truncate">
           <span className="block truncate">{node.data.label}</span> -{' '}
           <span className="block">{node.data.type}</span>
@@ -120,7 +131,7 @@ export default function ContextMenu({
       </div>
 
       {/* Tabs */}
-      <div className="px-3 py-2 border-b border-border flex-shrink-0">
+      <div className="px-3 py-2 border-b border-border shrink-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full h-9">
             <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
@@ -140,7 +151,7 @@ export default function ContextMenu({
         {/* Enrichers Tab */}
         <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
           {/* Enrichers Search */}
-          <div className="px-3 py-2 border-b border-border flex-shrink-0">
+          <div className="px-3 py-2 border-b border-border shrink-0">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
@@ -182,7 +193,14 @@ export default function ContextMenu({
                     <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium flex gap-1 items-center truncate">
-                        <span>{enricher.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {enricher.name || '(Unnamed enricher)'}
+                        <span>
+                          {enricher.wobblyType ? (
+                            <BadgeAlert className="h-3 w-3 text-orange-400" />
+                          ) : (
+                            <BadgeCheck className="h-3 w-3 text-green-400" />
+                          )}{' '}
+                        </span>{' '}
+                        {enricher.name || '(Unnamed enricher)'}
                       </p>
                       {enricher.description && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -252,7 +270,14 @@ export default function ContextMenu({
                     <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="flex items-center gap-1 text-sm font-medium truncate">
-                        <span>{flow.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {flow.name || '(Unnamed flow)'}
+                        <span>
+                          {flow.wobblyType ? (
+                            <BadgeAlert className="h-3 w-3 text-orange-400" />
+                          ) : (
+                            <BadgeCheck className="h-3 w-3 text-green-400" />
+                          )}{' '}
+                        </span>{' '}
+                        {flow.name || '(Unnamed flow)'}
                       </p>
                       {flow.description && (
                         <p className="text-xs text-muted-foreground truncate">{flow.description}</p>
@@ -276,7 +301,7 @@ export default function ContextMenu({
         </TabsContent>
       </Tabs>
 
-      <div className='border-t p-1'>
+      <div className="border-t p-1">
         <SubActions node={node} handleOpenNodeDetails={handleOpenNodeDetails} />
       </div>
     </BaseContextMenu>
@@ -289,12 +314,14 @@ type SubActionsProps = {
 }
 const SubActions = memo(({ node, handleOpenNodeDetails }: SubActionsProps) => {
   return (
-    <div className='flex'>
-      <CopyButton size={"icon"} content={node?.data?.label} />
-      <Button onClick={handleOpenNodeDetails} size={'icon'} className='h-7 w-7' variant="ghost"><SquareArrowOutUpRight className='!h-3.5 !w-3.5 opacity-50' /></Button>
-    </div>)
-}
-)
+    <div className="flex">
+      <CopyButton size={'icon'} content={node?.data?.label} />
+      <Button onClick={handleOpenNodeDetails} size={'icon'} className="h-7 w-7" variant="ghost">
+        <SquareArrowOutUpRight className="!h-3.5 !w-3.5 opacity-50" />
+      </Button>
+    </div>
+  )
+})
 
 const InfoButton = ({ description }: { description?: string }) => {
   if (!description) return null

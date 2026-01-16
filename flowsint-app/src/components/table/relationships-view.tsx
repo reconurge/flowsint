@@ -128,7 +128,7 @@ export default function RelationshipsTable() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
   const parentRef = useRef<HTMLDivElement>(null)
-  const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const selectedEdges = useGraphStore((s) => s.selectedEdges)
   const setSelectedEdges = useGraphStore((s) => s.setSelectedEdges)
   const removeEdges = useGraphStore((s) => s.removeEdges)
@@ -138,11 +138,11 @@ export default function RelationshipsTable() {
 
   const onNodeClick = useCallback(
     (node: GraphNode) => {
-      setCurrentNode(node)
+      setCurrentNodeId(node.id)
       // setOpenNodeEditorModal(true)
     },
     [
-      setCurrentNode
+      setCurrentNodeId
       // setOpenNodeEditorModal
     ]
   )

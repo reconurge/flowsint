@@ -12,7 +12,7 @@ interface UseGraphEventsParams {
   graphRef: React.RefObject<any>
   edgeMap: Map<string, GraphEdge>
   toggleEdgeSelection: (edge: GraphEdge, multi: boolean) => void
-  setCurrentEdge: (edge: GraphEdge) => void
+  setCurrentEdgeId: (edgeId: string | null) => void
   clearSelectedEdges: () => void
   saveAllNodePositions: (nodes: any[]) => void
 }
@@ -28,7 +28,7 @@ export const useGraphEvents = ({
   graphRef,
   edgeMap,
   toggleEdgeSelection,
-  setCurrentEdge,
+  setCurrentEdgeId,
   clearSelectedEdges,
   saveAllNodePositions
 }: UseGraphEventsParams) => {
@@ -76,11 +76,11 @@ export const useGraphEvents = ({
       if (isMultiSelect) {
         toggleEdgeSelection(fullEdge, true)
       } else {
-        setCurrentEdge(fullEdge)
+        setCurrentEdgeId(fullEdge.id)
         clearSelectedEdges()
       }
     },
-    [toggleEdgeSelection, setCurrentEdge, clearSelectedEdges, edgeMap]
+    [toggleEdgeSelection, setCurrentEdgeId, clearSelectedEdges, edgeMap]
   )
 
   const handleBackgroundClick = useCallback(() => {

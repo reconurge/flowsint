@@ -155,17 +155,16 @@ export const columns: ColumnDef<GraphNode>[] = [
       )
     },
     cell: ({ row }) => {
-      const setCurrentNode = useGraphStore((s) => s.setCurrentNode)
+      const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
       // const IconComponent = useIcon(row.original.data.type)
       const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
       const openEdit = useCallback(
         (e: React.MouseEvent) => {
           e.stopPropagation()
-          const typedNode = row.original as GraphNode
-          setCurrentNode(typedNode)
+          setCurrentNodeId(row.original.id)
           setOpenNodeEditorModal(true)
         },
-        [row.original, setCurrentNode, setOpenNodeEditorModal]
+        [row.original, setCurrentNodeId, setOpenNodeEditorModal]
       )
 
       return (

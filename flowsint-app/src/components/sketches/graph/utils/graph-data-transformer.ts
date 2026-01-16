@@ -24,7 +24,7 @@ export const transformGraphData = ({
       nodeColor: nodeColors[type] || GRAPH_COLORS.NODE_DEFAULT,
       nodeSize: baseNodeSize,
       nodeType: type,
-      val: baseNodeSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER / 5,
+      val: (baseNodeSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER) / 5,
       neighbors: [] as any[],
       links: [] as any[]
     } as any
@@ -91,7 +91,6 @@ export const transformGraphData = ({
     node.neighbors = Array.from(neighborsMap.get(node.id) || [])
     node.links = linksMap.get(node.id) || []
   })
-
   return {
     nodes: transformedNodes,
     links: transformedEdges

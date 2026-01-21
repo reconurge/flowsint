@@ -1,8 +1,16 @@
+"""
+Neo4j connection management.
+
+This module provides a singleton connection manager for Neo4j with proper
+connection pooling and transaction management.
+"""
+
 import os
 from threading import Lock
-from typing import Optional, Dict, Any, List
-from neo4j import GraphDatabase, Driver, Session
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
+from neo4j import Driver, GraphDatabase
 
 load_dotenv()
 
@@ -16,7 +24,7 @@ class Neo4jConnection:
     connection pooling and resource management.
     """
 
-    _instance: Optional['Neo4jConnection'] = None
+    _instance: Optional["Neo4jConnection"] = None
     _lock: Lock = Lock()
     _driver: Optional[Driver] = None
 
@@ -44,22 +52,26 @@ class Neo4jConnection:
         """
         # Only initialize once
         if self._driver is None:
-            self._uri = uri or os.getenv("NEO4J_URI_BOLT")
-            self._user = user or os.getenv("NEO4J_USERNAME")
-            self._password = password or os.getenv("NEO4J_PASSWORD")
+            resolved_uri = uri or os.getenv("NEO4J_URI_BOLT")
+            resolved_user = user or os.getenv("NEO4J_USERNAME")
+            resolved_password = password or os.getenv("NEO4J_PASSWORD")
 
-            if not all([self._uri, self._user, self._password]):
+            if not resolved_uri or not resolved_user or not resolved_password:
                 raise ValueError("Neo4j connection credentials are required")
+
+            self._uri = resolved_uri
+            self._user = resolved_user
+            self._password = resolved_password
 
             self._driver = GraphDatabase.driver(
                 self._uri,
                 auth=(self._user, self._password),
                 max_connection_pool_size=50,
-                connection_acquisition_timeout=60.0
+                connection_acquisition_timeout=60.0,
             )
 
     @classmethod
-    def get_instance(cls) -> 'Neo4jConnection':
+    def get_instance(cls) -> "Neo4jConnection":
         """
         Get the singleton instance.
 
@@ -79,7 +91,9 @@ class Neo4jConnection:
         """
         return self._driver
 
-    def query(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def query(
+        self, query: str, parameters: Dict[str, Any] = None
+    ) -> List[Dict[str, Any]]:
         """
         Execute a single query.
 
@@ -102,7 +116,9 @@ class Neo4jConnection:
             return {}
         return {k: v for k, v in parameters.items() if k is not None}
 
-    def execute_write(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def execute_write(
+        self, query: str, parameters: Dict[str, Any] = None
+    ) -> List[Dict[str, Any]]:
         """
         Execute a write query within a write transaction.
 
@@ -113,6 +129,7 @@ class Neo4jConnection:
         Returns:
             List of result records as dictionaries
         """
+
         def _execute(tx):
             cleaned_params = self._clean_parameters(parameters)
             result = tx.run(query, cleaned_params)
@@ -121,7 +138,9 @@ class Neo4jConnection:
         with self._driver.session() as session:
             return session.execute_write(_execute)
 
-    def execute_batch(self, queries: List[tuple[str, Dict[str, Any]]]) -> List[List[Dict[str, Any]]]:
+    def execute_batch(
+        self, queries: List[tuple[str, Dict[str, Any]]]
+    ) -> List[List[Dict[str, Any]]]:
         """
         Execute multiple queries in a single transaction.
 
@@ -131,6 +150,7 @@ class Neo4jConnection:
         Returns:
             List of results, one for each query
         """
+
         def _execute_batch(tx):
             results = []
             for query, params in queries:
@@ -189,5 +209,6 @@ try:
         neo4j_connection = None
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).warning(f"Failed to initialize Neo4j connection: {e}")
     neo4j_connection = None

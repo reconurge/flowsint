@@ -1,8 +1,16 @@
+"""
+Core type definitions.
+
+This module contains Pydantic models for core types like events, flows, and roles.
+Graph-related types are in flowsint_core.core.graph.types.
+"""
+
 import enum
-from pydantic import BaseModel, Field
-from typing import Dict, Any
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Literal
+from typing import Any, Dict, List, Literal, Optional
+
+from pydantic import BaseModel, Field
+
 from .enums import EventLevel
 
 
@@ -16,7 +24,7 @@ class Event(BaseModel):
     )
 
 
-class Node(BaseModel):
+class FlowNode(BaseModel):
     """Represents a node in a transformation flow with position and data."""
 
     id: str = Field(..., description="Unique identifier for the node", title="Node ID")
@@ -33,7 +41,7 @@ class Node(BaseModel):
     )
 
 
-class Edge(BaseModel):
+class FlowEdge(BaseModel):
     """Represents an edge connecting two nodes in a transformation flow."""
 
     id: str = Field(..., description="Unique identifier for the edge", title="Edge ID")

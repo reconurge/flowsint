@@ -8,17 +8,19 @@ Architecture:
 - SOLID principles: Dependency injection via protocols
 - Ordering: Monotonic sequence number + application timestamp
 """
-from typing import Dict, Union, Optional, Tuple
-from uuid import UUID
+
+import atexit
 import threading
 import time
-import atexit
-from queue import Queue
 from datetime import datetime, timezone
+from queue import Queue
+from typing import Dict, Optional, Union
+from uuid import UUID
+
+from ..tasks.event import emit_event_task
 from .enums import EventLevel
 from .models import Log
 from .postgre_db import get_db
-from ..tasks.event import emit_event_task
 
 
 class LoggerSingleton:
@@ -32,14 +34,11 @@ class LoggerSingleton:
     - Automatic flush on shutdown
     """
 
-    _instance: Optional['LoggerSingleton'] = None
+    _instance: Optional["LoggerSingleton"] = None
     _lock = threading.Lock()
 
     def __new__(
-        cls,
-        batch_size: int = 50,
-        flush_interval: float = 2.0,
-        auto_start: bool = True
+        cls, batch_size: int = 50, flush_interval: float = 2.0, auto_start: bool = True
     ):
         """Thread-safe singleton implementation using double-checked locking."""
         if cls._instance is None:
@@ -51,10 +50,7 @@ class LoggerSingleton:
         return cls._instance
 
     def __init__(
-        self,
-        batch_size: int = 50,
-        flush_interval: float = 2.0,
-        auto_start: bool = True
+        self, batch_size: int = 50, flush_interval: float = 2.0, auto_start: bool = True
     ):
         """
         Initialize the Logger singleton.
@@ -100,9 +96,7 @@ class LoggerSingleton:
         if self._worker_thread is None or not self._worker_thread.is_alive():
             self._shutdown_event.clear()
             self._worker_thread = threading.Thread(
-                target=self._batch_worker,
-                daemon=True,
-                name="LoggerBatchWorker"
+                target=self._batch_worker, daemon=True, name="LoggerBatchWorker"
             )
             self._worker_thread.start()
 
@@ -133,7 +127,9 @@ class LoggerSingleton:
         logs_to_insert = []
 
         # Collect logs from queue
-        while not self._log_queue.empty() and (force or len(logs_to_insert) < self._batch_size):
+        while not self._log_queue.empty() and (
+            force or len(logs_to_insert) < self._batch_size
+        ):
             try:
                 logs_to_insert.append(self._log_queue.get_nowait())
             except:
@@ -151,6 +147,7 @@ class LoggerSingleton:
         except (StopIteration, RuntimeError) as e:
             # Generator exhausted or error getting DB - log to standard logging
             import logging
+
             logging.error(f"Failed to get database session: {e}")
             return
 
@@ -161,7 +158,7 @@ class LoggerSingleton:
                     sketch_id=str(sketch_id),
                     type=level.value,
                     content=content,
-                    created_at=timestamp  # Use application-side timestamp
+                    created_at=timestamp,  # Use application-side timestamp
                 )
                 log_objects.append(log)
 
@@ -176,16 +173,13 @@ class LoggerSingleton:
             db.rollback()
             # Log to standard logging as fallback
             import logging
+
             logging.error(f"Failed to batch insert logs: {e}")
         finally:
             db.close()
 
     def _emit_event(
-        self,
-        log_id: str,
-        sketch_id: str,
-        level: EventLevel,
-        content: Dict
+        self, log_id: str, sketch_id: str, level: EventLevel, content: Dict
     ) -> None:
         """
         Emit event immediately for real-time display.
@@ -197,19 +191,15 @@ class LoggerSingleton:
             content: Log content
         """
         try:
-            emit_event_task.apply(
-                args=[log_id, str(sketch_id), level, content]
-            )
+            emit_event_task.apply(args=[log_id, str(sketch_id), level, content])
         except Exception as e:
             # Don't let event emission errors break logging
             import logging
+
             logging.error(f"Failed to emit event: {e}")
 
     def _log(
-        self,
-        sketch_id: Union[str, UUID],
-        level: EventLevel,
-        content: Dict
+        self, sketch_id: Union[str, UUID], level: EventLevel, content: Dict
     ) -> None:
         """
         Internal logging method.
@@ -230,6 +220,7 @@ class LoggerSingleton:
 
         # Generate a temporary ID for immediate event emission
         import uuid
+
         temp_log_id = str(uuid.uuid4())
 
         # 1. IMMEDIATE: Emit event for real-time display
@@ -272,13 +263,16 @@ class LoggerSingleton:
         # Also publish to status channel for graph refresh
         try:
             import uuid
+
             temp_log_id = str(uuid.uuid4())
             from ..tasks.event import emit_status_event_task
+
             emit_status_event_task.apply(
                 args=[temp_log_id, str(sketch_id), EventLevel.COMPLETED, message]
             )
         except Exception as e:
             import logging
+
             logging.error(f"Failed to emit status event: {e}")
 
     def pending(self, sketch_id: Union[str, UUID], message: Dict) -> None:

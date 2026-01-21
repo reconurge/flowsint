@@ -1,12 +1,9 @@
-import os
 import uuid
-from dotenv import load_dotenv
 from typing import List, Optional
 from celery import states
 from ..core.celery import celery
 from ..core.orchestrator import FlowOrchestrator
 from ..core.postgre_db import SessionLocal, get_db
-from ..core.graph_db import Neo4jConnection
 from ..core.vault import Vault
 from ..core.types import FlowBranch
 from ..core.models import Scan
@@ -15,13 +12,6 @@ from ..core.logger import Logger
 from ..core.enums import EventLevel
 from flowsint_core.utils import to_json_serializable
 
-load_dotenv()
-
-URI = os.getenv("NEO4J_URI_BOLT")
-USERNAME = os.getenv("NEO4J_USERNAME")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
-
-neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
 
 
@@ -64,7 +54,6 @@ def run_flow(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             enricher_branches=enricher_branches,
-            neo4j_conn=neo4j_connection,
             vault=vault,
         )
 

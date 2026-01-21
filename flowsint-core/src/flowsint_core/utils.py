@@ -1,17 +1,16 @@
-from urllib.parse import urlparse
-import phonenumbers
-import ipaddress
-from phonenumbers import NumberParseException
-from pydantic import TypeAdapter, BaseModel
-from urllib.parse import urlparse
-import re
-import ssl
-import socket
-from typing import Dict, Any, List, Type
-from pydantic import BaseModel
 import inspect
-from typing import Any, Dict, Type
+import ipaddress
+import re
+import socket
+import ssl
+from typing import Any, Dict, List, Type
+from urllib.parse import urlparse
+
+import phonenumbers
+from phonenumbers import NumberParseException
 from pydantic import BaseModel, TypeAdapter
+
+from .core.graph.types import GraphEdge, GraphNode
 
 
 def is_valid_ip(address: str) -> bool:
@@ -35,7 +34,6 @@ def is_valid_email(email: str) -> bool:
 
 
 def is_valid_domain(url_or_domain: str) -> str:
-
     try:
         parsed = urlparse(
             url_or_domain if "://" in url_or_domain else "http://" + url_or_domain
@@ -248,38 +246,73 @@ def get_label_color(label: str) -> str:
     return color_map.get(label, color_map["default"])
 
 
-def flatten(data_dict, prefix=""):
-    """
-    Flattens a dictionary to contain only Neo4j-compatible property values.
-    Neo4j supports primitive types (string, number, boolean) and arrays of those types.
-    Args:
-        data_dict (dict): Dictionary to flatten
-    Returns:
-        dict: Flattened dictionary with only Neo4j-compatible values
-    """
-    flattened = {}
-    if not isinstance(data_dict, dict):
-        return flattened
-    for key, value in data_dict.items():
-        if value is None:
-            continue
-        if isinstance(value, (str, int, float, bool)) or (
-            isinstance(value, list)
-            and all(isinstance(item, (str, int, float, bool)) for item in value)
-        ):
-            key = f"{prefix}{key}"
-            flattened[key] = value
+Primitive = (str, int, float, bool)
+
+
+def flatten(
+    data: Any, prefix: str = "", *, remove_empty: bool = False, separator: str = "."
+) -> Dict[str, Any]:
+    flattened: Dict[str, Any] = {}
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            new_key = f"{prefix}{key}" if prefix == "" else f"{prefix}{separator}{key}"
+
+            # Handle None values
+            if value is None:
+                if not remove_empty:
+                    flattened[new_key] = None
+                continue
+
+            # Ignore empty strings if option enabled
+            if remove_empty and value == "":
+                continue
+
+            if isinstance(value, Primitive):
+                flattened[new_key] = value
+
+            elif isinstance(value, list):
+                if all(isinstance(item, Primitive) for item in value):
+                    if remove_empty:
+                        value = [item for item in value if item != ""]
+                        if not value:
+                            continue
+                    flattened[new_key] = value
+                # else ignore (Neo4j incompatible)
+
+            elif isinstance(value, dict):
+                flattened.update(flatten(value, new_key, remove_empty=remove_empty, separator=separator))
+
     return flattened
 
 
-def get_inline_relationships(nodes: List[Any], edges: List[Any]) -> List[str]:
+def unflatten(data: Dict[str, Any], *, separator: str = ".") -> Dict[str, Any]:
+    result: Dict[str, Any] = {}
+
+    for flat_key, value in data.items():
+        parts = flat_key.split(separator)
+        current = result
+
+        for part in parts[:-1]:
+            if part not in current or not isinstance(current[part], dict):
+                current[part] = {}
+            current = current[part]
+
+        current[parts[-1]] = value
+
+    return result
+
+
+def get_inline_relationships(
+    nodes: List[GraphNode], edges: List[GraphEdge]
+) -> List[str]:
     """
     Get the inline relationships for a list of nodes and edges.
     """
     relationships = []
     for edge in edges:
-        source = next((node for node in nodes if node["id"] == edge["source"]), None)
-        target = next((node for node in nodes if node["id"] == edge["target"]), None)
+        source = next((node for node in nodes if node.id == edge.source), None)
+        target = next((node for node in nodes if node.id == edge.target), None)
         if source and target:
             relationships.append({"source": source, "edge": edge, "target": target})
     return relationships
@@ -288,6 +321,7 @@ def get_inline_relationships(nodes: List[Any], edges: List[Any]) -> List[str]:
 def to_json_serializable(obj):
     """Convert any object to a JSON-serializable format."""
     import json
+
     from pydantic import BaseModel
 
     try:

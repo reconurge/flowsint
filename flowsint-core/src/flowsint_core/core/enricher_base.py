@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
-from pydantic import ValidationError, BaseModel, Field, create_model, TypeAdapter
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError, create_model
 from pydantic.config import ConfigDict
-from .graph_db import Neo4jConnection
+
+from ..utils import resolve_type
+from .graph import GraphService, create_graph_service
 from .logger import Logger
 from .vault import VaultProtocol
-from .graph_service import GraphService, create_graph_service
-from ..utils import resolve_type
 
 
 class InvalidEnricherParams(Exception):
@@ -111,7 +112,6 @@ class Enricher(ABC):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         params_schema: Optional[List[Dict[str, Any]]] = None,
         vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
@@ -119,20 +119,17 @@ class Enricher(ABC):
     ):
         self.scan_id = scan_id or "default"
         self.sketch_id = sketch_id or "system"
-        self.neo4j_conn = neo4j_conn  # Kept for backward compatibility
         self.vault = vault
         self.params_schema = params_schema or []
         self.ParamsModel = build_params_model(self.params_schema)
         self.params: Dict[str, Any] = params or {}
 
-        # Initialize graph service (new architecture)
+        # Initialize graph service (uses singleton connection by default)
         if graph_service:
             self._graph_service = graph_service
         else:
-            # Create graph service with the provided or singleton connection
             self._graph_service = create_graph_service(
                 sketch_id=self.sketch_id,
-                neo4j_connection=neo4j_conn,
                 enable_batching=True,
             )
 
@@ -439,7 +436,7 @@ class Enricher(ABC):
                 )
             return []
 
-    def create_node(self, node_obj, **properties) -> None:
+    def create_node(self, node_obj) -> None:
         """
         Create a single Neo4j node.
 
@@ -458,7 +455,7 @@ class Enricher(ABC):
             node_obj: Either a Pydantic object or node label string
             **properties: Additional node properties or overrides
         """
-        self._graph_service.create_node(node_obj=node_obj, **properties)
+        self._graph_service.create_node_from_flowsint_type(node_obj=node_obj)
 
     def create_relationship(
         self,

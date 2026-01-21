@@ -1,13 +1,10 @@
-import os
 import uuid
 import asyncio
-from dotenv import load_dotenv
 from typing import List, Optional
 from celery import states
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
 from ..core.celery import celery
 from ..core.postgre_db import SessionLocal, get_db
-from ..core.graph_db import Neo4jConnection
 from ..core.vault import Vault
 from ..core.models import Scan
 from sqlalchemy.orm import Session
@@ -15,16 +12,9 @@ from ..core.logger import Logger
 from ..core.enums import EventLevel
 from flowsint_core.utils import to_json_serializable
 
-load_dotenv()
-
 # Auto-discover and register all enrichers
 load_all_enrichers()
 
-URI = os.getenv("NEO4J_URI_BOLT")
-USERNAME = os.getenv("NEO4J_USERNAME")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
-
-neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 db: Session = next(get_db())
 
 
@@ -67,7 +57,6 @@ def run_enricher(
             name=enricher_name,
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_connection,
             vault=vault,
         )
 

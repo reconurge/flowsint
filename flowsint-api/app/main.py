@@ -1,7 +1,4 @@
 from fastapi import FastAPI
-from flowsint_core.core.graph_db import Neo4jConnection
-import os
-from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
 # Routes to be included
@@ -18,19 +15,12 @@ from app.api.routes import keys
 from app.api.routes import types
 from app.api.routes import custom_types
 
-load_dotenv()
-
-URI = os.getenv("NEO4J_URI_BOLT")
-USERNAME = os.getenv("NEO4J_USERNAME")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
-
 origins = [
     "*",
 ]
 
 
 app = FastAPI()
-neo4j_connection = Neo4jConnection(URI, USERNAME, PASSWORD)
 
 app.add_middleware(
     CORSMiddleware,

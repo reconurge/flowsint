@@ -1,24 +1,25 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Any, Optional
-from pydantic import BaseModel
-from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from typing import Any, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from flowsint_core.core.celery import celery
-from flowsint_core.core.types import Node, Edge, FlowBranch
+from flowsint_core.core.graph import create_graph_service, GraphEdge, GraphNode
 from flowsint_core.core.models import CustomType, Profile
-from flowsint_core.core.graph_repository import GraphRepository
-from flowsint_types import clean_neo4j_node_data
-from app.api.deps import get_current_user
 from flowsint_core.core.postgre_db import get_db
-from sqlalchemy.orm import Session
+from flowsint_core.core.types import FlowBranch
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from pydantic import BaseModel
 from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_user
 
 # Auto-discover and register all enrichers
 load_all_enrichers()
 
 
 class FlowComputationRequest(BaseModel):
-    nodes: List[Node]
-    edges: List[Edge]
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
     inputType: Optional[str] = None
 
 
@@ -74,21 +75,20 @@ async def launch_enricher(
 ):
     try:
         # Retrieve nodes from Neo4J by their element IDs
-        graph_repo = GraphRepository()
-        nodes_data = graph_repo.get_nodes_by_ids(payload.node_ids, payload.sketch_id)
+        graph_service = create_graph_service(sketch_id=payload.sketch_id)
+        entities = graph_service.get_nodes_by_ids_for_task(payload.node_ids)
 
-        if not nodes_data:
-            raise HTTPException(status_code=404, detail="No nodes found with provided IDs")
-
-        # Clean Neo4J-specific fields from node data
-        # The enricher's preprocess() will handle Pydantic validation
-        cleaned_nodes = [clean_neo4j_node_data(node_data) for node_data in nodes_data]
-
+        # send deserialized nodes
+        entities = [entity.model_dump(mode="json", serialize_as_any=True) for entity in entities]
+        if not entities:
+            raise HTTPException(
+                status_code=404, detail="No entities found with provided IDs"
+            )
         task = celery.send_task(
             "run_enricher",
             args=[
                 enricher_name,
-                cleaned_nodes,
+                entities,
                 payload.sketch_id,
                 str(current_user.id),
             ],
@@ -98,4 +98,7 @@ async def launch_enricher(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error launching enricher: {str(e)}")
+        print(e)
+        raise HTTPException(
+            status_code=500, detail=f"Error launching enricher: {str(e)}"
+        )

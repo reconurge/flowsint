@@ -1,12 +1,14 @@
 from typing import Any, Dict, Optional, Type
 from uuid import uuid4
+
 from fastapi import APIRouter, Depends
+from flowsint_core.core.models import CustomType, Profile
+from flowsint_core.core.postgre_db import get_db
+from flowsint_types.registry import get_type
 from pydantic import BaseModel, TypeAdapter
 from sqlalchemy.orm import Session
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import CustomType, Profile
+
 from app.api.deps import get_current_user
-from flowsint_types.registry import get_type
 
 router = APIRouter()
 
@@ -203,7 +205,9 @@ async def get_types_list(
             label_key = (
                 required[0]
                 if required
-                else list(properties.keys())[0] if properties else "value"
+                else list(properties.keys())[0]
+                if properties
+                else "value"
             )
 
             custom_types_children.append(
@@ -247,7 +251,6 @@ async def get_types_list(
 def extract_input_schema(
     model: Type[BaseModel], label_key: str, icon: Optional[str] = None
 ) -> Dict[str, Any]:
-
     adapter = TypeAdapter(model)
     schema = adapter.json_schema()
     # Use the main schema properties, not the $defs
@@ -264,8 +267,8 @@ def extract_input_schema(
         "fields": [
             resolve_field(prop, details=info, schema=schema)
             for prop, info in details.get("properties", {}).items()
-            # exclude label from properties to fill
-            if prop != "label"
+            # exclude nodeLabel from properties to fill
+            if prop != "nodeLabel"
         ],
     }
 

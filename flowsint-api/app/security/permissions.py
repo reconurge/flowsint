@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 from flowsint_core.core.models import InvestigationUserRole
 from flowsint_core.core.types import Role
@@ -21,7 +23,9 @@ def can_user(roles: list[Role], actions: list[str]) -> bool:
 from fastapi import HTTPException
 
 
-def check_investigation_permission(user_id: str, investigation_id: str, actions: list[str], db):
+def check_investigation_permission(
+    user_id: UUID, investigation_id: str, actions: list[str], db
+):
     role_entry = (
         db.query(InvestigationUserRole)
         .filter_by(user_id=user_id, investigation_id=investigation_id)

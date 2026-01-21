@@ -15,16 +15,15 @@ export const transformGraphData = ({
   nodeColors
 }: TransformGraphDataParams): GraphData => {
   const transformedNodes = nodes.map((node) => {
-    const type = node.data?.type as ItemType
+    const type = node.nodeType as ItemType
     const baseNodeSize = CONSTANTS.NODE_DEFAULT_SIZE
-
+    const nodeSize = node.nodeSize || baseNodeSize
     const transformed = {
       ...node,
-      nodeLabel: node.data?.label || node.id,
-      nodeColor: nodeColors[type] || GRAPH_COLORS.NODE_DEFAULT,
-      nodeSize: baseNodeSize,
-      nodeType: type,
-      val: (baseNodeSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER) / 5,
+      nodeLabel: node.nodeLabel || node.id,
+      nodeColor: node.nodeColor || nodeColors[type] || GRAPH_COLORS.NODE_DEFAULT,
+      nodeSize: nodeSize,
+      val: (nodeSize * CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER) / 5,
       neighbors: [] as any[],
       links: [] as any[]
     } as any

@@ -36,9 +36,23 @@ interface RelationshipItemProps {
   onSelectionChange: (edge: GraphEdge, checked: boolean) => void
 }
 
-function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSelectionChange }: RelationshipItemProps) {
-  const SourceIcon = useIcon(relationship.source.data?.type, relationship.source.data?.src)
-  const TargetIcon = useIcon(relationship.target.data?.type, relationship.target.data?.src)
+function RelationshipItem({
+  relationship,
+  style,
+  onNodeClick,
+  isSelected,
+  onSelectionChange
+}: RelationshipItemProps) {
+  const SourceIcon = useIcon(relationship.source.nodeType, {
+    nodeColor: relationship.source.nodeColor,
+    nodeIcon: relationship.source.nodeIcon,
+    nodeImage: relationship.source.nodeImage
+  })
+  const TargetIcon = useIcon(relationship.target.nodeType, {
+    nodeColor: relationship.target.nodeColor,
+    nodeIcon: relationship.target.nodeIcon,
+    nodeImage: relationship.target.nodeImage
+  })
 
   const handleNodeClickSource = useCallback(() => {
     onNodeClick(relationship.source)
@@ -59,13 +73,13 @@ function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSele
       <Card className="h-[55px] p-0 rounded-md">
         <CardContent className="p-3 h-[55px] flex items-center gap-3 min-w-0">
           {/* Checkbox */}
-          <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center shrink-0">
             <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
           </div>
 
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
-            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted shrink-0">
               <SourceIcon size={16} />
             </div>
             <button
@@ -73,39 +87,39 @@ function RelationshipItem({ relationship, style, onNodeClick, isSelected, onSele
               className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-left min-w-0 flex-1"
             >
               <span className="block truncate">
-                {relationship.source.data?.label ?? relationship.source.id}
+                {relationship.source.nodeLabel ?? relationship.source.id}
               </span>
             </button>
-            <div className="flex-shrink-0">
-              <CopyButton content={relationship.source.data?.label ?? relationship.source.id} />
+            <div className="shrink-0">
+              <CopyButton content={relationship.source.nodeLabel ?? relationship.source.id} />
             </div>
           </div>
 
           {/* Relationship Arrow */}
-          <div className="flex items-center grow justify-center px-2 flex-shrink-0 min-w-[120px] max-w-[30%]">
+          <div className="flex items-center grow justify-center px-2 shrink-0 min-w-[120px] max-w-[30%]">
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground w-full">
               <div className="h-px bg-muted-foreground/30 w-[8px]"></div>
               <span className="px-2 py-1 bg-muted/50 rounded-sm truncate max-w-full">
                 {relationship.edge.label}
               </span>
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0" />
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
             </div>
           </div>
 
           {/* Target Node */}
           <div className="flex items-center gap-2 flex-1 justify-end min-w-0 max-w-[35%]">
-            <div className="flex-shrink-0">
-              <CopyButton content={relationship.target.data?.label ?? relationship.target.id} />
+            <div className="shrink-0">
+              <CopyButton content={relationship.target.nodeLabel ?? relationship.target.id} />
             </div>
             <button
               onClick={handleNodeClickTarget}
               className="font-medium text-sm hover:text-primary hover:underline cursor-pointer text-right min-w-0 flex-1"
             >
               <span className="block truncate">
-                {relationship.target.data?.label || relationship.target.id}
+                {relationship.target.nodeLabel || relationship.target.id}
               </span>
             </button>
-            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted shrink-0">
               <TargetIcon size={16} />
             </div>
           </div>
@@ -119,7 +133,11 @@ export default function RelationshipsTable() {
   const { id: sketchId } = useParams({
     from: '/_auth/dashboard/investigations/$investigationId/$type/$id'
   })
-  const { data: relationships, isLoading } = useQuery({
+  const {
+    data: relationships,
+    isLoading,
+    refetch
+  } = useQuery({
     queryKey: ['graph', 'relationships_view', sketchId],
     enabled: Boolean(sketchId),
     queryFn: () => sketchService.getGraphDataById(sketchId as string, true)
@@ -154,14 +172,14 @@ export default function RelationshipsTable() {
     return relationships.filter((rel: RelationshipType) => {
       const matchesSearch =
         searchQuery === '' ||
-        rel.source.data?.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rel.target.data?.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rel.source.nodeLabel?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rel.target.nodeLabel?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rel.edge.label?.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesType =
         selectedType === 'all' ||
-        rel.source.data?.type === selectedType ||
-        rel.target.data?.type === selectedType
+        rel.source.nodeType === selectedType ||
+        rel.target.nodeType === selectedType
 
       return matchesSearch && matchesType
     })
@@ -172,8 +190,8 @@ export default function RelationshipsTable() {
     if (!relationships) return []
     const types = new Set<string>()
     relationships.forEach((rel: RelationshipType) => {
-      if (rel.source.data?.type) types.add(rel.source.data.type)
-      if (rel.target.data?.type) types.add(rel.target.data.type)
+      if (rel.source.nodeType) types.add(rel.source.nodeType)
+      if (rel.target.nodeType) types.add(rel.target.nodeType)
     })
     return Array.from(types).sort()
   }, [relationships])
@@ -209,11 +227,16 @@ export default function RelationshipsTable() {
   )
 
   const isAllSelected = useMemo(() => {
-    return filteredRelationships.length > 0 && filteredRelationships.every((rel: RelationshipType) => isEdgeSelected(rel.edge.id))
+    return (
+      filteredRelationships.length > 0 &&
+      filteredRelationships.every((rel: RelationshipType) => isEdgeSelected(rel.edge.id))
+    )
   }, [filteredRelationships, isEdgeSelected])
 
   const isIndeterminate = useMemo(() => {
-    const selectedCount = filteredRelationships.filter((rel: RelationshipType) => isEdgeSelected(rel.edge.id)).length
+    const selectedCount = filteredRelationships.filter((rel: RelationshipType) =>
+      isEdgeSelected(rel.edge.id)
+    ).length
     return selectedCount > 0 && selectedCount < filteredRelationships.length
   }, [filteredRelationships, isEdgeSelected])
 
@@ -235,10 +258,11 @@ export default function RelationshipsTable() {
         const edgeIds = selectedEdges.map((e) => e.id)
         removeEdges(edgeIds)
         clearSelectedEdges()
-        return sketchService.deleteEdges(
+        await sketchService.deleteEdges(
           sketchId as string,
           JSON.stringify({ relationshipIds: edgeIds })
         )
+        refetch()
       })(),
       {
         loading: `Deleting ${count} relationship${count > 1 ? 's' : ''}...`,
@@ -246,7 +270,7 @@ export default function RelationshipsTable() {
         error: 'Failed to delete relationships.'
       }
     )
-  }, [selectedEdges, sketchId, confirm, removeEdges, clearSelectedEdges])
+  }, [selectedEdges, sketchId, confirm, removeEdges, clearSelectedEdges, refetch])
 
   const virtualizer = useVirtualizer({
     count: filteredRelationships.length,
@@ -372,24 +396,17 @@ export default function RelationshipsTable() {
               checked={isAllSelected}
               ref={(el) => {
                 if (el && 'indeterminate' in el) {
-                  (el as HTMLInputElement).indeterminate = isIndeterminate
+                  ;(el as HTMLInputElement).indeterminate = isIndeterminate
                 }
               }}
               onCheckedChange={handleSelectAll}
             />
             <span className="text-sm text-muted-foreground">
-              {selectedEdges.length > 0
-                ? `${selectedEdges.length} selected`
-                : 'Select all'}
+              {selectedEdges.length > 0 ? `${selectedEdges.length} selected` : 'Select all'}
             </span>
           </div>
           {selectedEdges.length > 0 && (
-            <Button
-              onClick={handleDeleteSelected}
-              variant="destructive"
-              size="sm"
-              className="h-8"
-            >
+            <Button onClick={handleDeleteSelected} variant="destructive" size="sm" className="h-8">
               <Trash2 className="h-3.5 w-3.5 mr-1" />
               Delete {selectedEdges.length}
             </Button>

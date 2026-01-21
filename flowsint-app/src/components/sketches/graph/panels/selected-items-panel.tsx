@@ -42,9 +42,9 @@ const SelectedNodeItem = memo(({ node }: { node: GraphNode; color: string }) => 
       className="flex w-full items-center justify-between text-left border border-border gap-1.5 text-xs p-2 py-1.5"
     >
       <span className="inline-flex items-center gap-2 truncate text-ellipsis">
-        <span className="truncate text-ellipsis">{node.data?.label || 'Unknown'}</span>
+        <span className="truncate text-ellipsis">{node.nodeLabel || 'Unknown'}</span>
       </span>
-      <TypeBadge type={node?.data?.type} />
+      <TypeBadge type={node?.nodeType} />
     </Badge>
   )
 })
@@ -57,7 +57,7 @@ export const SelectedList = () => {
   return (
     <div className="flex flex-col gap-1.5 p-1">
       {displayItems.map((item: GraphNode, index: number) => {
-        const color = colors[item.data.type as ItemType] ?? '#999999'
+        const color = colors[item.nodeType as ItemType] ?? '#999999'
         return <SelectedNodeItem key={index} node={item} color={color} />
       })}
       {remainingCount > 0 && (
@@ -121,8 +121,8 @@ const ActionBar = () => {
     )
   }, [selectedNodes, confirm, removeNodes, clearSelectedNodes, sketchId])
 
-  const type = selectedNodes[0].data.type
-  const isSametype = (node: GraphNode) => node.data.type === type
+  const type = selectedNodes[0].nodeType
+  const isSametype = (node: GraphNode) => node.nodeType === type
   const shareSameType = selectedNodes.every(isSametype)
   const values = !shareSameType ? [] : selectedNodes.map((node: GraphNode) => node.id)
 

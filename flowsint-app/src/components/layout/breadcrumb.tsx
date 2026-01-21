@@ -43,7 +43,7 @@ export function PathBreadcrumb() {
     <div className="w-full overflow-hidden">
       <Breadcrumb className="w-full">
         <BreadcrumbList className="flex items-center justify-start gap-1 min-w-0">
-          <BreadcrumbItem className="flex-shrink-0">
+          <BreadcrumbItem className="shrink-0">
             <BreadcrumbLink asChild>
               <Link to="/dashboard" className="truncate font-medium">
                 <Home className="h-4 w-4 opacity-60" strokeWidth={1.4} />
@@ -52,7 +52,7 @@ export function PathBreadcrumb() {
           </BreadcrumbItem>
           {isFlowPage ? (
             <>
-              <BreadcrumbSeparator className="flex-shrink-0" />
+              <BreadcrumbSeparator className="shrink-0" />
               <BreadcrumbItem className="min-w-0">
                 <BreadcrumbLink asChild>
                   <Link to="/dashboard/flows" className="truncate block font-medium">
@@ -62,7 +62,7 @@ export function PathBreadcrumb() {
               </BreadcrumbItem>
               {flowId && (
                 <>
-                  <BreadcrumbSeparator className="flex-shrink-0" />
+                  <BreadcrumbSeparator className="shrink-0" />
                   <BreadcrumbItem className="min-w-0 flex-1">
                     <BreadcrumbPage className="truncate block text-muted-foreground">
                       {isFlowLoading ? (
@@ -78,7 +78,7 @@ export function PathBreadcrumb() {
           ) : (
             investigationId && (
               <>
-                <BreadcrumbSeparator className="flex-shrink-0" />
+                <BreadcrumbSeparator className="shrink-0" />
                 <BreadcrumbItem className="min-w-0">
                   <BreadcrumbLink asChild>
                     <Link
@@ -96,7 +96,7 @@ export function PathBreadcrumb() {
                 </BreadcrumbItem>
                 {type && id && (
                   <>
-                    <BreadcrumbSeparator className="flex-shrink-0" />
+                    <BreadcrumbSeparator className="shrink-0" />
                     <BreadcrumbItem className="min-w-0 flex-1">
                       <BreadcrumbPage className="truncate block text-muted-foreground">
                         {type === 'graph' ? (

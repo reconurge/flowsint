@@ -5,6 +5,12 @@ import { cn } from '@/lib/utils'
 
 export type IconType = string
 
+export type UseIconOptions = {
+  nodeColor?: string | null
+  nodeIcon?: keyof typeof LucideIcons | null
+  nodeImage?: string | null
+}
+
 interface IconProps {
   className?: string
   size?: number
@@ -12,7 +18,6 @@ interface IconProps {
   showBorder?: boolean
   color?: string
   type?: string
-  iconOnly?: boolean
 }
 
 const DEFAULT_SIZE = 24
@@ -21,13 +26,15 @@ const BORDER_RATIO = 8
 const CONTAINER_PADDING = 16
 const BACKGROUND_PADDING = 8
 
-export const useIcon = (type: IconType, src?: string | null) => {
+export const useIcon = (type: IconType, options?: UseIconOptions) => {
+  const { nodeColor, nodeIcon, nodeImage } = options ?? {}
+
   // Subscribe to store changes
   const colors = useNodesDisplaySettings((s) => s.colors)
   const customIcons = useNodesDisplaySettings((s) => s.customIcons)
 
-  // Get icon name, checking custom icons first
-  const iconName = customIcons[type] || TYPE_TO_ICON[type] || TYPE_TO_ICON.default
+  // Priority: nodeIcon -> customIcons[type] -> TYPE_TO_ICON[type] -> default
+  const iconName = nodeIcon || customIcons[type] || TYPE_TO_ICON[type] || TYPE_TO_ICON.default
 
   return useCallback(
     ({
@@ -35,36 +42,93 @@ export const useIcon = (type: IconType, src?: string | null) => {
       size = DEFAULT_SIZE,
       style,
       showBorder = false,
-      color,
-      iconOnly = false
+      color
     }: IconProps): JSX.Element => {
-      const resolvedColor = color || colors[type as keyof typeof colors] || DEFAULT_COLOR
+      // Priority for color: color prop -> nodeColor -> colors[type] -> default
+      const resolvedColor =
+        color || nodeColor || colors[type as keyof typeof colors] || DEFAULT_COLOR
 
-      // Use full size for src images, scaled size for icons
-      const actualIconSize = src ? size : size * 0.7
+      // Priority: nodeImage first - images are returned directly (no background)
+      if (nodeImage) {
+        const containerSize = size + BACKGROUND_PADDING
+        const imageSize = containerSize * 0.9
 
-      // Si src est fourni, utiliser une image
-      if (src) {
         const imageElement = (
           <img
-            src={src}
-            width={actualIconSize}
-            height={actualIconSize}
-            className={`object-contain flex-shrink-0 rounded-full ${className} p-0`}
+            src={nodeImage}
+            width={imageSize}
+            height={imageSize}
+            className={`object-cover shrink-0 rounded-full ${className} p-0`}
             style={{
-              minWidth: actualIconSize,
-              minHeight: actualIconSize,
-              maxWidth: actualIconSize,
-              maxHeight: actualIconSize,
-              ...(showBorder ? undefined : style)
+              minWidth: imageSize,
+              minHeight: imageSize,
+              maxWidth: imageSize,
+              maxHeight: imageSize
             }}
             alt={`${type} icon`}
           />
         )
-        if (iconOnly) return imageElement
+
+        if (showBorder) {
+          const borderedContainerSize = size + CONTAINER_PADDING
+          const borderedImageSize = borderedContainerSize * 0.9
+          const borderWidth = Math.max(1, size / BORDER_RATIO)
+
+          const borderedImageElement = (
+            <img
+              src={nodeImage}
+              width={borderedImageSize}
+              height={borderedImageSize}
+              className={`object-cover shrink-0 rounded-full ${className} p-0`}
+              style={{
+                minWidth: borderedImageSize,
+                minHeight: borderedImageSize,
+                maxWidth: borderedImageSize,
+                maxHeight: borderedImageSize
+              }}
+              alt={`${type} icon`}
+            />
+          )
+
+          return (
+            <div
+              className="flex bg-card items-center justify-center rounded-full overflow-hidden shrink-0"
+              style={{
+                border: `${borderWidth}px solid ${resolvedColor}`,
+                width: borderedContainerSize,
+                height: borderedContainerSize,
+                minWidth: borderedContainerSize,
+                minHeight: borderedContainerSize,
+                maxWidth: borderedContainerSize,
+                maxHeight: borderedContainerSize,
+                ...style
+              }}
+            >
+              {borderedImageElement}
+            </div>
+          )
+        }
+
+        return (
+          <div
+            className="rounded-full flex items-center justify-center overflow-hidden shrink-0"
+            style={{
+              width: containerSize,
+              height: containerSize,
+              minWidth: containerSize,
+              minHeight: containerSize,
+              maxWidth: containerSize,
+              maxHeight: containerSize,
+              ...style
+            }}
+          >
+            {imageElement}
+          </div>
+        )
       }
 
-      // Utiliser une icône Lucide (PERFORMANT - pas de requête HTTP)
+      // Fallback to Lucide icon - icons need colored background
+      const actualIconSize = size * 0.7
       const LucideIcon = (LucideIcons as any)[iconName] as React.ComponentType<{
         size?: number
         fontSize?: number
@@ -76,14 +140,12 @@ export const useIcon = (type: IconType, src?: string | null) => {
         <LucideIcon
           size={actualIconSize}
           fontSize={1}
-          className={cn(`flex-shrink-0`, !iconOnly && !showBorder && 'text-white', className)}
+          className={cn('shrink-0', !showBorder && 'text-white', className)}
           style={{
             ...(showBorder ? undefined : style)
           }}
         />
       )
-
-      if (iconOnly) return iconElement
 
       if (showBorder) {
         const containerSize = size + CONTAINER_PADDING
@@ -91,7 +153,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
 
         return (
           <div
-            className="flex bg-card items-center justify-center rounded-full overflow-hidden flex-shrink-0"
+            className="flex bg-card items-center justify-center rounded-full overflow-hidden shrink-0"
             style={{
               border: `${borderWidth}px solid ${resolvedColor}`,
               width: containerSize,
@@ -111,7 +173,7 @@ export const useIcon = (type: IconType, src?: string | null) => {
       const containerSize = size + BACKGROUND_PADDING
       return (
         <div
-          className="rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
+          className="rounded-full flex items-center justify-center overflow-hidden shrink-0"
           style={{
             background: resolvedColor,
             width: containerSize,
@@ -126,6 +188,6 @@ export const useIcon = (type: IconType, src?: string | null) => {
         </div>
       )
     },
-    [type, src, colors, iconName]
+    [type, nodeImage, nodeColor, colors, iconName]
   )
 }

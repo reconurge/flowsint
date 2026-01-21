@@ -23,7 +23,7 @@ interface EntityMapping {
   id: string
   entity_type: string
   include: boolean
-  label: string
+  nodeLabel: string
   node_id?: string
   data: Record<string, any>
 }
@@ -167,7 +167,7 @@ const EntityRow = memo(
         <div className="px-3 py-2 border-r w-[200px] shrink-0">
           <DebouncedInput
             className="h-8 w-full text-xs"
-            value={mapping.label}
+            value={mapping.nodeLabel}
             onChange={handleLabel}
             disabled={!mapping.include}
             placeholder="Label..."
@@ -399,7 +399,7 @@ export function ImportPreview({
         typeFields.forEach((field) => {
           data[field] = entity.obj[field] ?? ''
         })
-        data.label = entity.obj.label
+        data.nodeLabel = entity.obj.nodeLabel
 
         const id = uuidv4()
         ids.push(id)
@@ -408,7 +408,7 @@ export function ImportPreview({
           id,
           entity_type: entity.detected_type,
           include: true,
-          label: entity.obj.label,
+          nodeLabel: entity.obj.nodeLabel,
           node_id: entity?.node_id?.toString(),
           data
         })
@@ -487,7 +487,7 @@ export function ImportPreview({
         newFields.forEach((field) => {
           newData[field] = mapping.data[field] ?? ''
         })
-        newData.label = mapping.label
+        newData.nodeLabel = mapping.nodeLabel
 
         const newMap = new Map(prev)
         newMap.set(id, { ...mapping, entity_type: newType, data: newData })
@@ -502,7 +502,7 @@ export function ImportPreview({
       const mapping = prev.get(id)
       if (!mapping) return prev
       const newMap = new Map(prev)
-      newMap.set(id, { ...mapping, label })
+      newMap.set(id, { ...mapping, nodeLabel: label })
       return newMap
     })
   }, [])

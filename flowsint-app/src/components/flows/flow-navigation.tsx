@@ -23,7 +23,7 @@ const FlowNavigation = () => {
         defaultValue="flows"
         className="w-full h-full flex flex-col gap-0 min-h-0"
       >
-        <TabsList className="w-full p-0 rounded-none my-0 border-b flex-shrink-0">
+        <TabsList className="w-full p-0 rounded-none my-0 border-b shrink-0">
           <TabsTrigger value="flows">
             <Users className="h-3 w-3 opacity-60" /> Flows
           </TabsTrigger>

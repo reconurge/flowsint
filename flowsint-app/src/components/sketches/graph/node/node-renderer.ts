@@ -1,9 +1,72 @@
+import { GraphNode } from '@/types'
 import { CONSTANTS, GRAPH_COLORS } from '../utils/constants'
-import { getCachedImage, getCachedFlagImage } from '../utils/image-cache'
+import {
+  getCachedImage,
+  getCachedFlagImage,
+  getCachedIconByName,
+  getCachedExternalImage
+} from '../utils/image-cache'
 import { truncateText, calculateNodeSize } from '../utils/utils'
 
+type NodeVisual = {
+  image: HTMLImageElement
+  isExternal: boolean
+} | null
+
+// Draws an image with object-cover behavior inside a circular clip
+const drawCircularImage = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  radius: number
+) => {
+  const diameter = radius * 2
+  const imgAspect = img.naturalWidth / img.naturalHeight
+
+  // Calculate cover dimensions (fill the circle, crop excess)
+  let drawWidth: number, drawHeight: number
+  if (imgAspect > 1) {
+    // Landscape: height fills, width overflows
+    drawHeight = diameter
+    drawWidth = diameter * imgAspect
+  } else {
+    // Portrait or square: width fills, height overflows
+    drawWidth = diameter
+    drawHeight = diameter / imgAspect
+  }
+
+  ctx.beginPath()
+  ctx.arc(x, y, radius, 0, 2 * Math.PI)
+  ctx.clip()
+  ctx.drawImage(img, x - drawWidth / 2, y - drawHeight / 2, drawWidth, drawHeight)
+}
+
+// Resolves the visual for a node with priority: nodeImage -> nodeIcon -> nodeType
+const getNodeVisual = (node: GraphNode, iconColor: string): NodeVisual => {
+  // Priority 1: External image (nodeImage URL)
+  if (node.nodeImage) {
+    const img = getCachedExternalImage(node.nodeImage)
+    if (img?.complete) return { image: img, isExternal: true }
+  }
+
+  // Priority 2: Custom icon by name (nodeIcon)
+  if (node.nodeIcon) {
+    const img = getCachedIconByName(node.nodeIcon, iconColor)
+    if (img?.complete) return { image: img, isExternal: false }
+  }
+
+  // Priority 3: Type-based icon (nodeType)
+  if (node.nodeType) {
+    const img = getCachedImage(node.nodeType, iconColor)
+    if (img?.complete) return { image: img, isExternal: false }
+  }
+
+  return null
+}
+
 interface NodeRenderParams {
-  node: any
+  node: GraphNode
   ctx: CanvasRenderingContext2D
   globalScale: number
   forceSettings: any
@@ -55,7 +118,12 @@ export const renderNode = ({
   if (!inViewport) return
 
   const shouldRenderDetails = globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD
-  const size = calculateNodeSize(node, forceSettings, shouldRenderDetails, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
+  const size = calculateNodeSize(
+    node,
+    forceSettings,
+    shouldRenderDetails,
+    CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+  )
 
   const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id) || isCurrent(node.id)
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
@@ -105,10 +173,53 @@ export const renderNode = ({
   }
 
   // Only render details if zoomed in enough
-  if (!shouldRenderDetails) return
+  if (!shouldRenderDetails) {
+    // render flag
+    if (node.nodeFlag) {
+      const flagColors: Record<string, { stroke: string; fill: string }> = {
+        red: { stroke: '#f87171', fill: '#fecaca' },
+        orange: { stroke: '#fb923c', fill: '#fed7aa' },
+        blue: { stroke: '#60a5fa', fill: '#bfdbfe' },
+        green: { stroke: '#4ade80', fill: '#bbf7d0' },
+        yellow: { stroke: '#facc15', fill: '#fef08a' }
+      }
+
+      const flagColor = flagColors[node.nodeFlag]
+      if (flagColor) {
+        const cachedFlag = getCachedFlagImage(flagColor.stroke, flagColor.fill)
+        if (cachedFlag && cachedFlag.complete) {
+          try {
+            const flagSize = size * 0.8
+            const flagX = node.x + 0.8 + size * 0.5 - flagSize / 2
+            const flagY = node.y - 1.4 - size * 0.5 - flagSize / 2
+
+            ctx.save()
+            ctx.globalAlpha = 1
+            ctx.drawImage(cachedFlag, flagX, flagY, flagSize, flagSize)
+            ctx.restore()
+          } catch (error) {
+            console.warn('[node-renderer] Failed to draw flag:', error)
+          }
+        }
+      }
+    }
+
+    // Draw a small rectangle to mock a label under the node
+    const mockLabelWidth = 15
+    const mockLabelHeight = 3
+    const mockLabelY = node.y + size + mockLabelHeight * 0.5
+    const mockLabelX = node.x - mockLabelWidth / 2
+    const borderRadius = mockLabelHeight * 0.3
+
+    ctx.beginPath()
+    ctx.roundRect(mockLabelX, mockLabelY, mockLabelWidth, mockLabelHeight, borderRadius)
+    ctx.fillStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)'
+    ctx.fill()
+    return
+  }
 
   // Draw flag if present
-  if (node.data?.flag) {
+  if (node.nodeFlag) {
     const flagColors: Record<string, { stroke: string; fill: string }> = {
       red: { stroke: '#f87171', fill: '#fecaca' },
       orange: { stroke: '#fb923c', fill: '#fed7aa' },
@@ -117,7 +228,7 @@ export const renderNode = ({
       yellow: { stroke: '#facc15', fill: '#fef08a' }
     }
 
-    const flagColor = flagColors[node.data.flag]
+    const flagColor = flagColors[node.nodeFlag]
     if (flagColor) {
       const cachedFlag = getCachedFlagImage(flagColor.stroke, flagColor.fill)
       if (cachedFlag && cachedFlag.complete) {
@@ -137,38 +248,42 @@ export const renderNode = ({
     }
   }
 
-  // Render icons
-  if (showIcons && node.nodeType) {
-    // In outlined mode: white for dark theme, black for light theme
-    // In filled mode: always white
+  // Render icons/images
+  if (showIcons) {
     const iconColor = isOutlined ? (theme === 'dark' ? '#FFFFFF' : '#000000') : '#FFFFFF'
-    const cachedImage = getCachedImage(node.nodeType, iconColor)
-    if (cachedImage && cachedImage.complete) {
+    const visual = getNodeVisual(node, iconColor)
+
+    if (visual) {
       try {
-        // Dessiner l'icône au centre du node
-        const iconSize = size * 1.2
-        ctx.save()
-        // Apply transparency if node is not highlighted
         const iconAlpha = hasAnyHighlight && !isHighlighted ? 0.5 : 0.9
+        ctx.save()
         ctx.globalAlpha = iconAlpha
-        ctx.drawImage(cachedImage, node.x - iconSize / 2, node.y - iconSize / 2, iconSize, iconSize)
+
+        if (visual.isExternal) {
+          // External image: circular, 90% of node size, object-cover
+          const imgRadius = size * 0.9
+          drawCircularImage(ctx, visual.image, node.x, node.y, imgRadius)
+        } else {
+          // Icon: draw normally
+          const iconSize = size * 1.2
+          ctx.drawImage(
+            visual.image,
+            node.x - iconSize / 2,
+            node.y - iconSize / 2,
+            iconSize,
+            iconSize
+          )
+        }
+
         ctx.restore()
       } catch (error) {}
-    } else {
-      console.warn(
-        '[node-renderer] No cached image for type:',
-        node.nodeType,
-        'color:',
-        iconColor,
-        'complete:',
-        cachedImage?.complete
-      )
     }
   }
 
   // Render labels
   if (showLabels) {
-    const label = truncateText(node.nodeLabel || node.label || node.id, 58)
+    const anonymise = false // TODO
+    const label = anonymise ? '**************' : truncateText(node.nodeLabel || node.id, 58)
     if (label) {
       const baseFontSize = Math.max(
         CONSTANTS.MIN_FONT_SIZE,
@@ -210,7 +325,6 @@ export const renderNode = ({
 
       const metrics = ctx.measureText(label)
       const textY = bgY + paddingY + metrics.actualBoundingBoxAscent
-
       ctx.fillText(label, node.x, textY)
     }
   }

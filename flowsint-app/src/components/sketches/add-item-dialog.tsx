@@ -75,41 +75,34 @@ export default function AddItemDialog() {
     const label_key =
       currentNodeType.fields.find((f: FormField) => f.name === currentNodeType.label_key)?.name ||
       currentNodeType.fields[0].name
-    const type = currentNodeType.type
-    const label = data[label_key as keyof typeof data]
 
+    const type = currentNodeType.type
+    let label = data[label_key as keyof typeof data]
+
+    // if no value, fallback to fist key
+    if (!label) label = data[Object.keys(data)[0] as keyof typeof data]
     // Get viewport center for positioning new node
     const center = getViewportCenter()
     const nodeX = center?.x ?? 0
     const nodeY = center?.y ?? 0
+    const tempId = generateTempId()
 
     // Node data for API (with correct structure)
-    const newNode = {
-      type: type.toLowerCase(), // Required at root level for API validation
-      label: label,
-      data: {
-        ...flattenObj(data),
-        label,
-        type: type.toLowerCase(),
-        x: nodeX, // Position at viewport center
-        y: nodeY
-      }
-    }
-
-    // Generate temporary ID for optimistic update
-    const tempId = generateTempId()
-    // Optimistically add the node to local state with temporary ID and position fields
     const nodeWithTempId: GraphNode = {
       id: tempId,
-      data: {
-        ...newNode.data,
-        id: tempId,
-        created_at: new Date().toISOString()
-      },
-      // Position fields for client-side graph rendering (at viewport center)
-      x: nodeX,
-      y: nodeY
+      nodeType: type.toLowerCase(), // Required at root level for API validation
+      nodeLabel: label,
+      x: nodeX, // Position at viewport center
+      y: nodeY,
+      nodeSize: 4,
+      nodeColor: null,
+      nodeFlag: null,
+      nodeIcon: null,
+      nodeImage: null,
+      nodeProperties: flattenObj(data),
+      nodeMetadata: {}
     }
+
     if (addNode) {
       addNode(nodeWithTempId)
     }
@@ -118,7 +111,7 @@ export default function AddItemDialog() {
     if (relatedNodeToAdd) {
       const tempEdgePayload = {
         type: 'custom',
-        label: `HAS_${newNode.data.type.toUpperCase()}`,
+        label: `HAS_${nodeWithTempId.nodeType.toUpperCase()}`,
         source: relatedNodeToAdd.id,
         target: tempId
       }
@@ -138,7 +131,7 @@ export default function AddItemDialog() {
     // Show optimistic success message
     toast(`New ${type.toLowerCase()} added to sketch.`, {
       description: relatedNodeToAdd
-        ? `A new ${type.toLowerCase()} "${label}" was added to relation ${relatedNodeToAdd.data.label}.`
+        ? `A new ${type.toLowerCase()} "${label}" was added to relation ${relatedNodeToAdd.nodeLabel}.`
         : `A new ${type.toLowerCase()} "${label}" was added.`,
       action: {
         label: 'Beautify layout',
@@ -150,16 +143,17 @@ export default function AddItemDialog() {
       // Create the node via API to get the real database ID
       const newNodeResponse = await sketchService.addNode(
         sketch_id as string,
-        JSON.stringify(newNode)
+        JSON.stringify(nodeWithTempId)
       )
-      if (newNodeResponse.node && replaceNode) {
-        replaceNode(tempId, newNodeResponse.node.data)
+      const newNode: GraphNode = newNodeResponse.node
+      if (newNode && replaceNode) {
+        replaceNode(tempId, newNode.id, newNode.nodeProperties)
         if (relatedNodeToAdd && tempEdgeId) {
           const relationPayload = {
             source: relatedNodeToAdd.id,
-            target: newNodeResponse.node.id,
+            target: newNode.id,
             type: 'one-way',
-            label: `HAS_${newNode.data.type.toUpperCase()}`
+            label: `HAS_${nodeWithTempId.nodeType.toUpperCase()}`
           }
           // Make API call to persist the edge
           await sketchService.addEdge(sketch_id as string, JSON.stringify(relationPayload))
@@ -247,7 +241,7 @@ export default function AddItemDialog() {
                   : 'Select an item to insert'}
               {relatedNodeToAdd && (
                 <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
-                  {relatedNodeToAdd.data.label}
+                  {relatedNodeToAdd.nodeLabel}
                 </span>
               )}
             </div>

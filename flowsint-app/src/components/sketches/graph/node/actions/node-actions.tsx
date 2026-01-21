@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Pencil, Trash2, Sparkles, Plus } from 'lucide-react'
+import { Trash2, Sparkles, Plus } from 'lucide-react'
 import { useGraphStore } from '@/stores/graph-store'
 import { useParams } from '@tanstack/react-router'
 import { useConfirm } from '@/components/use-confirm-dialog'
@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useLayoutStore } from '@/stores/layout-store'
 import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { NodeFlag } from './flag'
 
 const NodeActions = memo(
   ({ node, setMenu }: { node: GraphNode; setMenu?: (menu: any | null) => void }) => {
@@ -20,8 +21,6 @@ const NodeActions = memo(
     const removeNodes = useGraphStore((s) => s.removeNodes)
     const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
     const openChat = useLayoutStore((s) => s.openChat)
-    const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
-    const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
     const settings = useGraphSettingsStore((s) => s.settings)
 
     // Add relation dialog
@@ -42,17 +41,6 @@ const NodeActions = memo(
       [node, toggleNodeSelection, openChat, setMenu]
     )
 
-    // Edit node dialog
-    const handleEditNode = useCallback(
-      (e: React.MouseEvent) => {
-        e.stopPropagation()
-        setCurrentNodeId(node.id)
-        setOpenNodeEditorModal(true)
-        setMenu?.(null)
-      },
-      [node, setCurrentNodeId, setOpenNodeEditorModal]
-    )
-
     // Delete node
     const handleDeleteNode = async () => {
       if (!node.id || !sketchId) return
@@ -69,7 +57,7 @@ const NodeActions = memo(
           return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: [node.id] }))
         })(),
         {
-          loading: `Deleting ${node.data.label}...`,
+          loading: `Deleting ${node.nodeProperties.label}...`,
           success: 'Node deleted successfully.',
           error: 'Failed to delete node.'
         }
@@ -78,6 +66,7 @@ const NodeActions = memo(
     return (
       <div className="flex items-center gap-1">
         <TooltipProvider>
+          <NodeFlag node={node} sketchId={sketchId as string} />
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
@@ -114,7 +103,7 @@ const NodeActions = memo(
               </TooltipContent>
             </Tooltip>
           )}
-          <Tooltip>
+          {/*<Tooltip>
             <TooltipTrigger asChild>
               <div>
                 <Button
@@ -130,7 +119,7 @@ const NodeActions = memo(
             <TooltipContent>
               <p>Edit node</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip>*/}
           <Tooltip>
             <TooltipTrigger asChild>
               <div>

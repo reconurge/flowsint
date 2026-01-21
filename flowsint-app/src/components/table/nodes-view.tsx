@@ -39,7 +39,11 @@ const NodeItem = memo(function NodeItem({
   isSelected,
   onSelectionChange
 }: NodeItemProps) {
-  const SourceIcon = useIcon(node.data?.type, node.data?.src)
+  const SourceIcon = useIcon(node.nodeType, {
+    nodeColor: node.nodeColor,
+    nodeIcon: node.nodeIcon,
+    nodeImage: node.nodeImage
+  })
 
   const handleNodeClick = useCallback(() => {
     onNodeClick(node)
@@ -62,10 +66,8 @@ const NodeItem = memo(function NodeItem({
 
   const formatNodeData = useCallback((data: any) => {
     if (!data) return ''
-    const omitKeys = ['id', 'sketch_id', 'caption', 'size', 'color', 'description', 'x', 'y']
     const entries = Object.entries(data)
-      .filter(([key]) => !omitKeys.includes(key))
-      .map(([key, value]) => `${key}:${Boolean(value) ? value : "N/A"}`)
+      .map(([key, value]) => `${key}:${Boolean(value) ? value : 'N/A'}`)
       .join(', ')
     return entries
   }, [])
@@ -73,7 +75,7 @@ const NodeItem = memo(function NodeItem({
   return (
     <div className="px-4">
       <div
-        className="grid items-center h-[56px] gap-3 text-sm border-b last:border-b-0"
+        className="grid items-center h-14 gap-3 text-sm border-b last:border-b-0"
         style={{
           gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px'
         }}
@@ -96,21 +98,21 @@ const NodeItem = memo(function NodeItem({
             onClick={handleNodeClick}
             className="font-medium hover:text-primary hover:underline cursor-pointer truncate p-0"
           >
-            <span className="block truncate">{node.data?.label ?? node.id}</span>
+            <span className="block truncate">{node.nodeLabel ?? node.id}</span>
           </button>
         </div>
 
         {/* Data */}
         <div className="min-w-0">
           <span className="text-xs text-muted-foreground truncate block">
-            {formatNodeData(node.data)}
+            {formatNodeData(node.nodeProperties)}
           </span>
         </div>
 
         {/* Type */}
         <div>
           <Badge variant="outline" className="text-xs">
-            {node.data?.type || 'Unknown'}
+            {node.nodeType || 'Unknown'}
           </Badge>
         </div>
 
@@ -118,13 +120,15 @@ const NodeItem = memo(function NodeItem({
         <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
           <Calendar className="h-3 w-3" />
           <span className="truncate">
-            {node.data?.created_at ? formatCreatedAt(node.data.created_at) : 'Unknown'}
+            {node.nodeMetadata?.created_at
+              ? formatCreatedAt(node.nodeMetadata?.created_at)
+              : 'Unknown'}
           </span>
         </div>
 
         {/* Copy Button */}
         <div className="flex justify-end">
-          <CopyButton content={node.data?.label ?? node.id} />
+          <CopyButton content={node.nodeLabel ?? node.id} />
         </div>
       </div>
     </div>
@@ -155,11 +159,11 @@ export default function NodesTable({ nodes }: NodesTableProps) {
 
     return nodes.filter((node: GraphNode) => {
       const lower = searchQuery.toLowerCase()
-      const label = node.data?.label?.toLowerCase() ?? ''
-      const type = node.data?.type?.toLowerCase() ?? ''
+      const label = node.nodeLabel?.toLowerCase() ?? ''
+      const type = node.nodeType?.toLowerCase() ?? ''
       const matchesSearch = lower === '' || label.includes(lower) || type.includes(lower)
 
-      const matchesType = selectedType === 'all' || node.data?.type === selectedType
+      const matchesType = selectedType === 'all' || node.nodeType === selectedType
 
       return matchesSearch && matchesType
     })
@@ -209,7 +213,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     if (!nodes) return []
     const types = new Set<string>()
     nodes.forEach((node: GraphNode) => {
-      if (node.data?.type) types.add(node.data.type)
+      if (node.nodeType) types.add(node.nodeType)
     })
     return Array.from(types).sort()
   }, [nodes])
@@ -279,7 +283,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       </div>
       {/* Table Header */}
       <div
-        className="grid items-center h-[44px] px-4 bg-muted/50 p-2 rounded-t-md border text-sm font-medium text-muted-foreground"
+        className="grid items-center h-11 px-4 bg-muted/50 p-2 rounded-t-md border text-sm font-medium text-muted-foreground"
         style={{ gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px' }}
       >
         <div className="flex items-center">
@@ -287,7 +291,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
             checked={isAllSelected}
             ref={(el) => {
               if (el && 'indeterminate' in el) {
-                ; (el as HTMLInputElement).indeterminate = isIndeterminate
+                ;(el as HTMLInputElement).indeterminate = isIndeterminate
               }
             }}
             onCheckedChange={handleSelectAll}

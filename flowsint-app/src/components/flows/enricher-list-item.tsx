@@ -34,9 +34,9 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
   const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
   const Icon =
     enricher.type === 'type'
-      ? useIcon(enricher.outputs.type.toLowerCase() as string, null)
+      ? useIcon(enricher.outputs.type.toLowerCase() as string)
       : enricher.icon
-        ? useIcon(enricher.icon, null)
+        ? useIcon(enricher.icon)
         : null
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)

@@ -46,9 +46,9 @@ const DEFAULT_SETTINGS = {
     nodeSize: {
       name: 'Node Size',
       type: 'number',
-      value: 6,
+      value: 30,
       min: 0.2,
-      max: 20,
+      max: 100,
       step: 0.1,
       description: 'Defines the width of the link between two nodes.'
     },

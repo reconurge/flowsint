@@ -53,7 +53,7 @@ export function MergeDialog() {
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!preview) return toast.error('No preview available.')
-    if (!selectedNodes.every((n) => n.data.type === selectedNodes[0].data.type))
+    if (!selectedNodes.every((n) => n.nodeType === selectedNodes[0].nodeType))
       return toast.error('Cannot merge entities of different types.')
     const entitiesToMerge = selectedNodes.map((node) => node.id)
     // Extract only id and data to avoid circular references from neighbors/links
@@ -82,7 +82,7 @@ export function MergeDialog() {
 
   return (
     <Dialog open={openMergeDialog} onOpenChange={setOpenMergeDialog}>
-      <DialogContent className="!w-full !max-w-[700px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
+      <DialogContent className="w-full! max-w-[700px]! max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Merge className="h-4 w-4" />
@@ -135,7 +135,10 @@ export function MergeDialog() {
             <div className="space-y-2 text-sm">
               <p>Merged attributes</p>
               <div className="rounded-md border overflow-hidden">
-                <KeyValueDisplayDiff oldRecord={old.data} newRecord={preview.data} />
+                <KeyValueDisplayDiff
+                  oldRecord={old.nodeProperties}
+                  newRecord={preview.nodeProperties}
+                />
               </div>
             </div>
           )}

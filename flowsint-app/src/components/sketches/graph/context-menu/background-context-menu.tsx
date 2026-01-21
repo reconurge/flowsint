@@ -7,7 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { FileCode2, Search, Info, Zap, BadgeCheck, BadgeAlert, Plus, Download, Trash2 } from 'lucide-react'
+import {
+  FileCode2,
+  Search,
+  Info,
+  Zap,
+  BadgeCheck,
+  BadgeAlert,
+  Plus,
+  Download,
+  Trash2
+} from 'lucide-react'
 import { Enricher, Flow, GraphNode } from '@/types'
 import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
@@ -56,15 +66,15 @@ export default function BackgroundContextMenu({
   const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
   const { launchFlow } = useLaunchFlow(false)
   const { launchEnricher } = useLaunchEnricher(false)
-  const selectedNodes = useGraphStore(s => s.selectedNodes)
+  const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const selectedNodeIds = selectedNodes.map((n) => n.id)
   const { confirm } = useConfirm()
   const removeNodes = useGraphStore((s) => s.removeNodes)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
 
-  let sharedType = selectedNodes?.[0]?.data?.type
-  const isSameType = selectedNodes.every((n) => n.data.type === sharedType)
-  sharedType = isSameType ? sharedType : ""
+  let sharedType = selectedNodes?.[0]?.nodeType
+  const isSameType = selectedNodes.every((n) => n.nodeType === sharedType)
+  sharedType = isSameType ? sharedType : ''
   const hasAny = isSameType && selectedNodeIds.length > 0
 
   const { data: enrichers, isLoading: isLoadingEnrichers } = useQuery({
@@ -146,16 +156,17 @@ export default function BackgroundContextMenu({
       wrapperHeight={wrapperHeight}
       {...props}
     >
-      {selectedNodeIds.length === 0 ?
-        <DefaultBackgroundMenu /> :
+      {selectedNodeIds.length === 0 ? (
+        <DefaultBackgroundMenu />
+      ) : (
         <>
           {/* Header with title and action buttons */}
-          <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between flex-shrink-0">
+          <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between shrink-0">
             <div className="flex text-xs items-center gap-1 truncate">
               <span className="block truncate">{selectedNodes.length} selected</span>
-              {isSameType && <span className="block">-{' '}{sharedType}</span>}
+              {isSameType && <span className="block">- {sharedType}</span>}
             </div>
-            <div className='grow' />
+            <div className="grow" />
             <div>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -166,7 +177,8 @@ export default function BackgroundContextMenu({
                       className="h-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
                       onClick={handleDeleteNodes}
                     >
-                      <Trash2 className="h-3 w-3" strokeWidth={1.5} /> Delete {selectedNodeIds.length}
+                      <Trash2 className="h-3 w-3" strokeWidth={1.5} /> Delete{' '}
+                      {selectedNodeIds.length}
                     </Button>
                   </div>
                 </TooltipTrigger>
@@ -178,10 +190,14 @@ export default function BackgroundContextMenu({
           </div>
 
           {/* Tabs */}
-          <div className="px-3 py-2 border-b border-border flex-shrink-0">
+          <div className="px-3 py-2 border-b border-border shrink-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full h-9">
-                <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <TabsTrigger
+                  value="enrichers"
+                  className="flex-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Zap className="h-3 w-3 mr-1" />
                   Enrichers
                 </TabsTrigger>
@@ -198,7 +214,7 @@ export default function BackgroundContextMenu({
             {/* Enrichers Tab */}
             <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
               {/* Enrichers Search */}
-              <div className="px-3 py-2 border-b border-border flex-shrink-0">
+              <div className="px-3 py-2 border-b border-border shrink-0">
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                   <Input
@@ -237,10 +253,17 @@ export default function BackgroundContextMenu({
                         className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
                         onClick={(e) => handleEnricherClick(e, enricher.name)}
                       >
-                        <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium flex gap-1 items-center truncate">
-                            <span>{enricher.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {enricher.name || '(Unnamed enricher)'}
+                            <span>
+                              {enricher.wobblyType ? (
+                                <BadgeAlert className="h-3 w-3 text-orange-400" />
+                              ) : (
+                                <BadgeCheck className="h-3 w-3 text-green-400" />
+                              )}{' '}
+                            </span>{' '}
+                            {enricher.name || '(Unnamed enricher)'}
                           </p>
                           {enricher.description && (
                             <p className="text-xs text-muted-foreground truncate">
@@ -268,7 +291,7 @@ export default function BackgroundContextMenu({
             {/* Flows Tab */}
             <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
               {/* Flows Search */}
-              <div className="px-3 py-2 border-b border-border flex-shrink-0">
+              <div className="px-3 py-2 border-b border-border shrink-0">
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                   <Input
@@ -307,13 +330,22 @@ export default function BackgroundContextMenu({
                         className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
                         onClick={(e) => handleFlowClick(e, flow.id)}
                       >
-                        <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <FileCode2 className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="flex items-center gap-1 text-sm font-medium truncate">
-                            <span>{flow.wobblyType ? <BadgeAlert className='h-3 w-3 text-orange-400' /> : <BadgeCheck className='h-3 w-3 text-green-400' />} </span> {flow.name || '(Unnamed flow)'}
+                            <span>
+                              {flow.wobblyType ? (
+                                <BadgeAlert className="h-3 w-3 text-orange-400" />
+                              ) : (
+                                <BadgeCheck className="h-3 w-3 text-green-400" />
+                              )}{' '}
+                            </span>{' '}
+                            {flow.name || '(Unnamed flow)'}
                           </p>
                           {flow.description && (
-                            <p className="text-xs text-muted-foreground truncate">{flow.description}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {flow.description}
+                            </p>
                           )}
                         </div>
                         <div className="flex items-center gap-1">
@@ -333,11 +365,13 @@ export default function BackgroundContextMenu({
               </div>
             </TabsContent>
           </Tabs>
-          {selectedNodes.length > 0 &&
-            <div className='border-t p-1'>
+          {selectedNodes.length > 0 && (
+            <div className="border-t p-1">
               <SubActions selectedNodes={selectedNodes} />
-            </div>}
-        </>}
+            </div>
+          )}
+        </>
+      )}
     </BaseContextMenu>
   )
 }
@@ -360,13 +394,13 @@ const DefaultBackgroundMenu = memo(() => {
         className="w-full rounded-t-md flex items-center gap-2 p-2 hover:bg-muted text-left transition-colors"
         onClick={handleOpenNewAddItemDialog}
       >
-        <Plus className='h-4 w-4 opacity-60' />  Add a new entity
+        <Plus className="h-4 w-4 opacity-60" /> Add a new entity
       </button>
       <button
         className="w-full rounded-b-md flex items-center gap-2 p-2 hover:bg-muted text-left transition-colors"
         onClick={handleOpenImportDialog}
       >
-        <Download className='h-4 w-4 opacity-60' /> Import entities
+        <Download className="h-4 w-4 opacity-60" /> Import entities
       </button>
     </div>
   )
@@ -376,14 +410,13 @@ type SubActionsProps = {
   selectedNodes: GraphNode[]
 }
 const SubActions = memo(({ selectedNodes }: SubActionsProps) => {
-
-  const contentToCopy = useMemo(() => selectedNodes.map((node) => node.data.label).join("\n"), [])
+  const contentToCopy = useMemo(() => selectedNodes.map((node) => node.nodeLabel).join('\n'), [])
   return (
     <div>
       <CopyButton label={`Copy ${selectedNodes.length} items as txt`} content={contentToCopy} />
-    </div>)
-}
-)
+    </div>
+  )
+})
 
 const InfoButton = ({ description }: { description?: string }) => {
   if (!description) return null

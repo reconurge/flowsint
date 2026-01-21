@@ -5,13 +5,16 @@ import { useIcon } from '@/hooks/use-icon'
 
 export interface MentionItem {
   value: string
-  type: ItemType
+  nodeType: ItemType
+  nodeImage: string | null
+  nodeIcon: string | any | null
+  nodeColor: string | null
   nodeId: string
 }
 
 export interface MentionListProps {
   items: MentionItem[]
-  command: (item: { label: string; type: ItemType; nodeId: string }) => void
+  command: (item: MentionItem) => void
 }
 
 export interface MentionListRef {
@@ -25,7 +28,7 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>((props, ref) =>
     const item = props.items[index]
 
     if (item) {
-      props.command({ label: item.value, type: item.type, nodeId: item.nodeId })
+      props.command(item)
     }
   }
 
@@ -91,7 +94,12 @@ type MentionItemProps = {
   selectItem: (index: number) => void
 }
 const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItemProps) => {
-  const Icon = useIcon(item.type, null) ?? null
+  const SourceIcon = useIcon(item.nodeType, {
+    nodeColor: item.nodeColor,
+    // @ts-ignore
+    nodeIcon: item.nodeIcon,
+    nodeImage: item.nodeImage
+  })
   return (
     <button
       className={cn(
@@ -104,9 +112,8 @@ const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItem
       onClick={() => selectItem(index)}
       type="button"
     >
-      {Icon && <Icon size={14} />}
+      {SourceIcon && <SourceIcon size={14} />}
       <span className="flex-1 text-left truncate text-ellipsis">{item.value}</span>
-      <span className="text-xs text-muted-foreground capitalize">{item.type}</span>
     </button>
   )
 }

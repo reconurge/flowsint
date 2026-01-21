@@ -4,12 +4,12 @@ import { LocationPoint } from './map'
 const MapPanel = () => {
   const nodes = useGraphStore((state) => state.nodes)
   const locationNodes = nodes
-    .filter((node) => node.data.type === 'location' || (node.data.latitude && node.data.longitude))
+    .filter((node) => node.nodeType === 'location' || (node.nodeProperties.latitude && node.nodeProperties.longitude))
     .map((node) => ({
-      lat: node.data.latitude || 0,
-      lon: node.data.longitude || 0,
-      address: node.data.address || '',
-      label: node.data.label || ''
+      lat: node.nodeProperties.latitude || 0,
+      lon: node.nodeProperties.longitude || 0,
+      address: node.nodeProperties.address || '',
+      label: node.nodeProperties.label || ''
     }))
   return (
     <div className="w-full grow h-full">

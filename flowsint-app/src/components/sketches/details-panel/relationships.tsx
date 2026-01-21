@@ -110,11 +110,11 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
                   <div className="min-w-0 flex-1 flex items-center">
                     <RelationshipItem node={rel.source} />
                   </div>
-                  <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
+                  <ArrowRight className="shrink-0 opacity-60 h-4 w-4" />
                   <div className="min-w-0 flex-1 flex items-center justify-center">
                     <span className="opacity-60 text-xs truncate block">{rel.edge.label}</span>
                   </div>
-                  <ArrowRight className="flex-shrink-0 opacity-60 h-4 w-4" />
+                  <ArrowRight className="shrink-0 opacity-60 h-4 w-4" />
                   <div className="min-w-0 flex-1 flex items-center justify-end">
                     <RelationshipItem node={rel.target} />
                   </div>
@@ -140,8 +140,8 @@ const RelationshipItem = memo(({ node }: { node: GraphNode }) => {
       className="w-full h-full text-left hover:underline cursor-pointer flex items-center"
       onClick={handleClick}
     >
-      <TypeBadge className="w-full truncate block text-center" type={node.data.type}>
-        {node.data.label}
+      <TypeBadge className="w-full truncate block text-center" type={node.nodeType}>
+        {node.nodeLabel}
       </TypeBadge>
     </button>
   )

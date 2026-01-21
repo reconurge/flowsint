@@ -9,8 +9,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import * as LucideIcons from 'lucide-react'
-import { useNodesDisplaySettings } from '@/stores/node-display-settings'
-import { clearIconTypeCache } from '../../graph/utils/image-cache'
 import { cn } from '@/lib/utils'
 
 // Curated list of popular and useful Lucide icons
@@ -237,12 +235,15 @@ type IconPopoverProps = {
   iconType: string | null
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
+  onIconChange: (
+    iconType: IconPopoverProps['iconType'],
+    iconName: keyof typeof AVAILABLE_ICONS
+  ) => void
 }
 
-export default function IconPicker({ iconType, open, setOpen }: IconPopoverProps) {
+export default function IconPicker({ iconType, open, setOpen, onIconChange }: IconPopoverProps) {
   const [search, setSearch] = useState('')
   const [isReady, setIsReady] = useState(false)
-  const { setIcon } = useNodesDisplaySettings()
   const parentRef = useRef<HTMLDivElement>(null)
 
   const filteredIcons = useMemo(() => {
@@ -262,6 +263,14 @@ export default function IconPicker({ iconType, open, setOpen }: IconPopoverProps
     overscan: 5
   })
 
+  const handleClick = (
+    iconType: IconPopoverProps['iconType'],
+    iconName: keyof typeof AVAILABLE_ICONS
+  ) => {
+    onIconChange(iconType, iconName)
+    setOpen(false)
+  }
+
   // Reset and initialize when dialog opens
   useEffect(() => {
     if (open) {
@@ -277,13 +286,6 @@ export default function IconPicker({ iconType, open, setOpen }: IconPopoverProps
       setIsReady(false)
     }
   }, [open, virtualizer])
-
-  const handleIconSelect = (iconName: string) => {
-    if (!iconType) return
-    setIcon(iconType, iconName as keyof typeof LucideIcons)
-    clearIconTypeCache(iconType)
-    setOpen(false)
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -355,7 +357,7 @@ export default function IconPicker({ iconType, open, setOpen }: IconPopoverProps
                           return (
                             <button
                               key={iconName}
-                              onClick={() => handleIconSelect(iconName)}
+                              onClick={() => handleClick(iconType, iconName)}
                               className={cn(
                                 'flex h-12 w-full flex-col items-center justify-center gap-1 rounded-md border border-border p-2 transition-colors hover:bg-accent hover:text-accent-foreground',
                                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'

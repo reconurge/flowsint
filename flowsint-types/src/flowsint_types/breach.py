@@ -74,9 +74,9 @@ class Breach(FlowsintType):
     def compute_label(self) -> Self:
         # Use title if available, otherwise name
         if self.title:
-            self.label = self.title
+            self.nodeLabel = self.title
         else:
-            self.label = self.name
+            self.nodeLabel = self.name
         return self
 
     @classmethod

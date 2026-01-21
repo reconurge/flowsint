@@ -46,7 +46,7 @@ class Website(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = str(self.url)
+        self.nodeLabel = str(self.url)
         return self
 
     @classmethod

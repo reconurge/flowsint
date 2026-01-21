@@ -68,7 +68,7 @@ class File(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.filename
+        self.nodeLabel = self.filename
         return self
 
     @classmethod

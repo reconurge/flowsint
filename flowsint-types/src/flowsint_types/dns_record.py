@@ -59,7 +59,7 @@ class DNSRecord(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = self.value
+        self.nodeLabel = self.value
         return self
 
     @classmethod

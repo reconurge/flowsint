@@ -50,7 +50,7 @@ class Alias(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.alias
+        self.nodeLabel = self.alias
         return self
 
     @classmethod

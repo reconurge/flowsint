@@ -70,9 +70,9 @@ class Credential(FlowsintType):
     @model_validator(mode='after')
     def compute_label(self) -> Self:
         if self.service:
-            self.label = f"{self.username}@{self.service}"
+            self.nodeLabel = f"{self.username}@{self.service}"
         else:
-            self.label = self.username
+            self.nodeLabel = self.username
         return self
 
     @classmethod

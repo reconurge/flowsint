@@ -61,7 +61,7 @@ class Phone(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.number
+        self.nodeLabel = self.number
         return self
 
     @classmethod

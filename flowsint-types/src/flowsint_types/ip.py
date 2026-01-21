@@ -43,7 +43,7 @@ class Ip(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = self.address
+        self.nodeLabel = self.address
         return self
 
     @classmethod

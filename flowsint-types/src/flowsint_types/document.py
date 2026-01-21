@@ -63,7 +63,7 @@ class Document(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.title
+        self.nodeLabel = self.title
         return self
 
     @classmethod

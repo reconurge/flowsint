@@ -45,7 +45,7 @@ class Username(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = f"{self.value}"
+        self.nodeLabel = f"{self.value}"
         return self
 
     @classmethod

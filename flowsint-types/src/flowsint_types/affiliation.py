@@ -61,9 +61,9 @@ class Affiliation(FlowsintType):
     @model_validator(mode='after')
     def compute_label(self) -> Self:
         if self.role:
-            self.label = f"{self.role} at {self.organization}"
+            self.nodeLabel = f"{self.role} at {self.organization}"
         else:
-            self.label = self.organization
+            self.nodeLabel = self.organization
         return self
 
     @classmethod

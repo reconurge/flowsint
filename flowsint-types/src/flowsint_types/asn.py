@@ -77,9 +77,9 @@ class ASN(FlowsintType):
     def compute_label(self) -> Self:
         # Use name and ASN string if available
         if self.name:
-            self.label = f"{self.asn_str} - {self.name}"
+            self.nodeLabel = f"{self.asn_str} - {self.name}"
         else:
-            self.label = self.asn_str
+            self.nodeLabel = self.asn_str
         return self
 
     @classmethod

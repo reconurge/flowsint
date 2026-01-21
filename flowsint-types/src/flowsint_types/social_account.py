@@ -90,13 +90,13 @@ class SocialAccount(FlowsintType):
             self.id = f"{self.username.value}@{self.platform}"
         elif self.username:
             self.id = self.username.value
-        self.label = self.id
+        self.nodeLabel = self.id
 
         # Use display name if available, otherwise username
         if self.display_name:
-            self.label = f"{self.display_name} (@{self.username.value})"
+            self.nodeLabel = f"{self.display_name} (@{self.username.value})"
         else:
-            self.label = self.id
+            self.nodeLabel = self.id
         return self
 
     @classmethod

@@ -7,14 +7,14 @@ Auto-discovery is performed by calling load_all_types() which imports all module
 in the flowsint_types package, triggering the @flowsint_type decorators.
 """
 
-from typing import Dict, Type, TypeVar, Optional
-from pydantic import BaseModel
 import importlib
 import pkgutil
 import sys
+from typing import Dict, Optional, Type, TypeVar
 
+from .flowsint_base import FlowsintType
 
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T", bound=FlowsintType)
 
 
 class TypeRegistry:
@@ -27,8 +27,8 @@ class TypeRegistry:
     """
 
     def __init__(self):
-        self._types: Dict[str, Type[BaseModel]] = {}
-        self._lowercase_types: Dict[str, Type[BaseModel]] = {}
+        self._types: Dict[str, Type[FlowsintType]] = {}
+        self._lowercase_types: Dict[str, Type[FlowsintType]] = {}
 
     def register(self, cls: Type[T]) -> Type[T]:
         """
@@ -51,7 +51,7 @@ class TypeRegistry:
 
         return cls
 
-    def get(self, type_name: str) -> Optional[Type[BaseModel]]:
+    def get(self, type_name: str) -> Optional[Type[FlowsintType]]:
         """
         Get a type by its name (case-sensitive).
 
@@ -63,7 +63,7 @@ class TypeRegistry:
         """
         return self._types.get(type_name)
 
-    def get_lowercase(self, type_name: str) -> Optional[Type[BaseModel]]:
+    def get_lowercase(self, type_name: str) -> Optional[Type[FlowsintType]]:
         """
         Get a type by its lowercase name (for Neo4j compatibility).
 
@@ -75,7 +75,7 @@ class TypeRegistry:
         """
         return self._lowercase_types.get(type_name.lower())
 
-    def all_types(self) -> Dict[str, Type[BaseModel]]:
+    def all_types(self) -> Dict[str, Type[FlowsintType]]:
         """
         Get all registered types.
 
@@ -84,7 +84,7 @@ class TypeRegistry:
         """
         return self._types.copy()
 
-    def all_types_lowercase(self) -> Dict[str, Type[BaseModel]]:
+    def all_types_lowercase(self) -> Dict[str, Type[FlowsintType]]:
         """
         Get all registered types with lowercase keys.
 
@@ -126,7 +126,9 @@ def flowsint_type(cls: Type[T]) -> Type[T]:
     return TYPE_REGISTRY.register(cls)
 
 
-def get_type(type_name: str, case_sensitive: bool = False) -> Optional[Type[BaseModel]]:
+def get_type(
+    type_name: str, case_sensitive: bool = False
+) -> Optional[Type[FlowsintType]]:
     """
     Convenience function to get a type from the global registry.
 
@@ -171,14 +173,17 @@ def load_all_types() -> None:
 
     # Get the flowsint_types package
     import flowsint_types
+
     package = flowsint_types
     package_path = package.__path__
     package_name = package.__name__
 
     # Iterate over all modules in the package
-    for importer, modname, ispkg in pkgutil.iter_modules(package_path, prefix=f"{package_name}."):
+    for importer, modname, ispkg in pkgutil.iter_modules(
+        package_path, prefix=f"{package_name}."
+    ):
         # Skip private modules
-        if modname.split('.')[-1].startswith('_'):
+        if modname.split(".")[-1].startswith("_"):
             continue
 
         # Skip if already imported

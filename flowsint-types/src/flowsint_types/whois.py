@@ -69,9 +69,9 @@ class Whois(FlowsintType):
     def compute_label(self) -> Self:
         # Use domain and organization if available
         if self.organization:
-            self.label = f"{self.domain.domain} - {self.organization.name}"
+            self.nodeLabel = f"{self.domain.domain} - {self.organization.name}"
         else:
-            self.label = self.domain.domain
+            self.nodeLabel = self.domain.domain
         return self
 
     @classmethod

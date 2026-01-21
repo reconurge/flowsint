@@ -76,7 +76,7 @@ class SSLCertificate(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.subject
+        self.nodeLabel = self.subject
         return self
 
     @classmethod

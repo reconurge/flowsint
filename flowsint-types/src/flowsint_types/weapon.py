@@ -122,7 +122,7 @@ class Weapon(FlowsintType):
         parts = [self.name]
         if self.type:
             parts.append(f"({self.type})")
-        self.label = " ".join(parts)
+        self.nodeLabel = " ".join(parts)
         return self
 
     @classmethod

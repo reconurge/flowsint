@@ -43,7 +43,7 @@ class IpToInfosEnricher(Enricher):
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Update IP nodes in Neo4j with geolocation information."""
-        if self.neo4j_conn:
+        if self._graph_service:
             for ip in results:
                 self.create_node(ip)
                 self.log_graph_message(

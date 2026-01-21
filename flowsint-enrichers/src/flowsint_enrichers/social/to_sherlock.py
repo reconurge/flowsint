@@ -97,7 +97,7 @@ class SherlockEnricher(Enricher):
         self, results: List[OutputType], original_input: List[InputType]
     ) -> List[OutputType]:
         """Create Neo4j relationships for found social accounts."""
-        if not self.neo4j_conn:
+        if not self._graph_service:
             return results
 
         for social_account in results:

@@ -135,7 +135,7 @@ class MaigretEnricher(Enricher):
         return results
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
-        if not self.neo4j_conn:
+        if not self._graph_service:
             return results
 
         for profile in results:

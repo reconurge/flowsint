@@ -56,7 +56,7 @@ class DomainToRootDomain(Enricher):
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Use the mapping we created during scan to create relationships
         for original_domain, root_domain in self.domain_root_mapping:
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
 
             # New simplified pattern: pass Pydantic objects directly

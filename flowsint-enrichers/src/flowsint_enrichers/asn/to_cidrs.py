@@ -3,7 +3,6 @@ import os
 from typing import List, Dict, Any, Union, Optional
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.cidr import CIDR
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_asn, parse_asn
@@ -23,14 +22,12 @@ class AsnToCidrsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -126,7 +123,7 @@ class AsnToCidrsEnricher(Enricher):
                 for cidr in cidr_list:
                     if str(cidr.network) == "0.0.0.0/0":
                         continue  # Skip default CIDR for unknown ASN
-                    if self.neo4j_conn:
+                    if self._graph_service:
                         self.create_node(asn)
 
                         self.create_node(cidr)
@@ -141,7 +138,7 @@ class AsnToCidrsEnricher(Enricher):
             for asn, cidr in zip(original_input, results):
                 if str(cidr.network) == "0.0.0.0/0":
                     continue  # Skip default CIDR for unknown ASN
-                if self.neo4j_conn:
+                if self._graph_service:
                     self.create_node(
                         "asn",
                         "number",

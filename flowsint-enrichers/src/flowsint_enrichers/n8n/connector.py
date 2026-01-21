@@ -4,7 +4,6 @@ from typing import List, Dict, Any, Optional
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
-from flowsint_core.core.graph_db import Neo4jConnection
 
 
 @flowsint_enricher
@@ -21,14 +20,12 @@ class N8nConnector(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,

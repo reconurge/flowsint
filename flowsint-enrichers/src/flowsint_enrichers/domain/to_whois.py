@@ -111,7 +111,7 @@ class WhoisEnricher(Enricher):
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         for whois_obj in results:
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
             # Create domain node
             self.create_node(whois_obj.domain)

@@ -9,7 +9,6 @@ from flowsint_types.organization import Organization
 from flowsint_types.individual import Individual
 from flowsint_types.address import Location
 from flowsint_core.core.logger import Logger
-from flowsint_core.core.graph_db import Neo4jConnection
 from tools.network.whoxy import WhoxyTool
 from flowsint_core.utils import is_valid_domain, is_root_domain
 from dotenv import load_dotenv
@@ -29,14 +28,12 @@ class OrgToDomainsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -390,7 +387,7 @@ class OrgToDomainsEnricher(Enricher):
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
-        if not self.neo4j_conn:
+        if not self._graph_service:
             Logger.info(
                 self.sketch_id,
                 {"message": "[WHOXY] No Neo4j connection, skipping postprocess"},

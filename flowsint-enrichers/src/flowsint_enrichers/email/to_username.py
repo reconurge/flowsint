@@ -40,7 +40,7 @@ class EmailToUsernameEnricher(Enricher):
         self, results: List[OutputType], original_input: List[InputType]
     ) -> List[OutputType]:
         for email_obj, username_obj in zip(original_input, results):
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
             # Create email node
             self.create_node(email_obj)

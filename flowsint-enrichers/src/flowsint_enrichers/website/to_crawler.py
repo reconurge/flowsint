@@ -142,7 +142,7 @@ class WebsiteToCrawler(Enricher):
             website_url = str(input_website.url)
 
             # Create website node
-            if self.neo4j_conn:
+            if self._graph_service:
                 self.create_node(input_website)
 
                 # Create email nodes and relationships

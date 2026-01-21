@@ -4,7 +4,6 @@ import socket
 from typing import Any, Dict, List, Optional, Union
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.domain import Domain
 from flowsint_types.asn import ASN
 from flowsint_core.utils import is_valid_domain
@@ -24,14 +23,12 @@ class DomainToAsnEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -118,7 +115,7 @@ class DomainToAsnEnricher(Enricher):
         self, results: List[OutputType], input_data: List[InputType] = None
     ) -> List[OutputType]:
         # Create Neo4j relationships between domains and their corresponding ASNs
-        if input_data and self.neo4j_conn:
+        if input_data and self._graph_service:
             for domain, asn in zip(input_data, results):
                 # Create domain node
                 self.create_node(domain)

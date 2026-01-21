@@ -54,7 +54,7 @@ class WebsiteToText(Enricher):
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)
 
-            if self.neo4j_conn:
+            if self._graph_service:
                 self.create_node(input_website)
 
                 # Create relationship with the specific phrase for this website

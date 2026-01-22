@@ -2,14 +2,14 @@
 Graph database repository for Neo4j operations.
 
 This module provides a repository pattern implementation for Neo4j,
-handling raw Neo4jDict object and operations with batching support.
+handling raw GraphDict object and operations with batching support.
 """
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from .connection import Neo4jConnection
-from .types import Neo4jDict
+from .types import GraphDict
 
 
 class Neo4jGraphRepository:
@@ -36,17 +36,17 @@ class Neo4jGraphRepository:
 
     def create_node(
         self,
-        node_obj: Neo4jDict,
+        node_obj: GraphDict,
         sketch_id: str,
     ) -> Optional[str]:
         """
         Create or update a single node in Neo4j.
 
         Supported signature:
-        1. Neo4jDict object: create_node(obj)
+        1. GraphDict object: create_node(obj)
 
         Args:
-            node_obj: a Neo4jDict object
+            node_obj: a GraphDict object
             sketch_id: str
 
         Returns:
@@ -61,7 +61,7 @@ class Neo4jGraphRepository:
 
     def create_relationship(
         self,
-        rel_obj: Neo4jDict,
+        rel_obj: GraphDict,
         sketch_id: str,
     ) -> None:
         """
@@ -71,7 +71,7 @@ class Neo4jGraphRepository:
          - Pydantic objects: create_relationship(relation, sketch_id="...")
 
         Args:
-            rel_obj: the Neo4jDict object
+            rel_obj: the GraphDict object
             sketch_id: Investigation sketch ID (required)
         """
         if not self._connection:
@@ -103,7 +103,7 @@ class Neo4jGraphRepository:
             self.flush_batch()
 
     def _build_node_query(
-        self, node_obj: Neo4jDict, sketch_id: str
+        self, node_obj: GraphDict, sketch_id: str
     ) -> Tuple[str, Dict[str, Any]]:
         node_label = node_obj.get("nodeLabel")
         node_type = node_obj.get("nodeType")
@@ -127,7 +127,7 @@ class Neo4jGraphRepository:
 
     def _build_relationship_query(
         self,
-        rel_obj: Neo4jDict,
+        rel_obj: GraphDict,
         sketch_id: str,
     ) -> Tuple[str, Dict[str, Any]]:
         from_type = rel_obj["from_type"]
@@ -183,14 +183,14 @@ class Neo4jGraphRepository:
 
     def batch_create_nodes(
         self,
-        nodes: List[Neo4jDict],
+        nodes: List[GraphDict],
         sketch_id: str,
     ) -> Dict[str, Any]:
         """
         Create multiple nodes in a single batch transaction.
 
         Args:
-            nodes: List of Neo4jDict model instances to insert
+            nodes: List of GraphDict model instances to insert
             sketch_id: investigation sketch id
 
         Returns:
@@ -256,7 +256,7 @@ class Neo4jGraphRepository:
 
         Args:
             edges: List of edge dictionaries, each with:
-                - rel_obj: Source node Neo4jDict model
+                - rel_obj: Source node GraphDict model
 
         Returns:
             Dictionary with:
@@ -300,9 +300,9 @@ class Neo4jGraphRepository:
 
     def batch_create_edges_by_element_id(
         self,
-        edges: List[Neo4jDict],
+        edges: List[GraphDict],
         sketch_id: str,
-    ) -> Neo4jDict:
+    ) -> GraphDict:
         """
         Create multiple edges/relationships using element IDs in a single batch transaction.
 
@@ -388,7 +388,7 @@ class Neo4jGraphRepository:
             return {"edges_created": 0, "errors": errors}
 
     def update_node(
-        self, element_id: str, updates: Neo4jDict, sketch_id: str
+        self, element_id: str, updates: GraphDict, sketch_id: str
     ) -> Optional[str]:
         if not self._connection:
             return None
@@ -532,7 +532,7 @@ class Neo4jGraphRepository:
         return {"nodes": nodes_result, "edges": rels_result or []}
 
     def update_relationship(
-        self, element_id: str, rel_obj: Neo4jDict, sketch_id: str
+        self, element_id: str, rel_obj: GraphDict, sketch_id: str
     ) -> Optional[Dict[str, Any]]:
         if not self._connection:
             return None

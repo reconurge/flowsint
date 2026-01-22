@@ -12,12 +12,12 @@ from .connection import Neo4jConnection, neo4j_connection
 from .repository import Neo4jGraphRepository
 from .repository_protocol import GraphRepositoryProtocol
 from .serializer import GraphSerializer
-from .service import GraphService, create_graph_service, LoggerProtocol
+from .service import GraphService, LoggerProtocol, create_graph_service
 from .types import (
     GraphData,
+    GraphDict,
     GraphEdge,
     GraphNode,
-    Neo4jDict,
     NodeMetadata,
 )
 
@@ -38,6 +38,6 @@ __all__ = [
     "GraphData",
     "GraphEdge",
     "GraphNode",
-    "Neo4jDict",
+    "GraphDict",
     "NodeMetadata",
 ]

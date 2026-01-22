@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 from flowsint_types import FlowsintType
 from pydantic import BaseModel, Field
 
-Neo4jDict = Dict[str, Any]
+GraphDict = Dict[str, Any]
 
 
 class NodeMetadata(BaseModel):
@@ -36,7 +36,7 @@ class GraphNode(BaseModel):
     nodeFlag: Optional[str] = None
 
     nodeMetadata: NodeMetadata
-    nodeProperties: FlowsintType
+    nodeProperties: Any
 
     x: Optional[float] = 100.0
     y: Optional[float] = 100.0

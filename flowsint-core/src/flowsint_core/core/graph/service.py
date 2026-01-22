@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from .repository import Neo4jGraphRepository
 from .repository_protocol import GraphRepositoryProtocol
 from .serializer import GraphSerializer
-from .types import GraphData, GraphNode, Neo4jDict
+from .types import GraphData, GraphDict, GraphNode
 
 
 class LoggerProtocol(Protocol):
@@ -90,7 +90,7 @@ class GraphService:
                 "create_node method takes a GraphNode as input. If you want to insert a node from a FlowsintType, please use create_node_from_flowsint_type method."
             )
 
-        neo4j_node_dict: Neo4jDict = GraphSerializer.graph_node_to_neo4j_dict(node_obj)
+        neo4j_node_dict: GraphDict = GraphSerializer.graph_node_to_neo4j_dict(node_obj)
 
         if self._enable_batching:
             self._repository.add_to_batch(
@@ -120,7 +120,7 @@ class GraphService:
                 "create_node_from_flowsint_type method takes a FlowsintType as input. If you want to insert a node from a GraphNode, please use create_node method."
             )
 
-        neo4j_node_dict: Neo4jDict = GraphSerializer.flowsint_type_to_neo4j_dict(
+        neo4j_node_dict: GraphDict = GraphSerializer.flowsint_type_to_neo4j_dict(
             node_obj
         )
 
@@ -169,7 +169,7 @@ class GraphService:
             **properties: Additional relationship properties
         """
 
-        neo4j_rel_dict: Neo4jDict = GraphSerializer.graph_edge_to_neo4j_dict(
+        neo4j_rel_dict: GraphDict = GraphSerializer.graph_edge_to_neo4j_dict(
             from_obj, to_obj, rel_label
         )
 
@@ -267,7 +267,7 @@ class GraphService:
             sketch_id=self._sketch_id,
         )
 
-    def batch_create_nodes(self, nodes: List[Neo4jDict]) -> Dict[str, Any]:
+    def batch_create_nodes(self, nodes: List[GraphDict]) -> Dict[str, Any]:
         """Create multiple nodes in a single batch transaction."""
         return self._repository.batch_create_nodes(
             nodes=nodes,
@@ -275,7 +275,7 @@ class GraphService:
         )
 
     def batch_create_edges_by_element_id(
-        self, edges: List[Neo4jDict]
+        self, edges: List[GraphDict]
     ) -> Dict[str, Any]:
         """Create multiple edges using element IDs in a single batch transaction."""
         return self._repository.batch_create_edges_by_element_id(

@@ -5,9 +5,9 @@ This module defines the interface contract that all graph repository
 implementations must follow, enabling dependency injection and easier testing.
 """
 
-from typing import Any, Dict, List, Optional, Protocol, Tuple
+from typing import Any, Dict, List, Optional, Protocol
 
-from .types import Neo4jDict
+from .types import GraphDict
 
 
 class GraphRepositoryProtocol(Protocol):
@@ -21,12 +21,12 @@ class GraphRepositoryProtocol(Protocol):
     """
 
     # Core node operations
-    def create_node(self, node_obj: Neo4jDict, sketch_id: str) -> Optional[str]:
+    def create_node(self, node_obj: GraphDict, sketch_id: str) -> Optional[str]:
         """Create or update a single node. Returns element ID."""
         ...
 
     def update_node(
-        self, element_id: str, updates: Neo4jDict, sketch_id: str
+        self, element_id: str, updates: GraphDict, sketch_id: str
     ) -> Optional[str]:
         """Update a node by its element ID. Returns element ID."""
         ...
@@ -52,7 +52,7 @@ class GraphRepositoryProtocol(Protocol):
         ...
 
     # Core relationship operations
-    def create_relationship(self, rel_obj: Neo4jDict, sketch_id: str) -> None:
+    def create_relationship(self, rel_obj: GraphDict, sketch_id: str) -> None:
         """Create a relationship between two nodes."""
         ...
 
@@ -67,7 +67,7 @@ class GraphRepositoryProtocol(Protocol):
         ...
 
     def update_relationship(
-        self, element_id: str, rel_obj: Neo4jDict, sketch_id: str
+        self, element_id: str, rel_obj: GraphDict, sketch_id: str
     ) -> Optional[Dict[str, Any]]:
         """Update a relationship by its element ID."""
         ...
@@ -100,13 +100,13 @@ class GraphRepositoryProtocol(Protocol):
 
     # Batch operations
     def batch_create_nodes(
-        self, nodes: List[Neo4jDict], sketch_id: str
+        self, nodes: List[GraphDict], sketch_id: str
     ) -> Dict[str, Any]:
         """Create multiple nodes in a single batch."""
         ...
 
     def batch_create_edges_by_element_id(
-        self, edges: List[Neo4jDict], sketch_id: str
+        self, edges: List[GraphDict], sketch_id: str
     ) -> Dict[str, Any]:
         """Create multiple edges using element IDs in a single batch."""
         ...

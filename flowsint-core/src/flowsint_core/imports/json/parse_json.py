@@ -71,9 +71,9 @@ def _get_nodes(nodes: List[Dict]) -> List[EntityPreview]:
     results = []
     for node in nodes:
         node_id = node.get("id")
-        node_type = node.get("type", None)
-        label = node.get("label", None)
-        node_obj = {"type": node_type, "label": label, **node}
+        node_type = node.get("nodeType", node.get("type"))
+        label = node.get("nodeLabel", node.get("label"))
+        node_obj = {"nodeType": node_type, "nodeLabel": label, **node}
         preview = _parse_node(node_obj)
         if preview:
             results.append(
@@ -88,10 +88,10 @@ def _get_nodes(nodes: List[Dict]) -> List[EntityPreview]:
 
 
 def _parse_node(nodeDict: dict) -> EntityPreview | None:
-    type = nodeDict.get("type")
+    type = nodeDict.get("nodeType")
     first_key = next(iter(nodeDict), None)
     label = (
-        nodeDict.get("label")
+        nodeDict.get("nodeLabel")
         or (nodeDict.get(first_key) if first_key else None)
         or nodeDict.get("id")
     )

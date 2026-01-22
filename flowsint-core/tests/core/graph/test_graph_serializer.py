@@ -4,9 +4,9 @@ import pytest
 from flowsint_types import Domain, Ip
 
 from flowsint_core.core.graph import (
-    GraphSerializer,
     GraphEdge,
     GraphNode,
+    GraphSerializer,
     NodeMetadata,
 )
 
@@ -184,7 +184,7 @@ class TestGraphNodeToFlowsintType:
         assert result.domain == "example.com"
 
 
-class TestNeo4jDictToGraphEdge:
+class TestGraphDictToGraphEdge:
     def test_converts_edge_dict(self):
         edge_dict = {
             "id": "edge-123",
@@ -207,7 +207,7 @@ class TestNeo4jDictToGraphEdge:
         assert result.target == "2"
 
 
-class TestGraphEdgeToNeo4jDict:
+class TestGraphEdgeToGraphDict:
     def test_with_flowsint_types(self):
         from_obj = Domain(domain="source.com")
         to_obj = Domain(domain="target.com")
@@ -313,7 +313,7 @@ class TestDeserializeEdges:
         assert result == []
 
 
-class TestNeo4jDictToGraphNodeErrors:
+class TestGraphDictToGraphNodeErrors:
     def test_raises_on_missing_data(self):
         node_dict = {"id": "123"}
         with pytest.raises(Exception, match="Could not find node data"):

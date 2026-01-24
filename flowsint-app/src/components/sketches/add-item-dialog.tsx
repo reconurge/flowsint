@@ -95,6 +95,7 @@ export default function AddItemDialog() {
       x: nodeX, // Position at viewport center
       y: nodeY,
       nodeSize: 4,
+      nodeShape: 'circle',
       nodeColor: null,
       nodeFlag: null,
       nodeIcon: null,

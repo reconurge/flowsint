@@ -18,6 +18,8 @@ export type NodeMetadata = {
   [key: string]: any
 }
 
+export type NodeShape = 'circle' | 'square' | 'hexagon' | 'triangle'
+
 export type GraphNode = {
   id: string
   nodeType: string
@@ -28,6 +30,7 @@ export type GraphNode = {
   nodeIcon: keyof typeof LucideIcons | null
   nodeImage: string | null
   nodeFlag: flagColor | null
+  nodeShape: NodeShape | null
   nodeMetadata: NodeMetadata
   x: number
   y: number

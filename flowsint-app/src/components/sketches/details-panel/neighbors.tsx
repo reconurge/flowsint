@@ -33,13 +33,14 @@ const NeighborsGraph = memo(
     const nodes = useMemo(
       () =>
         neighborsData?.nds.map(
-          ({ id, nodeType, nodeColor, nodeIcon, nodeLabel, nodeImage }: GraphNode) => ({
+          ({ id, nodeType, nodeColor, nodeIcon, nodeLabel, nodeImage, nodeShape }: GraphNode) => ({
             id,
             nodeType,
             nodeColor,
             nodeIcon,
             nodeLabel,
-            nodeImage
+            nodeImage,
+            nodeShape
           })
         ),
       [neighborsData?.nds]

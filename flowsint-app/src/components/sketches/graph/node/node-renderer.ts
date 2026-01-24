@@ -1,4 +1,4 @@
-import { GraphNode } from '@/types'
+import { GraphNode, NodeShape } from '@/types'
 import { CONSTANTS, GRAPH_COLORS } from '../utils/constants'
 import {
   getCachedImage,
@@ -13,18 +13,78 @@ type NodeVisual = {
   isExternal: boolean
 } | null
 
-// Draws an image with object-cover behavior inside a circular clip
-const drawCircularImage = (
+// Shape path helpers - each creates a path centered at (x, y) with given size
+const drawCirclePath = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  ctx.arc(x, y, size, 0, 2 * Math.PI)
+}
+
+const drawSquarePath = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  const half = size
+  ctx.rect(x - half, y - half, half * 2, half * 2)
+}
+
+const drawHexagonPath = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  // Flat-top hexagon
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 6
+    const px = x + size * Math.cos(angle)
+    const py = y + size * Math.sin(angle)
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.closePath()
+}
+
+const drawTrianglePath = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  // Equilateral triangle pointing up
+  const height = size * Math.sqrt(3)
+  const topY = y - height / 2
+  const bottomY = y + height / 2
+  ctx.moveTo(x, topY)
+  ctx.lineTo(x + size, bottomY)
+  ctx.lineTo(x - size, bottomY)
+  ctx.closePath()
+}
+
+// Unified shape path drawer
+const drawNodePath = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  shape: NodeShape
+) => {
+  ctx.beginPath()
+  switch (shape) {
+    case 'square':
+      drawSquarePath(ctx, x, y, size)
+      break
+    case 'hexagon':
+      drawHexagonPath(ctx, x, y, size)
+      break
+    case 'triangle':
+      drawTrianglePath(ctx, x, y, size)
+      break
+    case 'circle':
+    default:
+      drawCirclePath(ctx, x, y, size)
+      break
+  }
+}
+
+// Draws an image with object-cover behavior inside a shape clip
+const drawClippedImage = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   x: number,
   y: number,
-  radius: number
+  size: number,
+  shape: NodeShape
 ) => {
-  const diameter = radius * 2
+  const diameter = size * 2
   const imgAspect = img.naturalWidth / img.naturalHeight
 
-  // Calculate cover dimensions (fill the circle, crop excess)
+  // Calculate cover dimensions (fill the shape, crop excess)
   let drawWidth: number, drawHeight: number
   if (imgAspect > 1) {
     // Landscape: height fills, width overflows
@@ -36,8 +96,7 @@ const drawCircularImage = (
     drawHeight = diameter / imgAspect
   }
 
-  ctx.beginPath()
-  ctx.arc(x, y, radius, 0, 2 * Math.PI)
+  drawNodePath(ctx, x, y, size, shape)
   ctx.clip()
   ctx.drawImage(img, x - drawWidth / 2, y - drawHeight / 2, drawWidth, drawHeight)
 }
@@ -128,12 +187,12 @@ export const renderNode = ({
   const isHighlighted = highlightNodes.has(node.id) || isSelected(node.id) || isCurrent(node.id)
   const hasAnyHighlight = highlightNodes.size > 0 || highlightLinks.size > 0
   const isHovered = hoverNode === node.id || isCurrent(node.id)
+  const shape: NodeShape = node.nodeShape ?? 'circle'
 
   // Draw highlight ring
   if (isHighlighted) {
     const borderWidth = 3 / globalScale
-    ctx.beginPath()
-    ctx.arc(node.x, node.y, size + borderWidth, 0, 2 * Math.PI)
+    drawNodePath(ctx, node.x, node.y, size + borderWidth, shape)
     ctx.fillStyle = isHovered
       ? GRAPH_COLORS.NODE_HIGHLIGHT_HOVER
       : GRAPH_COLORS.NODE_HIGHLIGHT_DEFAULT
@@ -149,9 +208,8 @@ export const renderNode = ({
 
   const isOutlined = forceSettings.nodeOutlined?.value ?? false
 
-  // Draw node circle (filled or outlined)
-  ctx.beginPath()
-  ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+  // Draw node shape (filled or outlined)
+  drawNodePath(ctx, node.x, node.y, size, shape)
 
   if (isOutlined) {
     // Fill background: white in light mode, dark in dark mode
@@ -165,8 +223,7 @@ export const renderNode = ({
     ctx.fillStyle = nodeColor
     ctx.fill()
     // Draw subtle border for filled nodes
-    ctx.beginPath()
-    ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+    drawNodePath(ctx, node.x, node.y, size, shape)
     ctx.strokeStyle = theme === 'light' ? 'rgba(44, 44, 44, 0.19)' : 'rgba(222, 222, 222, 0.13)'
     ctx.lineWidth = 0.3
     ctx.stroke()
@@ -260,9 +317,9 @@ export const renderNode = ({
         ctx.globalAlpha = iconAlpha
 
         if (visual.isExternal) {
-          // External image: circular, 90% of node size, object-cover
-          const imgRadius = size * 0.9
-          drawCircularImage(ctx, visual.image, node.x, node.y, imgRadius)
+          // External image: clipped to shape, 90% of node size, object-cover
+          const imgSize = size * 0.9
+          drawClippedImage(ctx, visual.image, node.x, node.y, imgSize, shape)
         } else {
           // Icon: draw normally
           const iconSize = size * 1.2

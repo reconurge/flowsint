@@ -16,6 +16,7 @@ import {
   preloadFlagImage
 } from './utils/image-cache'
 import { renderNode } from './node/node-renderer'
+import { useKeyboardEvents } from './hooks/use-keyboard-events'
 import { renderLink } from './edge/link-renderer'
 import { useHighlightState } from './hooks/use-highlight-state'
 import { useTooltip } from './hooks/use-tooltip'
@@ -245,6 +246,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     },
     [handleNodeHover, showTooltip, hideTooltip]
   )
+
+  useKeyboardEvents(sketchId)
 
   const {
     handleNodeClick,

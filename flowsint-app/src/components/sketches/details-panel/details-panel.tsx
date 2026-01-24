@@ -14,7 +14,7 @@ import { useGraphStore } from '@/stores/graph-store'
 import DOMPurify from 'dompurify'
 import { useIcon } from '@/hooks/use-icon'
 import { Switch } from '@/components/ui/switch'
-import type { GraphNode, NodeProperties, NodeMetadata } from '@/types'
+import type { GraphNode, NodeProperties, NodeMetadata, NodeShape } from '@/types'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -23,6 +23,9 @@ import IconPicker from '@/components/shared/icon-picker'
 import { ResizableDetailsPanel, Row } from './resizable-details-panels'
 import Relationships from './relationships'
 import NeighborsGraph from './neighbors'
+import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Slider } from '@/components/ui/slider'
 // Types
 type FormData = {
   nodeLabel: string
@@ -30,6 +33,8 @@ type FormData = {
   nodeIcon: string | null
   nodeImage: string | null
   nodeFlag: string | null
+  nodeShape: string | null
+  nodeSize: number | null
   nodeProperties: NodeProperties
   nodeMetadata: NodeMetadata
   notes: string
@@ -47,6 +52,12 @@ const COLORS = [
   { name: 'pink', value: '#ec4899' }
 ]
 
+const NODE_SHAPES = {
+  circle: Circle,
+  square: Square,
+  hexagon: Hexagon,
+  triangle: Triangle
+} satisfies Record<NodeShape, React.ComponentType<{ size?: number; className?: string }>>
 // Extended Row Component with copy support
 const RowWithCopy = memo(
   ({
@@ -128,10 +139,13 @@ const DetailsPanel = memo(() => {
     nodeIcon: null,
     nodeImage: null,
     nodeFlag: null,
+    nodeShape: null,
+    nodeSize: 0,
     nodeProperties: {},
     nodeMetadata: {},
     notes: ''
   })
+  const [nodeSize, setNodeSize] = useState<number>(0)
 
   const IconComponent = useIcon(node?.nodeType as string, {
     nodeColor: node?.nodeColor,
@@ -139,11 +153,24 @@ const DetailsPanel = memo(() => {
     nodeImage: node?.nodeImage
   })
 
+  useEffect(() => {
+    nodeSize !== node?.nodeSize && setHasChanges(true)
+  }, [nodeSize])
+
   // Sync form data when node changes
   useEffect(() => {
     if (node) {
-      const { nodeLabel, nodeImage, nodeIcon, nodeFlag, nodeColor, nodeMetadata, nodeProperties } =
-        node
+      const {
+        nodeLabel,
+        nodeImage,
+        nodeIcon,
+        nodeFlag,
+        nodeColor,
+        nodeShape,
+        nodeMetadata,
+        nodeProperties,
+        nodeSize
+      } = node
       setFormData({
         nodeLabel: nodeLabel || '',
         nodeProperties: nodeProperties || {},
@@ -152,8 +179,11 @@ const DetailsPanel = memo(() => {
         nodeIcon,
         nodeImage,
         nodeFlag,
+        nodeShape,
+        nodeSize,
         notes: (nodeMetadata?.notes as string) || ''
       })
+      setNodeSize(node.nodeSize ?? 0)
       setHasChanges(false)
     }
   }, [node])
@@ -174,7 +204,7 @@ const DetailsPanel = memo(() => {
     onSuccess: (result) => {
       if (result.status === 'node updated' && node) {
         const { notes, ...rest } = formData
-        const updates = { ...rest, nodeMetadata: { ...rest.nodeMetadata, notes } }
+        const updates = { ...rest, nodeMetadata: { ...rest.nodeMetadata, notes }, nodeSize }
         updateNode(node.id, updates as Partial<GraphNode>)
         if (sketchId) {
           queryClient.invalidateQueries({ queryKey: queryKeys.sketches.detail(sketchId) })
@@ -408,6 +438,18 @@ const DetailsPanel = memo(() => {
             minSize: 10,
             content: (
               <div className="p-3">
+                <Row label={`Size (${nodeSize})`}>
+                  <div className="flex w-full items-center">
+                    <Slider
+                      value={[nodeSize]}
+                      onValueChange={([value]) => setNodeSize(value)}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="flex-1 grow"
+                    />
+                  </div>
+                </Row>
                 <Row label="Color">
                   <div className="flex items-center gap-1">
                     {COLORS.map((color) => (
@@ -432,6 +474,29 @@ const DetailsPanel = memo(() => {
                   >
                     {formData.nodeIcon || 'Default'}
                   </button>
+                </Row>
+                <Row label="Shape">
+                  <div className="flex items-center gap-1">
+                    <ToggleGroup
+                      onValueChange={(value) => handleChange('nodeShape', value || null)}
+                      type="single"
+                      size="sm"
+                      defaultValue={node.nodeShape || 'circle'}
+                      variant="outline"
+                      className="shadow-none!"
+                    >
+                      {(
+                        Object.entries(NODE_SHAPES) as [
+                          NodeShape,
+                          (typeof NODE_SHAPES)[NodeShape]
+                        ][]
+                      ).map(([shape, Icon]) => (
+                        <ToggleGroupItem value={shape} aria-label={shape}>
+                          <Icon size={14} />
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
+                  </div>
                 </Row>
                 <Row label="Image">
                   <input
@@ -505,6 +570,8 @@ const DetailsPanel = memo(() => {
                       nodeFlag,
                       nodeColor,
                       nodeMetadata,
+                      nodeShape,
+                      nodeSize,
                       nodeProperties
                     } = node
                     setFormData({
@@ -515,6 +582,8 @@ const DetailsPanel = memo(() => {
                       nodeIcon,
                       nodeImage,
                       nodeFlag,
+                      nodeShape,
+                      nodeSize,
                       notes: (nodeMetadata?.notes as string) || ''
                     })
                     setHasChanges(false)

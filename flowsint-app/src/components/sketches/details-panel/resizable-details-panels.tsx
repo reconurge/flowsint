@@ -177,9 +177,11 @@ export function ResizableDetailsPanel({
 
 // Row Component for displaying key-value pairs
 export const Row = memo(({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="flex items-center justify-between py-1.5 group hover:bg-muted/20 -mx-2 px-2 rounded-sm transition-colors">
+  <div className="flex items-center justify-between gap-4 py-1.5 group hover:bg-muted/20 -mx-2 px-2 rounded-sm transition-colors">
     <span className="text-[13px] text-muted-foreground">{label.replace(/_/g, ' ')}</span>
-    <div className="text-[13px] text-foreground flex items-center gap-1">{children}</div>
+    <div className="text-[13px] grow text-foreground flex items-center justify-end gap-1">
+      {children}
+    </div>
   </div>
 ))
 Row.displayName = 'Row'

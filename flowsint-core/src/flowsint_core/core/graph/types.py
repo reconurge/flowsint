@@ -7,7 +7,7 @@ This module contains Pydantic models for graph nodes, edges, and related data st
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from flowsint_types import FlowsintType
+# from flowsint_types import FlowsintType
 from pydantic import BaseModel, Field
 
 GraphDict = Dict[str, Any]
@@ -34,6 +34,7 @@ class GraphNode(BaseModel):
     nodeIcon: Optional[str] = None
     nodeImage: Optional[str] = None
     nodeFlag: Optional[str] = None
+    nodeShape: Optional[str] = None
 
     nodeMetadata: NodeMetadata
     nodeProperties: Any

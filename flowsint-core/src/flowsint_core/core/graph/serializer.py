@@ -93,13 +93,14 @@ class GraphSerializer:
             id=node_id,
             nodeLabel=nodeLabel,
             nodeType=node_type,
-            nodeColor=data.get("nodeColor"),
-            nodeSize=data.get("nodeSize"),
-            nodeImage=data.get("nodeImage"),
-            nodeIcon=data.get("nodeIcon"),
-            nodeFlag=data.get("nodeFlag"),
-            x=data.get("x"),
-            y=data.get("y"),
+            nodeColor=node_dict.get("nodeColor"),
+            nodeSize=node_dict.get("nodeSize"),
+            nodeImage=node_dict.get("nodeImage"),
+            nodeIcon=node_dict.get("nodeIcon"),
+            nodeFlag=node_dict.get("nodeFlag"),
+            nodeShape=node_dict.get("nodeShape"),
+            x=node_dict.get("x"),
+            y=node_dict.get("y"),
             nodeProperties=entity,
             nodeMetadata=node_metadata,
         )
@@ -108,12 +109,16 @@ class GraphSerializer:
     def flowsint_type_to_neo4j_dict(entity: FlowsintType) -> Dict[str, Any]:
         node_type = entity.__class__.__name__.lower()
         node_label = entity.nodeLabel
+        node_shape = (
+            "square" if node_type in ["document", "image", "bankaccount"] else "circle"
+        )
         graph_node = GraphNode(
             id="",
             nodeColor=None,
             nodeIcon=None,
             nodeImage=None,
             nodeFlag=None,
+            nodeShape=node_shape,
             nodeLabel=node_label or "",
             nodeType=node_type,
             nodeProperties=entity,

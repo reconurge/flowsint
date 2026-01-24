@@ -27,6 +27,8 @@
  * - Processes in batches to handle large datasets
  */
 
+import neo4j from "neo4j-driver";
+
 // Reserved properties that should NOT be moved to nodeProperties
 const RESERVED_PROPERTIES = new Set([
   "id",
@@ -112,7 +114,7 @@ export async function migrate(driver, session, dryRun) {
       RETURN elementId(n) AS elementId, n, labels(n) AS labels
       LIMIT $limit
     `,
-      { limit: BATCH_SIZE }
+      { limit: neo4j.int(BATCH_SIZE) }
     );
 
     if (batchResult.records.length === 0) {

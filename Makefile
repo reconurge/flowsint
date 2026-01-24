@@ -1,6 +1,6 @@
 PROJECT_ROOT := $(shell pwd)
 
-.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser test
+.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser test migrate
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
 open-browser:
@@ -12,14 +12,24 @@ open-browser:
 dev:
 	@echo "🐙 Starting Flowsint in DEVELOPMENT mode..."
 	$(MAKE) check-env
-	docker compose -f docker-compose.dev.yml up --build -d
+	@echo "🗄️ Starting infrastructure..."
+	docker compose -f docker-compose.dev.yml up -d --build --wait postgres redis neo4j
+	@echo "🗄️ Running Neo4j migrations..."
+	yarn migrate
+	@echo "🚀 Starting application..."
+	docker compose -f docker-compose.dev.yml up -d --build
 	$(MAKE) open-browser
 	docker compose -f docker-compose.dev.yml logs -f
 
 prod:
 	@echo "🐙 Starting Flowsint in PRODUCTION mode..."
 	$(MAKE) check-env
-	docker compose -f docker-compose.prod.yml up --build -d
+	@echo "🗄️ Starting infrastructure..."
+	docker compose -f docker-compose.prod.yml up -d --build --wait postgres redis neo4j
+	@echo "🗄️ Running Neo4j migrations..."
+	yarn migrate
+	@echo "🚀 Starting application..."
+	docker compose -f docker-compose.prod.yml up -d --build
 	$(MAKE) open-browser
 
 build-dev:
@@ -124,3 +134,7 @@ clean:
 	rm -rf $(PROJECT_ROOT)/flowsint-enrichers/.venv
 	rm -rf $(PROJECT_ROOT)/flowsint-api/.venv
 	@echo "✅ Cleanup complete!"
+
+migrate:
+	@echo "🗄️ Running Neo4j migrations..."
+	yarn migrate

@@ -13,12 +13,18 @@
     "release:major": "standard-version --release-as major",
     "release:patch": "standard-version --release-as patch",
     "release:first": "standard-version --first-release",
-    "sync-version": "node scripts/sync-versions.js"
+    "sync-version": "node scripts/sync-versions.js",
+    "migrate": "node scripts/migrate.js",
+    "migrate:dry-run": "node scripts/migrate.js --dry-run"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "neo4j-driver": "^5.27.0"
   },
   "devDependencies": {
     "husky": "^9.1.7",

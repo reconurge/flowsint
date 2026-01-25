@@ -1,8 +1,67 @@
+# Dependencies (will be installed in container)
 node_modules
-npm-debug.log
-.DS_Store
+
+# Build output (will be built in container)
 dist
-.env.local
-.env.*.local
+build
+
+# Development files
+*.dev
+Dockerfile.dev
+Dockerfile.optimized
+
+# Environment files (secrets - NEVER include)
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Testing
 coverage
+.nyc_output
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache
 .vite
+.eslintcache
+.parcel-cache
+
+*.md
+!README.md
+docs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Misc
+*.bak
+*.tmp
+.husky

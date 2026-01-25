@@ -1,7 +1,6 @@
 name: flowsint-dev
 
 services:
-  # PostgreSQL database
   postgres:
     image: postgres:15
     container_name: flowsint-postgres-dev
@@ -22,7 +21,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for Celery & cache
   redis:
     image: redis:alpine
     container_name: flowsint-redis-dev
@@ -36,13 +34,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Neo4j graph database
   neo4j:
     image: neo4j:5
     container_name: flowsint-neo4j-dev
     ports:
-      - "7474:7474"  # Web UI
-      - "7687:7687"  # Bolt
+      - "7474:7474" # Web UI
+      - "7687:7687" # Bolt
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
       - NEO4J_PLUGINS=["apoc"]
@@ -63,7 +60,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # FastAPI Backend
   api:
     build:
       context: .
@@ -75,10 +71,11 @@ services:
       - "5001:5001"
     volumes:
       - ./flowsint-api:/app/flowsint-api
+      - /app/flowsint-api/.venv
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
       - ./flowsint-enrichers:/app/flowsint-enrichers
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
       - NEO4J_URI_BOLT=bolt://neo4j:7687
@@ -102,7 +99,6 @@ services:
     networks:
       - flowsint_network
 
-  # Celery Worker
   celery:
     build:
       context: .
@@ -113,10 +109,11 @@ services:
     command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=threads --concurrency=10
     volumes:
       - ./flowsint-api:/app/flowsint-api
+      - /app/flowsint-api/.venv
       - ./flowsint-core:/app/flowsint-core
       - ./flowsint-types:/app/flowsint-types
       - ./flowsint-enrichers:/app/flowsint-enrichers
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
       - NEO4J_URI_BOLT=bolt://neo4j:7687
@@ -137,7 +134,6 @@ services:
     networks:
       - flowsint_network
 
-  # Frontend
   app:
     build:
       context: ./flowsint-app

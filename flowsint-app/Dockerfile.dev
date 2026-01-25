@@ -1,12 +1,17 @@
-FROM node:24
+FROM node:24-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN yarn install
+RUN apk add --no-cache python3 make g++
+
+# Copy dependency files
+COPY package.json yarn.lock ./
+
+RUN yarn install --network-timeout 100000
 
 COPY . .
 
 EXPOSE 5173
 
+# Vite dev server with hot-reload
 CMD ["yarn", "dev", "--host", "0.0.0.0"]

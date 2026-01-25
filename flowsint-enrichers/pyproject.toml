@@ -22,7 +22,6 @@ phonenumbers = "^9.0.8"
 pydantic = "^2.11.7"
 
 requests-random-user-agent = "^2023.10.25"
-spacy = "^3.7"
 maigret = { git = "https://github.com/soxoj/maigret", python = ">=3.12,<4.0" }
 recontrack = { git = "https://github.com/reconurge/recontrack.git" }
 reconcrawl = { git = "https://github.com/reconurge/reconcrawl.git" }

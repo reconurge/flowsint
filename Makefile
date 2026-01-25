@@ -77,7 +77,6 @@ dev:
 	@echo "Starting DEV environment..."
 	$(MAKE) check-env
 	$(MAKE) infra-dev
-	$(MAKE) migrate-dev
 	$(MAKE) build-dev
 	$(MAKE) up-dev
 	$(MAKE) open-browser

@@ -1,27 +1,21 @@
-# =====================
-# Global configuration
-# =====================
-
 PROJECT_ROOT := $(shell pwd)
 
 export DOCKER_BUILDKIT=0
 export COMPOSE_PARALLEL_LIMIT=1
 
-COMPOSE_DEV := docker compose -f docker-compose.dev.yml
+COMPOSE_DEV  := docker compose -f docker-compose.dev.yml
 COMPOSE_PROD := docker compose -f docker-compose.prod.yml
 
 .PHONY: \
 	dev prod \
 	build-dev build-prod \
 	up-dev up-prod down \
+	infra-dev infra-prod infra-stop-dev infra-stop-prod \
+	migrate-dev migrate-prod \
 	api frontend celery \
-	test migrate install clean check-env open-browser infra
+	test install clean check-env open-browser
 
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
-
-# =====================
-# Helpers
-# =====================
 
 check-env:
 	@echo "Checking .env files..."
@@ -41,10 +35,6 @@ open-browser:
 	 xdg-open http://localhost:5173 2>/dev/null || \
 	 echo "Frontend ready at http://localhost:5173"
 
-# =====================
-# Build
-# =====================
-
 build-dev:
 	@echo "Building DEV images..."
 	$(COMPOSE_DEV) build
@@ -53,39 +43,44 @@ build-prod:
 	@echo "Building PROD images..."
 	$(COMPOSE_PROD) build
 
-# =====================
-# Infra
-# =====================
-
-infra:
-	@echo "Starting infra (postgres / redis / neo4j)..."
+infra-dev:
+	@echo "Starting DEV infra (postgres / redis / neo4j)..."
 	$(COMPOSE_DEV) up -d postgres redis neo4j
 
-infra-stop:
-	@echo "Stopping infra..."
+infra-prod:
+	@echo "Starting PROD infra (postgres / redis / neo4j)..."
+	$(COMPOSE_PROD) up -d postgres redis neo4j
+
+infra-stop-dev:
+	@echo "Stopping DEV infra..."
 	$(COMPOSE_DEV) stop postgres redis neo4j
 
-# =====================
-# Migrations
-# =====================
+infra-stop-prod:
+	@echo "Stopping PROD infra..."
+	$(COMPOSE_PROD) stop postgres redis neo4j
 
-migrate:
-	@echo "Running migrations..."
+migrate-dev:
+	@echo "Running DEV migrations..."
 	@if ! $(COMPOSE_DEV) ps -q neo4j | grep -q .; then \
-		echo "Neo4j not running → starting infra"; \
+		echo "Neo4j not running → starting DEV infra"; \
 		$(COMPOSE_DEV) up -d --wait neo4j; \
 	fi
 	yarn migrate
 
-# =====================
-# Main workflows
-# =====================
+migrate-prod:
+	@echo "⚠️  Running PROD migrations"
+	@echo "This will ALTER production data."
+	@read -p "Type 'prod' to continue: " confirm; \
+	if [ "$$confirm" != "prod" ]; then \
+		echo "Aborted."; exit 1; \
+	fi
+	yarn migrate
 
 dev:
 	@echo "Starting DEV environment..."
 	$(MAKE) check-env
-	$(MAKE) infra
-	$(MAKE) migrate
+	$(MAKE) infra-dev
+	$(MAKE) migrate-dev
 	$(MAKE) build-dev
 	$(MAKE) up-dev
 	$(MAKE) open-browser
@@ -97,10 +92,6 @@ prod:
 	$(MAKE) build-prod
 	$(MAKE) up-prod
 
-# =====================
-# Up / Down
-# =====================
-
 up-dev:
 	$(COMPOSE_DEV) up -d --no-build
 
@@ -110,10 +101,6 @@ up-prod:
 down:
 	-$(COMPOSE_DEV) down
 	-$(COMPOSE_PROD) down
-
-# =====================
-# Local commands
-# =====================
 
 api:
 	cd $(PROJECT_ROOT)/flowsint-api && \
@@ -128,10 +115,6 @@ celery:
 	poetry run celery -A flowsint_core.core.celery \
 	worker --loglevel=info --pool=threads --concurrency=10
 
-# =====================
-# Tests / Install
-# =====================
-
 test:
 	cd flowsint-types && poetry run pytest
 	cd flowsint-core && poetry run pytest
@@ -139,15 +122,11 @@ test:
 
 install:
 	poetry config virtualenvs.in-project true --local
-	$(MAKE) infra
+	$(MAKE) infra-dev
 	poetry install
 	cd flowsint-core && poetry install
 	cd flowsint-enrichers && poetry install
 	cd flowsint-api && poetry install && poetry run alembic upgrade head
-
-# =====================
-# Cleanup (dangerous)
-# =====================
 
 clean:
 	@echo "This will remove ALL Docker data. Continue? [y/N]"

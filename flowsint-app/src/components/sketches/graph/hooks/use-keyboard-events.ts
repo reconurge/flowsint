@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
-import { useCreateOnPaste } from './use-create-on-paste'
+// import { useCreateOnPaste } from './use-create-on-paste'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 
 export const useKeyboardEvents = (sketchId: string) => {
@@ -11,7 +11,7 @@ export const useKeyboardEvents = (sketchId: string) => {
     setSelectedNodes(filteredNodes)
   }, [filteredNodes, setSelectedNodes])
 
-  useCreateOnPaste(sketchId)
+  // useCreateOnPaste(sketchId)
   useKeyboardShortcut({
     key: 'a',
     ctrlOrCmd: true,

@@ -1,8 +1,5 @@
 PROJECT_ROOT := $(shell pwd)
 
-export DOCKER_BUILDKIT=0
-export COMPOSE_PARALLEL_LIMIT=1
-
 COMPOSE_DEV  := docker compose -f docker-compose.dev.yml
 COMPOSE_PROD := docker compose -f docker-compose.prod.yml
 

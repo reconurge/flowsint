@@ -59,10 +59,10 @@ services:
     networks:
       - flowsint_network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
-      interval: 10s
+      test: cypher-shell -u ${NEO4J_USERNAME} -p ${NEO4J_PASSWORD} "RETURN 1"
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   # FastAPI Backend (Production)
   api:

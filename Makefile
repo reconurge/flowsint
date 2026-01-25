@@ -1,140 +1,149 @@
+# =====================
+# Global configuration
+# =====================
 PROJECT_ROOT := $(shell pwd)
 
-.PHONY: install run stop stop-dev stop-prod infra api frontend celery clean dev prod check-env build-dev build-prod open-browser test migrate
+# Disable BuildKit for local stability
+export DOCKER_BUILDKIT=0
+export COMPOSE_PARALLEL_LIMIT=1
+
+.PHONY: \
+	dev prod \
+	build-dev build-prod \
+	up-dev up-prod down \
+	api frontend celery \
+	test migrate install clean check-env open-browser infra
+
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
+# =====================
+# Helpers
+# =====================
+
 open-browser:
-	@echo "⏳ Waiting for frontend to be ready..."
+	@echo "Waiting for frontend..."
 	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'
-	@echo "🌐 Opening browser..."
-	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Flowsint ready at http://localhost:5173"
+	@open http://localhost:5173 2>/dev/null || \
+	 xdg-open http://localhost:5173 2>/dev/null || \
+	 echo "Frontend ready at http://localhost:5173"
+
+check-env:
+	@echo "Checking .env files..."
+	@for dir in $(ENV_DIRS); do \
+		env_file="$$dir/.env"; \
+		env_example="$(PROJECT_ROOT)/.env.example"; \
+		if [ ! -f "$$env_file" ]; then \
+			cp "$$env_example" "$$env_file"; \
+			echo "Created $$env_file"; \
+		fi; \
+	done
+
+# =====================
+# Build targets
+# =====================
+
+build-dev:
+	@echo "Building DEV images..."
+	docker compose -f docker-compose.dev.yml build
+
+build-prod:
+	@echo "Building PROD images..."
+	docker compose -f docker-compose.prod.yml build
+
+# =====================
+# Up / Down
+# =====================
+
+up-dev:
+	docker compose -f docker-compose.dev.yml up -d --no-build
+
+up-prod:
+	docker compose -f docker-compose.prod.yml up -d --no-build
+
+down:
+	-docker compose -f docker-compose.dev.yml down
+	-docker compose -f docker-compose.prod.yml down
+	-docker compose down
+
+# =====================
+# Main workflows
+# =====================
 
 dev:
-	@echo "🐙 Starting Flowsint in DEVELOPMENT mode..."
+	@echo "Starting DEV environment..."
 	$(MAKE) check-env
-	@echo "🗄️ Starting infrastructure..."
-	docker compose -f docker-compose.dev.yml up -d --build --wait postgres redis neo4j
-	@echo "🗄️ Running Neo4j migrations..."
-	yarn migrate
-	@echo "🚀 Starting application..."
-	docker compose -f docker-compose.dev.yml up -d --build
+	$(MAKE) migrate
+	$(MAKE) build-dev
+	$(MAKE) up-dev
 	$(MAKE) open-browser
 	docker compose -f docker-compose.dev.yml logs -f
 
 prod:
-	@echo "🐙 Starting Flowsint in PRODUCTION mode..."
+	@echo "Starting PROD environment..."
 	$(MAKE) check-env
-	@echo "🗄️ Starting infrastructure..."
-	docker compose -f docker-compose.prod.yml up -d --build --wait postgres redis neo4j
-	@echo "🗄️ Running Neo4j migrations..."
-	yarn migrate
-	@echo "🚀 Starting application..."
-	docker compose -f docker-compose.prod.yml up -d --build
+	$(MAKE) migrate
+	$(MAKE) build-prod
+	$(MAKE) up-prod
 	$(MAKE) open-browser
 
-build-dev:
-	@echo "🔨 Building development images..."
-	docker compose -f docker-compose.dev.yml build
+# =====================
+# Local commands
+# =====================
 
-build-prod:
-	@echo "🔨 Building production images..."
-	docker compose -f docker-compose.prod.yml build
+api:
+	cd $(PROJECT_ROOT)/flowsint-api && \
+	poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
-check-env:
-	@echo "🔎 Checking .env files..."
-	@for dir in $(ENV_DIRS); do \
-		env_file="$$dir/.env"; \
-		env_example="$(PROJECT_ROOT)/.env.example"; \
-		if [ -f "$$env_file" ]; then \
-			echo "✅ Using existing .env in $$dir"; \
-		else \
-			echo "⚠️ .env missing in $$dir, copying from .env.example"; \
-			cp "$$env_example" "$$env_file"; \
-		fi; \
-	done
+frontend:
+	docker compose up -d flowsint-app
+	$(MAKE) open-browser
+
+celery:
+	cd $(PROJECT_ROOT)/flowsint-core && \
+	poetry run celery -A flowsint_core.core.celery \
+	worker --loglevel=info --pool=threads --concurrency=10
+
+# =====================
+# Infra / DB
+# =====================
+
+infra:
+	docker compose up -d postgres redis neo4j
+
+migrate:
+	@echo "Running migrations..."
+	docker compose up -d --wait neo4j
+	yarn migrate
+	docker compose stop neo4j
+
+# =====================
+# Tests / Install
+# =====================
 
 test:
-	@echo "🔎 Running tests..."
 	cd $(PROJECT_ROOT)/flowsint-types && poetry run pytest
 	cd $(PROJECT_ROOT)/flowsint-core && poetry run pytest
 	cd $(PROJECT_ROOT)/flowsint-enrichers && poetry run pytest
 
 install:
-	@echo "🐙 Installing Flowsint project modules..."
-	@if ! command -v poetry >/dev/null 2>&1; then \
-		echo "⚠️ Poetry is not installed. Please install it:"; \
-		echo "pipx install poetry"; \
-		echo "or"; \
-		echo "curl -sSL https://install.python-poetry.org | python3 -"; \
-		exit 1; \
-	fi
 	poetry config virtualenvs.in-project true --local
 	docker compose up -d postgres redis neo4j
 	poetry install
-	cd $(PROJECT_ROOT)/flowsint-core && poetry install
-	cd $(PROJECT_ROOT)/flowsint-enrichers && poetry install
-	cd $(PROJECT_ROOT)/flowsint-api && poetry install && poetry run alembic upgrade head
-	@echo "✅ All modules installed successfully!"
+	cd flowsint-core && poetry install
+	cd flowsint-enrichers && poetry install
+	cd flowsint-api && poetry install && poetry run alembic upgrade head
 
-infra:
-	docker compose up -d
-
-api:
-	cd $(PROJECT_ROOT)/flowsint-api && poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
-
-frontend:
-	@echo "🐙 Starting frontend and opening browser..."
-	@docker compose up -d flowsint-app
-	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done; open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ Frontend ready at http://localhost:5173"'
-
-frontend_prod:
-	cd $(PROJECT_ROOT)/flowsint-app && npm run build
-
-celery:
-	cd $(PROJECT_ROOT)/flowsint-core && poetry run celery -A flowsint_core.core.celery worker --loglevel=info --pool=threads --concurrency=10
-
-run:
-	@echo "🐙 Starting all services..."
-	docker compose up -d
-	@echo "⏳ Waiting for frontend to be ready..."
-	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 1; done'
-	@echo "🌐 Opening browser..."
-	@open http://localhost:5173 2>/dev/null || xdg-open http://localhost:5173 2>/dev/null || echo "✅ All services ready! Flowsint at http://localhost:5173"
-	$(MAKE) -j2 api celery
-
-stop:
-	@echo "🛑 Stopping all services..."
-	-docker compose -f docker-compose.dev.yml down
-	-docker compose -f docker-compose.prod.yml down
-	-docker compose down
-
-stop-dev:
-	@echo "🛑 Stopping development services..."
-	docker compose -f docker-compose.dev.yml down
-
-stop-prod:
-	@echo "🛑 Stopping production services..."
-	docker compose -f docker-compose.prod.yml down
+# =====================
+# Cleanup (dangerous)
+# =====================
 
 clean:
-	@echo "⚠️  WARNING: This will remove ALL Docker containers, images, volumes, and virtual environments."
-	@echo "⚠️  ALL DATA in databases and volumes will be permanently deleted!"
-	@echo ""
-	@read -p "Are you sure you want to continue? [y/N]: " confirm; \
-	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
-		echo "❌ Cleanup cancelled."; \
-		exit 1; \
-	fi
-	@echo "🧹 Removing containers, images, volumes and venvs..."
+	@echo "This will remove ALL Docker data. Continue? [y/N]"
+	@read confirm; \
+	if [ "$$confirm" != "y" ]; then exit 1; fi
 	-docker compose -f docker-compose.dev.yml down -v --rmi all --remove-orphans
 	-docker compose -f docker-compose.prod.yml down -v --rmi all --remove-orphans
-	-docker compose down -v --rmi all --remove-orphans
-	rm -rf $(PROJECT_ROOT)/flowsint-app/node_modules
-	rm -rf $(PROJECT_ROOT)/flowsint-core/.venv
-	rm -rf $(PROJECT_ROOT)/flowsint-enrichers/.venv
-	rm -rf $(PROJECT_ROOT)/flowsint-api/.venv
-	@echo "✅ Cleanup complete!"
-
-migrate:
-	@echo "🗄️ Running Neo4j migrations..."
-	yarn migrate
+	rm -rf flowsint-app/node_modules
+	rm -rf flowsint-core/.venv
+	rm -rf flowsint-enrichers/.venv
+	rm -rf flowsint-api/.venv

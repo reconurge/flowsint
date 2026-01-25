@@ -44,6 +44,11 @@ services:
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
+    healthcheck:
+      test: cypher-shell -u ${NEO4J_USERNAME} -p ${NEO4J_PASSWORD} "RETURN 1"
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
     networks:
       - flowsint_network

@@ -1,6 +1,6 @@
 # Flowsint
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](./LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
 [![Ethical Software](https://img.shields.io/badge/ethical-use-blue.svg)](./ETHICS.md)
 
 Flowsint is an open-source OSINT graph exploration tool designed for ethical investigation, transparency, and verification.

@@ -1,7 +1,7 @@
 {
   "name": "flowsint",
   "version": "1.0.0",
-  "license": "AGPL-3.0-or-later",
+  "license": "Apache-2.0",
   "description": "Graph analysis and intelligence platform",
   "private": true,
   "type": "module",

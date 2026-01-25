@@ -2,7 +2,7 @@
 name = "flowsint-types"
 version = "1.0.0"
 description = "Pydantic models for flowsint"
-license = "AGPL-3.0-or-later"
+license = "Apache-2.0"
 authors = ["dextmorgn <contact@flowsint.io>"]
 packages = [{ include = "flowsint_types", from = "src" }]
 

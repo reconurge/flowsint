@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "flowsint-enrichers"
 version = "1.0.0"
-license = "AGPL-3.0-or-later"
+license = "Apache-2.0"
 description = "Enricher modules for flowsint"
 authors = ["dextmorgn <contact@flowsint.io>"]
 packages = [{ include = "flowsint_enrichers", from = "src" }]

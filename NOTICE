@@ -1,0 +1,30 @@
+Flowsint
+Copyright 2025-2026 Reconurge
+
+This product includes software developed by Reconurge.
+https://github.com/reconurge/flowsint
+
+Licensed under the Apache License, Version 2.0.
+
+===============================================================================
+LICENSING HISTORY
+===============================================================================
+
+Effective January 25, 2026, Flowsint is licensed under the Apache License 2.0.
+
+All code contributed prior to January 25, 2026 was originally released under
+the GNU Affero General Public License v3.0 (AGPL-3.0-or-later). This code has
+been relicensed to Apache License 2.0 with the explicit written consent of all
+contributors.
+
+The historical Git commits retain the original AGPL-3.0 license references for
+archival purposes. Users obtaining code from Git history prior to commit
+[LICENSE_MIGRATION_COMMIT] should note that such code was contributed under
+AGPL-3.0 terms, but has since been relicensed.
+
+For the avoidance of doubt:
+- Code in releases from January 25, 2026 onward: Apache License 2.0
+- Code in Git history prior to January 25, 2026: Originally AGPL-3.0,
+  relicensed to Apache License 2.0 with contributor consent
+
+===============================================================================

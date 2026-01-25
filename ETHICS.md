@@ -2,7 +2,10 @@
 
 ## License
 
-Flowsint is distributed under the **AGPL-3.0** (GNU Affero General Public License v3.0).
+Flowsint is distributed under the **Apache License 2.0** (effective January 25, 2026).
+
+Code contributed prior to January 25, 2026 was originally licensed under AGPL-3.0
+and has been relicensed to Apache 2.0 with the written consent of all contributors.
 
 ## Ethical Foundation
 
@@ -48,4 +51,4 @@ If you become aware of any use that contradicts these principles, please report 
 ## Responsibility Statement
 
 The developers and maintainers of Flowsint are committed to upholding these ethical principles throughout the project’s life cycle.
-However, in accordance with the AGPL-3.0 license, **Flowsint is provided “as is,” without warranty**, and its authors **cannot be held liable for misuse or unlawful activity conducted by third parties**.
+However, in accordance with the Apache License 2.0, **Flowsint is provided "as is," without warranty**, and its authors **cannot be held liable for misuse or unlawful activity conducted by third parties**.

@@ -608,7 +608,11 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   // #### Render ####
   return (
     <>
-      <div ref={reactFlowWrapper} className="w-full h-full bg-background" data-tour-id="flow-canvas">
+      <div
+        ref={reactFlowWrapper}
+        className="w-full h-full bg-background"
+        data-tour-id="flow-canvas"
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -627,13 +631,23 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
           colorMode={theme}
         >
           {flowId && (
-            <Panel position="top-right" className="space-x-2 mt-14 mr-2 z-50 flex items-center" data-tour-id="simulation-controls">
+            <Panel
+              position="top-right"
+              className="space-x-2 mt-14 mr-2 z-50 flex items-center"
+              data-tour-id="simulation-controls"
+            >
               {isSimulating ? (
                 <Button size="sm" variant="outline" className="h-7" onClick={pauseSimulation}>
                   <Pause className="h-4 w-4 mr-1" /> Pause
                 </Button>
               ) : (
-                <Button size="sm" variant="default" className="h-7" onClick={handleComputeFlow} data-tour-id="compute-button">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-7"
+                  onClick={handleComputeFlow}
+                  data-tour-id="compute-button"
+                >
                   <Play className="h-4 w-4 mr-1" /> Compute
                 </Button>
               )}

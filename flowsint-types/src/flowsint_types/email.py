@@ -13,7 +13,7 @@ class Email(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.email
+        self.nodeLabel = self.email
         return self
 
     @classmethod

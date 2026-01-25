@@ -4,12 +4,7 @@ Flowsint Types - Pydantic models for flowsint
 
 # Import registry first to ensure it's ready for auto-registration
 # Import base class
-from .flowsint_base import FlowsintType
-from .registry import TYPE_REGISTRY, flowsint_type, get_type, load_all_types
-
 # Auto-discover and register all types
-load_all_types()
-
 # For backward compatibility, explicitly import commonly used types
 from typing import Any, Dict, Optional, Type
 
@@ -30,6 +25,7 @@ from .document import Document
 from .domain import Domain
 from .email import Email
 from .file import File
+from .flowsint_base import FlowsintType
 from .gravatar import Gravatar
 from .individual import Individual
 from .ip import Ip
@@ -40,6 +36,7 @@ from .organization import Organization
 from .phone import Phone
 from .phrase import Phrase
 from .port import Port
+from .registry import TYPE_REGISTRY, flowsint_type, get_type, load_all_types
 from .reputation_score import ReputationScore
 from .risk_profile import RiskProfile
 from .script import Script
@@ -52,6 +49,8 @@ from .weapon import Weapon
 from .web_tracker import WebTracker
 from .website import Website
 from .whois import Whois
+
+load_all_types()
 
 __version__ = "0.1.0"
 __author__ = "dextmorgn <contact@flowsint.io>"
@@ -99,8 +98,6 @@ __all__ = [
     # Type registry utilities (legacy)
     "TYPE_TO_MODEL",
     "get_model_for_type",
-    "clean_neo4j_node_data",
-    "parse_node_to_pydantic",
     "serialize_pydantic_for_transport",
     "deserialize_pydantic_from_transport",
     # New type registry
@@ -169,75 +166,21 @@ def get_model_for_type(type_name: str) -> Optional[Type[BaseModel]]:
     return TYPE_TO_MODEL.get(type_name.lower())
 
 
-def clean_neo4j_node_data(node_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Clean Neo4j node data by removing Neo4j-specific fields and empty values.
-
-    This is a preprocessing step that should be applied before Pydantic validation.
-
-    Args:
-        node_data: Dictionary containing node properties from Neo4j
-
-    Returns:
-        Cleaned dictionary with Neo4j fields and empty values removed
-
-    Example:
-        >>> node_data = {
-        ...     'type': 'ip',
-        ...     'address': '192.168.1.1',
-        ...     'latitude': '',
-        ...     'sketch_id': 'abc-123',
-        ...     'x': 100,
-        ... }
-        >>> clean_neo4j_node_data(node_data)
-        {'address': '192.168.1.1', 'label': 'sample'}
-    """
-    cleaned = {}
-    for k, v in node_data.items():
-        # Skip Neo4j-specific fields (including 'type' which is the node type in Neo4j)
-        if k in ["sketch_id", "created_at", "type", "x", "y", "caption", "color"]:
-            continue
-        # Skip empty values (empty strings, None, empty lists, etc.)
-        if v in ("", None, [], {}):
-            continue
-        cleaned[k] = v
-    return cleaned
-
-
-def parse_node_to_pydantic(node_data: Dict[str, Any]) -> Optional[BaseModel]:
-    """
-    Parse a Neo4j node's properties into a Pydantic model instance.
-    Args:
-        node_data: Dictionary containing node properties from Neo4j.
-                   Must include a 'type' field indicating the node type.
-    Returns:
-        An instance of the appropriate Pydantic model, or None if parsing fails
-    Example:
-        >>> node_data = {
-        ...     'type': 'domain',
-        ...     'domain': 'example.com',
-        ...     'label': 'example.com'
-        ... }
-        >>> result = parse_node_to_pydantic(node_data)
-        >>> isinstance(result, Domain)
-        True
-    """
-    if not node_data or "type" not in node_data:
-        return None
-    node_type = node_data.get("type")
-    model_class = get_model_for_type(node_type)
-    if not model_class:
-        return None
-    try:
-        # Clean the node data first
-        cleaned_data = clean_neo4j_node_data(node_data)
-
-        # Try to instantiate the Pydantic model
-        return model_class(**cleaned_data)
-    except Exception as e:
-        # If validation fails, log the error for debugging
-        print(f"[ERROR] Failed to parse {node_type} node: {e}")
-        return None
+reserved_properties = [
+    "id",
+    "x",
+    "y",
+    "nodeLabel",
+    "label",
+    "nodeType",
+    "type",
+    "nodeImage",
+    "nodeIcon",
+    "nodeColor",
+    "nodeSize",
+    "created_at",
+    "sketch_id",
+]
 
 
 def serialize_pydantic_for_transport(obj: BaseModel) -> Dict[str, Any]:

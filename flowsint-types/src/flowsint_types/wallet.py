@@ -51,7 +51,7 @@ class CryptoWallet(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = self.address
+        self.nodeLabel = self.address
         return self
 
     @classmethod
@@ -189,11 +189,11 @@ class CryptoWalletTransaction(FlowsintType):
     def compute_label(self) -> Self:
         # Use hash if available, otherwise create a descriptive label
         if self.hash:
-            self.label = self.hash
+            self.nodeLabel = self.hash
         elif self.source and self.target:
-            self.label = f"Transaction from {self.source.address[:8]}... to {self.target.address[:8]}..."
+            self.nodeLabel = f"Transaction from {self.source.address[:8]}... to {self.target.address[:8]}..."
         elif self.source:
-            self.label = f"Transaction from {self.source.address[:8]}..."
+            self.nodeLabel = f"Transaction from {self.source.address[:8]}..."
         return self
 
 
@@ -281,11 +281,11 @@ class CryptoNFT(FlowsintType):
     def compute_label(self) -> Self:
         # Prefer name, then collection_name with token_id, fallback to uid
         if self.name:
-            self.label = self.name
+            self.nodeLabel = self.name
         elif self.collection_name:
-            self.label = f"{self.collection_name} #{self.token_id}"
+            self.nodeLabel = f"{self.collection_name} #{self.token_id}"
         else:
-            self.label = self.uid
+            self.nodeLabel = self.uid
         return self
 
 

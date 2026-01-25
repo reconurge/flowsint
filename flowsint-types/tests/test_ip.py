@@ -1,11 +1,11 @@
-from flowsint_types.ip import Ip
 import pytest
+from flowsint_types.ip import Ip
 
 
 def test_valid_ip():
     ip = Ip(address="12.23.34.56")
     assert ip.address == "12.23.34.56"
-    assert ip.label == "12.23.34.56"
+    assert ip.nodeLabel == "12.23.34.56"
 
 
 def test_invalid_ip():

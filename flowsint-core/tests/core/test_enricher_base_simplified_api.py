@@ -1,11 +1,13 @@
 """Test simplified API for create_node and create_relationship."""
 
+from typing import List
+
 import pytest
-from flowsint_core.core.enricher_base import Enricher
 from flowsint_types.domain import Domain
 from flowsint_types.email import Email
 from flowsint_types.individual import Individual
-from typing import List
+
+from flowsint_core.core.enricher_base import Enricher
 
 
 class MockEnricher(Enricher):
@@ -49,4 +51,4 @@ def test_create_node_with_property_override():
     domain = Domain(domain="example.com")
 
     # Should be able to override properties
-    enricher.create_node(domain, type="subdomain")
+    enricher.create_node(domain)

@@ -51,7 +51,7 @@ class WebsiteToLinks(Enricher):
                 main_domain = self.extract_domain(str(website.url))
 
                 # Create main website and domain nodes upfront
-                if self.neo4j_conn:
+                if self._graph_service:
                     self.create_node(website)
                     if main_domain:
                         domain_obj = Domain(domain=main_domain)
@@ -74,7 +74,7 @@ class WebsiteToLinks(Enricher):
                         if domain:
                             external_domains.add(domain)
                             # Create external website node immediately
-                            if self.neo4j_conn:
+                            if self._graph_service:
                                 url_obj = Website(url=url)
                                 self.create_node(url_obj)
                                 self.create_relationship(website, url_obj, "LINKS_TO")
@@ -102,7 +102,7 @@ class WebsiteToLinks(Enricher):
                     else:
                         internal_urls.append(url)
                         # Create internal website node immediately
-                        if self.neo4j_conn and url != str(
+                        if self._graph_service and url != str(
                             website.url
                         ):  # Don't create duplicate of main website
                             internal_website = Website(url=url)
@@ -180,7 +180,7 @@ class WebsiteToLinks(Enricher):
 
                 # Still create main website and domain nodes even on error
                 main_domain = self.extract_domain(str(website.url))
-                if self.neo4j_conn:
+                if self._graph_service:
                     self.create_node(website)
                     if main_domain:
                         domain_obj_err = Domain(domain=main_domain)

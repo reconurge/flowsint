@@ -6,24 +6,23 @@ import { renderToStaticMarkup } from 'react-dom/server'
 const imageCache = new Map<string, HTMLImageElement>()
 const imageLoadPromises = new Map<string, Promise<HTMLImageElement>>()
 
-const createSvgDataUrl = (iconType: string, color: string = '#FFFFFF'): string => {
-  // Check custom icons first, then fall back to default mapping
-  const customIcons = useNodesDisplaySettings.getState().customIcons
-  const iconName = customIcons[iconType] || TYPE_TO_ICON[iconType] || TYPE_TO_ICON.default
+const FALLBACK_SVG = (color: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="${color}" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`
+
+const createSvgFromIconName = (iconName: string, color: string): string => {
   const IconComponent = (lucideIcons as any)[iconName]
 
   let svgString: string
-
   if (IconComponent) {
     try {
       svgString = renderToStaticMarkup(<IconComponent color={color} />)
     } catch (err) {
-      console.warn('[icon] Failed to render icon, fallback used for', iconType)
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="${color}" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`
+      console.warn('[icon] Failed to render icon:', iconName)
+      svgString = FALLBACK_SVG(color)
     }
   } else {
-    console.warn('[icon] Icon not found, fallback used for', iconType, iconName)
-    svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="${color}" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`
+    console.warn('[icon] Icon not found:', iconName)
+    svgString = FALLBACK_SVG(color)
   }
 
   const utf8 = encodeURIComponent(svgString).replace(/%([0-9A-F]{2})/g, (_, p1) =>
@@ -31,6 +30,12 @@ const createSvgDataUrl = (iconType: string, color: string = '#FFFFFF'): string =
   )
 
   return `data:image/svg+xml;base64,${btoa(utf8)}`
+}
+
+const createSvgDataUrl = (iconType: string, color: string = '#FFFFFF'): string => {
+  const customIcons = useNodesDisplaySettings.getState().customIcons
+  const iconName = customIcons[iconType] || TYPE_TO_ICON[iconType] || TYPE_TO_ICON.default
+  return createSvgFromIconName(iconName, color)
 }
 
 export const preloadImage = (
@@ -71,6 +76,83 @@ export const getCachedImage = (
   color: string = '#FFFFFF'
 ): HTMLImageElement | undefined => {
   return imageCache.get(`${iconType}-${color}`)
+}
+
+// Direct icon name lookup (bypasses type→icon mapping)
+export const preloadIconByName = (
+  iconName: string,
+  color: string = '#FFFFFF'
+): Promise<HTMLImageElement> => {
+  const cacheKey = `icon-${iconName}-${color}`
+
+  if (imageCache.has(cacheKey)) {
+    return Promise.resolve(imageCache.get(cacheKey)!)
+  }
+
+  if (imageLoadPromises.has(cacheKey)) {
+    return imageLoadPromises.get(cacheKey)!
+  }
+
+  const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      imageCache.set(cacheKey, img)
+      imageLoadPromises.delete(cacheKey)
+      resolve(img)
+    }
+    img.onerror = () => {
+      imageLoadPromises.delete(cacheKey)
+      reject(new Error(`Failed to load icon: ${iconName}`))
+    }
+
+    img.src = createSvgFromIconName(iconName, color)
+  })
+
+  imageLoadPromises.set(cacheKey, promise)
+  return promise
+}
+
+export const getCachedIconByName = (
+  iconName: string,
+  color: string = '#FFFFFF'
+): HTMLImageElement | undefined => {
+  return imageCache.get(`icon-${iconName}-${color}`)
+}
+
+// External image caching (for nodeImage URLs)
+export const preloadExternalImage = (url: string): Promise<HTMLImageElement> => {
+  const cacheKey = `ext-${url}`
+
+  if (imageCache.has(cacheKey)) {
+    return Promise.resolve(imageCache.get(cacheKey)!)
+  }
+
+  if (imageLoadPromises.has(cacheKey)) {
+    return imageLoadPromises.get(cacheKey)!
+  }
+
+  const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      imageCache.set(cacheKey, img)
+      imageLoadPromises.delete(cacheKey)
+      resolve(img)
+    }
+    img.onerror = () => {
+      imageLoadPromises.delete(cacheKey)
+      reject(new Error(`Failed to load external image: ${url}`))
+    }
+
+    img.src = url
+  })
+
+  imageLoadPromises.set(cacheKey, promise)
+  return promise
+}
+
+export const getCachedExternalImage = (url: string): HTMLImageElement | undefined => {
+  return imageCache.get(`ext-${url}`)
 }
 
 const createFlagSvgDataUrl = (strokeColor: string, fillColor: string): string => {

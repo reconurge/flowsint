@@ -92,7 +92,7 @@ class SubdomainEnricher(Enricher):
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         output: List[OutputType] = []
         for domain_obj in results:
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
             for subdomain in domain_obj["subdomains"]:
                 output.append(Domain(domain=subdomain))

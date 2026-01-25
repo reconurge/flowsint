@@ -4,7 +4,6 @@ from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.website import Website
 from flowsint_types.web_tracker import WebTracker
 from flowsint_core.core.logger import Logger
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_core.core.vault import VaultProtocol
 from recontrack import TrackingCodeExtractor
 
@@ -21,12 +20,11 @@ class WebsiteToWebtrackersEnricher(Enricher):
         self,
         sketch_id: str,
         scan_id: str,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         params_schema: Optional[List[Dict[str, Any]]] = None,
         vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
-        super().__init__(sketch_id, scan_id, neo4j_conn, params_schema, vault, params)
+        super().__init__(sketch_id, scan_id, params_schema, vault, params)
         self.tracker_website_mapping: List[tuple[WebTracker, Website]] = []
 
     @classmethod
@@ -74,7 +72,7 @@ class WebsiteToWebtrackersEnricher(Enricher):
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding trackers
-        if self.neo4j_conn:
+        if self._graph_service:
             # Group trackers by website using the mapping we created during scan
             website_trackers = {}
             for tracker, website in self.tracker_website_mapping:

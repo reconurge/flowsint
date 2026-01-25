@@ -17,7 +17,7 @@ class Phrase(FlowsintType):
     def compute_label(self) -> Self:
         text_str = str(self.text)
         # Truncate to 100 characters for display
-        self.label = text_str[:100] + "..." if len(text_str) > 100 else text_str
+        self.nodeLabel = text_str[:100] + "..." if len(text_str) > 100 else text_str
         return self
 
     @classmethod

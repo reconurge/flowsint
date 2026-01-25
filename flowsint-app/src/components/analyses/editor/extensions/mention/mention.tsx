@@ -10,11 +10,12 @@ import MentionList from './mention-list'
 import type { MentionListRef, MentionItem } from './mention-list'
 import { memo, useCallback } from 'react'
 import { useIcon } from '@/hooks/use-icon'
-import { useNodesDisplaySettings, type ItemType } from '@/stores/node-display-settings'
+import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { Button } from '@/components/ui/button'
 import { GRAPH_COLORS } from '@/components/sketches/graph'
 import { useGraphStore } from '@/stores/graph-store'
 import { useGraphControls } from '@/stores/graph-controls-store'
+import { GraphNode } from '@/types'
 
 function hexWithOpacity(hex: string, opacity: number) {
   hex = hex.replace('#', '')
@@ -38,16 +39,12 @@ const getMentionItemsFromNodes = (): MentionItem[] => {
   const nodes = useGraphStore.getState().nodes
   return nodes
     .map((node) => {
-      const label = node.data?.label || node.data?.username || node.id
-      const type = node.data?.type as ItemType
-      const nodeId = node.data?.id || node.id
-
-      if (!type) return null
-
       return {
-        value: label,
-        type: type,
-        nodeId: nodeId
+        value: node.nodeLabel,
+        nodeType: node.nodeType,
+        nodeId: node.id,
+        nodeImage: node.nodeImage,
+        nodeIcon: node.nodeIcon
       }
     })
     .filter((item): item is MentionItem => item !== null)
@@ -74,10 +71,19 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 // Composant React custom pour le rendu de la mention
 const MentionComponent = memo((props: any) => {
   const nodeId = props.node.attrs.nodeId
-  const type = props.node.attrs.type as ItemType | null
-  const Icon = type ? (useIcon(type, null) ?? null) : null
+  const node = props.node as GraphNode
+
+  const SourceIcon = useIcon(node.nodeType, {
+    nodeColor: node.nodeColor,
+    nodeIcon: node.nodeIcon,
+    nodeImage: node.nodeImage
+  })
   const colors = useNodesDisplaySettings((s) => s.colors)
-  const color = type ? (colors[type] ?? GRAPH_COLORS.NODE_DEFAULT) : GRAPH_COLORS.NODE_DEFAULT
+  const color =
+    (node.nodeColor ?? node.nodeType)
+      ? // @ts-ignore
+        (colors[node.nodeType] ?? GRAPH_COLORS.NODE_DEFAULT)
+      : GRAPH_COLORS.NODE_DEFAULT
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
   const setCurrentNodeFromId = useGraphStore((state) => state.setCurrentNodeFromId)
 
@@ -108,8 +114,8 @@ const MentionComponent = memo((props: any) => {
           border: `solid 1px ${hexWithOpacity(color, 0.5)}`
         }}
       >
-        {Icon && <Icon size={19} iconOnly className="opacity-60" style={{ color }} />}
-        {props.node.attrs.label}
+        {SourceIcon && <SourceIcon size={12} className="opacity-60" />}
+        {props.node.nodeLabel}
       </Button>
     </NodeViewWrapper>
   )

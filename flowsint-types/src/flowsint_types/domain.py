@@ -41,7 +41,7 @@ class Domain(FlowsintType):
 
     @model_validator(mode="after")
     def compute_label(self) -> Self:
-        self.label = self.domain
+        self.nodeLabel = self.domain
         return self
 
     @classmethod

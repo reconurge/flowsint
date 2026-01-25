@@ -8,7 +8,6 @@ from flowsint_core.core.logger import Logger
 from flowsint_types.email import Email
 from flowsint_types.breach import Breach
 from dotenv import load_dotenv
-from flowsint_core.core.graph_db import Neo4jConnection
 
 # Load environment variables
 load_dotenv()
@@ -27,14 +26,12 @@ class EmailToBreachesEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -136,13 +133,13 @@ class EmailToBreachesEnricher(Enricher):
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
         # Create email nodes first
         for email_obj in original_input:
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
             self.create_node(email_obj)
 
         # Process all breaches
         for email_address, breach_obj in results:
-            if not self.neo4j_conn:
+            if not self._graph_service:
                 continue
 
             # Create breach node

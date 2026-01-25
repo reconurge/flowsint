@@ -29,7 +29,7 @@ function areEqual(prevProps: EnricherNodeProps, nextProps: EnricherNodeProps) {
 const TypeNode = memo(({ data }: EnricherNodeProps) => {
   const colors = useNodesDisplaySettings((s) => s.colors)
   const outputColor = colors[data.outputs.type.toLowerCase()]
-  const Icon = useIcon(data.outputs.type.toLowerCase() as string, null)
+  const Icon = useIcon(data.outputs.type.toLowerCase() as string)
   const setOpenFlowSheet = useFlowStore((state) => state.setOpenFlowSheet)
   const key = data.outputs.properties[0].name
 

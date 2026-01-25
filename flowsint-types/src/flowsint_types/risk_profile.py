@@ -81,7 +81,7 @@ class RiskProfile(FlowsintType):
         parts = [self.entity_id]
         if self.risk_level:
             parts.append(f"Risk: {self.risk_level}")
-        self.label = " - ".join(parts)
+        self.nodeLabel = " - ".join(parts)
         return self
 
     @classmethod

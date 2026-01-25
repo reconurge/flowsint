@@ -7,7 +7,7 @@ from .core.celery import *
 from .core.config import *
 from .core.enums import *
 from .core.events import *
-from .core.graph_db import *
+from .core.graph import *
 from .core.logger import *
 from .core.models import *
 from .core.postgre_db import *

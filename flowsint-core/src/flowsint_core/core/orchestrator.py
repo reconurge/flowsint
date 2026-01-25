@@ -22,10 +22,9 @@ class FlowOrchestrator(Enricher):
         sketch_id: str,
         scan_id: str,
         enricher_branches: List[FlowBranch],
-        neo4j_conn=None,
         vault=None,
     ):
-        super().__init__(sketch_id, scan_id, neo4j_conn=neo4j_conn, vault=vault)
+        super().__init__(sketch_id, scan_id, vault=vault)
         self.enricher_branches = enricher_branches
         self.enrichers = {}  # Map of nodeId -> enricher instance
         self.execution_log_file = None  # Path to the execution log file
@@ -243,7 +242,6 @@ class FlowOrchestrator(Enricher):
                 enricher_name,
                 self.sketch_id,
                 self.scan_id,
-                neo4j_conn=self.neo4j_conn,
                 vault=self.vault,
                 params=enricher_params,
             )

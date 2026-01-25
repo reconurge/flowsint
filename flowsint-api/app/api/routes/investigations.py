@@ -21,8 +21,7 @@ from app.api.schemas.investigation import (
     InvestigationUpdate,
 )
 from app.api.schemas.sketch import SketchRead
-from flowsint_core.core.graph_db import neo4j_connection
-from flowsint_core.core.graph_repository import GraphRepository
+from flowsint_core.core.graph import create_graph_service
 
 router = APIRouter()
 
@@ -203,11 +202,14 @@ def delete_investigation(
         db.query(Analysis).filter(Sketch.investigation_id == investigation_id).all()
     )
 
-    # Delete all nodes and relationships for each sketch in Neo4j using GraphRepository
-    graph_repo = GraphRepository(neo4j_connection)
+    # Delete all nodes and relationships for each sketch in Neo4j using GraphService
     for sketch in sketches:
         try:
-            graph_repo.delete_all_sketch_nodes(str(sketch.id))
+            graph_service = create_graph_service(
+                sketch_id=str(sketch.id),
+                enable_batching=False,
+            )
+            graph_service.delete_all_sketch_nodes()
         except Exception as e:
             print(f"Neo4j cleanup error for sketch {sketch.id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to clean up graph data")

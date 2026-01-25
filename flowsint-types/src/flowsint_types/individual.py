@@ -404,14 +404,14 @@ class Individual(FlowsintType):
     def compute_label(self) -> Self:
         # Use full_name if available, otherwise concatenate first and last name
         if self.full_name:
-            self.label = self.full_name
+            self.nodeLabel = self.full_name
         elif self.first_name and self.last_name:
-            self.label = f"{self.first_name} {self.last_name}"
+            self.nodeLabel = f"{self.first_name} {self.last_name}"
         elif self.first_name:
-            self.label = self.first_name
+            self.nodeLabel = self.first_name
         elif self.last_name:
-            self.label = self.last_name
-        self.full_name = self.label
+            self.nodeLabel = self.last_name
+        self.full_name = self.nodeLabel
         return self
 
     @classmethod

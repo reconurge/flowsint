@@ -21,7 +21,7 @@ import { useLaunchFlow } from '@/hooks/use-launch-flow'
 import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
 import { useParams } from '@tanstack/react-router'
 import { capitalizeFirstLetter } from '@/lib/utils'
-import NodeActions from '../actions/node-actions'
+import NodeActions from '../node/actions/node-actions'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
 import { CopyButton } from '@/components/copy'
@@ -64,13 +64,13 @@ export default function ContextMenu({
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
 
   const { data: enrichers, isLoading: isLoadingEnrichers } = useQuery({
-    queryKey: ['enrichers', node.data.type],
-    queryFn: () => enricherService.get(capitalizeFirstLetter(node.data.type))
+    queryKey: ['enrichers', node.nodeType],
+    queryFn: () => enricherService.get(capitalizeFirstLetter(node.nodeType))
   })
 
   const { data: flows, isLoading: isLoadingFlows } = useQuery({
-    queryKey: ['flows', node.data.type],
-    queryFn: () => flowService.get(capitalizeFirstLetter(node.data.type))
+    queryKey: ['flows', node.nodeType],
+    queryFn: () => flowService.get(capitalizeFirstLetter(node.nodeType))
   })
 
   const filteredEnrichers =
@@ -124,10 +124,13 @@ export default function ContextMenu({
       {/* Header with title and action buttons */}
       <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between shrink-0">
         <div className="flex text-xs items-center gap-1 truncate">
-          <span className="block truncate">{node.data.label}</span> -{' '}
-          <span className="block">{node.data.type}</span>
+          <span className="block truncate">{node.nodeLabel}</span> -{' '}
+          <span className="block">{node.nodeType}</span>
         </div>
-        <NodeActions node={node} setMenu={setMenu} />
+        <div className="flex items-center gap-1">
+          <SubActions node={node} handleOpenNodeDetails={handleOpenNodeDetails} />
+          <NodeActions node={node} setMenu={setMenu} />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -190,7 +193,7 @@ export default function ContextMenu({
                     className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
                     onClick={(e) => handleEnricherClick(e, enricher.name)}
                   >
-                    <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium flex gap-1 items-center truncate">
                         <span>
@@ -228,7 +231,7 @@ export default function ContextMenu({
         {/* Flows Tab */}
         <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
           {/* Flows Search */}
-          <div className="px-3 py-2 border-b border-border flex-shrink-0">
+          <div className="px-3 py-2 border-b border-border shrink-0">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
@@ -267,7 +270,7 @@ export default function ContextMenu({
                     className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
                     onClick={(e) => handleFlowClick(e, flow.id)}
                   >
-                    <FileCode2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <FileCode2 className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="flex items-center gap-1 text-sm font-medium truncate">
                         <span>
@@ -300,10 +303,6 @@ export default function ContextMenu({
           </div>
         </TabsContent>
       </Tabs>
-
-      <div className="border-t p-1">
-        <SubActions node={node} handleOpenNodeDetails={handleOpenNodeDetails} />
-      </div>
     </BaseContextMenu>
   )
 }
@@ -314,10 +313,10 @@ type SubActionsProps = {
 }
 const SubActions = memo(({ node, handleOpenNodeDetails }: SubActionsProps) => {
   return (
-    <div className="flex">
-      <CopyButton size={'icon'} content={node?.data?.label} />
+    <div className="flex items-center">
+      <CopyButton className="h-6 w-6" size={'icon'} content={node.nodeLabel} />
       <Button onClick={handleOpenNodeDetails} size={'icon'} className="h-7 w-7" variant="ghost">
-        <SquareArrowOutUpRight className="!h-3.5 !w-3.5 opacity-50" />
+        <SquareArrowOutUpRight className="h-3.5! w-3.5! opacity-50" />
       </Button>
     </div>
   )

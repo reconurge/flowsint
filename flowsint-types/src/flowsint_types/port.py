@@ -38,7 +38,7 @@ class Port(FlowsintType):
             parts.append(self.service)
         if self.protocol:
             parts.append(f"({self.protocol})")
-        self.label = " ".join(parts)
+        self.nodeLabel = " ".join(parts)
         return self
 
     @classmethod

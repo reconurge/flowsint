@@ -16,6 +16,7 @@ import { sketchService } from '@/api/sketch-service'
 import { useParams } from '@tanstack/react-router'
 import { useIcon } from '@/hooks/use-icon'
 import { RadioGroupItem } from '@/components/ui/radio-group'
+import { type GraphNode } from '@/types'
 
 export function CreateRelationDialog() {
   const { id: sketchId } = useParams({ strict: false })
@@ -63,7 +64,7 @@ export function CreateRelationDialog() {
 
   return (
     <Dialog open={openAddRelationDialog} onOpenChange={setOpenAddRelationDialog}>
-      <DialogContent className="!w-full !max-w-[600px]">
+      <DialogContent className="w-full! max-w-[600px]!">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitPullRequestArrow className="h-4 w-4" />
@@ -131,7 +132,7 @@ export function CreateRelationDialog() {
                     )
                   )}
                 </div>
-                <div className="flex items-center truncate justify-center px-2 flex-shrink-0 min-w-0 grow">
+                <div className="flex items-center truncate justify-center px-2 shrink-0 min-w-0 grow">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <div className="h-px bg-muted-foreground/30 flex-1"></div>
                     <span className="px-2 py-1 bg-muted/50 rounded-sm truncate">
@@ -172,7 +173,7 @@ export function CreateRelationDialog() {
 }
 
 interface NodeDisplayCardProps {
-  node: any
+  node: GraphNode
   variant?: 'default' | 'preview'
   asRadio?: boolean
   radioValue?: string
@@ -186,19 +187,20 @@ export function NodeDisplayCard({
   radioValue,
   id
 }: NodeDisplayCardProps) {
-  const NodeIcon = useIcon(node.data?.type, node.data?.src)
-
-  const getNodeDisplayName = (node: any) => {
-    return node.data?.label || node.data?.username || node.id
-  }
-
+  const NodeIcon = useIcon(node.nodeType, {
+    nodeColor: node.nodeColor,
+    nodeIcon: node.nodeIcon,
+    nodeImage: node.nodeImage
+  })
   if (variant === 'preview') {
     return (
       <div className="flex min-w-[170px] items-center gap-2 min-w-0">
         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted">
           <NodeIcon size={20} />
         </div>
-        <span className="text-xs text-muted-foreground max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
+        <span className="text-xs text-muted-foreground max-w-[200px] truncate">
+          {node.nodeLabel}
+        </span>
       </div>
     )
   }
@@ -214,7 +216,7 @@ export function NodeDisplayCard({
           <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
             <NodeIcon size={16} />
           </div>
-          <span className="text-sm max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
+          <span className="text-sm max-w-[200px] truncate">{node.nodeLabel}</span>
         </div>
       </label>
     )
@@ -225,7 +227,7 @@ export function NodeDisplayCard({
       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
         <NodeIcon size={16} />
       </div>
-      <span className="text-sm max-w-[200px] truncate">{getNodeDisplayName(node)}</span>
+      <span className="text-sm max-w-[200px] truncate">{node.nodeLabel}</span>
     </div>
   )
 }

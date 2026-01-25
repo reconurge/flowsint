@@ -2,7 +2,6 @@ import os
 from typing import Any, Dict, List, Optional, Union
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.cidr import CIDR
 from flowsint_types.ip import Ip
 from flowsint_core.core.logger import Logger
@@ -21,14 +20,12 @@ class CidrToIpsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -123,7 +120,7 @@ class CidrToIpsEnricher(Enricher):
                     f"Found {len(ip_list)} IPs in CIDR {cidr.network}"
                 )
                 for ip in ip_list:
-                    if self.neo4j_conn:
+                    if self._graph_service:
                         # Create CIDR node
                         self.create_node(cidr)
 
@@ -135,7 +132,7 @@ class CidrToIpsEnricher(Enricher):
         else:
             # Fallback: original behavior (one-to-one zip)
             for cidr, ip in zip(original_input, results):
-                if self.neo4j_conn:
+                if self._graph_service:
                     # Create CIDR node
                     self.create_node(cidr)
                     # Create IP node

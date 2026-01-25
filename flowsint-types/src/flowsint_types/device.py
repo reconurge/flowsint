@@ -77,7 +77,7 @@ class Device(FlowsintType):
             parts.append(self.model)
         if not parts:
             parts.append(self.device_id)
-        self.label = " ".join(parts)
+        self.nodeLabel = " ".join(parts)
         return self
 
     @classmethod

@@ -8,7 +8,6 @@ import { CreateRelationDialog } from './create-relation'
 import GraphLoader from './graph/components/graph-loader'
 import Loader from '../loader'
 import { useGraphControls } from '@/stores/graph-controls-store'
-import { NodeEditorModal } from './details-panel/node-editor-modal'
 import NodesTable from '../table'
 import { findActionItemByKey } from '@/lib/action-items'
 import { useActionItems } from '@/hooks/use-action-items'
@@ -62,7 +61,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   useEffect(() => {
     if (graphData?.nds && graphData?.rls) {
       updateGraphData(graphData.nds, graphData.rls)
-      const types = new Set(graphData.nds.map((n) => n.data.type))
+      const types = new Set(graphData.nds.map((n) => n.nodeType))
       setFilters({
         ...filters,
         types: Array.from(types).map((t) => ({
@@ -148,7 +147,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
       <NewActions />
       <CreateRelationDialog />
       <MergeDialog />
-      <NodeEditorModal />
       <Settings />
       <KeyboardShortcuts />
     </div>

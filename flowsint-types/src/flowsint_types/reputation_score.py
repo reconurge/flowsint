@@ -64,7 +64,7 @@ class ReputationScore(FlowsintType):
         parts = [self.entity_id]
         if self.score is not None:
             parts.append(f"Score: {self.score}")
-        self.label = " - ".join(parts)
+        self.nodeLabel = " - ".join(parts)
         return self
 
     @classmethod

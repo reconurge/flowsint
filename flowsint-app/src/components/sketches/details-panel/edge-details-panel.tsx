@@ -28,8 +28,16 @@ const EdgeDetailsPanel = memo(() => {
   const sourceNode = edge ? nodes.find((n) => n.id === edge.source) : null
   const targetNode = edge ? nodes.find((n) => n.id === edge.target) : null
 
-  const SourceIcon = useIcon(sourceNode?.data?.type ?? 'default', sourceNode?.data?.src)
-  const TargetIcon = useIcon(targetNode?.data?.type ?? 'default', targetNode?.data?.src)
+  const SourceIcon = useIcon(sourceNode?.nodeType ?? 'default', {
+    nodeColor: sourceNode?.nodeColor,
+    nodeIcon: sourceNode?.nodeIcon,
+    nodeImage: sourceNode?.nodeImage
+  })
+  const TargetIcon = useIcon(targetNode?.nodeType ?? 'default', {
+    nodeColor: targetNode?.nodeColor,
+    nodeIcon: targetNode?.nodeIcon,
+    nodeImage: targetNode?.nodeImage
+  })
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation()
@@ -173,31 +181,31 @@ const EdgeDetailsPanel = memo(() => {
               onClick={handleJumpToSource}
               className="flex-1 flex items-center gap-2 p-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors group min-w-0"
             >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-background flex-shrink-0">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-background shrink-0">
                 <SourceIcon className="h-3 w-3" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-[10px] text-muted-foreground mb-0.5">Source</p>
                 <p className="text-xs font-medium truncate group-hover:text-primary transition-colors">
-                  {sourceNode?.data?.label || 'Unknown'}
+                  {sourceNode?.nodeLabel || 'Unknown'}
                 </p>
               </div>
             </button>
 
-            <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
 
             {/* Target Node */}
             <button
               onClick={handleJumpToTarget}
               className="flex-1 flex items-center gap-2 p-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors group min-w-0"
             >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-background flex-shrink-0">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-background shrink-0">
                 <TargetIcon className="h-3 w-3" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-[10px] text-muted-foreground mb-0.5">Target</p>
                 <p className="text-xs font-medium truncate group-hover:text-primary transition-colors">
-                  {targetNode?.data?.label || 'Unknown'}
+                  {targetNode?.nodeLabel || 'Unknown'}
                 </p>
               </div>
             </button>
@@ -267,7 +275,7 @@ const EdgeDetailsPanel = memo(() => {
               </div>
               <div className="w-1/2 px-3 py-1.5 text-xs font-medium flex items-center justify-between min-w-0 gap-1">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <div className="h-1.5 flex-1 min-w-[40px] max-w-[60px] bg-muted rounded-full overflow-hidden">
+                  <div className="h-1.5 flex-1 min-w-10 max-w-[60px] bg-muted rounded-full overflow-hidden">
                     <div
                       className={cn(
                         'h-full rounded-full transition-all',

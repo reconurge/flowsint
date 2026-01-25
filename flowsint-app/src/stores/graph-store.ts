@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GraphNode, GraphEdge, NodeData } from '@/types'
+import type { GraphNode, GraphEdge, NodeProperties } from '@/types'
 import { type ActionItem } from '@/lib/action-items'
 import { Filters, TypeFilter } from '@/types/filter'
 
@@ -19,9 +19,9 @@ interface GraphState {
   removeNodes: (nodeIds: string[]) => void
   removeEdges: (edgeIds: string[]) => void
   updateGraphData: (nodes: GraphNode[], edges: GraphEdge[]) => void
-  updateNode: (nodeId: string, updates: Partial<NodeData>) => void
+  updateNode: (nodeId: string, updates: Partial<GraphNode>) => void
   updateEdge: (edgeId: string, updates: Partial<GraphEdge>) => void
-  replaceNode: (oldId: string, newData: NodeData) => void
+  replaceNode: (oldId: string, newId: string, newProperties: NodeProperties) => void
   reset: () => void
 
   // === Selection & Current ===
@@ -71,9 +71,6 @@ interface GraphState {
   setFilters: (filters: Filters) => void
   toggleTypeFilter: (filter: TypeFilter) => void
 
-  // === Collapse/Expand logic ===
-  toggleCollapse: (nodeId: string) => void
-
   // === Utils ===
   nodesLength: number
   edgesLength: number
@@ -88,7 +85,7 @@ const computeFilteredNodes = (nodes: GraphNode[], filters: Filters): GraphNode[]
   const areNoneToggled = filters.types.every((t) => !t.checked)
   if (areNoneToggled || areAllToggled) return nodes
   const types = filters.types.filter((t) => !t.checked).map((t) => t.type)
-  return nodes.filter((node) => !types.includes(node.data.type))
+  return nodes.filter((node) => !types.includes(node.nodeType))
 }
 
 const computeFilteredEdges = (edges: GraphEdge[], filteredNodes: GraphNode[]): GraphEdge[] => {
@@ -193,16 +190,32 @@ export const useGraphStore = create<GraphState>()(
         set({ nodes, edges, filteredNodes, filteredEdges, nodesMapping, edgesMapping })
       },
 
-      updateNode: (nodeId, updates) => {
+      updateNode: (nodeId: string, updates: Partial<GraphNode>) => {
         const { nodes, edges, filters, nodesMapping } = get()
+
         const updatedNodes = nodes.map((node) =>
-          node.id === nodeId ? { ...node, data: { ...node.data, ...updates } } : node
+          node.id === nodeId ? { ...node, ...updates } : node
         )
+
         const filteredNodes = computeFilteredNodes(updatedNodes, filters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
-        const node = nodesMapping.get(nodeId)
-        if (node) nodesMapping.set(nodeId, { ...node, data: { ...node.data, ...updates } })
-        set({ nodes: updatedNodes, filteredNodes, filteredEdges, nodesMapping })
+
+        const newNodesMapping = new Map(nodesMapping)
+        const node = newNodesMapping.get(nodeId)
+
+        if (node) {
+          newNodesMapping.set(nodeId, {
+            ...node,
+            ...updates
+          })
+        }
+
+        set({
+          nodes: updatedNodes,
+          filteredNodes,
+          filteredEdges,
+          nodesMapping: newNodesMapping
+        })
       },
 
       updateEdge: (edgeId, updates) => {
@@ -217,19 +230,19 @@ export const useGraphStore = create<GraphState>()(
         set({ edges: updatedEdges, filteredNodes, filteredEdges, edgesMapping })
       },
 
-      replaceNode: (oldId, newData) => {
+      replaceNode: (oldId, newId, nodeProperties) => {
         const { nodes, edges, filters, nodesMapping, setCurrentNodeId } = get()
         // Update the node's ID and data.id
         const updatedNodes = nodes.map((node) =>
-          node.id === oldId ? { ...node, id: newData.id, data: newData } : node
+          node.id === oldId ? { ...node, id: newId, nodeProperties: nodeProperties } : node
         )
         // Update all edges that reference this node
         const updatedEdges = edges.map((edge) => {
           if (edge.source === oldId) {
-            return { ...edge, source: newData.id }
+            return { ...edge, source: newId }
           }
           if (edge.target === oldId) {
-            return { ...edge, target: newData.id }
+            return { ...edge, target: newId }
           }
           return edge
         })
@@ -237,11 +250,11 @@ export const useGraphStore = create<GraphState>()(
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
         // Update nodesMapping
         nodesMapping.delete(oldId)
-        const newNode = updatedNodes.find((n) => n.id === newData.id)
-        if (newNode) nodesMapping.set(newData.id, newNode)
+        const newNode = updatedNodes.find((n) => n.id === newId)
+        if (newNode) nodesMapping.set(newId, newNode)
         // Update edgesMapping
         const newEdgesMapping = new Map(updatedEdges.map((edge) => [edge.id, edge]))
-        setCurrentNodeId(newData.id)
+        setCurrentNodeId(newId)
         set({
           nodes: updatedNodes,
           edges: updatedEdges,
@@ -407,43 +420,6 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, newFilters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         set({ filters: newFilters, filteredNodes, filteredEdges })
-      },
-
-      // === Collapse/Expand logic ===
-      toggleCollapse: (nodeId) => {
-        const { nodes, edges, filters } = get()
-        const node = nodes.find((n) => n.id === nodeId)
-        if (!node) return
-        const isCollapsing = !node.collapsed
-
-        const getDescendants = (parentId: string, accNodes: Set<string>, accEdges: Set<string>) => {
-          edges.forEach((edge) => {
-            if (edge.source === parentId) {
-              accEdges.add(edge.id)
-              accNodes.add(edge.target)
-              getDescendants(edge.target, accNodes, accEdges)
-            }
-          })
-        }
-
-        const descendantNodeIds = new Set<string>()
-        const descendantEdgeIds = new Set<string>()
-        getDescendants(nodeId, descendantNodeIds, descendantEdgeIds)
-
-        const newNodes = nodes.map((n) =>
-          n.id === nodeId
-            ? { ...n, collapsed: isCollapsing }
-            : descendantNodeIds.has(n.id)
-              ? { ...n, hidden: isCollapsing }
-              : n
-        )
-        const newEdges = edges.map((e) =>
-          descendantEdgeIds.has(e.id) ? { ...e, hidden: isCollapsing } : e
-        )
-
-        const filteredNodes = computeFilteredNodes(newNodes, filters)
-        const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
-        set({ nodes: newNodes, edges: newEdges, filteredNodes, filteredEdges })
       },
 
       reset: () => {

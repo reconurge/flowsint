@@ -67,7 +67,7 @@ class CreditCard(FlowsintType):
         if self.card_type:
             parts.append(self.card_type)
         parts.append(f"****{self.card_number[-4:]}" if len(self.card_number) > 4 else self.card_number)
-        self.label = " ".join(parts)
+        self.nodeLabel = " ".join(parts)
         return self
 
     @classmethod

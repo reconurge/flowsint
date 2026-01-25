@@ -83,7 +83,7 @@ class IgnorantEnricher(Enricher):
         """
         Create Neo4j relationships for found phone accounts.
         """
-        if not self.neo4j_conn:
+        if not self._graph_service:
             return results
 
         for result in results:

@@ -377,11 +377,11 @@ class Organization(FlowsintType):
     def compute_label(self) -> Self:
         # Use the full name if available, otherwise use name
         if self.nom_complet:
-            self.label = str(self.nom_complet)
+            self.nodeLabel = str(self.nom_complet)
         elif self.nom_raison_sociale:
-            self.label = str(self.nom_raison_sociale)
+            self.nodeLabel = str(self.nom_raison_sociale)
         elif self.name:
-            self.label = str(self.name)
+            self.nodeLabel = str(self.name)
         return self
 
     @classmethod

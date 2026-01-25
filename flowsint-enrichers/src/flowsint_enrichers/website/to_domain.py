@@ -61,7 +61,7 @@ class WebsiteToDomainEnricher(Enricher):
         self, results: List[OutputType], input_data: List[InputType] = None
     ) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding domains
-        if input_data and self.neo4j_conn:
+        if input_data and self._graph_service:
             for input_website, result in zip(input_data, results):
                 website_url = str(input_website.url)
                 domain_name = result.domain

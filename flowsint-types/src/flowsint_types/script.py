@@ -71,9 +71,9 @@ class Script(FlowsintType):
     @model_validator(mode='after')
     def compute_label(self) -> Self:
         if self.name:
-            self.label = self.name
+            self.nodeLabel = self.name
         else:
-            self.label = self.script_id
+            self.nodeLabel = self.script_id
         return self
 
     @classmethod

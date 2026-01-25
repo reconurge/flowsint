@@ -63,7 +63,7 @@ class Session(FlowsintType):
             parts.append(self.service)
         if not parts:
             parts.append(self.session_id)
-        self.label = " - ".join(parts)
+        self.nodeLabel = " - ".join(parts)
         return self
 
     @classmethod

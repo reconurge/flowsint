@@ -1,50 +1,49 @@
-from uuid import UUID, uuid4
-from fastapi import APIRouter, HTTPException, Depends, status, Query
-from typing import Dict, List, Any, Optional
-from pydantic import BaseModel
 from datetime import datetime
-from flowsint_core.utils import extract_input_schema_flow
-from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 # Auto-discover and register all enrichers
-load_all_enrichers()
 from flowsint_core.core.celery import celery
-from flowsint_core.core.graph_repository import GraphRepository
-from flowsint_types import (
-    Domain,
-    Phrase,
-    Ip,
-    SocialAccount,
-    Organization,
-    Email,
-    Phone,
-    Username,
-    clean_neo4j_node_data,
-)
-from flowsint_core.core.types import Node, Edge, FlowStep, FlowBranch
-from sqlalchemy.orm import Session
+from flowsint_core.core.graph import create_graph_service
+from flowsint_core.core.models import CustomType, Flow, Profile, Sketch
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Flow, Profile, CustomType, Sketch
-from app.api.deps import get_current_user
-from sqlalchemy import func
-from app.api.schemas.flow import FlowRead, FlowCreate, FlowUpdate
-from app.security.permissions import check_investigation_permission
+from flowsint_core.core.types import FlowBranch, FlowEdge, FlowNode, FlowStep
+from flowsint_core.utils import extract_input_schema_flow
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
 from flowsint_types import (
     ASN,
     CIDR,
+    CryptoNFT,
     CryptoWallet,
     CryptoWalletTransaction,
-    CryptoNFT,
-    Website,
+    DNSRecord,
+    Domain,
+    Email,
     Individual,
+    Ip,
+    Organization,
+    Phone,
+    Phrase,
     Port,
-    DNSRecord
+    SocialAccount,
+    Username,
+    Website,
 )
+from pydantic import BaseModel
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_user
+from app.api.schemas.flow import FlowCreate, FlowRead, FlowUpdate
+from app.security.permissions import check_investigation_permission
+
+load_all_enrichers()
 
 
 class FlowComputationRequest(BaseModel):
-    nodes: List[Node]
-    edges: List[Edge]
+    nodes: List[FlowNode]
+    edges: List[FlowEdge]
     inputType: Optional[str] = None
 
 
@@ -169,7 +168,6 @@ def create_flow(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-
     new_flow = Flow(
         id=uuid4(),
         name=payload.name,
@@ -260,24 +258,22 @@ async def launch_flow(
             current_user.id, sketch.investigation_id, actions=["update"], db=db
         )
 
-        # Retrieve nodes from Neo4J by their element IDs
-        graph_repo = GraphRepository()
-        nodes_data = graph_repo.get_nodes_by_ids(payload.node_ids, payload.sketch_id)
-
-        if not nodes_data:
-            raise HTTPException(status_code=404, detail="No nodes found with provided IDs")
-
-        # Clean Neo4J-specific fields from node data
-        # The enricher's preprocess() will handle Pydantic validation
-        cleaned_nodes = [clean_neo4j_node_data(node_data) for node_data in nodes_data]
+        # Retrieve entities from Neo4J by their element IDs
+        graph_service = create_graph_service(sketch_id=payload.sketch_id)
+        entities = graph_service.get_nodes_by_ids_for_task(payload.node_ids)
 
         # Compute flow branches
-        nodes = [Node(**node) for node in flow.flow_schema["nodes"]]
-        edges = [Edge(**edge) for edge in flow.flow_schema["edges"]]
+        nodes = [FlowNode(**node) for node in flow.flow_schema["nodes"]]
+        edges = [FlowEdge(**edge) for edge in flow.flow_schema["edges"]]
+
+        entities = [entity.model_dump(mode="json", serialize_as_any=True) for entity in entities]
+
 
         # For flow computation, we still need a sample value
         # Use the label from the first node data
-        sample_value = nodes_data[0].get('label', 'sample_value') if nodes_data else 'sample_value'
+        sample_value = (
+            entities[0].get("nodeLabel", "sample_value") if len(entities) else "sample_value"
+        )
         flow_branches = compute_flow_branches(sample_value, nodes, edges)
         serializable_branches = [branch.model_dump() for branch in flow_branches]
 
@@ -285,7 +281,7 @@ async def launch_flow(
             "run_flow",
             args=[
                 serializable_branches,
-                cleaned_nodes,
+                entities,
                 payload.sketch_id,
                 str(current_user.id),
             ],
@@ -295,6 +291,7 @@ async def launch_flow(
     except HTTPException:
         raise
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Error launching flow: {str(e)}")
 
 
@@ -332,7 +329,7 @@ def generate_sample_data(type_str: str) -> Any:
 
 
 def compute_flow_branches(
-    initial_value: Any, nodes: List[Node], edges: List[Edge]
+    initial_value: Any, nodes: List[FlowNode], edges: List[FlowEdge]
 ) -> List[FlowBranch]:
     """Computes flow branches based on nodes and edges with proper DFS traversal"""
     # Find input nodes (starting points)
@@ -384,7 +381,7 @@ def compute_flow_branches(
 
         return 1 + min_length
 
-    def get_outgoing_edges(node_id: str) -> List[Edge]:
+    def get_outgoing_edges(node_id: str) -> List[FlowEdge]:
         """Get outgoing edges sorted by the shortest possible path length"""
         out_edges = [edge for edge in edges if edge.source == node_id]
         # Sort edges by the length of the shortest possible path from their target
@@ -549,7 +546,7 @@ def compute_flow_branches(
     return branches
 
 
-def process_node_data(node: Node, inputs: Dict[str, Any]) -> Dict[str, Any]:
+def process_node_data(node: FlowNode, inputs: Dict[str, Any]) -> Dict[str, Any]:
     """Traite les données de nœud en fonction du type de nœud et des entrées"""
     outputs = {}
     output_types = node.data["outputs"].get("properties", [])

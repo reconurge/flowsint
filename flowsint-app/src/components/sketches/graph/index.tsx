@@ -4,13 +4,19 @@ import ForceGraph2D from 'react-force-graph-2d'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useGraphStore } from '@/stores/graph-store'
-import { ItemType, useNodesDisplaySettings } from '@/stores/node-display-settings'
+import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useTheme } from '@/components/theme-provider'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
 import { CONSTANTS } from './utils/constants'
 import { GraphViewerProps } from './utils/types'
-import { preloadImage } from './utils/image-cache'
+import {
+  preloadImage,
+  preloadIconByName,
+  preloadExternalImage,
+  preloadFlagImage
+} from './utils/image-cache'
 import { renderNode } from './node/node-renderer'
+import { useKeyboardEvents } from './hooks/use-keyboard-events'
 import { renderLink } from './edge/link-renderer'
 import { useHighlightState } from './hooks/use-highlight-state'
 import { useTooltip } from './hooks/use-tooltip'
@@ -120,26 +126,58 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     return graphRef.current.graph2ScreenCoords(node.x, node.y)
   }, [])
 
-  // Preload icons
+  // Preload icons and images
   useEffect(() => {
-    if (showIcons) {
-      const isOutlined = forceSettings.nodeOutlined?.value ?? false
-      const iconTypes = new Set(nodes.map((node) => node.data?.type as ItemType).filter(Boolean))
+    if (!showIcons) return
 
-      if (isOutlined) {
-        // In outlined mode, preload icons in both white and black
-        iconTypes.forEach((type) => {
-          preloadImage(type, '#FFFFFF').catch(console.warn) // for dark theme
-          preloadImage(type, '#000000').catch(console.warn) // for light theme
-        })
-      } else {
-        // In filled mode, preload icons with white color only
-        iconTypes.forEach((type) => {
-          preloadImage(type, '#FFFFFF').catch(console.warn)
-        })
-      }
-    }
+    const isOutlined = forceSettings.nodeOutlined?.value ?? false
+    const colors = isOutlined ? ['#FFFFFF', '#000000'] : ['#FFFFFF']
+
+    // Collect unique values
+    const nodeTypes = new Set<string>()
+    const nodeIcons = new Set<string>()
+    const nodeImages = new Set<string>()
+
+    nodes.forEach((node) => {
+      if (node.nodeImage) nodeImages.add(node.nodeImage)
+      else if (node.nodeIcon) nodeIcons.add(node.nodeIcon)
+      else if (node.nodeType) nodeTypes.add(node.nodeType)
+    })
+
+    // Preload external images
+    nodeImages.forEach((url) => {
+      preloadExternalImage(url).catch(console.warn)
+    })
+
+    // Preload custom icons by name
+    nodeIcons.forEach((iconName) => {
+      colors.forEach((color) => {
+        preloadIconByName(iconName, color).catch(console.warn)
+      })
+    })
+
+    // Preload type-based icons
+    nodeTypes.forEach((type) => {
+      colors.forEach((color) => {
+        preloadImage(type, color).catch(console.warn)
+      })
+    })
   }, [nodes, showIcons, forceSettings.nodeOutlined?.value, customIcons])
+
+  useEffect(() => {
+    const flagColors = [
+      { stroke: '#f87171', fill: '#fecaca' }, // red
+      { stroke: '#fb923c', fill: '#fed7aa' }, // orange
+      { stroke: '#60a5fa', fill: '#bfdbfe' }, // blue
+      { stroke: '#4ade80', fill: '#bbf7d0' }, // green
+      { stroke: '#facc15', fill: '#fef08a' } // yellow
+    ]
+    flagColors.forEach(({ stroke, fill }) => {
+      preloadFlagImage(stroke, fill).catch((err) => {
+        console.warn('[Graph] Failed to preload flag image:', stroke, fill, err)
+      })
+    })
+  }, [])
 
   // Container size management
   useEffect(() => {
@@ -209,6 +247,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     [handleNodeHover, showTooltip, hideTooltip]
   )
 
+  useKeyboardEvents(sketchId)
+
   const {
     handleNodeClick,
     handleNodeRightClick,
@@ -263,36 +303,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     }
   }, [])
 
-  const exportToPNG = useCallback(async () => {
-    if (!graphRef.current) {
-      throw new Error('Graph ref not available')
-    }
-    // Get the canvas element from the ForceGraph2D component
-    const canvas = containerRef.current?.querySelector('canvas')
-    if (!canvas) {
-      throw new Error('Canvas element not found')
-    }
-    return new Promise<void>((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error('Failed to create image blob'))
-          return
-        }
-        // Create download link
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `sketch-${sketchId || 'export'}-${Date.now()}.png`
-        document.body.appendChild(a)
-        a.click()
-        // Cleanup
-        URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-        resolve()
-      }, 'image/png')
-    })
-  }, [sketchId])
-
   useGraphInitialization({
     graphRef,
     instanceId,
@@ -301,14 +311,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     selectedNodeIdsRef,
     regenerateLayout: wrappedRegenerateLayout
   })
-
-  // Expose export function to global store
-  useEffect(() => {
-    setActions({ exportToPNG })
-    return () => {
-      setActions({ exportToPNG: async () => {} })
-    }
-  }, [exportToPNG, setActions])
 
   // Clear highlights when graph data changes
   useEffect(() => {

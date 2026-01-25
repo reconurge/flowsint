@@ -50,9 +50,9 @@ class Gravatar(FlowsintType):
     def compute_label(self) -> Self:
         # Use display name if available, otherwise hash
         if self.display_name:
-            self.label = f"{self.display_name}"
+            self.nodeLabel = f"{self.display_name}"
         else:
-            self.label = f"{self.hash}"
+            self.nodeLabel = f"{self.hash}"
         return self
 
     @classmethod

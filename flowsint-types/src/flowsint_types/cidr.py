@@ -15,7 +15,7 @@ class CIDR(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = str(self.network)
+        self.nodeLabel = str(self.network)
         return self
 
     @classmethod

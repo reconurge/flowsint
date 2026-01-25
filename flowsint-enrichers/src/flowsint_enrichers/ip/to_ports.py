@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_types.ip import Ip
 from flowsint_types.port import Port
 from flowsint_core.utils import is_valid_ip
@@ -21,14 +20,12 @@ class IpToPortsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -194,7 +191,7 @@ class IpToPortsEnricher(Enricher):
         self, results: List[OutputType], input_data: List[InputType] = None
     ) -> List[OutputType]:
         """Create Neo4j nodes for ports and relationships with IP addresses"""
-        if self.neo4j_conn and results:
+        if self._graph_service and results:
             for port in results:
                 # Get the IP address this port belongs to
                 ip_address = getattr(port, "_ip_address", None)

@@ -39,7 +39,11 @@ export const useGraphEvents = ({
       const isMultiSelect = event.ctrlKey || event.shiftKey
       if (autoZoomOnCurrentNode && !isMultiSelect && node?.x && node?.y && graphRef.current) {
         setTimeout(() => {
-          if (graphRef.current && autoZoomOnNode && typeof graphRef.current.centerAt === 'function') {
+          if (
+            graphRef.current &&
+            autoZoomOnNode &&
+            typeof graphRef.current.centerAt === 'function'
+          ) {
             graphRef.current.centerAt(node.x, node.y, 400)
             if (typeof graphRef.current.zoom === 'function') {
               graphRef.current.zoom(6, 400)
@@ -87,18 +91,24 @@ export const useGraphEvents = ({
     onBackgroundClick?.()
   }, [onBackgroundClick])
 
-  const handleBackgroundRightClick = useCallback((event: MouseEvent) => {
-    onBackgroundRightClick?.(event)
-  }, [onBackgroundRightClick])
+  const handleBackgroundRightClick = useCallback(
+    (event: MouseEvent) => {
+      onBackgroundRightClick?.(event)
+    },
+    [onBackgroundRightClick]
+  )
 
-  const handleNodeDragEnd = useCallback((node: any, graphData: any) => {
-    node.fx = node.x
-    node.fy = node.y
+  const handleNodeDragEnd = useCallback(
+    (node: any, graphData: any) => {
+      node.fx = node.x
+      node.fy = node.y
 
-    if (graphData?.nodes) {
-      saveAllNodePositions(graphData.nodes)
-    }
-  }, [saveAllNodePositions])
+      if (graphData?.nodes) {
+        saveAllNodePositions(graphData.nodes)
+      }
+    },
+    [saveAllNodePositions]
+  )
 
   return {
     handleNodeClick,

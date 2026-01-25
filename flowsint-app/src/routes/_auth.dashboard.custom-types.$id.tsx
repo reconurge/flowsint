@@ -10,7 +10,13 @@ import { customTypeService, CustomType } from '@/api/custom-type-service'
 import { toast } from 'sonner'
 import { ArrowLeft, Save, Plus, Trash2, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -19,13 +25,9 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 export const Route = createFileRoute('/_auth/dashboard/custom-types/$id')({
   component: CustomTypeEditor
@@ -77,15 +79,17 @@ function CustomTypeEditor() {
   const parseSchemaToFields = (schema: any) => {
     const properties = schema.properties || {}
     const required = schema.required || []
-    const parsedFields: SchemaField[] = Object.entries(properties).map(([key, value]: [string, any]) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      key,
-      title: value.title || key,
-      type: value.type || 'string',
-      format: value.format,
-      description: value.description,
-      required: required.includes(key)
-    }))
+    const parsedFields: SchemaField[] = Object.entries(properties).map(
+      ([key, value]: [string, any]) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        key,
+        title: value.title || key,
+        type: value.type || 'string',
+        format: value.format,
+        description: value.description,
+        required: required.includes(key)
+      })
+    )
     setFields(parsedFields)
   }
 
@@ -99,7 +103,7 @@ function CustomTypeEditor() {
 
       const prop: any = {
         type: field.type,
-        title: field.title || field.key,
+        title: field.title || field.key
       }
       if (field.description) prop.description = field.description
       if (field.format && field.format !== 'none') prop.format = field.format
@@ -133,12 +137,12 @@ function CustomTypeEditor() {
 
   // Update field
   const updateField = (id: string, updates: Partial<SchemaField>) => {
-    setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f))
+    setFields(fields.map((f) => (f.id === id ? { ...f, ...updates } : f)))
   }
 
   // Delete field
   const deleteField = (id: string) => {
-    setFields(fields.filter(f => f.id !== id))
+    setFields(fields.filter((f) => f.id !== id))
   }
 
   // Toggle field expansion
@@ -185,14 +189,14 @@ function CustomTypeEditor() {
     }
 
     // Check for duplicate or empty keys
-    const keys = fields.map(f => f.key.trim()).filter(k => k)
+    const keys = fields.map((f) => f.key.trim()).filter((k) => k)
     const uniqueKeys = new Set(keys)
     if (keys.length !== uniqueKeys.size) {
       toast.error('Field keys must be unique')
       return
     }
 
-    if (fields.length === 0 || fields.every(f => !f.key.trim())) {
+    if (fields.length === 0 || fields.every((f) => !f.key.trim())) {
       toast.error('Please add at least one field')
       return
     }
@@ -241,7 +245,9 @@ function CustomTypeEditor() {
                   {isNew ? 'New custom type' : name || 'Edit custom type'}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {isNew ? 'Define your custom data structure' : 'Update your custom type definition'}
+                  {isNew
+                    ? 'Define your custom data structure'
+                    : 'Update your custom type definition'}
                 </p>
               </div>
             </div>
@@ -262,9 +268,10 @@ function CustomTypeEditor() {
           <TabsList className="mb-6">
             <TabsTrigger value="basic">Basic Information</TabsTrigger>
             <TabsTrigger value="fields">
-              Fields {fields.filter(f => f.key.trim()).length > 0 && (
+              Fields{' '}
+              {fields.filter((f) => f.key.trim()).length > 0 && (
                 <Badge variant="secondary" className="ml-2">
-                  {fields.filter(f => f.key.trim()).length}
+                  {fields.filter((f) => f.key.trim()).length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -333,9 +340,7 @@ function CustomTypeEditor() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Field Definitions</CardTitle>
-                    <CardDescription>
-                      Define the properties that make up this type
-                    </CardDescription>
+                    <CardDescription>Define the properties that make up this type</CardDescription>
                   </div>
                   <Button onClick={addField} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
@@ -404,7 +409,9 @@ function CustomTypeEditor() {
                               </Select>
                               <Select
                                 value={field.format || 'none'}
-                                onValueChange={(v) => updateField(field.id, { format: v === 'none' ? undefined : v })}
+                                onValueChange={(v) =>
+                                  updateField(field.id, { format: v === 'none' ? undefined : v })
+                                }
                               >
                                 <SelectTrigger className="h-9">
                                   <SelectValue />
@@ -422,7 +429,9 @@ function CustomTypeEditor() {
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={field.required}
-                                  onCheckedChange={(checked) => updateField(field.id, { required: checked })}
+                                  onCheckedChange={(checked) =>
+                                    updateField(field.id, { required: checked })
+                                  }
                                 />
                                 <span className="text-xs text-muted-foreground">Required</span>
                               </div>
@@ -448,7 +457,9 @@ function CustomTypeEditor() {
                                 <Textarea
                                   id={`desc-${field.id}`}
                                   value={field.description || ''}
-                                  onChange={(e) => updateField(field.id, { description: e.target.value })}
+                                  onChange={(e) =>
+                                    updateField(field.id, { description: e.target.value })
+                                  }
                                   placeholder="Describe this field's purpose and expected values..."
                                   rows={3}
                                   className="text-sm"
@@ -473,13 +484,15 @@ function CustomTypeEditor() {
               <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900">
                 <CardContent className="pt-6">
                   <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                         Tips for defining fields
                       </p>
                       <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                        <li>• Field keys should be lowercase with underscores (e.g., email_address)</li>
+                        <li>
+                          • Field keys should be lowercase with underscores (e.g., email_address)
+                        </li>
                         <li>• Display names are shown to users in forms and tables</li>
                         <li>• Use formats to enable validation (e.g., email, date, ipv4)</li>
                         <li>• Mark critical fields as required to ensure data quality</li>
@@ -496,9 +509,7 @@ function CustomTypeEditor() {
             <Card>
               <CardHeader>
                 <CardTitle>Schema Preview</CardTitle>
-                <CardDescription>
-                  JSON Schema representation of your custom type
-                </CardDescription>
+                <CardDescription>JSON Schema representation of your custom type</CardDescription>
               </CardHeader>
               <CardContent>
                 <pre className="p-4 bg-muted rounded-lg text-sm overflow-x-auto">
@@ -510,41 +521,48 @@ function CustomTypeEditor() {
             <Card>
               <CardHeader>
                 <CardTitle>Field Summary</CardTitle>
-                <CardDescription>
-                  Overview of all defined fields
-                </CardDescription>
+                <CardDescription>Overview of all defined fields</CardDescription>
               </CardHeader>
               <CardContent>
-                {fields.filter(f => f.key.trim()).length === 0 ? (
+                {fields.filter((f) => f.key.trim()).length === 0 ? (
                   <p className="text-sm text-muted-foreground">No fields defined yet</p>
                 ) : (
                   <div className="space-y-3">
-                    {fields.filter(f => f.key.trim()).map((field) => (
-                      <div key={field.id} className="flex items-start justify-between p-3 border rounded-lg">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">{field.title || field.key}</span>
-                            {field.required && (
-                              <Badge variant="outline" className="text-xs">Required</Badge>
+                    {fields
+                      .filter((f) => f.key.trim())
+                      .map((field) => (
+                        <div
+                          key={field.id}
+                          className="flex items-start justify-between p-3 border rounded-lg"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">
+                                {field.title || field.key}
+                              </span>
+                              {field.required && (
+                                <Badge variant="outline" className="text-xs">
+                                  Required
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Key: {field.key}</p>
+                            {field.description && (
+                              <p className="text-xs text-muted-foreground">{field.description}</p>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">Key: {field.key}</p>
-                          {field.description && (
-                            <p className="text-xs text-muted-foreground">{field.description}</p>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {field.type}
-                          </Badge>
-                          {field.format && (
-                            <Badge variant="outline" className="text-xs">
-                              {field.format}
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {field.type}
                             </Badge>
-                          )}
+                            {field.format && (
+                              <Badge variant="outline" className="text-xs">
+                                {field.format}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </CardContent>

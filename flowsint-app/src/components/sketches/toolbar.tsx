@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { sketchService } from '@/api/sketch-service'
 import { useParams } from '@tanstack/react-router'
+import { exportToPNG } from './graph/utils/export-to-png'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -68,7 +69,7 @@ export const ToolbarButton = memo(function ToolbarButton({
               'h-7 relative items-center shadow-none',
               !showLabel && 'w-7',
               toggled &&
-                'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+              'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
             {icon} {showLabel && <span className="hidden md:block">{tooltip}</span>}
@@ -95,7 +96,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const zoomOut = useGraphControls((s) => s.zoomOut)
   const regenerateLayout = useGraphControls((s) => s.regenerateLayout)
   const refetchGraph = useGraphControls((s) => s.refetchGraph)
-  const exportToPNG = useGraphControls((s) => s.exportToPNG)
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)
   const setIsSelectorModeActive = useGraphControls((s) => s.setIsSelectorModeActive)
   const selectionMode = useGraphControls((s) => s.selectionMode)
@@ -187,7 +187,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       if (!sketchId) return
       try {
         if (format === 'png') {
-          await exportToPNG()
+          await exportToPNG("null", "null")
         } else {
           await sketchService.exportSketch(sketchId, format)
         }
@@ -204,7 +204,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const areExactlyTwoSelected = selectedNodes.length === 2
   const areMergeable =
     selectedNodes.length > 1 &&
-    selectedNodes.every((n) => n.data.type === selectedNodes[0].data.type)
+    selectedNodes.every((n) => n.nodeType === selectedNodes[0].nodeType)
   const hasFilters = !(
     filters.types.every((t) => t.checked) || filters.types.every((t) => !t.checked)
   )
@@ -267,7 +267,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                 className={cn(
                   'h-7 w-7 rounded relative items-center shadow-none',
                   isSelectorModeActive &&
-                    'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                  'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
                 )}
               >
                 {selectionMode === 'lasso' ? (
@@ -292,7 +292,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         className={cn(
                           'h-7 w-5 px-0 rounded relative items-center shadow-none',
                           isSelectorModeActive &&
-                            'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                          'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
                         )}
                       >
                         <ChevronDown className="h-3 w-3 opacity-50" />
@@ -384,7 +384,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           icon={<RotateCw className={cn('h-4 w-4 opacity-70', isLoading && 'animate-spin')} />}
           tooltip="Refresh"
         />
-        <SaveStatusIndicator status={saveStatus} />
+        <SaveStatusIndicator />
       </div>
     </div>
   )

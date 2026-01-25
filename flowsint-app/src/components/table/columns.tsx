@@ -141,7 +141,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     size: 200,
     minSize: 120,
     maxSize: 500,
-    accessorKey: 'data.label',
+    accessorKey: 'nodeLabel',
     header: ({ column }) => {
       return (
         <Button
@@ -156,7 +156,7 @@ export const columns: ColumnDef<GraphNode>[] = [
     },
     cell: ({ row }) => {
       const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
-      // const IconComponent = useIcon(row.original.data.type)
+      // const IconComponent = useIcon(row.original.nodeType)
       const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
       const openEdit = useCallback(
         (e: React.MouseEvent) => {
@@ -172,7 +172,7 @@ export const columns: ColumnDef<GraphNode>[] = [
           onClick={openEdit}
           className="text-left font-medium flex items-center gap-2 h-full truncate text-ellipsis w-full rounded-md p-2 transition-colors duration-500"
         >
-          {/* <div className="flex-shrink-0">
+          {/* <div className="shrink-0">
                         <IconComponent size={16} />
                     </div> */}
           <span className="hover:text-primary truncate text-[.9rem] block font-medium transition-colors duration-500">
@@ -199,9 +199,9 @@ export const columns: ColumnDef<GraphNode>[] = [
     size: 120,
     minSize: 80,
     maxSize: 200,
-    accessorKey: 'data.type',
+    accessorKey: 'nodeType',
     cell: ({ row }) => {
-      const type = row.original.data.type
+      const type = row.original.nodeType
       return (
         <div className="text-center flex justify-center w-full font-medium flex items-center gap-2">
           <TypeBadge className="w-full" type={type} />

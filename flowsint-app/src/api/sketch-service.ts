@@ -100,7 +100,7 @@ export const sketchService = {
       id: string
       entity_type: string
       include: boolean
-      label: string
+      nodeLabel: string
       node_id?: string
       data: Record<string, any>
     }>,

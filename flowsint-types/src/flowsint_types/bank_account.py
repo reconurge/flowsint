@@ -72,7 +72,7 @@ class BankAccount(FlowsintType):
         if self.bank_name:
             parts.append(self.bank_name)
         parts.append(f"****{self.account_number[-4:]}" if len(self.account_number) > 4 else self.account_number)
-        self.label = " - ".join(parts)
+        self.nodeLabel = " - ".join(parts)
         return self
 
     @classmethod

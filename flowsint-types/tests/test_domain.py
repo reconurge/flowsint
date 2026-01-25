@@ -1,33 +1,34 @@
-from flowsint_types.domain import Domain
 import pytest
+
+from flowsint_types.domain import Domain
 
 
 def test_valid_domain_from_object():
     domain = Domain(**{"domain": "mydomain.com"})
     assert domain.domain == "mydomain.com"
-    assert domain.label == "mydomain.com"
-    assert domain.root == True
+    assert domain.nodeLabel == "mydomain.com"
+    assert domain.root
 
 
 def test_valid_subbomain_from_object():
     domain = Domain(**{"domain": "blog.mydomain.com"})
     assert domain.domain == "blog.mydomain.com"
-    assert domain.label == "blog.mydomain.com"
-    assert domain.root == False
+    assert domain.nodeLabel == "blog.mydomain.com"
+    assert not domain.root
 
 
 def test_valid_domain_from_instance():
     domain = Domain(domain="mydomain.com")
     assert domain.domain == "mydomain.com"
-    assert domain.label == "mydomain.com"
-    assert domain.root == True
+    assert domain.nodeLabel == "mydomain.com"
+    assert domain.root
 
 
 def test_valid_subdomain_from_instance():
     domain = Domain(domain="blog.mydomain.com")
     assert domain.domain == "blog.mydomain.com"
-    assert domain.label == "blog.mydomain.com"
-    assert domain.root == False
+    assert domain.nodeLabel == "blog.mydomain.com"
+    assert not domain.root
 
 
 def test_invalid_domain_from_object():

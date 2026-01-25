@@ -183,7 +183,7 @@ class DomainToWebsiteEnricher(Enricher):
                     }
                     Logger.info(self.sketch_id, redirect_payload)
 
-            if self.neo4j_conn:
+            if self._graph_service:
                 # Create domain node
                 self.create_node(website.domain)
 

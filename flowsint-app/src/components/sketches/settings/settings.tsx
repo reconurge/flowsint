@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
 import { toast } from 'sonner'
-
+import { clearIconTypeCache } from '@/components/sketches/graph/utils/image-cache'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { isMacOS } from '@/components/analyses/editor/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -32,8 +32,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { queryKeys } from '@/api/query-keys'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
-import { NodeIconTrigger } from './icon-picker/trigger'
-import IconPicker from './icon-picker/popup'
+import IconPicker, { NodeIconTrigger } from '@/components/shared/icon-picker'
 
 // SettingItem Components
 interface SettingItemProps {
@@ -216,6 +215,8 @@ function NodeColorsSection() {
   const randomizeColors = useNodesDisplaySettings((s) => s.randomizeColors)
   const [openIconPicker, setOpenIconPicker] = useState(false)
   const [currentType, setCurrentType] = useState<string | null>(null)
+  const { setIcon } = useNodesDisplaySettings()
+
   const handleOpenIconPicker = useCallback((type: string) => {
     setOpenIconPicker(true)
     setCurrentType(type)
@@ -260,6 +261,12 @@ function NodeColorsSection() {
     randomizeColors()
   }, [])
 
+  const handleIconSelect = (iconType: string, iconName: string) => {
+    // @ts-ignore
+    setIcon(iconType, iconName)
+    clearIconTypeCache(iconType)
+  }
+
   const handleReset = useCallback(() => {
     // Clear all pending timers
     debounceTimers.current.forEach((timer) => clearTimeout(timer))
@@ -284,7 +291,6 @@ function NodeColorsSection() {
           Customize the node styles for each type in the graph visualization.
         </p>
       </div>
-
       <div className="border-b flex items-center gap-2 pb-4">
         <Button variant="outline" size="sm" onClick={handleReset} className="grow shadow-none">
           Reset to default
@@ -298,7 +304,6 @@ function NodeColorsSection() {
           Randomize
         </Button>
       </div>
-
       <div className="pr-4">
         <div className="space-y-4 pb-6">
           {ITEM_TYPES.map((itemType) => (
@@ -332,7 +337,13 @@ function NodeColorsSection() {
           ))}
         </div>
       </div>
-      <IconPicker open={openIconPicker} setOpen={setOpenIconPicker} iconType={currentType} />
+      <IconPicker
+        // @ts-ignore
+        onIconChange={handleIconSelect}
+        open={openIconPicker}
+        setOpen={setOpenIconPicker}
+        iconType={currentType}
+      />
     </div>
   )
 }

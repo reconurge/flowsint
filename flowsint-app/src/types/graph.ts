@@ -1,36 +1,53 @@
-export type NodeData = {
-  id: string
-  type: string
-  label: string
-  created_at: string
-  // Allow any other properties
+import type * as LucideIcons from 'lucide-react'
+
+export type NodeProperties = {
   [key: string]: any
 }
 
+export const flagColors = {
+  red: 'text-red-400 fill-red-200',
+  orange: 'text-orange-400 fill-orange-200',
+  blue: 'text-blue-400 fill-blue-200',
+  green: 'text-green-400 fill-green-200',
+  yellow: 'text-yellow-400 fill-yellow-200'
+} as const
+
+type flagColor = keyof typeof flagColors
+
+export type NodeMetadata = {
+  [key: string]: any
+}
+
+export type NodeShape = 'circle' | 'square' | 'hexagon' | 'triangle'
+
 export type GraphNode = {
-  collapsed?: boolean
-  hidden?: boolean
-  x?: number
-  y?: number
-  nodeLabel?: string
-  nodeColor?: string
-  nodeSize?: number
-  nodeType?: string
+  id: string
+  nodeType: string
+  nodeLabel: string
+  nodeProperties: NodeProperties
+  nodeSize: number
+  nodeColor: string | null
+  nodeIcon: keyof typeof LucideIcons | null
+  nodeImage: string | null
+  nodeFlag: flagColor | null
+  nodeShape: NodeShape | null
+  nodeMetadata: NodeMetadata
+  x: number
+  y: number
   val?: number
   neighbors?: any[]
   links?: any[]
-  id: string
-  data: NodeData
 }
 
 export type GraphEdge = {
-  source: string
-  target: string
+  source: GraphNode['id']
+  target: GraphNode['id']
   date?: string
   id: string
   label: string
   caption?: string
   type?: string
+  weight?: number
   confidence_level?: number | string
 }
 

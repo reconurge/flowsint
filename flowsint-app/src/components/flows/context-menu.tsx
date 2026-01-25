@@ -1,11 +1,10 @@
-import { useCallback } from 'react'
+import { JSX, useCallback } from 'react'
 import { Pencil, Trash } from 'lucide-react'
-import { GraphNode } from '@/types/graph'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { FlowNode, useFlowStore } from '@/stores/flow-store'
 
 interface GraphContextMenuProps {
-  node: GraphNode | FlowNode
+  node: FlowNode
   top?: number
   left?: number
   right?: number

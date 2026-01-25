@@ -130,7 +130,7 @@ const ChatItem = ({
           {formatDistanceToNow(chat.last_updated_at, { addSuffix: true })}
         </span>
       </div>
-      <div className="flex items-center justify-between flex-shrink-0 ml-2">
+      <div className="flex items-center justify-between shrink-0 ml-2">
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDeleteChat}>
           <Trash className="h-3 w-3" />
         </Button>

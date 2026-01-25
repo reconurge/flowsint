@@ -18,7 +18,7 @@ class Leak(FlowsintType):
 
     @model_validator(mode='after')
     def compute_label(self) -> Self:
-        self.label = self.name
+        self.nodeLabel = self.name
         return self
 
     @classmethod

@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.wallet import CryptoWallet, CryptoWalletTransaction
-from flowsint_core.core.graph_db import Neo4jConnection
 from flowsint_core.core.logger import Logger
 
 load_dotenv()
@@ -29,14 +28,12 @@ class CryptoWalletAddressToTransactions(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        neo4j_conn: Optional[Neo4jConnection] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
-            neo4j_conn=neo4j_conn,
             params_schema=self.get_params_schema(),
             vault=vault,
             params=params,
@@ -176,7 +173,7 @@ class CryptoWalletAddressToTransactions(Enricher):
         return transactions
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
-        if not self.neo4j_conn:
+        if not self._graph_service:
             return results
 
         for transactions in results:
@@ -206,7 +203,7 @@ class CryptoWalletAddressToTransactions(Enricher):
                     tx.caption = $hash,
                     tx.type = "transaction"
                 """
-                self.neo4j_conn.query(
+                self._graph_service.query(
                     tx_query,
                     {
                         "hash": tx.hash,

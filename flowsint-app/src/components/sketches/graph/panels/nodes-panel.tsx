@@ -33,7 +33,7 @@ const NodeRenderer = memo(
     centerOnNode,
     autoZoomOnCurrentNode
   }: {
-    node: any
+    node: GraphNode
     setCurrentNodeId: (nodeId: string | null) => void
     onCheckboxChange: (node: GraphNode, checked: boolean) => void
     isNodeChecked: (nodeId: string) => boolean
@@ -78,8 +78,8 @@ const NodeRenderer = memo(
           )}
           onClick={handleClick}
         >
-          <div className="grow truncate text-ellipsis">{node?.data?.label}</div>
-          <TypeBadge className="ml-1" type={node?.data?.type} />
+          <div className="grow truncate text-ellipsis">{node?.nodeLabel}</div>
+          <TypeBadge className="ml-1" type={node?.nodeType} />
         </button>
       </div>
     )
@@ -126,31 +126,34 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
   const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
   const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
-  const autoZoomOnCurrentNode = useGraphSettingsStore((s) => s.getSettingValue('general', 'autoZoomOnCurrentNode'))
+  const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
+    s.getSettingValue('general', 'autoZoomOnCurrentNode')
+  )
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [filters, setFilters] = useState<string[] | null>(null)
 
-  const types = useMemo(() => Array.from(new Set(nodes.map((n) => n.data.type))), [nodes])
+  const types = useMemo(() => Array.from(new Set(nodes.map((n) => n.nodeType))), [nodes])
 
   // Ref pour le conteneur parent du virtualizer
   const parentRef = useRef<HTMLDivElement>(null)
 
   const filteredNodes = useMemo(() => {
     const searchText = searchQuery.toLowerCase()
-    return nodes?.filter((node) => {
-      const matchesSearch =
-        //@ts-ignore
-        node?.data?.label?.toLowerCase().includes(searchText) ||
-        node?.id?.toLowerCase().includes(searchText)
+    return nodes
+      ?.filter((node) => {
+        const matchesSearch =
+          node?.nodeLabel?.toLowerCase().includes(searchText) ||
+          node?.id?.toLowerCase().includes(searchText)
 
-      const matchesFilter =
-        !filters ||
-        filters.some(
-          (filter) => filter.toLowerCase() === (node?.data?.type as string)?.toLowerCase()
-        )
+        const matchesFilter =
+          !filters ||
+          filters.some(
+            (filter) => filter.toLowerCase() === (node.nodeType as string)?.toLowerCase()
+          )
 
-      return matchesSearch && matchesFilter
-    }).sort((a, b) => a.data.type.localeCompare(b.data.type));
+        return matchesSearch && matchesFilter
+      })
+      .sort((a, b) => a.nodeType.localeCompare(b.nodeType))
   }, [nodes, searchQuery, filters])
 
   // Configuration du virtualizer
@@ -226,7 +229,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
   return (
     <div className="overflow-hidden bg-card h-full flex flex-col w-full !p-0 !m-0">
       {/* Header fixe */}
-      <div className="sticky border-b top-0 p-2 bg-card z-10 flex-shrink-0">
+      <div className="sticky border-b top-0 p-2 bg-card z-10 shrink-0">
         <div className="flex items-center gap-2">
           <div>
             <Checkbox onCheckedChange={handleCheckAll} className="mr-1" />

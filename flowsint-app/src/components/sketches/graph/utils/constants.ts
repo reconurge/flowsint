@@ -35,7 +35,7 @@ export const CONSTANTS = {
   MAX_ZOOM: 12,
   ZOOM_NODE_DETAIL_THRESHOLD: 2,
   ZOOM_EDGE_DETAIL_THRESHOLD: 1,
-  ZOOMED_OUT_SIZE_MULTIPLIER: 3
+  ZOOMED_OUT_SIZE_MULTIPLIER: 2.5
 }
 
 // Reusable objects to avoid allocations

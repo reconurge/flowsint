@@ -68,11 +68,11 @@ class Message(FlowsintType):
     @model_validator(mode='after')
     def compute_label(self) -> Self:
         if self.subject:
-            self.label = self.subject
+            self.nodeLabel = self.subject
         else:
             # Truncate content to first 50 characters
             content_preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
-            self.label = content_preview
+            self.nodeLabel = content_preview
         return self
 
     @classmethod

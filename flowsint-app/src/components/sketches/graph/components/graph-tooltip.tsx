@@ -1,5 +1,5 @@
 import { Type, Share2 } from 'lucide-react'
-import { TooltipState } from './utils/types'
+import { TooltipState } from '../utils/types'
 
 interface GraphTooltipProps {
   tooltip: TooltipState

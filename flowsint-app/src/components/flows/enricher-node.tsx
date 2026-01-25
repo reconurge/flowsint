@@ -53,9 +53,9 @@ const EnricherNode = memo(({ data, isConnectable }: EnricherNodeProps) => {
   const setOpenFlowSheet = useFlowStore((state) => state.setOpenFlowSheet)
   const Icon =
     data.type === 'type'
-      ? useIcon(data.outputs.type.toLowerCase() as string, null)
+      ? useIcon(data.outputs.type.toLowerCase() as string)
       : data.icon
-        ? useIcon(data.icon, null)
+        ? useIcon(data.icon)
         : null
 
   const handleAddConnector = useCallback(() => {

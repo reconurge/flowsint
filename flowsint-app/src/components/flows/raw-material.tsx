@@ -53,7 +53,7 @@ export default function RawMaterial() {
     )
   return (
     <div className="flex flex-col w-full h-full min-h-0 bg-card overflow-y-auto p-4">
-      <div className="relative mb-4 flex-shrink-0">
+      <div className="relative mb-4 shrink-0">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="text"

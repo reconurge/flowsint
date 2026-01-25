@@ -65,9 +65,9 @@ class WebTracker(FlowsintType):
     @model_validator(mode='after')
     def compute_label(self) -> Self:
         if self.name:
-            self.label = self.name
+            self.nodeLabel = self.name
         else:
-            self.label = self.tracker_id
+            self.nodeLabel = self.tracker_id
         return self
 
     @classmethod

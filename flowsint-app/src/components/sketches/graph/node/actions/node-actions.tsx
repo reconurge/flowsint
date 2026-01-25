@@ -73,10 +73,10 @@ const NodeActions = memo(
                 <Button
                   onClick={handleOpenMainDialog}
                   variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
+                  size="icon"
+                  className="h-6 w-6 opacity-70"
                 >
-                  <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                  <Plus className="h-3.5! w-3.5! opacity-70" strokeWidth={2} />
                 </Button>
               </div>
             </TooltipTrigger>
@@ -91,7 +91,7 @@ const NodeActions = memo(
                   <Button
                     onClick={handleAskAI}
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
                   >
                     <Sparkles className="h-3 w-3" strokeWidth={1.5} />

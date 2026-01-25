@@ -127,8 +127,10 @@ export default function ContextMenu({
           <span className="block truncate">{node.nodeLabel}</span> -{' '}
           <span className="block">{node.nodeType}</span>
         </div>
-        <SubActions node={node} handleOpenNodeDetails={handleOpenNodeDetails} />
-        <NodeActions node={node} setMenu={setMenu} />
+        <div className="flex items-center gap-1">
+          <SubActions node={node} handleOpenNodeDetails={handleOpenNodeDetails} />
+          <NodeActions node={node} setMenu={setMenu} />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -311,8 +313,8 @@ type SubActionsProps = {
 }
 const SubActions = memo(({ node, handleOpenNodeDetails }: SubActionsProps) => {
   return (
-    <div className="flex">
-      <CopyButton size={'icon'} content={node.nodeLabel} />
+    <div className="flex items-center">
+      <CopyButton className="h-6 w-6" size={'icon'} content={node.nodeLabel} />
       <Button onClick={handleOpenNodeDetails} size={'icon'} className="h-7 w-7" variant="ghost">
         <SquareArrowOutUpRight className="h-3.5! w-3.5! opacity-50" />
       </Button>

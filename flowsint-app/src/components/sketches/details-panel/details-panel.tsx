@@ -1,11 +1,17 @@
 'use client'
 
 import type React from 'react'
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger
+} from '@/components/ui/popover'
 import { memo, useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { CopyButton } from '@/components/copy'
-import { X, Loader2, Rocket, Link2, MousePointer } from 'lucide-react'
+import { X, Loader2, Rocket, Link2, MousePointer, ArrowDownLeft } from 'lucide-react'
 import LaunchFlow from '../launch-enricher'
 import NodeActions from '../graph/node/actions/node-actions'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
@@ -26,6 +32,7 @@ import NeighborsGraph from './neighbors'
 import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
+
 // Types
 type FormData = {
   nodeLabel: string
@@ -128,7 +135,7 @@ const DetailsPanel = memo(() => {
   const node = useGraphStore((s) => s.getCurrentNode())
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const updateNode = useGraphStore((s) => s.updateNode)
-
+  console.log(node)
   const [openIconPicker, setOpenIconPicker] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -312,8 +319,8 @@ const DetailsPanel = memo(() => {
                 <TooltipTrigger asChild>
                   <div>
                     <LaunchFlow values={[node.id]} type={node.nodeType}>
-                      <button className="p-1.5 text-muted-foreground/50 hover:text-muted-foreground rounded transition-colors">
-                        <Rocket className="h-3.5 w-3.5" />
+                      <button className="p-1.5 rounded opacity-70 transition-colors">
+                        <Rocket className="h-4 w-4 opacity-70" strokeWidth={1.7} />
                       </button>
                     </LaunchFlow>
                   </div>
@@ -381,6 +388,8 @@ const DetailsPanel = memo(() => {
                           <Link2 className="h-3 w-3" />
                           <span className="truncate max-w-[100px]">{new URL(value).hostname}</span>
                         </a>
+                      ) : value && value.constructor === Object ? (
+                        <PopoverProperty label={key} property={value} />
                       ) : (
                         <input
                           type="text"
@@ -619,3 +628,26 @@ const DetailsPanel = memo(() => {
 
 export default DetailsPanel
 export { StatusCodeBadge }
+
+export const PopoverProperty = ({ label, property }: { label: string; property: object }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="h-6 flex items-end text-xs cursor-pointer">
+          <ArrowDownLeft className="h-3 w-3 opacity-60" />{' '}
+          <span className="underline">{label}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="mr-4">
+        <PopoverHeader>
+          <PopoverTitle>{label}</PopoverTitle>
+          {Object.entries(property).map(([key, value]) => (
+            <div>
+              {key} : {JSON.stringify(value)}
+            </div>
+          ))}
+        </PopoverHeader>
+      </PopoverContent>
+    </Popover>
+  )
+}

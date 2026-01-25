@@ -103,7 +103,7 @@ const VirtualizedList = memo(({ relationships }: { relationships: Relation[] }) 
                 height: `${virtualRow.size}px`,
                 transform: `translateY(${virtualRow.start}px)`
               }}
-              className="pb-1 px-3"
+              className="pb-1 px-1"
             >
               <Badge variant={'outline'} className="h-8 px-2 py-1 w-full block">
                 <div className="flex items-center gap-1 w-full min-w-0 h-full">

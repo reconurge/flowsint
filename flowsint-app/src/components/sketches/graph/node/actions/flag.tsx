@@ -64,7 +64,10 @@ export function NodeFlag({ sketchId, node }: { sketchId: string; node: GraphNode
             size="sm"
             className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100"
           >
-            <Flag className={cn(flagValue && flagColors[flagValue])} strokeWidth={2} />
+            <Flag
+              className={cn(flagValue && flagColors[flagValue], 'h-3.5! w-3.5! opacity-70')}
+              strokeWidth={2}
+            />
           </Button>
         </div>
       </DropdownMenuTrigger>

@@ -40,7 +40,7 @@ const getMentionItemsFromNodes = (): MentionItem[] => {
   return nodes
     .map((node) => {
       return {
-        value: node.nodeLabel,
+        nodeLabel: node.nodeLabel,
         nodeType: node.nodeType,
         nodeId: node.id,
         nodeImage: node.nodeImage,
@@ -70,27 +70,25 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 
 // Composant React custom pour le rendu de la mention
 const MentionComponent = memo((props: any) => {
-  const nodeId = props.node.attrs.nodeId
-  const node = props.node as GraphNode
+  const attrs = props.node.attrs
+  const { nodeId, nodeType, nodeIcon, nodeImage, nodeLabel } = attrs
 
-  const SourceIcon = useIcon(node.nodeType, {
-    nodeColor: node.nodeColor,
-    nodeIcon: node.nodeIcon,
-    nodeImage: node.nodeImage
+  const SourceIcon = useIcon(nodeType, {
+    nodeIcon,
+    nodeImage
   })
   const colors = useNodesDisplaySettings((s) => s.colors)
-  const color =
-    (node.nodeColor ?? node.nodeType)
-      ? // @ts-ignore
-        (colors[node.nodeType] ?? GRAPH_COLORS.NODE_DEFAULT)
-      : GRAPH_COLORS.NODE_DEFAULT
+  const color = nodeType
+    ? // @ts-ignore
+      (colors[nodeType] ?? GRAPH_COLORS.NODE_DEFAULT)
+    : GRAPH_COLORS.NODE_DEFAULT
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
   const setCurrentNodeFromId = useGraphStore((state) => state.setCurrentNodeFromId)
 
   const handleClick = useCallback(() => {
-    const node = setCurrentNodeFromId(nodeId)
-    if (node) {
-      const { x, y } = node
+    const currentNode = setCurrentNodeFromId(nodeId)
+    if (currentNode) {
+      const { x, y } = currentNode
       // Auto-zoom if enabled and node has coordinates
       if (x !== undefined && y !== undefined) {
         setTimeout(() => {
@@ -98,16 +96,13 @@ const MentionComponent = memo((props: any) => {
         }, 200)
       }
     }
-  }, [nodeId, centerOnNode])
+  }, [nodeId, centerOnNode, setCurrentNodeFromId])
 
   return (
-    <NodeViewWrapper
-      style={{ display: 'inline-flex', justifyItems: 'center', padding: 0, margin: 0 }}
-    >
-      <Button
-        variant={'ghost'}
+    <NodeViewWrapper className="inline-flex">
+      <button
         onClick={handleClick}
-        className="h-5 px-.5 gap-1 cursor-pointer items-center text-foreground"
+        className="px-.5 gap-1 pr-1 py-.5 flex items-center cursor-pointer text-xs rounded-full text-foreground"
         style={{
           backgroundColor: hexWithOpacity(color, 0.2),
           //@ts-ignore
@@ -115,8 +110,8 @@ const MentionComponent = memo((props: any) => {
         }}
       >
         {SourceIcon && <SourceIcon size={12} className="opacity-60" />}
-        {props.node.nodeLabel}
-      </Button>
+        {nodeLabel}
+      </button>
     </NodeViewWrapper>
   )
 })
@@ -127,7 +122,7 @@ export const Mention = TiptapMention.extend({
   },
   addAttributes() {
     return {
-      label: {
+      nodeLabel: {
         default: null,
         parseHTML: (element) => element.getAttribute('data-label'),
         renderHTML: (attributes) => {
@@ -135,19 +130,43 @@ export const Mention = TiptapMention.extend({
             return {}
           }
           return {
-            'data-label': attributes.label
+            'data-label': attributes.nodeLabel
           }
         }
       },
-      type: {
+      nodeType: {
         default: null,
         parseHTML: (element) => element.getAttribute('data-type'),
         renderHTML: (attributes) => {
-          if (!attributes.type) {
+          if (!attributes.nodeType) {
             return {}
           }
           return {
-            'data-type': attributes.type
+            'data-type': attributes.nodeType
+          }
+        }
+      },
+      nodeImage: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-image'),
+        renderHTML: (attributes) => {
+          if (!attributes.nodeImage) {
+            return {}
+          }
+          return {
+            'data-image': attributes.nodeImage
+          }
+        }
+      },
+      nodeIcon: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-icon'),
+        renderHTML: (attributes) => {
+          if (!attributes.nodeIcon) {
+            return {}
+          }
+          return {
+            'data-icon': attributes.nodeIcon
           }
         }
       },
@@ -182,7 +201,7 @@ export const Mention = TiptapMention.extend({
     items: ({ query }: { query: string }) => {
       const items = getMentionItemsFromNodes()
       return items
-        .filter((item) => item.value.toLowerCase().includes(query.toLowerCase()))
+        .filter((item) => item.nodeLabel.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 10)
     },
 

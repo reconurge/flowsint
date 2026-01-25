@@ -273,7 +273,7 @@ export const AnalysisEditor = ({
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {showNavigation && type !== 'analysis' && (
                 <Button className="h-8 w-8" variant="ghost" onClick={toggleAnalysis}>
-                  <ChevronsRight />
+                  <ChevronsRight className="opacity-70" />
                 </Button>
               )}
 
@@ -283,7 +283,7 @@ export const AnalysisEditor = ({
                   <PopoverTrigger asChild>
                     <div>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className="h-4 w-4 opacity-70" />
                       </Button>
                     </div>
                   </PopoverTrigger>
@@ -357,7 +357,7 @@ export const AnalysisEditor = ({
                   <DropdownMenuTrigger asChild>
                     <div>
                       <Button size="icon" variant="ghost" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                        <MoreVertical className="w-4 h-4 opacity-70" strokeWidth={1.5} />
                       </Button>
                     </div>
                   </DropdownMenuTrigger>

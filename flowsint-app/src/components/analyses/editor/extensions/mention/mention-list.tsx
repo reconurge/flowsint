@@ -4,11 +4,10 @@ import { ItemType } from '@/stores/node-display-settings'
 import { useIcon } from '@/hooks/use-icon'
 
 export interface MentionItem {
-  value: string
+  nodeLabel: string
   nodeType: ItemType
   nodeImage: string | null
   nodeIcon: string | any | null
-  nodeColor: string | null
   nodeId: string
 }
 
@@ -95,7 +94,6 @@ type MentionItemProps = {
 }
 const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItemProps) => {
   const SourceIcon = useIcon(item.nodeType, {
-    nodeColor: item.nodeColor,
     // @ts-ignore
     nodeIcon: item.nodeIcon,
     nodeImage: item.nodeImage
@@ -113,7 +111,7 @@ const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItem
       type="button"
     >
       {SourceIcon && <SourceIcon size={14} />}
-      <span className="flex-1 text-left truncate text-ellipsis">{item.value}</span>
+      <span className="flex-1 text-left truncate text-ellipsis">{item.nodeLabel}</span>
     </button>
   )
 }

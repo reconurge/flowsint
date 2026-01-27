@@ -1,21 +1,24 @@
+import json
 import os
 import re
-import json
-from typing import Any, List, Union, Dict, Set, Optional
+from typing import Any, Dict, List, Optional, Set, Union
+
+from dotenv import load_dotenv
 from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_core.core.logger import Logger
+from flowsint_core.utils import is_root_domain, is_valid_domain
+from flowsint_types.address import Location
 from flowsint_types.domain import Domain
+from flowsint_types.email import Email
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
-from flowsint_types.email import Email
 from flowsint_types.phone import Phone
-from flowsint_core.utils import is_valid_domain, is_root_domain
-from flowsint_types.address import Location
-from flowsint_core.core.logger import Logger
+
+from flowsint_enrichers.registry import flowsint_enricher
 from tools.network.whoxy import WhoxyTool
-from dotenv import load_dotenv
 
 load_dotenv()
+
 
 @flowsint_enricher
 class DomainToHistoryEnricher(Enricher):
@@ -185,7 +188,12 @@ class DomainToHistoryEnricher(Enricher):
                     )
 
                 # Extract other non-redacted information (country, email, etc.)
-                self.__extract_additional_info_from_contact(contact, contact_type, domain_name, extracted_info["original_domain"].domain)
+                self.__extract_additional_info_from_contact(
+                    contact,
+                    contact_type,
+                    domain_name,
+                    extracted_info["original_domain"].domain,
+                )
             else:
                 Logger.info(
                     self.sketch_id,
@@ -220,8 +228,6 @@ class DomainToHistoryEnricher(Enricher):
         # A record is valid if it has a domain name - we'll filter contacts individually later
         return True
 
-
-
     def __is_redacted(self, value: str) -> bool:
         """Check if a value is redacted."""
         if not value:
@@ -238,14 +244,16 @@ class DomainToHistoryEnricher(Enricher):
         if self.__is_redacted(full_name) or not full_name:
             Logger.info(
                 self.sketch_id,
-                {"message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"},
+                {
+                    "message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"
+                },
             )
             return None
 
         # Parse full name into first and last name
         name_parts = full_name.strip().split()
-        first_name = name_parts[0] if name_parts else ""
-        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+        first_name = name_parts[0] if name_parts else "N/A"
+        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "N/A"
 
         # Extract email and phone
         email_raw = contact.get("email_address", "")
@@ -322,9 +330,7 @@ class DomainToHistoryEnricher(Enricher):
         if not all([address, city, zip_code, country]):
             return None
 
-        return Location(
-            address=address, city=city, zip=zip_code, country=country
-        )
+        return Location(address=address, city=city, zip=zip_code, country=country)
 
     def __extract_organization_from_contact(
         self, contact: Dict[str, Any], contact_type: str
@@ -349,13 +355,17 @@ class DomainToHistoryEnricher(Enricher):
         return organization
 
     def __extract_additional_info_from_contact(
-        self, contact: Dict[str, Any], contact_type: str, domain_name: str, original_domain: str
+        self,
+        contact: Dict[str, Any],
+        contact_type: str,
+        domain_name: str,
+        original_domain: str,
     ):
         """Extract additional non-redacted information from contact data."""
         # Extract country information
         country_name = contact.get("country_name", "")
         country_code = contact.get("country_code", "")
-        
+
         if country_name and not self.__is_redacted(country_name):
             Logger.info(
                 self.sketch_id,
@@ -363,7 +373,7 @@ class DomainToHistoryEnricher(Enricher):
                     "message": f"[WHOXY] Found country: {country_name} ({contact_type}) for {domain_name}"
                 },
             )
-        
+
         if country_code and not self.__is_redacted(country_code):
             Logger.info(
                 self.sketch_id,
@@ -380,7 +390,7 @@ class DomainToHistoryEnricher(Enricher):
             for email in email_list:
                 if email and self.__is_valid_email(email):
                     emails.append(email)
-            
+
             if emails:
                 Logger.info(
                     self.sketch_id,
@@ -389,7 +399,9 @@ class DomainToHistoryEnricher(Enricher):
                     },
                 )
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self._graph_service:
             Logger.info(
@@ -440,7 +452,9 @@ class DomainToHistoryEnricher(Enricher):
                 # Create relationship between original domain and found domain
                 original_domain_obj = Domain(domain=original_domain_name)
                 domain_obj_rel = Domain(domain=domain_name)
-                self.create_relationship(original_domain_obj, domain_obj_rel, "HAS_RELATED_DOMAIN")
+                self.create_relationship(
+                    original_domain_obj, domain_obj_rel, "HAS_RELATED_DOMAIN"
+                )
 
             # Create individual node if not already processed
             individual_id = (
@@ -458,7 +472,9 @@ class DomainToHistoryEnricher(Enricher):
 
                 # Create relationship between individual and domain
                 domain_obj_contact = Domain(domain=domain_name)
-                self.create_relationship(individual, domain_obj_contact, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    individual, domain_obj_contact, f"IS_{contact_type.upper()}_CONTACT"
+                )
 
             # Process email addresses
             if individual.email_addresses:
@@ -537,7 +553,9 @@ class DomainToHistoryEnricher(Enricher):
                 # Create relationship between original domain and found domain
                 original_domain_obj3 = Domain(domain=original_domain_name)
                 domain_obj_rel3 = Domain(domain=domain_name)
-                self.create_relationship(original_domain_obj3, domain_obj_rel3, "HAS_RELATED_DOMAIN")
+                self.create_relationship(
+                    original_domain_obj3, domain_obj_rel3, "HAS_RELATED_DOMAIN"
+                )
 
             # Create organization node if not already processed
             if organization.name not in processed_organizations:
@@ -552,7 +570,9 @@ class DomainToHistoryEnricher(Enricher):
 
                 # Create relationship between organization and domain
                 domain_obj_org = Domain(domain=domain_name)
-                self.create_relationship(organization, domain_obj_org, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    organization, domain_obj_org, f"IS_{contact_type.upper()}_CONTACT"
+                )
 
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"

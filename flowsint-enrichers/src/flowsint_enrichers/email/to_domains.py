@@ -1,16 +1,18 @@
 import os
 import re
-from typing import Any, List, Dict, Set, Optional
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.domain import Domain
-from flowsint_types.individual import Individual
-from flowsint_types.email import Email
-from flowsint_types.phone import Phone
-from flowsint_types.address import Location
-from flowsint_core.core.logger import Logger
-from tools.network.whoxy import WhoxyTool
+from typing import Any, Dict, List, Optional, Set
+
 from dotenv import load_dotenv
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_types.address import Location
+from flowsint_types.domain import Domain
+from flowsint_types.email import Email
+from flowsint_types.individual import Individual
+from flowsint_types.phone import Phone
+
+from flowsint_enrichers.registry import flowsint_enricher
+from tools.network.whoxy import WhoxyTool
 
 load_dotenv()
 
@@ -142,8 +144,8 @@ class EmailToDomainsEnricher(Enricher):
 
         # Parse full name into first and last name
         name_parts = full_name.strip().split()
-        first_name = name_parts[0] if name_parts else ""
-        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+        first_name = name_parts[0] if name_parts else "N/A"
+        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "N/A"
 
         # Extract email and phone
         email = contact.get("email_address", "")
@@ -210,11 +212,11 @@ class EmailToDomainsEnricher(Enricher):
         if not all([address, city, zip_code, country]):
             return None
 
-        return Location(
-            address=address, city=city, zip=zip_code, country=country
-        )
+        return Location(address=address, city=city, zip=zip_code, country=country)
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self._graph_service:
             return results
@@ -299,7 +301,9 @@ class EmailToDomainsEnricher(Enricher):
 
         # Create relationship between individual and domain
         domain_obj_ind = Domain(domain=domain_name)
-        self.create_relationship(individual, domain_obj_ind, f"IS_{contact_type}_CONTACT")
+        self.create_relationship(
+            individual, domain_obj_ind, f"IS_{contact_type}_CONTACT"
+        )
 
         # Create relationship between individual and email
         email_obj_ind = Email(email=email_address)

@@ -84,9 +84,21 @@ class WebsiteToCrawler(Enricher):
                             {"message": f"  Found on: {item.source_url}"},
                         )
                     if item.type == "email":
-                        website_result["emails"].append(Email(email=item.value))
+                        try:
+                            website_result["emails"].append(Email(email=item.value))
+                        except Exception as e:
+                            Logger.warn(
+                                self.sketch_id,
+                                {"message": f"Skipping invalid email '{item.value}': {e}"},
+                            )
                     if item.type == "phone":
-                        website_result["phones"].append(Phone(number=item.value))
+                        try:
+                            website_result["phones"].append(Phone(number=item.value))
+                        except Exception as e:
+                            Logger.warn(
+                                self.sketch_id,
+                                {"message": f"Skipping invalid phone '{item.value}': {e}"},
+                            )
 
                 # Log results
                 Logger.info(

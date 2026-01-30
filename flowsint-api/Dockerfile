@@ -117,7 +117,7 @@ WORKDIR /app/flowsint-api
 RUN chmod +x entrypoint.sh
 
 # Switch to non-root user
-USER flowsint
+# USER flowsint
 
 EXPOSE 5001
 

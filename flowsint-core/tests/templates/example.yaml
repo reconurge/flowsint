@@ -1,4 +1,4 @@
-name: shodan_ip_lookup
+name: ip-api-lookup
 category: Ip
 version: 1.0
 type: enricher
@@ -8,17 +8,16 @@ input:
 request:
   method: GET
   url: http://ip-api.com/json/{{address}}
-  headers:
-    Authorization: "Bearer {{secrets.SHODAN_API_KEY}}"
 
 output:
   type: Ip
 
 response:
   expect: json
-  map:
-    lat: Ip.latitute
-    lon: Ip.longitude
-    country: Ip.country
-    city: Ip.city
-    isp: Ip.isp
+  map: # Map received keys (right) to object attributes (left, ex: Ip.latitude, etc)
+    address: query
+    latitute: lat
+    longitude: lon
+    country: country
+    city: city
+    isp: isp

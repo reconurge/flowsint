@@ -11,6 +11,12 @@ class TemplateInput(BaseModel):
     )
 
 
+class TemplateOutput(BaseModel):
+    type: str = Field(
+        ..., description="Flowsint Type that the template should return as an output."
+    )
+
+
 class TemplateHttpRequestHeader(BaseModel):
     name: str = Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9\-]+$")
     value: str = Field(min_length=1, max_length=4096)
@@ -82,4 +88,8 @@ class Template(BaseModel):
 
     response: TemplateHttpResponse = Field(
         ..., description="Response model for the HTTP response to expect."
+    )
+    output: TemplateOutput = Field(
+        ...,
+        description="Output type of the template.",
     )

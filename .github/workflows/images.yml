@@ -78,7 +78,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && steps.trivy.outcome == 'success'
         with:
           sarif_file: "trivy-frontend.sarif"
@@ -152,7 +152,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && steps.trivy.outcome == 'success'
         with:
           sarif_file: "trivy-backend.sarif"

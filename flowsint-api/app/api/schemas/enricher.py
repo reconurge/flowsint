@@ -1,7 +1,8 @@
-from .base import ORMBase
+from typing import Any, Dict, List, Optional
+
 from pydantic import UUID4, BaseModel
-from typing import Optional
-from typing import List, Optional, Dict, Any
+
+from .base import ORMBase
 
 
 class EnricherCreate(BaseModel):
@@ -21,6 +22,6 @@ class EnricherRead(ORMBase):
 
 class EnricherUpdate(BaseModel):
     name: Optional[str] = None
-    class_name: str = None
+    class_name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[List[str]] = None

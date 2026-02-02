@@ -8,7 +8,10 @@ from flowsint_core.core.celery import celery
 from flowsint_core.core.graph import create_graph_service
 from flowsint_core.core.models import Profile
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.services import create_enricher_service
+from flowsint_core.core.services import (
+    create_enricher_service,
+    create_enricher_template_service,
+)
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
 from app.api.deps import get_current_user
 
@@ -30,8 +33,17 @@ def get_enrichers(
     current_user: Profile = Depends(get_current_user),
 ):
     """Get all enrichers, optionally filtered by category."""
-    service = create_enricher_service(db)
-    return service.get_enrichers(category, current_user.id, ENRICHER_REGISTRY)
+    enricher_service = create_enricher_service(db)
+    base_enrichers = enricher_service.get_enrichers(
+        category, current_user.id, ENRICHER_REGISTRY
+    )
+
+    template_service = create_enricher_template_service(db)
+    template_enrichers = template_service.list_by_category_for_user(
+        current_user.id, category
+    )
+
+    return [*base_enrichers, *template_enrichers]
 
 
 @router.post("/{enricher_name}/launch")
@@ -39,6 +51,7 @@ async def launch_enricher(
     enricher_name: str,
     payload: launchEnricherPayload,
     current_user: Profile = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     try:
         # Retrieve nodes from Neo4J by their element IDs
@@ -52,8 +65,21 @@ async def launch_enricher(
                 status_code=404, detail="No entities found with provided IDs"
             )
 
+        enricher_in_registry = ENRICHER_REGISTRY.enricher_exists(enricher_name)
+        if not enricher_in_registry:
+            template_service = create_enricher_template_service(db)
+            template = template_service.find_by_name(enricher_name, current_user.id)
+            if not template:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Enricher '{enricher_name}' not found in registry",
+                )
+
+        task_name = (
+            "run_enricher" if enricher_in_registry else "run_enricher_from_template"
+        )
         task = celery.send_task(
-            "run_enricher",
+            task_name,
             args=[
                 enricher_name,
                 entities,

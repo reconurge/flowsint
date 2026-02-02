@@ -254,7 +254,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       })
       const newNode: FlowNode = {
         id: `${enricherData.name}-${Date.now()}`,
-        type: enricherData.type === 'type' ? 'type' : 'enricher',
+        type: enricherData.type === 'type' ? 'type' : 'request',
         position,
         data: {
           id: enricherData.id,

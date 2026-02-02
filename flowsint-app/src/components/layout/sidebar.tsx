@@ -1,4 +1,4 @@
-import { Home, Lock, type LucideIcon, PanelLeft, Workflow, Shapes } from 'lucide-react'
+import { Home, Lock, type LucideIcon, PanelLeft, Workflow, Shapes, Puzzle } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useLayoutStore } from '@/stores/layout-store'
 import { Button } from '../ui/button'
@@ -18,6 +18,7 @@ export const Sidebar = memo(() => {
 
   const navItems: NavItem[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard/' },
+    { icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' },
     { icon: Workflow, label: 'Flows', href: '/dashboard/flows' },
     { icon: Shapes, label: 'Custom types', href: '/dashboard/custom-types' },
     { icon: Lock, label: 'Vault', href: '/dashboard/vault' }

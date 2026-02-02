@@ -1,9 +1,20 @@
-import uuid
 import asyncio
+import uuid
 from typing import List, Optional
+
 from celery import states
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
+from flowsint_core.core.template_enricher import TemplateEnricher
+from flowsint_core.templates.types import Template
+from flowsint_core.utils import to_json_serializable
+
 from ..core.celery import celery
+from ..core.enums import EventLevel
+from ..core.logger import Logger
+from ..core.models import EnricherTemplate, Scan
 from ..core.postgre_db import SessionLocal, get_db
 from ..core.services import create_vault_service
 from ..core.models import Scan
@@ -23,13 +34,12 @@ def run_enricher(
     self,
     enricher_name: str,
     serialized_objects: List[dict],
-    sketch_id: str | None,
+    sketch_id: str,
     owner_id: Optional[str] = None,
 ):
     session = SessionLocal()
 
     try:
-
         scan_id = uuid.UUID(self.request.id)
 
         scan = Scan(
@@ -60,6 +70,83 @@ def run_enricher(
             vault=vault,
         )
 
+        # Deserialize objects back into Pydantic models
+        # The preprocess method in Enricher will handle these already-parsed objects
+        results = asyncio.run(enricher.execute(values=serialized_objects))
+
+        scan.status = EventLevel.COMPLETED
+        scan.results = to_json_serializable(results)
+        session.commit()
+
+        return {"result": scan.results}
+
+    except Exception as ex:
+        session.rollback()
+        error_logs = f"An error occurred: {str(ex)}"
+
+        scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        if scan:
+            scan.status = EventLevel.FAILED
+            scan.results = {"error": error_logs}
+            session.commit()
+
+        self.update_state(state=states.FAILURE)
+        raise ex
+
+    finally:
+        session.close()
+
+
+@celery.task(name="run_enricher_from_template", bind=True)
+def run_enricher_from_template(
+    self,
+    enricher_name: str,
+    serialized_objects: List[dict],
+    sketch_id: str,
+    owner_id: Optional[str] = None,
+):
+    session = SessionLocal()
+
+    try:
+        scan_id = uuid.UUID(self.request.id)
+
+        scan = Scan(
+            id=scan_id,
+            status=EventLevel.PENDING,
+            sketch_id=uuid.UUID(sketch_id) if sketch_id else None,
+        )
+        session.add(scan)
+        session.commit()
+
+        # Create vault instance if owner_id is provided
+        vault = None
+        if owner_id:
+            try:
+                vault = Vault(session, uuid.UUID(owner_id))
+            except Exception as e:
+                raise ValueError(f"Error creating vault: {e}")
+
+        template = (
+            db.query(EnricherTemplate)
+            .filter(
+                EnricherTemplate.name == enricher_name,
+                or_(
+                    EnricherTemplate.owner_id == owner_id,
+                    EnricherTemplate.is_public,
+                ),
+            )
+            .first()
+        )
+
+        if not template:
+            raise ValueError(f"Enricher {enricher_name} not found.")
+
+        content = template.content
+        template = Template(**content)
+        assert isinstance(template, Template)
+        enricher = TemplateEnricher(
+            sketch_id=sketch_id, scan_id=str(scan_id), template=template
+        )
         # Deserialize objects back into Pydantic models
         # The preprocess method in Enricher will handle these already-parsed objects
         results = asyncio.run(enricher.execute(values=serialized_objects))

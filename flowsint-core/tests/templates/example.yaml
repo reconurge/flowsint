@@ -1,23 +1,50 @@
+# IP API Lookup Template
+# This template fetches IP geolocation data from ip-api.com
+#
+# Mapping format:
+#   <OutputType_field>: <response_json_path>
+#
+# Example API response from http://ip-api.com/json/8.8.8.8:
+# {
+#   "query": "8.8.8.8",
+#   "status": "success",
+#   "country": "United States",
+#   "city": "Mountain View",
+#   "lat": 37.386,
+#   "lon": -122.0838,
+#   "isp": "Google LLC"
+# }
+
 name: ip-api-lookup
 category: Ip
 version: 1.0
-type: enricher
+
 input:
   type: Ip
   key: address
+
 request:
   method: GET
   url: http://ip-api.com/json/{{address}}
-
-output:
-  type: Ip
+  params:
+    fields: query,status,country,city,lat,lon,isp
+  timeout: 30
 
 response:
   expect: json
-  map: # Map received keys (right) to object attributes (left, ex: Ip.latitude, etc)
+  map:
+    # Ip.address <- response["query"]
     address: query
-    latitute: lat
+    # Ip.latitude <- response["lat"]
+    latitude: lat
+    # Ip.longitude <- response["lon"]
     longitude: lon
+    # Ip.country <- response["country"]
     country: country
+    # Ip.city <- response["city"]
     city: city
+    # Ip.isp <- response["isp"]
     isp: isp
+
+output:
+  type: Ip

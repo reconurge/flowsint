@@ -1,6 +1,9 @@
 """Pytest configuration for flowsint-core tests."""
-import pytest
+
 import os
+from unittest.mock import MagicMock
+
+import pytest
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
@@ -19,8 +22,6 @@ def setup_test_environment(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_logger(monkeypatch):
     """Mock the Logger to avoid database calls during tests."""
-    from unittest.mock import MagicMock
-
     mock = MagicMock()
     monkeypatch.setattr("flowsint_core.core.logger.Logger", mock)
     return mock

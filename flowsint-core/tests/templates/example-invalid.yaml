@@ -1,7 +1,7 @@
 name: shodan_ip_lookup
 category: Ip
 version: 1.0
-type: enricher
+type: request
 input:
   type: Ip
   key: address

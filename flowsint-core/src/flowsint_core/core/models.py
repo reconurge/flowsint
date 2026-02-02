@@ -390,3 +390,36 @@ class CustomType(Base):
         Index("idx_custom_types_name", "name"),
         Index("idx_custom_types_status", "status"),
     )
+
+
+class EnricherTemplate(Base):
+    __tablename__ = "enricher_templates"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    category: Mapped[str] = mapped_column(Text, nullable=False)
+    version: Mapped[float] = mapped_column(nullable=False, default=1.0)
+    content: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    is_public: Mapped[bool] = mapped_column(default=False)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+    )
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    owner = relationship("Profile", foreign_keys=[owner_id])
+
+    __table_args__ = (
+        Index("idx_enricher_templates_owner_id", "owner_id"),
+        Index("idx_enricher_templates_name", "name"),
+        Index("idx_enricher_templates_category", "category"),
+        Index("idx_enricher_templates_is_public", "is_public"),
+    )

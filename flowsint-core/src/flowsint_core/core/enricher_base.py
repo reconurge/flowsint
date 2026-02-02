@@ -409,7 +409,7 @@ class Enricher(ABC):
     ) -> List[Dict[str, Any]]:
         return results
 
-    async def execute(self, values: List[str]) -> List[Dict[str, Any]]:
+    async def execute(self, values: List[Any]) -> List[Dict[str, Any]]:
         if self.name() != "enricher_orchestrator":
             Logger.info(self.sketch_id, {"message": f"Enricher {self.name()} started."})
         try:

@@ -17,6 +17,7 @@ redis = "^5.0"
 celery = "^5.3"
 python-dotenv = "^1.0"
 requests = "^2.31"
+httpx = "^0.28"
 networkx = "^2.6.3"
 passlib = {extras = ["bcrypt"], version = "^1.7"}
 bcrypt = ">=4.0.0,<5.0.0"
@@ -32,6 +33,7 @@ openpyxl = "^3.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.21"
+pytest-httpx = "^0.35"
 black = "^23.0"
 isort = "^5.12"
 flake8 = "^6.0"

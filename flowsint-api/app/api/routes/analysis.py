@@ -1,42 +1,30 @@
-from uuid import UUID, uuid4
-from app.security.permissions import check_investigation_permission
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
-from datetime import datetime
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
+
 from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Analysis, Profile, InvestigationUserRole
-from flowsint_core.core.types import Role
+from flowsint_core.core.models import Profile
+from flowsint_core.core.services import (
+    create_analysis_service,
+    NotFoundError,
+    PermissionDeniedError,
+)
 from app.api.deps import get_current_user
 from app.api.schemas.analysis import AnalysisRead, AnalysisCreate, AnalysisUpdate
 
 router = APIRouter()
 
 
-# Get the list of all analyses for the current user
 @router.get("", response_model=List[AnalysisRead])
 def get_analyses(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):
-    # Get all analyses from investigations where user has at least VIEWER role
-    allowed_roles_for_read = [Role.OWNER, Role.EDITOR, Role.VIEWER]
-
-    query = db.query(Analysis).join(
-        InvestigationUserRole,
-        InvestigationUserRole.investigation_id == Analysis.investigation_id,
-    )
-
-    query = query.filter(InvestigationUserRole.user_id == current_user.id)
-
-    # Filter by allowed roles
-    conditions = [InvestigationUserRole.roles.any(role) for role in allowed_roles_for_read]
-    query = query.filter(or_(*conditions))
-
-    return query.distinct().all()
+    """Get all analyses accessible to the current user."""
+    service = create_analysis_service(db)
+    return service.get_accessible_analyses(current_user.id)
 
 
-# Create a New analysis
 @router.post(
     "/create", response_model=AnalysisRead, status_code=status.HTTP_201_CREATED
 )
@@ -45,64 +33,47 @@ def create_analysis(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    check_investigation_permission(
-        current_user.id, payload.investigation_id, actions=["create"], db=db
-    )
-    new_analysis = Analysis(
-        id=uuid4(),
-        title=payload.title,
-        description=payload.description,
-        content=payload.content,
-        owner_id=current_user.id,
-        investigation_id=payload.investigation_id,
-        created_at=datetime.utcnow(),
-        last_updated_at=datetime.utcnow(),
-    )
-    db.add(new_analysis)
-    db.commit()
-    db.refresh(new_analysis)
-    return new_analysis
+    service = create_analysis_service(db)
+    try:
+        return service.create(
+            title=payload.title,
+            description=payload.description,
+            content=payload.content,
+            investigation_id=payload.investigation_id,
+            owner_id=current_user.id,
+        )
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
-# Get an analysis by ID
 @router.get("/{analysis_id}", response_model=AnalysisRead)
 def get_analysis_by_id(
     analysis_id: UUID,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    analysis = (
-        db.query(Analysis)
-        .filter(Analysis.id == analysis_id)
-        .first()
-    )
-    if not analysis:
+    service = create_analysis_service(db)
+    try:
+        return service.get_by_id(analysis_id, current_user.id)
+    except NotFoundError:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    check_investigation_permission(
-        current_user.id, analysis.investigation_id, actions=["read"], db=db
-    )
-    return analysis
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
-# Get analyses by investigation ID
 @router.get("/investigation/{investigation_id}", response_model=List[AnalysisRead])
 def get_analyses_by_investigation(
     investigation_id: UUID,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    check_investigation_permission(
-        current_user.id, investigation_id, actions=["read"], db=db
-    )
-    analyses = (
-        db.query(Analysis)
-        .filter(Analysis.investigation_id == investigation_id)
-        .all()
-    )
-    return analyses
+    service = create_analysis_service(db)
+    try:
+        return service.get_by_investigation(investigation_id, current_user.id)
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
-# Update an analysis by ID
 @router.put("/{analysis_id}", response_model=AnalysisRead)
 def update_analysis(
     analysis_id: UUID,
@@ -110,51 +81,33 @@ def update_analysis(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    analysis = (
-        db.query(Analysis)
-        .filter(Analysis.id == analysis_id)
-        .first()
-    )
-    if not analysis:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    check_investigation_permission(
-        current_user.id, analysis.investigation_id, actions=["update"], db=db
-    )
-    if payload.title is not None:
-        analysis.title = payload.title
-    if payload.description is not None:
-        analysis.description = payload.description
-    if payload.content is not None:
-        analysis.content = payload.content
-    if payload.investigation_id is not None:
-        # Check permission for the new investigation as well
-        check_investigation_permission(
-            current_user.id, payload.investigation_id, actions=["update"], db=db
+    service = create_analysis_service(db)
+    try:
+        return service.update(
+            analysis_id=analysis_id,
+            user_id=current_user.id,
+            title=payload.title,
+            description=payload.description,
+            content=payload.content,
+            investigation_id=payload.investigation_id,
         )
-        analysis.investigation_id = payload.investigation_id
-    analysis.last_updated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(analysis)
-    return analysis
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
-# Delete an analysis by ID
 @router.delete("/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_analysis(
     analysis_id: UUID,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    analysis = (
-        db.query(Analysis)
-        .filter(Analysis.id == analysis_id)
-        .first()
-    )
-    if not analysis:
+    service = create_analysis_service(db)
+    try:
+        service.delete(analysis_id, current_user.id)
+        return None
+    except NotFoundError:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    check_investigation_permission(
-        current_user.id, analysis.investigation_id, actions=["delete"], db=db
-    )
-    db.delete(analysis)
-    db.commit()
-    return None
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")

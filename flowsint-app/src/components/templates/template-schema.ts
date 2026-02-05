@@ -172,23 +172,90 @@ export const templateSchema = {
   }
 }
 
-export const defaultTemplate = `name: my-enricher
-description: My custom enricher template
-category: Domain
-type: request
+export const defaultTemplate = `# Example template enricher
+# GitHub user lookup template
+# Fetches user profile information from GitHub API
+#
+# API endpoint: https://api.github.com/users/{username}
+# Docs: https://docs.github.com/en/rest/users/users#get-a-user
+#
+# Example response:
+# {
+#   "login": "my_gh_pseudo",
+#   "id": 206358,
+#   "avatar_url": "https://avatars.githubusercontent.com/u/206358?v=4",
+#   "html_url": "https://github.com/my_gh_pseudo",
+#   "name": "John Doe",
+#   "bio": "Developer",
+#   "location": "San Francisco",
+#   "followers": 3,
+#   "following": 0,
+#   "public_repos": 1,
+#   "created_at": "2010-02-18T23:00:25Z",
+#   ...
+# }
+
+name: github-user-lookup
+description: Fetch GitHub user profile and return as SocialAccount
+category: Username
 version: 1.0
+
 input:
-  type: Domain
-  key: domain
+  type: Username
+  key: value
+
+secrets:
+  - name: GITHUB_TOKEN
+    required: true
+    description: GitHub personal access token (required for API rate limits)
+
 request:
   method: GET
-  url: https://api.example.com/lookup/{{domain}}
-output:
-  type: Domain
+  url: https://api.github.com/users/{{value}}
+  headers:
+    Accept: application/vnd.github+json
+    Authorization: Bearer {{secrets.GITHUB_TOKEN}}
+    X-GitHub-Api-Version: "2022-11-28"
+    User-Agent: flowsint-enricher
+  timeout: 15
+
 response:
   expect: json
   map:
-    domain: domain
+    # SocialAccount.username <- response["login"]
+    username: login
+    # SocialAccount.display_name <- response["name"]
+    display_name: name
+    # SocialAccount.profile_url <- response["html_url"]
+    profile_url: html_url
+    # SocialAccount.profile_picture_url <- response["avatar_url"]
+    profile_picture_url: avatar_url
+    # SocialAccount.bio <- response["bio"]
+    bio: bio
+    # SocialAccount.location <- response["location"]
+    location: location
+    # SocialAccount.created_at <- response["created_at"]
+    created_at: created_at
+    # SocialAccount.followers_count <- response["followers"]
+    followers_count: followers
+    # SocialAccount.following_count <- response["following"]
+    following_count: following
+    # SocialAccount.posts_count <- response["public_repos"]
+    posts_count: public_repos
+
+output:
+  type: SocialAccount
+
+retry:
+  max_retries: 3
+  backoff_factor: 1.0
+  retry_on_status:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+
 `
 
 export interface TemplateInput {

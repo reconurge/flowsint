@@ -517,15 +517,15 @@ class TemplateEnricher(Enricher):
                 except Exception as e:
                     Logger.info(
                         self.sketch_id,
-                        {"message": f"Unexpected error processing {self.request.url}: {e}"},
+                        {
+                            "message": f"Unexpected error processing {self.request.url}: {e}"
+                        },
                     )
                     continue
 
         return results
 
-    def postprocess(
-        self, results: List[Any], input_data: List[Any] = []
-    ) -> List[Any]:
+    def postprocess(self, results: List[Any], input_data: List[Any] = []) -> List[Any]:
         """Log results and return them."""
         for res in results:
             self.log_graph_message(

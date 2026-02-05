@@ -1,0 +1,71 @@
+name: github-user-lookup
+description: Fetch GitHub user profile and repos; emit SocialAccount + Posts
+category: Username
+version: 1.1
+
+input:
+  type: Username
+  key: value
+
+secrets:
+  - name: GITHUB_TOKEN
+    required: true
+
+request:
+  - id: user
+    method: GET
+    url: https://api.github.com/users/{{value}}
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: Bearer {{secrets.GITHUB_TOKEN}}
+      X-GitHub-Api-Version: "2022-11-28"
+      User-Agent: flowsint-enricher
+    timeout: 15
+
+  - id: repos
+    method: GET
+    url: https://api.github.com/users/{{value}}/repos?per_page=100&sort=updated
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: Bearer {{secrets.GITHUB_TOKEN}}
+      X-GitHub-Api-Version: "2022-11-28"
+      User-Agent: flowsint-enricher
+    timeout: 15
+
+response:
+  expect: json
+
+outputs:
+  - type: SocialAccount
+    from: user
+    map:
+      username: login
+      display_name: name
+      profile_url: html_url
+      profile_picture_url: avatar_url
+      bio: bio
+      location: location
+      created_at: created_at
+      followers_count: followers
+      following_count: following
+      posts_count: public_repos
+
+  - type: Post
+    from: repos
+    for_each: "$" # iterate over the root array
+    map:
+      id: id
+      title: name
+      url: html_url
+      created_at: created_at
+      updated_at: updated_at
+      description: description
+      language: language
+      stars: stargazers_count
+      owner_username: owner.login
+      owner_profile_url: owner.html_url
+
+retry:
+  max_retries: 3
+  backoff_factor: 1.0
+  retry_on_status: [429, 500, 502, 503, 504]

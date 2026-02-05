@@ -149,7 +149,8 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
     if (paramKeys.length > 0) {
       const paramsObj: Record<string, string> = {}
       for (const key of paramKeys) {
-        const templateValue = templateParams[key] ?? ''
+        // Convert to string since YAML may parse numbers/booleans as their native types
+        const templateValue = String(templateParams[key] ?? '')
         // Replace {{key}} in param value with test input
         const resolvedValue = templateValue.replace(
           new RegExp(`\\{\\{${inputKey}\\}\\}`, 'g'),
@@ -439,7 +440,10 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
         </div>
         <div className="flex-1 flex overflow-hidden">
           <Tabs value={activeTab} className="flex-1 flex">
-            <TabsContent value="editor" className="flex-1 flex m-0 data-[state=inactive]:hidden">
+            <TabsContent
+              value="editor"
+              className="flex-1 grow flex m-0 data-[state=inactive]:hidden"
+            >
               <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
                 <YamlEditor
                   value={content}
@@ -447,7 +451,7 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
                   onValidate={handleEditorValidate}
                 />
               </div>
-              <div className="w-72 border-l bg-card/30 flex flex-col">
+              <div className="w-72 border-l bg-card/30 flex flex-col overflow-auto">
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-2">
                     {hasErrors ? (
@@ -479,7 +483,7 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
                     )}
                   </div>
                 </div>
-                <ScrollArea className="flex-1">
+                <div className="flex-1 grow overflow-auto">
                   <div className="p-4 space-y-3">
                     {validationResult.errors.map((error, i) => (
                       <div key={i} className="flex gap-2 text-sm">
@@ -529,7 +533,7 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
                       </div>
                     </div>
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             </TabsContent>
 

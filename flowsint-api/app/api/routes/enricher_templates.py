@@ -12,6 +12,7 @@ from flowsint_core.core.services import (
     create_enricher_template_service,
 )
 from flowsint_core.core.template_enricher import TemplateEnricher
+from flowsint_core.core.vault import Vault
 from flowsint_core.templates.types import Template
 from sqlalchemy.orm import Session
 
@@ -89,7 +90,11 @@ async def test_template(
     try:
         content = db_template.content
         template = Template(**content)
-        enricher = TemplateEnricher(sketch_id="123", scan_id="123", template=template)
+        vault = Vault(db=db, owner_id=current_user.id)
+        enricher = TemplateEnricher(
+            sketch_id="123", scan_id="123", template=template, vault=vault
+        )
+        await enricher.async_init()
         pre = enricher.preprocess([test_request.input_value])
         results = await enricher.scan(pre)
         data = {"results": results}

@@ -1,16 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Log, Sketch, Scan
-from flowsint_core.core.events import event_emitter
 from sse_starlette.sse import EventSourceResponse
-from flowsint_core.core.types import Event
-from app.api.deps import get_current_user, get_current_user_sse
-from flowsint_core.core.models import Profile, Sketch
-from app.security.permissions import check_investigation_permission
 import json
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
+
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.events import event_emitter
+from flowsint_core.core.models import Profile
+from flowsint_core.core.services import (
+    create_log_service,
+    NotFoundError,
+    PermissionDeniedError,
+    DatabaseError,
+)
+from app.api.deps import get_current_user, get_current_user_sse
 
 router = APIRouter()
 
@@ -21,62 +25,16 @@ def get_logs_by_sketch(
     limit: int = 100,
     since: datetime | None = None,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user)
+    current_user: Profile = Depends(get_current_user),
 ):
-    """Get historical logs for a specific sketch with optional filtering"""
-    # Check if sketch exists
-    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
-    if not sketch:
-        raise HTTPException(
-            status_code=404, detail=f"Sketch with id {sketch_id} not found"
-        )
-
-    check_investigation_permission(
-        current_user.id, sketch.investigation_id, actions=["read"], db=db
-    )
-
-    print(
-        f"[EventEmitter] Fetching logs for sketch {sketch_id} (limit: {limit}, since: {since})"
-    )
-    query = (
-        db.query(Log).filter(Log.sketch_id == sketch_id).order_by(Log.created_at.desc())
-    )
-
-    if since:
-        query = query.filter(Log.created_at > since)
-    else:
-        # Default to last 24 hours if no since parameter
-        query = query.filter(Log.created_at > datetime.utcnow() - timedelta(days=1))
-
-    logs = query.limit(limit).all()
-
-    # Reverse to show chronologically (oldest to newest)
-    logs = list(reversed(logs))
-
-    results = []
-    for log in logs:
-        # Ensure payload is always a dictionary
-        if isinstance(log.content, dict):
-            payload = log.content
-        elif isinstance(log.content, str):
-            payload = {"message": log.content}
-        elif log.content is None:
-            payload = {}
-        else:
-            # Handle other types by converting to string and wrapping
-            payload = {"content": str(log.content)}
-
-        results.append(
-            Event(
-                id=str(log.id),
-                sketch_id=str(log.sketch_id) if log.sketch_id else None,
-                type=log.type,
-                payload=payload,
-                created_at=log.created_at
-            )
-        )
-
-    return results
+    """Get historical logs for a specific sketch with optional filtering."""
+    service = create_log_service(db)
+    try:
+        return service.get_logs_by_sketch(sketch_id, current_user.id, limit, since)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 @router.get("/sketch/{sketch_id}/stream")
@@ -84,26 +42,22 @@ async def stream_events(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse)
+    current_user: Profile = Depends(get_current_user_sse),
 ):
-    """Stream events for a specific scan in real-time"""
-
-    # Check if sketch exists
-    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
-    if not sketch:
-        raise HTTPException(
-            status_code=404, detail=f"Sketch with id {sketch_id} not found"
-        )
-
-    check_investigation_permission(
-        current_user.id, sketch.investigation_id, actions=["read"], db=db
-    )
+    """Stream events for a specific sketch in real-time."""
+    service = create_log_service(db)
+    try:
+        # Verify permission
+        service._get_sketch_with_permission(sketch_id, current_user.id, ["read"])
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     async def event_generator():
         channel = sketch_id
         await event_emitter.subscribe(channel)
         try:
-            # Initial connection message
             yield 'data: {"event": "connected", "data": "Connected to log stream"}\n\n'
             while True:
                 if await request.is_disconnected():
@@ -111,15 +65,12 @@ async def stream_events(
 
                 data = await event_emitter.get_message(channel)
                 if data is None:
-                    await asyncio.sleep(0.1)  # avoid tight loop on None
+                    await asyncio.sleep(0.1)
                     continue
 
-                # Handle different types of events
                 if isinstance(data, dict) and data.get("type") == "enricher_complete":
-                    # Send enricher completion event
                     yield json.dumps({"event": "enricher_complete", "data": data})
                 else:
-                    # Send regular log event
                     yield json.dumps({"event": "log", "data": data})
                 await asyncio.sleep(0.1)
 
@@ -147,25 +98,16 @@ def delete_scan_logs(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    """Delete all logs for a specific scan"""
-    # Check if sketch exists and user has permission
-    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
-    if not sketch:
-        raise HTTPException(
-            status_code=404, detail=f"Sketch with id {sketch_id} not found"
-        )
-
-    check_investigation_permission(
-        current_user.id, sketch.investigation_id, actions=["delete"], db=db
-    )
-
+    """Delete all logs for a specific sketch."""
+    service = create_log_service(db)
     try:
-        db.query(Log).filter(Log.sketch_id == sketch_id).delete()
-        db.commit()
-        return {"message": f"All logs have been deleted successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to delete logs: {str(e)}")
+        return service.delete_logs_by_sketch(sketch_id, current_user.id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    except DatabaseError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/sketch/{sketch_id}/status/stream")
@@ -173,26 +115,21 @@ async def stream_sketch_status(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse)
+    current_user: Profile = Depends(get_current_user_sse),
 ):
-    """Stream COMPLETED events for a specific sketch (for graph refresh)"""
-
-    # Check if sketch exists
-    sketch = db.query(Sketch).filter(Sketch.id == sketch_id).first()
-    if not sketch:
-        raise HTTPException(
-            status_code=404, detail=f"Sketch with id {sketch_id} not found"
-        )
-
-    check_investigation_permission(
-        current_user.id, sketch.investigation_id, actions=["read"], db=db
-    )
+    """Stream COMPLETED events for a specific sketch (for graph refresh)."""
+    service = create_log_service(db)
+    try:
+        service._get_sketch_with_permission(sketch_id, current_user.id, ["read"])
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     async def status_generator():
         channel = f"{sketch_id}_status"
         await event_emitter.subscribe(channel)
         try:
-            # Initial connection message
             yield json.dumps({"event": "connected", "data": "Connected to status stream"})
 
             while True:
@@ -204,7 +141,6 @@ async def stream_sketch_status(
                     await asyncio.sleep(0.1)
                     continue
 
-                # Send status event
                 yield json.dumps({"event": "status", "data": data})
                 await asyncio.sleep(0.1)
 
@@ -231,29 +167,21 @@ async def stream_status(
     request: Request,
     scan_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse)
+    current_user: Profile = Depends(get_current_user_sse),
 ):
-    """Stream status updates for a specific scan in real-time"""
-
-    # Check if scan exists and user has permission
-    scan = db.query(Scan).filter(Scan.id == scan_id).first()
-    if not scan:
-        raise HTTPException(
-            status_code=404, detail=f"Scan with id {scan_id} not found"
-        )
-
-    # Check investigation permission via sketch
-    sketch = db.query(Sketch).filter(Sketch.id == scan.sketch_id).first()
-    if sketch:
-        check_investigation_permission(
-            current_user.id, sketch.investigation_id, actions=["read"], db=db
-        )
+    """Stream status updates for a specific scan in real-time."""
+    service = create_log_service(db)
+    try:
+        service.get_scan_with_permission(scan_id, current_user.id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     async def status_generator():
         print("[EventEmitter] Start status generator")
         await event_emitter.subscribe(f"scan_{scan_id}_status")
         try:
-            # Initial connection message
             yield 'data: {"event": "connected", "data": "Connected to status stream"}\n\n'
 
             while True:
@@ -265,9 +193,7 @@ async def stream_status(
                 yield f"data: {data}\n\n"
 
         except asyncio.CancelledError:
-            print(
-                f"[EventEmitter] Client disconnected from status stream for scan_id: {scan_id}"
-            )
+            print(f"[EventEmitter] Client disconnected from status stream for scan_id: {scan_id}")
         finally:
             await event_emitter.unsubscribe(f"scan_{scan_id}_status")
 

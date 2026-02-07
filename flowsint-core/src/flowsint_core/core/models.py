@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime, timezone
 from flowsint_core.core.types import Role
@@ -13,10 +14,28 @@ from sqlalchemy import (
     Enum as SQLEnum,
     LargeBinary,
     UniqueConstraint,
+    Uuid,
 )
-from sqlalchemy.dialects.postgresql import UUID as PGUUID, ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 from flowsint_core.core.enums import EventLevel
+
+
+class RoleListType(TypeDecorator):
+    """Stores a list of Role enums as a JSON string. Portable across dialects."""
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return json.dumps([r.value if isinstance(r, Role) else r for r in value])
+        return "[]"
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return [Role(r.lower()) for r in json.loads(value)]
+        return []
 
 
 class Base(DeclarativeBase):
@@ -30,7 +49,7 @@ class Feedback(Base):
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     content = mapped_column(Text, nullable=True)
     owner_id = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True
+        Uuid, ForeignKey("profiles.id"), nullable=True
     )
 
 
@@ -38,13 +57,13 @@ class Investigation(Base):
     __tablename__ = "investigations"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     name = mapped_column(Text)
     description = mapped_column(Text)
     owner_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
@@ -70,9 +89,9 @@ class Log(Base):
     __tablename__ = "logs"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
-    content = mapped_column(JSONB, nullable=True)
+    content = mapped_column(JSON, nullable=True)
     # Allow both server-side default and application-side timestamp
     created_at = mapped_column(
         DateTime(timezone=True),
@@ -80,7 +99,7 @@ class Log(Base):
         server_default=func.now()
     )
     sketch_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
@@ -91,7 +110,7 @@ class Profile(Base):
     __tablename__ = "profiles"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     first_name = mapped_column(Text, nullable=True)
     last_name = mapped_column(Text, nullable=True)
@@ -106,10 +125,10 @@ class Scan(Base):
     __tablename__ = "scans"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     sketch_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
@@ -130,19 +149,19 @@ class Sketch(Base):
     __tablename__ = "sketches"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     title = mapped_column(Text)
     description = mapped_column(Text)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     owner_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
     status = mapped_column(String, server_default="active")
     investigation_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
     )
     investigation = relationship("Investigation", back_populates="sketches")
@@ -161,11 +180,11 @@ class SketchesProfiles(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     profile_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
     )
     sketch_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
     )
     role = mapped_column(String, server_default="editor")
@@ -186,11 +205,11 @@ class Flow(Base):
     __tablename__ = "flows"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     name = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
-    category = mapped_column(ARRAY(Text), nullable=True)
+    category = mapped_column(JSON, nullable=True)
     flow_schema = mapped_column(JSON, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -200,7 +219,7 @@ class Analysis(Base):
     __tablename__ = "analyses"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     title = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
@@ -208,12 +227,12 @@ class Analysis(Base):
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     owner_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
     investigation_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
@@ -229,19 +248,19 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     title = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     owner_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
     investigation_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
@@ -257,14 +276,14 @@ class ChatMessage(Base):
     __tablename__ = "messages"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     content = mapped_column(JSON, nullable=True)
     context = mapped_column(JSON, nullable=True)
     is_bot: Mapped[bool] = mapped_column(default=False)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     chat_id = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("chats.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
@@ -276,13 +295,13 @@ class Key(Base):
     __tablename__ = "keys"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
 
     name: Mapped[str] = mapped_column(String, nullable=False)  # ex: "shodan", "whocy"
 
     owner_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
@@ -306,27 +325,27 @@ class InvestigationUserRole(Base):
     __tablename__ = "investigation_user_roles"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         primary_key=True,
         default=uuid.uuid4,
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
 
     investigation_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("investigations.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
 
     roles: Mapped[list[Role]] = mapped_column(
-        ARRAY(SQLEnum(Role, name="role_enum", create_constraint=True)),
+        RoleListType(),
         nullable=False,
-        server_default="{}",
+        default=list,
     )
 
     # Relations ORM
@@ -348,15 +367,15 @@ class CustomType(Base):
     __tablename__ = "custom_types"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid, primary_key=True, default=uuid.uuid4
     )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     owner_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
-    schema: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    schema: Mapped[dict] = mapped_column(JSON, nullable=False)
     status: Mapped[str] = mapped_column(String, server_default="draft", nullable=False)
     checksum: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)

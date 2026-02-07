@@ -27,6 +27,7 @@ from .flow_service import FlowService, create_flow_service
 from .custom_type_service import CustomTypeService, create_custom_type_service
 from .type_registry_service import TypeRegistryService, create_type_registry_service
 from .enricher_service import EnricherService, create_enricher_service
+from .vault_service import VaultService, create_vault_service
 
 __all__ = [
     # Exceptions
@@ -67,4 +68,7 @@ __all__ = [
     "create_type_registry_service",
     "EnricherService",
     "create_enricher_service",
+    # Vault
+    "VaultService",
+    "create_vault_service",
 ]

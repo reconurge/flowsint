@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..models import Profile
 from ..auth import verify_password, create_access_token, get_password_hash
+from ..repositories import ProfileRepository
 from .base import BaseService
 from .exceptions import AuthenticationError, ConflictError, DatabaseError
 
@@ -17,21 +18,12 @@ class AuthService(BaseService):
     Service for user authentication and registration.
     """
 
+    def __init__(self, db: Session, profile_repo: ProfileRepository, **kwargs):
+        super().__init__(db, **kwargs)
+        self._profile_repo = profile_repo
+
     def authenticate(self, email: str, password: str) -> Dict[str, Any]:
-        """
-        Authenticate a user and return an access token.
-
-        Args:
-            email: User's email
-            password: User's password
-
-        Returns:
-            Dictionary containing access_token, user_id, and token_type
-
-        Raises:
-            AuthenticationError: If credentials are invalid
-        """
-        user = self._db.query(Profile).filter(Profile.email == email).first()
+        user = self._profile_repo.get_by_email(email)
 
         if not user or not verify_password(password, user.hashed_password):
             raise AuthenticationError("Incorrect email or password")
@@ -45,21 +37,7 @@ class AuthService(BaseService):
         }
 
     def register(self, email: str, password: str) -> Dict[str, Any]:
-        """
-        Register a new user.
-
-        Args:
-            email: User's email
-            password: User's password
-
-        Returns:
-            Dictionary containing success message and email
-
-        Raises:
-            ConflictError: If email is already registered
-            DatabaseError: If database operation fails
-        """
-        existing_user = self._db.query(Profile).filter(Profile.email == email).first()
+        existing_user = self._profile_repo.get_by_email(email)
 
         if existing_user:
             raise ConflictError("Email already registered")
@@ -68,7 +46,7 @@ class AuthService(BaseService):
         new_user = Profile(email=email, hashed_password=hashed_password)
 
         try:
-            self._add(new_user)
+            self._profile_repo.add(new_user)
             self._commit()
             self._refresh(new_user)
 
@@ -82,13 +60,7 @@ class AuthService(BaseService):
 
 
 def create_auth_service(db: Session) -> AuthService:
-    """
-    Factory function to create an AuthService instance.
-
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured AuthService instance
-    """
-    return AuthService(db=db)
+    return AuthService(
+        db=db,
+        profile_repo=ProfileRepository(db),
+    )

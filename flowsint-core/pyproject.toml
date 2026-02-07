@@ -36,6 +36,7 @@ black = "^23.0"
 isort = "^5.12"
 flake8 = "^6.0"
 mypy = "^1.5"
+factory-boy = "^3.3"
 
 [build-system]
 requires = ["poetry-core"]

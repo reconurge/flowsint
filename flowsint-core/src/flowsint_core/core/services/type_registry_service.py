@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, TypeAdapter
 
-from ..models import CustomType
+from ..repositories import CustomTypeRepository
 from .base import BaseService
 
 
@@ -17,19 +17,13 @@ class TypeRegistryService(BaseService):
     Service for type registry operations and schema extraction.
     """
 
+    def __init__(self, db: Session, custom_type_repo: CustomTypeRepository, **kwargs):
+        super().__init__(db, **kwargs)
+        self._custom_type_repo = custom_type_repo
+
     def get_types_list(self, user_id: UUID) -> List[Dict[str, Any]]:
-        """
-        Get the complete types list for sketches.
-
-        Args:
-            user_id: The user's ID
-
-        Returns:
-            List of type categories with their children
-        """
         from flowsint_types.registry import get_type
 
-        # Define categories with type names
         category_definitions = self._get_category_definitions()
 
         types = []
@@ -51,15 +45,7 @@ class TypeRegistryService(BaseService):
             category_copy["children"] = children_schemas
             types.append(category_copy)
 
-        # Add custom types
-        custom_types = (
-            self._db.query(CustomType)
-            .filter(
-                CustomType.owner_id == user_id,
-                CustomType.status == "published",
-            )
-            .all()
-        )
+        custom_types = self._custom_type_repo.get_by_owner(user_id, status="published")
 
         if custom_types:
             custom_types_children = []
@@ -297,17 +283,14 @@ class TypeRegistryService(BaseService):
         return field
 
     def _has_enum(self, schema: dict) -> bool:
-        """Check if schema has enum values."""
         any_of = schema.get("anyOf", [])
         return any(isinstance(entry, dict) and "enum" in entry for entry in any_of)
 
     def _is_required(self, schema: dict) -> bool:
-        """Check if field is required."""
         any_of = schema.get("anyOf", [])
         return not any(entry == {"type": "null"} for entry in any_of)
 
     def _get_enum_values(self, schema: dict) -> list:
-        """Get enum values from schema."""
         enum_values = []
         for entry in schema.get("anyOf", []):
             if isinstance(entry, dict) and "enum" in entry:
@@ -316,13 +299,7 @@ class TypeRegistryService(BaseService):
 
 
 def create_type_registry_service(db: Session) -> TypeRegistryService:
-    """
-    Factory function to create a TypeRegistryService instance.
-
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured TypeRegistryService instance
-    """
-    return TypeRegistryService(db=db)
+    return TypeRegistryService(
+        db=db,
+        custom_type_repo=CustomTypeRepository(db),
+    )

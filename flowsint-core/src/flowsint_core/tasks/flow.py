@@ -4,7 +4,7 @@ from celery import states
 from ..core.celery import celery
 from ..core.orchestrator import FlowOrchestrator
 from ..core.postgre_db import SessionLocal, get_db
-from ..core.vault import Vault
+from ..core.services import create_vault_service
 from ..core.types import FlowBranch
 from ..core.models import Scan
 from sqlalchemy.orm import Session
@@ -43,7 +43,7 @@ def run_flow(
         vault = None
         if owner_id:
             try:
-                vault = Vault(session, uuid.UUID(owner_id))
+                vault = create_vault_service(session).for_user(uuid.UUID(owner_id))
             except Exception as e:
                 Logger.error(
                     sketch_id, {"message": f"Failed to create vault: {str(e)}"}

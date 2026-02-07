@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from ..models import Sketch
 from ..graph import create_graph_service, GraphNode
 from ..graph.types import GraphData
+from ..repositories import SketchRepository, InvestigationRepository
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError, ValidationError, DatabaseError
 
@@ -19,11 +20,22 @@ class SketchService(BaseService):
     Service for sketch CRUD operations and graph interactions.
     """
 
+    def __init__(
+        self,
+        db: Session,
+        sketch_repo: SketchRepository,
+        investigation_repo: InvestigationRepository,
+        **kwargs,
+    ):
+        super().__init__(db, **kwargs)
+        self._sketch_repo = sketch_repo
+        self._investigation_repo = investigation_repo
+
     def _get_sketch_with_permission(
         self, sketch_id: UUID, user_id: UUID, actions: List[str]
     ) -> Sketch:
         """Get sketch and verify user has permission."""
-        sketch = self._db.query(Sketch).filter(Sketch.id == sketch_id).first()
+        sketch = self._sketch_repo.get_by_id(sketch_id)
         if not sketch:
             raise NotFoundError("Sketch not found")
         self._check_permission(user_id, sketch.investigation_id, actions)
@@ -31,7 +43,7 @@ class SketchService(BaseService):
 
     def list_sketches(self, user_id: UUID) -> List[Sketch]:
         """Get all sketches owned by a user."""
-        return self._db.query(Sketch).filter(Sketch.owner_id == user_id).all()
+        return self._sketch_repo.get_by_owner(user_id)
 
     def get_by_id(self, sketch_id: UUID, user_id: UUID) -> Sketch:
         """Get a sketch by ID with permission check."""
@@ -44,22 +56,6 @@ class SketchService(BaseService):
         investigation_id: UUID,
         owner_id: UUID,
     ) -> Sketch:
-        """
-        Create a new sketch.
-
-        Args:
-            title: Sketch title
-            description: Sketch description
-            investigation_id: Parent investigation ID
-            owner_id: Owner user ID
-
-        Returns:
-            The created sketch
-
-        Raises:
-            ValidationError: If investigation_id is missing
-            PermissionDeniedError: If user can't create in this investigation
-        """
         if not investigation_id:
             raise ValidationError("Investigation not found")
 
@@ -71,7 +67,7 @@ class SketchService(BaseService):
             investigation_id=investigation_id,
             owner_id=owner_id,
         )
-        self._add(sketch)
+        self._sketch_repo.add(sketch)
         self._commit()
         self._refresh(sketch)
         return sketch
@@ -79,7 +75,6 @@ class SketchService(BaseService):
     def update(
         self, sketch_id: UUID, user_id: UUID, updates: Dict[str, Any]
     ) -> Sketch:
-        """Update a sketch with permission check."""
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         for key, value in updates.items():
@@ -91,10 +86,8 @@ class SketchService(BaseService):
         return sketch
 
     def delete(self, sketch_id: UUID, user_id: UUID) -> None:
-        """Delete a sketch and its graph data."""
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["delete"])
 
-        # Delete all nodes and relationships in Neo4j first
         try:
             graph_service = create_graph_service(
                 sketch_id=str(sketch_id), enable_batching=False
@@ -104,8 +97,7 @@ class SketchService(BaseService):
             print(f"Neo4j cleanup error: {e}")
             raise DatabaseError("Failed to clean up graph data")
 
-        # Then delete the sketch from PostgreSQL
-        self._delete(sketch)
+        self._sketch_repo.delete(sketch)
         self._commit()
 
     # --- Graph operations ---
@@ -113,17 +105,6 @@ class SketchService(BaseService):
     def get_graph(
         self, sketch_id: UUID, user_id: UUID, format: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Get the graph data for a sketch.
-
-        Args:
-            sketch_id: Sketch ID
-            user_id: User ID for permission check
-            format: Optional format ("inline" for inline relationships)
-
-        Returns:
-            Graph data as dict with "nds" and "rls" keys, or inline format
-        """
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         graph_service = create_graph_service(
@@ -141,7 +122,6 @@ class SketchService(BaseService):
     def add_node(
         self, sketch_id: UUID, user_id: UUID, node: GraphNode
     ) -> Dict[str, Any]:
-        """Add a node to the sketch graph."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -167,7 +147,6 @@ class SketchService(BaseService):
         target: str,
         label: str = "RELATED_TO",
     ) -> Dict[str, Any]:
-        """Add a relationship between nodes."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -191,7 +170,6 @@ class SketchService(BaseService):
     def update_node(
         self, sketch_id: UUID, user_id: UUID, node_id: str, updates: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Update a node's properties."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -213,7 +191,6 @@ class SketchService(BaseService):
     def update_node_positions(
         self, sketch_id: UUID, user_id: UUID, positions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Update positions for multiple nodes."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         if not positions:
@@ -233,7 +210,6 @@ class SketchService(BaseService):
     def delete_nodes(
         self, sketch_id: UUID, user_id: UUID, node_ids: List[str]
     ) -> Dict[str, Any]:
-        """Delete nodes from the graph."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -250,7 +226,6 @@ class SketchService(BaseService):
     def delete_relationships(
         self, sketch_id: UUID, user_id: UUID, relationship_ids: List[str]
     ) -> Dict[str, Any]:
-        """Delete relationships from the graph."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -271,7 +246,6 @@ class SketchService(BaseService):
         relationship_id: str,
         data: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Update a relationship's properties."""
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         try:
@@ -305,7 +279,6 @@ class SketchService(BaseService):
         new_node_id: str,
         node_data: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Merge multiple nodes into one."""
         from flowsint_core.utils import flatten
 
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
@@ -346,7 +319,6 @@ class SketchService(BaseService):
     def get_neighbors(
         self, sketch_id: UUID, user_id: UUID, node_id: str
     ) -> Dict[str, Any]:
-        """Get neighboring nodes and edges for a node."""
         self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         try:
@@ -364,7 +336,6 @@ class SketchService(BaseService):
     def export_sketch(
         self, sketch_id: UUID, user_id: UUID, format: str = "json"
     ) -> Dict[str, Any]:
-        """Export sketch data."""
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         graph_service = create_graph_service(
@@ -387,13 +358,9 @@ class SketchService(BaseService):
 
 
 def create_sketch_service(db: Session) -> SketchService:
-    """
-    Factory function to create a SketchService instance.
-
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured SketchService instance
-    """
-    return SketchService(db=db)
+    investigation_repo = InvestigationRepository(db)
+    return SketchService(
+        db=db,
+        sketch_repo=SketchRepository(db),
+        investigation_repo=investigation_repo,
+    )

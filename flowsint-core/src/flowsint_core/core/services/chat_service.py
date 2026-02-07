@@ -2,17 +2,28 @@
 Chat service for managing chats and messages with AI integration.
 """
 
-from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
-from datetime import datetime
-import os
 import json
+import os
+from datetime import datetime
+from typing import Any, AsyncIterator, Dict, List, Optional
+from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
+from ..llm import ChatMessage as LLMChatMessage
+from ..llm import LLMProvider, MessageRole, create_llm_provider
 from ..models import Chat, ChatMessage
+from ..repositories import ChatRepository
 from .base import BaseService
-from .exceptions import NotFoundError, PermissionDeniedError, DatabaseError
+from .exceptions import DatabaseError, NotFoundError, PermissionDeniedError
+
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a CTI/OSINT investigator and you are trying to investigate on a "
+    "variety of real life cases. Use your knowledge and analytics capabilities "
+    "to analyse the context and answer the question the best you can. If you "
+    "need to reference some items (an IP, a domain or something particular) "
+    "please use the code brackets, like : `12.23.34.54` to reference it."
+)
 
 
 def clean_context(context: List[Dict]) -> List[Dict]:
@@ -35,42 +46,22 @@ class ChatService(BaseService):
     Service for chat CRUD operations and AI message streaming.
     """
 
+    def __init__(self, db: Session, chat_repo: ChatRepository, vault_service, **kwargs):
+        super().__init__(db, **kwargs)
+        self._chat_repo = chat_repo
+        self._vault_service = vault_service
+
     def get_chats_for_user(self, user_id: UUID) -> List[Chat]:
-        """
-        Get all chats owned by a user.
+        chats = self._chat_repo.get_by_owner(user_id)
 
-        Args:
-            user_id: The user's ID
-
-        Returns:
-            List of chats with sorted messages
-        """
-        chats = self._db.query(Chat).filter(Chat.owner_id == user_id).all()
-
-        # Sort messages for each chat by created_at in ascending order
         for chat in chats:
             chat.messages.sort(key=lambda x: x.created_at)
 
         return chats
 
-    def get_by_investigation(
-        self, investigation_id: UUID, user_id: UUID
-    ) -> List[Chat]:
-        """
-        Get all chats for an investigation.
-
-        Args:
-            investigation_id: The investigation ID
-            user_id: The user's ID
-
-        Returns:
-            List of chats with sorted messages
-        """
-        chats = (
-            self._db.query(Chat)
-            .filter(Chat.investigation_id == investigation_id, Chat.owner_id == user_id)
-            .order_by(Chat.created_at.asc())
-            .all()
+    def get_by_investigation(self, investigation_id: UUID, user_id: UUID) -> List[Chat]:
+        chats = self._chat_repo.get_by_investigation_and_owner(
+            investigation_id, user_id
         )
 
         for chat in chats:
@@ -79,24 +70,7 @@ class ChatService(BaseService):
         return chats
 
     def get_by_id(self, chat_id: UUID, user_id: UUID) -> Chat:
-        """
-        Get a chat by ID.
-
-        Args:
-            chat_id: The chat ID
-            user_id: The user's ID
-
-        Returns:
-            The chat with sorted messages
-
-        Raises:
-            NotFoundError: If chat not found or doesn't belong to user
-        """
-        chat = (
-            self._db.query(Chat)
-            .filter(Chat.id == chat_id, Chat.owner_id == user_id)
-            .first()
-        )
+        chat = self._chat_repo.get_by_id_and_owner(chat_id, user_id)
         if not chat:
             raise NotFoundError("Chat not found")
 
@@ -110,18 +84,6 @@ class ChatService(BaseService):
         investigation_id: Optional[UUID],
         owner_id: UUID,
     ) -> Chat:
-        """
-        Create a new chat.
-
-        Args:
-            title: Chat title
-            description: Chat description
-            investigation_id: Parent investigation ID (optional)
-            owner_id: Owner user ID
-
-        Returns:
-            The created chat
-        """
         new_chat = Chat(
             id=uuid4(),
             title=title,
@@ -131,60 +93,30 @@ class ChatService(BaseService):
             created_at=datetime.utcnow(),
             last_updated_at=datetime.utcnow(),
         )
-        self._add(new_chat)
+        self._chat_repo.add(new_chat)
         self._commit()
         self._refresh(new_chat)
         return new_chat
 
     def delete(self, chat_id: UUID, user_id: UUID) -> None:
-        """
-        Delete a chat.
-
-        Args:
-            chat_id: The chat ID
-            user_id: The user's ID
-
-        Raises:
-            NotFoundError: If chat not found or doesn't belong to user
-        """
-        chat = (
-            self._db.query(Chat)
-            .filter(Chat.id == chat_id, Chat.owner_id == user_id)
-            .first()
-        )
+        chat = self._chat_repo.get_by_id_and_owner(chat_id, user_id)
         if not chat:
             raise NotFoundError("Chat not found")
 
-        self._delete(chat)
+        self._chat_repo.delete(chat)
         self._commit()
 
     def add_user_message(
-        self, chat_id: UUID, user_id: UUID, content: str, context: Optional[List[Dict]] = None
+        self,
+        chat_id: UUID,
+        user_id: UUID,
+        content: str,
+        context: Optional[List[Dict]] = None,
     ) -> ChatMessage:
-        """
-        Add a user message to a chat.
-
-        Args:
-            chat_id: The chat ID
-            user_id: The user's ID
-            content: Message content
-            context: Optional context data
-
-        Returns:
-            The created message
-
-        Raises:
-            NotFoundError: If chat not found
-        """
-        chat = (
-            self._db.query(Chat)
-            .filter(Chat.id == chat_id, Chat.owner_id == user_id)
-            .first()
-        )
+        chat = self._chat_repo.get_by_id_and_owner(chat_id, user_id)
         if not chat:
             raise NotFoundError("Chat not found")
 
-        # Update chat's last_updated_at
         chat.last_updated_at = datetime.utcnow()
 
         user_message = ChatMessage(
@@ -195,22 +127,12 @@ class ChatService(BaseService):
             is_bot=False,
             created_at=datetime.utcnow(),
         )
-        self._add(user_message)
+        self._chat_repo.add_message(user_message)
         self._commit()
         self._refresh(user_message)
         return user_message
 
     def add_bot_message(self, chat_id: UUID, content: str) -> ChatMessage:
-        """
-        Add a bot message to a chat.
-
-        Args:
-            chat_id: The chat ID
-            content: Message content
-
-        Returns:
-            The created message
-        """
         chat_message = ChatMessage(
             id=uuid4(),
             content=content,
@@ -218,41 +140,17 @@ class ChatService(BaseService):
             is_bot=True,
             created_at=datetime.utcnow(),
         )
-        self._add(chat_message)
+        self._chat_repo.add_message(chat_message)
         self._commit()
         self._refresh(chat_message)
         return chat_message
 
     def get_chat_with_context(self, chat_id: UUID, user_id: UUID) -> Chat:
-        """
-        Get a chat with its messages for AI context building.
-
-        Args:
-            chat_id: The chat ID
-            user_id: The user's ID
-
-        Returns:
-            The chat
-
-        Raises:
-            NotFoundError: If chat not found
-        """
         return self.get_by_id(chat_id, user_id)
 
     def prepare_ai_context(
         self, chat: Chat, user_prompt: str, context: Optional[List[Dict]] = None
     ) -> Dict[str, Any]:
-        """
-        Prepare context for AI message generation.
-
-        Args:
-            chat: The chat
-            user_prompt: The user's prompt
-            context: Optional additional context
-
-        Returns:
-            Dictionary with prepared context for AI
-        """
         context_message = None
         if context:
             try:
@@ -266,7 +164,9 @@ class ChatService(BaseService):
                 print(f"Context processing error: {e}")
 
         sorted_messages = sorted(chat.messages, key=lambda x: x.created_at)
-        recent_messages = sorted_messages[-5:] if len(sorted_messages) > 5 else sorted_messages
+        recent_messages = (
+            sorted_messages[-5:] if len(sorted_messages) > 5 else sorted_messages
+        )
 
         return {
             "recent_messages": recent_messages,
@@ -274,15 +174,72 @@ class ChatService(BaseService):
             "user_prompt": user_prompt,
         }
 
+    def build_llm_messages(
+        self,
+        ai_context: Dict[str, Any],
+        system_prompt: Optional[str] = None,
+    ) -> List[LLMChatMessage]:
+        messages: List[LLMChatMessage] = [
+            LLMChatMessage(
+                role=MessageRole.SYSTEM,
+                content=system_prompt or DEFAULT_SYSTEM_PROMPT,
+            )
+        ]
+
+        for message in ai_context["recent_messages"]:
+            role = MessageRole.ASSISTANT if message.is_bot else MessageRole.USER
+            messages.append(
+                LLMChatMessage(
+                    role=role,
+                    content=json.dumps(message.content, default=str),
+                )
+            )
+
+        if ai_context["context_message"]:
+            messages.append(
+                LLMChatMessage(
+                    role=MessageRole.SYSTEM,
+                    content=ai_context["context_message"],
+                )
+            )
+
+        messages.append(
+            LLMChatMessage(
+                role=MessageRole.USER,
+                content=ai_context["user_prompt"],
+            )
+        )
+
+        return messages
+
+    def get_llm_provider(self, owner_id: UUID) -> LLMProvider:
+        provider_name = os.environ.get("LLM_PROVIDER", "mistral")
+        vault_key = f"{provider_name.upper()}_API_KEY"
+        api_key = self._vault_service.get_secret(owner_id, vault_key)
+        return create_llm_provider(provider=provider_name, api_key=api_key)
+
+    async def stream_response(
+        self,
+        chat_id: UUID,
+        llm_messages: List[LLMChatMessage],
+        provider: LLMProvider,
+    ) -> AsyncIterator[str]:
+        accumulated: list[str] = []
+
+        async for token in provider.stream(llm_messages):
+            accumulated.append(token)
+            yield f"data: {json.dumps({'content': token})}\n\n"
+
+        self.add_bot_message(chat_id, "".join(accumulated))
+
+        yield "data: [DONE]\n\n"
+
 
 def create_chat_service(db: Session) -> ChatService:
-    """
-    Factory function to create a ChatService instance.
+    from .vault_service import VaultService
 
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured ChatService instance
-    """
-    return ChatService(db=db)
+    return ChatService(
+        db=db,
+        chat_repo=ChatRepository(db),
+        vault_service=VaultService(db=db),
+    )

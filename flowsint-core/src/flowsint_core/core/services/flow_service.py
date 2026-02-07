@@ -6,11 +6,15 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..models import Flow, CustomType, Sketch
-from ..types import FlowBranch, FlowEdge, FlowNode, FlowStep
+from ..models import Flow, Sketch
+from ..repositories import (
+    FlowRepository,
+    CustomTypeRepository,
+    SketchRepository,
+    InvestigationRepository,
+)
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError
 
@@ -20,35 +24,34 @@ class FlowService(BaseService):
     Service for flow CRUD operations and flow computations.
     """
 
+    def __init__(
+        self,
+        db: Session,
+        flow_repo: FlowRepository,
+        custom_type_repo: CustomTypeRepository,
+        sketch_repo: SketchRepository,
+        investigation_repo: InvestigationRepository,
+        **kwargs,
+    ):
+        super().__init__(db, **kwargs)
+        self._flow_repo = flow_repo
+        self._custom_type_repo = custom_type_repo
+        self._sketch_repo = sketch_repo
+        self._investigation_repo = investigation_repo
+
     def get_all_flows(
         self, category: Optional[str], user_id: UUID
     ) -> List[Dict[str, Any]]:
-        """
-        Get all flows, optionally filtered by category.
-
-        Args:
-            category: Optional category filter
-            user_id: The user's ID
-
-        Returns:
-            List of flows
-        """
         if not category or category.lower() == "undefined":
-            return self._db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
+            return self._flow_repo.get_all_with_optional_category(None)
 
         # Check if category is a custom type
-        custom_type = (
-            self._db.query(CustomType)
-            .filter(
-                CustomType.owner_id == user_id,
-                CustomType.status == "published",
-                func.lower(CustomType.name) == category.lower(),
-            )
-            .first()
+        custom_type = self._custom_type_repo.get_published_by_name_and_owner(
+            category, user_id
         )
 
         if custom_type:
-            flows = self._db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
+            flows = self._flow_repo.get_all_with_optional_category(None)
             return [
                 {
                     **(flow.to_dict() if hasattr(flow, "to_dict") else flow.__dict__),
@@ -57,28 +60,10 @@ class FlowService(BaseService):
                 for flow in flows
             ]
 
-        # Filter by category
-        flows = self._db.query(Flow).order_by(Flow.last_updated_at.desc()).all()
-        return [
-            flow
-            for flow in flows
-            if any(cat.lower() == category.lower() for cat in flow.category)
-        ]
+        return self._flow_repo.get_all_with_optional_category(category)
 
     def get_by_id(self, flow_id: UUID) -> Flow:
-        """
-        Get a flow by ID.
-
-        Args:
-            flow_id: The flow ID
-
-        Returns:
-            The flow
-
-        Raises:
-            NotFoundError: If flow not found
-        """
-        flow = self._db.query(Flow).filter(Flow.id == flow_id).first()
+        flow = self._flow_repo.get_by_id(flow_id)
         if not flow:
             raise NotFoundError("Flow not found")
         return flow
@@ -90,18 +75,6 @@ class FlowService(BaseService):
         category: List[str],
         flow_schema: Dict[str, Any],
     ) -> Flow:
-        """
-        Create a new flow.
-
-        Args:
-            name: Flow name
-            description: Flow description
-            category: List of categories
-            flow_schema: Flow schema (nodes and edges)
-
-        Returns:
-            The created flow
-        """
         new_flow = Flow(
             id=uuid4(),
             name=name,
@@ -111,7 +84,7 @@ class FlowService(BaseService):
             created_at=datetime.utcnow(),
             last_updated_at=datetime.utcnow(),
         )
-        self._add(new_flow)
+        self._flow_repo.add(new_flow)
         self._commit()
         self._refresh(new_flow)
         return new_flow
@@ -119,20 +92,7 @@ class FlowService(BaseService):
     def update(
         self, flow_id: UUID, updates: Dict[str, Any]
     ) -> Flow:
-        """
-        Update a flow.
-
-        Args:
-            flow_id: The flow ID
-            updates: Dictionary of updates
-
-        Returns:
-            The updated flow
-
-        Raises:
-            NotFoundError: If flow not found
-        """
-        flow = self._db.query(Flow).filter(Flow.id == flow_id).first()
+        flow = self._flow_repo.get_by_id(flow_id)
         if not flow:
             raise NotFoundError("Flow not found")
 
@@ -148,38 +108,15 @@ class FlowService(BaseService):
         return flow
 
     def delete(self, flow_id: UUID) -> None:
-        """
-        Delete a flow.
-
-        Args:
-            flow_id: The flow ID
-
-        Raises:
-            NotFoundError: If flow not found
-        """
-        flow = self._db.query(Flow).filter(Flow.id == flow_id).first()
+        flow = self._flow_repo.get_by_id(flow_id)
         if not flow:
             raise NotFoundError("Flow not found")
 
-        self._delete(flow)
+        self._flow_repo.delete(flow)
         self._commit()
 
     def get_sketch_for_launch(self, sketch_id: str, user_id: UUID) -> Sketch:
-        """
-        Get sketch for flow launch with permission check.
-
-        Args:
-            sketch_id: The sketch ID
-            user_id: The user's ID
-
-        Returns:
-            The sketch
-
-        Raises:
-            NotFoundError: If sketch not found
-            PermissionDeniedError: If user doesn't have permission
-        """
-        sketch = self._db.query(Sketch).filter(Sketch.id == sketch_id).first()
+        sketch = self._sketch_repo.get_by_id(sketch_id)
         if not sketch:
             raise NotFoundError("Sketch not found")
 
@@ -188,13 +125,11 @@ class FlowService(BaseService):
 
 
 def create_flow_service(db: Session) -> FlowService:
-    """
-    Factory function to create a FlowService instance.
-
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured FlowService instance
-    """
-    return FlowService(db=db)
+    investigation_repo = InvestigationRepository(db)
+    return FlowService(
+        db=db,
+        flow_repo=FlowRepository(db),
+        custom_type_repo=CustomTypeRepository(db),
+        sketch_repo=SketchRepository(db),
+        investigation_repo=investigation_repo,
+    )

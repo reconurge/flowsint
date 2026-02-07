@@ -1,10 +1,12 @@
+from typing import List, Literal, Optional, Self, Union
+
 from pydantic import Field, field_validator, model_validator
-from typing import Optional, Literal, List, Union, Self
+
 from .address import Location
 from .email import Email
-from .phone import Phone
-from .ip import Ip
 from .flowsint_base import FlowsintType
+from .ip import Ip
+from .phone import Phone
 from .registry import flowsint_type
 
 
@@ -16,8 +18,8 @@ class Individual(FlowsintType):
     first_name: str = Field(
         ..., description="First name of the individual", title="First Name"
     )
-    last_name: str = Field(
-        ..., description="Last name of the individual", title="Last Name"
+    last_name: Optional[str] = Field(
+        None, description="Last name of the individual", title="Last Name"
     )
     full_name: Optional[str] = Field(
         None,

@@ -8,9 +8,10 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from ..models import Log, Sketch, Scan
+from ..models import Scan
 from ..types import Event
 from ..enums import EventLevel
+from ..repositories import LogRepository, SketchRepository, ScanRepository, InvestigationRepository
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError, DatabaseError
 
@@ -20,11 +21,25 @@ class LogService(BaseService):
     Service for log operations.
     """
 
+    def __init__(
+        self,
+        db: Session,
+        log_repo: LogRepository,
+        sketch_repo: SketchRepository,
+        scan_repo: ScanRepository,
+        investigation_repo: InvestigationRepository,
+        **kwargs,
+    ):
+        super().__init__(db, **kwargs)
+        self._log_repo = log_repo
+        self._sketch_repo = sketch_repo
+        self._scan_repo = scan_repo
+        self._investigation_repo = investigation_repo
+
     def _get_sketch_with_permission(
         self, sketch_id: str, user_id: UUID, actions: List[str]
-    ) -> Sketch:
-        """Get sketch and verify user has permission."""
-        sketch = self._db.query(Sketch).filter(Sketch.id == sketch_id).first()
+    ):
+        sketch = self._sketch_repo.get_by_id(sketch_id)
         if not sketch:
             raise NotFoundError(f"Sketch with id {sketch_id} not found")
         self._check_permission(user_id, sketch.investigation_id, actions)
@@ -37,44 +52,15 @@ class LogService(BaseService):
         limit: int = 100,
         since: Optional[datetime] = None,
     ) -> List[Event]:
-        """
-        Get historical logs for a specific sketch.
-
-        Args:
-            sketch_id: The sketch ID
-            user_id: The user's ID
-            limit: Maximum number of logs to return
-            since: Only return logs after this time
-
-        Returns:
-            List of Event objects
-
-        Raises:
-            NotFoundError: If sketch not found
-            PermissionDeniedError: If user doesn't have permission
-        """
         self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
-        query = (
-            self._db.query(Log)
-            .filter(Log.sketch_id == sketch_id)
-            .order_by(Log.created_at.desc())
-        )
-
-        if since:
-            query = query.filter(Log.created_at > since)
-        else:
-            # Default to last 24 hours if no since parameter
-            query = query.filter(Log.created_at > datetime.utcnow() - timedelta(days=1))
-
-        logs = query.limit(limit).all()
+        logs = self._log_repo.get_by_sketch(sketch_id, limit=limit, since=since)
 
         # Reverse to show chronologically (oldest to newest)
         logs = list(reversed(logs))
 
         results = []
         for log in logs:
-            # Ensure payload is always a dictionary
             if isinstance(log.content, dict):
                 payload = log.content
             elif isinstance(log.content, str):
@@ -97,25 +83,10 @@ class LogService(BaseService):
         return results
 
     def delete_logs_by_sketch(self, sketch_id: str, user_id: UUID) -> dict:
-        """
-        Delete all logs for a specific sketch.
-
-        Args:
-            sketch_id: The sketch ID
-            user_id: The user's ID
-
-        Returns:
-            Success message
-
-        Raises:
-            NotFoundError: If sketch not found
-            PermissionDeniedError: If user doesn't have permission
-            DatabaseError: If deletion fails
-        """
         self._get_sketch_with_permission(sketch_id, user_id, ["delete"])
 
         try:
-            self._db.query(Log).filter(Log.sketch_id == sketch_id).delete()
+            self._log_repo.delete_by_sketch(sketch_id)
             self._commit()
             return {"message": "All logs have been deleted successfully"}
         except Exception as e:
@@ -123,25 +94,11 @@ class LogService(BaseService):
             raise DatabaseError(f"Failed to delete logs: {str(e)}")
 
     def get_scan_with_permission(self, scan_id: str, user_id: UUID) -> Scan:
-        """
-        Get a scan and verify user has permission via sketch.
-
-        Args:
-            scan_id: The scan ID
-            user_id: The user's ID
-
-        Returns:
-            The scan
-
-        Raises:
-            NotFoundError: If scan not found
-            PermissionDeniedError: If user doesn't have permission
-        """
-        scan = self._db.query(Scan).filter(Scan.id == scan_id).first()
+        scan = self._scan_repo.get_by_id(scan_id)
         if not scan:
             raise NotFoundError(f"Scan with id {scan_id} not found")
 
-        sketch = self._db.query(Sketch).filter(Sketch.id == scan.sketch_id).first()
+        sketch = self._sketch_repo.get_by_id(scan.sketch_id)
         if sketch:
             self._check_permission(user_id, sketch.investigation_id, ["read"])
 
@@ -149,13 +106,11 @@ class LogService(BaseService):
 
 
 def create_log_service(db: Session) -> LogService:
-    """
-    Factory function to create a LogService instance.
-
-    Args:
-        db: SQLAlchemy database session
-
-    Returns:
-        Configured LogService instance
-    """
-    return LogService(db=db)
+    investigation_repo = InvestigationRepository(db)
+    return LogService(
+        db=db,
+        log_repo=LogRepository(db),
+        sketch_repo=SketchRepository(db),
+        scan_repo=ScanRepository(db),
+        investigation_repo=investigation_repo,
+    )

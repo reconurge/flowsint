@@ -33,7 +33,7 @@ def is_valid_email(email: str) -> bool:
     return True
 
 
-def is_valid_domain(url_or_domain: str) -> str:
+def is_valid_domain(url_or_domain: str) -> bool:
     try:
         parsed = urlparse(
             url_or_domain if "://" in url_or_domain else "http://" + url_or_domain
@@ -47,7 +47,7 @@ def is_valid_domain(url_or_domain: str) -> str:
             return False
 
         return True
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -100,7 +100,7 @@ def is_root_domain(domain: str) -> bool:
         return False
 
 
-def is_valid_number(phone: str, region: str = "FR") -> None:
+def is_valid_number(phone: str, region: str = "FR") -> bool:
     """
     Validates a phone number. Raises InvalidPhoneNumberError if invalid.
     - `region` should be ISO 3166-1 alpha-2 country code (e.g., 'FR' for France)
@@ -111,6 +111,8 @@ def is_valid_number(phone: str, region: str = "FR") -> None:
             return False
     except NumberParseException:
         return False
+
+    return True
 
 
 def parse_asn(asn: str) -> int:
@@ -281,7 +283,11 @@ def flatten(
                 # else ignore (Neo4j incompatible)
 
             elif isinstance(value, dict):
-                flattened.update(flatten(value, new_key, remove_empty=remove_empty, separator=separator))
+                flattened.update(
+                    flatten(
+                        value, new_key, remove_empty=remove_empty, separator=separator
+                    )
+                )
 
     return flattened
 

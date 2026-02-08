@@ -111,7 +111,7 @@ class ChatService(BaseService):
         chat_id: UUID,
         user_id: UUID,
         content: str,
-        context: Optional[List[Dict]] = None,
+        context: Optional[List[str]] = None,
     ) -> ChatMessage:
         chat = self._chat_repo.get_by_id_and_owner(chat_id, user_id)
         if not chat:
@@ -149,14 +149,14 @@ class ChatService(BaseService):
         return self.get_by_id(chat_id, user_id)
 
     def prepare_ai_context(
-        self, chat: Chat, user_prompt: str, context: Optional[List[Dict]] = None
+        self, chat: Chat, user_prompt: str, context: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         context_message = None
         if context:
             try:
                 cleaned_context = clean_context(context)
                 if cleaned_context:
-                    context_str = json.dumps(cleaned_context, indent=2, default=str)
+                    context_str = ";".join(context)
                     context_message = f"Context: {context_str}"
                     if len(context_message) > 2000:
                         context_message = context_message[:2000] + "..."

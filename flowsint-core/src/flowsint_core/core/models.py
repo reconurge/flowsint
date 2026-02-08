@@ -1,24 +1,30 @@
 import json
 import uuid
 from datetime import datetime, timezone
-from flowsint_core.core.types import Role
+
 from sqlalchemy import (
-    String,
-    Text,
-    DateTime,
-    ForeignKey,
-    Index,
-    func,
+    Boolean,
     JSON,
     Column,
-    Enum as SQLEnum,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
     LargeBinary,
+    String,
+    Text,
     UniqueConstraint,
     Uuid,
+    func,
+)
+from sqlalchemy import (
+    Enum as SQLEnum,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
+
 from flowsint_core.core.enums import EventLevel
+from flowsint_core.core.types import Role
 
 
 class RoleListType(TypeDecorator):
@@ -48,17 +54,13 @@ class Feedback(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     content = mapped_column(Text, nullable=True)
-    owner_id = mapped_column(
-        Uuid, ForeignKey("profiles.id"), nullable=True
-    )
+    owner_id = mapped_column(Uuid, ForeignKey("profiles.id"), nullable=True)
 
 
 class Investigation(Base):
     __tablename__ = "investigations"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     name = mapped_column(Text)
     description = mapped_column(Text)
@@ -88,15 +90,13 @@ class Investigation(Base):
 class Log(Base):
     __tablename__ = "logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     content = mapped_column(JSON, nullable=True)
     # Allow both server-side default and application-side timestamp
     created_at = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        server_default=func.now()
+        server_default=func.now(),
     )
     sketch_id = mapped_column(
         Uuid,
@@ -109,9 +109,7 @@ class Log(Base):
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     first_name = mapped_column(Text, nullable=True)
     last_name = mapped_column(Text, nullable=True)
     avatar_url = mapped_column(Text, nullable=True)
@@ -124,9 +122,7 @@ class Profile(Base):
 class Scan(Base):
     __tablename__ = "scans"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     sketch_id: Mapped[uuid.UUID] = mapped_column(
         Uuid,
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
@@ -148,9 +144,7 @@ class Scan(Base):
 class Sketch(Base):
     __tablename__ = "sketches"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     title = mapped_column(Text)
     description = mapped_column(Text)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -204,9 +198,7 @@ class SketchesProfiles(Base):
 class Flow(Base):
     __tablename__ = "flows"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
     category = mapped_column(JSON, nullable=True)
@@ -218,9 +210,7 @@ class Flow(Base):
 class Analysis(Base):
     __tablename__ = "analyses"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     title = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
     content = mapped_column(JSON, nullable=True)
@@ -247,9 +237,7 @@ class Analysis(Base):
 class Chat(Base):
     __tablename__ = "chats"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     title = mapped_column(Text, nullable=False)
     description = mapped_column(Text, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -275,9 +263,7 @@ class Chat(Base):
 class ChatMessage(Base):
     __tablename__ = "messages"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     content = mapped_column(JSON, nullable=True)
     context = mapped_column(JSON, nullable=True)
     is_bot: Mapped[bool] = mapped_column(default=False)
@@ -294,9 +280,7 @@ class ChatMessage(Base):
 class Key(Base):
     __tablename__ = "keys"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
 
     name: Mapped[str] = mapped_column(String, nullable=False)  # ex: "shodan", "whocy"
 
@@ -366,9 +350,7 @@ class InvestigationUserRole(Base):
 class CustomType(Base):
     __tablename__ = "custom_types"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     owner_id: Mapped[uuid.UUID] = mapped_column(
         Uuid,
@@ -380,7 +362,9 @@ class CustomType(Base):
     checksum: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     owner = relationship("Profile", foreign_keys=[owner_id])
@@ -395,17 +379,15 @@ class CustomType(Base):
 class EnricherTemplate(Base):
     __tablename__ = "enricher_templates"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(Text, nullable=False)
-    version: Mapped[float] = mapped_column(nullable=False, default=1.0)
-    content: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    is_public: Mapped[bool] = mapped_column(default=False)
+    version: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
+    content: Mapped[dict] = mapped_column(JSON, nullable=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     owner_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+        Uuid,
         ForeignKey("profiles.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
     )
@@ -414,7 +396,6 @@ class EnricherTemplate(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    # Relationships
     owner = relationship("Profile", foreign_keys=[owner_id])
 
     __table_args__ = (

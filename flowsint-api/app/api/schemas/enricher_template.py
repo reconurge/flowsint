@@ -163,3 +163,22 @@ class EnricherTemplateTestResponse(BaseModel):
     error: Optional[str] = None
     status_code: Optional[int] = None
     url: str
+
+
+class EnricherTemplateGenerateRequest(BaseModel):
+    """Schema for AI-assisted template generation."""
+
+    prompt: str = Field(
+        ...,
+        min_length=10,
+        max_length=2000,
+        description="Free-text description of the desired enricher template",
+    )
+
+
+class EnricherTemplateGenerateResponse(BaseModel):
+    """Schema for the generated template response."""
+
+    yaml_content: str = Field(
+        ..., description="Raw YAML string of the generated template"
+    )

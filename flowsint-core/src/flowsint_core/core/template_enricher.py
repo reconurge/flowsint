@@ -527,9 +527,12 @@ class TemplateEnricher(Enricher):
 
     def postprocess(self, results: List[Any], input_data: List[Any] = []) -> List[Any]:
         """Log results and return them."""
-        for res in results:
+        for input, output in zip(input_data, results):
+            self.create_node(input)
+            self.create_node(output)
+            self.create_relationship(input, output, "HAS_SOCIAL_ACCOUNT")
             self.log_graph_message(
-                f"Template '{self.template.name}' produced: {res.model_dump()}"
+                f"[{self.template.name.upper()}] {input.nodeLabel} -> {output.nodeLabel}"
             )
         return results
 

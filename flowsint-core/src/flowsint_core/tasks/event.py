@@ -1,9 +1,11 @@
 # tasks/logging.py
-from typing import Dict
-from ..core.celery import celery
-import redis
 import logging
 import os
+from typing import Dict
+
+import redis
+
+from ..core.celery import celery
 from ..core.enums import EventLevel
 from ..core.types import Event
 
@@ -24,7 +26,9 @@ def emit_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: 
 
 
 @celery.task(name="emit_status_event")
-def emit_status_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: Dict):
+def emit_status_event_task(
+    log_id: str, sketch_id: str, log_type: EventLevel, content: Dict
+):
     """Celery task to emit a status event (COMPLETED) to status channel"""
     try:
         event = Event(

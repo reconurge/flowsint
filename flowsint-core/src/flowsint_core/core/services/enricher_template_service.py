@@ -2,19 +2,28 @@
 Enricher template service for managing enricher template operations.
 """
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..models import EnricherTemplate
+from ..repositories import EnricherTemplateRepository
 from .base import BaseService
-from .exceptions import ConflictError, NotFoundError, PermissionDeniedError
+from .exceptions import ConflictError, NotFoundError
 
 
 class EnricherTemplateService(BaseService):
     """Service for enricher template CRUD and lookup operations."""
+
+    def __init__(
+        self,
+        db: Session,
+        enricher_template_repo: EnricherTemplateRepository,
+        **kwargs,
+    ):
+        super().__init__(db, **kwargs)
+        self._repo = enricher_template_repo
 
     def create_template(
         self,
@@ -37,7 +46,7 @@ class EnricherTemplateService(BaseService):
             is_public=is_public,
             owner_id=owner_id,
         )
-        self._add(template)
+        self._repo.add(template)
         self._commit()
         self._refresh(template)
         return template
@@ -49,34 +58,11 @@ class EnricherTemplateService(BaseService):
         include_public: bool = True,
     ) -> List[EnricherTemplate]:
         if include_public:
-            query = self._db.query(EnricherTemplate).filter(
-                or_(
-                    EnricherTemplate.owner_id == owner_id,
-                    EnricherTemplate.is_public,
-                )
-            )
-        else:
-            query = self._db.query(EnricherTemplate).filter(
-                EnricherTemplate.owner_id == owner_id
-            )
-
-        if category:
-            query = query.filter(EnricherTemplate.category == category)
-
-        return query.order_by(EnricherTemplate.created_at.desc()).all()
+            return self._repo.get_by_owner_or_public(owner_id, category)
+        return self._repo.get_by_owner(owner_id, category)
 
     def get_template(self, template_id: UUID, user_id: UUID) -> EnricherTemplate:
-        template = (
-            self._db.query(EnricherTemplate)
-            .filter(
-                EnricherTemplate.id == template_id,
-                or_(
-                    EnricherTemplate.owner_id == user_id,
-                    EnricherTemplate.is_public,
-                ),
-            )
-            .first()
-        )
+        template = self._repo.get_by_id_and_owner_or_public(template_id, user_id)
         if not template:
             raise NotFoundError("Template not found")
         return template
@@ -84,14 +70,7 @@ class EnricherTemplateService(BaseService):
     def get_owned_template(
         self, template_id: UUID, owner_id: UUID
     ) -> EnricherTemplate:
-        template = (
-            self._db.query(EnricherTemplate)
-            .filter(
-                EnricherTemplate.id == template_id,
-                EnricherTemplate.owner_id == owner_id,
-            )
-            .first()
-        )
+        template = self._repo.get_by_id_and_owner(template_id, owner_id)
         if not template:
             raise NotFoundError("Template not found")
         return template
@@ -147,31 +126,16 @@ class EnricherTemplateService(BaseService):
 
     def delete_template(self, template_id: UUID, owner_id: UUID) -> None:
         template = self.get_owned_template(template_id, owner_id)
-        self._delete(template)
+        self._repo.delete(template)
         self._commit()
 
     def find_by_name(self, name: str, user_id: UUID) -> Optional[EnricherTemplate]:
-        return (
-            self._db.query(EnricherTemplate)
-            .filter(
-                EnricherTemplate.name == name,
-                or_(
-                    EnricherTemplate.owner_id == user_id,
-                    EnricherTemplate.is_public,
-                ),
-            )
-            .first()
-        )
+        return self._repo.find_by_name_and_owner_or_public(name, user_id)
 
     def list_by_category_for_user(
         self, owner_id: UUID, category: Optional[str] = None
     ) -> List[EnricherTemplate]:
-        query = self._db.query(EnricherTemplate).filter(
-            EnricherTemplate.owner_id == owner_id
-        )
-        if category:
-            query = query.filter(EnricherTemplate.category == category)
-        return query.order_by(EnricherTemplate.created_at.desc()).all()
+        return self._repo.get_by_owner(owner_id, category)
 
     def _check_duplicate_name(
         self,
@@ -179,16 +143,14 @@ class EnricherTemplateService(BaseService):
         owner_id: UUID,
         exclude_id: Optional[UUID] = None,
     ) -> None:
-        query = self._db.query(EnricherTemplate).filter(
-            EnricherTemplate.owner_id == owner_id,
-            EnricherTemplate.name == name,
-        )
-        if exclude_id:
-            query = query.filter(EnricherTemplate.id != exclude_id)
-        if query.first():
+        existing = self._repo.find_by_name_and_owner(name, owner_id, exclude_id)
+        if existing:
             raise ConflictError(f"Template with name '{name}' already exists")
 
 
 def create_enricher_template_service(db: Session) -> EnricherTemplateService:
     """Factory function to create an EnricherTemplateService instance."""
-    return EnricherTemplateService(db=db)
+    return EnricherTemplateService(
+        db=db,
+        enricher_template_repo=EnricherTemplateRepository(db),
+    )

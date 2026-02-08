@@ -39,6 +39,10 @@ export interface TestTemplateResponse {
   url: string
 }
 
+export interface GenerateTemplateResponse {
+  yaml_content: string
+}
+
 export const templateService = {
   getAll: async (): Promise<Template[]> => {
     return fetchWithAuth('/api/enrichers/templates', {
@@ -83,6 +87,13 @@ export const templateService = {
     return fetchWithAuth('/api/enrichers/templates/test', {
       method: 'POST',
       body: JSON.stringify({ input_value: inputValue, content })
+    })
+  },
+
+  generate: async (prompt: string): Promise<GenerateTemplateResponse> => {
+    return fetchWithAuth('/api/enrichers/templates/generate', {
+      method: 'POST',
+      body: JSON.stringify({ prompt })
     })
   }
 }

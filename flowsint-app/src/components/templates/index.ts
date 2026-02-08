@@ -1,5 +1,7 @@
 export { YamlEditor } from './yaml-editor'
 export { JsonViewer } from './json-viewer'
 export { TemplateEditor } from './template-editor'
+export { AIChatPanel } from './ai-chat-panel'
+export type { AIChatPanelHandle } from './ai-chat-panel'
 export { templateSchema, defaultTemplate } from './template-schema'
 export type { TemplateData, TemplateInput, TemplateHttpRequest, TemplateHttpResponse, TemplateOutput } from './template-schema'

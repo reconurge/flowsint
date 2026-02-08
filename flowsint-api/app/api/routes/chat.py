@@ -67,6 +67,7 @@ async def stream_chat(
     return StreamingResponse(
         service.stream_response(chat_id, llm_messages, provider),
         media_type="text/event-stream",
+        headers={"x-vercel-ai-ui-message-stream": "v1"},
     )
 
 

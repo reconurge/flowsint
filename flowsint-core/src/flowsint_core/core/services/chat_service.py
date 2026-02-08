@@ -224,11 +224,21 @@ class ChatService(BaseService):
         llm_messages: List[LLMChatMessage],
         provider: LLMProvider,
     ) -> AsyncIterator[str]:
+        import uuid as _uuid
+
+        message_id = str(_uuid.uuid4())
+        text_id = str(_uuid.uuid4())
         accumulated: list[str] = []
+
+        yield f"data: {json.dumps({'type': 'start', 'messageId': message_id})}\n\n"
+        yield f"data: {json.dumps({'type': 'text-start', 'id': text_id})}\n\n"
 
         async for token in provider.stream(llm_messages):
             accumulated.append(token)
-            yield f"data: {json.dumps({'content': token})}\n\n"
+            yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': token})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'text-end', 'id': text_id})}\n\n"
+        yield f"data: {json.dumps({'type': 'finish'})}\n\n"
 
         self.add_bot_message(chat_id, "".join(accumulated))
 

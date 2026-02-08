@@ -4,24 +4,18 @@ from typing import List, Optional
 
 from celery import states
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from flowsint_core.core.template_enricher import TemplateEnricher
-from flowsint_core.templates.types import Template
 from flowsint_core.utils import to_json_serializable
 
 from ..core.celery import celery
 from ..core.enums import EventLevel
 from ..core.logger import Logger
-from ..core.models import EnricherTemplate, Scan
-from ..core.postgre_db import SessionLocal, get_db
-from ..core.services import create_vault_service
 from ..core.models import Scan
-from sqlalchemy.orm import Session
-from ..core.logger import Logger
-from ..core.enums import EventLevel
-from flowsint_core.utils import to_json_serializable
+from ..core.postgre_db import SessionLocal, get_db
+from ..core.services import create_enricher_template_service, create_vault_service
+from ..core.template_enricher import TemplateEnricher
+from ..templates.types import Template
 
 # Auto-discover and register all enrichers
 load_all_enrichers()
@@ -34,7 +28,7 @@ def run_enricher(
     self,
     enricher_name: str,
     serialized_objects: List[dict],
-    sketch_id: str,
+    sketch_id: str | None,
     owner_id: Optional[str] = None,
 ):
     session = SessionLocal()
@@ -83,6 +77,7 @@ def run_enricher(
     except Exception as ex:
         session.rollback()
         error_logs = f"An error occurred: {str(ex)}"
+        print(f"Error in task: {error_logs}")
 
         scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
         if scan:
@@ -97,14 +92,15 @@ def run_enricher(
         session.close()
 
 
-@celery.task(name="run_enricher_from_template", bind=True)
-def run_enricher_from_template(
+@celery.task(name="run_template_enricher", bind=True)
+def run_template_enricher(
     self,
-    enricher_name: str,
+    template_name: str,
     serialized_objects: List[dict],
-    sketch_id: str,
-    owner_id: Optional[str] = None,
+    sketch_id: str | None,
+    owner_id: str,
 ):
+    """Run an enricher defined by a YAML template stored in the database."""
     session = SessionLocal()
 
     try:
@@ -118,37 +114,34 @@ def run_enricher_from_template(
         session.add(scan)
         session.commit()
 
-        # Create vault instance if owner_id is provided
+        # Resolve vault for secrets
         vault = None
-        if owner_id:
-            try:
-                vault = Vault(session, uuid.UUID(owner_id))
-            except Exception as e:
-                raise ValueError(f"Error creating vault: {e}")
-
-        template = (
-            db.query(EnricherTemplate)
-            .filter(
-                EnricherTemplate.name == enricher_name,
-                or_(
-                    EnricherTemplate.owner_id == owner_id,
-                    EnricherTemplate.is_public,
-                ),
+        try:
+            vault = create_vault_service(session).for_user(uuid.UUID(owner_id))
+        except Exception as e:
+            Logger.error(
+                sketch_id, {"message": f"Failed to create vault: {str(e)}"}
             )
-            .first()
+
+        # Load template from database
+        template_service = create_enricher_template_service(session)
+        db_template = template_service.find_by_name(
+            template_name, uuid.UUID(owner_id)
         )
+        if not db_template:
+            raise ValueError(
+                f"Template '{template_name}' not found for user {owner_id}"
+            )
 
-        if not template:
-            raise ValueError(f"Enricher {enricher_name} not found.")
+        template = Template(**db_template.content)
 
-        content = template.content
-        template = Template(**content)
-        assert isinstance(template, Template)
         enricher = TemplateEnricher(
-            sketch_id=sketch_id, scan_id=str(scan_id), template=template
+            template=template,
+            sketch_id=sketch_id,
+            scan_id=str(scan_id),
+            vault=vault,
         )
-        # Deserialize objects back into Pydantic models
-        # The preprocess method in Enricher will handle these already-parsed objects
+
         results = asyncio.run(enricher.execute(values=serialized_objects))
 
         scan.status = EventLevel.COMPLETED
@@ -160,9 +153,13 @@ def run_enricher_from_template(
     except Exception as ex:
         session.rollback()
         error_logs = f"An error occurred: {str(ex)}"
-        print(f"Error in task: {error_logs}")
+        print(f"Error in template task: {error_logs}")
 
-        scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        scan = (
+            session.query(Scan)
+            .filter(Scan.id == uuid.UUID(self.request.id))
+            .first()
+        )
         if scan:
             scan.status = EventLevel.FAILED
             scan.results = {"error": error_logs}

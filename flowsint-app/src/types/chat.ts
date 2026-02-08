@@ -1,3 +1,5 @@
+import type { UIMessage } from 'ai'
+
 export interface ChatMessage {
   id: string
   content: string
@@ -13,4 +15,12 @@ export interface Chat {
   description: string
   created_at: string
   last_updated_at: string
+}
+
+export function toUIMessage(msg: ChatMessage): UIMessage {
+  return {
+    id: msg.id,
+    role: msg.is_bot ? 'assistant' : 'user',
+    parts: [{ type: 'text', text: msg.content }],
+  }
 }

@@ -1,9 +1,6 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
 from flowsint_core.core.celery import celery
 from flowsint_core.core.graph import create_graph_service
 from flowsint_core.core.models import Profile
@@ -13,6 +10,9 @@ from flowsint_core.core.services import (
     create_enricher_template_service,
 )
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from app.api.deps import get_current_user
 
 load_all_enrichers()
@@ -34,16 +34,9 @@ def get_enrichers(
 ):
     """Get all enrichers, optionally filtered by category."""
     enricher_service = create_enricher_service(db)
-    base_enrichers = enricher_service.get_enrichers(
+    return enricher_service.get_all_enrichers(
         category, current_user.id, ENRICHER_REGISTRY
     )
-
-    template_service = create_enricher_template_service(db)
-    template_enrichers = template_service.list_by_category_for_user(
-        current_user.id, category
-    )
-
-    return [*base_enrichers, *template_enrichers]
 
 
 @router.post("/{enricher_name}/launch")
@@ -59,12 +52,15 @@ async def launch_enricher(
         entities = graph_service.get_nodes_by_ids_for_task(payload.node_ids)
 
         # Send deserialized nodes
-        entities = [entity.model_dump(mode="json", serialize_as_any=True) for entity in entities]
+        entities = [
+            entity.model_dump(mode="json", serialize_as_any=True) for entity in entities
+        ]
         if not entities:
             raise HTTPException(
                 status_code=404, detail="No entities found with provided IDs"
             )
 
+        is_template = False
         enricher_in_registry = ENRICHER_REGISTRY.enricher_exists(enricher_name)
         if not enricher_in_registry:
             template_service = create_enricher_template_service(db)
@@ -72,12 +68,11 @@ async def launch_enricher(
             if not template:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Enricher '{enricher_name}' not found in registry",
+                    detail=f"Enricher '{enricher_name}' not found",
                 )
+            is_template = True
 
-        task_name = (
-            "run_enricher" if enricher_in_registry else "run_enricher_from_template"
-        )
+        task_name = "run_template_enricher" if is_template else "run_enricher"
         task = celery.send_task(
             task_name,
             args=[

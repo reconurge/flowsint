@@ -9,7 +9,9 @@ from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
     ConflictError,
     NotFoundError,
+    ValidationError,
     create_enricher_template_service,
+    create_template_generator_service,
 )
 from flowsint_core.core.template_enricher import TemplateEnricher
 from flowsint_core.core.vault import Vault
@@ -19,6 +21,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.api.schemas.enricher_template import (
     EnricherTemplateCreate,
+    EnricherTemplateGenerateRequest,
+    EnricherTemplateGenerateResponse,
     EnricherTemplateList,
     EnricherTemplateRead,
     EnricherTemplateTestRequest,
@@ -71,6 +75,21 @@ def list_templates(
     """List enricher templates."""
     service = create_enricher_template_service(db)
     return service.list_templates(current_user.id, category, include_public)
+
+
+@router.post("/generate", response_model=EnricherTemplateGenerateResponse)
+async def generate_template(
+    request: EnricherTemplateGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """Generate an enricher template from a free-text description using AI."""
+    service = create_template_generator_service(db)
+    try:
+        yaml_content = await service.generate(request.prompt, current_user.id)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return EnricherTemplateGenerateResponse(yaml_content=yaml_content)
 
 
 @router.post("/{template_id}/test", response_model=EnricherTemplateTestResponse)

@@ -9,6 +9,7 @@ import { useChatState } from '@/stores/use-chat-store'
 import { useParams } from '@tanstack/react-router'
 import { queryKeys } from '@/api/query-keys'
 import { toUIMessage } from '@/types/chat'
+import type { ChatContextFormat } from '@/types'
 
 export const useChat = () => {
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
@@ -28,17 +29,11 @@ export const useChat = () => {
     queryKey: queryKeys.chats.detail(currentChatId!),
     queryFn: () => chatCRUDService.getById(currentChatId!),
     enabled: !!currentChatId,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false
   })
 
   // AI SDK useChat
-  const {
-    messages,
-    status,
-    sendMessage,
-    stop,
-    setMessages,
-  } = useAIChat({
+  const { messages, status, sendMessage, stop, setMessages } = useAIChat({
     id: currentChatId ?? undefined,
     transport,
     onFinish: () => {
@@ -51,7 +46,7 @@ export const useChat = () => {
       toast.error(
         'Failed to get AI response: ' + (error instanceof Error ? error.message : 'Unknown error')
       )
-    },
+    }
   })
 
   // Sync server-loaded messages when switching chats
@@ -75,7 +70,7 @@ export const useChat = () => {
       const chatData = {
         title,
         description: description || '',
-        investigation_id: investigationId,
+        investigation_id: investigationId
       }
       return await chatCRUDService.create(JSON.stringify(chatData))
     },
@@ -89,7 +84,7 @@ export const useChat = () => {
       toast.error(
         'Failed to create chat: ' + (error instanceof Error ? error.message : 'Unknown error')
       )
-    },
+    }
   })
 
   // Mutation to delete a chat
@@ -107,67 +102,59 @@ export const useChat = () => {
       toast.error(
         'Failed to delete chat: ' + (error instanceof Error ? error.message : 'Unknown error')
       )
-    },
+    }
   })
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, context?: string[]) => {
     if (!text.trim()) {
       toast.error('Please enter a prompt')
       return
     }
 
+    const bodyOptions = context?.length ? { body: { context } } : undefined
+
     // Auto-create chat if none exists
     if (!currentChatId) {
-      const chatTitle =
-        selectedNodes.length > 0
-          ? selectedNodes
-              .map((node) => node.data.label)
-              .join(', ')
-              .slice(0, 100)
-          : 'New Chat'
+      const chatTitle = 'New Chat'
 
       try {
         const newChat = await createChatMutation.mutateAsync({
           title: chatTitle,
-          description: 'Chat created from analysis',
+          description: 'Chat created from analysis'
         })
         if (!newChat?.id) return
         // sendMessage will fire once transport updates via the new currentChatId
         // but we need to wait for the next render, so we queue the send
-        queuedMessageRef.current = text
+        queuedMessageRef.current = { text, context }
       } catch (error) {
         console.error('Failed to create chat:', error)
       }
       return
     }
 
-    sendMessage({ role: 'user', parts: [{ type: 'text', text }] })
+    sendMessage({ role: 'user', parts: [{ type: 'text', text }] }, bodyOptions)
   }
 
   // Handle queued message after chat creation
-  const queuedMessageRef = useRef<string | null>(null)
+  const queuedMessageRef = useRef<{ text: string; context?: string[] } | null>(null)
   useEffect(() => {
     if (queuedMessageRef.current && currentChatId && transport) {
-      const text = queuedMessageRef.current
+      const { text, context } = queuedMessageRef.current
       queuedMessageRef.current = null
-      // Small delay to allow transport to settle
+      const bodyOptions = context?.length ? { body: { context } } : undefined
       setTimeout(() => {
-        sendMessage({ role: 'user', parts: [{ type: 'text', text }] })
+        sendMessage({ role: 'user', parts: [{ type: 'text', text }] }, bodyOptions)
       }, 50)
     }
   }, [currentChatId, transport, sendMessage])
 
   const createNewChat = async (title?: string) => {
-    const chatTitle =
-      title ||
-      (selectedNodes.length > 0
-        ? selectedNodes[0].data.label
-        : 'New Chat #' + (Math.floor(Math.random() * 900) + 1000))
+    const chatTitle = title || 'New Chat #' + (Math.floor(Math.random() * 900) + 1000)
 
     try {
       await createChatMutation.mutateAsync({
         title: chatTitle,
-        description: 'Chat created from analysis',
+        description: 'Chat created from analysis'
       })
     } catch (error) {
       console.error('Failed to create new chat:', error)
@@ -203,6 +190,6 @@ export const useChat = () => {
     switchToChat,
     currentChatId,
     createChatMutation,
-    deleteChatMutation,
+    deleteChatMutation
   }
 }

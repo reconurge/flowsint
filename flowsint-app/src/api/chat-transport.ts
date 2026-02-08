@@ -11,15 +11,16 @@ export function createChatTransport(chatId: string) {
       if (token) return { Authorization: `Bearer ${token}` }
       return {}
     },
-    prepareSendMessagesRequest: ({ messages }) => {
+    prepareSendMessagesRequest: ({ messages, body }) => {
       const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')
       const prompt = lastUserMessage?.parts
         ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
         .map((p) => p.text)
         .join('') ?? ''
 
+      const context = (body as Record<string, unknown> | undefined)?.context
       return {
-        body: { prompt },
+        body: { prompt, ...(context ? { context } : {}) },
       }
     },
   })

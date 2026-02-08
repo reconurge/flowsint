@@ -5,15 +5,20 @@ import { XIcon, ArrowUp } from 'lucide-react'
 import { useGraphStore } from '@/stores/graph-store'
 import { useRef, useEffect, memo, useState } from 'react'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
+import { ChatContextFormat } from '@/types'
 
 interface ChatPanelProps {
-  onSend: (text: string) => void
+  onSend: (text: string, context?: string[]) => void
   isLoading: boolean
+}
+
+const formatContext = (context: ChatContextFormat[]): string[] => {
+  return context.map((item) => `${item.fromLabel} -> ${item.label} -> ${item.toLabel}`)
 }
 
 export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
   const [input, setInput] = useState('')
-  const selectedNodes = useGraphStore((s) => s.selectedNodes)
+  const selectedNodes = useGraphStore((s) => s.getSelectedNodesWithEdgesAsList)()
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -36,7 +41,7 @@ export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
 
   const handleSubmit = () => {
     if (input.trim() && !isLoading) {
-      onSend(input.trim())
+      onSend(input.trim(), selectedNodes.length > 0 ? formatContext(selectedNodes) : undefined)
       setInput('')
     }
   }
@@ -76,7 +81,7 @@ export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className={`
-                                min-h-[44px] max-h-[120px] resize-none
+                                min-h-11 max-h-[120px] resize-none
                                 border border-border bg-background
                                 focus:ring-2 focus:ring-primary/20 focus:border-primary
                                 transition-all duration-200
@@ -113,20 +118,24 @@ export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
   )
 }
 
-export const ContextList = memo(({ context }: { context: any }) => {
+export const ContextList = memo(({ context }: { context: ChatContextFormat[] }) => {
   const colors = useNodesDisplaySettings((s) => s.colors)
   return (
     <div className="flex flex-nowrap overflow-x-auto hide-scrollbar gap-1.5 items-center px-1">
-      {context.map((item: any, index: number) => {
-        const color = colors[item?.data?.type || item?.type]
+      {context.map((item: ChatContextFormat, index: number) => {
+        const fromColor = item.fromColor ?? colors[item?.fromType]
+        const toColor = item.toColor ?? colors[item?.toType]
+
         return (
           <Badge
             key={index}
             variant="secondary"
             className="flex items-center border border-border gap-1.5 text-xs"
           >
-            <span style={{ background: color }} className="w-1.5 h-1.5 rounded-full" />
-            {item.data?.label || 'Unknown'}
+            <span style={{ background: fromColor }} className="w-1.5 h-1.5 rounded-full" />
+            {item.fromLabel || 'Unknown'} {'->'}
+            <span style={{ background: toColor }} className="w-1.5 h-1.5 rounded-full" />
+            {item.toLabel || 'Unknown'}
           </Badge>
         )
       })}

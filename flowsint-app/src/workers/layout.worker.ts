@@ -76,7 +76,7 @@ function computeDagreLayout(
 
   nodes.forEach((node) =>
     g.setNode(node.id, {
-      width: nodeWidth,
+      width: nodeWidth + node.nodeLabel.length / 2.5,
       height: nodeHeight
     })
   )

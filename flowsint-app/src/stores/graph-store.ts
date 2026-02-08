@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GraphNode, GraphEdge, NodeProperties } from '@/types'
+import type { GraphNode, GraphEdge, NodeProperties, ChatContextFormat } from '@/types'
 import { type ActionItem } from '@/lib/action-items'
 import { Filters, TypeFilter } from '@/types/filter'
 
@@ -76,6 +76,7 @@ interface GraphState {
   edgesLength: number
   getNodesLength: () => number
   getEdgesLength: () => number
+  getSelectedNodesWithEdgesAsList: () => ChatContextFormat[]
 }
 
 // --- Helpers ---
@@ -437,6 +438,26 @@ export const useGraphStore = create<GraphState>()(
           filteredNodes: get().nodes,
           filteredEdges: get().edges
         })
+      },
+      getSelectedNodesWithEdgesAsList: () => {
+        const { selectedNodes, edgesMapping } = get()
+        let context: ChatContextFormat[] = []
+        const selectedNodesMapping = new Map(selectedNodes.map((node) => [node.id, node]))
+        edgesMapping.forEach((edge) => {
+          const fromNode = selectedNodesMapping.get(edge.source)
+          const toNode = selectedNodesMapping.get(edge.target)
+          if (fromNode && toNode)
+            context.push({
+              fromLabel: fromNode.nodeLabel,
+              fromType: fromNode.nodeType,
+              fromColor: fromNode.nodeColor,
+              toLabel: toNode.nodeLabel,
+              toType: toNode.nodeType,
+              toColor: toNode.nodeColor,
+              label: edge.label
+            })
+        })
+        return context
       },
 
       // === Utils ===

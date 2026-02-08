@@ -30,7 +30,7 @@ function FloatingChat() {
     isLoadingChat,
     createNewChat,
     deleteChatMutation,
-    currentChatId,
+    currentChatId
   } = useChat()
 
   const isStreaming = status === 'streaming' || status === 'submitted'
@@ -38,13 +38,13 @@ function FloatingChat() {
   const { isMac } = useKeyboardShortcut({
     key: 'e',
     ctrlOrCmd: true,
-    callback: toggleChat,
+    callback: toggleChat
   })
 
   useKeyboardShortcut({
     key: 'Escape',
     ctrlOrCmd: false,
-    callback: closeChat,
+    callback: closeChat
   })
 
   const handleCreateNewChat = () => {
@@ -92,9 +92,9 @@ function FloatingChat() {
 
       {/* Chat Panel */}
       {isOpenChat && (
-        <div className="fixed bottom-12 overflow-hidden rounded-2xl right-4 shadow z-21">
+        <div className="fixed bottom-12 overflow-hidden rounded-2xl right-4 shadow-xl z-50">
           <ResizableChat minWidth={400} minHeight={400} maxWidth={800} maxHeight={800}>
-            <Card className="overflow-hidden !backdrop-blur bg-background/90 rounded-2xl gap-0 py-0 h-full">
+            <Card className="overflow-hidden backdrop-blur! bg-background/90 rounded-2xl gap-0 py-0 h-full">
               {view === 'history' ? (
                 <ChatHistory
                   setView={setView}
@@ -103,7 +103,7 @@ function FloatingChat() {
                 />
               ) : (
                 <>
-                  <div className="flex items-center justify-between p-3 border-b">
+                  <div className="flex items-center justify-between h-10 p-3 border-b">
                     <div className="flex w-full items-center justify-between gap-1">
                       <div className="flex items-center gap-2  truncate text-ellipsis">
                         <Button
@@ -155,8 +155,8 @@ function FloatingChat() {
                         {!currentChatId ? (
                           <>
                             <div className="relative mb-6">
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-xl animate-pulse"></div>
-                              <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 rounded-full p-4 border border-primary/20">
+                              <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-primary/10 rounded-full blur-xl animate-pulse"></div>
+                              <div className="relative bg-linear-to-br from-primary/10 to-primary/5 rounded-full p-4 border border-primary/20">
                                 <img
                                   src="/icon.png"
                                   alt="Flowsint"
@@ -178,7 +178,7 @@ function FloatingChat() {
                                 variant="outline"
                                 size="sm"
                                 onClick={handleCreateNewChat}
-                                className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 hover:from-primary/20 hover:to-primary/10"
+                                className="bg-linear-to-r from-primary/10 to-primary/5 border-primary/20 hover:from-primary/20 hover:to-primary/10"
                               >
                                 Start your first chat
                               </Button>
@@ -244,8 +244,8 @@ const ChatMessageComponent = ({ message }: { message: UIMessage }) => {
   if (message.role === 'assistant')
     return (
       <MessageContainer copyContent={content}>
-        <div className={cn('justify-start', 'flex w-full')}>
-          <div className={cn('w-full', 'p-3 rounded-xl max-w-full', 'flex flex-col gap-2')}>
+        <div className={cn('justify-start', 'flex w-full border rounded-lg')}>
+          <div className={cn('w-full', 'p-3 rounded-xl max-w-full', 'flex flex-col')}>
             <MemoizedMarkdown id={message.id} content={content} />
           </div>
         </div>
@@ -274,10 +274,10 @@ const ChatMessageComponent = ({ message }: { message: UIMessage }) => {
 const MessageContainer = memo(
   ({ children, copyContent }: { children: React.ReactNode; copyContent?: string }) => {
     return (
-      <div className="relative group">
+      <div className="relative group/msg">
         {children}
-        <div className="-mt-1 group-hover:opacity-100 opacity-0 flex items-center justify-end z-1">
-          <div className="border rounded-md bg-background ">
+        <div className="flex items-center justify-end z-1 ">
+          <div className="group-hover/msg:opacity-100 border -mt-1 opacity-0 bg-background rounded">
             <CopyButton content={copyContent ?? ''} />
           </div>
         </div>

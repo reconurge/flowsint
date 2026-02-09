@@ -13,7 +13,10 @@ interface ChatPanelProps {
 }
 
 const formatContext = (context: ChatContextFormat[]): string[] => {
-  return context.map((item) => `${item.fromLabel} -> ${item.label} -> ${item.toLabel}`)
+  return context.map((item) => {
+    if (item.type === 'relation') return `${item.fromLabel} -> ${item.label} -> ${item.toLabel}`
+    return item.nodeLabel
+  })
 }
 
 export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
@@ -123,8 +126,22 @@ export const ContextList = memo(({ context }: { context: ChatContextFormat[] }) 
   return (
     <div className="flex flex-nowrap overflow-x-auto hide-scrollbar gap-1.5 items-center px-1">
       {context.map((item: ChatContextFormat, index: number) => {
-        const fromColor = item.fromColor ?? colors[item?.fromType]
-        const toColor = item.toColor ?? colors[item?.toType]
+        if (item.type === 'node') {
+          const color = item.nodeColor ?? colors[item.nodeType]
+          return (
+            <Badge
+              key={index}
+              variant="secondary"
+              className="flex items-center border border-border gap-1.5 text-xs"
+            >
+              <span style={{ background: color }} className="w-1.5 h-1.5 rounded-full" />
+              {item.nodeLabel || 'Unknown'}
+            </Badge>
+          )
+        }
+
+        const fromColor = item.fromColor ?? colors[item.fromType]
+        const toColor = item.toColor ?? colors[item.toType]
 
         return (
           <Badge

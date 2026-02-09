@@ -9,7 +9,10 @@ export interface ChatMessage {
   chatId?: string
 }
 
-export type ChatContextFormat = {
+export type ChatContextFormat = ChatContextFormatRel | ChatContextFormatNode
+
+export type ChatContextFormatRel = {
+  type: 'relation'
   fromType: string
   fromLabel: string
   fromColor: string | null
@@ -17,6 +20,12 @@ export type ChatContextFormat = {
   toLabel: string
   toColor: string | null
   label: string
+}
+export type ChatContextFormatNode = {
+  type: 'node'
+  nodeLabel: string
+  nodeColor: string | null
+  nodeType: string
 }
 
 export interface Chat {

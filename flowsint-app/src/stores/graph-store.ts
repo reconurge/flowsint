@@ -446,8 +446,9 @@ export const useGraphStore = create<GraphState>()(
         edgesMapping.forEach((edge) => {
           const fromNode = selectedNodesMapping.get(edge.source)
           const toNode = selectedNodesMapping.get(edge.target)
-          if (fromNode && toNode)
+          if (fromNode && toNode) {
             context.push({
+              type: 'relation',
               fromLabel: fromNode.nodeLabel,
               fromType: fromNode.nodeType,
               fromColor: fromNode.nodeColor,
@@ -456,7 +457,18 @@ export const useGraphStore = create<GraphState>()(
               toColor: toNode.nodeColor,
               label: edge.label
             })
+            selectedNodesMapping.delete(edge.source)
+            selectedNodesMapping.delete(edge.target)
+          }
         })
+        selectedNodesMapping.forEach((node) =>
+          context.push({
+            type: 'node',
+            nodeType: node.nodeType,
+            nodeLabel: node.nodeLabel,
+            nodeColor: node?.nodeColor
+          })
+        )
         return context
       },
 

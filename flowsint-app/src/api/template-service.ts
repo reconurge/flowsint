@@ -37,6 +37,7 @@ export interface TestTemplateResponse {
   duration_ms: number
   status_code?: number
   url: string
+  raw_results?: Record<string, unknown>
 }
 
 export interface GenerateTemplateResponse {

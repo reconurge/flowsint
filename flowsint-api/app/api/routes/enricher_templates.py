@@ -116,7 +116,7 @@ async def test_template(
         await enricher.async_init()
         pre = enricher.preprocess([test_request.input_value])
         results = await enricher.scan(pre)
-        data = {"results": results}
+        data = {"results": results, "raw_results": enricher.get_raw_response()}
         return EnricherTemplateTestResponse(
             success=True, data=data, status_code=200, url=template.request.url
         )

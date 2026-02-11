@@ -108,6 +108,7 @@ class TemplateEnricher(Enricher):
         self.OutputType = self._detect_type(self.template.output.type)
         self.request = self.template.request
         self._resolved_secrets: Dict[str, str] = {}
+        self.raw_response: Dict[str, Any] | None = None
 
     @staticmethod
     def _build_params_schema_from_template(template: Template) -> List[Dict[str, Any]]:
@@ -332,7 +333,15 @@ class TemplateEnricher(Enricher):
                         )
                         await asyncio.sleep(wait_time)
                         continue
-
+                try:
+                    body = response.json()
+                except Exception:
+                    body = response.text
+                self.raw_response = {
+                    "status_code": response.status_code,
+                    "headers": dict(response.headers),
+                    "body": body,
+                }
                 response.raise_for_status()
                 return response
 
@@ -535,6 +544,9 @@ class TemplateEnricher(Enricher):
                 f"[{self.template.name.upper()}] {input.nodeLabel} -> {output.nodeLabel}"
             )
         return results
+
+    def get_raw_response(self) -> Dict[str, Any] | None:
+        return self.raw_response
 
 
 InputType = TemplateEnricher.InputType

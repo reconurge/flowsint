@@ -26,7 +26,7 @@ const MemoizedMarkdownBlock = memo(
                   style={dracula}
                   language={match[1]}
                   PreTag="div"
-                  className="rounded border border-border bg-muted px-1 py-0.5 !m-0 text-sm w-auto not-prose"
+                  className="rounded border border-border bg-muted px-1 py-0.5 m-0! text-sm w-auto not-prose"
                   {...props}
                 />
                 <div className="absolute top-2 right-2">
@@ -64,7 +64,7 @@ export const MemoizedMarkdown = memo(({ content, id }: { content: string; id: st
   const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content])
 
   return (
-    <div className="prose max-w-none dark:prose-invert">
+    <div className="prose max-w-none dark:prose-invert text-sm">
       {blocks.map((block, index) => (
         <MemoizedMarkdownBlock content={block} key={`${id}-block_${index}`} />
       ))}

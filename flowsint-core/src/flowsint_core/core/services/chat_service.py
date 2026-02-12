@@ -26,20 +26,6 @@ DEFAULT_SYSTEM_PROMPT = (
 )
 
 
-def clean_context(context: List[Dict]) -> List[Dict]:
-    """Remove unnecessary keys from context data."""
-    cleaned = []
-    for item in context:
-        if isinstance(item, dict):
-            cleaned_item = item.get("data", item).copy()
-            cleaned_item.pop("id", None)
-            cleaned_item.pop("sketch_id", None)
-            if "data" in cleaned_item and isinstance(cleaned_item["data"], dict):
-                cleaned_item["data"].pop("sketch_id", None)
-            cleaned_item.pop("measured", None)
-            cleaned.append(cleaned_item)
-    return cleaned
-
 
 class ChatService(BaseService):
     """
@@ -111,7 +97,7 @@ class ChatService(BaseService):
         chat_id: UUID,
         user_id: UUID,
         content: str,
-        context: Optional[List[Dict]] = None,
+        context: Optional[List[str]] = None,
     ) -> ChatMessage:
         chat = self._chat_repo.get_by_id_and_owner(chat_id, user_id)
         if not chat:
@@ -149,19 +135,14 @@ class ChatService(BaseService):
         return self.get_by_id(chat_id, user_id)
 
     def prepare_ai_context(
-        self, chat: Chat, user_prompt: str, context: Optional[List[Dict]] = None
+        self, chat: Chat, user_prompt: str, context: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         context_message = None
         if context:
-            try:
-                cleaned_context = clean_context(context)
-                if cleaned_context:
-                    context_str = json.dumps(cleaned_context, indent=2, default=str)
-                    context_message = f"Context: {context_str}"
-                    if len(context_message) > 2000:
-                        context_message = context_message[:2000] + "..."
-            except Exception as e:
-                print(f"Context processing error: {e}")
+            context_str = "; ".join(context)
+            context_message = f"Context: {context_str}"
+            if len(context_message) > 2000:
+                context_message = context_message[:2000] + "..."
 
         sorted_messages = sorted(chat.messages, key=lambda x: x.created_at)
         recent_messages = (
@@ -224,11 +205,21 @@ class ChatService(BaseService):
         llm_messages: List[LLMChatMessage],
         provider: LLMProvider,
     ) -> AsyncIterator[str]:
+        import uuid as _uuid
+
+        message_id = str(_uuid.uuid4())
+        text_id = str(_uuid.uuid4())
         accumulated: list[str] = []
+
+        yield f"data: {json.dumps({'type': 'start', 'messageId': message_id})}\n\n"
+        yield f"data: {json.dumps({'type': 'text-start', 'id': text_id})}\n\n"
 
         async for token in provider.stream(llm_messages):
             accumulated.append(token)
-            yield f"data: {json.dumps({'content': token})}\n\n"
+            yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': token})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'text-end', 'id': text_id})}\n\n"
+        yield f"data: {json.dumps({'type': 'finish'})}\n\n"
 
         self.add_bot_message(chat_id, "".join(accumulated))
 

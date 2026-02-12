@@ -101,7 +101,10 @@ export const ResizableChat: React.FC<ResizableChatProps> = ({
   return (
     <div
       ref={containerRef}
-      className={cn('relative group overflow-hidden', isResizing && 'pointer-events-none')}
+      className={cn(
+        'relative group/resize overflow-hidden max-h-[calc(100vh-60px)]',
+        isResizing && 'pointer-events-none'
+      )}
       style={{
         width: chatWidth,
         height: chatHeight
@@ -119,8 +122,8 @@ export const ResizableChat: React.FC<ResizableChatProps> = ({
         className={cn(
           'absolute bottom-0 right-0 w-4 h-4 cursor-se-resize',
           'bg-transparent hover:bg-primary/20 transition-colors',
-          'rounded-tl-md border-r border-b border-primary/20',
-          'group-hover:border-primary/40',
+          'rounded-tl-md border-primary/20',
+          'group-hover/resize:border-primary/40',
           isResizing && 'bg-primary/30 border-primary/50'
         )}
         onMouseDown={handleMouseDown('se')}
@@ -130,8 +133,8 @@ export const ResizableChat: React.FC<ResizableChatProps> = ({
         className={cn(
           'absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize',
           'bg-transparent hover:bg-primary/20 transition-colors',
-          'rounded-tr-md border-l border-b border-primary/20',
-          'group-hover:border-primary/40',
+          'rounded-tr-md border-primary/20',
+          'group-hover/resize:border-primary/40',
           isResizing && 'bg-primary/30 border-primary/50'
         )}
         onMouseDown={handleMouseDown('sw')}
@@ -141,8 +144,8 @@ export const ResizableChat: React.FC<ResizableChatProps> = ({
         className={cn(
           'absolute top-0 right-0 w-4 h-4 cursor-ne-resize',
           'bg-transparent hover:bg-primary/20 transition-colors',
-          'rounded-bl-md border-r border-t border-primary/20',
-          'group-hover:border-primary/40',
+          'rounded-bl-md border-primary/20',
+          'group-hover/resize:border-primary/40',
           isResizing && 'bg-primary/30 border-primary/50'
         )}
         onMouseDown={handleMouseDown('ne')}
@@ -152,8 +155,8 @@ export const ResizableChat: React.FC<ResizableChatProps> = ({
         className={cn(
           'absolute top-0 left-0 w-4 h-4 cursor-nw-resize',
           'bg-transparent hover:bg-primary/20 transition-colors',
-          'rounded-br-md border-l border-t border-primary/20',
-          'group-hover:border-primary/40',
+          'rounded-br-md border-primary/20',
+          'group-hover/resize:border-primary/40',
           isResizing && 'bg-primary/30 border-primary/50'
         )}
         onMouseDown={handleMouseDown('nw')}

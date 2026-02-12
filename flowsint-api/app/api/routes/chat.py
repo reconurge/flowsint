@@ -1,16 +1,17 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from uuid import UUID
 from typing import Dict, List, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
+from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.services import (
+    NotFoundError,
+    create_chat_service,
+)
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Profile
-from flowsint_core.core.services import (
-    create_chat_service,
-    NotFoundError,
-)
 from app.api.deps import get_current_user
 from app.api.schemas.chat import ChatCreate, ChatRead
 
@@ -19,7 +20,7 @@ router = APIRouter()
 
 class ChatRequest(BaseModel):
     prompt: str
-    context: Optional[List[Dict]] = None
+    context: Optional[List[str]] = None
 
 
 @router.get("/", response_model=List[ChatRead])
@@ -67,6 +68,7 @@ async def stream_chat(
     return StreamingResponse(
         service.stream_response(chat_id, llm_messages, provider),
         media_type="text/event-stream",
+        headers={"x-vercel-ai-ui-message-stream": "v1"},
     )
 
 

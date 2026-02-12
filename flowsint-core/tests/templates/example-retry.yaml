@@ -1,0 +1,25 @@
+name: retry-example
+category: Ip
+version: 1.0
+input:
+  type: Ip
+  key: address
+request:
+  method: GET
+  url: https://api.example.com/lookup/{{address}}
+  timeout: 10
+output:
+  type: Ip
+response:
+  expect: json
+  map:
+    address: ip
+retry:
+  max_retries: 5
+  backoff_factor: 1.0
+  retry_on_status:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504

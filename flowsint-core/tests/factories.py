@@ -11,6 +11,7 @@ from flowsint_core.core.models import (
     Chat,
     ChatMessage,
     CustomType,
+    EnricherTemplate,
     Flow,
     Investigation,
     InvestigationUserRole,
@@ -183,3 +184,21 @@ class CustomTypeFactory(SQLAlchemyModelFactory):
     )
     status = "draft"
     description = "Test custom type"
+
+
+class EnricherTemplateFactory(SQLAlchemyModelFactory):
+    class Meta:
+        model = EnricherTemplate
+        sqlalchemy_session_persistence = "commit"
+
+    id = factory.LazyFunction(uuid4)
+    name = factory.Sequence(lambda n: f"Template{n}")
+    description = "Test template"
+    category = "ip"
+    version = 1.0
+    content = factory.LazyFunction(
+        lambda: {"name": "Template", "request": {"url": "https://example.com"}}
+    )
+    is_public = False
+    owner = factory.SubFactory(ProfileFactory)
+    owner_id = factory.LazyAttribute(lambda o: o.owner.id)

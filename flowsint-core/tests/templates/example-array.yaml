@@ -1,0 +1,20 @@
+name: array-response-example
+category: Ip
+version: 1.0
+input:
+  type: Ip
+  key: address
+request:
+  method: GET
+  url: https://api.example.com/related/{{address}}
+  timeout: 30
+output:
+  type: Ip
+  is_array: true
+  array_path: data.results
+response:
+  expect: json
+  map:
+    address: ip
+    country: location.country
+    city: location.city

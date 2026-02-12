@@ -1,0 +1,17 @@
+name: xml-response-example
+category: Ip
+version: 1.0
+input:
+  type: Ip
+  key: address
+request:
+  method: GET
+  url: https://api.example.com/xml/{{address}}
+  timeout: 30
+output:
+  type: Ip
+response:
+  expect: xml
+  map:
+    address: ip
+    country: location.country

@@ -1,16 +1,21 @@
-import uuid
 import asyncio
+import uuid
 from typing import List, Optional
+
 from celery import states
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
-from ..core.celery import celery
-from ..core.postgre_db import SessionLocal, get_db
-from ..core.services import create_vault_service
-from ..core.models import Scan
 from sqlalchemy.orm import Session
-from ..core.logger import Logger
-from ..core.enums import EventLevel
+
 from flowsint_core.utils import to_json_serializable
+
+from ..core.celery import celery
+from ..core.enums import EventLevel
+from ..core.logger import Logger
+from ..core.models import Scan
+from ..core.postgre_db import SessionLocal, get_db
+from ..core.services import create_enricher_template_service, create_vault_service
+from ..core.template_enricher import TemplateEnricher
+from ..templates.types import Template
 
 # Auto-discover and register all enrichers
 load_all_enrichers()
@@ -29,7 +34,6 @@ def run_enricher(
     session = SessionLocal()
 
     try:
-
         scan_id = uuid.UUID(self.request.id)
 
         scan = Scan(
@@ -76,6 +80,86 @@ def run_enricher(
         print(f"Error in task: {error_logs}")
 
         scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        if scan:
+            scan.status = EventLevel.FAILED
+            scan.results = {"error": error_logs}
+            session.commit()
+
+        self.update_state(state=states.FAILURE)
+        raise ex
+
+    finally:
+        session.close()
+
+
+@celery.task(name="run_template_enricher", bind=True)
+def run_template_enricher(
+    self,
+    template_name: str,
+    serialized_objects: List[dict],
+    sketch_id: str | None,
+    owner_id: str,
+):
+    """Run an enricher defined by a YAML template stored in the database."""
+    session = SessionLocal()
+
+    try:
+        scan_id = uuid.UUID(self.request.id)
+
+        scan = Scan(
+            id=scan_id,
+            status=EventLevel.PENDING,
+            sketch_id=uuid.UUID(sketch_id) if sketch_id else None,
+        )
+        session.add(scan)
+        session.commit()
+
+        # Resolve vault for secrets
+        vault = None
+        try:
+            vault = create_vault_service(session).for_user(uuid.UUID(owner_id))
+        except Exception as e:
+            Logger.error(
+                sketch_id, {"message": f"Failed to create vault: {str(e)}"}
+            )
+
+        # Load template from database
+        template_service = create_enricher_template_service(session)
+        db_template = template_service.find_by_name(
+            template_name, uuid.UUID(owner_id)
+        )
+        if not db_template:
+            raise ValueError(
+                f"Template '{template_name}' not found for user {owner_id}"
+            )
+
+        template = Template(**db_template.content)
+
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id=sketch_id,
+            scan_id=str(scan_id),
+            vault=vault,
+        )
+
+        results = asyncio.run(enricher.execute(values=serialized_objects))
+
+        scan.status = EventLevel.COMPLETED
+        scan.results = to_json_serializable(results)
+        session.commit()
+
+        return {"result": scan.results}
+
+    except Exception as ex:
+        session.rollback()
+        error_logs = f"An error occurred: {str(ex)}"
+        print(f"Error in template task: {error_logs}")
+
+        scan = (
+            session.query(Scan)
+            .filter(Scan.id == uuid.UUID(self.request.id))
+            .first()
+        )
         if scan:
             scan.status = EventLevel.FAILED
             scan.results = {"error": error_logs}

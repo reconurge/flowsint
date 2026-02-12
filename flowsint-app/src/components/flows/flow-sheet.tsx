@@ -61,7 +61,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
       const position = { x: selectedNode.position.x + 350, y: selectedNode.position.y }
       const newNode: FlowNode = {
         id: `${enricher.name}-${Date.now()}`,
-        type: enricher.type === 'type' ? 'type' : 'enricher',
+        type: enricher.type === 'type' ? 'type' : 'request',
         position,
         data: {
           id: enricher.id,
@@ -169,80 +169,73 @@ function areEqual(prevProps: { enricher: Enricher }, nextProps: { enricher: Enri
 }
 
 // Memoized enricher item component for the sidebar
-const EnricherItem = memo(
-  ({ enricher, onClick }: { enricher: Enricher; onClick: () => void }) => {
-    const colors = useNodesDisplaySettings((s) => s.colors)
-    const borderInputColor = colors[enricher.inputs.type.toLowerCase()]
-    const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
-    const Icon =
-      enricher.type === 'type'
-        ? useIcon(enricher.outputs.type.toLowerCase() as string)
-        : enricher.icon
-          ? useIcon(enricher.icon)
-          : null
+const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick: () => void }) => {
+  const colors = useNodesDisplaySettings((s) => s.colors)
+  const borderInputColor = colors[enricher.inputs.type.toLowerCase()]
+  const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
+  const Icon =
+    enricher.type === 'type'
+      ? useIcon(enricher.outputs.type.toLowerCase() as string)
+      : enricher.icon
+        ? useIcon(enricher.icon)
+        : null
 
-    return (
-      <TooltipProvider>
-        <button
-          onClick={onClick}
-          className="p-3 rounded-md relative w-full overflow-hidden cursor-grab bg-card border ring-2 ring-transparent hover:ring-primary transition-all group"
-          style={{
-            borderLeftWidth: '5px',
-            borderRightWidth: '5px',
-            borderLeftColor: borderInputColor ?? borderOutputColor,
-            borderRightColor: borderOutputColor,
-            cursor: 'grab'
-          }}
-        >
-          <div className="flex justify-between grow items-start">
-            <div className="flex items-start gap-2 grow truncate text-ellipsis">
-              <div className="space-y-1 truncate text-left">
-                <div className="flex items-center gap-2 truncate text-ellipsis">
-                  {Icon && <Icon size={24} />}
-                  <h3 className="text-sm font-medium truncate text-ellipsis">
-                    {enricher.class_name}
-                  </h3>
+  return (
+    <TooltipProvider>
+      <button
+        onClick={onClick}
+        className="p-3 rounded-md relative w-full overflow-hidden cursor-grab bg-card border ring-2 ring-transparent hover:ring-primary transition-all group"
+        style={{
+          borderLeftWidth: '5px',
+          borderRightWidth: '5px',
+          borderLeftColor: borderInputColor ?? borderOutputColor,
+          borderRightColor: borderOutputColor,
+          cursor: 'grab'
+        }}
+      >
+        <div className="flex justify-between grow items-start">
+          <div className="flex items-start gap-2 grow truncate text-ellipsis">
+            <div className="space-y-1 truncate text-left">
+              <div className="flex items-center gap-2 truncate text-ellipsis">
+                {Icon && <Icon size={24} />}
+                <h3 className="text-sm font-medium truncate text-ellipsis">
+                  {enricher.class_name}
+                </h3>
+              </div>
+              <p className="text-sm font-normal opacity-60 truncate text-ellipsis">
+                {enricher.description}
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Takes</span>
+                  <span className="font-bold truncate text-ellipsis">{enricher.inputs.type}</span>
                 </div>
-                <p className="text-sm font-normal opacity-60 truncate text-ellipsis">
-                  {enricher.description}
-                </p>
-                <div className="mt-2 flex items-center gap-2 text-xs">
-                  <div className="flex items-center gap-1">
-                    <span className="text-muted-foreground">Takes</span>
-                    <span className="font-bold truncate text-ellipsis">
-                      {enricher.inputs.type}
-                    </span>
-                  </div>
-                  <span>
-                    <ArrowRight className="h-3 w-3" />
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-muted-foreground">Returns</span>
-                    <span className="font-bold truncate text-ellipsis">
-                      {enricher.outputs.type}
-                    </span>
-                  </div>
+                <span>
+                  <ArrowRight className="h-3 w-3" />
+                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Returns</span>
+                  <span className="font-bold truncate text-ellipsis">{enricher.outputs.type}</span>
                 </div>
               </div>
             </div>
           </div>
-          {enricher.required_params && (
-            <div className="absolute bottom-3 right-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <TriangleAlert className="h-4 w-4 text-yellow-500" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>API key required</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-        </button>
-      </TooltipProvider>
-    )
-  },
-  areEqual
-)
+        </div>
+        {enricher.required_params && (
+          <div className="absolute bottom-3 right-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TriangleAlert className="h-4 w-4 text-yellow-500" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>API key required</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+      </button>
+    </TooltipProvider>
+  )
+}, areEqual)
 
 EnricherItem.displayName = 'EnricherItem'

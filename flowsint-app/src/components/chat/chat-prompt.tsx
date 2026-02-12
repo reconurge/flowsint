@@ -3,25 +3,25 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { XIcon, ArrowUp } from 'lucide-react'
 import { useGraphStore } from '@/stores/graph-store'
-import { useRef, useEffect, memo } from 'react'
+import { useRef, useEffect, memo, useState } from 'react'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
+import { ChatContextFormat } from '@/types'
 
 interface ChatPanelProps {
-  customPrompt: string
-  setCustomPrompt: (prompt: string) => void
-  handleCustomPrompt: (editorValue: any) => void
-  isAiLoading: boolean
-  editorValue: any
+  onSend: (text: string, context?: string[]) => void
+  isLoading: boolean
 }
 
-export const ChatPanel = ({
-  customPrompt,
-  setCustomPrompt,
-  handleCustomPrompt,
-  isAiLoading,
-  editorValue
-}: ChatPanelProps) => {
-  const selectedNodes = useGraphStore((s) => s.selectedNodes)
+const formatContext = (context: ChatContextFormat[]): string[] => {
+  return context.map((item) => {
+    if (item.type === 'relation') return `${item.fromLabel} -> ${item.label} -> ${item.toLabel}`
+    return item.nodeLabel
+  })
+}
+
+export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
+  const [input, setInput] = useState('')
+  const selectedNodes = useGraphStore((s) => s.selectedNodesWithEdgesAsList)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -40,11 +40,12 @@ export const ChatPanel = ({
       textareaRef.current.style.height = 'auto'
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
     }
-  }, [customPrompt])
+  }, [input])
 
   const handleSubmit = () => {
-    if (customPrompt.trim() && !isAiLoading) {
-      handleCustomPrompt(editorValue)
+    if (input.trim() && !isLoading) {
+      onSend(input.trim(), selectedNodes.length > 0 ? formatContext(selectedNodes) : undefined)
+      setInput('')
     }
   }
 
@@ -79,21 +80,21 @@ export const ChatPanel = ({
               ref={textareaRef}
               autoFocus
               placeholder="Ask me anything about your investigation..."
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className={`
-                                min-h-[44px] max-h-[120px] resize-none 
-                                border border-border bg-background 
+                                min-h-11 max-h-[120px] resize-none
+                                border border-border bg-background
                                 focus:ring-2 focus:ring-primary/20 focus:border-primary
                                 transition-all duration-200
                                 pr-12 py-3 px-4 rounded-xl
                             `}
-              disabled={isAiLoading}
+              disabled={isLoading}
             />
             <Button
               onClick={handleSubmit}
-              disabled={!customPrompt.trim() || isAiLoading}
+              disabled={!input.trim() || isLoading}
               size="icon"
               variant={'ghost'}
               className={`
@@ -101,48 +102,57 @@ export const ChatPanel = ({
                                 h-8 w-8 rounded-full
                                 transition-all duration-200
                                 ${
-                                  customPrompt.trim() && !isAiLoading
+                                  input.trim() && !isLoading
                                     ? 'text-primary-foreground'
                                     : 'bg-muted text-muted-foreground'
                                 }
                             `}
             >
-              {isAiLoading ? (
+              {isLoading ? (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ArrowUp className="w-4 h-4" />
               )}
             </Button>
           </div>
-
-          {/* <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        {isAiLoading && (
-                            <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                                <span>Processing...</span>
-                            </div>
-                        )}
-                    </div> */}
         </div>
       </div>
     </div>
   )
 }
 
-export const ContextList = memo(({ context }: { context: any }) => {
+export const ContextList = memo(({ context }: { context: ChatContextFormat[] }) => {
   const colors = useNodesDisplaySettings((s) => s.colors)
   return (
     <div className="flex flex-nowrap overflow-x-auto hide-scrollbar gap-1.5 items-center px-1">
-      {context.map((item: any, index: number) => {
-        const color = colors[item?.data?.type || item?.type]
+      {context.map((item: ChatContextFormat, index: number) => {
+        if (item.type === 'node') {
+          const color = item.nodeColor ?? colors[item.nodeType]
+          return (
+            <Badge
+              key={index}
+              variant="secondary"
+              className="flex items-center border border-border gap-1.5 text-xs"
+            >
+              <span style={{ background: color }} className="w-1.5 h-1.5 rounded-full" />
+              {item.nodeLabel || 'Unknown'}
+            </Badge>
+          )
+        }
+
+        const fromColor = item.fromColor ?? colors[item.fromType]
+        const toColor = item.toColor ?? colors[item.toType]
+
         return (
           <Badge
             key={index}
             variant="secondary"
             className="flex items-center border border-border gap-1.5 text-xs"
           >
-            <span style={{ background: color }} className="w-1.5 h-1.5 rounded-full" />
-            {item.data?.label || 'Unknown'}
+            <span style={{ background: fromColor }} className="w-1.5 h-1.5 rounded-full" />
+            {item.fromLabel || 'Unknown'} {'->'}
+            <span style={{ background: toColor }} className="w-1.5 h-1.5 rounded-full" />
+            {item.toLabel || 'Unknown'}
           </Badge>
         )
       })}

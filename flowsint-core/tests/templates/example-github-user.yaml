@@ -1,0 +1,43 @@
+name: github-user-lookup
+input:
+  key: value
+  type: Username
+retry:
+  max_retries: 3
+  backoff_factor: 1
+  retry_on_status:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+output:
+  type: SocialAccount
+request:
+  url: https://api.github.com/users/{{value}}
+  params:
+    per_page: 100
+    sort: updated
+
+  method: GET
+  timeout: 15
+secrets:
+  - name: GITHUB_TOKEN
+    required: true
+    description: GitHub personal access token (required for API rate limits)
+version: 1
+category: Username
+response:
+  map:
+    bio: bio
+    location: location
+    username: login
+    created_at: created_at
+    posts_count: public_repos
+    profile_url: html_url
+    display_name: name
+    followers_count: followers
+    following_count: following
+    profile_picture_url: avatar_url
+  expect: json
+description: Fetch GitHub user profile and return as SocialAccount

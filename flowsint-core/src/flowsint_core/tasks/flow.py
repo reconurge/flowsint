@@ -1,16 +1,19 @@
 import uuid
 from typing import List, Optional
+
 from celery import states
+from sqlalchemy.orm import Session
+
+from flowsint_core.utils import to_json_serializable
+
 from ..core.celery import celery
+from ..core.enums import EventLevel
+from ..core.logger import Logger
+from ..core.models import Scan
 from ..core.orchestrator import FlowOrchestrator
 from ..core.postgre_db import SessionLocal, get_db
 from ..core.services import create_vault_service
 from ..core.types import FlowBranch
-from ..core.models import Scan
-from sqlalchemy.orm import Session
-from ..core.logger import Logger
-from ..core.enums import EventLevel
-from flowsint_core.utils import to_json_serializable
 
 db: Session = next(get_db())
 

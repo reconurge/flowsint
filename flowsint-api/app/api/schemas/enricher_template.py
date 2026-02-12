@@ -171,7 +171,7 @@ class EnricherTemplateGenerateRequest(BaseModel):
     prompt: str = Field(
         ...,
         min_length=10,
-        max_length=2000,
+        max_length=16000,
         description="Free-text description of the desired enricher template",
     )
 

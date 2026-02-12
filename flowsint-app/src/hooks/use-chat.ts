@@ -4,15 +4,12 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { chatCRUDService } from '@/api/chat-service'
 import { createChatTransport } from '@/api/chat-transport'
-import { useGraphStore } from '@/stores/graph-store'
 import { useChatState } from '@/stores/use-chat-store'
 import { useParams } from '@tanstack/react-router'
 import { queryKeys } from '@/api/query-keys'
 import { toUIMessage } from '@/types/chat'
-import type { ChatContextFormat } from '@/types'
 
 export const useChat = () => {
-  const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const currentChatId = useChatState((s) => s.currentChatId)
   const setCurrentChatId = useChatState((s) => s.setCurrentChatId)
   const deleteChat = useChatState((s) => s.deleteChat)

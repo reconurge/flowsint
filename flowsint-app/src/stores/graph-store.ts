@@ -76,7 +76,7 @@ interface GraphState {
   edgesLength: number
   getNodesLength: () => number
   getEdgesLength: () => number
-  getSelectedNodesWithEdgesAsList: () => ChatContextFormat[]
+  selectedNodesWithEdgesAsList: ChatContextFormat[]
 }
 
 // --- Helpers ---
@@ -92,6 +92,41 @@ const computeFilteredNodes = (nodes: GraphNode[], filters: Filters): GraphNode[]
 const computeFilteredEdges = (edges: GraphEdge[], filteredNodes: GraphNode[]): GraphEdge[] => {
   const nodeIds = new Set(filteredNodes.map((n) => n.id))
   return edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target))
+}
+
+const computeSelectedNodesWithEdgesAsList = (
+  selectedNodes: GraphNode[],
+  edgesMapping: Map<string, GraphEdge>
+): ChatContextFormat[] => {
+  const context: ChatContextFormat[] = []
+  const remaining = new Map(selectedNodes.map((node) => [node.id, node]))
+  edgesMapping.forEach((edge) => {
+    const fromNode = remaining.get(edge.source)
+    const toNode = remaining.get(edge.target)
+    if (fromNode && toNode) {
+      context.push({
+        type: 'relation',
+        fromLabel: fromNode.nodeLabel,
+        fromType: fromNode.nodeType,
+        fromColor: fromNode.nodeColor,
+        toLabel: toNode.nodeLabel,
+        toType: toNode.nodeType,
+        toColor: toNode.nodeColor,
+        label: edge.label
+      })
+      remaining.delete(edge.source)
+      remaining.delete(edge.target)
+    }
+  })
+  remaining.forEach((node) =>
+    context.push({
+      type: 'node',
+      nodeType: node.nodeType,
+      nodeLabel: node.nodeLabel,
+      nodeColor: node?.nodeColor
+    })
+  )
+  return context
 }
 
 // --- Store ---
@@ -121,7 +156,8 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         const edgesMapping = new Map(edges.map((edge) => [edge.id, edge]))
-        set({ edges, filteredNodes, filteredEdges, edgesMapping })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        set({ edges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
       },
 
       addNode: (newNode) => {
@@ -154,7 +190,8 @@ export const useGraphStore = create<GraphState>()(
         edgesMapping.set(edgeWithId.id, edgeWithId)
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
-        set({ edges, filteredNodes, filteredEdges, edgesMapping })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        set({ edges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
         return edgeWithId
       },
 
@@ -179,7 +216,8 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
         deleteKeys(edgesMapping, edgeIdsSet)
-        set({ edges: newEdges, filteredNodes, filteredEdges, edgesMapping })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        set({ edges: newEdges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
       },
 
       updateGraphData: (nodes, edges) => {
@@ -188,7 +226,8 @@ export const useGraphStore = create<GraphState>()(
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         const nodesMapping = new Map(nodes.map((node) => [node.id, node]))
         const edgesMapping = new Map(edges.map((edge) => [edge.id, edge]))
-        set({ nodes, edges, filteredNodes, filteredEdges, nodesMapping, edgesMapping })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        set({ nodes, edges, filteredNodes, filteredEdges, nodesMapping, edgesMapping, selectedNodesWithEdgesAsList })
       },
 
       updateNode: (nodeId: string, updates: Partial<GraphNode>) => {
@@ -228,7 +267,8 @@ export const useGraphStore = create<GraphState>()(
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
         const edge = edgesMapping.get(edgeId)
         if (edge) edgesMapping.set(edgeId, { ...edge, ...updates } as GraphEdge)
-        set({ edges: updatedEdges, filteredNodes, filteredEdges, edgesMapping })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        set({ edges: updatedEdges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
       },
 
       replaceNode: (oldId, newId, nodeProperties) => {
@@ -256,13 +296,15 @@ export const useGraphStore = create<GraphState>()(
         // Update edgesMapping
         const newEdgesMapping = new Map(updatedEdges.map((edge) => [edge.id, edge]))
         setCurrentNodeId(newId)
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, newEdgesMapping)
         set({
           nodes: updatedNodes,
           edges: updatedEdges,
           filteredNodes,
           filteredEdges,
           nodesMapping,
-          edgesMapping: newEdgesMapping
+          edgesMapping: newEdgesMapping,
+          selectedNodesWithEdgesAsList
         })
       },
 
@@ -297,9 +339,12 @@ export const useGraphStore = create<GraphState>()(
         }
         return null
       },
-      setSelectedNodes: (nodes) => set({ selectedNodes: nodes }),
+      setSelectedNodes: (nodes) => {
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(nodes, get().edgesMapping)
+        set({ selectedNodes: nodes, selectedNodesWithEdgesAsList })
+      },
       setSelectedEdges: (edges) => set({ selectedEdges: edges }),
-      clearSelectedNodes: () => set({ selectedNodes: [] }),
+      clearSelectedNodes: () => set({ selectedNodes: [], selectedNodesWithEdgesAsList: [] }),
       clearSelectedEdges: () => set({ selectedEdges: [] }),
       toggleNodeSelection: (node, multiSelect = false) => {
         const { selectedNodes, currentNodeId } = get()
@@ -328,7 +373,10 @@ export const useGraphStore = create<GraphState>()(
         if (hasSelectionChanges || hasCurrentNodeChanges) {
           set({
             selectedNodes: newSelected,
-            currentNodeId: newCurrentNodeId
+            currentNodeId: newCurrentNodeId,
+            ...(hasSelectionChanges && {
+              selectedNodesWithEdgesAsList: computeSelectedNodesWithEdgesAsList(newSelected, get().edgesMapping)
+            })
           })
         }
       },
@@ -436,41 +484,11 @@ export const useGraphStore = create<GraphState>()(
           openNodeEditorModal: false,
           currentNodeType: null,
           filteredNodes: get().nodes,
-          filteredEdges: get().edges
+          filteredEdges: get().edges,
+          selectedNodesWithEdgesAsList: []
         })
       },
-      getSelectedNodesWithEdgesAsList: () => {
-        const { selectedNodes, edgesMapping } = get()
-        let context: ChatContextFormat[] = []
-        const selectedNodesMapping = new Map(selectedNodes.map((node) => [node.id, node]))
-        edgesMapping.forEach((edge) => {
-          const fromNode = selectedNodesMapping.get(edge.source)
-          const toNode = selectedNodesMapping.get(edge.target)
-          if (fromNode && toNode) {
-            context.push({
-              type: 'relation',
-              fromLabel: fromNode.nodeLabel,
-              fromType: fromNode.nodeType,
-              fromColor: fromNode.nodeColor,
-              toLabel: toNode.nodeLabel,
-              toType: toNode.nodeType,
-              toColor: toNode.nodeColor,
-              label: edge.label
-            })
-            selectedNodesMapping.delete(edge.source)
-            selectedNodesMapping.delete(edge.target)
-          }
-        })
-        selectedNodesMapping.forEach((node) =>
-          context.push({
-            type: 'node',
-            nodeType: node.nodeType,
-            nodeLabel: node.nodeLabel,
-            nodeColor: node?.nodeColor
-          })
-        )
-        return context
-      },
+      selectedNodesWithEdgesAsList: [],
 
       // === Utils ===
       nodesLength: 0,

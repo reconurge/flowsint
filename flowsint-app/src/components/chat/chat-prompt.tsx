@@ -21,7 +21,7 @@ const formatContext = (context: ChatContextFormat[]): string[] => {
 
 export const ChatPanel = ({ onSend, isLoading }: ChatPanelProps) => {
   const [input, setInput] = useState('')
-  const selectedNodes = useGraphStore((s) => s.getSelectedNodesWithEdgesAsList)()
+  const selectedNodes = useGraphStore((s) => s.selectedNodesWithEdgesAsList)
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 

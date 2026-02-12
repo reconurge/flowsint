@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -13,8 +13,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ErrorState from '@/components/shared/error-state'
 import { PageLayout } from '@/components/layout/page-layout'
 import { templateService, type Template } from '@/api/template-service'
+const FEATURE_FLAG = true
 
 export const Route = createFileRoute('/_auth/dashboard/enrichers/')({
+  beforeLoad: async () => {
+    if (FEATURE_FLAG) {
+      throw redirect({
+        to: '/'
+      })
+    }
+  },
   component: TemplatesPage
 })
 

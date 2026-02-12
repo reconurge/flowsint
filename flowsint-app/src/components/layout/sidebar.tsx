@@ -18,7 +18,7 @@ export const Sidebar = memo(() => {
 
   const navItems: NavItem[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard/' },
-    { icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' },
+    // { icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' },
     { icon: Workflow, label: 'Flows', href: '/dashboard/flows' },
     { icon: Shapes, label: 'Custom types', href: '/dashboard/custom-types' },
     { icon: Lock, label: 'Vault', href: '/dashboard/vault' }

@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class WebTracker(FlowsintType):
     """Represents a web tracking technology with privacy and compliance information."""
 
     tracker_id: str = Field(
-        ..., description="Unique tracker identifier", title="Tracker ID", json_schema_extra={"primary": True}
+        ...,
+        description="Unique tracker identifier",
+        title="Tracker ID",
+        json_schema_extra={"primary": True},
     )
     name: Optional[str] = Field(None, description="Tracker name", title="Name")
     type: Optional[str] = Field(
@@ -62,10 +66,10 @@ class WebTracker(FlowsintType):
         None, description="Privacy risk level", title="Risk Level"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         if self.name:
-            self.nodeLabel = self.name
+            self.nodeLabel = f"{self.name}-{self.tracker_id}"
         else:
             self.nodeLabel = self.tracker_id
         return self

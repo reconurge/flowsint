@@ -1,16 +1,29 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-// @ts-ignore
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import Map, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { useTheme } from '../theme-provider'
-import { MapPin } from 'lucide-react'
+import { Globe, Map as MapIcon, MapPin } from 'lucide-react'
+import LoadingSpinner from '@/components/shared/loader'
+import * as LucideIcons from 'lucide-react'
+import { preloadImage } from '@/components/sketches/graph/utils/image-cache'
+import { TYPE_TO_ICON } from '@/stores/node-display-settings'
+import { Switch } from '../ui/switch'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import type { MapRef } from 'react-map-gl/maplibre'
+import type { GeoJSONSource, MapMouseEvent, StyleImageInterface, StyleSpecification } from 'maplibre-gl'
+import type { FeatureCollection, Point } from 'geojson'
 
 export type LocationPoint = {
   lat?: number
   lon?: number
   address?: string
   label?: string
+  nodeType?: string
+  color?: string | null
+  icon?: string | null
 }
 
 type MapFromAddressProps = {
@@ -20,25 +33,174 @@ type MapFromAddressProps = {
   centerOnFirst?: boolean
 }
 
+type MapStyleVariant = 'standard' | 'voyager' | 'satellite'
+
+const VECTOR_STYLES: Record<'standard' | 'voyager', { dark: string; light: string }> = {
+  standard: {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+  },
+  voyager: {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    light: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+  }
+}
+
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  sources: {
+    'esri-satellite': {
+      type: 'raster' as const,
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256,
+      maxzoom: 19
+      // attribution: '&copy; Esri'
+    }
+  },
+  layers: [
+    {
+      id: 'esri-satellite-layer',
+      type: 'raster' as const,
+      source: 'esri-satellite',
+      minzoom: 0,
+      maxzoom: 22
+    }
+  ]
+}
+
+function resolveMapStyle(variant: MapStyleVariant, theme: 'dark' | 'light'): string | StyleSpecification {
+  if (variant === 'satellite') return SATELLITE_STYLE
+  return VECTOR_STYLES[variant][theme]
+}
+
+function createPulsingDot(isDark: boolean): StyleImageInterface {
+  const size = 100
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')!
+  let animationTime = 0
+
+  return {
+    width: size,
+    height: size,
+    data: new Uint8Array(size * size * 4),
+    onAdd(this: StyleImageInterface & { map?: maplibregl.Map }) {
+      this.map = undefined
+    },
+    render(this: StyleImageInterface & { map?: maplibregl.Map }) {
+      const duration = 1500
+      animationTime = (animationTime + 1) % duration
+
+      const t = animationTime / duration
+      const radius = (size / 2) * 0.3
+      const outerRadius = (size / 2) * 0.3 + 15 * t
+      const opacity = 1 - t
+
+      context.clearRect(0, 0, size, size)
+
+      // Outer pulsing ring
+      context.beginPath()
+      context.arc(size / 2, size / 2, outerRadius, 0, Math.PI * 2)
+      const ringColor = isDark
+        ? `rgba(99, 102, 241, ${opacity * 0.4})`
+        : `rgba(79, 70, 229, ${opacity * 0.4})`
+      context.strokeStyle = ringColor
+      context.lineWidth = 2.5
+      context.stroke()
+
+      // Inner solid dot
+      context.beginPath()
+      context.arc(size / 2, size / 2, radius, 0, Math.PI * 2)
+      const gradient = context.createRadialGradient(
+        size / 2,
+        size / 2,
+        0,
+        size / 2,
+        size / 2,
+        radius
+      )
+      if (isDark) {
+        gradient.addColorStop(0, 'rgba(129, 140, 248, 1)')
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 1)')
+      } else {
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 1)')
+        gradient.addColorStop(1, 'rgba(67, 56, 202, 1)')
+      }
+      context.fillStyle = gradient
+      context.fill()
+
+      // Bright center highlight
+      context.beginPath()
+      context.arc(size / 2 - radius * 0.2, size / 2 - radius * 0.2, radius * 0.35, 0, Math.PI * 2)
+      context.fillStyle = 'rgba(255, 255, 255, 0.3)'
+      context.fill()
+
+      this.data = context.getImageData(0, 0, size, size).data as unknown as Uint8Array
+      return true // Repaint every frame
+    }
+  }
+}
+
+function useResolvedTheme() {
+  const { theme } = useTheme()
+  const [resolved, setResolved] = useState<'dark' | 'light'>(() => {
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    return theme
+  })
+
+  useEffect(() => {
+    if (theme !== 'system') {
+      setResolved(theme)
+      return
+    }
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => setResolved(e.matches ? 'dark' : 'light')
+    setResolved(mq.matches ? 'dark' : 'light')
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [theme])
+
+  return resolved
+}
+
 export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   locations,
   height = '400px',
   zoom = 15,
   centerOnFirst = true
 }) => {
-  // Get locations that need geocoding
+  const mapRef = useRef<MapRef>(null)
+  const resolvedTheme = useResolvedTheme()
+  const [popupInfo, setPopupInfo] = useState<{
+    lng: number
+    lat: number
+    label: string
+    color: string
+    nodeType: string
+  } | null>(null)
+  const [isGlobe, setIsGlobe] = useState(true)
+  const isGlobeRef = useRef(true)
+  const [styleVariant, setStyleVariant] = useState<MapStyleVariant>('standard')
+  const pulsingDotRef = useRef<StyleImageInterface | null>(null)
+  const isDarkStyle = resolvedTheme === 'dark' || styleVariant === 'satellite'
+
+  // Geocoding
   const locationsToGeocode = locations.filter(
     (loc) => loc.lat === undefined && loc.lon === undefined && loc.address
   )
-  const { theme } = useTheme()
-  // Single query for all geocoding
+
   const geocodeQuery = useQuery({
     queryKey: ['geocode', locationsToGeocode.map((loc) => loc.address)],
     queryFn: async () => {
       const results: ({ lat: number; lon: number } | null)[] = []
       for (const location of locationsToGeocode) {
         if (!location.address) continue
-
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location.address)}`
         )
@@ -59,7 +221,6 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
 
   // Combine all locations with their coordinates
   const processedLocations = locations.map((location) => {
-    // If location already has coordinates
     if (location.lat !== undefined && location.lon !== undefined) {
       return {
         ...location,
@@ -68,8 +229,6 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         isError: false
       }
     }
-
-    // If location needs geocoding
     const geocodeIndex = locationsToGeocode.findIndex((loc) => loc.address === location.address)
     if (geocodeIndex !== -1 && geocodeQuery.data) {
       const geocoded = geocodeQuery.data[geocodeIndex]
@@ -80,8 +239,6 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         isError: geocodeQuery.isError
       }
     }
-
-    // Fallback for locations without address
     return {
       ...location,
       coordinates: null,
@@ -90,92 +247,189 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     }
   })
 
-  // Get valid coordinates for map bounds
-  const validCoordinates = processedLocations
-    .filter((location) => location.coordinates)
-    .map((location) => location.coordinates!)
+  const validLocations = useMemo(
+    () => processedLocations.filter((l) => l.coordinates),
+    [JSON.stringify(processedLocations)]
+  )
 
-  const mapId = `leaflet-map-${btoa(JSON.stringify(locations)).replace(/[^a-zA-Z0-9]/g, '')}`
+  const DEFAULT_MARKER_COLOR = '#6366f1'
 
-  React.useEffect(() => {
-    if (validCoordinates.length === 0) return
+  // Build GeoJSON
+  const geojson = useMemo<FeatureCollection<Point>>(
+    () => ({
+      type: 'FeatureCollection',
+      features: validLocations.map((loc) => {
+        const lat = Number(loc.coordinates!.lat)
+        const lon = Number(loc.coordinates!.lon)
+        const color = loc.color || DEFAULT_MARKER_COLOR
+        const nodeType = loc.nodeType || ''
+        return {
+          type: 'Feature' as const,
+          properties: {
+            label: loc.label || loc.address || `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+            color,
+            icon: nodeType ? `marker-icon-${nodeType}` : '',
+            hasIcon: nodeType ? 'true' : 'false',
+            nodeType
+          },
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [lon, lat]
+          }
+        }
+      })
+    }),
+    [validLocations]
+  )
 
-    // Create custom icon using SVG
-    const customIcon = L.divIcon({
-      html: `
-        <div style="
-          background-color: ${theme === 'dark' ? '#3b82f6' : '#2563eb'};
-          width: 24px;
-          height: 24px;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        "></div>
-      `,
-      className: 'custom-marker',
-      iconSize: [24, 24],
-      iconAnchor: [12, 24],
-      popupAnchor: [0, -24]
+  // Generate and register icon images for each unique node type
+  const registerMapImages = useCallback(async () => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+
+    // Register pulsing dot
+    if (map.hasImage('pulsing-dot')) {
+      map.removeImage('pulsing-dot')
+    }
+    pulsingDotRef.current = createPulsingDot(isDarkStyle)
+    map.addImage('pulsing-dot', pulsingDotRef.current)
+
+    // Collect unique node types from locations
+    const uniqueTypes = new Set<string>()
+    validLocations.forEach((loc) => {
+      if (loc.nodeType) uniqueTypes.add(loc.nodeType)
     })
 
-    const map = L.map(mapId)
-
-    const source = theme === 'dark' ? 'alidade_smooth_dark' : 'alidade_smooth'
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/{source}/{z}/{x}/{y}.{ext}', {
-      // attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      ext: 'png',
-      source: source
-    }).addTo(map)
-
-    // Add markers for each location
-    const markers: L.Marker[] = []
-    processedLocations.forEach((location) => {
-      if (!location.coordinates) return
-
-      const marker = L.marker([location.coordinates.lat, location.coordinates.lon], { icon: customIcon }).addTo(map)
-
-      // Create popup text
-      const popupText =
-        location.label ||
-        location.address ||
-        `${location.coordinates.lat.toFixed(6)}, ${location.coordinates.lon.toFixed(6)}`
-
-      marker.bindPopup(popupText)
-      markers.push(marker)
+    // Preload and register each icon via the shared image-cache
+    const promises = Array.from(uniqueTypes).map(async (nodeType) => {
+      const imageId = `marker-icon-${nodeType}`
+      if (map.hasImage(imageId)) map.removeImage(imageId)
+      try {
+        const img = await preloadImage(nodeType, '#ffffff')
+        if (!map.hasImage(imageId)) {
+          map.addImage(imageId, img, { sdf: false })
+        }
+      } catch (err) {
+        console.warn(`[map] Failed to load icon for type: ${nodeType}`, err)
+      }
     })
 
-    // Set map view
-    if (centerOnFirst && validCoordinates.length > 0) {
-      // Center on first coordinate
-      map.setView([validCoordinates[0].lat, validCoordinates[0].lon], zoom)
-    } else if (validCoordinates.length > 1) {
-      // Fit bounds to include all markers
-      const group = new L.featureGroup(markers)
-      map.fitBounds(group.getBounds().pad(0.1))
-    } else if (validCoordinates.length === 1) {
-      // Single point
-      map.setView([validCoordinates[0].lat, validCoordinates[0].lon], zoom)
+    await Promise.all(promises)
+    map.triggerRepaint()
+  }, [isDarkStyle, validLocations])
+
+  // Fly to markers on data load
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map || validLocations.length === 0) return
+
+    // Wait for map to be loaded
+    const doFly = () => {
+      if (validLocations.length === 1 || centerOnFirst) {
+        const loc = validLocations[0].coordinates!
+        map.flyTo({
+          center: [Number(loc.lon), Number(loc.lat)],
+          zoom,
+          duration: 2000
+        })
+      } else {
+        const bounds = new maplibregl.LngLatBounds()
+        validLocations.forEach((l) => {
+          bounds.extend([Number(l.coordinates!.lon), Number(l.coordinates!.lat)])
+        })
+        map.fitBounds(bounds, { padding: 60, duration: 2000 })
+      }
     }
 
-    return () => {
-      map.remove() // cleanup
+    if (map.loaded()) {
+      doFly()
+    } else {
+      map.once('load', doFly)
     }
-  }, [validCoordinates, mapId, zoom, centerOnFirst, theme])
+  }, [validLocations, zoom, centerOnFirst])
 
-  // Show loading if geocoding is in progress
+  // Handle click on clusters
+  const onClick = useCallback((e: MapMouseEvent) => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+
+    // Check for cluster click
+    const clusterFeatures = map.queryRenderedFeatures(e.point, { layers: ['clusters'] })
+    if (clusterFeatures.length > 0) {
+      const feature = clusterFeatures[0]
+      const clusterId = feature.properties?.cluster_id
+      const source = map.getSource('locations') as GeoJSONSource
+      source.getClusterExpansionZoom(clusterId).then((expansionZoom) => {
+        const geo = feature.geometry as Point
+        map.flyTo({
+          center: geo.coordinates as [number, number],
+          zoom: expansionZoom,
+          duration: 500
+        })
+      })
+      return
+    }
+
+    // Check for unclustered point click
+    const pointFeatures = map.queryRenderedFeatures(e.point, {
+      layers: ['unclustered-point', 'unclustered-point-icon']
+    })
+    if (pointFeatures.length > 0) {
+      const feature = pointFeatures[0]
+      const geo = feature.geometry as Point
+      setPopupInfo({
+        lng: geo.coordinates[0],
+        lat: geo.coordinates[1],
+        label: feature.properties?.label || '',
+        color: feature.properties?.color || '#6366f1',
+        nodeType: feature.properties?.nodeType || ''
+      })
+      return
+    }
+
+    // Click elsewhere → dismiss popup
+    setPopupInfo(null)
+  }, [])
+
+  const applyProjection = useCallback(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+    ;(map as any).setProjection({ type: isGlobeRef.current ? 'globe' : 'mercator' })
+  }, [])
+
+  const handleGlobeToggle = useCallback(
+    (checked: boolean) => {
+      setIsGlobe(checked)
+      isGlobeRef.current = checked
+      applyProjection()
+    },
+    [applyProjection]
+  )
+
+  const onMapLoad = useCallback(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+    registerMapImages()
+    applyProjection()
+    map.on('style.load', () => {
+      registerMapImages()
+      applyProjection()
+    })
+  }, [registerMapImages, applyProjection])
+
+  // Loading state
   if (geocodeQuery.isLoading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <LoadingSpinner size="lg" className="mx-auto" />
           <p className="text-muted-foreground">Loading map data...</p>
         </div>
       </div>
     )
   }
 
-  // Show error if geocoding failed
+  // Error state
   if (geocodeQuery.isError) {
     return (
       <div className="h-full w-full flex items-center justify-center">
@@ -204,8 +458,8 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     )
   }
 
-  // Don't render if we don't have any valid coordinates
-  if (validCoordinates.length === 0) {
+  // Empty state
+  if (validLocations.length === 0) {
     return (
       <div className="w-full flex items-center justify-center h-full">
         <div className="text-center space-y-4">
@@ -219,5 +473,178 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     )
   }
 
-  return <div id={mapId} style={{ minHeight: height, height: '100%', width: '100%', zIndex: 0 }} />
+  const mapStyle = resolveMapStyle(styleVariant, resolvedTheme)
+
+  return (
+    <div style={{ minHeight: height, height: '100%', width: '100%' }} className="relative">
+      <div className="absolute bottom-6 left-3 z-10 flex flex-col gap-2">
+        <div className="flex items-center gap-2 rounded-lg bg-card/90 backdrop-blur-sm border border-border px-3 py-2 shadow-sm">
+          <MapIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Select value={styleVariant} onValueChange={(v) => setStyleVariant(v as MapStyleVariant)}>
+            <SelectTrigger className="h-6 w-[110px] border-0 bg-transparent text-xs px-1 py-0 shadow-none focus:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="standard">Standard</SelectItem>
+              <SelectItem value="voyager">Voyager</SelectItem>
+              <SelectItem value="satellite">Satellite</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-card/90 backdrop-blur-sm border border-border px-3 py-2 shadow-sm">
+          <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+          <Label
+            htmlFor="globe-toggle"
+            className="text-xs text-muted-foreground cursor-pointer select-none"
+          >
+            Globe
+          </Label>
+          <Switch
+            id="globe-toggle"
+            checked={isGlobe}
+            onCheckedChange={handleGlobeToggle}
+            className="scale-75"
+          />
+        </div>
+      </div>
+      <Map
+        ref={mapRef}
+        initialViewState={{
+          longitude: Number(validLocations[0].coordinates!.lon),
+          latitude: Number(validLocations[0].coordinates!.lat),
+          zoom: 2
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle={mapStyle}
+        onClick={onClick}
+        onLoad={onMapLoad}
+        interactiveLayerIds={['clusters', 'unclustered-point', 'unclustered-point-icon']}
+        cursor="auto"
+      >
+        <NavigationControl position="top-right" />
+
+        <Source
+          id="locations"
+          type="geojson"
+          data={geojson}
+          cluster={true}
+          clusterMaxZoom={14}
+          clusterRadius={50}
+        >
+          {/* Cluster circles */}
+          <Layer
+            id="clusters"
+            type="circle"
+            filter={['has', 'point_count']}
+            paint={{
+              'circle-color': [
+                'step',
+                ['get', 'point_count'],
+                '#6366f1', // indigo-500
+                10,
+                '#4f46e5', // indigo-600
+                50,
+                '#7c3aed' // violet-600
+              ],
+              'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 32],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': isDarkStyle
+                ? 'rgba(255, 255, 255, 0.15)'
+                : 'rgba(0, 0, 0, 0.1)'
+            }}
+          />
+
+          {/* Cluster count labels */}
+          <Layer
+            id="cluster-count"
+            type="symbol"
+            filter={['has', 'point_count']}
+            layout={{
+              'text-field': '{point_count_abbreviated}',
+              'text-font': ['Open Sans Bold'],
+              'text-size': 13
+            }}
+            paint={{
+              'text-color': '#ffffff'
+            }}
+          />
+
+          {/* Unclustered point outer glow */}
+          <Layer
+            id="unclustered-point-glow"
+            type="circle"
+            filter={['!', ['has', 'point_count']]}
+            paint={{
+              'circle-radius': 18,
+              'circle-color': ['get', 'color'],
+              'circle-opacity': 0.2,
+              'circle-blur': 0.6
+            }}
+          />
+
+          {/* Unclustered point solid circle */}
+          <Layer
+            id="unclustered-point"
+            type="circle"
+            filter={['!', ['has', 'point_count']]}
+            paint={{
+              'circle-radius': 12,
+              'circle-color': ['get', 'color'],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': isDarkStyle
+                ? 'rgba(255, 255, 255, 0.25)'
+                : 'rgba(255, 255, 255, 0.8)'
+            }}
+          />
+
+          {/* Icon overlay on points that have icons */}
+          <Layer
+            id="unclustered-point-icon"
+            type="symbol"
+            filter={['all', ['!', ['has', 'point_count']], ['==', ['get', 'hasIcon'], 'true']]}
+            layout={{
+              'icon-image': ['get', 'icon'],
+              'icon-size': 0.6,
+              'icon-allow-overlap': true
+            }}
+          />
+        </Source>
+
+        {popupInfo && (
+          <Popup
+            longitude={popupInfo.lng}
+            latitude={popupInfo.lat}
+            anchor="bottom"
+            onClose={() => setPopupInfo(null)}
+            closeButton={true}
+            closeOnClick={false}
+            className="maplibre-popup"
+          >
+            <div className="flex items-center gap-2 px-1 py-0.5">
+              {(() => {
+                const iconName = popupInfo.nodeType
+                  ? TYPE_TO_ICON[popupInfo.nodeType] || TYPE_TO_ICON.default
+                  : ''
+                const Icon = iconName ? (LucideIcons as any)[iconName] : null
+                return Icon ? (
+                  <div
+                    className="rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: popupInfo.color, width: 24, height: 24 }}
+                  >
+                    <Icon size={14} color="#fff" strokeWidth={2.5} />
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-full shrink-0"
+                    style={{ background: popupInfo.color, width: 10, height: 10 }}
+                  />
+                )
+              })()}
+              <span className="text-sm font-medium">{popupInfo.label}</span>
+            </div>
+          </Popup>
+        )}
+      </Map>
+    </div>
+  )
 }

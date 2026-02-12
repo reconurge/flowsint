@@ -26,20 +26,6 @@ DEFAULT_SYSTEM_PROMPT = (
 )
 
 
-def clean_context(context: List[Dict]) -> List[Dict]:
-    """Remove unnecessary keys from context data."""
-    cleaned = []
-    for item in context:
-        if isinstance(item, dict):
-            cleaned_item = item.get("data", item).copy()
-            cleaned_item.pop("id", None)
-            cleaned_item.pop("sketch_id", None)
-            if "data" in cleaned_item and isinstance(cleaned_item["data"], dict):
-                cleaned_item["data"].pop("sketch_id", None)
-            cleaned_item.pop("measured", None)
-            cleaned.append(cleaned_item)
-    return cleaned
-
 
 class ChatService(BaseService):
     """
@@ -153,15 +139,10 @@ class ChatService(BaseService):
     ) -> Dict[str, Any]:
         context_message = None
         if context:
-            try:
-                cleaned_context = clean_context(context)
-                if cleaned_context:
-                    context_str = ";".join(context)
-                    context_message = f"Context: {context_str}"
-                    if len(context_message) > 2000:
-                        context_message = context_message[:2000] + "..."
-            except Exception as e:
-                print(f"Context processing error: {e}")
+            context_str = "; ".join(context)
+            context_message = f"Context: {context_str}"
+            if len(context_message) > 2000:
+                context_message = context_message[:2000] + "..."
 
         sorted_messages = sorted(chat.messages, key=lambda x: x.created_at)
         recent_messages = (

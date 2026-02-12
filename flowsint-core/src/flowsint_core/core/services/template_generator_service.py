@@ -127,6 +127,7 @@ response:
 - Use realistic field mappings based on common API response structures.
 - If the API likely requires authentication, include a `secrets` section.
 - Keep the template simple and focused on what the user asked for.
+- IMPORTANT: Always quote values that contain {{...}} placeholders, e.g. `x-apikey: "{{secrets.API_KEY}}"`. Unquoted curly braces are invalid YAML.
 """
 
 
@@ -137,6 +138,16 @@ def _extract_yaml(text: str) -> str:
     if match:
         return match.group(1).strip()
     return text.strip()
+
+
+def _quote_template_placeholders(yaml_str: str) -> str:
+    """Quote unquoted {{...}} placeholders that would break YAML parsing."""
+    return re.sub(
+        r"(:\s+)(\{\{[^}]+\}\})\s*$",
+        r'\1"\2"',
+        yaml_str,
+        flags=re.MULTILINE,
+    )
 
 
 class TemplateGeneratorService(BaseService):
@@ -175,6 +186,7 @@ class TemplateGeneratorService(BaseService):
 
         response = await provider.complete(messages)
         yaml_str = _extract_yaml(response)
+        yaml_str = _quote_template_placeholders(yaml_str)
 
         # Validate the YAML
         try:

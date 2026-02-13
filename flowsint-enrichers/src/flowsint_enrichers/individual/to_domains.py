@@ -1,15 +1,14 @@
 import os
 import re
-from typing import Any, List, Union, Dict, Set, Optional
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.domain import Domain
-from flowsint_types.organization import Organization
-from flowsint_types.individual import Individual
-from flowsint_types.address import Location
-from flowsint_core.core.logger import Logger
-from tools.network.whoxy import WhoxyTool
+from typing import Any, Dict, List, Optional, Set, Union
+
 from dotenv import load_dotenv
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_types import Domain, Email, Individual, Location, Phone
+
+from flowsint_enrichers.registry import flowsint_enricher
+from tools.network.whoxy import WhoxyTool
 
 load_dotenv()
 
@@ -67,7 +66,9 @@ class IndividualToDomainsEnricher(Enricher):
     def key(cls) -> str:
         return "full_name"
 
-    def preprocess(self, data: Union[List[str], List[dict], List[InputType]]) -> List[InputType]:
+    def preprocess(
+        self, data: Union[List[str], List[dict], List[InputType]]
+    ) -> List[InputType]:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
         cleaned: List[InputType] = []
@@ -246,7 +247,9 @@ class IndividualToDomainsEnricher(Enricher):
 
         return Location(address=address, city=city, zip=zip_code, country=country)
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self._graph_service:
             return results
@@ -275,7 +278,9 @@ class IndividualToDomainsEnricher(Enricher):
 
             # Create relationship between individual and domain
             domain_obj_indiv = Domain(domain=domain_name)
-            self.create_relationship(individual, domain_obj_indiv, "HAS_REGISTERED_DOMAIN")
+            self.create_relationship(
+                individual, domain_obj_indiv, "HAS_REGISTERED_DOMAIN"
+            )
 
             # Process all contact types
             for contact_type, contact in contacts.items():
@@ -327,10 +332,14 @@ class IndividualToDomainsEnricher(Enricher):
 
         # Create relationship between individual and domain
         domain_obj_contact = Domain(domain=domain_name)
-        self.create_relationship(contact_individual, domain_obj_contact, f"IS_{contact_type}_CONTACT")
+        self.create_relationship(
+            contact_individual, domain_obj_contact, f"IS_{contact_type}_CONTACT"
+        )
 
         # Create relationship between contact individual and main individual
-        main_individual = Individual(first_name="", last_name="", full_name=individual_name)
+        main_individual = Individual(
+            first_name="", last_name="", full_name=individual_name
+        )
         self.create_relationship(contact_individual, main_individual, "WORKS_FOR")
 
         # Process email addresses

@@ -32,6 +32,7 @@ import NeighborsGraph from './neighbors'
 import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
+import { Button } from '@/components/ui/button'
 
 // Types
 type FormData = {
@@ -291,8 +292,8 @@ const DetailsPanel = memo(() => {
   return (
     <div className="flex flex-col h-full bg-card border-border">
       {/* Header - Minimal */}
-      <div className="h-10 border-b flex w-full bg-red-5 items-center justify-between">
-        <div className="px-4 flex items-start w-full justify-between gap-3">
+      <div className="h-10 border-b flex w-full items-center justify-between">
+        <div className="px-4 flex items-center w-full justify-between gap-3">
           <div className="flex items-start gap-2.5 flex-1 min-w-0">
             <button
               onClick={() => setOpenIconPicker(true)}
@@ -319,9 +320,9 @@ const DetailsPanel = memo(() => {
                 <TooltipTrigger asChild>
                   <div>
                     <LaunchFlow values={[node.id]} type={node.nodeType}>
-                      <button className="p-1.5 rounded opacity-70 transition-colors">
-                        <Rocket className="h-4 w-4 opacity-70" strokeWidth={1.7} />
-                      </button>
+                      <Button className="rounded-xl h-7" size={'sm'}>
+                        Enrich <Rocket className="h-4 w-4 opacity-70" strokeWidth={1.7} />
+                      </Button>
                     </LaunchFlow>
                   </div>
                 </TooltipTrigger>
@@ -331,12 +332,6 @@ const DetailsPanel = memo(() => {
               </Tooltip>
             </TooltipProvider>
             <NodeActions node={node} />
-            <button
-              onClick={handleClose}
-              className="p-1.5 text-muted-foreground/50 hover:text-muted-foreground rounded transition-colors"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
           </div>
         </div>
       </div>

@@ -113,7 +113,7 @@ export function CreateRelationDialog() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                className="shadow-sm"
+                className="border"
                 onClick={() => setIsReversed((v) => !v)}
                 aria-label="Switch direction"
                 title="Switch direction"

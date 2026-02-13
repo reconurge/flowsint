@@ -18,7 +18,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Ellipsis, Upload } from 'lucide-react'
+import { Settings2, Upload } from 'lucide-react'
 import { isMac } from '@/lib/utils'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useMutation } from '@tanstack/react-query'
@@ -78,7 +78,13 @@ export const TopNavbar = memo(() => {
   )
 })
 
-export function InvestigationMenu({ investigationId, sketchId }: { investigationId?: string, sketchId: string }) {
+export function InvestigationMenu({
+  investigationId,
+  sketchId
+}: {
+  investigationId?: string
+  sketchId: string
+}) {
   const toggleSettingsModal = useGraphSettingsStore((s) => s.toggleSettingsModal)
   const toggleKeyboardShortcutsModal = useGraphSettingsStore((s) => s.toggleKeyboardShortcutsModal)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
@@ -137,7 +143,7 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
       <DropdownMenuTrigger asChild>
         <div>
           <Button size="icon" variant="ghost">
-            <Ellipsis />
+            <Settings2 />
           </Button>
         </div>
       </DropdownMenuTrigger>
@@ -155,15 +161,23 @@ export function InvestigationMenu({ investigationId, sketchId }: { investigation
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <a className='h-full w-full' target='_blank' href="https://github.com/reconurge/flowsint">GitHub</a>
+          <a className="h-full w-full" target="_blank" href="https://github.com/reconurge/flowsint">
+            GitHub
+          </a>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <a className='h-full w-full' target='_blank' href="https://github.com/reconurge/flowsint/issues">Support</a>
+          <a
+            className="h-full w-full"
+            target="_blank"
+            href="https://github.com/reconurge/flowsint/issues"
+          >
+            Support
+          </a>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => setImportModalOpen(true)}>
-          <Upload />  Import entities
+          <Upload /> Import entities
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleDelete} variant="destructive">

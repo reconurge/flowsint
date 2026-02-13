@@ -12,6 +12,7 @@ const MapPanel = () => {
         (node.nodeProperties.latitude && node.nodeProperties.longitude)
     )
     .map((node) => ({
+      nodeId: node.id,
       lat: node.nodeProperties.latitude != null ? Number(node.nodeProperties.latitude) : undefined,
       lon:
         node.nodeProperties.longitude != null ? Number(node.nodeProperties.longitude) : undefined,

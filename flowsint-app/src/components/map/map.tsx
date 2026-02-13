@@ -1,22 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import Map, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre'
+import Map, { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useTheme } from '../theme-provider'
 import { Globe, Map as MapIcon, MapPin } from 'lucide-react'
 import LoadingSpinner from '@/components/shared/loader'
-import * as LucideIcons from 'lucide-react'
-import { preloadImage } from '@/components/sketches/graph/utils/image-cache'
-import { TYPE_TO_ICON } from '@/stores/node-display-settings'
+import { preloadImage, getCachedImage } from '@/components/sketches/graph/utils/image-cache'
+import { useGraphControls } from '@/stores/graph-controls-store'
+import { useGraphStore } from '@/stores/graph-store'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import type { MapRef } from 'react-map-gl/maplibre'
-import type { GeoJSONSource, MapMouseEvent, StyleImageInterface, StyleSpecification } from 'maplibre-gl'
+import type {
+  GeoJSONSource,
+  MapMouseEvent,
+  StyleImageInterface,
+  StyleSpecification
+} from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 
 export type LocationPoint = {
+  nodeId?: string
   lat?: number
   lon?: number
   address?: string
@@ -71,7 +77,10 @@ const SATELLITE_STYLE = {
   ]
 }
 
-function resolveMapStyle(variant: MapStyleVariant, theme: 'dark' | 'light'): string | StyleSpecification {
+function resolveMapStyle(
+  variant: MapStyleVariant,
+  theme: 'dark' | 'light'
+): string | StyleSpecification {
   if (variant === 'satellite') return SATELLITE_STYLE
   return VECTOR_STYLES[variant][theme]
 }
@@ -266,6 +275,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         return {
           type: 'Feature' as const,
           properties: {
+            nodeId: loc.nodeId || '',
             label: loc.label || loc.address || `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
             color,
             icon: nodeType ? `marker-icon-${nodeType}` : '',
@@ -348,48 +358,56 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     }
   }, [validLocations, zoom, centerOnFirst])
 
-  // Handle click on clusters
-  const onClick = useCallback((e: MapMouseEvent) => {
-    const map = mapRef.current?.getMap()
-    if (!map) return
+  // Handle click on clusters and points
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
 
-    // Check for cluster click
-    const clusterFeatures = map.queryRenderedFeatures(e.point, { layers: ['clusters'] })
-    if (clusterFeatures.length > 0) {
-      const feature = clusterFeatures[0]
-      const clusterId = feature.properties?.cluster_id
-      const source = map.getSource('locations') as GeoJSONSource
-      source.getClusterExpansionZoom(clusterId).then((expansionZoom) => {
-        const geo = feature.geometry as Point
-        map.flyTo({
-          center: geo.coordinates as [number, number],
-          zoom: expansionZoom,
-          duration: 500
+  const onClick = useCallback(
+    (e: MapMouseEvent) => {
+      const map = mapRef.current?.getMap()
+      if (!map) return
+
+      // Check for cluster click
+      const clusterFeatures = map.queryRenderedFeatures(e.point, { layers: ['clusters'] })
+      if (clusterFeatures.length > 0) {
+        const feature = clusterFeatures[0]
+        const clusterId = feature.properties?.cluster_id
+        const source = map.getSource('locations') as GeoJSONSource
+        source.getClusterExpansionZoom(clusterId).then((expansionZoom) => {
+          const geo = feature.geometry as Point
+          map.flyTo({
+            center: geo.coordinates as [number, number],
+            zoom: expansionZoom,
+            duration: 500
+          })
         })
-      })
-      return
-    }
+        return
+      }
 
-    // Check for unclustered point click
-    const pointFeatures = map.queryRenderedFeatures(e.point, {
-      layers: ['unclustered-point', 'unclustered-point-icon']
-    })
-    if (pointFeatures.length > 0) {
-      const feature = pointFeatures[0]
-      const geo = feature.geometry as Point
-      setPopupInfo({
-        lng: geo.coordinates[0],
-        lat: geo.coordinates[1],
-        label: feature.properties?.label || '',
-        color: feature.properties?.color || '#6366f1',
-        nodeType: feature.properties?.nodeType || ''
+      // Check for unclustered point click
+      const pointFeatures = map.queryRenderedFeatures(e.point, {
+        layers: ['unclustered-point', 'unclustered-point-icon']
       })
-      return
-    }
+      if (pointFeatures.length > 0) {
+        const feature = pointFeatures[0]
+        const geo = feature.geometry as Point
+        const nodeId = feature.properties?.nodeId
+        if (nodeId) setCurrentNodeId(nodeId)
+        setPopupInfo({
+          lng: geo.coordinates[0],
+          lat: geo.coordinates[1],
+          label: feature.properties?.label || '',
+          color: feature.properties?.color || '#6366f1',
+          nodeType: feature.properties?.nodeType || ''
+        })
+        return
+      }
 
-    // Click elsewhere → dismiss popup
-    setPopupInfo(null)
-  }, [])
+      // Click elsewhere → dismiss popup and deselect
+      setPopupInfo(null)
+      setCurrentNodeId(null)
+    },
+    [setCurrentNodeId]
+  )
 
   const applyProjection = useCallback(() => {
     const map = mapRef.current?.getMap()
@@ -416,6 +434,44 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
       applyProjection()
     })
   }, [registerMapImages, applyProjection])
+
+  // Wire up zoom actions to the shared toolbar controls
+  const setActions = useGraphControls((s) => s.setActions)
+
+  useEffect(() => {
+    setActions({
+      zoomIn: () => {
+        const map = mapRef.current?.getMap()
+        if (map) map.zoomIn({ duration: 300 })
+      },
+      zoomOut: () => {
+        const map = mapRef.current?.getMap()
+        if (map) map.zoomOut({ duration: 300 })
+      },
+      zoomToFit: () => {
+        const map = mapRef.current?.getMap()
+        if (!map || validLocations.length === 0) return
+        if (validLocations.length === 1) {
+          const loc = validLocations[0].coordinates!
+          map.flyTo({ center: [Number(loc.lon), Number(loc.lat)], zoom, duration: 500 })
+        } else {
+          const bounds = new maplibregl.LngLatBounds()
+          validLocations.forEach((l) => {
+            bounds.extend([Number(l.coordinates!.lon), Number(l.coordinates!.lat)])
+          })
+          map.fitBounds(bounds, { padding: 60, duration: 500 })
+        }
+      }
+    })
+
+    return () => {
+      setActions({
+        zoomIn: () => {},
+        zoomOut: () => {},
+        zoomToFit: () => {}
+      })
+    }
+  }, [setActions, validLocations, zoom])
 
   // Loading state
   if (geocodeQuery.isLoading) {
@@ -478,7 +534,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   return (
     <div style={{ minHeight: height, height: '100%', width: '100%' }} className="relative">
       <div className="absolute bottom-6 left-3 z-10 flex flex-col gap-2">
-        <div className="flex items-center gap-2 rounded-lg bg-card/90 backdrop-blur-sm border border-border px-3 py-2 shadow-sm">
+        {/*<div className="flex items-center gap-2 rounded-lg bg-card/90 backdrop-blur-sm border border-border px-3 py-2 shadow-sm">
           <MapIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Select value={styleVariant} onValueChange={(v) => setStyleVariant(v as MapStyleVariant)}>
             <SelectTrigger className="h-6 w-[110px] border-0 bg-transparent text-xs px-1 py-0 shadow-none focus:ring-0">
@@ -490,7 +546,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
               <SelectItem value="satellite">Satellite</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div>*/}
         <div className="flex items-center gap-2 rounded-lg bg-card/90 backdrop-blur-sm border border-border px-3 py-2 shadow-sm">
           <Globe className="h-3.5 w-3.5 text-muted-foreground" />
           <Label
@@ -520,9 +576,8 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         onLoad={onMapLoad}
         interactiveLayerIds={['clusters', 'unclustered-point', 'unclustered-point-icon']}
         cursor="auto"
+        attributionControl={false}
       >
-        <NavigationControl position="top-right" />
-
         <Source
           id="locations"
           type="geojson"
@@ -540,11 +595,11 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
               'circle-color': [
                 'step',
                 ['get', 'point_count'],
-                '#6366f1', // indigo-500
+                '#e8713a', // primary
                 10,
-                '#4f46e5', // indigo-600
+                '#d4622e', // primary darker
                 50,
-                '#7c3aed' // violet-600
+                '#c05524' // primary darkest
               ],
               'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 32],
               'circle-stroke-width': 2,
@@ -620,27 +675,31 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
             closeOnClick={false}
             className="maplibre-popup"
           >
-            <div className="flex items-center gap-2 px-1 py-0.5">
-              {(() => {
-                const iconName = popupInfo.nodeType
-                  ? TYPE_TO_ICON[popupInfo.nodeType] || TYPE_TO_ICON.default
-                  : ''
-                const Icon = iconName ? (LucideIcons as any)[iconName] : null
-                return Icon ? (
-                  <div
-                    className="rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: popupInfo.color, width: 24, height: 24 }}
-                  >
-                    <Icon size={14} color="#fff" strokeWidth={2.5} />
-                  </div>
-                ) : (
-                  <div
-                    className="rounded-full shrink-0"
-                    style={{ background: popupInfo.color, width: 10, height: 10 }}
-                  />
-                )
-              })()}
-              <span className="text-sm font-medium">{popupInfo.label}</span>
+            <div className="flex flex-col gap-1.5 px-1 py-0.5 min-w-[140px]">
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const cachedImg = popupInfo.nodeType
+                    ? getCachedImage(popupInfo.nodeType, '#ffffff')
+                    : undefined
+                  return cachedImg ? (
+                    <div
+                      className="rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: popupInfo.color, width: 24, height: 24 }}
+                    >
+                      <img src={cachedImg.src} width={14} height={14} alt="" />
+                    </div>
+                  ) : (
+                    <div
+                      className="rounded-full shrink-0"
+                      style={{ background: popupInfo.color, width: 10, height: 10 }}
+                    />
+                  )
+                })()}
+                <span className="text-sm font-medium text-foreground">{popupInfo.label}</span>
+              </div>
+              <div className="text-xs text-muted-foreground font-mono">
+                {popupInfo.lat.toFixed(6)}, {popupInfo.lng.toFixed(6)}
+              </div>
             </div>
           </Popup>
         )}

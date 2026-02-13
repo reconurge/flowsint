@@ -234,19 +234,19 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
             onClick={zoomIn}
-            disabled={view !== 'graph' || isSelectorModeActive || !zoomIn}
+            disabled={(view !== 'graph' && view !== 'map') || isSelectorModeActive || !zoomIn}
           />
           <ToolbarButton
             icon={<Minus className="h-4 w-4 opacity-70" />}
             tooltip="Zoom Out"
             onClick={zoomOut}
-            disabled={view !== 'graph' || isSelectorModeActive}
+            disabled={(view !== 'graph' && view !== 'map') || isSelectorModeActive}
           />
           <ToolbarButton
             icon={<Maximize className="h-4 w-4 opacity-70" />}
             tooltip="Fit to View"
             onClick={zoomToFit}
-            disabled={view !== 'graph' || isSelectorModeActive}
+            disabled={(view !== 'graph' && view !== 'map') || isSelectorModeActive}
           />
           <ToolbarButton
             icon={<Focus className="h-4 w-4 opacity-70" />}

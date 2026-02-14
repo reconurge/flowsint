@@ -122,7 +122,7 @@ export default function ContextMenu({
       {...props}
     >
       {/* Header with title and action buttons */}
-      <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between shrink-0">
+      <div className="px-3 py-1 border-b gap-1 border-border flex items-center justify-between shrink-0">
         <div className="flex text-xs items-center gap-1 truncate">
           <span className="block truncate">{node.nodeLabel}</span> -{' '}
           <span className="block">{node.nodeType}</span>

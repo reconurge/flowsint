@@ -136,7 +136,6 @@ const DetailsPanel = memo(() => {
   const node = useGraphStore((s) => s.getCurrentNode())
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const updateNode = useGraphStore((s) => s.updateNode)
-  console.log(node)
   const [openIconPicker, setOpenIconPicker] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -320,7 +319,7 @@ const DetailsPanel = memo(() => {
                 <TooltipTrigger asChild>
                   <div>
                     <LaunchFlow values={[node.id]} type={node.nodeType}>
-                      <Button className="rounded-xl h-7" size={'sm'}>
+                      <Button className="rounded-full h-7" size={'sm'}>
                         Enrich <Rocket className="h-4 w-4 opacity-70" strokeWidth={1.7} />
                       </Button>
                     </LaunchFlow>

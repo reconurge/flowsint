@@ -7,7 +7,7 @@ export type IconType = string
 
 export type UseIconOptions = {
   nodeColor?: string | null
-  nodeIcon?: keyof typeof LucideIcons | null
+  nodeIcon?: string | null
   nodeImage?: string | null
 }
 
@@ -33,8 +33,12 @@ export const useIcon = (type: IconType, options?: UseIconOptions) => {
   const colors = useNodesDisplaySettings((s) => s.colors)
   const customIcons = useNodesDisplaySettings((s) => s.customIcons)
 
-  // Priority: nodeIcon -> customIcons[type] -> TYPE_TO_ICON[type] -> default
-  const iconName = nodeIcon || customIcons[type] || TYPE_TO_ICON[type] || TYPE_TO_ICON.default
+  // Priority: nodeIcon (if valid Lucide) -> customIcons[type] -> TYPE_TO_ICON[type] -> default
+  const iconName =
+    (nodeIcon && nodeIcon in LucideIcons ? nodeIcon : null) ||
+    customIcons[type] ||
+    TYPE_TO_ICON[type] ||
+    TYPE_TO_ICON.default
 
   return useCallback(
     ({

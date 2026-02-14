@@ -61,7 +61,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
       const position = { x: selectedNode.position.x + 350, y: selectedNode.position.y }
       const newNode: FlowNode = {
         id: `${enricher.name}-${Date.now()}`,
-        type: enricher.type === 'type' ? 'type' : 'request',
+        type: enricher.type === 'type' ? 'type' : 'enricher',
         position,
         data: {
           id: enricher.id,

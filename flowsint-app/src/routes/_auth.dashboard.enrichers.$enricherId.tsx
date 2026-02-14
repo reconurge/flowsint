@@ -2,12 +2,11 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import Loader from '@/components/loader'
 import { templateService } from '@/api/template-service'
 import { TemplateEditor } from '@/components/templates/template-editor'
-
-const FEATURE_FLAG = true
+import { CONFIG } from '@/config'
 
 export const Route = createFileRoute('/_auth/dashboard/enrichers/$enricherId')({
   beforeLoad: async () => {
-    if (FEATURE_FLAG) {
+    if (!CONFIG.ENRICHER_TEMPLATES_FEATURE_FLAG) {
       throw redirect({
         to: '/'
       })

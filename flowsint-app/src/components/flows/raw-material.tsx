@@ -19,6 +19,8 @@ export default function RawMaterial() {
   })
   const [searchTerm, setSearchTerm] = useState<string>('')
 
+  console.log(materials)
+
   const filteredEnrichers = useMemo(() => {
     if (!materials?.items) return {}
     const result: Record<string, Enricher[]> = {}
@@ -58,7 +60,7 @@ export default function RawMaterial() {
         <Input
           type="text"
           placeholder="Search enrichers..."
-          className="pl-8 !border border-border"
+          className="pl-8 border! border-border"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

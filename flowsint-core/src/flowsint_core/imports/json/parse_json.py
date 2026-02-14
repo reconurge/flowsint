@@ -1,7 +1,9 @@
 import json
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from flowsint_types import TYPE_REGISTRY, Individual
+from flowsint_types import Individual
+
+from flowsint_core.core.graph.serializer import TypeResolver
 
 from ..types import Edge, Entity, EntityPreview, FileParseResult
 from ..utils import create_entity_preview
@@ -15,6 +17,7 @@ VALID_EDGE_TO_KEYS = ["to", "target"]
 def parse_json(
     file_bytes: bytes,
     max_preview_rows: int,
+    type_resolver: Optional[TypeResolver] = None,
 ) -> FileParseResult:
     """Parse JSON files."""
     try:
@@ -33,7 +36,7 @@ def parse_json(
             raise Exception(
                 f"No valid edges keys found in JSON. Please provide one of : {', '.join(VALID_EDGES_KEYS)}"
             )
-        nodes = _get_nodes(graph.get(node_key))
+        nodes = _get_nodes(graph.get(node_key), type_resolver=type_resolver)
         edges = _get_edges(graph.get(edge_key))
         for node in nodes:
             if node:
@@ -67,14 +70,17 @@ def parse_json(
         raise Exception(f"Invalid JSON: {str(e)}")
 
 
-def _get_nodes(nodes: List[Dict]) -> List[EntityPreview]:
+def _get_nodes(
+    nodes: List[Dict],
+    type_resolver: Optional[TypeResolver] = None,
+) -> List[EntityPreview]:
     results = []
     for node in nodes:
         node_id = node.get("id")
         node_type = node.get("nodeType", node.get("type"))
         label = node.get("nodeLabel", node.get("label"))
         node_obj = {"nodeType": node_type, "nodeLabel": label, **node}
-        preview = _parse_node(node_obj)
+        preview = _parse_node(node_obj, type_resolver=type_resolver)
         if preview:
             results.append(
                 EntityPreview(
@@ -87,7 +93,10 @@ def _get_nodes(nodes: List[Dict]) -> List[EntityPreview]:
     return results
 
 
-def _parse_node(nodeDict: dict) -> EntityPreview | None:
+def _parse_node(
+    nodeDict: dict,
+    type_resolver: Optional[TypeResolver] = None,
+) -> EntityPreview | None:
     type = nodeDict.get("nodeType")
     first_key = next(iter(nodeDict), None)
     label = (
@@ -99,8 +108,11 @@ def _parse_node(nodeDict: dict) -> EntityPreview | None:
         return None
     if not type:
         return create_entity_preview(label)
-    # Try to find a matching type in TYPE_REGISTRY
-    DetectedType = TYPE_REGISTRY.get_lowercase(type.lower())
+    # Try to resolve the type via the registry service
+    if not type_resolver:
+        from flowsint_core.core.services.type_registry_service import local_type_resolver
+        type_resolver = local_type_resolver
+    DetectedType = type_resolver(type.lower())
     if not DetectedType:
         # Type not recognized, fall back to generic
         return create_entity_preview(label)

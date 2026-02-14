@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from .repository import Neo4jGraphRepository
 from .repository_protocol import GraphRepositoryProtocol
-from .serializer import GraphSerializer
+from .serializer import GraphSerializer, TypeResolver
 from .types import GraphData, GraphDict, GraphNode
 
 
@@ -41,6 +41,7 @@ class GraphService:
         repository: GraphRepositoryProtocol,
         logger: Optional[LoggerProtocol] = None,
         enable_batching: bool = False,
+        type_resolver: Optional[TypeResolver] = None,
     ):
         """
         Initialize the graph service.
@@ -50,6 +51,7 @@ class GraphService:
             repository: Repository instance (required - dependency injection)
             logger: Optional logger instance
             enable_batching: Enable batch operations
+            type_resolver: Optional callable to resolve custom types by name
 
         Raises:
             ValueError: If repository is not provided
@@ -63,6 +65,7 @@ class GraphService:
         self._repository = repository
         self._logger = logger
         self._enable_batching = enable_batching
+        self._type_resolver = type_resolver
 
     @property
     def sketch_id(self) -> str:
@@ -138,13 +141,17 @@ class GraphService:
 
     def get_sketch_graph(self) -> GraphData:
         graph_data = self.repository.get_sketch_graph(self.sketch_id)
-        nodes = GraphSerializer.deserialize_nodes(graph_data.get("nodes", []))
+        nodes = GraphSerializer.deserialize_nodes(
+            graph_data.get("nodes", []), type_resolver=self._type_resolver
+        )
         edges = GraphSerializer.deserialize_edges(graph_data.get("edges", []))
         return GraphData(nodes=nodes, edges=edges)
 
     def get_nodes_by_ids(self, node_ids: List[str]) -> List[GraphNode]:
         nodes = self.repository.get_nodes_by_ids(node_ids, self.sketch_id)
-        return GraphSerializer.deserialize_nodes(nodes)
+        return GraphSerializer.deserialize_nodes(
+            nodes, type_resolver=self._type_resolver
+        )
 
     def get_nodes_by_ids_for_task(self, node_ids: List[str]) -> List[BaseModel]:
         nodes = self.get_nodes_by_ids(node_ids)
@@ -203,7 +210,9 @@ class GraphService:
             node_id=node_id,
             sketch_id=self._sketch_id,
         )
-        nodes = GraphSerializer.deserialize_nodes(graph_data.get("nodes", []))
+        nodes = GraphSerializer.deserialize_nodes(
+            graph_data.get("nodes", []), type_resolver=self._type_resolver
+        )
         edges = GraphSerializer.deserialize_edges(graph_data.get("edges", []))
         return GraphData(nodes=nodes, edges=edges)
 
@@ -333,6 +342,7 @@ class GraphService:
 def create_graph_service(
     sketch_id: str,
     enable_batching: bool = True,
+    type_resolver: Optional[TypeResolver] = None,
 ) -> GraphService:
     """
     Factory function to create a GraphService instance with Neo4j repository.
@@ -343,6 +353,7 @@ def create_graph_service(
     Args:
         sketch_id: Investigation sketch ID
         enable_batching: Enable batch operations
+        type_resolver: Optional callable to resolve custom types by name
 
     Returns:
         Configured GraphService instance
@@ -358,4 +369,5 @@ def create_graph_service(
         repository=repository,
         logger=Logger,
         enable_batching=enable_batching,
+        type_resolver=type_resolver,
     )

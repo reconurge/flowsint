@@ -49,6 +49,7 @@ function CustomTypesPage() {
     mutationFn: (id: string) => customTypeService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-types'] })
+      queryClient.invalidateQueries({ queryKey: ['actionItems'] })
       toast.success('Custom type deleted successfully')
     },
     onError: (error: Error) => {

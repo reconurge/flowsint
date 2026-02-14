@@ -11,7 +11,7 @@ This module provides all graph-related functionality including:
 from .connection import Neo4jConnection, neo4j_connection
 from .repository import Neo4jGraphRepository
 from .repository_protocol import GraphRepositoryProtocol
-from .serializer import GraphSerializer
+from .serializer import GraphSerializer, TypeResolver
 from .service import GraphService, LoggerProtocol, create_graph_service
 from .types import (
     GraphData,
@@ -30,6 +30,7 @@ __all__ = [
     "GraphRepositoryProtocol",
     # Serializer
     "GraphSerializer",
+    "TypeResolver",
     # Service
     "GraphService",
     "create_graph_service",

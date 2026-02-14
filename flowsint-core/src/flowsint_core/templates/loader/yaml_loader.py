@@ -1,11 +1,11 @@
 import ipaddress
 import re
-from typing import Any, Set
+from typing import Any, Optional, Set
 from urllib.parse import urlparse
 
 import yaml
-from flowsint_types import TYPE_REGISTRY
 
+from flowsint_core.core.graph.serializer import TypeResolver
 from flowsint_core.templates.types import Template
 
 # Template variable pattern: {{variable_name}} or {{secrets.NAME}}
@@ -116,7 +116,10 @@ class YamlLoader:
                 return exc
 
     @staticmethod
-    def parse_yaml_to_template(raw: dict[str, Any]) -> Template:
+    def parse_yaml_to_template(
+        raw: dict[str, Any],
+        type_resolver: Optional[TypeResolver] = None,
+    ) -> Template:
         if not isinstance(raw, dict):
             raise ValueError("Template must be a YAML dictionary")
 
@@ -130,7 +133,10 @@ class YamlLoader:
         if not input_type:
             raise ValueError("Missing 'input.type' property in the yaml.")
 
-        DetectedType = TYPE_REGISTRY.get(input_type)
+        if not type_resolver:
+            from flowsint_core.core.services.type_registry_service import local_type_resolver
+            type_resolver = local_type_resolver
+        DetectedType = type_resolver(input_type)
 
         request = raw.get("request", {})
         method = request.get("method", "GET")
@@ -146,12 +152,17 @@ class YamlLoader:
         return Template(**raw)
 
     @staticmethod
-    def get_template_from_file(filename: str) -> Template | None:
+    def get_template_from_file(
+        filename: str,
+        type_resolver: Optional[TypeResolver] = None,
+    ) -> Template | None:
         template_dict = YamlLoader.load_enricher_yaml(filename)
         if not isinstance(template_dict, dict):
             return None
 
-        return YamlLoader.parse_yaml_to_template(template_dict)
+        return YamlLoader.parse_yaml_to_template(
+            template_dict, type_resolver=type_resolver
+        )
 
     @staticmethod
     def render_template(

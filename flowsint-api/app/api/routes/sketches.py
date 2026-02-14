@@ -21,6 +21,7 @@ from flowsint_core.core.services import (
     ValidationError,
     DatabaseError,
 )
+from flowsint_core.core.services.type_registry_service import create_type_registry_service
 from flowsint_core.imports import (
     EntityMapping,
     ImportService,
@@ -431,7 +432,11 @@ async def analyze_import_file(
         raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
 
     try:
-        result = ImportService.analyze_file(
+        type_registry = create_type_registry_service(db)
+        resolver = type_registry.build_type_resolver(current_user.id)
+        graph_service = create_graph_service(sketch_id=sketch_id, enable_batching=False, type_resolver=resolver)
+        import_service = create_import_service(graph_service)
+        result = import_service.analyze_file(
             file_content=content,
             filename=file.filename or "unknown.txt",
         )
@@ -487,7 +492,9 @@ async def execute_import(
         for m in entity_mapping_inputs
     ]
 
-    graph_service = create_graph_service(sketch_id=sketch_id, enable_batching=False)
+    type_registry = create_type_registry_service(db)
+    resolver = type_registry.build_type_resolver(current_user.id)
+    graph_service = create_graph_service(sketch_id=sketch_id, enable_batching=False, type_resolver=resolver)
     import_service = create_import_service(graph_service)
 
     try:

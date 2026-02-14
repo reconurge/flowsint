@@ -24,7 +24,7 @@ export const ANSI = {
   BRIGHT_BLUE: '\x1b[94m',
   BRIGHT_MAGENTA: '\x1b[95m',
   BRIGHT_CYAN: '\x1b[96m',
-  BRIGHT_WHITE: '\x1b[97m',
+  BRIGHT_WHITE: '\x1b[97m'
 }
 
 // Log level configuration with ANSI colors
@@ -91,11 +91,7 @@ export const formatTime = (date: string): string => {
   })
 }
 
-export const formatLogEntry = (
-  timestamp: string,
-  level: EventLevel,
-  message: string
-): string => {
+export const formatLogEntry = (timestamp: string, level: EventLevel, message: string): string => {
   const config = logLevelColors[level] || defaultColors
   const time = formatTime(timestamp)
 
@@ -113,9 +109,9 @@ export const clearScreen = (): string => {
 
 export const formatWelcomeMessage = (): string => {
   return (
-    `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}╭───────────────────────────────────────────╮${ANSI.RESET}\r\n` +
-    `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}  ${ANSI.BRIGHT_WHITE}⚡ Flowsint enrichers terminal${ANSI.RESET}   ${ANSI.BRIGHT_CYAN}${ANSI.BOLD}│${ANSI.RESET}\r\n` +
-    `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}╰───────────────────────────────────────────╯${ANSI.RESET}\r\n` +
+    `${ANSI.BRIGHT_RED}${ANSI.BOLD}╭───────────────────────────────────────────╮${ANSI.RESET}\r\n` +
+    `${ANSI.BRIGHT_RED}${ANSI.BOLD}│${ANSI.RESET}  ${ANSI.BRIGHT_WHITE}⚡ Flowsint enrichers terminal${ANSI.RESET}   ${ANSI.BRIGHT_RED}${ANSI.BOLD}│${ANSI.RESET}\r\n` +
+    `${ANSI.BRIGHT_RED}${ANSI.BOLD}╰───────────────────────────────────────────╯${ANSI.RESET}\r\n` +
     `${ANSI.DIM}Waiting for investigation activity...${ANSI.RESET}\r\n\r\n`
   )
 }

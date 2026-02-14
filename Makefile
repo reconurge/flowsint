@@ -10,15 +10,13 @@ COMPOSE_DEPLOY := docker compose -f docker-compose.deploy.yml
 	up-dev up-prod up-deploy down \
 	infra-dev infra-prod infra-stop-dev infra-stop-prod \
 	migrate-dev migrate-prod \
+	alembic-upgrade alembic-downgrade alembic-revision \
 	api frontend celery \
 	test install clean check-env open-browser-dev open-browser-prod \
-	logs-dev logs-prod logs-deploy status
+	logs-dev logs-prod logs-deploy status \
+	regenerate-router
 
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
-
-# =============================================================================
-# Environment Setup
-# =============================================================================
 
 check-env:
 	@echo "Checking .env files..."
@@ -30,10 +28,6 @@ check-env:
 			echo "Created $$env_file"; \
 		fi; \
 	done
-
-# =============================================================================
-# Development
-# =============================================================================
 
 dev:
 	@echo "Starting DEV environment..."
@@ -67,10 +61,6 @@ open-browser-dev:
 	@open http://localhost:5173 2>/dev/null || \
 	 xdg-open http://localhost:5173 2>/dev/null || \
 	 echo "Frontend ready at http://localhost:5173"
-
-# =============================================================================
-# Production
-# =============================================================================
 
 prod:
 	@echo "Starting PROD environment..."
@@ -107,10 +97,6 @@ open-browser-prod:
 	 xdg-open http://localhost 2>/dev/null || \
 	 echo "Frontend ready at http://localhost"
 
-# =============================================================================
-# Deploy (GHCR images)
-# =============================================================================
-
 deploy:
 	@echo "Starting DEPLOY environment (GHCR images)..."
 	$(MAKE) check-env
@@ -126,10 +112,6 @@ up-deploy:
 
 logs-deploy:
 	$(COMPOSE_DEPLOY) logs -f
-
-# =============================================================================
-# Migrations
-# =============================================================================
 
 migrate-dev:
 	@echo "Running DEV migrations..."
@@ -148,9 +130,20 @@ migrate-prod:
 	fi
 	yarn migrate
 
-# =============================================================================
-# Local Development (without Docker)
-# =============================================================================
+alembic-upgrade:
+	@echo "Running Alembic migrations (upgrade head)..."
+	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic upgrade head
+
+alembic-downgrade:
+	@echo "Rolling back last Alembic migration..."
+	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic downgrade -1
+
+alembic-revision:
+	@if [ -z "$(m)" ]; then \
+		echo "Usage: make alembic-revision m=\"your migration message\""; exit 1; \
+	fi
+	@echo "Creating new Alembic migration: $(m)"
+	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic revision --autogenerate -m "$(m)"
 
 api:
 	cd $(PROJECT_ROOT)/flowsint-api && \
@@ -164,10 +157,6 @@ celery:
 	poetry run celery -A flowsint_core.core.celery \
 	worker --loglevel=info --pool=threads --concurrency=10
 
-# =============================================================================
-# Testing & Installation
-# =============================================================================
-
 test:
 	cd flowsint-types && poetry run pytest
 	cd flowsint-core && poetry run pytest
@@ -180,10 +169,6 @@ install:
 	cd flowsint-core && poetry install
 	cd flowsint-enrichers && poetry install
 	cd flowsint-api && poetry install && poetry run alembic upgrade head
-
-# =============================================================================
-# Utilities
-# =============================================================================
 
 status:
 	@echo "=== DEV Containers ==="
@@ -209,9 +194,9 @@ clean:
 	rm -rf flowsint-enrichers/.venv
 	rm -rf flowsint-api/.venv
 
-# =============================================================================
-# Help
-# =============================================================================
+regenerate-router:
+	@echo "Regenerating flowsint-app/src/routeTree.gen.ts"
+	cd $(PROJECT_ROOT)/flowsint-app && npx tsr generate
 
 help:
 	@echo "Flowsint Makefile"
@@ -238,6 +223,13 @@ help:
 	@echo "  make api          - Run API locally"
 	@echo "  make frontend     - Run frontend locally"
 	@echo "  make celery       - Run Celery worker locally"
+	@echo ""
+	@echo "Migrations:"
+	@echo "  make migrate-dev           - Run Neo4j DEV migrations"
+	@echo "  make migrate-prod          - Run Neo4j PROD migrations"
+	@echo "  make alembic-upgrade       - Run Alembic migrations (upgrade head)"
+	@echo "  make alembic-downgrade     - Rollback last Alembic migration"
+	@echo "  make alembic-revision m=.. - Create new Alembic migration"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make status       - Show container status"

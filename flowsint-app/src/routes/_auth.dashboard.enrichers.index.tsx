@@ -13,11 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ErrorState from '@/components/shared/error-state'
 import { PageLayout } from '@/components/layout/page-layout'
 import { templateService, type Template } from '@/api/template-service'
-const FEATURE_FLAG = true
+import { CONFIG } from '@/config'
 
 export const Route = createFileRoute('/_auth/dashboard/enrichers/')({
   beforeLoad: async () => {
-    if (FEATURE_FLAG) {
+    if (!CONFIG.ENRICHER_TEMPLATES_FEATURE_FLAG) {
       throw redirect({
         to: '/'
       })

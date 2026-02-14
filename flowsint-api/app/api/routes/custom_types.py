@@ -1,31 +1,32 @@
 """API routes for custom types management."""
-from uuid import UUID
-from typing import List
-from fastapi import APIRouter, HTTPException, Depends, status
-from sqlalchemy.orm import Session
 
-from flowsint_core.core.postgre_db import get_db
+from typing import List
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
-    create_custom_type_service,
+    ConflictError,
     NotFoundError,
     ValidationError,
-    ConflictError,
+    create_custom_type_service,
 )
+from sqlalchemy.orm import Session
+
 from app.api.deps import get_current_user
 from app.api.schemas.custom_type import (
     CustomTypeCreate,
-    CustomTypeUpdate,
     CustomTypeRead,
+    CustomTypeUpdate,
     CustomTypeValidatePayload,
     CustomTypeValidateResponse,
 )
 from app.utils.custom_types import (
+    calculate_schema_checksum,
     validate_json_schema,
     validate_payload_against_schema,
-    calculate_schema_checksum,
 )
-
 
 router = APIRouter()
 
@@ -110,6 +111,8 @@ def update_custom_type(
             custom_type_id=id,
             user_id=current_user.id,
             name=update_data.name,
+            icon=update_data.icon,
+            color=update_data.color,
             json_schema=update_data.json_schema,
             description=update_data.description,
             status=update_data.status,

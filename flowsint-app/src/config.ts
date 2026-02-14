@@ -1,0 +1,3 @@
+export const CONFIG = {
+  ENRICHER_TEMPLATES_FEATURE_FLAG: true
+}

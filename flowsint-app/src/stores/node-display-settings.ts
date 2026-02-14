@@ -42,6 +42,7 @@ export type ItemType =
   | 'webtracker'
   | 'weapon'
   | 'whois'
+  | 'custom'
 
 export const ITEM_TYPES: ItemType[] = [
   'domain',
@@ -82,7 +83,8 @@ export const ITEM_TYPES: ItemType[] = [
   'session',
   'webtracker',
   'weapon',
-  'whois'
+  'whois',
+  'custom'
 ]
 
 // Icon mapping for each item type (Lucide icons)
@@ -126,7 +128,8 @@ export const TYPE_TO_ICON: Record<string, keyof typeof LucideIcons> = {
   webtracker: 'Target',
   weapon: 'Sword',
   whois: 'Info',
-  default: 'Circle'
+  default: 'FileQuestion',
+  custom: 'Cog'
 }
 
 const DEFAULT_COLORS: Record<ItemType, string> = {
@@ -168,7 +171,8 @@ const DEFAULT_COLORS: Record<ItemType, string> = {
   session: '#A8BF50', // lime atténué
   webtracker: '#C7BF50', // jaune doux
   weapon: '#E98973', // corail brun
-  whois: '#9B6F9B' // violet doux
+  whois: '#9B6F9B', // violet doux
+  custom: '#9B6F9B'
 }
 
 const hslToHex = (h: number, s: number, l: number): string => {

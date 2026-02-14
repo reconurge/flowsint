@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from flowsint_types import FlowsintType
 
 from flowsint_core.core.graph import GraphSerializer, GraphService
+from flowsint_core.core.graph.serializer import TypeResolver
 
 
 @dataclass
@@ -45,17 +46,23 @@ class ImportService:
     - Batch node and edge creation
     """
 
-    def __init__(self, graph_service: GraphService):
+    def __init__(
+        self,
+        graph_service: GraphService,
+        type_resolver: Optional[TypeResolver] = None,
+    ):
         """
         Initialize the import service.
 
         Args:
             graph_service: GraphService instance for database operations
+            type_resolver: Optional callable to resolve types by name
         """
         self._graph_service = graph_service
+        self._type_resolver = type_resolver or graph_service._type_resolver
 
-    @staticmethod
     def analyze_file(
+        self,
         file_content: bytes,
         filename: str,
         max_preview_rows: int = 10000000,
@@ -80,6 +87,7 @@ class ImportService:
             file_content=file_content,
             filename=filename,
             max_preview_rows=max_preview_rows,
+            type_resolver=self._type_resolver,
         )
 
     def execute_import(
@@ -166,6 +174,7 @@ class ImportService:
                 pydantic_obj = GraphSerializer.parse_flowsint_type(
                     entity=entity_data,
                     nodeType=mapping.entity_type,
+                    type_resolver=self._type_resolver,
                 )
                 pydantic_nodes.append(pydantic_obj)
 

@@ -2,18 +2,18 @@
 Flow service for managing flows and flow computations.
 """
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from ..models import Flow, Sketch
 from ..repositories import (
-    FlowRepository,
     CustomTypeRepository,
-    SketchRepository,
+    FlowRepository,
     InvestigationRepository,
+    SketchRepository,
 )
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError
@@ -52,6 +52,7 @@ class FlowService(BaseService):
 
         if custom_type:
             flows = self._flow_repo.get_all_with_optional_category(None)
+            return []
             return [
                 {
                     **(flow.to_dict() if hasattr(flow, "to_dict") else flow.__dict__),
@@ -89,9 +90,7 @@ class FlowService(BaseService):
         self._refresh(new_flow)
         return new_flow
 
-    def update(
-        self, flow_id: UUID, updates: Dict[str, Any]
-    ) -> Flow:
+    def update(self, flow_id: UUID, updates: Dict[str, Any]) -> Flow:
         flow = self._flow_repo.get_by_id(flow_id)
         if not flow:
             raise NotFoundError("Flow not found")

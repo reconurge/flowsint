@@ -2,7 +2,9 @@
 Sketch service for managing sketches and graph operations.
 """
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -13,6 +15,9 @@ from ..graph.types import GraphData
 from ..repositories import SketchRepository, InvestigationRepository
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError, ValidationError, DatabaseError
+
+if TYPE_CHECKING:
+    from .type_registry_service import TypeRegistryService
 
 
 class SketchService(BaseService):
@@ -25,11 +30,13 @@ class SketchService(BaseService):
         db: Session,
         sketch_repo: SketchRepository,
         investigation_repo: InvestigationRepository,
+        type_registry_service: Optional[TypeRegistryService] = None,
         **kwargs,
     ):
         super().__init__(db, **kwargs)
         self._sketch_repo = sketch_repo
         self._investigation_repo = investigation_repo
+        self._type_registry = type_registry_service
 
     def _get_sketch_with_permission(
         self, sketch_id: UUID, user_id: UUID, actions: List[str]
@@ -107,8 +114,11 @@ class SketchService(BaseService):
     ) -> Dict[str, Any]:
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
+        resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
         graph_service = create_graph_service(
-            sketch_id=str(sketch_id), enable_batching=False
+            sketch_id=str(sketch_id),
+            enable_batching=False,
+            type_resolver=resolver,
         )
         graph_data = graph_service.get_sketch_graph()
 
@@ -322,7 +332,11 @@ class SketchService(BaseService):
         self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         try:
-            graph_service = create_graph_service(sketch_id=str(sketch_id))
+            resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
+            graph_service = create_graph_service(
+                sketch_id=str(sketch_id),
+                type_resolver=resolver,
+            )
             result = graph_service.get_neighbors(node_id)
         except Exception as e:
             print(e)
@@ -338,8 +352,11 @@ class SketchService(BaseService):
     ) -> Dict[str, Any]:
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
+        resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
         graph_service = create_graph_service(
-            sketch_id=str(sketch_id), enable_batching=False
+            sketch_id=str(sketch_id),
+            enable_batching=False,
+            type_resolver=resolver,
         )
         graph_data = graph_service.get_sketch_graph()
 
@@ -358,9 +375,14 @@ class SketchService(BaseService):
 
 
 def create_sketch_service(db: Session) -> SketchService:
-    investigation_repo = InvestigationRepository(db)
+    from ..repositories import CustomTypeRepository
+    from .type_registry_service import TypeRegistryService
+
     return SketchService(
         db=db,
         sketch_repo=SketchRepository(db),
-        investigation_repo=investigation_repo,
+        investigation_repo=InvestigationRepository(db),
+        type_registry_service=TypeRegistryService(
+            db=db, custom_type_repo=CustomTypeRepository(db)
+        ),
     )

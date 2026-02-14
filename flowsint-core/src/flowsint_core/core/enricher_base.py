@@ -374,7 +374,6 @@ class Enricher(ABC):
         base_type = self.InputType
         adapter = TypeAdapter(base_type)
 
-        # Trouver le champ primaire marqué par Field(..., primary=True)
         primary_field = None
         if issubclass(base_type, BaseModel):
             for name, field in base_type.model_fields.items():
@@ -402,6 +401,14 @@ class Enricher(ABC):
             except Exception:
                 continue
 
+        if len(cleaned) == 0:
+            Logger.warn(
+                self.sketch_id,
+                {
+                    "message": f"No valid input were provided to enricher '{self.name()}'."
+                },
+            )
+            return values
         return cleaned
 
     def postprocess(

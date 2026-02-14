@@ -5,10 +5,13 @@ This module provides utilities for serializing complex Python objects
 into Neo4j-compatible primitive types, following the Single Responsibility Principle.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional, Type
 
-from flowsint_types import TYPE_REGISTRY, FlowsintType
+from flowsint_types import FlowsintType
 from pydantic import BaseModel
+
+# Callable that resolves a type name to a FlowsintType subclass (or None).
+TypeResolver = Callable[[str], Optional[Type[FlowsintType]]]
 
 from flowsint_core.utils import flatten, unflatten
 
@@ -53,8 +56,15 @@ class GraphSerializer:
         return flatten(dict, remove_empty=False)
 
     @staticmethod
-    def parse_flowsint_type(entity: Dict, nodeType: str) -> FlowsintType:
-        DetectedType = TYPE_REGISTRY.get_lowercase(nodeType)
+    def parse_flowsint_type(
+        entity: Dict,
+        nodeType: str,
+        type_resolver: Optional[TypeResolver] = None,
+    ) -> FlowsintType:
+        if not type_resolver:
+            from flowsint_core.core.services.type_registry_service import local_type_resolver
+            type_resolver = local_type_resolver
+        DetectedType = type_resolver(nodeType)
         if not DetectedType:
             raise ValueError(f"Unknown type: {nodeType}")
         properties = GraphSerializer._clean_empty_values(entity)
@@ -65,7 +75,10 @@ class GraphSerializer:
         return node.nodeProperties
 
     @staticmethod
-    def neo4j_dict_to_graph_node(node_dict: Dict[str, Any]) -> GraphNode:
+    def neo4j_dict_to_graph_node(
+        node_dict: Dict[str, Any],
+        type_resolver: Optional[TypeResolver] = None,
+    ) -> GraphNode:
         """Convert a flattened Neo4j node record to a GraphNode instance.
 
         Unflattens the data, parses the nodeProperties into the appropriate
@@ -88,7 +101,9 @@ class GraphSerializer:
             "nodeLabel", None
         )  # remove nodeLabel from original pydantic
 
-        entity = GraphSerializer.parse_flowsint_type(node_properties, node_type)
+        entity = GraphSerializer.parse_flowsint_type(
+            node_properties, node_type, type_resolver=type_resolver
+        )
         return GraphNode(
             id=node_id,
             nodeLabel=nodeLabel,
@@ -178,10 +193,15 @@ class GraphSerializer:
         }
 
     @staticmethod
-    def deserialize_nodes(node_dicts: List[Dict[str, Any]]) -> List[GraphNode]:
+    def deserialize_nodes(
+        node_dicts: List[Dict[str, Any]],
+        type_resolver: Optional[TypeResolver] = None,
+    ) -> List[GraphNode]:
         """Convert a list of Neo4j node records to GraphNode instances."""
         return [
-            GraphSerializer.neo4j_dict_to_graph_node(node_dict)
+            GraphSerializer.neo4j_dict_to_graph_node(
+                node_dict, type_resolver=type_resolver
+            )
             for node_dict in node_dicts
         ]
 

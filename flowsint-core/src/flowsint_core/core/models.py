@@ -3,8 +3,8 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean,
     JSON,
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -358,6 +358,8 @@ class CustomType(Base):
         nullable=False,
     )
     schema: Mapped[dict] = mapped_column(JSON, nullable=False)
+    icon: Mapped[str] = mapped_column(String, nullable=True)
+    color: Mapped[str] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, server_default="draft", nullable=False)
     checksum: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)

@@ -5,11 +5,37 @@ Type registry service for managing flowsint types.
 from typing import Any, Dict, List, Optional, Type
 from uuid import UUID, uuid4
 
+from flowsint_types import FlowsintType
+from pydantic import BaseModel, TypeAdapter, create_model
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, TypeAdapter
 
+from ..graph.serializer import TypeResolver
 from ..repositories import CustomTypeRepository
 from .base import BaseService
+
+
+def local_type_resolver(type_name: str) -> Type[FlowsintType] | None:
+    """Resolve a type using only the local TYPE_REGISTRY (no DB).
+
+    Useful as a fallback when no TypeRegistryService is available (tests, CLI, etc.).
+    """
+    from flowsint_types import TYPE_REGISTRY
+
+    return TYPE_REGISTRY.get_lowercase(type_name)
+
+
+def _build_pydantic_model_from_schema(name: str, schema: dict) -> Type[FlowsintType]:
+    """Build a dynamic Pydantic model from a custom type JSON schema."""
+    properties = schema.get("properties", {})
+    required = set(schema.get("required", []))
+
+    fields: Dict[str, Any] = {}
+    for prop, info in properties.items():
+        annotation = Optional[str] if prop not in required else str
+        default = ... if prop in required else None
+        fields[prop] = (annotation, default)
+
+    return create_model(name, __base__=FlowsintType, **fields)
 
 
 class TypeRegistryService(BaseService):
@@ -20,6 +46,57 @@ class TypeRegistryService(BaseService):
     def __init__(self, db: Session, custom_type_repo: CustomTypeRepository, **kwargs):
         super().__init__(db, **kwargs)
         self._custom_type_repo = custom_type_repo
+
+    def resolve_type(self, type_name: str, user_id: UUID) -> Type[FlowsintType] | None:
+        """Resolve a type name to a FlowsintType class.
+
+        Checks the local TYPE_REGISTRY first, then falls back to custom types in DB.
+        """
+        from flowsint_types import TYPE_REGISTRY
+
+        model = TYPE_REGISTRY.get_lowercase(type_name)
+        if model:
+            return model
+
+        custom_type = self._custom_type_repo.get_published_by_name_and_owner(
+            name=type_name, owner_id=user_id
+        )
+        if not custom_type:
+            return None
+        return _build_pydantic_model_from_schema(custom_type.name, custom_type.schema)
+
+    def build_type_resolver(self, user_id: UUID) -> TypeResolver:
+        """Return a TypeResolver callable bound to a specific user.
+
+        Usage:
+            resolver = type_registry_service.build_type_resolver(user_id)
+            graph_service = create_graph_service(sketch_id, type_resolver=resolver)
+        """
+
+        def resolver(type_name: str) -> Type[FlowsintType] | None:
+            return self.resolve_type(type_name, user_id)
+
+        return resolver
+
+    def get_type(self, user_id: UUID, type_name: str) -> Dict[str, Any] | None:
+        from flowsint_types.registry import get_type as get_type_from_registry
+
+        model = get_type_from_registry(type_name, case_sensitive=True)
+
+        if model:
+            return self._extract_input_schema(model, label_key="nodeLabel")
+        else:
+            print(
+                f"Warning: Type {type_name} not found in TYPE_REGISTRY, checking in custom types..."
+            )
+            custom_type = self._custom_type_repo.get_by_name_and_owner(
+                name=type_name, owner_id=user_id
+            )
+            if not custom_type:
+                print(f"Warning: Type {type_name} not found.")
+                return None
+            print(f"Warning: Type {type_name} found in cutsom types.")
+            return self._extract_input_schema(custom_type, label_key="nodeLabel")
 
     def get_types_list(self, user_id: UUID) -> List[Dict[str, Any]]:
         from flowsint_types.registry import get_type
@@ -37,7 +114,9 @@ class TypeRegistryService(BaseService):
 
                 if model:
                     children_schemas.append(
-                        self._extract_input_schema(model, label_key=label_key, icon=icon)
+                        self._extract_input_schema(
+                            model, label_key=label_key, icon=icon
+                        )
                     )
                 else:
                     print(f"Warning: Type {type_name} not found in TYPE_REGISTRY")
@@ -68,7 +147,8 @@ class TypeRegistryService(BaseService):
                         "type": custom_type.name,
                         "key": custom_type.name.lower(),
                         "label_key": label_key,
-                        "icon": "custom",
+                        "icon": custom_type.icon or "custom",
+                        "color": custom_type.color,
                         "label": custom_type.name,
                         "description": custom_type.description or "",
                         "fields": [
@@ -167,8 +247,8 @@ class TypeRegistryService(BaseService):
                     ("Website", "url", None),
                     ("Ip", "address", None),
                     ("Port", "number", None),
-                    ("DNSRecord", "name", "dns"),
-                    ("SSLCertificate", "subject", "ssl"),
+                    ("DNSRecord", "name", "dnsrecord"),
+                    ("SSLCertificate", "subject", "sslcertificate"),
                     ("WebTracker", "name", "webtracker"),
                 ],
             },

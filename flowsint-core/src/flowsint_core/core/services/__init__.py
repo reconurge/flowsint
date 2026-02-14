@@ -25,7 +25,7 @@ from .scan_service import ScanService, create_scan_service
 from .log_service import LogService, create_log_service
 from .flow_service import FlowService, create_flow_service
 from .custom_type_service import CustomTypeService, create_custom_type_service
-from .type_registry_service import TypeRegistryService, create_type_registry_service
+from .type_registry_service import TypeRegistryService, create_type_registry_service, local_type_resolver
 from .enricher_service import EnricherService, create_enricher_service
 from .enricher_template_service import EnricherTemplateService, create_enricher_template_service
 from .template_generator_service import TemplateGeneratorService, create_template_generator_service
@@ -68,6 +68,7 @@ __all__ = [
     "create_custom_type_service",
     "TypeRegistryService",
     "create_type_registry_service",
+    "local_type_resolver",
     "EnricherService",
     "create_enricher_service",
     "EnricherTemplateService",

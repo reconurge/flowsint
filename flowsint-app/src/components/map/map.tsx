@@ -207,22 +207,24 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   const geocodeQuery = useQuery({
     queryKey: ['geocode', locationsToGeocode.map((loc) => loc.address)],
     queryFn: async () => {
-      const results: ({ lat: number; lon: number } | null)[] = []
-      for (const location of locationsToGeocode) {
-        if (!location.address) continue
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location.address)}`
-        )
-        const json = await res.json()
-        if (!json || json.length === 0) {
-          results.push(null)
-        } else {
-          results.push({
-            lat: parseFloat(json[0].lat),
-            lon: parseFloat(json[0].lon)
-          })
-        }
-      }
+      const results = await Promise.all(
+        locationsToGeocode.map(async (location) => {
+          if (!location.address) return null
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location.address)}`
+            )
+            const json = await res.json()
+            if (!json || json.length === 0) return null
+            return {
+              lat: parseFloat(json[0].lat),
+              lon: parseFloat(json[0].lon)
+            }
+          } catch {
+            return null
+          }
+        })
+      )
       return results
     },
     enabled: locationsToGeocode.length > 0
@@ -432,6 +434,22 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     map.on('style.load', () => {
       registerMapImages()
       applyProjection()
+    })
+    // Handle missing images on-demand to avoid race conditions
+    map.on('styleimagemissing', async (e: { id: string }) => {
+      const id = e.id
+      if (id === 'pulsing-dot' || map.hasImage(id)) return
+      const match = id.match(/^marker-icon-(.+)$/)
+      if (!match) return
+      const nodeType = match[1]
+      try {
+        const img = await preloadImage(nodeType, '#ffffff')
+        if (!map.hasImage(id)) {
+          map.addImage(id, img, { sdf: false })
+        }
+      } catch {
+        // Icon not available, ignore silently
+      }
     })
   }, [registerMapImages, applyProjection])
 

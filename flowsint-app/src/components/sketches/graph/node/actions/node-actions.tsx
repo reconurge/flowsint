@@ -109,7 +109,7 @@ const NodeActions = memo(
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-70">
+          <Button variant="ghost" size="icon" className="h-6 w-6">
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
@@ -126,12 +126,7 @@ const NodeActions = memo(
           )}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Flag
-                className={cn(
-                  'h-3.5 w-3.5 mr-2',
-                  flagValue ? flagColors[flagValue] : ''
-                )}
-              />
+              <Flag className={cn('h-3.5 w-3.5 mr-2', flagValue ? flagColors[flagValue] : '')} />
               Flag
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>

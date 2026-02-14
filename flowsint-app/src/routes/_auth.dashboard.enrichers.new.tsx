@@ -1,10 +1,10 @@
 import { createFileRoute, useRouterState, redirect } from '@tanstack/react-router'
 import { TemplateEditor } from '@/components/templates/template-editor'
-const FEATURE_FLAG = true
+import { CONFIG } from '@/config'
 
 export const Route = createFileRoute('/_auth/dashboard/enrichers/new')({
   beforeLoad: async () => {
-    if (FEATURE_FLAG) {
+    if (!CONFIG.ENRICHER_TEMPLATES_FEATURE_FLAG) {
       throw redirect({
         to: '/'
       })

@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { memo } from 'react'
 import { isMac } from '@/lib/utils'
 import { NavUser } from '../nav-user'
+import { CONFIG } from '@/config'
 
 interface NavItem {
   icon: LucideIcon
@@ -18,11 +19,13 @@ export const Sidebar = memo(() => {
 
   const navItems: NavItem[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard/' },
-    // { icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' },
     { icon: Workflow, label: 'Flows', href: '/dashboard/flows' },
     { icon: Shapes, label: 'Custom types', href: '/dashboard/custom-types' },
     { icon: Lock, label: 'Vault', href: '/dashboard/vault' }
   ]
+
+  if (CONFIG.ENRICHER_TEMPLATES_FEATURE_FLAG)
+    navItems.push({ icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' })
 
   const commonClasses = 'flex items-center justify-center h-12 w-full rounded-sm hover:bg-muted'
 

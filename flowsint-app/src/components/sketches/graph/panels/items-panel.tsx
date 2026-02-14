@@ -63,7 +63,7 @@ export const ItemsPanel = memo(function LeftPanel() {
         <div>
           <Button
             onClick={handleOpenNewAddItemDialog}
-            className="h-7 !w-7"
+            className="h-7 w-7!"
             size="icon"
             variant={'ghost'}
           >
@@ -81,8 +81,10 @@ export const ItemsPanel = memo(function LeftPanel() {
           />
         </div>
       </div>
-      <div className='my-1'>
-        <Button onClick={handleOpenImportModal} className="w-full shadow-none" variant={"outline"}><Download /> Import entities</Button>
+      <div className="my-1">
+        <Button onClick={handleOpenImportModal} className="w-full shadow-none" variant={'outline'}>
+          <Download /> Import entities
+        </Button>
       </div>
       <div className="flex flex-col gap-3">
         {isLoading ? (

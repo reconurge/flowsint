@@ -33,6 +33,7 @@ import { queryKeys } from '@/api/query-keys'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
 import IconPicker, { NodeIconTrigger } from '@/components/shared/icon-picker'
+import { ColorPicker } from '@/components/shared/color-picker'
 
 // SettingItem Components
 interface SettingItemProps {
@@ -165,21 +166,7 @@ function DynamicSetting({ categoryId, settingKey, setting, onValueChange }: Dyna
     case 'color':
       return (
         <SettingItem label={displayName} description={setting.description} inline={true}>
-          <div className="flex items-center space-x-2">
-            <Input
-              type="color"
-              value={setting.value}
-              onChange={(e) => onValueChange(e.target.value)}
-              className="h-9 w-12 p-1"
-            />
-            <Input
-              type="text"
-              value={setting.value}
-              onChange={(e) => onValueChange(e.target.value)}
-              placeholder="#000000"
-              className="h-9 w-24"
-            />
-          </div>
+          <ColorPicker value={setting.value} onChange={onValueChange} align="end" />
         </SettingItem>
       )
 
@@ -318,21 +305,12 @@ function NodeColorsSection() {
                   {itemType.replace(/_/g, ' ')}
                 </Label>
               </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="color"
-                  value={localColors[itemType]}
-                  onChange={(e) => handleColorChange(itemType, e.target.value)}
-                  className="h-9 w-12 p-1 cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={localColors[itemType]}
-                  onChange={(e) => handleColorChange(itemType, e.target.value)}
-                  placeholder="#000000"
-                  className="h-9 w-24 font-mono text-xs"
-                />
-              </div>
+              <ColorPicker
+                value={localColors[itemType]}
+                onChange={(color) => handleColorChange(itemType, color)}
+                triggerSize="sm"
+                align="end"
+              />
             </div>
           ))}
         </div>

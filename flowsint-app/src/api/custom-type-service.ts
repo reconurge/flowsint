@@ -8,6 +8,8 @@ export interface CustomType {
   status: 'draft' | 'published' | 'archived'
   checksum?: string
   description?: string
+  icon?: string
+  color?: string
   created_at: string
   updated_at: string
 }
@@ -16,6 +18,8 @@ export interface CustomTypeCreate {
   name: string
   schema: Record<string, any>
   description?: string
+  icon?: string
+  color?: string
   status?: 'draft' | 'published'
 }
 
@@ -23,6 +27,8 @@ export interface CustomTypeUpdate {
   name?: string
   schema?: Record<string, any>
   description?: string
+  icon?: string
+  color?: string
   status?: 'draft' | 'published' | 'archived'
 }
 

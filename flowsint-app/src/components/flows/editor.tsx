@@ -95,7 +95,6 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const setLoading = useFlowStore((state) => state.setLoading)
   const colors = useNodesDisplaySettings((s) => s.colors)
 
-  // #### TanStack Query Mutations ####
   // Create flow mutation
   const createFlowMutation = useMutation({
     mutationFn: flowService.create,
@@ -254,7 +253,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       })
       const newNode: FlowNode = {
         id: `${enricherData.name}-${Date.now()}`,
-        type: enricherData.type === 'type' ? 'type' : 'request',
+        type: enricherData.type === 'type' ? 'type' : 'enricher',
         position,
         data: {
           id: enricherData.id,

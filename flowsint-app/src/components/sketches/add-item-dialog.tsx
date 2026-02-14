@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Upload } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Download, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, flattenObj } from '@/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -247,9 +247,14 @@ export default function AddItemDialog() {
               )}
             </div>
             <div className="pt-6">
-              <Button size="sm" onClick={handleImportData} className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Import
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleImportData}
+                className="flex items-center gap-2 rounded"
+              >
+                <Download className="h-4 w-4" />
+                Import entities
               </Button>
             </div>
           </DialogTitle>
@@ -307,7 +312,7 @@ interface ActionCardProps {
 }
 
 function ActionCard({ item, onSelect }: ActionCardProps) {
-  const IconComponent = useIcon(item.icon)
+  const IconComponent = useIcon(item.icon, { nodeIcon: item.icon, nodeColor: item.color })
 
   return (
     <Card

@@ -32,7 +32,7 @@ export const DraggableItem = memo(function DraggableItem({
   const colors = useNodesDisplaySettings((s) => s.colors)
   // @ts-ignore
   const colorStr = colors[icon as string] || color
-  const IconComponent = useIcon(icon)
+  const IconComponent = useIcon(icon, { nodeIcon: icon, nodeColor: color })
 
   const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
     const itemData = JSON.stringify({ label, type, color, description, itemKey })

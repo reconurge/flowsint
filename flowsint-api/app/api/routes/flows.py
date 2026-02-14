@@ -11,6 +11,9 @@ from flowsint_core.core.services import (
     PermissionDeniedError,
     create_flow_service,
 )
+from flowsint_core.core.services.type_registry_service import (
+    create_type_registry_service,
+)
 from flowsint_core.core.types import FlowBranch, FlowEdge, FlowNode, FlowStep
 from flowsint_core.utils import extract_input_schema_flow
 from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
@@ -202,7 +205,11 @@ async def launch_flow(
         service.get_sketch_for_launch(payload.sketch_id, current_user.id)
 
         # Retrieve entities from Neo4J by their element IDs
-        graph_service = create_graph_service(sketch_id=payload.sketch_id)
+        type_registry = create_type_registry_service(db)
+        resolver = type_registry.build_type_resolver(current_user.id)
+        graph_service = create_graph_service(
+            sketch_id=payload.sketch_id, type_resolver=resolver
+        )
         entities = graph_service.get_nodes_by_ids_for_task(payload.node_ids)
 
         # Compute flow branches
@@ -289,6 +296,7 @@ def compute_flow_branches(
                     FlowStep(
                         nodeId="error",
                         inputs={},
+                        params={},
                         type="error",
                         outputs={},
                         status="error",

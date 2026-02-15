@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 from typing import Any, Dict, List, Optional, Set, Union
 
 from dotenv import load_dotenv
@@ -79,7 +80,9 @@ class DomainToHistoryEnricher(Enricher):
         self._extracted_organizations = []  # Store extracted organizations for testing
         api_key = self.get_secret("WHOXY_API_KEY", os.getenv("WHOXY_API_KEY"))
 
-        for domain in data:
+        for i, domain in enumerate(data):
+            if i > 0:
+                time.sleep(1)
             infos_data = self.__get_infos_from_whoxy(domain.domain, api_key)
             if infos_data and "whois_records" in infos_data:
                 Logger.info(

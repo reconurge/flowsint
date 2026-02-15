@@ -1,13 +1,17 @@
+import time
 from typing import Dict
 
 import requests
+
 from ..base import Tool
 
 
 class WhoxyTool(Tool):
-
     whoxy_api_endoint = "https://api.whoxy.com/"
-    
+
+    MAX_RETRIES = 3
+    INITIAL_DELAY = 2  # seconds
+
     @classmethod
     def name(cls) -> str:
         return "whoxy"
@@ -25,20 +29,43 @@ class WhoxyTool(Tool):
         return "Network intelligence"
 
     def launch(self, params: Dict[str, str] = {}) -> list[Dict]:
-        try:
-            resp = requests.get(
-                self.whoxy_api_endoint,
-                params=params,
-                timeout=10,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("status") != 1:
-                raise RuntimeError(
-                    f"Error querying Whoxy API: {str(data.get("status_reason") )}"
+        last_exception = None
+
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                resp = requests.get(
+                    self.whoxy_api_endoint,
+                    params=params,
+                    timeout=10,
                 )
-            if data.get("total_results") == 0:
-                raise ValueError(f"No match found for Whoxy search.")
-            return data
-        except Exception as e:
-            raise RuntimeError(f"{str(e)}")
+
+                if resp.status_code == 429:
+                    delay = self.INITIAL_DELAY * (2 ** attempt)
+                    time.sleep(delay)
+                    continue
+
+                resp.raise_for_status()
+                data = resp.json()
+                if data.get("status") != 1:
+                    raise RuntimeError(
+                        f"Error querying Whoxy API: {str(data.get('status_reason'))}"
+                    )
+                if data.get("total_results") == 0:
+                    raise ValueError("No match found for Whoxy search.")
+                return data
+            except requests.exceptions.HTTPError as e:
+                if resp.status_code in (429, 502, 503, 504):
+                    last_exception = e
+                    delay = self.INITIAL_DELAY * (2 ** attempt)
+                    time.sleep(delay)
+                    continue
+                raise RuntimeError(f"{str(e)}")
+            except (ValueError, RuntimeError):
+                raise
+            except Exception as e:
+                last_exception = e
+                delay = self.INITIAL_DELAY * (2 ** attempt)
+                time.sleep(delay)
+                continue
+
+        raise RuntimeError(f"Whoxy API failed after {self.MAX_RETRIES} retries: {str(last_exception)}")

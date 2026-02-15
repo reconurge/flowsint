@@ -65,6 +65,10 @@ function CustomTypeEditor() {
     }
   }, [existingType, isNew])
 
+  useEffect(() => {
+    setName(name.replaceAll(' ', ''))
+  }, [name])
+
   const parseSchemaToFields = (schema: any) => {
     const properties = schema.properties || {}
     const required = schema.required || []

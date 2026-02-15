@@ -37,6 +37,7 @@ import {
 import { sketchService } from '@/api/sketch-service'
 import { useParams } from '@tanstack/react-router'
 import { exportToPNG } from './graph/utils/export-to-png'
+import { PathFinder } from './graph/actions/path-finder'
 
 // Tooltip wrapper component to avoid repetition
 export const ToolbarButton = memo(function ToolbarButton({
@@ -227,6 +228,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             disabled={!areMergeable}
             badge={areMergeable ? selectedNodes.length : null}
           />
+          <PathFinder />
         </div>
         <Separator decorative orientation="vertical" />
         <div className="flex gap-1">

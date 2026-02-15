@@ -19,6 +19,7 @@ import { renderNode } from './node/node-renderer'
 import { useKeyboardEvents } from './hooks/use-keyboard-events'
 import { renderLink } from './edge/link-renderer'
 import { useHighlightState } from './hooks/use-highlight-state'
+import { useComputedHighlights } from './hooks/use-computed-highlights'
 import { useTooltip } from './hooks/use-tooltip'
 import { transformGraphData } from './utils/graph-data-transformer'
 import { useGraphLayout } from './hooks/use-graph-layout'
@@ -92,7 +93,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     toggleEdgeSelection,
     setCurrentEdgeId,
     clearSelectedEdges,
-    setOpenMainDialog
+    setOpenMainDialog,
+    highlightedNodeIds
   } = useGraphStore(
     useShallow((s) => ({
       currentNodeId: s.currentNodeId,
@@ -102,7 +104,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       toggleEdgeSelection: s.toggleEdgeSelection,
       setCurrentEdgeId: s.setCurrentEdgeId,
       clearSelectedEdges: s.clearSelectedEdges,
-      setOpenMainDialog: s.setOpenMainDialog
+      setOpenMainDialog: s.setOpenMainDialog,
+      highlightedNodeIds: s.highlightedNodeIds
     }))
   )
 
@@ -225,13 +228,53 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   )
 
   const {
-    highlightNodes,
-    highlightLinks,
+    highlightNodes: hoverHighlightNodes,
+    highlightLinks: hoverHighlightLinks,
     hoverNode,
     handleNodeHover,
     handleLinkHover,
     clearHighlights
   } = useHighlightState()
+
+  // Current node persistent highlights (neighbors + connected edges)
+  const currentNodeHighlights = useMemo(() => {
+    const nodeSet = new Set<string>()
+    const linkSet = new Set<string>()
+    if (!currentNodeId) return { nodes: nodeSet, links: linkSet }
+
+    nodeSet.add(currentNodeId)
+    edges.forEach((edge) => {
+      const sourceId = typeof edge.source === 'object' ? (edge.source as any).id : edge.source
+      const targetId = typeof edge.target === 'object' ? (edge.target as any).id : edge.target
+      if (sourceId === currentNodeId) {
+        nodeSet.add(targetId)
+        linkSet.add(`${sourceId}-${targetId}`)
+      } else if (targetId === currentNodeId) {
+        nodeSet.add(sourceId)
+        linkSet.add(`${sourceId}-${targetId}`)
+      }
+    })
+    return { nodes: nodeSet, links: linkSet }
+  }, [currentNodeId, edges])
+
+  // Path highlights from pathfinder
+  const { highlightNodes: pathHighlightNodes, highlightLinks: pathHighlightLinks } =
+    useComputedHighlights(highlightedNodeIds, edges)
+
+  // Merge: hover is prioritary over persistent highlights
+  const highlightNodes = useMemo(() => {
+    if (hoverHighlightNodes.size > 0) return hoverHighlightNodes
+    const merged = new Set<string>(currentNodeHighlights.nodes)
+    pathHighlightNodes.forEach((id) => merged.add(id))
+    return merged
+  }, [hoverHighlightNodes, currentNodeHighlights.nodes, pathHighlightNodes])
+
+  const highlightLinks = useMemo(() => {
+    if (hoverHighlightLinks.size > 0) return hoverHighlightLinks
+    const merged = new Set<string>(currentNodeHighlights.links)
+    pathHighlightLinks.forEach((id) => merged.add(id))
+    return merged
+  }, [hoverHighlightLinks, currentNodeHighlights.links, pathHighlightLinks])
 
   const { tooltip, showTooltip, hideTooltip } = useTooltip(graphRef)
 

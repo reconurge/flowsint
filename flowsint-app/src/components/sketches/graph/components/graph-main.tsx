@@ -5,6 +5,7 @@ import GraphViewer from '../index'
 import NodeContextMenu from '../context-menu/node-context-menu'
 import BackgroundContextMenu from '../context-menu/background-context-menu'
 import EdgeContextMenu from '../context-menu/edge-context-menu'
+import { PathPanel } from '../actions/path-finder'
 import { useParams } from '@tanstack/react-router'
 import { type GraphNode, GraphEdge } from '@/types'
 
@@ -190,6 +191,7 @@ const GraphMain = () => {
         allowLasso
         sketchId={sketchId}
       />
+      <PathPanel />
       {nodeMenu && selectedNodes.length === 0 && <NodeContextMenu {...nodeMenu} />}
       {edgeMenu && <EdgeContextMenu {...edgeMenu} />}
       {(background || (nodeMenu && selectedNodes.length > 0)) && (

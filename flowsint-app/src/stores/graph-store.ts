@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GraphNode, GraphEdge, NodeProperties, ChatContextFormat } from '@/types'
+import type { GraphNode, GraphEdge, NodeProperties, ChatContextFormat, Path } from '@/types'
 import { type ActionItem } from '@/lib/action-items'
 import { Filters, TypeFilter } from '@/types/filter'
 
@@ -70,6 +70,12 @@ interface GraphState {
   filters: Filters
   setFilters: (filters: Filters) => void
   toggleTypeFilter: (filter: TypeFilter) => void
+
+  // === Path ===
+  highlightedNodeIds: string[]
+  path: Path | null
+  setHighlightedNodes: (ids: string[]) => void
+  setPath: (path: Path | null) => void
 
   // === Utils ===
   nodesLength: number
@@ -471,6 +477,12 @@ export const useGraphStore = create<GraphState>()(
         set({ filters: newFilters, filteredNodes, filteredEdges })
       },
 
+      // === Path ===
+      highlightedNodeIds: [],
+      path: null,
+      setHighlightedNodes: (ids) => set({ highlightedNodeIds: ids }),
+      setPath: (path) => set({ path }),
+
       reset: () => {
         set({
           currentNodeId: null,
@@ -485,7 +497,9 @@ export const useGraphStore = create<GraphState>()(
           currentNodeType: null,
           filteredNodes: get().nodes,
           filteredEdges: get().edges,
-          selectedNodesWithEdgesAsList: []
+          selectedNodesWithEdgesAsList: [],
+          highlightedNodeIds: [],
+          path: null
         })
       },
       selectedNodesWithEdgesAsList: [],

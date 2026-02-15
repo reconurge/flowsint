@@ -80,3 +80,23 @@ export type ExtendedSetting = {
 export type Settings = {
   [key: string]: ExtendedSetting
 }
+
+export type PathNode = {
+  id: string
+  label: string
+  node_type: string
+}
+
+export type PathEdge = {
+  id: string
+  source: string
+  target: string
+  label: string
+  caption?: string
+}
+
+export type Path = {
+  ids: string[]
+  nodes: PathNode[]
+  edges: PathEdge[]
+}

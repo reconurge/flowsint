@@ -21,7 +21,7 @@ const ChatHistory = ({
   const { confirm } = useConfirm()
   const setCurrentChatId = useChatState((s) => s.setCurrentChatId)
   const { data: chats, isLoading } = useQuery({
-    queryKey: ['chats'],
+    queryKey: ['chats', 'list'],
     queryFn: () => chatCRUDService.get()
   })
 

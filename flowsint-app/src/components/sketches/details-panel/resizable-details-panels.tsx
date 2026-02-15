@@ -114,7 +114,7 @@ export function ResizableDetailsPanel({
       if (currentOpenGroup.length > 0) {
         const groupKey = currentOpenGroup.map((s) => s.id).join('-')
         result.push(
-          <PanelGroup key={groupKey} direction="vertical" className="flex-1 min-h-0">
+          <PanelGroup key={groupKey} direction="vertical" className="flex-1 min-h-0" autoSaveId={`details-panel-${groupKey}`}>
             {currentOpenGroup.map((section, index) => {
               const isLast = index === currentOpenGroup.length - 1
               return (

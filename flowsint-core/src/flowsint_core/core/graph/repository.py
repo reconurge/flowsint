@@ -146,7 +146,7 @@ class Neo4jGraphRepository:
         query = f"""
         MATCH (from:{from_type} {{nodeLabel: $from_label, sketch_id: $sketch_id}})
         MATCH (to:{to_type} {{nodeLabel: $to_label, sketch_id: $sketch_id}})
-        MERGE (from)-[r:{rel_label}]->(to)
+        MERGE (from)-[r:{rel_label} {{sketch_id: $sketch_id}}]->(to)
         SET r += $props
         """
 
@@ -537,15 +537,34 @@ class Neo4jGraphRepository:
         if not self._connection:
             return None
 
-        query = """
-        MATCH ()-[r]->()
-        WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
-        SET r += $props
-        RETURN
-            elementId(r) AS id,
-            type(r) AS type,
-            properties(r) AS data
-        """
+        new_label = rel_obj.pop("label", None)
+
+        if new_label:
+            # Neo4j relationship types are immutable, so we need to
+            # delete the old relationship and create a new one with the new type.
+            query = f"""
+            MATCH (a)-[r]->(b)
+            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+            WITH a, b, r, properties(r) AS old_props
+            DELETE r
+            CREATE (a)-[r2:`{new_label}`]->(b)
+            SET r2 = old_props
+            SET r2 += $props
+            RETURN
+                elementId(r2) AS id,
+                type(r2) AS type,
+                properties(r2) AS data
+            """
+        else:
+            query = """
+            MATCH ()-[r]->()
+            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+            SET r += $props
+            RETURN
+                elementId(r) AS id,
+                type(r) AS type,
+                properties(r) AS data
+            """
 
         params = {
             "element_id": element_id,

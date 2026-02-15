@@ -4,17 +4,22 @@ Sketch service for managing sketches and graph operations.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from ..models import Sketch
-from ..graph import create_graph_service, GraphNode
+from ..graph import GraphNode, create_graph_service
 from ..graph.types import GraphData
-from ..repositories import SketchRepository, InvestigationRepository
+from ..models import Sketch
+from ..repositories import InvestigationRepository, SketchRepository
 from .base import BaseService
-from .exceptions import NotFoundError, PermissionDeniedError, ValidationError, DatabaseError
+from .exceptions import (
+    DatabaseError,
+    NotFoundError,
+    PermissionDeniedError,
+    ValidationError,
+)
 
 if TYPE_CHECKING:
     from .type_registry_service import TypeRegistryService
@@ -79,9 +84,7 @@ class SketchService(BaseService):
         self._refresh(sketch)
         return sketch
 
-    def update(
-        self, sketch_id: UUID, user_id: UUID, updates: Dict[str, Any]
-    ) -> Sketch:
+    def update(self, sketch_id: UUID, user_id: UUID, updates: Dict[str, Any]) -> Sketch:
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["update"])
 
         for key, value in updates.items():
@@ -114,7 +117,11 @@ class SketchService(BaseService):
     ) -> Dict[str, Any]:
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
-        resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
+        resolver = (
+            self._type_registry.build_type_resolver(user_id)
+            if self._type_registry
+            else None
+        )
         graph_service = create_graph_service(
             sketch_id=str(sketch_id),
             enable_batching=False,
@@ -124,6 +131,7 @@ class SketchService(BaseService):
 
         if format == "inline":
             from flowsint_core.utils import get_inline_relationships
+
             return get_inline_relationships(graph_data.nodes, graph_data.edges)
 
         graph = graph_data.model_dump(mode="json", serialize_as_any=True)
@@ -237,7 +245,6 @@ class SketchService(BaseService):
         self, sketch_id: UUID, user_id: UUID, relationship_ids: List[str]
     ) -> Dict[str, Any]:
         self._get_sketch_with_permission(sketch_id, user_id, ["update"])
-
         try:
             graph_service = create_graph_service(
                 sketch_id=str(sketch_id), enable_batching=False
@@ -332,7 +339,11 @@ class SketchService(BaseService):
         self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         try:
-            resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
+            resolver = (
+                self._type_registry.build_type_resolver(user_id)
+                if self._type_registry
+                else None
+            )
             graph_service = create_graph_service(
                 sketch_id=str(sketch_id),
                 type_resolver=resolver,
@@ -352,7 +363,11 @@ class SketchService(BaseService):
     ) -> Dict[str, Any]:
         sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
-        resolver = self._type_registry.build_type_resolver(user_id) if self._type_registry else None
+        resolver = (
+            self._type_registry.build_type_resolver(user_id)
+            if self._type_registry
+            else None
+        )
         graph_service = create_graph_service(
             sketch_id=str(sketch_id),
             enable_batching=False,

@@ -19,11 +19,7 @@ interface TerminalLogViewerProps {
   onClear?: () => void
 }
 
-export const TerminalLogViewer = ({
-  logs,
-  onRefresh,
-  onClear
-}: TerminalLogViewerProps) => {
+export const TerminalLogViewer = ({ logs, onRefresh, onClear }: TerminalLogViewerProps) => {
   const terminalRef = useRef<TerminalHandle>(null)
   const previousLogsRef = useRef<LogEntry[]>([])
   const isInitializedRef = useRef(false)
@@ -49,11 +45,7 @@ export const TerminalLogViewer = ({
     } else {
       // Write all existing logs
       logsRef.current.forEach((log) => {
-        const formattedLog = formatLogEntry(
-          log.created_at,
-          log.type,
-          log.payload.message
-        )
+        const formattedLog = formatLogEntry(log.created_at, log.type, log.payload.message)
         terminalRef.current?.write(formattedLog)
       })
     }
@@ -84,11 +76,7 @@ export const TerminalLogViewer = ({
       console.log('[TerminalLogViewer] Writing new logs', newLogs.length)
 
       newLogs.forEach((log) => {
-        const formattedLog = formatLogEntry(
-          log.created_at,
-          log.type,
-          log.payload.message
-        )
+        const formattedLog = formatLogEntry(log.created_at, log.type, log.payload.message)
         terminalRef.current?.write(formattedLog)
       })
     }
@@ -103,11 +91,7 @@ export const TerminalLogViewer = ({
       } else {
         // Write all current logs
         currentLogs.forEach((log) => {
-          const formattedLog = formatLogEntry(
-            log.created_at,
-            log.type,
-            log.payload.message
-          )
+          const formattedLog = formatLogEntry(log.created_at, log.type, log.payload.message)
           terminalRef.current?.write(formattedLog)
         })
       }
@@ -128,7 +112,7 @@ export const TerminalLogViewer = ({
   }, [onRefresh])
 
   return (
-    <div className="h-full flex flex-col relative bg-background rounded-lg overflow-hidden border border-border/50">
+    <div className="h-full flex flex-col relative bg-background overflow-hidden">
       {/* Terminal */}
       <div className="flex-1 min-h-0">
         <XTermTerminal
@@ -158,7 +142,6 @@ export const TerminalLogViewer = ({
         >
           <Trash2 className="w-3.5 h-3.5 opacity-60" strokeWidth={1.7} />
         </Button>
-
       </div>
     </div>
   )

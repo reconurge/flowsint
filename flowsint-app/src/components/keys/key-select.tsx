@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { KeyService } from '@/api/key-service'
+import { keyService } from '@/api/key-service'
 import { type Key as KeyType } from '@/types/key'
 
 export default function KeySelector({
@@ -19,7 +19,7 @@ export default function KeySelector({
   // Fetch keys
   const { data: keys = [], isLoading } = useQuery<KeyType[]>({
     queryKey: ['keys'],
-    queryFn: () => KeyService.get()
+    queryFn: () => keyService.get()
   })
 
   const handleValueChange = (keyId: string) => {

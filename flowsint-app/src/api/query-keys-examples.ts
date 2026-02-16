@@ -7,7 +7,7 @@
 // import { investigationService } from './investigation-service'
 // import { sketchService } from './sketch-service'
 // import { chatCRUDService } from './chat-service'
-// import { KeyService } from './key-service'
+// import { keyService } from './key-service'
 // import { logService } from './log-service'
 // import { scanService } from './scan-service'
 // import { enricherService } from './enricher-service'
@@ -112,14 +112,14 @@
 // export const useKeysList = () => {
 //   return useQuery({
 //     queryKey: queryKeys.keys.list,
-//     queryFn: KeyService.get
+//     queryFn: keyService.get
 //   })
 // }
 
 // export const useKeyDetail = (keyId: string) => {
 //   return useQuery({
 //     queryKey: queryKeys.keys.detail(keyId),
-//     queryFn: () => KeyService.getById(keyId),
+//     queryFn: () => keyService.getById(keyId),
 //     enabled: !!keyId
 //   })
 // }

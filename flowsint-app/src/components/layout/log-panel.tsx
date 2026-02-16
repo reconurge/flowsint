@@ -43,12 +43,8 @@ export const LogPanel = memo(() => {
   }
 
   return (
-    <div className="h-full overflow-hidden border-t p-2">
-      <TerminalLogViewer
-        logs={logs}
-        onRefresh={refetch}
-        onClear={handleDeleteLogs}
-      />
+    <div className="h-full overflow-hidden border-t">
+      <TerminalLogViewer logs={logs} onRefresh={refetch} onClear={handleDeleteLogs} />
     </div>
   )
 })

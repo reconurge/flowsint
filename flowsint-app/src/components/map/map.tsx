@@ -1,25 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import Map, { Layer, Popup, Source } from 'react-map-gl/maplibre'
+import Map, { Marker, Popup } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useTheme } from '../theme-provider'
-import { Globe, Map as MapIcon, MapPin } from 'lucide-react'
+import { Globe, MapPin } from 'lucide-react'
 import LoadingSpinner from '@/components/shared/loader'
 import { preloadImage, getCachedImage } from '@/components/sketches/graph/utils/image-cache'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { useGraphStore } from '@/stores/graph-store'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import type { MapRef } from 'react-map-gl/maplibre'
 import type {
-  GeoJSONSource,
-  MapMouseEvent,
-  StyleImageInterface,
   StyleSpecification
 } from 'maplibre-gl'
-import type { FeatureCollection, Point } from 'geojson'
 
 export type LocationPoint = {
   nodeId?: string
@@ -85,75 +80,6 @@ function resolveMapStyle(
   return VECTOR_STYLES[variant][theme]
 }
 
-function createPulsingDot(isDark: boolean): StyleImageInterface {
-  const size = 100
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const context = canvas.getContext('2d')!
-  let animationTime = 0
-
-  return {
-    width: size,
-    height: size,
-    data: new Uint8Array(size * size * 4),
-    onAdd(this: StyleImageInterface & { map?: maplibregl.Map }) {
-      this.map = undefined
-    },
-    render(this: StyleImageInterface & { map?: maplibregl.Map }) {
-      const duration = 1500
-      animationTime = (animationTime + 1) % duration
-
-      const t = animationTime / duration
-      const radius = (size / 2) * 0.3
-      const outerRadius = (size / 2) * 0.3 + 15 * t
-      const opacity = 1 - t
-
-      context.clearRect(0, 0, size, size)
-
-      // Outer pulsing ring
-      context.beginPath()
-      context.arc(size / 2, size / 2, outerRadius, 0, Math.PI * 2)
-      const ringColor = isDark
-        ? `rgba(99, 102, 241, ${opacity * 0.4})`
-        : `rgba(79, 70, 229, ${opacity * 0.4})`
-      context.strokeStyle = ringColor
-      context.lineWidth = 2.5
-      context.stroke()
-
-      // Inner solid dot
-      context.beginPath()
-      context.arc(size / 2, size / 2, radius, 0, Math.PI * 2)
-      const gradient = context.createRadialGradient(
-        size / 2,
-        size / 2,
-        0,
-        size / 2,
-        size / 2,
-        radius
-      )
-      if (isDark) {
-        gradient.addColorStop(0, 'rgba(129, 140, 248, 1)')
-        gradient.addColorStop(1, 'rgba(99, 102, 241, 1)')
-      } else {
-        gradient.addColorStop(0, 'rgba(99, 102, 241, 1)')
-        gradient.addColorStop(1, 'rgba(67, 56, 202, 1)')
-      }
-      context.fillStyle = gradient
-      context.fill()
-
-      // Bright center highlight
-      context.beginPath()
-      context.arc(size / 2 - radius * 0.2, size / 2 - radius * 0.2, radius * 0.35, 0, Math.PI * 2)
-      context.fillStyle = 'rgba(255, 255, 255, 0.3)'
-      context.fill()
-
-      this.data = context.getImageData(0, 0, size, size).data as unknown as Uint8Array
-      return true // Repaint every frame
-    }
-  }
-}
-
 function useResolvedTheme() {
   const { theme } = useTheme()
   const [resolved, setResolved] = useState<'dark' | 'light'>(() => {
@@ -196,8 +122,9 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   const [isGlobe, setIsGlobe] = useState(true)
   const isGlobeRef = useRef(true)
   const [styleVariant, setStyleVariant] = useState<MapStyleVariant>('standard')
-  const pulsingDotRef = useRef<StyleImageInterface | null>(null)
+  const [zoomLevel, setZoomLevel] = useState(2)
   const isDarkStyle = resolvedTheme === 'dark' || styleVariant === 'satellite'
+  const showDetails = zoomLevel >= 6
 
   // Geocoding
   const locationsToGeocode = locations.filter(
@@ -265,70 +192,21 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
 
   const DEFAULT_MARKER_COLOR = '#6366f1'
 
-  // Build GeoJSON
-  const geojson = useMemo<FeatureCollection<Point>>(
-    () => ({
-      type: 'FeatureCollection',
-      features: validLocations.map((loc) => {
-        const lat = Number(loc.coordinates!.lat)
-        const lon = Number(loc.coordinates!.lon)
-        const color = loc.color || DEFAULT_MARKER_COLOR
-        const nodeType = loc.nodeType || ''
-        return {
-          type: 'Feature' as const,
-          properties: {
-            nodeId: loc.nodeId || '',
-            label: loc.label || loc.address || `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-            color,
-            icon: nodeType ? `marker-icon-${nodeType}` : '',
-            hasIcon: nodeType ? 'true' : 'false',
-            nodeType
-          },
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [lon, lat]
-          }
-        }
-      })
-    }),
-    [validLocations]
-  )
-
-  // Generate and register icon images for each unique node type
-  const registerMapImages = useCallback(async () => {
-    const map = mapRef.current?.getMap()
-    if (!map) return
-
-    // Register pulsing dot
-    if (map.hasImage('pulsing-dot')) {
-      map.removeImage('pulsing-dot')
-    }
-    pulsingDotRef.current = createPulsingDot(isDarkStyle)
-    map.addImage('pulsing-dot', pulsingDotRef.current)
-
-    // Collect unique node types from locations
+  // Preload icons for all unique node types
+  const [iconsReady, setIconsReady] = useState(false)
+  useEffect(() => {
     const uniqueTypes = new Set<string>()
     validLocations.forEach((loc) => {
       if (loc.nodeType) uniqueTypes.add(loc.nodeType)
     })
-
-    // Preload and register each icon via the shared image-cache
-    const promises = Array.from(uniqueTypes).map(async (nodeType) => {
-      const imageId = `marker-icon-${nodeType}`
-      if (map.hasImage(imageId)) map.removeImage(imageId)
-      try {
-        const img = await preloadImage(nodeType, '#ffffff')
-        if (!map.hasImage(imageId)) {
-          map.addImage(imageId, img, { sdf: false })
-        }
-      } catch (err) {
-        console.warn(`[map] Failed to load icon for type: ${nodeType}`, err)
-      }
-    })
-
-    await Promise.all(promises)
-    map.triggerRepaint()
-  }, [isDarkStyle, validLocations])
+    if (uniqueTypes.size === 0) {
+      setIconsReady(true)
+      return
+    }
+    Promise.all(
+      Array.from(uniqueTypes).map((t) => preloadImage(t, '#ffffff'))
+    ).then(() => setIconsReady(true)).catch(() => setIconsReady(true))
+  }, [validLocations])
 
   // Fly to markers on data load
   useEffect(() => {
@@ -360,56 +238,28 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
     }
   }, [validLocations, zoom, centerOnFirst])
 
-  // Handle click on clusters and points
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
 
-  const onClick = useCallback(
-    (e: MapMouseEvent) => {
-      const map = mapRef.current?.getMap()
-      if (!map) return
-
-      // Check for cluster click
-      const clusterFeatures = map.queryRenderedFeatures(e.point, { layers: ['clusters'] })
-      if (clusterFeatures.length > 0) {
-        const feature = clusterFeatures[0]
-        const clusterId = feature.properties?.cluster_id
-        const source = map.getSource('locations') as GeoJSONSource
-        source.getClusterExpansionZoom(clusterId).then((expansionZoom) => {
-          const geo = feature.geometry as Point
-          map.flyTo({
-            center: geo.coordinates as [number, number],
-            zoom: expansionZoom,
-            duration: 500
-          })
-        })
-        return
-      }
-
-      // Check for unclustered point click
-      const pointFeatures = map.queryRenderedFeatures(e.point, {
-        layers: ['unclustered-point', 'unclustered-point-icon']
+  const onMarkerClick = useCallback(
+    (loc: typeof validLocations[number]) => {
+      const lat = Number(loc.coordinates!.lat)
+      const lon = Number(loc.coordinates!.lon)
+      if (loc.nodeId) setCurrentNodeId(loc.nodeId)
+      setPopupInfo({
+        lng: lon,
+        lat,
+        label: loc.label || loc.address || `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+        color: loc.color || DEFAULT_MARKER_COLOR,
+        nodeType: loc.nodeType || ''
       })
-      if (pointFeatures.length > 0) {
-        const feature = pointFeatures[0]
-        const geo = feature.geometry as Point
-        const nodeId = feature.properties?.nodeId
-        if (nodeId) setCurrentNodeId(nodeId)
-        setPopupInfo({
-          lng: geo.coordinates[0],
-          lat: geo.coordinates[1],
-          label: feature.properties?.label || '',
-          color: feature.properties?.color || '#6366f1',
-          nodeType: feature.properties?.nodeType || ''
-        })
-        return
-      }
-
-      // Click elsewhere → dismiss popup and deselect
-      setPopupInfo(null)
-      setCurrentNodeId(null)
     },
     [setCurrentNodeId]
   )
+
+  const onMapClick = useCallback(() => {
+    setPopupInfo(null)
+    setCurrentNodeId(null)
+  }, [setCurrentNodeId])
 
   const applyProjection = useCallback(() => {
     const map = mapRef.current?.getMap()
@@ -429,29 +279,11 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap()
     if (!map) return
-    registerMapImages()
     applyProjection()
     map.on('style.load', () => {
-      registerMapImages()
       applyProjection()
     })
-    // Handle missing images on-demand to avoid race conditions
-    map.on('styleimagemissing', async (e: { id: string }) => {
-      const id = e.id
-      if (id === 'pulsing-dot' || map.hasImage(id)) return
-      const match = id.match(/^marker-icon-(.+)$/)
-      if (!match) return
-      const nodeType = match[1]
-      try {
-        const img = await preloadImage(nodeType, '#ffffff')
-        if (!map.hasImage(id)) {
-          map.addImage(id, img, { sdf: false })
-        }
-      } catch {
-        // Icon not available, ignore silently
-      }
-    })
-  }, [registerMapImages, applyProjection])
+  }, [applyProjection])
 
   // Wire up zoom actions to the shared toolbar controls
   const setActions = useGraphControls((s) => s.setActions)
@@ -590,98 +422,54 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
-        onClick={onClick}
+        onClick={onMapClick}
         onLoad={onMapLoad}
-        interactiveLayerIds={['clusters', 'unclustered-point', 'unclustered-point-icon']}
+        onZoom={(e) => setZoomLevel(e.viewState.zoom)}
         cursor="auto"
         attributionControl={false}
       >
-        <Source
-          id="locations"
-          type="geojson"
-          data={geojson}
-          cluster={true}
-          clusterMaxZoom={14}
-          clusterRadius={50}
-        >
-          {/* Cluster circles */}
-          <Layer
-            id="clusters"
-            type="circle"
-            filter={['has', 'point_count']}
-            paint={{
-              'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#e8713a', // primary
-                10,
-                '#d4622e', // primary darker
-                50,
-                '#c05524' // primary darkest
-              ],
-              'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 32],
-              'circle-stroke-width': 2,
-              'circle-stroke-color': isDarkStyle
-                ? 'rgba(255, 255, 255, 0.15)'
-                : 'rgba(0, 0, 0, 0.1)'
-            }}
-          />
-
-          {/* Cluster count labels */}
-          <Layer
-            id="cluster-count"
-            type="symbol"
-            filter={['has', 'point_count']}
-            layout={{
-              'text-field': '{point_count_abbreviated}',
-              'text-font': ['Open Sans Bold'],
-              'text-size': 13
-            }}
-            paint={{
-              'text-color': '#ffffff'
-            }}
-          />
-
-          {/* Unclustered point outer glow */}
-          <Layer
-            id="unclustered-point-glow"
-            type="circle"
-            filter={['!', ['has', 'point_count']]}
-            paint={{
-              'circle-radius': 18,
-              'circle-color': ['get', 'color'],
-              'circle-opacity': 0.2,
-              'circle-blur': 0.6
-            }}
-          />
-
-          {/* Unclustered point solid circle */}
-          <Layer
-            id="unclustered-point"
-            type="circle"
-            filter={['!', ['has', 'point_count']]}
-            paint={{
-              'circle-radius': 12,
-              'circle-color': ['get', 'color'],
-              'circle-stroke-width': 2,
-              'circle-stroke-color': isDarkStyle
-                ? 'rgba(255, 255, 255, 0.25)'
-                : 'rgba(255, 255, 255, 0.8)'
-            }}
-          />
-
-          {/* Icon overlay on points that have icons */}
-          <Layer
-            id="unclustered-point-icon"
-            type="symbol"
-            filter={['all', ['!', ['has', 'point_count']], ['==', ['get', 'hasIcon'], 'true']]}
-            layout={{
-              'icon-image': ['get', 'icon'],
-              'icon-size': 0.6,
-              'icon-allow-overlap': true
-            }}
-          />
-        </Source>
+        {validLocations.map((loc, i) => {
+          const lat = Number(loc.coordinates!.lat)
+          const lon = Number(loc.coordinates!.lon)
+          const color = loc.color || DEFAULT_MARKER_COLOR
+          const cachedImg = showDetails && loc.nodeType ? getCachedImage(loc.nodeType, '#ffffff') : undefined
+          const dotSize = showDetails ? 24 : 10
+          const glowSize = showDetails ? 36 : 16
+          return (
+            <Marker
+              key={loc.nodeId || `${lat}-${lon}-${i}`}
+              longitude={lon}
+              latitude={lat}
+              anchor="center"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation()
+                onMarkerClick(loc)
+              }}
+            >
+              <div
+                className="cursor-pointer"
+                style={{
+                  width: dotSize,
+                  height: dotSize,
+                  borderRadius: '50%',
+                  background: color,
+                  border: showDetails
+                    ? `2px solid ${isDarkStyle ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.8)'}`
+                    : 'none',
+                  boxShadow: `0 0 ${showDetails ? 12 : 6}px ${color}66`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'width 0.2s, height 0.2s, box-shadow 0.2s'
+                }}
+              >
+                {cachedImg && (
+                  <img src={cachedImg.src} width={14} height={14} alt="" />
+                )}
+              </div>
+            </Marker>
+          )
+        })}
 
         {popupInfo && (
           <Popup

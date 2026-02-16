@@ -8,16 +8,19 @@ import { useLayoutStore } from '@/stores/layout-store'
 export function useLaunchFlow(askUser: boolean = false) {
   const { confirm } = useConfirm()
   const queryClient = useQueryClient()
-  const openClonsole = useLayoutStore(s => s.openConsole)
+  const openClonsole = useLayoutStore((s) => s.openConsole)
 
   // Launch flow mutation
   const launchFlowMutation = useMutation({
     mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
       flowService.launch(flowId, body),
     onSuccess: (_, variables) => {
-      // openClonsole()
+      openClonsole()
       queryClient.invalidateQueries({
         queryKey: queryKeys.flows.detail(variables.flowId)
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.scans.list
       })
     },
     onError: (error) => {
@@ -43,8 +46,7 @@ export function useLaunchFlow(askUser: boolean = false) {
 
     toast.promise(launchFlowMutation.mutateAsync({ flowId: flow_id, body }), {
       loading: 'Loading...',
-      success: () =>
-        `Flow ${flow_id} has been launched on ${count} node${count > 1 ? 's' : ''}.`,
+      success: () => `Flow ${flow_id} has been launched on ${count} node${count > 1 ? 's' : ''}.`,
       error: () => `An error occurred launching flow.`
     })
     return

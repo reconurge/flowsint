@@ -8,7 +8,7 @@ import { Input } from '../ui/input'
 import KeySelector from '../keys/key-select'
 import { type Key } from '@/types/key'
 import { useQuery } from '@tanstack/react-query'
-import { KeyService } from '@/api/key-service'
+import { keyService } from '@/api/key-service'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs'
 import { MemoizedMarkdown } from '../chat/memoized-markdown'
 import { cn } from '@/lib/utils'
@@ -39,7 +39,7 @@ const ParamsDialog = () => {
   // Fetch keys to convert between IDs and Key objects
   const { data: keys = [] } = useQuery<Key[]>({
     queryKey: ['keys'],
-    queryFn: () => KeyService.get()
+    queryFn: () => keyService.get()
   })
 
   const handleSave = useCallback(async () => {

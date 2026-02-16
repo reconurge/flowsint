@@ -5,30 +5,40 @@ This module provides business logic services that encapsulate database operation
 and domain logic, enabling cleaner route handlers and better testability.
 """
 
+from .analysis_service import AnalysisService, create_analysis_service
+from .auth_service import AuthService, create_auth_service
+from .base import BaseService
+from .chat_service import ChatService, create_chat_service
+from .custom_type_service import CustomTypeService, create_custom_type_service
+from .enricher_service import EnricherService, create_enricher_service
+from .enricher_template_service import (
+    EnricherTemplateService,
+    create_enricher_template_service,
+)
 from .exceptions import (
-    ServiceError,
-    NotFoundError,
-    PermissionDeniedError,
-    ValidationError,
-    DatabaseError,
     AuthenticationError,
     ConflictError,
+    DatabaseError,
+    NotFoundError,
+    PermissionDeniedError,
+    ServiceError,
+    ValidationError,
 )
-from .base import BaseService
-from .auth_service import AuthService, create_auth_service
-from .key_service import KeyService, create_key_service
-from .investigation_service import InvestigationService, create_investigation_service
-from .sketch_service import SketchService, create_sketch_service
-from .analysis_service import AnalysisService, create_analysis_service
-from .chat_service import ChatService, create_chat_service
-from .scan_service import ScanService, create_scan_service
-from .log_service import LogService, create_log_service
 from .flow_service import FlowService, create_flow_service
-from .custom_type_service import CustomTypeService, create_custom_type_service
-from .type_registry_service import TypeRegistryService, create_type_registry_service, local_type_resolver
-from .enricher_service import EnricherService, create_enricher_service
-from .enricher_template_service import EnricherTemplateService, create_enricher_template_service
-from .template_generator_service import TemplateGeneratorService, create_template_generator_service
+from .investigation_service import InvestigationService, create_investigation_service
+from .key_service import create_key_service, keyService
+from .log_service import LogService, create_log_service
+from .scan_service import ScanService, create_scan_service
+from .sketch_service import SketchService, create_sketch_service
+from .template_generator_service import (
+    TemplateGeneratorService,
+    create_template_generator_service,
+)
+from .type_registry_service import (
+    TypeRegistryService,
+    create_type_registry_service,
+    local_type_resolver,
+)
 from .vault_service import VaultService, create_vault_service
 
 __all__ = [
@@ -45,7 +55,7 @@ __all__ = [
     # Services - Phase 1
     "AuthService",
     "create_auth_service",
-    "KeyService",
+    "keyService",
     "create_key_service",
     # Services - Phase 2
     "InvestigationService",

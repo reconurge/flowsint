@@ -2,7 +2,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from ..models import Analysis, InvestigationUserRole
+from ..models import Analysis
 from ..types import Role
 from .base import BaseRepository
 
@@ -13,22 +13,7 @@ class AnalysisRepository(BaseRepository[Analysis]):
     def get_accessible_by_user(
         self, user_id: UUID, allowed_roles: Optional[List[Role]] = None
     ) -> List[Analysis]:
-        if allowed_roles is None:
-            allowed_roles = [Role.OWNER, Role.EDITOR, Role.VIEWER]
-
-        # Get all investigation IDs accessible by this user
-        role_entries = (
-            self._db.query(InvestigationUserRole)
-            .filter(InvestigationUserRole.user_id == user_id)
-            .all()
-        )
-        inv_ids = set()
-        for entry in role_entries:
-            for role in entry.roles:
-                if role in allowed_roles:
-                    inv_ids.add(entry.investigation_id)
-                    break
-
+        inv_ids = self._get_accessible_investigation_ids(user_id, allowed_roles)
         if not inv_ids:
             return []
 

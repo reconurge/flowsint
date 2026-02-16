@@ -15,29 +15,14 @@ class InvestigationRepository(BaseRepository[Investigation]):
     def get_accessible_by_user(
         self, user_id: UUID, allowed_roles: Optional[List[Role]] = None
     ) -> List[Investigation]:
-        query = self._db.query(Investigation).join(
-            InvestigationUserRole,
-            InvestigationUserRole.investigation_id == Investigation.id,
-        )
-        query = query.filter(InvestigationUserRole.user_id == user_id)
-
-        if allowed_roles:
-            # Filter by checking if user has any matching role
-            role_entries = (
-                self._db.query(InvestigationUserRole)
-                .filter(InvestigationUserRole.user_id == user_id)
-                .all()
-            )
-            inv_ids = set()
-            for entry in role_entries:
-                for role in entry.roles:
-                    if role in allowed_roles:
-                        inv_ids.add(entry.investigation_id)
-                        break
-            query = query.filter(Investigation.id.in_(inv_ids))
+        inv_ids = self._get_accessible_investigation_ids(user_id, allowed_roles)
+        if not inv_ids:
+            return []
 
         return (
-            query.options(
+            self._db.query(Investigation)
+            .filter(Investigation.id.in_(inv_ids))
+            .options(
                 selectinload(Investigation.sketches),
                 selectinload(Investigation.analyses),
                 selectinload(Investigation.owner),

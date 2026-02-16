@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from ..models import Scan
-from ..repositories import ScanRepository, SketchRepository, InvestigationRepository
+from ..repositories import InvestigationRepository, ScanRepository, SketchRepository
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError
 
@@ -33,6 +33,18 @@ class ScanService(BaseService):
 
     def get_accessible_scans(self, user_id: UUID) -> List[Scan]:
         return self._scan_repo.get_accessible_by_user(user_id)
+
+    def get_accessible_scans_by_sketch_id(
+        self, user_id: UUID, sketch_id: UUID
+    ) -> List[Scan]:
+        return self._scan_repo.get_accessible_by_sketch_id(user_id, sketch_id)
+
+    def get_accessible_scans_by_status_and_sketch_id(
+        self, user_id: UUID, sketch_id: UUID, status: str
+    ) -> List[Scan]:
+        return self._scan_repo.get_accessible_by_status_and_sketch_id(
+            user_id, sketch_id, status
+        )
 
     def get_by_id(self, scan_id: UUID, user_id: UUID) -> Scan:
         scan = self._scan_repo.get_by_id(scan_id)

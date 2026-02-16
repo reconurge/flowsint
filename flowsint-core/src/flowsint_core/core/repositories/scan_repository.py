@@ -1,9 +1,9 @@
 """Repository for Scan model."""
+
 from typing import List
 from uuid import UUID
 
-from ..models import Scan, Sketch, InvestigationUserRole
-from ..types import Role
+from ..models import Scan, Sketch
 from .base import BaseRepository
 
 
@@ -11,21 +11,7 @@ class ScanRepository(BaseRepository[Scan]):
     model = Scan
 
     def get_accessible_by_user(self, user_id: UUID) -> List[Scan]:
-        allowed_roles = [Role.OWNER, Role.EDITOR, Role.VIEWER]
-
-        # Get investigation IDs accessible by user
-        role_entries = (
-            self._db.query(InvestigationUserRole)
-            .filter(InvestigationUserRole.user_id == user_id)
-            .all()
-        )
-        inv_ids = set()
-        for entry in role_entries:
-            for role in entry.roles:
-                if role in allowed_roles:
-                    inv_ids.add(entry.investigation_id)
-                    break
-
+        inv_ids = self._get_accessible_investigation_ids(user_id)
         if not inv_ids:
             return []
 
@@ -33,6 +19,35 @@ class ScanRepository(BaseRepository[Scan]):
             self._db.query(Scan)
             .join(Sketch, Sketch.id == Scan.sketch_id)
             .filter(Sketch.investigation_id.in_(inv_ids))
-            .distinct()
+            .all()
+        )
+
+    def get_accessible_by_sketch_id(self, user_id: UUID, sketch_id: UUID) -> List[Scan]:
+        inv_ids = self._get_accessible_investigation_ids(user_id)
+        if not inv_ids:
+            return []
+
+        return (
+            self._db.query(Scan)
+            .join(Sketch, Sketch.id == Scan.sketch_id)
+            .filter(Sketch.investigation_id.in_(inv_ids), Sketch.id == sketch_id)
+            .all()
+        )
+
+    def get_accessible_by_status_and_sketch_id(
+        self, user_id: UUID, sketch_id: UUID, status: str
+    ) -> List[Scan]:
+        inv_ids = self._get_accessible_investigation_ids(user_id)
+        if not inv_ids:
+            return []
+
+        return (
+            self._db.query(Scan)
+            .join(Sketch, Sketch.id == Scan.sketch_id)
+            .filter(
+                Sketch.investigation_id.in_(inv_ids),
+                Sketch.id == sketch_id,
+                Scan.status == status,
+            )
             .all()
         )

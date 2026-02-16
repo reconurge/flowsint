@@ -1,28 +1,31 @@
-from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
-from sqlalchemy.orm import Session
+from uuid import UUID
 
-from flowsint_core.core.postgre_db import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
 from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
-    create_scan_service,
     NotFoundError,
     PermissionDeniedError,
+    create_scan_service,
 )
+from sqlalchemy.orm import Session
+
 from app.api.deps import get_current_user
 from app.api.schemas.scan import ScanRead
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[ScanRead])
+@router.get("/sketch/{id}", response_model=List[ScanRead])
 def get_scans(
-    db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
+    id: UUID,
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
 ):
-    """Get all scans accessible to the current user."""
+    """Get all scans accessible to the current user, linked to a sketch."""
     service = create_scan_service(db)
-    return service.get_accessible_scans(current_user.id)
+    return service.get_accessible_scans_by_sketch_id(current_user.id, id)
 
 
 @router.get("/{id}", response_model=ScanRead)

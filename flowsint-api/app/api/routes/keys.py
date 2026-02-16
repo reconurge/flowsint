@@ -1,17 +1,18 @@
-from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.services import (
+    DatabaseError,
+    NotFoundError,
+    create_key_service,
+)
 from sqlalchemy.orm import Session
 
-from flowsint_core.core.services import (
-    create_key_service,
-    NotFoundError,
-    DatabaseError,
-)
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Profile
 from app.api.deps import get_current_user
-from app.api.schemas.key import KeyRead, KeyCreate
+from app.api.schemas.key import KeyCreate, KeyExists, KeyRead
 
 router = APIRouter()
 
@@ -31,6 +32,23 @@ def get_keys(
         )
         for key in keys
     ]
+
+
+@router.get("/chat-key-exists", response_model=KeyExists)
+def chat_key_exists(
+    db: Session = Depends(get_db),
+    current_user: Profile = Depends(get_current_user),
+):
+    """
+    A simple util route to know if any ai chat key exists in the vault for this user
+    """
+    service = create_key_service(db)
+    try:
+        key_exists = service.chat_key_exist(current_user.id)
+        return KeyExists(exists=key_exists)
+    except NotFoundError as e:
+        print(e)
+        return KeyExists(exists=False)
 
 
 @router.get("/{id}", response_model=KeyRead)

@@ -21,7 +21,7 @@ origins = [
 ]
 
 
-app = FastAPI()
+app = FastAPI(ignore_trailing_slash=True)
 
 app.add_middleware(
     CORSMiddleware,

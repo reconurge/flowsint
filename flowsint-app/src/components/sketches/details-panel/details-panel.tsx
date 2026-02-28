@@ -385,7 +385,7 @@ const DetailsPanel = memo(() => {
                         </a>
                       ) : value && value.constructor === Object ? (
                         <PopoverProperty label={key} property={value} />
-                      ) : key === 'aliases' ? (
+                      ) : Array.isArray(value) ? (
                         <TagsInput
                           value={value || []}
                           onChange={(tags) => handlePropertyChange(key, tags)}

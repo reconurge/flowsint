@@ -51,7 +51,7 @@ function TagsInput({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-md py-2 text-sm",
+        "flex items-center gap-2 rounded-md text-sm",
         orientation === 'horizontal' 
           ? "flex-wrap items-center gap-2" 
           : "flex-col items-end gap-2",

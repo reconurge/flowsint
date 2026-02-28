@@ -19,13 +19,32 @@ Flowsint is still in early development and definetly needs the help of the commu
 
 Don't want to read ? Got it. Here's your install instructions:
 
-#### 1. Install pre-requisites
+### Quick Start (Recommended)
 
+#### 1. Install Docker
+- Install Docker for your platform
+
+#### 2. Download and run
+```bash
+# Download the standalone compose file
+wget https://raw.githubusercontent.com/reconurge/flowsint/main/docker-compose.standalone.yml
+docker compose -f docker-compose.standalone.yml up -d
+```
+
+That's it! No cloning, no building, no dependencies. Everything runs with pre-built images.
+
+**Access URLs:**
+- Frontend: http://localhost:5173
+- API: http://localhost:5001  
+- Neo4j UI: http://localhost:7474 (neo4j/flowsint123)
+
+### Development Setup
+
+#### 1. Install pre-requisites
 - Docker
 - Make
 
-#### 2. Run install command
-
+#### 2. Clone and build
 ```bash
 git clone https://github.com/reconurge/flowsint.git
 cd flowsint

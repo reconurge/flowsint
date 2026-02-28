@@ -69,7 +69,7 @@ class launchFlowPayload(BaseModel):
 router = APIRouter()
 
 
-@router.get("/", response_model=List[FlowRead])
+@router.get("", response_model=List[FlowRead])
 def get_flows(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),

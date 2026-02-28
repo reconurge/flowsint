@@ -27,7 +27,7 @@ class launchEnricherPayload(BaseModel):
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def get_enrichers(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),

@@ -8,14 +8,14 @@ into Neo4j-compatible primitive types, following the Single Responsibility Princ
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from flowsint_types import FlowsintType
-from pydantic import BaseModel
-
-# Callable that resolves a type name to a FlowsintType subclass (or None).
-TypeResolver = Callable[[str], Optional[Type[FlowsintType]]]
+from pydantic import BaseModel, ValidationError
 
 from flowsint_core.utils import flatten, unflatten
 
 from .types import GraphEdge, GraphNode, NodeMetadata
+
+# Callable that resolves a type name to a FlowsintType subclass (or None).
+TypeResolver = Callable[[str], Optional[Type[FlowsintType]]]
 
 
 class GraphSerializer:
@@ -62,13 +62,24 @@ class GraphSerializer:
         type_resolver: Optional[TypeResolver] = None,
     ) -> FlowsintType:
         if not type_resolver:
-            from flowsint_core.core.services.type_registry_service import local_type_resolver
+            from flowsint_core.core.services.type_registry_service import (
+                local_type_resolver,
+            )
+
             type_resolver = local_type_resolver
         DetectedType = type_resolver(nodeType)
         if not DetectedType:
             raise ValueError(f"Unknown type: {nodeType}")
         properties = GraphSerializer._clean_empty_values(entity)
-        return DetectedType(**properties)
+        try:
+            return DetectedType(**properties)
+        except ValidationError as e:
+            # if fields fail let's still return the object with problematic fields filtered
+            invalid_fields = {err["loc"][0] for err in e.errors()}
+            cleaned_props = {
+                k: v for k, v in properties.items() if k not in invalid_fields
+            }
+            return DetectedType(**cleaned_props)
 
     @staticmethod
     def graph_node_to_flowsint_type(node: GraphNode) -> FlowsintType:

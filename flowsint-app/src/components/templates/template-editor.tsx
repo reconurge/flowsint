@@ -20,6 +20,7 @@ import { YamlEditor } from './yaml-editor'
 import { AIChatPanel, type AIChatPanelHandle } from './ai-chat-panel'
 import { defaultTemplate, templateSchema, type TemplateData } from './template-schema'
 import { TemplateEditorHeader } from './template-editor-header'
+import { TemplateIOBar } from './template-io-bar'
 import { TemplateTestPanel, type TestResult } from './template-test-panel'
 import { templateService } from '@/api/template-service'
 
@@ -219,6 +220,23 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
     setValidationResult(validateTemplate(yaml))
   }, [])
 
+  const handleIOTypeChange = useCallback(
+    (field: 'input' | 'output', type: string) => {
+      try {
+        const parsed = parseYaml(content)
+        if (!parsed || typeof parsed !== 'object') return
+        if (!parsed[field]) parsed[field] = {}
+        parsed[field].type = type
+        const updated = stringifyYaml(parsed)
+        setContent(updated)
+        setValidationResult(validateTemplate(updated))
+      } catch {
+        // YAML is broken, can't update programmatically
+      }
+    },
+    [content]
+  )
+
   const handleTest = useCallback(async () => {
     if (!testInput.trim()) {
       toast.error('Please enter a test value')
@@ -334,6 +352,14 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
             </TabsList>
           </Tabs>
         </div>
+
+        {/* IO Type Bar */}
+        <TemplateIOBar
+          inputType={validationResult.data?.input?.type}
+          outputType={validationResult.data?.output?.type}
+          onInputTypeChange={(type) => handleIOTypeChange('input', type)}
+          onOutputTypeChange={(type) => handleIOTypeChange('output', type)}
+        />
 
         {/* Tab Content */}
         <div className="flex-1 min-h-0 overflow-hidden">

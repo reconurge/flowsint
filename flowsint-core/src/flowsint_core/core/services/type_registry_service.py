@@ -358,9 +358,27 @@ class TypeRegistryService(BaseService):
                 {"label": label, "value": label}
                 for label in self._get_enum_values(details)
             ]
+        elif self._is_string_list(details):
+            field["type"] = "list"
 
         field["required"] = self._is_required(details)
         return field
+
+    def _is_string_list(self, schema: dict) -> bool:
+        """Check if a field schema represents a List[str] type."""
+        any_of = schema.get("anyOf", [])
+        for entry in any_of:
+            if (
+                isinstance(entry, dict)
+                and entry.get("type") == "array"
+                and isinstance(entry.get("items"), dict)
+                and entry["items"].get("type") == "string"
+            ):
+                return True
+        # Direct array (non-optional)
+        if schema.get("type") == "array" and isinstance(schema.get("items"), dict) and schema["items"].get("type") == "string":
+            return True
+        return False
 
     def _has_enum(self, schema: dict) -> bool:
         any_of = schema.get("anyOf", [])

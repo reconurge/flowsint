@@ -33,6 +33,7 @@ import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { TagsInput } from '@/components/ui/tags-input'
 
 // Types
 type FormData = {
@@ -259,7 +260,7 @@ const DetailsPanel = memo(() => {
     setHasChanges(true)
   }, [])
 
-  const handlePropertyChange = useCallback((key: string, value: string | boolean) => {
+  const handlePropertyChange = useCallback((key: string, value: string | string[] | boolean) => {
     setFormData((prev) => ({
       ...prev,
       nodeProperties: { ...prev.nodeProperties, [key]: value }
@@ -384,6 +385,12 @@ const DetailsPanel = memo(() => {
                         </a>
                       ) : value && value.constructor === Object ? (
                         <PopoverProperty label={key} property={value} />
+                      ) : key === 'aliases' ? (
+                        <TagsInput
+                          value={value || []}
+                          onChange={(tags) => handlePropertyChange(key, tags)}
+                          orientation='vertical'
+                        />
                       ) : (
                         <input
                           type="text"

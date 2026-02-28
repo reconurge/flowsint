@@ -17,7 +17,7 @@ interface TagsInputProps extends React.HTMLAttributes<HTMLDivElement> {
 function TagsInput({
   value,
   onChange,
-  placeholder = "Input new tag...",
+  placeholder = "Input new...",
   disabled = false,
   orientation = 'vertical',
   className,
@@ -44,10 +44,14 @@ function TagsInput({
     onChange(value.filter((tag) => tag !== tagToRemove));
   };
 
+  const getPlaceholder = (): string => {
+    return value.length === 0 ? "Empty" : placeholder;
+  };
+
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        "flex items-center gap-2 rounded-md py-2 text-sm",
         orientation === 'horizontal' 
           ? "flex-wrap items-center gap-2" 
           : "flex-col items-end gap-2",
@@ -72,18 +76,14 @@ function TagsInput({
           </Button>
         </Badge>
       ))}
-      <Input
+      <input
         type="text"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={addTag}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={cn(
-          "flex-1 border-0 bg-transparent p-0 text-sm outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
-          "text-center"
-        )}
+        placeholder={getPlaceholder()}
+        className="w-28 text-right text-[12px] bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors truncate"
       />
     </div>
   );

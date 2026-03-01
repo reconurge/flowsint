@@ -1,4 +1,4 @@
-export type FieldType = "text" | "date" | "email" | "number" | "select" | "textarea" | "hidden" | "tel" | "url" | "metadata"
+export type FieldType = "text" | "date" | "email" | "number" | "select" | "textarea" | "hidden" | "tel" | "url" | "metadata" | "list"
 
 export interface SelectOption {
     label: string

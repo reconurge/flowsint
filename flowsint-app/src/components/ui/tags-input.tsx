@@ -12,15 +12,18 @@ interface TagsInputProps extends React.HTMLAttributes<HTMLDivElement> {
   placeholder?: string;
   disabled?: boolean;
   orientation: 'vertical' | 'horizontal';
+  variant: 'full' | 'compact'
 }
 
 function TagsInput({
+  id,
   value,
   onChange,
-  placeholder = "Input new...",
+  placeholder,
   disabled = false,
   orientation = 'vertical',
   className,
+  variant = 'compact',
   ...props
 }: TagsInputProps) {
   const [inputValue, setInputValue] = React.useState("");
@@ -42,10 +45,6 @@ function TagsInput({
 
   const removeTag = (tagToRemove: string) => {
     onChange(value.filter((tag) => tag !== tagToRemove));
-  };
-
-  const getPlaceholder = (): string => {
-    return value.length === 0 ? "Empty" : placeholder;
   };
 
   return (
@@ -76,15 +75,28 @@ function TagsInput({
           </Button>
         </Badge>
       ))}
-      <input
+      {variant === 'compact' ? (
+        <input
+        id={id}
         type="text"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={addTag}
-        placeholder={getPlaceholder()}
+        placeholder={placeholder}
         className="w-28 text-right text-[12px] bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors truncate"
-      />
+      />) : (
+        <Input
+          id={id}
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={addTag}
+          placeholder={placeholder}
+        />
+      )}
+      
     </div>
   );
 }

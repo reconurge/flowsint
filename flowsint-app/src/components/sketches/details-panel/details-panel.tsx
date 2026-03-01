@@ -390,6 +390,7 @@ const DetailsPanel = memo(() => {
                           value={value || []}
                           onChange={(tags) => handlePropertyChange(key, tags)}
                           orientation='vertical'
+                          placeholder={value.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
                         />
                       ) : (
                         <input

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { TagsInput } from '@/components/ui/tags-input'
 import {
   Select,
   SelectContent,
@@ -120,6 +121,11 @@ export function DynamicForm({
                 })
               : z.record(z.string(), z.string()).optional()
             break
+          case 'list':
+            schemaMap[field.name] = field.required
+              ? z.array(z.string()).min(1, { message: `${field.label} is required` })
+              : z.array(z.string()).optional().default([])
+            break
           default:
             schemaMap[field.name] = field.required
               ? z.string().min(1, { message: `${field.label} is required` })
@@ -167,6 +173,8 @@ export function DynamicForm({
         defaults[field.name] = ''
       } else if (field.type === 'metadata') {
         defaults[field.name] = {}
+      } else if (field.type === 'list') {
+        defaults[field.name] = []
       } else {
         defaults[field.name] = ''
       }
@@ -237,6 +245,36 @@ export function DynamicForm({
               placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
               className={errors[field.name] ? 'border-destructive' : ''}
               {...register(field.name)}
+            />
+            {errors[field.name] && (
+              <p className="text-xs text-destructive">{String(errors[field.name]?.message)}</p>
+            )}
+          </div>
+        )
+
+      case 'list':
+        return (
+          <div className="space-y-2" key={field.name}>
+            <div className="flex items-center">
+              <Label htmlFor={field.name} className="text-sm font-medium">
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </Label>
+              {FieldDescription}
+            </div>
+            <Controller
+              control={control}
+              name={field.name}
+              defaultValue={Array.isArray(initialData?.[field.name]) ? initialData?.[field.name] : []}
+              render={({ field: { onChange, value, ref } }) => (
+                <TagsInput
+                  value={Array.isArray(value) ? value : []}
+                  onChange={(tags) => onChange(tags)}
+                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                  orientation="vertical"
+                  variant='full'
+                />
+              )}
             />
             {errors[field.name] && (
               <p className="text-xs text-destructive">{String(errors[field.name]?.message)}</p>

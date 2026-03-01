@@ -33,6 +33,7 @@ import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { TagsInput } from '@/components/ui/tags-input'
 
 // Types
 type FormData = {
@@ -259,7 +260,7 @@ const DetailsPanel = memo(() => {
     setHasChanges(true)
   }, [])
 
-  const handlePropertyChange = useCallback((key: string, value: string | boolean) => {
+  const handlePropertyChange = useCallback((key: string, value: string | string[] | boolean) => {
     setFormData((prev) => ({
       ...prev,
       nodeProperties: { ...prev.nodeProperties, [key]: value }
@@ -273,6 +274,15 @@ const DetailsPanel = memo(() => {
     },
     [handleChange]
   )
+
+  const copyField = (value: any): string | undefined => {
+    if (typeof value === 'string') 
+      return value
+    else if (Array.isArray(value) && value.length > 0)
+      return value.join(',')
+    else 
+      return undefined
+  }
 
   // Empty state
   if (!node) {
@@ -362,7 +372,7 @@ const DetailsPanel = memo(() => {
                     <RowWithCopy
                       key={key}
                       label={key}
-                      copyValue={typeof value === 'string' ? value : undefined}
+                      copyValue={copyField(value)}
                     >
                       {typeof value === 'boolean' ? (
                         <Switch
@@ -384,6 +394,13 @@ const DetailsPanel = memo(() => {
                         </a>
                       ) : value && value.constructor === Object ? (
                         <PopoverProperty label={key} property={value} />
+                      ) : Array.isArray(value) ? (
+                        <TagsInput
+                          value={value || []}
+                          onChange={(tags) => handlePropertyChange(key, tags)}
+                          orientation='vertical'
+                          placeholder={value.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                        />
                       ) : (
                         <input
                           type="text"

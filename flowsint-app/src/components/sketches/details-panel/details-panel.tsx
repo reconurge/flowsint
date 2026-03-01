@@ -389,7 +389,7 @@ const DetailsPanel = memo(() => {
                         <TagsInput
                           value={value || []}
                           onChange={(tags) => handlePropertyChange(key, tags)}
-                          orientation='horizontal'
+                          orientation='vertical'
                         />
                       ) : (
                         <input

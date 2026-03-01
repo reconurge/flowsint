@@ -275,6 +275,15 @@ const DetailsPanel = memo(() => {
     [handleChange]
   )
 
+  const copyField = (value: any): string | undefined => {
+    if (typeof value === 'string') 
+      return value
+    else if (Array.isArray(value) && value.length > 0)
+      return value.join(',')
+    else 
+      return undefined
+  }
+
   // Empty state
   if (!node) {
     return (
@@ -363,7 +372,7 @@ const DetailsPanel = memo(() => {
                     <RowWithCopy
                       key={key}
                       label={key}
-                      copyValue={typeof value === 'string' ? value : undefined}
+                      copyValue={copyField(value)}
                     >
                       {typeof value === 'boolean' ? (
                         <Switch

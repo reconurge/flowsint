@@ -3,22 +3,21 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { cn } from '@/lib/utils'
 import { useGraphControls } from '@/stores/graph-controls-store'
-import { useGraphSaveStatus } from '@/stores/graph-save-status-store'
 import { useGraphStore } from '@/stores/graph-store'
 import {
   FunnelPlus,
   GitFork,
   GitPullRequestArrow,
-  LassoSelect,
   Maximize,
   Merge,
   Minus,
   RotateCw,
   ZoomIn,
-  ChevronDown,
-  SquareDashed,
   Focus,
-  Download
+  Download,
+  LassoSelect,
+  ChevronDown,
+  SquareDashed
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -70,7 +69,7 @@ export const ToolbarButton = memo(function ToolbarButton({
               'h-7 relative items-center shadow-none',
               !showLabel && 'w-7',
               toggled &&
-              'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
             )}
           >
             {icon} {showLabel && <span className="hidden md:block">{tooltip}</span>}
@@ -86,6 +85,24 @@ export const ToolbarButton = memo(function ToolbarButton({
     </Tooltip>
   )
 })
+
+const FloatingBar = ({
+  children,
+  className
+}: {
+  children: React.ReactNode
+  className?: string
+}) => (
+  <div
+    className={cn(
+      'absolute z-50 flex items-center gap-0.5 rounded-lg border bg-card p-1',
+      className
+    )}
+  >
+    {children}
+  </div>
+)
+
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
   const { confirm } = useConfirm()
   const { id: sketchId } = useParams({ strict: false })
@@ -105,7 +122,6 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const setOpenAddRelationDialog = useGraphStore((state) => state.setOpenAddRelationDialog)
   const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
   const filters = useGraphStore((s) => s.filters)
-  const saveStatus = useGraphSaveStatus((s) => s.saveStatus)
 
   useKeyboard(
     's',
@@ -188,7 +204,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
       if (!sketchId) return
       try {
         if (format === 'png') {
-          await exportToPNG("null", "null")
+          await exportToPNG('null', 'null')
         } else {
           await sketchService.exportSketch(sketchId, format)
         }
@@ -204,34 +220,16 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
 
   const areExactlyTwoSelected = selectedNodes.length === 2
   const areMergeable =
-    selectedNodes.length > 1 &&
-    selectedNodes.every((n) => n.nodeType === selectedNodes[0].nodeType)
+    selectedNodes.length > 1 && selectedNodes.every((n) => n.nodeType === selectedNodes[0].nodeType)
   const hasFilters = !(
     filters.types.every((t) => t.checked) || filters.types.every((t) => !t.checked)
   )
 
   return (
-    <div className="flex justify-between h-10 z-50 items-center gap-6 overflow-x-auto overflow-y-hidden hide-scrollbar w-full border-b bg-card p-1 px-2">
-      <div className="flex h-full items-center gap-2">
-        <div className="flex gap-1">
-          <ToolbarButton
-            icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
-            tooltip="Connect"
-            onClick={handleOpenAddRelationDialog}
-            disabled={!areExactlyTwoSelected}
-            badge={areExactlyTwoSelected ? 2 : null}
-          />
-          <ToolbarButton
-            icon={<Merge className="h-4 w-4 opacity-70" />}
-            tooltip="Merge"
-            onClick={handleOpenMergeDialog}
-            disabled={!areMergeable}
-            badge={areMergeable ? selectedNodes.length : null}
-          />
-          <PathFinder />
-        </div>
-        <Separator decorative orientation="vertical" />
-        <div className="flex gap-1">
+    <>
+      {/* Bottom-left: Zoom controls */}
+      {(view === 'graph' || view === 'map') && (
+        <FloatingBar className="bottom-3 left-3">
           <ToolbarButton
             icon={<ZoomIn className="h-4 w-4 opacity-70" />}
             tooltip="Zoom In"
@@ -256,32 +254,35 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             onClick={zoomToSelection}
             disabled={view !== 'graph' || isSelectorModeActive || selectedNodes.length < 2}
           />
-        </div>
-        <Separator decorative orientation="vertical" />
-        <div className="flex gap-0.5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggleSelector}
-                disabled={view !== 'graph'}
-                className={cn(
-                  'h-7 w-7 rounded relative items-center shadow-none',
-                  isSelectorModeActive &&
-                  'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
-                )}
-              >
-                {selectionMode === 'lasso' ? (
-                  <LassoSelect className="h-4 w-4 opacity-70" />
-                ) : (
-                  <SquareDashed className="h-4 w-4 opacity-70" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Select (hold S)</TooltipContent>
-          </Tooltip>
-          <div>
+        </FloatingBar>
+      )}
+
+      {/* Left middle: Selection, Actions & Layout */}
+      {view === 'graph' && (
+        <FloatingBar className="left-3 top-1/2 -translate-y-1/2 flex-col">
+          <div className="flex flex-col items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleSelector}
+                  disabled={view !== 'graph'}
+                  className={cn(
+                    'h-7 w-7 rounded relative items-center shadow-none',
+                    isSelectorModeActive &&
+                      'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                  )}
+                >
+                  {selectionMode === 'lasso' ? (
+                    <LassoSelect className="h-4 w-4 opacity-70" />
+                  ) : (
+                    <SquareDashed className="h-4 w-4 opacity-70" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Select (hold S)</TooltipContent>
+            </Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div>
@@ -292,9 +293,9 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
                         size="icon"
                         disabled={view !== 'graph'}
                         className={cn(
-                          'h-7 w-5 px-0 rounded relative items-center shadow-none',
+                          'h-3! w-5 px-0 rounded relative items-center shadow-none',
                           isSelectorModeActive &&
-                          'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
+                            'bg-primary/30 border-primary/40 text-primary hover:bg-primary/40 hover:text-primary'
                         )}
                       >
                         <ChevronDown className="h-3 w-3 opacity-50" />
@@ -322,41 +323,54 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-        <Separator orientation="vertical" />
-        <div>
-          <Filters>
-            <ToolbarButton
-              disabled={isLoading}
-              icon={<FunnelPlus className={cn('h-4 w-4 opacity-70')} />}
-              tooltip="Filters"
-              showLabel
-              toggled={hasFilters}
-            />
-          </Filters>
-        </div>
-        <Separator orientation="vertical" />
-        <div className="flex items-center gap-1">
-          <>
-            <ToolbarButton
-              icon={<NetworkIcon className="h-4 w-4 opacity-70" />}
-              tooltip={'Force layout'}
-              onClick={handleApplyForceLayout}
-              disabled={isLoading || view !== 'graph'}
-            />
-            <ToolbarButton
-              icon={<GitFork strokeWidth={1.4} className="h-4 w-4 opacity-70 rotate-180" />}
-              tooltip={'Hierarchy layout'}
-              onClick={handleApplyHierarchyLayout}
-              disabled={isLoading || view !== 'graph'}
-            />
-          </>
-        </div>
-        <Separator decorative orientation="vertical" />
-        {/* Center: View Toggle Group */}
+          <Separator className="w-full" />
+          <ToolbarButton
+            icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
+            tooltip="Connect"
+            onClick={handleOpenAddRelationDialog}
+            disabled={!areExactlyTwoSelected}
+            badge={areExactlyTwoSelected ? 2 : null}
+          />
+          <ToolbarButton
+            icon={<Merge className="h-4 w-4 opacity-70" />}
+            tooltip="Merge"
+            onClick={handleOpenMergeDialog}
+            disabled={!areMergeable}
+            badge={areMergeable ? selectedNodes.length : null}
+          />
+          <PathFinder />
+          <Separator className="w-full" />
+          <ToolbarButton
+            icon={<NetworkIcon className="h-4 w-4 opacity-70" />}
+            tooltip="Force layout"
+            onClick={handleApplyForceLayout}
+            disabled={isLoading || view !== 'graph'}
+          />
+          <ToolbarButton
+            icon={<GitFork strokeWidth={1.4} className="h-4 w-4 opacity-70 rotate-180" />}
+            tooltip="Hierarchy layout"
+            onClick={handleApplyHierarchyLayout}
+            disabled={isLoading || view !== 'graph'}
+          />
+        </FloatingBar>
+      )}
+
+      <FloatingBar className="top-3 left-1/2 -translate-x-1/2">
         <ViewToggle view={view} setView={setView} />
-      </div>
-      <div className="flex item-center gap-2">
+        <Separator orientation="vertical" className="h-5" />
+        <Filters>
+          <ToolbarButton
+            disabled={isLoading}
+            icon={<FunnelPlus className={cn('h-4 w-4 opacity-70')} />}
+            tooltip="Filters"
+            toggled={hasFilters}
+          />
+        </Filters>
+      </FloatingBar>
+
+      {/* Top right: Status, Export, Reload */}
+      <FloatingBar className="top-3 right-3">
+        <SaveStatusIndicator />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div>
@@ -386,8 +400,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
           icon={<RotateCw className={cn('h-4 w-4 opacity-70', isLoading && 'animate-spin')} />}
           tooltip="Refresh"
         />
-        <SaveStatusIndicator />
-      </div>
-    </div>
+      </FloatingBar>
+    </>
   )
 })

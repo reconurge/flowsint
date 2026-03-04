@@ -8,16 +8,21 @@ import {
   PopoverTitle,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { memo, useState, useEffect, useCallback } from 'react'
+import { memo, useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { CopyButton } from '@/components/copy'
-import { X, Loader2, Rocket, Link2, MousePointer, ArrowDownLeft } from 'lucide-react'
+import {
+  Rocket,
+  Link2,
+  MousePointer,
+  ArrowDownLeft,
+  ChevronDown,
+  ChevronRight as ChevronRightIcon
+} from 'lucide-react'
 import LaunchFlow from '../launch-enricher'
 import NodeActions from '../graph/node/actions/node-actions'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
 import { useParams } from '@tanstack/react-router'
 import { useGraphStore } from '@/stores/graph-store'
-import DOMPurify from 'dompurify'
 import { useIcon } from '@/hooks/use-icon'
 import { Switch } from '@/components/ui/switch'
 import type { GraphNode, NodeProperties, NodeMetadata, NodeShape } from '@/types'
@@ -26,15 +31,18 @@ import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
 import IconPicker from '@/components/shared/icon-picker'
-import { ResizableDetailsPanel, Row } from './resizable-details-panels'
 import Relationships from './relationships'
 import NeighborsGraph from './neighbors'
 import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { MinimalTiptapEditor } from '@/components/analyses/editor/minimal-tiptap'
+import type { Content } from '@tiptap/react'
 
-// Types
+// ── Types ──────────────────────────────────────────────────────────────────────
+
 type FormData = {
   nodeLabel: string
   nodeColor: string | null
@@ -48,7 +56,8 @@ type FormData = {
   notes: string
 }
 
-// Constants
+// ── Constants ─────────────────────────────────────────────────────────────────
+
 const COLORS = [
   { name: 'default', value: null },
   { name: 'red', value: '#ef4444' },
@@ -66,58 +75,20 @@ const NODE_SHAPES = {
   hexagon: Hexagon,
   triangle: Triangle
 } satisfies Record<NodeShape, React.ComponentType<{ size?: number; className?: string }>>
-// Extended Row Component with copy support
-const RowWithCopy = memo(
-  ({
-    label,
-    copyValue,
-    children
-  }: {
-    label: string
-    copyValue?: string
-    children: React.ReactNode
-  }) => (
-    <div className="flex items-center justify-between py-1.5 group hover:bg-muted/20 -mx-2 px-2 rounded-sm transition-colors">
-      <span className="text-[13px] text-muted-foreground">{label.replace(/_/g, ' ')}</span>
-      <div className="text-[13px] text-foreground flex items-center gap-1">
-        {copyValue && (
-          <CopyButton
-            content={copyValue}
-            className="h-4 w-4 opacity-0 group-hover:opacity-60 transition-opacity"
-          />
-        )}
-        {children}
-      </div>
-    </div>
-  )
-)
-RowWithCopy.displayName = 'RowWithCopy'
 
-// Status Code Badge
-const StatusCodeBadge = memo(({ statusCode }: { statusCode: number }) => {
-  const category = Math.floor(statusCode / 100)
-  const colors: Record<number, string> = {
-    1: 'text-blue-600',
-    2: 'text-green-600',
-    3: 'text-purple-600',
-    4: 'text-orange-600',
-    5: 'text-red-600'
-  }
-  return <span className={cn('font-medium', colors[category])}>{statusCode}</span>
-})
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Helpers
-const formatValue = (value: any): string => {
+const formatValue = (value: unknown): string => {
   if (value === null || value === undefined) return '—'
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
 }
 
-const formatDate = (value: any): string => {
+const formatDate = (value: unknown): string => {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleDateString('en-US', {
+    return new Date(value as string).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -129,7 +100,166 @@ const formatDate = (value: any): string => {
   }
 }
 
-// Main Component
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function TitleInput({
+  value,
+  onChange
+}: {
+  value: string
+  onChange: (val: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus()
+  }, [editing])
+
+  const commit = useCallback(() => {
+    setEditing(false)
+    if (draft !== value) onChange(draft)
+  }, [draft, value, onChange])
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        className="min-w-0 flex-1 text-left"
+      >
+        <span className="block truncate text-2xl font-bold">
+          {value || <span className="text-muted-foreground/40">Untitled</span>}
+        </span>
+      </button>
+    )
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/40"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit()
+        if (e.key === 'Escape') {
+          setDraft(value)
+          setEditing(false)
+        }
+      }}
+      placeholder="Untitled"
+    />
+  )
+}
+
+function CollapsibleSection({
+  label,
+  defaultOpen = true,
+  noBorderTop = false,
+  children
+}: {
+  label: string
+  defaultOpen?: boolean
+  noBorderTop?: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className={cn(!noBorderTop && 'border-t')}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 px-6 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+      >
+        {open ? (
+          <ChevronDown className="size-3.5" />
+        ) : (
+          <ChevronRightIcon className="size-3.5" />
+        )}
+        {label}
+      </button>
+      {open && children}
+    </div>
+  )
+}
+
+function PropertyRow({
+  label,
+  copyValue,
+  children
+}: {
+  label: string
+  copyValue?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-[40%_1fr] items-center gap-2 px-6 py-1.5 group hover:bg-muted/50 transition-colors">
+      <span className="text-sm text-muted-foreground truncate">{label.replace(/_/g, ' ')}</span>
+      <div className="min-w-0 text-sm flex items-center gap-1.5">
+        <div className="min-w-0 flex-1">{children}</div>
+        {copyValue && (
+          <CopyButton
+            content={copyValue}
+            className="size-3 shrink-0 opacity-0 group-hover:opacity-60 transition-opacity"
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PropertyInput({
+  value,
+  placeholder,
+  onBlur
+}: {
+  value: string
+  placeholder?: string
+  onBlur: (val: string) => void
+}) {
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
+
+  return (
+    <input
+      type="text"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => onBlur(draft)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onBlur(draft)
+      }}
+      className="w-full bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors"
+      placeholder={placeholder ?? 'Empty'}
+    />
+  )
+}
+
+const StatusCodeBadge = memo(({ statusCode }: { statusCode: number }) => {
+  const category = Math.floor(statusCode / 100)
+  const colors: Record<number, string> = {
+    1: 'text-blue-600',
+    2: 'text-green-600',
+    3: 'text-purple-600',
+    4: 'text-orange-600',
+    5: 'text-red-600'
+  }
+  return <span className={cn('font-medium', colors[category])}>{statusCode}</span>
+})
+StatusCodeBadge.displayName = 'StatusCodeBadge'
+
+// ── Main Component ────────────────────────────────────────────────────────────
+
 const DetailsPanel = memo(() => {
   const { id: sketchId } = useParams({ strict: false })
   const nodesLength = useGraphStore((s) => s.nodesLength)
@@ -137,8 +267,6 @@ const DetailsPanel = memo(() => {
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const updateNode = useGraphStore((s) => s.updateNode)
   const [openIconPicker, setOpenIconPicker] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
 
   const [formData, setFormData] = useState<FormData>({
     nodeLabel: '',
@@ -154,17 +282,17 @@ const DetailsPanel = memo(() => {
   })
   const [nodeSize, setNodeSize] = useState<number>(0)
 
+  // Refs to always read latest values without stale closures
+  const formDataRef = useRef(formData)
+  const nodeSizeRef = useRef(nodeSize)
+
   const IconComponent = useIcon(node?.nodeType as string, {
     nodeColor: node?.nodeColor,
     nodeIcon: node?.nodeIcon,
     nodeImage: node?.nodeImage
   })
 
-  useEffect(() => {
-    nodeSize !== node?.nodeSize && setHasChanges(true)
-  }, [nodeSize])
-
-  // Sync form data when node changes
+  // Sync form when selected node changes
   useEffect(() => {
     if (node) {
       const {
@@ -176,9 +304,9 @@ const DetailsPanel = memo(() => {
         nodeShape,
         nodeMetadata,
         nodeProperties,
-        nodeSize
+        nodeSize: ns
       } = node
-      setFormData({
+      const fd: FormData = {
         nodeLabel: nodeLabel || '',
         nodeProperties: nodeProperties || {},
         nodeMetadata: nodeMetadata || {},
@@ -187,17 +315,18 @@ const DetailsPanel = memo(() => {
         nodeImage,
         nodeFlag,
         nodeShape,
-        nodeSize,
+        nodeSize: ns,
         notes: (nodeMetadata?.notes as string) || ''
-      })
-      setNodeSize(node.nodeSize ?? 0)
-      setHasChanges(false)
+      }
+      formDataRef.current = fd
+      setFormData(fd)
+      nodeSizeRef.current = ns ?? 0
+      setNodeSize(ns ?? 0)
     }
   }, [node])
 
   const queryClient = useQueryClient()
 
-  // Mutation
   const updateNodeMutation = useMutation({
     mutationFn: async ({
       sketchId,
@@ -205,76 +334,126 @@ const DetailsPanel = memo(() => {
     }: {
       sketchId: string
       body: { nodeId: string; updates: Partial<GraphNode> }
-    }) => {
-      return sketchService.updateNode(sketchId, JSON.stringify(body))
-    },
-    onSuccess: (result) => {
+    }) => sketchService.updateNode(sketchId, JSON.stringify(body)),
+    onSuccess: (result, variables) => {
       if (result.status === 'node updated' && node) {
-        const { notes, ...rest } = formData
-        const updates = { ...rest, nodeMetadata: { ...rest.nodeMetadata, notes }, nodeSize }
-        updateNode(node.id, updates as Partial<GraphNode>)
+        updateNode(node.id, variables.body.updates)
         if (sketchId) {
           queryClient.invalidateQueries({ queryKey: queryKeys.sketches.detail(sketchId) })
           queryClient.invalidateQueries({ queryKey: queryKeys.sketches.graph(sketchId, sketchId) })
         }
-        toast.success('Saved')
-        setHasChanges(false)
       } else {
         toast.error('Failed to update')
       }
     },
-    onError: (error) => {
-      console.log(error)
-      toast.error('Failed to save')
-    }
+    onError: () => toast.error('Failed to save')
   })
 
-  const handleSave = useCallback(async () => {
-    if (!node || !sketchId) return
-    setIsSaving(true)
-    try {
-      const { notes, ...rest } = formData
-      const updateData = {
-        nodeId: node.id,
-        updates: {
-          ...rest,
-          nodeType: node.nodeType,
-          nodeMetadata: { ...rest.nodeMetadata, notes }
-        } as Partial<GraphNode>
+  const saveState = useCallback(
+    (fd: FormData, ns: number) => {
+      if (!node || !sketchId) return
+      const { notes, ...rest } = fd
+      updateNodeMutation.mutate({
+        sketchId,
+        body: {
+          nodeId: node.id,
+          updates: {
+            ...rest,
+            nodeSize: ns,
+            nodeType: node.nodeType,
+            nodeMetadata: { ...rest.nodeMetadata, notes }
+          } as Partial<GraphNode>
+        }
+      })
+    },
+    [node, sketchId, updateNodeMutation]
+  )
+
+  // Debounced save (for notes and slider)
+  const pendingSaveRef = useRef<{ fd: FormData; ns: number } | null>(null)
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const scheduleSave = useCallback(
+    (fd: FormData, ns: number) => {
+      pendingSaveRef.current = { fd, ns }
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        if (pendingSaveRef.current) {
+          saveState(pendingSaveRef.current.fd, pendingSaveRef.current.ns)
+          pendingSaveRef.current = null
+        }
+      }, 800)
+    },
+    [saveState]
+  )
+
+  // Handlers — all use refs to avoid stale closures
+
+  const handleLabelCommit = useCallback(
+    (label: string) => {
+      const newFd = { ...formDataRef.current, nodeLabel: label }
+      formDataRef.current = newFd
+      setFormData(newFd)
+      saveState(newFd, nodeSizeRef.current)
+    },
+    [saveState]
+  )
+
+  const handleChange = useCallback(
+    <K extends keyof FormData>(key: K, value: FormData[K]) => {
+      const newFd = { ...formDataRef.current, [key]: value }
+      formDataRef.current = newFd
+      setFormData(newFd)
+      saveState(newFd, nodeSizeRef.current)
+    },
+    [saveState]
+  )
+
+  const handlePropertyBlur = useCallback(
+    (key: string, value: string | boolean) => {
+      const newFd = {
+        ...formDataRef.current,
+        nodeProperties: { ...formDataRef.current.nodeProperties, [key]: value }
       }
-      await updateNodeMutation.mutateAsync({ sketchId, body: updateData })
-    } catch (error) {
-      console.error('Error updating node:', error)
-    } finally {
-      setIsSaving(false)
-    }
-  }, [node, sketchId, formData, updateNodeMutation])
+      formDataRef.current = newFd
+      setFormData(newFd)
+      saveState(newFd, nodeSizeRef.current)
+    },
+    [saveState]
+  )
 
-  const handleClose = useCallback(() => {
-    setCurrentNodeId(null)
-  }, [setCurrentNodeId])
+  const handleSizeChange = useCallback(
+    (val: number) => {
+      nodeSizeRef.current = val
+      setNodeSize(val)
+      scheduleSave(formDataRef.current, val)
+    },
+    [scheduleSave]
+  )
 
-  const handleChange = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
-    setFormData((prev) => ({ ...prev, [key]: value }))
-    setHasChanges(true)
-  }, [])
-
-  const handlePropertyChange = useCallback((key: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      nodeProperties: { ...prev.nodeProperties, [key]: value }
-    }))
-    setHasChanges(true)
-  }, [])
+  const handleNotesChange = useCallback(
+    (val: Content) => {
+      const notes = val as string
+      const newFd = { ...formDataRef.current, notes }
+      formDataRef.current = newFd
+      setFormData(newFd)
+      scheduleSave(newFd, nodeSizeRef.current)
+    },
+    [scheduleSave]
+  )
 
   const handleIconSelect = useCallback(
     (_iconType: string, iconName: string | null) => {
-      handleChange('nodeIcon', iconName)
+      const newFd = { ...formDataRef.current, nodeIcon: iconName }
+      formDataRef.current = newFd
+      setFormData(newFd)
+      saveState(newFd, nodeSizeRef.current)
     },
-    [handleChange]
+    [saveState]
   )
 
-  // Empty state
+  // ── Empty state ─────────────────────────────────────────────────────────────
+
   if (!node) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
@@ -286,328 +465,241 @@ const DetailsPanel = memo(() => {
 
   const propertiesFields = Object.entries(formData.nodeProperties)
   const metadataFields = Object.entries(formData.nodeMetadata).filter(([key]) => key !== 'notes')
-  const description = node.nodeProperties?.description as string | undefined
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-card border-border">
-      {/* Header - Minimal */}
-      <div className="h-10 border-b flex w-full items-center justify-between">
-        <div className="px-4 flex items-center w-full justify-between gap-3">
-          <div className="flex items-start gap-2.5 flex-1 min-w-0">
-            <button
-              onClick={() => setOpenIconPicker(true)}
-              className="shrink-0 hover:opacity-70 transition-opacity"
-            >
-              <IconComponent size={18} />
-            </button>
-
-            <div className="flex-1 min-w-0">
-              <input
-                type="text"
-                value={formData.nodeLabel}
-                onChange={(e) => handleChange('nodeLabel', e.target.value)}
-                className="w-full text-md font-medium bg-transparent outline-none placeholder:text-muted-foreground/40 focus:bg-muted/20 -ml-1 px-1 rounded transition-colors"
-                placeholder="Untitled"
-              />
-              {/*<span className="text-[11px] text-muted-foreground/60 ml-0.5">{node.nodeType}</span>*/}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-0.5 shrink-0">
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <LaunchFlow values={[node.id]} type={node.nodeType}>
-                      <Button className="rounded-full h-7" size={'sm'}>
-                        Enrich <Rocket className="h-4 w-4 opacity-70" strokeWidth={1.7} />
-                      </Button>
-                    </LaunchFlow>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="text-xs">Enrich</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+    <div className="flex flex-col h-full overflow-hidden bg-background">
+      {/* Hero */}
+      <div className="px-6 pt-5 pb-4 space-y-3 shrink-0">
+        <div className="flex items-start gap-3">
+          <button
+            onClick={() => setOpenIconPicker(true)}
+            className="shrink-0 mt-1.5 hover:opacity-70 transition-opacity"
+          >
+            <IconComponent size={24} />
+          </button>
+          <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} />
+          <div className="shrink-0 mt-0.5">
             <NodeActions node={node} />
           </div>
         </div>
+        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+          {node.nodeType}
+        </span>
       </div>
 
-      {/* Description */}
-      {description && (
-        <div className="py-2 px-4 border-b border-border/50 shrink-0">
-          <div
-            className="text-[13px] text-muted-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description) }}
-          />
-        </div>
-      )}
+      {/* Enrich CTA */}
+      <div className="px-6 pb-4 shrink-0">
+        <LaunchFlow values={[node.id]} type={node.nodeType}>
+          <Button className="rounded-full h-8 gap-1.5 px-4 text-sm" size="sm">
+            <Rocket className="size-3.5" strokeWidth={1.7} />
+            Enrich
+          </Button>
+        </LaunchFlow>
+      </div>
 
-      {/* Content - Resizable Panels */}
-      <ResizableDetailsPanel
-        className="flex-1 min-h-0"
-        sections={[
-          {
-            id: 'properties',
-            label: 'Properties',
-            defaultOpen: true,
-            defaultSize: 25,
-            minSize: 10,
-            content: (
-              <div className="p-3">
-                {propertiesFields.length > 0 ? (
-                  propertiesFields.map(([key, value]) => (
-                    <RowWithCopy
-                      key={key}
-                      label={key}
-                      copyValue={typeof value === 'string' ? value : undefined}
-                    >
-                      {typeof value === 'boolean' ? (
-                        <Switch
-                          checked={value}
-                          onCheckedChange={(checked) => handlePropertyChange(key, checked)}
-                          className="scale-75"
-                        />
-                      ) : typeof value === 'number' ? (
-                        <StatusCodeBadge statusCode={value} />
-                      ) : typeof value === 'string' && value.startsWith('https://') ? (
-                        <a
-                          href={value}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-[12px] transition-colors"
-                        >
-                          <Link2 className="h-3 w-3" />
-                          <span className="truncate max-w-[100px]">{new URL(value).hostname}</span>
-                        </a>
-                      ) : value && value.constructor === Object ? (
-                        <PopoverProperty label={key} property={value} />
-                      ) : (
-                        <input
-                          type="text"
-                          value={String(value || '')}
-                          onChange={(e) => handlePropertyChange(key, e.target.value)}
-                          className="w-28 text-right text-[12px] bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors truncate"
-                          placeholder="Empty"
-                        />
-                      )}
-                    </RowWithCopy>
-                  ))
-                ) : (
-                  <p className="text-[12px] text-muted-foreground/40 py-1">No properties</p>
-                )}
-              </div>
-            )
-          },
-          {
-            id: 'neighbors',
-            label: 'Neighbors',
-            defaultOpen: true,
-            defaultSize: 40,
-            minSize: 25,
-            content: (
-              <div className="h-full overflow-hidden">
-                <NeighborsGraph
-                  sketchId={sketchId as string}
-                  currentNode={node}
-                  nodeLength={nodesLength}
-                />
-              </div>
-            )
-          },
-          {
-            id: 'relations',
-            label: 'Relations',
-            defaultOpen: true,
-            defaultSize: 20,
-            minSize: 15,
-            content: (
-              <div className="h-full p-3">
-                <Relationships
-                  sketchId={sketchId as string}
-                  nodeId={node.id}
-                  nodeLength={nodesLength}
-                />
-              </div>
-            )
-          },
-          {
-            id: 'appearance',
-            label: 'Appearance',
-            defaultOpen: false,
-            fixedSize: 12,
-            minSize: 10,
-            content: (
-              <div className="p-3">
-                <Row label={`Size (${nodeSize})`}>
-                  <div className="flex w-full items-center">
-                    <Slider
-                      value={[nodeSize]}
-                      onValueChange={([value]) => setNodeSize(value)}
-                      min={0}
-                      max={100}
-                      step={1}
-                      className="flex-1 grow"
+      {/* Tabs */}
+      <Tabs defaultValue="properties" className="flex-1 min-h-0 flex flex-col overflow-hidden gap-0">
+        <div className="px-3 pb-0 shrink-0 border-b">
+          <TabsList className="w-full h-9 bg-transparent rounded-none p-0 gap-0">
+            <TabsTrigger
+              value="properties"
+              className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
+            >
+              Properties
+            </TabsTrigger>
+            <TabsTrigger
+              value="neighbors"
+              className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
+            >
+              Neighbors
+            </TabsTrigger>
+            <TabsTrigger
+              value="relations"
+              className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
+            >
+              Relations
+            </TabsTrigger>
+            <TabsTrigger
+              value="appearance"
+              className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
+            >
+              Style
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Properties tab */}
+        <TabsContent value="properties" className="flex-1 min-h-0 overflow-y-auto mt-0 pb-6">
+          <CollapsibleSection label="Properties" defaultOpen noBorderTop>
+            {propertiesFields.length > 0 ? (
+              propertiesFields.map(([key, value]) => (
+                <PropertyRow
+                  key={key}
+                  label={key}
+                  copyValue={typeof value === 'string' ? value : undefined}
+                >
+                  {typeof value === 'boolean' ? (
+                    <Switch
+                      checked={value}
+                      onCheckedChange={(checked) => handlePropertyBlur(key, checked)}
+                      className="scale-75"
                     />
-                  </div>
-                </Row>
-                <Row label="Color">
-                  <div className="flex items-center gap-1">
-                    {COLORS.map((color) => (
-                      <button
-                        key={color.name}
-                        onClick={() => handleChange('nodeColor', color.value)}
-                        className={cn(
-                          'w-3 h-3 rounded-full transition-all',
-                          color.value ? '' : 'bg-muted-foreground/20',
-                          formData.nodeColor === color.value &&
-                            'ring-1 ring-offset-1 ring-offset-background ring-foreground/30'
-                        )}
-                        style={color.value ? { backgroundColor: color.value } : undefined}
-                      />
-                    ))}
-                  </div>
-                </Row>
-                <Row label="Icon">
-                  <button
-                    onClick={() => setOpenIconPicker(true)}
-                    className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {formData.nodeIcon || 'Default'}
-                  </button>
-                </Row>
-                <Row label="Shape">
-                  <div className="flex items-center gap-1">
-                    <ToggleGroup
-                      onValueChange={(value) => handleChange('nodeShape', value || null)}
-                      type="single"
-                      size="sm"
-                      defaultValue={node.nodeShape || 'circle'}
-                      variant="outline"
-                      className="shadow-none!"
+                  ) : typeof value === 'number' ? (
+                    <StatusCodeBadge statusCode={value} />
+                  ) : typeof value === 'string' && value.startsWith('https://') ? (
+                    <a
+                      href={value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                     >
-                      {(
-                        Object.entries(NODE_SHAPES) as [
-                          NodeShape,
-                          (typeof NODE_SHAPES)[NodeShape]
-                        ][]
-                      ).map(([shape, Icon]) => (
-                        <ToggleGroupItem value={shape} aria-label={shape}>
-                          <Icon size={14} />
-                        </ToggleGroupItem>
-                      ))}
-                    </ToggleGroup>
-                  </div>
-                </Row>
-                <Row label="Image">
-                  <input
-                    type="text"
-                    value={formData.nodeImage || ''}
-                    onChange={(e) => handleChange('nodeImage', e.target.value || null)}
-                    className="w-24 text-right text-[12px] bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors"
-                    placeholder="URL..."
-                  />
-                </Row>
-              </div>
-            )
-          },
-          {
-            id: 'metadata',
-            label: 'Metadata',
-            defaultOpen: false,
-            defaultSize: 20,
-            minSize: 10,
-            content: (
-              <div className="p-3">
-                {metadataFields.length > 0 ? (
-                  metadataFields.map(([key, value]) => (
-                    <RowWithCopy
-                      key={key}
-                      label={key}
-                      copyValue={typeof value === 'string' ? value : undefined}
-                    >
-                      {key.includes('_at') || key.includes('date')
-                        ? formatDate(value)
-                        : formatValue(value)}
-                    </RowWithCopy>
-                  ))
-                ) : (
-                  <p className="text-[12px] text-muted-foreground/40 py-1">No metadata</p>
-                )}
-              </div>
-            )
-          }
-          // {
-          //   id: 'notes',
-          //   label: 'Notes',
-          //   defaultOpen: false,
-          //   defaultSize: 15,
-          //   minSize: 10,
-          //   content: (
-          //     <textarea
-          //       value={formData.notes}
-          //       onChange={(e) => handleChange('notes', e.target.value)}
-          //       placeholder="Add notes..."
-          //       className="w-full h-full text-[13px] bg-transparent outline-none resize-none placeholder:text-muted-foreground/30 leading-relaxed"
-          //     />
-          //   )
-          // },
-        ]}
-      />
+                      <Link2 className="size-3 shrink-0" />
+                      <span className="truncate">{new URL(value).hostname}</span>
+                    </a>
+                  ) : value && typeof value === 'object' && value.constructor === Object ? (
+                    <PopoverProperty label={key} property={value as object} />
+                  ) : (
+                    <PropertyInput
+                      value={String(value || '')}
+                      onBlur={(val) => handlePropertyBlur(key, val)}
+                    />
+                  )}
+                </PropertyRow>
+              ))
+            ) : (
+              <p className="px-6 py-2 text-sm text-muted-foreground/40">No properties</p>
+            )}
+          </CollapsibleSection>
 
-      {/* Footer - Save bar */}
-      {hasChanges && (
-        <div className="px-4 py-2.5 border-t border-border">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground/60">Unsaved changes</span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (node) {
-                    const {
-                      nodeLabel,
-                      nodeImage,
-                      nodeIcon,
-                      nodeFlag,
-                      nodeColor,
-                      nodeMetadata,
-                      nodeShape,
-                      nodeSize,
-                      nodeProperties
-                    } = node
-                    setFormData({
-                      nodeLabel: nodeLabel || '',
-                      nodeProperties: nodeProperties || {},
-                      nodeMetadata: nodeMetadata || {},
-                      nodeColor,
-                      nodeIcon,
-                      nodeImage,
-                      nodeFlag,
-                      nodeShape,
-                      nodeSize,
-                      notes: (nodeMetadata?.notes as string) || ''
-                    })
-                    setHasChanges(false)
-                  }
-                }}
-                className="text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-              >
-                Discard
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="text-[11px] bg-foreground text-background px-2.5 py-1 rounded hover:opacity-80 transition-opacity flex items-center gap-1"
-              >
-                {isSaving && <Loader2 className="h-3 w-3 animate-spin" />}
-                {isSaving ? 'Saving' : 'Save'}
-              </button>
+          <CollapsibleSection label="Notes" defaultOpen>
+            <div className="min-h-[120px]">
+              <MinimalTiptapEditor
+                value={formData.notes}
+                onChange={handleNotesChange}
+                output="html"
+                placeholder="Write something..."
+                showToolbar={false}
+                editorContentClassName="px-6 py-3 !max-w-none prose-sm"
+                immediatelyRender={false}
+              />
             </div>
+          </CollapsibleSection>
+
+          {metadataFields.length > 0 && (
+            <CollapsibleSection label="Metadata" defaultOpen={false}>
+              {metadataFields.map(([key, value]) => (
+                <PropertyRow
+                  key={key}
+                  label={key}
+                  copyValue={typeof value === 'string' ? value : undefined}
+                >
+                  <span className="text-muted-foreground truncate">
+                    {key.includes('_at') || key.includes('date')
+                      ? formatDate(value)
+                      : formatValue(value)}
+                  </span>
+                </PropertyRow>
+              ))}
+            </CollapsibleSection>
+          )}
+        </TabsContent>
+
+        {/* Neighbors tab */}
+        <TabsContent value="neighbors" className="flex-1 min-h-0 overflow-hidden mt-0">
+          <NeighborsGraph
+            sketchId={sketchId as string}
+            currentNode={node}
+            nodeLength={nodesLength}
+          />
+        </TabsContent>
+
+        {/* Relations tab */}
+        <TabsContent value="relations" className="flex-1 min-h-0 overflow-y-auto mt-0 pb-6">
+          <div className="p-4">
+            <Relationships
+              sketchId={sketchId as string}
+              nodeId={node.id}
+              nodeLength={nodesLength}
+            />
           </div>
-        </div>
-      )}
+        </TabsContent>
+
+        {/* Appearance tab */}
+        <TabsContent value="appearance" className="flex-1 min-h-0 overflow-y-auto mt-0 pb-6">
+          <CollapsibleSection label="Visual" defaultOpen noBorderTop>
+            <PropertyRow label={`Size (${nodeSize})`}>
+              <Slider
+                value={[nodeSize]}
+                onValueChange={([val]) => handleSizeChange(val)}
+                min={0}
+                max={100}
+                step={1}
+              />
+            </PropertyRow>
+
+            <PropertyRow label="Color">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {COLORS.map((color) => (
+                  <button
+                    key={color.name}
+                    onClick={() => handleChange('nodeColor', color.value)}
+                    className={cn(
+                      'w-4 h-4 rounded-full transition-all',
+                      color.value ? '' : 'bg-muted-foreground/20',
+                      formData.nodeColor === color.value &&
+                        'ring-1 ring-offset-1 ring-offset-background ring-foreground/40'
+                    )}
+                    style={color.value ? { backgroundColor: color.value } : undefined}
+                  />
+                ))}
+              </div>
+            </PropertyRow>
+
+            <PropertyRow label="Shape">
+              <ToggleGroup
+                onValueChange={(value) => handleChange('nodeShape', value || null)}
+                type="single"
+                size="sm"
+                defaultValue={node.nodeShape || 'circle'}
+                variant="outline"
+                className="shadow-none!"
+              >
+                {(
+                  Object.entries(NODE_SHAPES) as [NodeShape, (typeof NODE_SHAPES)[NodeShape]][]
+                ).map(([shape, Icon]) => (
+                  <ToggleGroupItem key={shape} value={shape} aria-label={shape}>
+                    <Icon size={14} />
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </PropertyRow>
+
+            <PropertyRow label="Icon">
+              <button
+                onClick={() => setOpenIconPicker(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {formData.nodeIcon || 'Default'}
+              </button>
+            </PropertyRow>
+
+            <PropertyRow label="Image">
+              <PropertyInput
+                value={formData.nodeImage || ''}
+                placeholder="URL..."
+                onBlur={(val) => {
+                  const newFd = { ...formDataRef.current, nodeImage: val || null }
+                  formDataRef.current = newFd
+                  setFormData(newFd)
+                  saveState(newFd, nodeSizeRef.current)
+                }}
+              />
+            </PropertyRow>
+          </CollapsibleSection>
+        </TabsContent>
+      </Tabs>
 
       <IconPicker
         // @ts-ignore
@@ -619,6 +711,8 @@ const DetailsPanel = memo(() => {
     </div>
   )
 })
+
+DetailsPanel.displayName = 'DetailsPanel'
 
 export default DetailsPanel
 export { StatusCodeBadge }
@@ -636,7 +730,7 @@ export const PopoverProperty = ({ label, property }: { label: string; property: 
         <PopoverHeader>
           <PopoverTitle>{label}</PopoverTitle>
           {Object.entries(property).map(([key, value]) => (
-            <div>
+            <div key={key}>
               {key} : {JSON.stringify(value)}
             </div>
           ))}

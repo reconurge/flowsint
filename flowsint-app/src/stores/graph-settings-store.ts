@@ -43,6 +43,12 @@ const DEFAULT_SETTINGS = {
       value: false,
       description: 'Node style, filled by default.'
     },
+    dotStyle: {
+      name: 'Node style (dot/card)',
+      type: 'boolean',
+      value: true,
+      description: 'Node style, dot or card.'
+    },
     nodeSize: {
       name: 'Node Size',
       type: 'number',

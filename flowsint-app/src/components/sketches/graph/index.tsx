@@ -18,6 +18,7 @@ import {
 import { renderNode } from './node/node-renderer'
 import { useKeyboardEvents } from './hooks/use-keyboard-events'
 import { renderLink } from './edge/link-renderer'
+import { createRenderContext, RenderContext } from './utils/render-context'
 import { useHighlightState } from './hooks/use-highlight-state'
 import { useComputedHighlights } from './hooks/use-computed-highlights'
 import { useTooltip } from './hooks/use-tooltip'
@@ -368,8 +369,42 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     setImportModalOpen(true)
   }, [setImportModalOpen])
 
+  // Render context: created once per frame, shared across all node/link render calls.
+  // Invalidated when dependencies change or when the canvas transform changes between frames.
+  const rcRef = useRef<{ rc: RenderContext | null; depsVersion: number; frameKey: string }>({
+    rc: null,
+    depsVersion: 0,
+    frameKey: ''
+  })
+
+  // Increment version whenever render context deps change to force recreation
+  const rcDepsVersion = useMemo(() => {
+    rcRef.current.depsVersion++
+    return rcRef.current.depsVersion
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightNodes, highlightLinks, selectedEdges, theme])
+
+  const getOrCreateRC = useCallback(
+    (globalScale: number): RenderContext => {
+      const frameKey = `${globalScale}:${rcDepsVersion}`
+      if (rcRef.current.frameKey !== frameKey || !rcRef.current.rc) {
+        rcRef.current.rc = createRenderContext(
+          globalScale,
+          highlightNodes,
+          highlightLinks,
+          selectedEdges,
+          theme
+        )
+        rcRef.current.frameKey = frameKey
+      }
+      return rcRef.current.rc
+    },
+    [highlightNodes, highlightLinks, selectedEdges, theme, rcDepsVersion]
+  )
+
   const renderNodeCallback = useCallback(
     (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const rc = getOrCreateRC(globalScale)
       renderNode({
         node,
         ctx,
@@ -382,7 +417,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         theme,
         highlightNodes,
         highlightLinks,
-        hoverNode
+        hoverNode,
+        rc
       })
     },
     [
@@ -394,12 +430,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       theme,
       highlightNodes,
       highlightLinks,
-      hoverNode
+      hoverNode,
+      getOrCreateRC
     ]
   )
 
   const renderLinkCallback = useCallback(
     (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const rc = getOrCreateRC(globalScale)
       renderLink({
         link,
         ctx,
@@ -410,7 +448,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         highlightNodes,
         selectedEdges,
         currentEdge,
-        autoColorLinksByNodeType
+        autoColorLinksByNodeType,
+        rc
       })
     },
     [
@@ -420,7 +459,8 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
       highlightNodes,
       selectedEdges,
       currentEdge,
-      autoColorLinksByNodeType
+      autoColorLinksByNodeType,
+      getOrCreateRC
     ]
   )
 

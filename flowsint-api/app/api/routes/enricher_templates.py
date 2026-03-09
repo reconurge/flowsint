@@ -18,6 +18,8 @@ from flowsint_core.core.vault import Vault
 from flowsint_core.templates.types import Template
 from sqlalchemy.orm import Session
 
+from flowsint_types.registry import get_type as get_type_from_registry, load_all_types
+
 from app.api.deps import get_current_user
 from app.api.schemas.enricher_template import (
     EnricherTemplateCreate,
@@ -84,9 +86,39 @@ async def generate_template(
     current_user: Profile = Depends(get_current_user),
 ):
     """Generate an enricher template from a free-text description using AI."""
+    load_all_types()
+
+    input_schema = None
+    output_schema = None
+
+    if request.input_type:
+        input_cls = get_type_from_registry(request.input_type, case_sensitive=True)
+        if input_cls is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown input type: '{request.input_type}'",
+            )
+        input_schema = input_cls.model_json_schema()
+
+    if request.output_type:
+        output_cls = get_type_from_registry(request.output_type, case_sensitive=True)
+        if output_cls is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown output type: '{request.output_type}'",
+            )
+        output_schema = output_cls.model_json_schema()
+
     service = create_template_generator_service(db)
     try:
-        yaml_content = await service.generate(request.prompt, current_user.id)
+        yaml_content = await service.generate(
+            prompt=request.prompt,
+            owner_id=current_user.id,
+            input_type=request.input_type,
+            input_schema=input_schema,
+            output_type=request.output_type,
+            output_schema=output_schema,
+        )
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
     return EnricherTemplateGenerateResponse(yaml_content=yaml_content)

@@ -174,6 +174,12 @@ class EnricherTemplateGenerateRequest(BaseModel):
         max_length=16000,
         description="Free-text description of the desired enricher template",
     )
+    input_type: Optional[str] = Field(
+        None, description="Flowsint input type name (e.g. 'Ip', 'Domain')"
+    )
+    output_type: Optional[str] = Field(
+        None, description="Flowsint output type name (e.g. 'Ip', 'SocialAccount')"
+    )
 
 
 class EnricherTemplateGenerateResponse(BaseModel):

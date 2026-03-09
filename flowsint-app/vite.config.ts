@@ -49,6 +49,26 @@ export default defineConfig(({ mode }) => {
       open: false,
       host: '0.0.0.0',
       port: 5173
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-dom/client'],
+            'vendor-xyflow': ['@xyflow/react', '@xyflow/system'],
+            'vendor-pixi': ['pixi.js'],
+            'vendor-monaco': ['@monaco-editor/react'],
+            'vendor-tiptap': [
+              '@tiptap/react',
+              '@tiptap/starter-kit',
+              '@tiptap/core',
+            ],
+            'vendor-map': ['maplibre-gl'],
+            'vendor-charts': ['recharts', 'd3', 'd3-force'],
+            'vendor-motion': ['framer-motion'],
+          }
+        }
+      }
     }
   }
 })

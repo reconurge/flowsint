@@ -1,11 +1,4 @@
-import {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-  forwardRef,
-  useImperativeHandle
-} from 'react'
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
 import {
   Sparkles,
   ArrowUp,
@@ -27,10 +20,6 @@ import { MemoizedMarkdown } from '@/components/chat/memoized-markdown'
 import { templateService } from '@/api/template-service'
 import { cn } from '@/lib/utils'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
@@ -42,6 +31,8 @@ interface ChatMessage {
 interface AIChatPanelProps {
   onApplyYaml: (yaml: string) => void
   currentYaml: string
+  inputType: string
+  outputType: string
 }
 
 export interface AIChatPanelHandle {
@@ -49,22 +40,13 @@ export interface AIChatPanelHandle {
   sendMessage: (prompt: string) => void
 }
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const SUGGESTED_PROMPTS = [
   { label: 'Generate a basic enricher', icon: Wand2 },
-  { label: 'Add an HTTP source', icon: Globe },
-  { label: 'Improve performance', icon: Zap }
+  { label: 'Add an HTTP source', icon: Globe }
 ]
 
-// ---------------------------------------------------------------------------
-// Main Component
-// ---------------------------------------------------------------------------
-
 export const AIChatPanel = forwardRef<AIChatPanelHandle, AIChatPanelProps>(
-  ({ onApplyYaml, currentYaml }, ref) => {
+  ({ onApplyYaml, currentYaml, inputType, outputType }, ref) => {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -92,7 +74,7 @@ export const AIChatPanel = forwardRef<AIChatPanelHandle, AIChatPanelProps>(
             ? `Current YAML template:\n\`\`\`yaml\n${currentYaml}\n\`\`\`\n\nUser request: ${text}`
             : text
 
-          const response = await templateService.generate(contextPrompt)
+          const response = await templateService.generate(contextPrompt, inputType, outputType)
 
           const assistantMessage: ChatMessage = {
             id: crypto.randomUUID(),
@@ -115,7 +97,7 @@ export const AIChatPanel = forwardRef<AIChatPanelHandle, AIChatPanelProps>(
           setIsLoading(false)
         }
       },
-      [input, isLoading, currentYaml]
+      [input, isLoading, currentYaml, inputType, outputType]
     )
 
     useImperativeHandle(

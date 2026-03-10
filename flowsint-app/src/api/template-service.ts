@@ -91,10 +91,18 @@ export const templateService = {
     })
   },
 
-  generate: async (prompt: string): Promise<GenerateTemplateResponse> => {
+  generate: async (
+    prompt: string,
+    inputType?: string,
+    outputType?: string
+  ): Promise<GenerateTemplateResponse> => {
     return fetchWithAuth('/api/enrichers/templates/generate', {
       method: 'POST',
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({
+        prompt,
+        input_type: inputType || null,
+        output_type: outputType || null
+      })
     })
   }
 }

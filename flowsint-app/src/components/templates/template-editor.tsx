@@ -401,7 +401,13 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
                 </ResizablePanel>
                 <ResizableHandle className="hover:bg-primary/20 active:bg-primary/30 transition-colors data-[resize-handle-state=drag]:bg-primary/30" />
                 <ResizablePanel defaultSize={40} minSize={25}>
-                  <AIChatPanel ref={chatRef} onApplyYaml={handleApplyYaml} currentYaml={content} />
+                  <AIChatPanel
+                    ref={chatRef}
+                    onApplyYaml={handleApplyYaml}
+                    currentYaml={content}
+                    inputType={validationResult.data?.input?.type ?? ''}
+                    outputType={validationResult.data?.output?.type ?? ''}
+                  />
                 </ResizablePanel>
               </ResizablePanelGroup>
             </div>

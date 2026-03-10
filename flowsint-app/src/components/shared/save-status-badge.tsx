@@ -67,8 +67,8 @@ export const SaveStatusBadge = memo(({ status, className }: SaveStatusBadgeProps
       <TooltipTrigger asChild>
         <div
           className={cn(
-            'flex items-center h-8 gap-1.5 px-1.5 py-1.5',
-            'rounded-md !bg-transparent',
+            'flex items-center h-7 gap-1.5 px-1.5 py-1.5',
+            'rounded-md',
             'text-xs font-medium',
             'transition-all duration-200',
             config.className,

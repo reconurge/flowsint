@@ -4,8 +4,10 @@ Service for AI-assisted enricher template generation.
 Uses an LLM to generate valid enricher template YAML from a free-text prompt.
 """
 
+import json
 import os
 import re
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 import yaml
@@ -163,12 +165,49 @@ class TemplateGeneratorService(BaseService):
         api_key = self._vault_service.get_secret(owner_id, vault_key)
         return create_llm_provider(provider=provider_name, api_key=api_key)
 
-    async def generate(self, prompt: str, owner_id: UUID) -> str:
+    def _build_type_context(
+        self,
+        input_type: Optional[str],
+        input_schema: Optional[Dict[str, Any]],
+        output_type: Optional[str],
+        output_schema: Optional[Dict[str, Any]],
+    ) -> str:
+        """Build additional context about input/output type schemas."""
+        parts: list[str] = []
+        if input_type and input_schema:
+            parts.append(
+                f"## Input type: {input_type}\n"
+                f"The template MUST use `input.type: {input_type}`.\n"
+                f"Schema (available fields on the input):\n"
+                f"```json\n{json.dumps(input_schema, indent=2)}\n```"
+            )
+        if output_type and output_schema:
+            parts.append(
+                f"## Output type: {output_type}\n"
+                f"The template MUST use `output.type: {output_type}`.\n"
+                f"The `response.map` keys MUST only use fields from this schema:\n"
+                f"```json\n{json.dumps(output_schema, indent=2)}\n```"
+            )
+        return "\n\n".join(parts)
+
+    async def generate(
+        self,
+        prompt: str,
+        owner_id: UUID,
+        input_type: Optional[str] = None,
+        input_schema: Optional[Dict[str, Any]] = None,
+        output_type: Optional[str] = None,
+        output_schema: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Generate an enricher template YAML from a free-text description.
 
         Args:
             prompt: User's free-text description of the desired enricher.
             owner_id: ID of the user (for vault-based LLM API key).
+            input_type: Name of the input Flowsint type (e.g. "Ip").
+            input_schema: JSON schema of the input type.
+            output_type: Name of the output Flowsint type (e.g. "SocialAccount").
+            output_schema: JSON schema of the output type.
 
         Returns:
             Raw YAML string of the generated template.
@@ -179,8 +218,20 @@ class TemplateGeneratorService(BaseService):
         """
         provider = self._get_llm_provider(owner_id)
 
+        system_content = _SYSTEM_PROMPT
+        type_context = self._build_type_context(
+            input_type, input_schema, output_type, output_schema
+        )
+        if type_context:
+            system_content += (
+                "\n\n## Type Constraints (from the user's selection)\n\n"
+                + type_context
+                + "\n\nYou MUST respect the input and output types above. "
+                "Only use fields that exist in the provided schemas for the response.map keys."
+            )
+
         messages = [
-            ChatMessage(role=MessageRole.SYSTEM, content=_SYSTEM_PROMPT),
+            ChatMessage(role=MessageRole.SYSTEM, content=system_content),
             ChatMessage(role=MessageRole.USER, content=prompt),
         ]
 

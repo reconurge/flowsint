@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
     context: Optional[List[str]] = None
 
 
-@router.get("/", response_model=List[ChatRead])
+@router.get("", response_model=List[ChatRead])
 def get_chats(
     db: Session = Depends(get_db), current_user: Profile = Depends(get_current_user)
 ):

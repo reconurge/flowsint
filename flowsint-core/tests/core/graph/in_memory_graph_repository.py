@@ -45,6 +45,7 @@ class InMemoryGraphRepository:
             ):
                 # Update existing node
                 self._nodes[element_id].update(node_obj)
+                self._nodes[element_id]["deleted_at"] = None
                 return element_id
 
         # Create new node
@@ -53,6 +54,7 @@ class InMemoryGraphRepository:
             **node_obj,
             "sketch_id": sketch_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_at": None,
             "_labels": [node_type] if node_type else ["Node"],
         }
         return element_id
@@ -65,48 +67,46 @@ class InMemoryGraphRepository:
             return None
         if self._nodes[element_id].get("sketch_id") != sketch_id:
             return None
+        if self._nodes[element_id].get("deleted_at") is not None:
+            return None
         self._nodes[element_id].update(updates)
         return element_id
 
     def delete_nodes(self, node_ids: List[str], sketch_id: str) -> int:
-        """Delete nodes by their element IDs. Returns count deleted."""
+        """Soft delete nodes by their element IDs. Returns count soft-deleted."""
         deleted = 0
+        deleted_at = datetime.now(timezone.utc).isoformat()
         for node_id in node_ids:
             if node_id in self._nodes:
                 if self._nodes[node_id].get("sketch_id") == sketch_id:
-                    # Also delete related edges
-                    edges_to_delete = [
-                        eid
-                        for eid, edge in self._edges.items()
-                        if edge.get("source") == node_id
-                        or edge.get("target") == node_id
-                    ]
-                    for eid in edges_to_delete:
-                        del self._edges[eid]
-                    del self._nodes[node_id]
+                    if self._nodes[node_id].get("deleted_at") is not None:
+                        continue
+
+                    # Also soft delete related edges
+                    for edge in self._edges.values():
+                        if edge.get("source") == node_id or edge.get("target") == node_id:
+                            if edge.get("sketch_id") == sketch_id and edge.get("deleted_at") is None:
+                                edge["deleted_at"] = deleted_at
+
+                    self._nodes[node_id]["deleted_at"] = deleted_at
                     deleted += 1
         return deleted
 
     def delete_all_sketch_nodes(self, sketch_id: str) -> int:
-        """Delete all nodes for a sketch. Returns count deleted."""
-        to_delete = [
-            eid
-            for eid, data in self._nodes.items()
-            if data.get("sketch_id") == sketch_id
-        ]
-        for eid in to_delete:
-            del self._nodes[eid]
+        """Soft delete all nodes for a sketch. Returns count soft-deleted."""
+        deleted_at = datetime.now(timezone.utc).isoformat()
+        deleted_count = 0
 
-        # Also delete related edges
-        edges_to_delete = [
-            eid
-            for eid, data in self._edges.items()
-            if data.get("sketch_id") == sketch_id
-        ]
-        for eid in edges_to_delete:
-            del self._edges[eid]
+        for data in self._nodes.values():
+            if data.get("sketch_id") == sketch_id and data.get("deleted_at") is None:
+                data["deleted_at"] = deleted_at
+                deleted_count += 1
 
-        return len(to_delete)
+        for data in self._edges.values():
+            if data.get("sketch_id") == sketch_id and data.get("deleted_at") is None:
+                data["deleted_at"] = deleted_at
+
+        return deleted_count
 
     def get_nodes_by_ids(
         self, node_ids: List[str], sketch_id: str
@@ -116,7 +116,7 @@ class InMemoryGraphRepository:
         for node_id in node_ids:
             if node_id in self._nodes:
                 node = self._nodes[node_id]
-                if node.get("sketch_id") == sketch_id:
+                if node.get("sketch_id") == sketch_id and node.get("deleted_at") is None:
                     result.append({"data": node})
         return result
 
@@ -129,6 +129,8 @@ class InMemoryGraphRepository:
             node_id = pos.get("nodeId")
             if node_id in self._nodes:
                 if self._nodes[node_id].get("sketch_id") == sketch_id:
+                    if self._nodes[node_id].get("deleted_at") is not None:
+                        continue
                     self._nodes[node_id]["x"] = pos.get("x")
                     self._nodes[node_id]["y"] = pos.get("y")
                     updated += 1
@@ -153,6 +155,8 @@ class InMemoryGraphRepository:
         for eid, node in self._nodes.items():
             if node.get("sketch_id") != sketch_id:
                 continue
+            if node.get("deleted_at") is not None:
+                continue
             if node.get("nodeLabel") == from_label:
                 source_id = eid
             if node.get("nodeLabel") == to_label:
@@ -166,6 +170,7 @@ class InMemoryGraphRepository:
                 "target": target_id,
                 "type": rel_label,
                 "sketch_id": sketch_id,
+                "deleted_at": None,
             }
 
     def create_relationship_by_element_id(
@@ -178,6 +183,10 @@ class InMemoryGraphRepository:
         """Create a relationship using element IDs."""
         if from_element_id not in self._nodes or to_element_id not in self._nodes:
             return None
+        if self._nodes[from_element_id].get("deleted_at") is not None:
+            return None
+        if self._nodes[to_element_id].get("deleted_at") is not None:
+            return None
 
         element_id = self._generate_element_id("rel")
         edge_data = {
@@ -185,6 +194,7 @@ class InMemoryGraphRepository:
             "target": to_element_id,
             "type": rel_label,
             "sketch_id": sketch_id,
+            "deleted_at": None,
         }
         self._edges[element_id] = edge_data
         return {"sketch_id": sketch_id}
@@ -197,6 +207,8 @@ class InMemoryGraphRepository:
             return None
         if self._edges[element_id].get("sketch_id") != sketch_id:
             return None
+        if self._edges[element_id].get("deleted_at") is not None:
+            return None
         self._edges[element_id].update(rel_obj)
         return {
             "id": element_id,
@@ -205,12 +217,15 @@ class InMemoryGraphRepository:
         }
 
     def delete_relationships(self, relationship_ids: List[str], sketch_id: str) -> int:
-        """Delete relationships by their element IDs. Returns count deleted."""
+        """Soft delete relationships by their element IDs. Returns count soft-deleted."""
         deleted = 0
+        deleted_at = datetime.now(timezone.utc).isoformat()
         for rel_id in relationship_ids:
             if rel_id in self._edges:
                 if self._edges[rel_id].get("sketch_id") == sketch_id:
-                    del self._edges[rel_id]
+                    if self._edges[rel_id].get("deleted_at") is not None:
+                        continue
+                    self._edges[rel_id]["deleted_at"] = deleted_at
                     deleted += 1
         return deleted
 
@@ -226,7 +241,7 @@ class InMemoryGraphRepository:
         node_ids = set()
 
         for eid, data in self._nodes.items():
-            if data.get("sketch_id") == sketch_id:
+            if data.get("sketch_id") == sketch_id and data.get("deleted_at") is None:
                 nodes.append(
                     {
                         "id": eid,
@@ -240,7 +255,7 @@ class InMemoryGraphRepository:
 
         edges = []
         for eid, data in self._edges.items():
-            if data.get("sketch_id") == sketch_id:
+            if data.get("sketch_id") == sketch_id and data.get("deleted_at") is None:
                 if data.get("source") in node_ids and data.get("target") in node_ids:
                     edges.append(
                         {
@@ -262,12 +277,16 @@ class InMemoryGraphRepository:
         center = self._nodes[node_id]
         if center.get("sketch_id") != sketch_id:
             return {"nodes": [], "edges": []}
+        if center.get("deleted_at") is not None:
+            return {"nodes": [], "edges": []}
 
         nodes = {node_id: {"id": node_id, "data": center}}
         edges = {}
 
         for eid, edge in self._edges.items():
             if edge.get("sketch_id") != sketch_id:
+                continue
+            if edge.get("deleted_at") is not None:
                 continue
 
             source = edge.get("source")
@@ -276,6 +295,8 @@ class InMemoryGraphRepository:
             if source == node_id:
                 # Outgoing edge
                 if target in self._nodes:
+                    if self._nodes[target].get("deleted_at") is not None:
+                        continue
                     nodes[target] = {"id": target, "data": self._nodes[target]}
                     edges[eid] = {
                         "id": eid,
@@ -286,6 +307,8 @@ class InMemoryGraphRepository:
             elif target == node_id:
                 # Incoming edge
                 if source in self._nodes:
+                    if self._nodes[source].get("deleted_at") is not None:
+                        continue
                     nodes[source] = {"id": source, "data": self._nodes[source]}
                     edges[eid] = {
                         "id": eid,
@@ -315,25 +338,30 @@ class InMemoryGraphRepository:
         if new_node_id and new_node_id in old_node_ids:
             target_id = new_node_id
             self._nodes[target_id].update(new_node_data)
+            self._nodes[target_id]["deleted_at"] = None
         else:
             target_id = self._generate_element_id("node")
             self._nodes[target_id] = {
                 **new_node_data,
                 "sketch_id": sketch_id,
                 "created_at": datetime.now(timezone.utc).isoformat(),
+                "deleted_at": None,
             }
 
         # Transfer relationships
         for eid, edge in list(self._edges.items()):
+            if edge.get("deleted_at") is not None:
+                continue
             if edge.get("source") in old_node_ids and edge.get("source") != target_id:
                 edge["source"] = target_id
             if edge.get("target") in old_node_ids and edge.get("target") != target_id:
                 edge["target"] = target_id
 
-        # Delete old nodes (except target)
+        # Soft delete old nodes (except target)
+        deleted_at = datetime.now(timezone.utc).isoformat()
         for node_id in old_node_ids:
             if node_id != target_id and node_id in self._nodes:
-                del self._nodes[node_id]
+                self._nodes[node_id]["deleted_at"] = deleted_at
 
         return target_id
 
@@ -458,17 +486,21 @@ class InMemoryGraphRepository:
         """Get total node count, optionally filtered by sketch_id."""
         if sketch_id:
             return sum(
-                1 for n in self._nodes.values() if n.get("sketch_id") == sketch_id
+                1
+                for n in self._nodes.values()
+                if n.get("sketch_id") == sketch_id and n.get("deleted_at") is None
             )
-        return len(self._nodes)
+        return sum(1 for n in self._nodes.values() if n.get("deleted_at") is None)
 
     def get_edge_count(self, sketch_id: Optional[str] = None) -> int:
         """Get total edge count, optionally filtered by sketch_id."""
         if sketch_id:
             return sum(
-                1 for e in self._edges.values() if e.get("sketch_id") == sketch_id
+                1
+                for e in self._edges.values()
+                if e.get("sketch_id") == sketch_id and e.get("deleted_at") is None
             )
-        return len(self._edges)
+        return sum(1 for e in self._edges.values() if e.get("deleted_at") is None)
 
     def clear(self) -> None:
         """Clear all data (useful between tests)."""

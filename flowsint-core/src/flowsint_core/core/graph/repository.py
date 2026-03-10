@@ -120,6 +120,7 @@ class Neo4jGraphRepository:
         MERGE (n:{node_type} {{ nodeLabel: $node_label, sketch_id: $sketch_id }})
         ON CREATE SET n.created_at = $created_at
         SET n += $props
+        SET n.deleted_at = null
         RETURN elementId(n) AS id
         """
 
@@ -145,9 +146,12 @@ class Neo4jGraphRepository:
 
         query = f"""
         MATCH (from:{from_type} {{nodeLabel: $from_label, sketch_id: $sketch_id}})
+        WHERE from.deleted_at IS NULL
         MATCH (to:{to_type} {{nodeLabel: $to_label, sketch_id: $sketch_id}})
+        WHERE to.deleted_at IS NULL
         MERGE (from)-[r:{rel_label} {{sketch_id: $sketch_id}}]->(to)
         SET r += $props
+        SET r.deleted_at = null
         """
 
         return query, params
@@ -395,7 +399,7 @@ class Neo4jGraphRepository:
 
         query = """
         MATCH (n)
-        WHERE elementId(n) = $element_id AND n.sketch_id = $sketch_id
+        WHERE elementId(n) = $element_id AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
         SET n += $props
         RETURN elementId(n) AS id
         """
@@ -411,14 +415,14 @@ class Neo4jGraphRepository:
 
     def delete_nodes(self, node_ids: List[str], sketch_id: str) -> int:
         """
-        Delete nodes by their element IDs.
+        Soft delete nodes by their element IDs.
 
         Args:
             node_ids: List of Neo4j element IDs
             sketch_id: Investigation sketch ID (for safety)
 
         Returns:
-            Number of nodes deleted
+            Number of nodes soft-deleted
         """
         if not self._connection or not node_ids:
             return 0
@@ -426,26 +430,34 @@ class Neo4jGraphRepository:
         query = """
         UNWIND $node_ids AS node_id
         MATCH (n)
-        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
-        DETACH DELETE n
-        RETURN count(n) as deleted_count
+        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
+        OPTIONAL MATCH (n)-[r]-()
+        WHERE r.sketch_id = $sketch_id AND r.deleted_at IS NULL
+        SET n.deleted_at = $deleted_at
+        SET r.deleted_at = $deleted_at
+        RETURN count(DISTINCT n) as deleted_count
         """
 
         result = self._connection.query(
-            query, {"node_ids": node_ids, "sketch_id": sketch_id}
+            query,
+            {
+                "node_ids": node_ids,
+                "sketch_id": sketch_id,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+            },
         )
         return result[0]["deleted_count"] if result else 0
 
     def delete_relationships(self, relationship_ids: List[str], sketch_id: str) -> int:
         """
-        Delete relationships by their element IDs.
+        Soft delete relationships by their element IDs.
 
         Args:
             relationship_ids: List of Neo4j element IDs
             sketch_id: Investigation sketch ID (for safety)
 
         Returns:
-            Number of relationships deleted
+            Number of relationships soft-deleted
         """
         if not self._connection or not relationship_ids:
             return 0
@@ -453,37 +465,51 @@ class Neo4jGraphRepository:
         query = """
         UNWIND $relationship_ids AS rel_id
         MATCH ()-[r]->()
-        WHERE elementId(r) = rel_id AND r.sketch_id = $sketch_id
-        DELETE r
+        WHERE elementId(r) = rel_id AND r.sketch_id = $sketch_id AND r.deleted_at IS NULL
+        SET r.deleted_at = $deleted_at
         RETURN count(r) as deleted_count
         """
 
         result = self._connection.query(
-            query, {"relationship_ids": relationship_ids, "sketch_id": sketch_id}
+            query,
+            {
+                "relationship_ids": relationship_ids,
+                "sketch_id": sketch_id,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+            },
         )
         return result[0]["deleted_count"] if result else 0
 
     def delete_all_sketch_nodes(self, sketch_id: str) -> int:
         """
-        Delete all nodes and relationships for a sketch.
+        Soft delete all nodes and relationships for a sketch.
 
         Args:
             sketch_id: Investigation sketch ID
 
         Returns:
-            Number of nodes deleted
+            Number of nodes soft-deleted
         """
         if not self._connection:
             return 0
 
         query = """
         OPTIONAL MATCH (n {sketch_id: $sketch_id})
-        WHERE n IS NOT NULL
-        DETACH DELETE n
-        RETURN count(n) as deleted_count
+        WHERE n IS NOT NULL AND n.deleted_at IS NULL
+        OPTIONAL MATCH (n)-[r]-()
+        WHERE r.sketch_id = $sketch_id AND r.deleted_at IS NULL
+        SET n.deleted_at = $deleted_at
+        SET r.deleted_at = $deleted_at
+        RETURN count(DISTINCT n) as deleted_count
         """
 
-        result = self._connection.query(query, {"sketch_id": sketch_id})
+        result = self._connection.query(
+            query,
+            {
+                "sketch_id": sketch_id,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
         return result[0]["deleted_count"] if result else 0
 
     def get_sketch_graph(
@@ -506,7 +532,7 @@ class Neo4jGraphRepository:
         # Use OPTIONAL MATCH to avoid Neo4j warning when sketch_id property doesn't exist yet
         nodes_query = """
         OPTIONAL MATCH (n)
-        WHERE n.sketch_id = $sketch_id
+        WHERE n.sketch_id = $sketch_id AND n.deleted_at IS NULL
         WITH n
         WHERE n IS NOT NULL
         RETURN elementId(n) as id, labels(n) as labels, properties(n) as data
@@ -524,7 +550,9 @@ class Neo4jGraphRepository:
         rels_query = """
         UNWIND $node_ids AS nid
         MATCH (a)-[r]->(b)
-        WHERE elementId(a) = nid AND elementId(b) IN $node_ids
+                WHERE elementId(a) = nid
+                    AND elementId(b) IN $node_ids
+                    AND r.deleted_at IS NULL
         RETURN elementId(r) as id, type(r) as type, elementId(a) as source,
                elementId(b) as target, properties(r) as data
         """
@@ -544,12 +572,13 @@ class Neo4jGraphRepository:
             # delete the old relationship and create a new one with the new type.
             query = f"""
             MATCH (a)-[r]->(b)
-            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id AND r.deleted_at IS NULL
             WITH a, b, r, properties(r) AS old_props
             DELETE r
             CREATE (a)-[r2:`{new_label}`]->(b)
             SET r2 = old_props
             SET r2 += $props
+            SET r2.deleted_at = null
             RETURN
                 elementId(r2) AS id,
                 type(r2) AS type,
@@ -558,7 +587,7 @@ class Neo4jGraphRepository:
         else:
             query = """
             MATCH ()-[r]->()
-            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id
+            WHERE elementId(r) = $element_id AND r.sketch_id = $sketch_id AND r.deleted_at IS NULL
             SET r += $props
             RETURN
                 elementId(r) AS id,
@@ -603,9 +632,10 @@ class Neo4jGraphRepository:
         rel_props = f"{{{props_str}}}"
 
         query = f"""
-        MATCH (a) WHERE elementId(a) = $from_id
-        MATCH (b) WHERE elementId(b) = $to_id
+        MATCH (a) WHERE elementId(a) = $from_id AND a.deleted_at IS NULL
+        MATCH (b) WHERE elementId(b) = $to_id AND b.deleted_at IS NULL
         MERGE (a)-[r:`{rel_label}` {rel_props}]->(b)
+        SET r.deleted_at = null
         RETURN properties(r) as rel
         """
 
@@ -655,7 +685,7 @@ class Neo4jGraphRepository:
         query = """
         UNWIND $positions AS pos
         MATCH (n)
-        WHERE elementId(n) = pos.nodeId AND n.sketch_id = $sketch_id
+        WHERE elementId(n) = pos.nodeId AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
         SET n.x = pos.x, n.y = pos.y
         RETURN count(n) as updated_count
         """
@@ -684,7 +714,7 @@ class Neo4jGraphRepository:
         query = """
         UNWIND $node_ids AS node_id
         MATCH (n)
-        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id
+        WHERE elementId(n) = node_id AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
         RETURN properties(n) as data
         """
 
@@ -726,7 +756,7 @@ class Neo4jGraphRepository:
             set_clause = ", ".join(f"n.{key} = ${key}" for key in properties.keys())
             create_query = f"""
             MATCH (n)
-            WHERE elementId(n) = $nodeId AND n.sketch_id = $sketch_id
+            WHERE elementId(n) = $nodeId AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
             SET {set_clause}
             RETURN elementId(n) as newElementId
             """
@@ -750,25 +780,33 @@ class Neo4jGraphRepository:
         MATCH (new) WHERE elementId(new) = $newElementId
 
         UNWIND $oldNodeIds AS oldNodeId
-        MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id
+                MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id AND old.deleted_at IS NULL
 
         WITH new, collect(old) as oldNodes
         UNWIND oldNodes as old
         MATCH (src)-[r]->(old)
-        WHERE elementId(src) NOT IN $oldNodeIds AND elementId(src) <> $newElementId
+                WHERE elementId(src) NOT IN $oldNodeIds
+                    AND elementId(src) <> $newElementId
+                    AND src.deleted_at IS NULL
+                    AND r.deleted_at IS NULL
         WITH new, src, type(r) as relType, properties(r) as relProps, r
         MERGE (src)-[newRel:RELATED_TO {sketch_id: $sketch_id}]->(new)
         SET newRel = relProps
+                SET newRel.deleted_at = null
 
         WITH new, $oldNodeIds as oldNodeIds
         UNWIND oldNodeIds AS oldNodeId
-        MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id
+                MATCH (old) WHERE elementId(old) = oldNodeId AND old.sketch_id = $sketch_id AND old.deleted_at IS NULL
 
         MATCH (old)-[r]->(dst)
-        WHERE elementId(dst) NOT IN oldNodeIds AND elementId(dst) <> $newElementId
+                WHERE elementId(dst) NOT IN oldNodeIds
+                    AND elementId(dst) <> $newElementId
+                    AND dst.deleted_at IS NULL
+                    AND r.deleted_at IS NULL
         WITH new, dst, type(r) as relType, properties(r) as relProps
         MERGE (new)-[newRel:RELATED_TO {sketch_id: $sketch_id}]->(dst)
         SET newRel = relProps
+                SET newRel.deleted_at = null
         """
 
         self._connection.query(
@@ -785,11 +823,19 @@ class Neo4jGraphRepository:
             delete_query = """
             UNWIND $nodeIds AS nodeId
             MATCH (old)
-            WHERE elementId(old) = nodeId AND old.sketch_id = $sketch_id
-            DETACH DELETE old
+            WHERE elementId(old) = nodeId AND old.sketch_id = $sketch_id AND old.deleted_at IS NULL
+            OPTIONAL MATCH (old)-[r]-()
+            WHERE r.sketch_id = $sketch_id AND r.deleted_at IS NULL
+            SET old.deleted_at = $deleted_at
+            SET r.deleted_at = $deleted_at
             """
             self._connection.query(
-                delete_query, {"nodeIds": nodes_to_delete, "sketch_id": sketch_id}
+                delete_query,
+                {
+                    "nodeIds": nodes_to_delete,
+                    "sketch_id": sketch_id,
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                },
             )
 
         return new_node_element_id
@@ -811,10 +857,13 @@ class Neo4jGraphRepository:
 
         query = """
         MATCH (n)
-        WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id
+                WHERE elementId(n) = $node_id AND n.sketch_id = $sketch_id AND n.deleted_at IS NULL
 
         OPTIONAL MATCH (n)-[r]-(other)
-        WHERE other.sketch_id = $sketch_id AND other <> n
+                WHERE other.sketch_id = $sketch_id
+                    AND other <> n
+                    AND other.deleted_at IS NULL
+                    AND r.deleted_at IS NULL
 
         RETURN
             elementId(n)     AS center_id,
@@ -894,7 +943,7 @@ class Neo4jGraphRepository:
         """
         query = """
         OPTIONAL MATCH (n)
-        WHERE n.sketch_id = $sketch_id AND n IS NOT NULL
+        WHERE n.sketch_id = $sketch_id AND n.deleted_at IS NULL AND n IS NOT NULL
         RETURN count(n) as total
         """
 
@@ -915,7 +964,11 @@ class Neo4jGraphRepository:
         """
         query = """
         OPTIONAL MATCH (n)-[r]->(m)
-        WHERE n.sketch_id = $sketch_id AND m.sketch_id = $sketch_id
+                WHERE n.sketch_id = $sketch_id
+                    AND m.sketch_id = $sketch_id
+                    AND n.deleted_at IS NULL
+                    AND m.deleted_at IS NULL
+                    AND r.deleted_at IS NULL
         RETURN count(r) as total
         """
 

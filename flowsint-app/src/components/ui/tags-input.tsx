@@ -1,4 +1,3 @@
-// src/components/ui/tags-input.tsx
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -6,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-interface TagsInputProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TagsInputProps {
+  id?: string | undefined;
   value: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
-  orientation: 'vertical' | 'horizontal';
-  variant: 'full' | 'compact'
-}
+  orientation?: 'vertical' | 'horizontal';
+  variant?: 'full' | 'compact';
+  className?: string | undefined;
+};
 
 function TagsInput({
   id,

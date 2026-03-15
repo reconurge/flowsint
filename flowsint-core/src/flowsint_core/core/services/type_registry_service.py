@@ -98,6 +98,65 @@ class TypeRegistryService(BaseService):
             print(f"Warning: Type {type_name} found in cutsom types.")
             return self._extract_input_schema(custom_type, label_key="nodeLabel")
 
+    def detect_type(self, text: str) -> Dict[str, Any]:
+        """Detect the type of a given text input.
+
+        Iterates over all registered types and calls their detect() classmethod.
+        Returns the detected type name and its required (primary) fields.
+        Falls back to Phrase if no type matches.
+        """
+        from flowsint_types.registry import TYPE_REGISTRY, load_all_types
+
+        load_all_types()
+
+        text = text.strip()
+        if not text:
+            return self._build_detection_result("Phrase", text)
+
+        for type_name, type_cls in TYPE_REGISTRY.all_types().items():
+            if type_name == "Phrase":
+                continue
+            try:
+                if hasattr(type_cls, "detect") and type_cls.detect(text):
+                    return self._build_detection_result(type_name, text)
+            except Exception:
+                continue
+
+        return self._build_detection_result("Phrase", text)
+
+    def _build_detection_result(self, type_name: str, value: str) -> Dict[str, Any]:
+        """Build a detection result with type info and primary field pre-filled."""
+        from flowsint_types.registry import get_type
+
+        type_cls = get_type(type_name, case_sensitive=True)
+        if not type_cls:
+            return {"type": type_name, "fields": [], "value": value}
+
+        adapter = TypeAdapter(type_cls)
+        schema = adapter.json_schema()
+        properties = schema.get("properties", {})
+
+        fields = []
+        for prop, info in properties.items():
+            if prop == "nodeLabel":
+                continue
+            is_primary = info.get("primary", False)
+            field = {
+                "name": prop,
+                "label": info.get("title", prop),
+                "description": info.get("description", ""),
+                "required": self._is_required(info),
+                "primary": is_primary,
+                "value": value if is_primary else None,
+            }
+            fields.append(field)
+
+        return {
+            "type": type_name,
+            "key": type_name.lower(),
+            "fields": fields,
+        }
+
     def get_types_list(self, user_id: UUID) -> List[Dict[str, Any]]:
         from flowsint_types.registry import get_type
 

@@ -6,7 +6,7 @@ export interface GraphViewerProps {
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
   onEdgeRightClick?: (edge: GraphEdge, event: MouseEvent) => void
-  onBackgroundClick?: () => void
+  onBackgroundClick?: (event?: MouseEvent) => void
   onBackgroundRightClick?: (event: MouseEvent) => void
   showLabels?: boolean
   showIcons?: boolean

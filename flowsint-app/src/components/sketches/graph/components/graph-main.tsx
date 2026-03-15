@@ -8,6 +8,8 @@ import { PathPanel } from '../actions/path-finder'
 import { useParams } from '@tanstack/react-router'
 import { type GraphNode, GraphEdge } from '@/types'
 import { useLinkCreation } from '../hooks/use-link-creation'
+import { useQuickAdd } from '../hooks/use-quick-add'
+import { QuickAddOverlay } from './quick-add-overlay'
 
 type BaseContextMenuProps = {
   rawTop: number
@@ -61,6 +63,9 @@ const GraphMain = () => {
     dismissNewEdge
   } = useLinkCreation(sketchId)
 
+  const { quickAdd, openQuickAdd, closeQuickAdd, setQuickAddText, submitQuickAdd } =
+    useQuickAdd(sketchId)
+
   const handleNodeClick = useCallback(
     (node: any, event: MouseEvent) => {
       const isMultiSelect = event.ctrlKey || event.shiftKey
@@ -74,26 +79,61 @@ const GraphMain = () => {
     [toggleNodeSelection, setCurrentNodeId, clearSelectedNodes]
   )
 
-  const handleBackgroundClick = useCallback(() => {
-    if (linkCreation.mode !== 'idle') {
-      cancelLinkCreation()
-      return
-    }
-    setCurrentNodeId(null)
-    clearSelectedNodes()
-    clearSelectedEdges()
-    setCurrentEdgeId(null)
-    setNodeMenu(null)
-    setEdgeMenu(null)
-    setBackgroundMenu(null)
-  }, [
-    linkCreation.mode,
-    cancelLinkCreation,
-    setCurrentNodeId,
-    clearSelectedNodes,
-    clearSelectedEdges,
-    setCurrentEdgeId
-  ])
+  const lastClickRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 })
+
+  const handleBackgroundClick = useCallback(
+    (event?: MouseEvent) => {
+      if (quickAdd.active) {
+        closeQuickAdd()
+        return
+      }
+
+      // Double-click detection from background clicks
+      if (event && graphRef.current && containerRef.current) {
+        const now = Date.now()
+        const last = lastClickRef.current
+        const dx = event.clientX - last.x
+        const dy = event.clientY - last.y
+        const timeDiff = now - last.time
+        const dist = Math.sqrt(dx * dx + dy * dy)
+
+        lastClickRef.current = { time: now, x: event.clientX, y: event.clientY }
+
+        if (timeDiff < 400 && dist < 10) {
+          // Double click detected
+          const rect = containerRef.current.getBoundingClientRect()
+          const screenX = event.clientX - rect.left
+          const screenY = event.clientY - rect.top
+          const graphCoords = graphRef.current.screen2GraphCoords(screenX, screenY)
+          openQuickAdd(screenX, screenY, graphCoords.x, graphCoords.y)
+          return
+        }
+      }
+
+      if (linkCreation.mode !== 'idle') {
+        cancelLinkCreation()
+        return
+      }
+      setCurrentNodeId(null)
+      clearSelectedNodes()
+      clearSelectedEdges()
+      setCurrentEdgeId(null)
+      setNodeMenu(null)
+      setEdgeMenu(null)
+      setBackgroundMenu(null)
+    },
+    [
+      quickAdd.active,
+      closeQuickAdd,
+      openQuickAdd,
+      linkCreation.mode,
+      cancelLinkCreation,
+      setCurrentNodeId,
+      clearSelectedNodes,
+      clearSelectedEdges,
+      setCurrentEdgeId
+    ]
+  )
 
   const onNodeContextMenu = useCallback(
     (node: any, event: MouseEvent) => {
@@ -236,6 +276,16 @@ const GraphMain = () => {
         allowLasso
         sketchId={sketchId}
         linkCreation={linkCreationProp}
+      />
+      <QuickAddOverlay
+        active={quickAdd.active}
+        position={quickAdd.position}
+        text={quickAdd.text}
+        detection={quickAdd.detection}
+        loading={quickAdd.loading}
+        onTextChange={setQuickAddText}
+        onSubmit={submitQuickAdd}
+        onCancel={closeQuickAdd}
       />
       <PathPanel />
       {nodeMenu && selectedNodes.length === 0 && <NodeContextMenu {...nodeMenu} />}

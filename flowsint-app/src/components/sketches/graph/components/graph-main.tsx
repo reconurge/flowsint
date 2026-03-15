@@ -28,6 +28,8 @@ type EdgeContextMenuProps = BaseContextMenuProps & {
   edge?: GraphEdge
   edges?: GraphEdge[]
   setMenu: Dispatch<SetStateAction<EdgeContextMenuProps | null>>
+  onSubmitNew?: (edgeId: string, label: string) => void
+  onDismissNew?: (edgeId: string) => void
 }
 
 type BackgroundContextMenuProps = BaseContextMenuProps & {
@@ -79,36 +81,24 @@ const GraphMain = () => {
     [toggleNodeSelection, setCurrentNodeId, clearSelectedNodes]
   )
 
-  const lastClickRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 })
+  const lastBgClickRef = useRef(0)
 
   const handleBackgroundClick = useCallback(
     (event?: MouseEvent) => {
-      if (quickAdd.active) {
-        closeQuickAdd()
+      // Double-click detection from consecutive onBackgroundClick calls
+      const now = Date.now()
+      if (event && now - lastBgClickRef.current < 400) {
+        lastBgClickRef.current = 0
+        if (graphRef.current && containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect()
+          const sx = event.clientX - rect.left
+          const sy = event.clientY - rect.top
+          const gc = graphRef.current.screen2GraphCoords(sx, sy)
+          openQuickAdd(sx, sy, gc.x, gc.y)
+        }
         return
       }
-
-      // Double-click detection from background clicks
-      if (event && graphRef.current && containerRef.current) {
-        const now = Date.now()
-        const last = lastClickRef.current
-        const dx = event.clientX - last.x
-        const dy = event.clientY - last.y
-        const timeDiff = now - last.time
-        const dist = Math.sqrt(dx * dx + dy * dy)
-
-        lastClickRef.current = { time: now, x: event.clientX, y: event.clientY }
-
-        if (timeDiff < 400 && dist < 10) {
-          // Double click detected
-          const rect = containerRef.current.getBoundingClientRect()
-          const screenX = event.clientX - rect.left
-          const screenY = event.clientY - rect.top
-          const graphCoords = graphRef.current.screen2GraphCoords(screenX, screenY)
-          openQuickAdd(screenX, screenY, graphCoords.x, graphCoords.y)
-          return
-        }
-      }
+      lastBgClickRef.current = now
 
       if (linkCreation.mode !== 'idle') {
         cancelLinkCreation()
@@ -122,18 +112,15 @@ const GraphMain = () => {
       setEdgeMenu(null)
       setBackgroundMenu(null)
     },
-    [
-      quickAdd.active,
-      closeQuickAdd,
-      openQuickAdd,
-      linkCreation.mode,
-      cancelLinkCreation,
-      setCurrentNodeId,
-      clearSelectedNodes,
-      clearSelectedEdges,
-      setCurrentEdgeId
-    ]
+    [openQuickAdd, linkCreation.mode, cancelLinkCreation, setCurrentNodeId, clearSelectedNodes, clearSelectedEdges, setCurrentEdgeId]
   )
+
+  // Stable ref so ForceGraph2D always calls the latest version
+  const bgClickRef = useRef(handleBackgroundClick)
+  bgClickRef.current = handleBackgroundClick
+  const stableBackgroundClick = useCallback((event?: MouseEvent) => {
+    bgClickRef.current(event)
+  }, [])
 
   const onNodeContextMenu = useCallback(
     (node: any, event: MouseEvent) => {
@@ -151,7 +138,7 @@ const GraphMain = () => {
           wrapperWidth: pane.width,
           wrapperHeight: pane.height,
           setMenu: setBackgroundMenu,
-          onClick: handleBackgroundClick
+          onClick: stableBackgroundClick
         })
         setNodeMenu(null)
         return
@@ -163,7 +150,7 @@ const GraphMain = () => {
         wrapperWidth: pane.width,
         wrapperHeight: pane.height,
         setMenu: setNodeMenu,
-        onClick: handleBackgroundClick
+        onClick: stableBackgroundClick
       })
     },
     [selectedNodes]
@@ -185,7 +172,7 @@ const GraphMain = () => {
           wrapperWidth: pane.width,
           wrapperHeight: pane.height,
           setMenu: setEdgeMenu,
-          onClick: handleBackgroundClick
+          onClick: stableBackgroundClick
         })
       } else {
         setEdgeMenu({
@@ -195,7 +182,7 @@ const GraphMain = () => {
           wrapperWidth: pane.width,
           wrapperHeight: pane.height,
           setMenu: setEdgeMenu,
-          onClick: handleBackgroundClick
+          onClick: stableBackgroundClick
         })
       }
       setNodeMenu(null)
@@ -217,7 +204,7 @@ const GraphMain = () => {
       wrapperWidth: pane.width,
       wrapperHeight: pane.height,
       setMenu: setBackgroundMenu,
-      onClick: handleBackgroundClick
+      onClick: stableBackgroundClick
     })
   }, [])
 
@@ -236,7 +223,7 @@ const GraphMain = () => {
         wrapperWidth: pane.width,
         wrapperHeight: pane.height,
         setMenu: setEdgeMenu,
-        onClick: handleBackgroundClick,
+        onClick: stableBackgroundClick,
         onSubmitNew: submitNewEdge,
         onDismissNew: dismissNewEdge
       })
@@ -268,7 +255,7 @@ const GraphMain = () => {
         onNodeRightClick={onNodeContextMenu}
         onEdgeRightClick={onEdgeContextMenu}
         onBackgroundRightClick={onBackgroundContextMenu}
-        onBackgroundClick={handleBackgroundClick}
+        onBackgroundClick={stableBackgroundClick}
         showLabels={true}
         showIcons={true}
         onGraphRef={handleGraphRef}

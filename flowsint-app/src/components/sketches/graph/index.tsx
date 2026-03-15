@@ -65,6 +65,15 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Notify parent when graphRef becomes available
+  const graphReadyRef = useRef(false)
+  useEffect(() => {
+    if (graphRef.current && !graphReadyRef.current) {
+      graphReadyRef.current = true
+      onGraphRef?.(graphRef.current)
+    }
+  })
+
   const { saveAllNodePositions } = useSaveNodePositions(sketchId)
 
   const isSelectorModeActive = useGraphControls((s) => s.isSelectorModeActive)

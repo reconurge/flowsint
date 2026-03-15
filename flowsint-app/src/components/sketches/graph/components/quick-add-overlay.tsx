@@ -37,29 +37,6 @@ export const QuickAddOverlay = ({
     }
   }, [active])
 
-  // Close on click outside
-  useEffect(() => {
-    if (!active) return
-
-    const handleMouseDown = (e: MouseEvent) => {
-      if (
-        inputRef.current &&
-        !inputRef.current.closest('[data-quick-add]')?.contains(e.target as Node)
-      ) {
-        onCancel()
-      }
-    }
-
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleMouseDown)
-    }, 50)
-
-    return () => {
-      clearTimeout(timer)
-      document.removeEventListener('mousedown', handleMouseDown)
-    }
-  }, [active, onCancel])
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -99,6 +76,7 @@ export const QuickAddOverlay = ({
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onBlur={onCancel}
           className="h-8 min-w-[200px] max-w-[320px] text-sm shadow-lg border-border/80 bg-background"
           placeholder="Type to add..."
         />

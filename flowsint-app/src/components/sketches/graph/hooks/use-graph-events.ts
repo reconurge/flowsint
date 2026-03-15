@@ -88,7 +88,7 @@ export const useGraphEvents = ({
   )
 
   const handleBackgroundClick = useCallback(
-    (event?: MouseEvent) => {
+    (event: MouseEvent) => {
       onBackgroundClick?.(event)
     },
     [onBackgroundClick]

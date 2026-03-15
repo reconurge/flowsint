@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/popover'
 import { memo, useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { FieldType, FormField, findActionItemByKey } from '@/lib/action-items'
 import { CopyButton } from '@/components/copy'
 import {
   Rocket,
@@ -24,6 +25,7 @@ import NodeActions from '../graph/node/actions/node-actions'
 import { useParams } from '@tanstack/react-router'
 import { useGraphStore } from '@/stores/graph-store'
 import { useIcon } from '@/hooks/use-icon'
+import { useActionItems } from '@/hooks/use-action-items'
 import { Switch } from '@/components/ui/switch'
 import type { GraphNode, NodeProperties, NodeMetadata, NodeShape } from '@/types'
 import { sketchService } from '@/api/sketch-service'
@@ -265,9 +267,17 @@ const DetailsPanel = memo(() => {
   const { id: sketchId } = useParams({ strict: false })
   const nodesLength = useGraphStore((s) => s.nodesLength)
   const node = useGraphStore((s) => s.getCurrentNode())
-  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
   const updateNode = useGraphStore((s) => s.updateNode)
   const [openIconPicker, setOpenIconPicker] = useState(false)
+
+  const { actionItems } = useActionItems()
+  const currentNodeType = findActionItemByKey(node!.nodeType, actionItems)
+
+  const getNodePropertyType = (propertyName: string): FieldType | undefined => {
+    const field = currentNodeType?.fields.find((f: FormField) => f.name === propertyName);
+
+    return field?.type;
+  }
 
   const [formData, setFormData] = useState<FormData>({
     nodeLabel: '',
@@ -570,12 +580,12 @@ const DetailsPanel = memo(() => {
                     </a>
                   ) : value && typeof value === 'object' && value.constructor === Object ? (
                     <PopoverProperty label={key} property={value as object} />
-                  ) : Array.isArray(value) ? (
+                  ) : getNodePropertyType(key) === 'list' ? (
                     <TagsInput
                       value={value || []}
                       onChange={(tags) => handlePropertyBlur(key, tags)}
                       orientation='vertical'
-                      placeholder={value.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                      placeholder={value?.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
                     />
                   ) : (
                     <PropertyInput

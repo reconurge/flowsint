@@ -78,14 +78,14 @@ function TagsInput({
       ))}
       {variant === 'compact' ? (
         <input
-        id={id}
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={addTag}
-        placeholder={placeholder}
-        className="w-28 text-right text-[12px] bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors truncate"
+          id={id}
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={addTag}
+          className="w-full bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors"
+          placeholder={placeholder ?? 'Empty'}
       />) : (
         <Input
           id={id}

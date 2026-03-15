@@ -37,6 +37,7 @@ import { Circle, Square, Triangle, Hexagon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { TagsInput } from '@/components/ui/tags-input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { MinimalTiptapEditor } from '@/components/analyses/editor/minimal-tiptap'
 import type { Content } from '@tiptap/react'
@@ -410,7 +411,7 @@ const DetailsPanel = memo(() => {
   )
 
   const handlePropertyBlur = useCallback(
-    (key: string, value: string | boolean) => {
+    (key: string, value: string | string[] | boolean) => {
       const newFd = {
         ...formDataRef.current,
         nodeProperties: { ...formDataRef.current.nodeProperties, [key]: value }
@@ -451,6 +452,15 @@ const DetailsPanel = memo(() => {
     },
     [saveState]
   )
+
+  const copyField = (value: any): string | undefined => {
+    if (typeof value === 'string') 
+      return value
+    else if (Array.isArray(value) && value.length > 0)
+      return value.join(',')
+    else 
+      return undefined
+  }
 
   // ── Empty state ─────────────────────────────────────────────────────────────
 
@@ -538,7 +548,7 @@ const DetailsPanel = memo(() => {
                 <PropertyRow
                   key={key}
                   label={key}
-                  copyValue={typeof value === 'string' ? value : undefined}
+                  copyValue={copyField(value)}
                 >
                   {typeof value === 'boolean' ? (
                     <Switch
@@ -560,6 +570,13 @@ const DetailsPanel = memo(() => {
                     </a>
                   ) : value && typeof value === 'object' && value.constructor === Object ? (
                     <PopoverProperty label={key} property={value as object} />
+                  ) : Array.isArray(value) ? (
+                    <TagsInput
+                      value={value || []}
+                      onChange={(tags) => handlePropertyBlur(key, tags)}
+                      orientation='vertical'
+                      placeholder={value.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                    />
                   ) : (
                     <PropertyInput
                       value={String(value || '')}

@@ -21,6 +21,14 @@ export interface GraphViewerProps {
   autoZoomOnNode?: boolean
   showMinimalControls?: boolean
   showMinimap?: boolean
+  enableNodeDrag?: boolean
+  linkCreation?: {
+    shiftHeld: boolean
+    sourceNode: GraphNode | null
+    onStartLinking: (node: GraphNode) => void
+    onCompleteLinking: (node: GraphNode, screenX: number, screenY: number) => void
+    onCancel: () => void
+  }
 }
 
 export interface TooltipData {

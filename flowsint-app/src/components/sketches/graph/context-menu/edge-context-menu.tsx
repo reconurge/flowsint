@@ -23,6 +23,9 @@ interface EdgeContextMenuProps {
   wrapperWidth: number
   wrapperHeight: number
   setMenu: (menu: any | null) => void
+  // For newly created edges: save to DB on submit, remove from store on dismiss
+  onSubmitNew?: (edgeId: string, label: string) => void
+  onDismissNew?: (edgeId: string) => void
   [key: string]: any
 }
 
@@ -36,6 +39,8 @@ export default function EdgeContextMenu({
   wrapperWidth,
   wrapperHeight,
   setMenu,
+  onSubmitNew,
+  onDismissNew,
   ...props
 }: EdgeContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
@@ -54,9 +59,21 @@ export default function EdgeContextMenu({
     e.stopPropagation()
   }, [])
 
+  const savedRef = useRef(false)
+
   const handleBlur = useCallback(async () => {
     if (!edge || !labelRef.current?.value || !sketchId) return
     const newLabel = labelRef.current.value.trim()
+
+    // New edge: always save on blur (triggered by Enter)
+    if (onSubmitNew) {
+      savedRef.current = true
+      updateEdge(edge.id, { label: newLabel })
+      setMenu(null)
+      onSubmitNew(edge.id, newLabel)
+      return
+    }
+
     if (newLabel !== edge.label) {
       const previousLabel = edge.label
 
@@ -80,7 +97,7 @@ export default function EdgeContextMenu({
         toast.error('Failed to update relationship.')
       }
     }
-  }, [edge, updateEdge, sketchId, setMenu])
+  }, [edge, updateEdge, sketchId, setMenu, onSubmitNew])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -119,6 +136,17 @@ export default function EdgeContextMenu({
     [edgeIds, sketchId, setMenu, removeEdges, clearSelectedEdges, isMultiSelect, confirm]
   )
 
+  // Wrap setMenu to handle dismissing new edges (Escape / click outside)
+  const wrappedSetMenu = useCallback(
+    (menu: any | null) => {
+      if (menu === null && onDismissNew && edge && !savedRef.current) {
+        onDismissNew(edge.id)
+      }
+      setMenu(menu)
+    },
+    [setMenu, onDismissNew, edge]
+  )
+
   return (
     <BaseContextMenu
       top={top}
@@ -127,7 +155,7 @@ export default function EdgeContextMenu({
       bottom={bottom}
       wrapperWidth={wrapperWidth}
       wrapperHeight={wrapperHeight}
-      setMenu={setMenu}
+      setMenu={wrappedSetMenu}
       {...props}
     >
       <div className="px-3 py-1 flex items-center justify-between shrink-0">
@@ -141,7 +169,10 @@ export default function EdgeContextMenu({
                 className="h-7"
                 defaultValue={edge?.label ?? '??'}
                 onChange={handleInputChange}
-                onFocus={(e) => e.stopPropagation()}
+                onFocus={(e) => {
+                  e.stopPropagation()
+                  if (onSubmitNew) e.currentTarget.select()
+                }}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
                 autoFocus

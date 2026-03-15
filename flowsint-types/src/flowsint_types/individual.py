@@ -15,8 +15,8 @@ class Individual(FlowsintType):
     """Represents an individual person with comprehensive personal information."""
 
     # Basic Information
-    first_name: str = Field(
-        ..., description="First name of the individual", title="First Name"
+    first_name: Optional[str] = Field(
+        None, description="First name of the individual", title="First Name"
     )
     last_name: Optional[str] = Field(
         None, description="Last name of the individual", title="Last Name"
@@ -442,8 +442,8 @@ class Individual(FlowsintType):
         line = line.strip()
         if not line:
             return False
-        fullname = " ".split(line)
-        if len(fullname) == 2:
+        fullname = line.split(" ")
+        if 2 <= len(fullname) <= 3:
             return True
 
         return False

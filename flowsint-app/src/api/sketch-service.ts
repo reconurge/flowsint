@@ -79,6 +79,12 @@ export const sketchService = {
       method: 'GET'
     })
   },
+  detectType: async (text: string): Promise<any> => {
+    return fetchWithAuth(`/api/types/detect`, {
+      method: 'POST',
+      body: JSON.stringify({ text })
+    })
+  },
   update: async (sketchId: string, body: BodyInit): Promise<any> => {
     return fetchWithAuth(`/api/sketches/${sketchId}`, {
       method: 'PUT',

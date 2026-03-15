@@ -30,6 +30,7 @@ import { GraphEmptyState } from './components/graph-empty-state'
 import { GraphTooltip } from './components/graph-tooltip'
 import { GraphLoadingOverlay } from './components/graph-loading-overlay'
 import { GraphSelectorOverlay } from './components/graph-selector-overlay'
+import { LinkCreationCanvas } from './components/link-creation-overlay'
 import MinimapCanvas from './components/minimap'
 import { Background } from './background'
 import { BackgroundVariant } from './background/background-types'
@@ -56,11 +57,22 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   allowForces = false,
   autoZoomOnNode = true,
   showMinimalControls = false,
-  showMinimap
+  showMinimap,
+  enableNodeDrag: enableNodeDragProp = true,
+  linkCreation: linkCreationProp
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const graphRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Notify parent when graphRef becomes available
+  const graphReadyRef = useRef(false)
+  useEffect(() => {
+    if (graphRef.current && !graphReadyRef.current) {
+      graphReadyRef.current = true
+      onGraphRef?.(graphRef.current)
+    }
+  })
 
   const { saveAllNodePositions } = useSaveNodePositions(sketchId)
 
@@ -534,7 +546,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         dagLevelDistance={forceSettings.dagLevelDistance.value}
         backgroundColor={backgroundColor}
         linkCanvasObject={renderLinkCallback}
-        enableNodeDrag={true}
+        enableNodeDrag={enableNodeDragProp}
         autoPauseRedraw={true}
         onNodeHover={handleNodeHoverWithTooltip}
         onLinkHover={handleLinkHover}
@@ -546,6 +558,18 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           nodes={graphData.nodes}
           graph2ScreenCoords={graph2ScreenCoords}
           containerSize={containerSize}
+        />
+      )}
+      {linkCreationProp?.shiftHeld && (
+        <LinkCreationCanvas
+          nodes={graphData.nodes}
+          graph2ScreenCoords={graph2ScreenCoords}
+          width={containerSize.width}
+          height={containerSize.height}
+          onStartLinking={linkCreationProp.onStartLinking}
+          onCompleteLinking={linkCreationProp.onCompleteLinking}
+          onCancel={linkCreationProp.onCancel}
+          sourceNode={linkCreationProp.sourceNode}
         />
       )}
       {(showMinimap ?? showMinimapSetting) && graphData.nodes.length > 0 && (

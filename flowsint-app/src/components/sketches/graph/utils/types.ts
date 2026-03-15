@@ -6,7 +6,7 @@ export interface GraphViewerProps {
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
   onEdgeRightClick?: (edge: GraphEdge, event: MouseEvent) => void
-  onBackgroundClick?: () => void
+  onBackgroundClick?: (event?: MouseEvent) => void
   onBackgroundRightClick?: (event: MouseEvent) => void
   showLabels?: boolean
   showIcons?: boolean
@@ -21,6 +21,14 @@ export interface GraphViewerProps {
   autoZoomOnNode?: boolean
   showMinimalControls?: boolean
   showMinimap?: boolean
+  enableNodeDrag?: boolean
+  linkCreation?: {
+    shiftHeld: boolean
+    sourceNode: GraphNode | null
+    onStartLinking: (node: GraphNode) => void
+    onCompleteLinking: (node: GraphNode, screenX: number, screenY: number) => void
+    onCancel: () => void
+  }
 }
 
 export interface TooltipData {

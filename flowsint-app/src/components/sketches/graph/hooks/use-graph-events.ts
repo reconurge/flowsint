@@ -5,7 +5,7 @@ interface UseGraphEventsParams {
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
   onNodeRightClick?: (node: GraphNode, event: MouseEvent) => void
   onEdgeRightClick?: (edge: GraphEdge, event: MouseEvent) => void
-  onBackgroundClick?: () => void
+  onBackgroundClick?: (event?: MouseEvent) => void
   onBackgroundRightClick?: (event: MouseEvent) => void
   autoZoomOnCurrentNode: boolean
   autoZoomOnNode: boolean
@@ -87,9 +87,12 @@ export const useGraphEvents = ({
     [toggleEdgeSelection, setCurrentEdgeId, clearSelectedEdges, edgeMap]
   )
 
-  const handleBackgroundClick = useCallback(() => {
-    onBackgroundClick?.()
-  }, [onBackgroundClick])
+  const handleBackgroundClick = useCallback(
+    (event: MouseEvent) => {
+      onBackgroundClick?.(event)
+    },
+    [onBackgroundClick]
+  )
 
   const handleBackgroundRightClick = useCallback(
     (event: MouseEvent) => {

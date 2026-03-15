@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface UseGraphInitializationParams {
   graphRef: React.RefObject<any>
@@ -94,7 +94,6 @@ export const useGraphInitialization = ({
     const graphInstance = graphRef.current
     if (!graphInstance || isGraphReadyRef.current) return
 
-    // Wait for graph methods to be available
     if (typeof graphInstance.zoom !== 'function' || typeof graphInstance.zoomToFit !== 'function') {
       return
     }

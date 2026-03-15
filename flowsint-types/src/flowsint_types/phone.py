@@ -41,7 +41,7 @@ class Phone(FlowsintType):
             try:
                 parsed = phonenumbers.parse(v, None)
                 if phonenumbers.is_valid_number(parsed):
-                    return v
+                    return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
             except NumberParseException:
                 pass
 

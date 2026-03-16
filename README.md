@@ -1,7 +1,10 @@
 # Flowsint
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
 [![Ethical Software](https://img.shields.io/badge/ethical-use-blue.svg)](./ETHICS.md)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20coffee-support-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dextmorgn)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support-F16061?logo=ko-fi&logoColor=white)](https://ko-fi.com/P5P01W3GPJ)
+
 
 Flowsint is an open-source OSINT graph exploration tool designed for ethical investigation, transparency, and verification.
 
@@ -250,3 +253,7 @@ It was created to assist:
 
 Any misuse of this software is strictly prohibited and goes against the ethical principles defined in [ETHICS.md](./ETHICS.md).
 
+## ❤️ Support
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20coffee-support-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dextmorgn)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support-F16061?logo=ko-fi&logoColor=white)](https://ko-fi.com/P5P01W3GPJ)

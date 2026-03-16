@@ -130,13 +130,6 @@ class IndividualToDomainsEnricher(Enricher):
                                 },
                             }
                             self._extracted_data.append(extracted_info)
-            else:
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] No domain found for individual {individual.full_name}."
-                    },
-                )
         return domains
 
     def __get_infos_from_whoxy(

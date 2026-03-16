@@ -1,13 +1,11 @@
-import json
 import os
 import re
 import time
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 from dotenv import load_dotenv
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
-from flowsint_core.utils import is_root_domain, is_valid_domain
 from flowsint_types.address import Location
 from flowsint_types.domain import Domain
 from flowsint_types.email import Email
@@ -85,13 +83,6 @@ class DomainToHistoryEnricher(Enricher):
                 time.sleep(1)
             infos_data = self.__get_infos_from_whoxy(domain.domain, api_key)
             if infos_data and "whois_records" in infos_data:
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] Found {len(infos_data['whois_records'])} WHOIS records for {domain.domain}"
-                    },
-                )
-
                 # Process each WHOIS record
                 for record in infos_data["whois_records"]:
                     if self.__is_valid_whois_record(record):
@@ -116,20 +107,8 @@ class DomainToHistoryEnricher(Enricher):
                             }
                             self._extracted_data.append(extracted_info)
 
-                            Logger.info(
-                                self.sketch_id,
-                                {
-                                    "message": f"[WHOXY] Processing WHOIS record {record.get('num', 'unknown')} for {domain_name}"
-                                },
-                            )
-
                             # Process contacts and extract individuals during scan
                             self.__process_contacts_during_scan(extracted_info)
-            else:
-                Logger.info(
-                    self.sketch_id,
-                    {"message": f"[WHOXY] No info found for domain {domain.domain}."},
-                )
         return domains
 
     def __process_contacts_during_scan(self, extracted_info: Dict[str, Any]):
@@ -139,13 +118,6 @@ class DomainToHistoryEnricher(Enricher):
 
         for contact_type, contact in contacts.items():
             if contact:
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] Processing {contact_type} contact for {domain_name}"
-                    },
-                )
-
                 # Extract individual (if name is not redacted)
                 individual = self.__extract_individual_from_contact(
                     contact, contact_type
@@ -160,13 +132,6 @@ class DomainToHistoryEnricher(Enricher):
                         "contact_data": contact,
                     }
                     self._extracted_individuals.append(individual_info)
-
-                    Logger.info(
-                        self.sketch_id,
-                        {
-                            "message": f"[WHOXY] Extracted individual: {individual.full_name} ({contact_type}) for {domain_name}"
-                        },
-                    )
 
                 # Extract organization (if company name is not redacted)
                 organization = self.__extract_organization_from_contact(
@@ -183,27 +148,6 @@ class DomainToHistoryEnricher(Enricher):
                     }
                     self._extracted_organizations.append(organization_info)
 
-                    Logger.info(
-                        self.sketch_id,
-                        {
-                            "message": f"[WHOXY] Extracted organization: {organization.name} ({contact_type}) for {domain_name}"
-                        },
-                    )
-
-                # Extract other non-redacted information (country, email, etc.)
-                self.__extract_additional_info_from_contact(
-                    contact,
-                    contact_type,
-                    domain_name,
-                    extracted_info["original_domain"].domain,
-                )
-            else:
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] No contact data for {contact_type} contact for {domain_name}"
-                    },
-                )
 
     def __get_infos_from_whoxy(self, domain: str, api_key: str) -> Dict[str, Any]:
         """Get WHOIS history information from Whoxy API or test data."""
@@ -245,12 +189,6 @@ class DomainToHistoryEnricher(Enricher):
 
         # Skip if name is redacted - we can't create an individual without a name
         if self.__is_redacted(full_name) or not full_name:
-            Logger.info(
-                self.sketch_id,
-                {
-                    "message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"
-                },
-            )
             return None
 
         # Parse full name into first and last name
@@ -300,13 +238,6 @@ class DomainToHistoryEnricher(Enricher):
             phone_numbers=[phone] if phone else None,
         )
 
-        Logger.info(
-            self.sketch_id,
-            {
-                "message": f"[WHOXY] Extracted individual: {full_name} ({contact_type}) with {len(emails)} emails"
-            },
-        )
-
         return individual
 
     def __is_valid_email(self, email: str) -> bool:
@@ -348,77 +279,14 @@ class DomainToHistoryEnricher(Enricher):
         # Create organization object
         organization = Organization(name=company_name)
 
-        Logger.info(
-            self.sketch_id,
-            {
-                "message": f"[WHOXY] Extracted organization: {company_name} ({contact_type})"
-            },
-        )
-
         return organization
-
-    def __extract_additional_info_from_contact(
-        self,
-        contact: Dict[str, Any],
-        contact_type: str,
-        domain_name: str,
-        original_domain: str,
-    ):
-        """Extract additional non-redacted information from contact data."""
-        # Extract country information
-        country_name = contact.get("country_name", "")
-        country_code = contact.get("country_code", "")
-
-        if country_name and not self.__is_redacted(country_name):
-            Logger.info(
-                self.sketch_id,
-                {
-                    "message": f"[WHOXY] Found country: {country_name} ({contact_type}) for {domain_name}"
-                },
-            )
-
-        if country_code and not self.__is_redacted(country_code):
-            Logger.info(
-                self.sketch_id,
-                {
-                    "message": f"[WHOXY] Found country code: {country_code} ({contact_type}) for {domain_name}"
-                },
-            )
-
-        # Extract email (even if individual name is redacted)
-        email_raw = contact.get("email_address", "")
-        if email_raw and not self.__is_redacted(email_raw):
-            emails = []
-            email_list = [e.strip() for e in email_raw.split(",")]
-            for email in email_list:
-                if email and self.__is_valid_email(email):
-                    emails.append(email)
-
-            if emails:
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] Found emails: {emails} ({contact_type}) for {domain_name}"
-                    },
-                )
 
     def postprocess(
         self, results: List[OutputType], original_input: List[InputType]
     ) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self._graph_service:
-            Logger.info(
-                self.sketch_id,
-                {"message": "[WHOXY] No Neo4j connection, skipping postprocess"},
-            )
             return results
-
-        Logger.info(
-            self.sketch_id,
-            {
-                "message": f"[WHOXY] Starting postprocess with {len(self._extracted_individuals)} individuals"
-            },
-        )
 
         # Track processed entities to avoid duplicates
         processed_domains: Set[str] = set()
@@ -435,20 +303,9 @@ class DomainToHistoryEnricher(Enricher):
             domain_name = individual_info["domain_name"]
             original_domain_name = individual_info["original_domain"]
 
-            Logger.info(
-                self.sketch_id,
-                {
-                    "message": f"[WHOXY] Processing individual: {individual.full_name} ({contact_type}) for {domain_name}"
-                },
-            )
-
             # Create domain node if not already processed
             if domain_name not in processed_domains:
                 processed_domains.add(domain_name)
-                Logger.info(
-                    self.sketch_id,
-                    {"message": f"[WHOXY] Creating domain node: {domain_name}"},
-                )
                 domain_obj = Domain(domain=domain_name)
                 self.create_node(domain_obj)
 
@@ -465,12 +322,6 @@ class DomainToHistoryEnricher(Enricher):
             )
             if individual_id not in processed_individuals:
                 processed_individuals.add(individual_id)
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] Creating individual node: {individual.full_name}"
-                    },
-                )
                 self.create_node(individual)
 
                 # Create relationship between individual and domain
@@ -485,10 +336,6 @@ class DomainToHistoryEnricher(Enricher):
                     email_str = email_obj.email
                     if email_str and email_str not in processed_emails:
                         processed_emails.add(email_str)
-                        Logger.info(
-                            self.sketch_id,
-                            {"message": f"[WHOXY] Creating email node: {email_str}"},
-                        )
                         email_node = Email(email=email_str)
                         self.create_node(email_node)
                         self.create_relationship(individual, email_node, "HAS_EMAIL")
@@ -499,10 +346,6 @@ class DomainToHistoryEnricher(Enricher):
                     phone_str = phone_obj.number
                     if phone_str and phone_str not in processed_phones:
                         processed_phones.add(phone_str)
-                        Logger.info(
-                            self.sketch_id,
-                            {"message": f"[WHOXY] Creating phone node: {phone_str}"},
-                        )
                         phone_node = Phone(number=phone_str)
                         self.create_node(phone_node)
                         self.create_relationship(individual, phone_node, "HAS_PHONE")
@@ -516,12 +359,6 @@ class DomainToHistoryEnricher(Enricher):
                 )
                 if address_id not in processed_addresses:
                     processed_addresses.add(address_id)
-                    Logger.info(
-                        self.sketch_id,
-                        {
-                            "message": f"[WHOXY] Creating address node: {address.address}"
-                        },
-                    )
                     self.create_node(address)
                     self.create_relationship(individual, address, "LIVES_AT")
 
@@ -534,41 +371,16 @@ class DomainToHistoryEnricher(Enricher):
             organization = organization_info["organization"]
             contact_type = organization_info["contact_type"]
             domain_name = organization_info["domain_name"]
-            original_domain_name = organization_info["original_domain"]
-
-            Logger.info(
-                self.sketch_id,
-                {
-                    "message": f"[WHOXY] Processing organization: {organization.name} ({contact_type}) for {domain_name}"
-                },
-            )
 
             # Create domain node if not already processed
             if domain_name not in processed_domains:
                 processed_domains.add(domain_name)
-                Logger.info(
-                    self.sketch_id,
-                    {"message": f"[WHOXY] Creating domain node: {domain_name}"},
-                )
                 domain_obj = Domain(domain=domain_name)
                 self.create_node(domain_obj)
-
-                # Create relationship between original domain and found domain
-                original_domain_obj3 = Domain(domain=original_domain_name)
-                domain_obj_rel3 = Domain(domain=domain_name)
-                self.create_relationship(
-                    original_domain_obj3, domain_obj_rel3, "HAS_RELATED_DOMAIN"
-                )
 
             # Create organization node if not already processed
             if organization.name not in processed_organizations:
                 processed_organizations.add(organization.name)
-                Logger.info(
-                    self.sketch_id,
-                    {
-                        "message": f"[WHOXY] Creating organization node: {organization.name}"
-                    },
-                )
                 self.create_node(organization)
 
                 # Create relationship between organization and domain
@@ -580,13 +392,6 @@ class DomainToHistoryEnricher(Enricher):
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"
             )
-
-        Logger.info(
-            self.sketch_id,
-            {
-                "message": f"[WHOXY] Postprocess completed. Processed {len(processed_individuals)} individuals and {len(processed_organizations)} organizations"
-            },
-        )
 
         return results
 

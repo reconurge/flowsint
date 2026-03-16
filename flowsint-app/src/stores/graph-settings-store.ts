@@ -96,6 +96,12 @@ const DEFAULT_SETTINGS = {
       description:
         'Adjusts the font size of link labels (percentage of base size, scales with zoom)'
     },
+    linkLabelHorizontal: {
+      name: 'Horizontal Link Labels',
+      type: 'boolean',
+      value: false,
+      description: 'Display link labels horizontally instead of following the edge angle.'
+    },
     dagLevelDistance: {
       name: 'DAG Level Distance',
       type: 'number',
@@ -401,7 +407,7 @@ type GraphGeneralSettingsStore = {
 }
 
 // Storage version - increment this whenever you make breaking changes to DEFAULT_SETTINGS
-const STORAGE_VERSION = 7
+const STORAGE_VERSION = 8
 
 export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
   persist(

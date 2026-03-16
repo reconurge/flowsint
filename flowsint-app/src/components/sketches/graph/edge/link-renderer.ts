@@ -202,8 +202,12 @@ export const renderLink = ({
       textAngle = Math.atan2(sdy, sdx)
     }
 
-    if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
-      textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI
+    const linkLabelHorizontal = forceSettings?.linkLabelHorizontal?.value ?? false
+
+    if (!linkLabelHorizontal) {
+      if (textAngle > CONSTANTS.HALF_PI || textAngle < -CONSTANTS.HALF_PI) {
+        textAngle += textAngle > 0 ? -CONSTANTS.PI : CONSTANTS.PI
+      }
     }
 
     const linkLabelSetting = forceSettings?.linkLabelFontSize?.value ?? 50
@@ -221,7 +225,9 @@ export const renderLink = ({
 
     ctx.save()
     ctx.translate(tempPos.x, tempPos.y)
-    ctx.rotate(textAngle)
+    if (!linkLabelHorizontal) {
+      ctx.rotate(textAngle)
+    }
 
     const borderRadius = linkFontSize * 0.1
     ctx.beginPath()

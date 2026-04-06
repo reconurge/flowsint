@@ -122,6 +122,7 @@ services:
       - MASTER_VAULT_KEY_V1=${MASTER_VAULT_KEY_V1}
       - REDIS_URL=redis://redis:6379/0
       - SKIP_MIGRATIONS=true
+      - AUTH_SECRET=${AUTH_SECRET}
     depends_on:
       postgres:
         condition: service_healthy

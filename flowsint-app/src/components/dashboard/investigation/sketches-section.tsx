@@ -9,16 +9,17 @@ import NewSketch from "@/components/sketches/new-sketch"
 
 interface SketchesSectionProps {
   sketches: Sketch[]
+  canCreate?: boolean
 }
 
 
-export function SketchesSection({ sketches }: SketchesSectionProps) {
+export function SketchesSection({ sketches, canCreate = true }: SketchesSectionProps) {
   const isEmpty = sketches.length === 0
   return (
     <section className="my-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-medium text-foreground">Sketches</h2>
-        {!isEmpty && (
+        {!isEmpty && canCreate && (
           <NewSketch>
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
               <Plus className="w-3.5 h-3.5" />
@@ -29,7 +30,7 @@ export function SketchesSection({ sketches }: SketchesSectionProps) {
       </div>
 
       {isEmpty ? (
-        <EmptySketches onAction={() => console.log("Create sketch")} />
+        canCreate ? <EmptySketches onAction={() => console.log("Create sketch")} /> : <div className="text-sm text-muted-foreground py-4">No sketches yet.</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {sketches.map((sketch) => (

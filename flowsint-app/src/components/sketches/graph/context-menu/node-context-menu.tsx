@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from 'react'
+import React, { memo, useCallback, useState } from 'react'
 import { enricherService } from '@/api/enricher-service'
 import { flowService } from '@/api/flow-service'
 import { useQuery } from '@tanstack/react-query'
@@ -25,6 +25,7 @@ import NodeActions from '../node/actions/node-actions'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
 import { CopyButton } from '@/components/copy'
+import { usePermissions } from '@/hooks/use-can'
 
 interface GraphContextMenuProps {
   node: GraphNode
@@ -56,6 +57,7 @@ export default function ContextMenu({
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit } = usePermissions()
   const [activeTab, setActiveTab] = useState('enrichers')
   const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
   const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
@@ -133,24 +135,26 @@ export default function ContextMenu({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-3 py-2 border-b border-border shrink-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full h-9">
-            <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
-              <Zap className="h-3 w-3 mr-1" />
-              Enrichers
-            </TabsTrigger>
-            <TabsTrigger value="flows" className="flex-1" onClick={(e) => e.stopPropagation()}>
-              <FileCode2 className="h-3 w-3 mr-1" />
-              Flows
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      {/* Tabs - editor+ only */}
+      {canEdit && (
+        <div className="px-3 py-2 border-b border-border shrink-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full h-9">
+              <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <Zap className="h-3 w-3 mr-1" />
+                Enrichers
+              </TabsTrigger>
+              <TabsTrigger value="flows" className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <FileCode2 className="h-3 w-3 mr-1" />
+                Flows
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
 
       {/* Tab Content */}
-      <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
+      {canEdit && <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
         {/* Enrichers Tab */}
         <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
           {/* Enrichers Search */}
@@ -302,7 +306,7 @@ export default function ContextMenu({
             )}
           </div>
         </TabsContent>
-      </Tabs>
+      </Tabs>}
     </BaseContextMenu>
   )
 }

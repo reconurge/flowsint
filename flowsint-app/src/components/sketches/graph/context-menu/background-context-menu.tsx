@@ -30,6 +30,7 @@ import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { toast } from 'sonner'
 import { sketchService } from '@/api/sketch-service'
+import { usePermissions } from '@/hooks/use-can'
 
 interface GraphContextMenuProps {
   nodes: GraphNode[]
@@ -61,6 +62,7 @@ export default function BackgroundContextMenu({
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit } = usePermissions()
   const [activeTab, setActiveTab] = useState('enrichers')
   const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
   const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
@@ -167,26 +169,28 @@ export default function BackgroundContextMenu({
               {isSameType && <span className="block">- {sharedType}</span>}
             </div>
             <div className="grow" />
-            <div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                      onClick={handleDeleteNodes}
-                    >
-                      <Trash2 className="h-3 w-3" strokeWidth={1.5} /> Delete{' '}
-                      {selectedNodeIds.length}
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Delete {selectedNodeIds.length} node(s)</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            {canEdit && (
+              <div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                        onClick={handleDeleteNodes}
+                      >
+                        <Trash2 className="h-3 w-3" strokeWidth={1.5} /> Delete{' '}
+                        {selectedNodeIds.length}
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete {selectedNodeIds.length} node(s)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
           </div>
 
           {/* Tabs */}
@@ -377,6 +381,7 @@ export default function BackgroundContextMenu({
 }
 
 const DefaultBackgroundMenu = memo(() => {
+  const { canCreate } = usePermissions()
   const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
 
@@ -387,6 +392,14 @@ const DefaultBackgroundMenu = memo(() => {
   const handleOpenImportDialog = useCallback(() => {
     setImportModalOpen(true)
   }, [setImportModalOpen])
+
+  if (!canCreate) {
+    return (
+      <div className="flex-1 grow text-sm overflow-hidden min-h-0 p-3">
+        <p className="text-muted-foreground text-xs">View only</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 grow text-sm overflow-hidden min-h-0">

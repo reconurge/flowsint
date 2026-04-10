@@ -7,17 +7,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Star, Share, Trash2, Clock } from "lucide-react"
-import { Investigation } from "@/types"
+import { Investigation, Collaborator } from "@/types"
 import { formatDistanceToNow } from "date-fns"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { investigationService } from "@/api/investigation-service"
 import { useConfirm } from "@/components/use-confirm-dialog"
 import { queryKeys } from "@/api/query-keys"
 import { toast } from "sonner"
 import { Link, useRouter } from "@tanstack/react-router"
+import { usePermissions } from "@/hooks/use-can"
+import { ShareDialog } from "./share-dialog"
+import { getInitials } from "@/lib/user-display"
 
 type CaseOverviewPageProps = {
   investigation: Investigation
@@ -28,9 +31,15 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
     addSuffix: true
   })
   const router = useRouter()
+  const { canDelete, canManage } = usePermissions()
 
   const { confirm } = useConfirm()
   const queryClient = useQueryClient()
+
+  const { data: collaborators = [] } = useQuery<Collaborator[]>({
+    queryKey: queryKeys.investigations.collaborators(investigation.id),
+    queryFn: () => investigationService.getCollaborators(investigation.id),
+  })
 
   const handleDeleteInvestigation = async () => {
     const confirmed = await confirm({
@@ -41,13 +50,9 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
     if (confirmed) {
       const deletePromise = () =>
         investigationService.delete(investigation.id).then(() => {
-          ''
-          // Invalidate the investigations list
           queryClient.invalidateQueries({
             queryKey: queryKeys.investigations.list
           })
-
-          // Also remove related data from cache
           queryClient.removeQueries({
             queryKey: queryKeys.investigations.detail(investigation.id)
           })
@@ -73,7 +78,7 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
 
   return (
     <div className="space-y-6 pb-6 border-b border-border">
-      {/* Breadcrumb - subtle */}
+      {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to={"/dashboard"} className="hover:text-foreground cursor-pointer transition-colors">Cases</Link>
         <span>/</span>
@@ -88,7 +93,7 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
             <FavoriteButton />
           </div>
 
-          {/* Inline properties - Notion style */}
+          {/* Inline properties */}
           <div className="flex items-center gap-4 text-sm">
             <PropertyPill label="Status" value={investigation.status} valueClass="text-success" />
             <PropertyPill label="Priority" value="Medium" valueClass="text-primary" />
@@ -96,51 +101,51 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
           </div>
         </div>
 
-        {/* Actions - minimal */}
+        {/* Actions */}
         <div className="flex items-center gap-1">
-          {/* <Button variant="ghost" size="sm" className="text-muted-foreground h-8 px-2">
-            <Share className="w-4 h-4" />
-          </Button> */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {canManage && (
+            <ShareDialog investigationId={investigation.id}>
               <Button variant="ghost" size="sm" className="text-muted-foreground h-8 px-2">
-                <MoreHorizontal className="w-4 h-4" />
+                <Share className="w-4 h-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {/* <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-              <DropdownMenuItem>Duplicate</DropdownMenuItem> */}
-              {/* <DropdownMenuSeparator /> */}
-              <DropdownMenuItem onClick={handleDeleteInvestigation} className="text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </ShareDialog>
+          )}
+          {canDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground h-8 px-2">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleDeleteInvestigation} className="text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
-
-      {/* Tags row */}
-      {/* <div className="flex items-center gap-2 flex-wrap">
-        <Tag>APT</Tag>
-        <Tag>Nation-State</Tag>
-        <Tag>Supply Chain</Tag>
-        <Tag>SolarWinds</Tag>
-        <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">+ Add tag</button>
-      </div> */}
 
       {/* Team */}
       <div className="flex items-center gap-2">
         <div className="flex -space-x-1.5">
-          <Avatar className="h-5 w-5">
-            <AvatarImage src="https://cherry.img.pmdstatic.net/fit/https.3A.2F.2Fimg.2Egamesider.2Ecom.2Fs3.2Ffrgsg.2F1280.2Fthe-last-of-us.2Fdefault_2023-11-27_291826c8-5b2b-4928-a167-259dd0b18a7c.2Ejpeg/1200x675/quality/80/the-last-of-us-saison-2-mauvaise-nouvelle-pedro-pascal.jpg" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-          {/* <Avatar initials="SK" />
-          <Avatar initials="MR" /> */}
+          {collaborators.map((collab) => (
+              <Avatar key={collab.id} className="h-5 w-5 border border-background">
+                {collab.user?.avatar_url && <AvatarImage src={collab.user.avatar_url} />}
+                <AvatarFallback className="text-[10px]">{getInitials(collab.user)}</AvatarFallback>
+              </Avatar>
+          ))}
         </div>
-        <span className="text-sm text-muted-foreground">1 investigator</span>
-        {/* <button disabled className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1">+ Invite</button> */}
+        <span className="text-sm text-muted-foreground">
+          {collaborators.length} investigator{collaborators.length !== 1 ? 's' : ''}
+        </span>
+        {canManage && (
+          <ShareDialog investigationId={investigation.id}>
+            <button className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1">+ Invite</button>
+          </ShareDialog>
+        )}
       </div>
     </div>
   )

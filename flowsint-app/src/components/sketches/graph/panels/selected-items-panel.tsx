@@ -15,6 +15,8 @@ import LaunchFlow from '../../launch-enricher'
 import { TypeBadge } from '@/components/type-badge'
 import { useParams } from '@tanstack/react-router'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { usePermissions } from '@/hooks/use-can'
+
 const SelectedItemsPanel = () => {
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
 
@@ -76,6 +78,7 @@ export const SelectedList = () => {
 
 const ActionBar = () => {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit } = usePermissions()
   const { confirm } = useConfirm()
   const selectedNodes = useGraphStore((s) => s.selectedNodes)
   const removeNodes = useGraphStore((s) => s.removeNodes)
@@ -129,7 +132,7 @@ const ActionBar = () => {
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider>
-        {Boolean(settings?.general?.showFlow?.value) &&
+        {canEdit && Boolean(settings?.general?.showFlow?.value) &&
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
@@ -147,47 +150,51 @@ const ActionBar = () => {
               <p>Ask AI</p>
             </TooltipContent>
           </Tooltip>}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={selectedNodes.length === 0}
-                className="h-6 w-6 p-0 relative text-destructive hover:text-destructive"
-                onClick={handleDeleteNodes}
-              >
-                <Trash2 className="h-3 w-3" strokeWidth={1.5} />
-                {selectedNodes.length > 0 && (
-                  <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">
-                    {selectedNodes.length}
-                  </span>
-                )}
-              </Button>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Delete {selectedNodes.length} nodes</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="ml-2">
-              <LaunchFlow disabled={!shareSameType} values={values} type={type}>
-                <Button disabled={!shareSameType} size={'sm'} className="rounded-full h-7">
-                  <Rocket className="h-3 w-3" strokeWidth={2} />({selectedNodes.length})
+        {canEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={selectedNodes.length === 0}
+                  className="h-6 w-6 p-0 relative text-destructive hover:text-destructive"
+                  onClick={handleDeleteNodes}
+                >
+                  <Trash2 className="h-3 w-3" strokeWidth={1.5} />
+                  {selectedNodes.length > 0 && (
+                    <span className="absolute -top-2 -right-2 z-50 bg-primary text-white text-[10px] rounded-full w-auto min-w-4.5 h-4.5 p-1 flex items-center justify-center">
+                      {selectedNodes.length}
+                    </span>
+                  )}
                 </Button>
-              </LaunchFlow>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            {!shareSameType ? (
-              <p>All selected items are not the same type</p>
-            ) : (
-              <p>Launch enricher</p>
-            )}
-          </TooltipContent>
-        </Tooltip>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete {selectedNodes.length} nodes</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        {canEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="ml-2">
+                <LaunchFlow disabled={!shareSameType} values={values} type={type}>
+                  <Button disabled={!shareSameType} size={'sm'} className="rounded-full h-7">
+                    <Rocket className="h-3 w-3" strokeWidth={2} />({selectedNodes.length})
+                  </Button>
+                </LaunchFlow>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {!shareSameType ? (
+                <p>All selected items are not the same type</p>
+              ) : (
+                <p>Launch enricher</p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        )}
         <Tooltip>
           <TooltipTrigger asChild>
             <div>

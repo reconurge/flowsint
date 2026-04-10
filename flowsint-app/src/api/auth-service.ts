@@ -49,6 +49,17 @@ export const authService = {
   },
 
   getCurrentUser: async () => {
-    return fetchWithAuth('/api/users/me')
+    return fetchWithAuth('/api/auth/me')
+  },
+
+  updateProfile: async (data: { first_name?: string; last_name?: string; avatar_url?: string }) => {
+    return fetchWithAuth('/api/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  },
+
+  searchUsers: async (query: string) => {
+    return fetchWithAuth(`/api/auth/users/search?q=${encodeURIComponent(query)}`)
   }
 }

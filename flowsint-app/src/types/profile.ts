@@ -4,4 +4,5 @@ export interface Profile {
   last_name: string
   id: string
   avatar_url?: string
+  email?: string
 }

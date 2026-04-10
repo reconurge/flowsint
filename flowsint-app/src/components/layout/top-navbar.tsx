@@ -26,6 +26,7 @@ import { useConfirm } from '../use-confirm-dialog'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
+import { usePermissions } from '@/hooks/use-can'
 
 export const TopNavbar = memo(() => {
   const { investigationId, id, type } = useParams({ strict: false })
@@ -85,6 +86,7 @@ export function InvestigationMenu({
   investigationId?: string
   sketchId: string
 }) {
+  const { canEdit } = usePermissions()
   const toggleSettingsModal = useGraphSettingsStore((s) => s.toggleSettingsModal)
   const toggleKeyboardShortcutsModal = useGraphSettingsStore((s) => s.toggleKeyboardShortcutsModal)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
@@ -175,15 +177,18 @@ export function InvestigationMenu({
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setImportModalOpen(true)}>
-          <Upload /> Import entities
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDelete} variant="destructive">
-          Delete sketch
-          {/* <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut> */}
-        </DropdownMenuItem>
+        {canEdit && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setImportModalOpen(true)}>
+              <Upload /> Import entities
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleDelete} variant="destructive">
+              Delete sketch
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
       <ImportSheet sketchId={sketchId} />
     </DropdownMenu>

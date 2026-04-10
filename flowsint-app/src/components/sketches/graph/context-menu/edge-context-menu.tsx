@@ -10,6 +10,7 @@ import { useGraphStore } from '@/stores/graph-store'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
+import { usePermissions } from '@/hooks/use-can'
 
 interface EdgeContextMenuProps {
   edge?: GraphEdge
@@ -44,6 +45,7 @@ export default function EdgeContextMenu({
   ...props
 }: EdgeContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit } = usePermissions()
   const removeEdges = useGraphStore((s) => s.removeEdges)
   const updateEdge = useGraphStore((s) => s.updateEdge)
   const clearSelectedEdges = useGraphStore((s) => s.clearSelectedEdges)
@@ -173,8 +175,9 @@ export default function EdgeContextMenu({
                   e.stopPropagation()
                   if (onSubmitNew) e.currentTarget.select()
                 }}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
+                onBlur={canEdit ? handleBlur : undefined}
+                onKeyDown={canEdit ? handleKeyDown : undefined}
+                readOnly={!canEdit}
                 autoFocus
               />
             </div>
@@ -184,9 +187,11 @@ export default function EdgeContextMenu({
           {!isMultiSelect && edge && (
             <CopyButton size="icon" content={edge.label} className="h-7 w-7" />
           )}
-          <Button onClick={handleDelete} size="icon" variant="ghost" className="h-7 w-7">
-            <Trash2 className="h-3.5! w-3.5! opacity-50" />
-          </Button>
+          {canEdit && (
+            <Button onClick={handleDelete} size="icon" variant="ghost" className="h-7 w-7">
+              <Trash2 className="h-3.5! w-3.5! opacity-50" />
+            </Button>
+          )}
         </div>
       </div>
     </BaseContextMenu>

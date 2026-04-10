@@ -25,20 +25,7 @@ class InvestigationRead(ORMBase):
     owner: Optional[ProfileRead] = None
     sketches: list[SketchRead] = []
     analyses: list[AnalysisRead] = []
-
-
-class InvestigationProfileCreate(BaseModel):
-    investigation_id: UUID4
-    profile_id: UUID4
-    role: Optional[str] = "member"
-
-
-class InvestigationProfileRead(ORMBase):
-    id: int
-    created_at: datetime
-    investigation_id: UUID4
-    profile_id: UUID4
-    role: str
+    current_user_role: Optional[str] = None
 
 
 class InvestigationUpdate(BaseModel):
@@ -46,3 +33,22 @@ class InvestigationUpdate(BaseModel):
     description: Optional[str] = None
     last_updated_at: datetime
     status: str
+
+
+# ── Collaborator schemas ─────────────────────────────────────────────
+
+
+class CollaboratorAdd(BaseModel):
+    email: str
+    role: str  # "admin", "editor", "viewer"
+
+
+class CollaboratorUpdate(BaseModel):
+    role: str  # "admin", "editor", "viewer"
+
+
+class CollaboratorRead(ORMBase):
+    id: UUID4
+    user_id: UUID4
+    roles: list[str] = []
+    user: Optional[ProfileRead] = None

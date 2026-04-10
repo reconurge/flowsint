@@ -32,7 +32,7 @@ class InvestigationRepository(BaseRepository[Investigation]):
         )
 
     def get_with_relations(
-        self, investigation_id: UUID, owner_id: UUID
+        self, investigation_id: UUID
     ) -> Optional[Investigation]:
         return (
             self._db.query(Investigation)
@@ -41,10 +41,7 @@ class InvestigationRepository(BaseRepository[Investigation]):
                 selectinload(Investigation.analyses),
                 selectinload(Investigation.owner),
             )
-            .filter(
-                Investigation.id == investigation_id,
-                Investigation.owner_id == owner_id,
-            )
+            .filter(Investigation.id == investigation_id)
             .first()
         )
 
@@ -72,3 +69,30 @@ class InvestigationRepository(BaseRepository[Investigation]):
     def add_user_role(self, role_entry: InvestigationUserRole) -> InvestigationUserRole:
         self._db.add(role_entry)
         return role_entry
+
+    def get_collaborators(
+        self, investigation_id: UUID
+    ) -> List[InvestigationUserRole]:
+        return (
+            self._db.query(InvestigationUserRole)
+            .options(selectinload(InvestigationUserRole.user))
+            .filter(InvestigationUserRole.investigation_id == investigation_id)
+            .all()
+        )
+
+    def update_user_role(
+        self, user_id: UUID, investigation_id: UUID, roles: List[Role]
+    ) -> Optional[InvestigationUserRole]:
+        entry = self.get_user_role(user_id, investigation_id)
+        if entry:
+            entry.roles = roles
+        return entry
+
+    def remove_user_role(
+        self, user_id: UUID, investigation_id: UUID
+    ) -> bool:
+        entry = self.get_user_role(user_id, investigation_id)
+        if entry:
+            self._db.delete(entry)
+            return True
+        return False

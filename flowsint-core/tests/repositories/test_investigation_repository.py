@@ -72,19 +72,16 @@ class TestInvestigationRepository:
         inv = InvestigationFactory(owner=user)
 
         repo = InvestigationRepository(db_session)
-        result = repo.get_with_relations(inv.id, user.id)
+        result = repo.get_with_relations(inv.id)
 
         assert result is not None
         assert result.id == inv.id
 
-    def test_get_with_relations_wrong_owner(self, db_session):
+    def test_get_with_relations_not_found(self, db_session):
         self._setup(db_session)
-        user = ProfileFactory()
-        inv = InvestigationFactory(owner=user)
-        other_user = ProfileFactory()
 
         repo = InvestigationRepository(db_session)
-        result = repo.get_with_relations(inv.id, other_user.id)
+        result = repo.get_with_relations(uuid4())
         assert result is None
 
     def test_get_by_id_and_owner(self, db_session):

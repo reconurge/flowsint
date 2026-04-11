@@ -1,14 +1,11 @@
 FROM python:3.12-slim AS builder
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_HOME="/opt/poetry"
-
-ENV PATH="$POETRY_HOME/bin:$PATH"
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
 WORKDIR /app
 
@@ -22,21 +19,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+# Copy workspace config
+COPY pyproject.toml uv.lock ./
 
-COPY flowsint-core/pyproject.toml flowsint-core/poetry.lock* ./flowsint-core/
-COPY flowsint-types/pyproject.toml flowsint-types/poetry.lock* ./flowsint-types/
-COPY flowsint-enrichers/pyproject.toml flowsint-enrichers/poetry.lock* ./flowsint-enrichers/
-COPY flowsint-api/pyproject.toml flowsint-api/poetry.lock* ./flowsint-api/
-
-COPY flowsint-core ./flowsint-core
+# Copy all workspace members
 COPY flowsint-types ./flowsint-types
+COPY flowsint-core ./flowsint-core
 COPY flowsint-enrichers ./flowsint-enrichers
 COPY flowsint-api ./flowsint-api
 
-WORKDIR /app/flowsint-api
-RUN poetry install --no-root
+RUN uv sync --frozen --no-dev
 
 # DEV
 FROM python:3.12-slim AS dev
@@ -44,7 +36,7 @@ FROM python:3.12-slim AS dev
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     APP_ENV=development \
-    PATH="/app/flowsint-api/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH"
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -56,7 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy virtual environment from builder
-COPY --from=builder /app/flowsint-api/.venv ./flowsint-api/.venv
+COPY --from=builder /app/.venv ./.venv
 
 # Copy application code
 COPY flowsint-core ./flowsint-core
@@ -86,7 +78,7 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     APP_ENV=production \
-    PATH="/app/flowsint-api/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH"
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -102,8 +94,8 @@ RUN groupadd -g 1001 flowsint && \
 
 WORKDIR /app
 
-# Copy virtual environment from builder (production deps only would require separate install)
-COPY --from=builder --chown=flowsint:flowsint /app/flowsint-api/.venv ./flowsint-api/.venv
+# Copy virtual environment from builder
+COPY --from=builder --chown=flowsint:flowsint /app/.venv ./.venv
 
 # Copy application code
 COPY --chown=flowsint:flowsint flowsint-core ./flowsint-core

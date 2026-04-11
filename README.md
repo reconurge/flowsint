@@ -209,19 +209,19 @@ Each module has its own (incomplete) test suite:
 ```bash
 # Test core module
 cd flowsint-core
-poetry run pytest
+uv run pytest
 
 # Test types module
 cd ../flowsint-types
-poetry run pytest
+uv run pytest
 
 # Test enrichers module
 cd ../flowsint-enrichers
-poetry run pytest
+uv run pytest
 
 # Test API module
 cd ../flowsint-api
-poetry run pytest
+uv run pytest
 ```
 
 ## Contributing

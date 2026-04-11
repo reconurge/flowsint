@@ -132,43 +132,40 @@ migrate-prod:
 
 alembic-upgrade:
 	@echo "Running Alembic migrations (upgrade head)..."
-	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic upgrade head
+	cd $(PROJECT_ROOT)/flowsint-api && uv run alembic upgrade head
 
 alembic-downgrade:
 	@echo "Rolling back last Alembic migration..."
-	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic downgrade -1
+	cd $(PROJECT_ROOT)/flowsint-api && uv run alembic downgrade -1
 
 alembic-revision:
 	@if [ -z "$(m)" ]; then \
 		echo "Usage: make alembic-revision m=\"your migration message\""; exit 1; \
 	fi
 	@echo "Creating new Alembic migration: $(m)"
-	cd $(PROJECT_ROOT)/flowsint-api && poetry run alembic revision --autogenerate -m "$(m)"
+	cd $(PROJECT_ROOT)/flowsint-api && uv run alembic revision --autogenerate -m "$(m)"
 
 api:
 	cd $(PROJECT_ROOT)/flowsint-api && \
-	poetry run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
+	uv run uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 frontend:
 	cd $(PROJECT_ROOT)/flowsint-app && yarn dev
 
 celery:
 	cd $(PROJECT_ROOT)/flowsint-api && \
-	poetry run celery -A flowsint_core.core.celery \
+	uv run celery -A flowsint_core.core.celery \
 	worker --loglevel=info --pool=threads --concurrency=10
 
 test:
-	cd flowsint-types && poetry run pytest
-	cd flowsint-core && poetry run pytest
-	cd flowsint-enrichers && poetry run pytest
+	cd flowsint-types && uv run pytest
+	cd flowsint-core && uv run pytest
+	cd flowsint-enrichers && uv run pytest
 
 install:
-	poetry config virtualenvs.in-project true --local
 	$(MAKE) infra-dev
-	poetry install
-	cd flowsint-core && poetry install
-	cd flowsint-enrichers && poetry install
-	cd flowsint-api && poetry install && poetry run alembic upgrade head
+	uv sync
+	cd flowsint-api && uv run alembic upgrade head
 
 status:
 	@echo "=== DEV Containers ==="
@@ -190,9 +187,7 @@ clean:
 	-$(COMPOSE_PROD) down -v --rmi all --remove-orphans
 	-$(COMPOSE_DEPLOY) down -v --rmi all --remove-orphans
 	rm -rf flowsint-app/node_modules
-	rm -rf flowsint-core/.venv
-	rm -rf flowsint-enrichers/.venv
-	rm -rf flowsint-api/.venv
+	rm -rf .venv
 
 regenerate-router:
 	@echo "Regenerating flowsint-app/src/routeTree.gen.ts"

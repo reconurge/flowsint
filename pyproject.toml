@@ -1,20 +1,29 @@
-[tool.poetry]
+[project]
 name = "flowsint"
-version = "2.0.0"
+version = "1.2.8"
 description = "Flowsint multi-module project"
-authors = ["dextmorgn <contact@flowsint.io>"]
-package-mode = false
+authors = [{ name = "dextmorgn", email = "contact@flowsint.io" }]
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "flowsint-core",
+    "flowsint-types",
+    "flowsint-enrichers",
+    "flowsint-api",
+    "pydantic[email]>=2.11.7,<3.0.0",
+    "python-multipart>=0.0.20,<0.0.21",
+    "docker>=7.1.0,<8.0.0",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.12,<4.0"
-flowsint-core = { path = "./flowsint-core", develop = true }
-flowsint-types = { path = "./flowsint-types", develop = true }
-flowsint-enrichers = { path = "./flowsint-enrichers", develop = true }
-flowsint-api = { path = "./flowsint-api", develop = true }
-pydantic = {extras = ["email"], version = "^2.11.7"}
-python-multipart = "^0.0.20"
-docker = "^7.1.0"
+[tool.uv.workspace]
+members = [
+    "flowsint-api",
+    "flowsint-core",
+    "flowsint-enrichers",
+    "flowsint-types",
+]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv.sources]
+flowsint-core = { workspace = true }
+flowsint-types = { workspace = true }
+flowsint-enrichers = { workspace = true }
+flowsint-api = { workspace = true }

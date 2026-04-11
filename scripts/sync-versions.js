@@ -22,7 +22,7 @@ function updatePyprojectVersion(version) {
   const pyprojectPath = join(ROOT_DIR, 'pyproject.toml');
   let content = readFileSync(pyprojectPath, 'utf8');
 
-  // Update version in [tool.poetry] section
+  // Update version in [project] section
   content = content.replace(
     /^version = ".*"$/m,
     `version = "${version}"`

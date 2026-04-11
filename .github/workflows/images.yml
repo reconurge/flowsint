@@ -5,9 +5,9 @@ on:
     tags:
       - "v*"
 
-env:
-  REGISTRY_DOCKERHUB: docker.io
-  REGISTRY_GHCR: ghcr.io
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-frontend:
@@ -52,7 +52,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -70,9 +70,9 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         id: trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/flowsint-app:${{ github.ref_name }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/flowsint-app:${{ steps.meta.outputs.version }}
           format: "sarif"
           output: "trivy-frontend.sarif"
           severity: "CRITICAL,HIGH"
@@ -125,7 +125,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -144,9 +144,9 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         id: trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/flowsint-api:${{ github.ref_name }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/flowsint-api:${{ steps.meta.outputs.version }}
           format: "sarif"
           output: "trivy-backend.sarif"
           severity: "CRITICAL,HIGH"

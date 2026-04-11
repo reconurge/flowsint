@@ -14,7 +14,7 @@ It contains:
 ## Testing
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 > ⚠️ 🚧 Work in progress !.

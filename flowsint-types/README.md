@@ -5,7 +5,7 @@ The types used in the flowsint enrichers and core for flowsint.
 ## Testing
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 >  ⚠️ 🚧 Work in progress !.

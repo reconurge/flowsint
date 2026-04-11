@@ -8,24 +8,27 @@ import { Link } from "@tanstack/react-router"
 
 interface AnalysesSectionProps {
   analyses: Analysis[]
+  canCreate?: boolean
 }
 
-export function AnalysesSection({ analyses }: AnalysesSectionProps) {
+export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionProps) {
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-medium text-foreground">Analyses</h2>
-        <NewAnalysis>
-          <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
-            <Plus className="w-3.5 h-3.5" />
-            New
-          </Button>
-        </NewAnalysis>
+        {canCreate && (
+          <NewAnalysis>
+            <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+              <Plus className="w-3.5 h-3.5" />
+              New
+            </Button>
+          </NewAnalysis>
+        )}
       </div>
 
       {analyses.length === 0 ?
         <div className="border border-dashed rounded-md">
-          <EmptyAnalyses />
+          <EmptyAnalyses canCreate={canCreate} />
         </div> :
         <div className="space-y-1">
           {analyses.map((analysis) => (

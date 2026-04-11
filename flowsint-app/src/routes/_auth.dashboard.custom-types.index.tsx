@@ -168,7 +168,8 @@ function CustomTypesList({ types, onDelete, navigate }: CustomTypesListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div style={{ containerType: 'inline-size' }}>
+    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-4">
       {types.map((customType) => (
         <Card key={customType.id} className="hover:border-primary/50 transition-colors">
           <CardHeader>
@@ -210,6 +211,7 @@ function CustomTypesList({ types, onDelete, navigate }: CustomTypesListProps) {
           </CardContent>
         </Card>
       ))}
+    </div>
     </div>
   )
 }

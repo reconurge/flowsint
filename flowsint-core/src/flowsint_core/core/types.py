@@ -103,5 +103,6 @@ class FlowBranch(BaseModel):
 
 class Role(str, enum.Enum):
     OWNER = "owner"
+    ADMIN = "admin"
     EDITOR = "editor"
     VIEWER = "viewer"

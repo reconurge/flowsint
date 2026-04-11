@@ -22,7 +22,7 @@ class BaseRepository(Generic[T]):
         self, user_id: UUID, allowed_roles: Optional[List[Role]] = None
     ) -> Set[UUID]:
         if allowed_roles is None:
-            allowed_roles = [Role.OWNER, Role.EDITOR, Role.VIEWER]
+            allowed_roles = [Role.OWNER, Role.ADMIN, Role.EDITOR, Role.VIEWER]
         role_entries = (
             self._db.query(InvestigationUserRole)
             .filter(InvestigationUserRole.user_id == user_id)

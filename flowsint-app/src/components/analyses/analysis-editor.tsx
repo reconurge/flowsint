@@ -19,6 +19,7 @@ import { useConfirm } from '../use-confirm-dialog'
 import { Editor } from '@tiptap/core'
 import { Link, useParams } from '@tanstack/react-router'
 import { useLayoutStore } from '@/stores/layout-store'
+import { usePermissions } from '@/hooks/use-can'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   DropdownMenu,
@@ -78,6 +79,7 @@ export const AnalysisEditor = ({
   showToolbar = false
 }: AnalysisEditorProps) => {
   const { confirm } = useConfirm()
+  const { canEdit } = usePermissions()
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
   const { investigationId: routeInvestigationId, type } = useParams({ strict: false }) as {
     investigationId: string
@@ -318,7 +320,7 @@ export const AnalysisEditor = ({
 
               {/* Title section */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                {isEditingTitle ? (
+                {canEdit && isEditingTitle ? (
                   <input
                     className="text-md font-medium bg-transparent outline-none border-none p-0 m-0 w-full"
                     value={titleValue}
@@ -340,8 +342,8 @@ export const AnalysisEditor = ({
                   />
                 ) : (
                   <span
-                    className={`text-md font-medium truncate min-w-0 flex-1 ${'cursor-pointer hover:text-primary'}`}
-                    onClick={() => setIsEditingTitle(true)}
+                    className={`text-md font-medium truncate min-w-0 flex-1 ${canEdit ? 'cursor-pointer hover:text-primary' : ''}`}
+                    onClick={canEdit ? () => setIsEditingTitle(true) : undefined}
                   >
                     {titleValue || 'Untitled Analysis'}
                   </span>
@@ -350,7 +352,7 @@ export const AnalysisEditor = ({
             </div>
 
             {/* Action buttons */}
-            {showActions && (
+            {showActions && canEdit && (
               <div className="flex items-center gap-1">
                 <SaveStatusBadge status={saveStatus} />
                 <DropdownMenu>
@@ -426,29 +428,32 @@ export const AnalysisEditor = ({
                 }
                 return content || ''
               })()}
-              onChange={handleEditorChange}
+              onChange={canEdit ? handleEditorChange : undefined}
               className="w-full h-full"
               editorContentClassName="p-5 min-h-[300px]"
               output="json"
-              placeholder={'Enter your analysis...'}
-              autofocus={true}
-              showToolbar={showToolbar}
+              placeholder={canEdit ? 'Enter your analysis...' : ''}
+              autofocus={canEdit}
+              showToolbar={canEdit && showToolbar}
               editorClassName="focus:outline-hidden"
               onEditorReady={setEditor}
+              editable={canEdit}
             />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
             <div>No analysis selected.</div>
-            <Button
-              className="shadow-none"
-              variant="outline"
-              onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending}
-            >
-              <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
-              Create your first analysis
-            </Button>
+            {canEdit && (
+              <Button
+                className="shadow-none"
+                variant="outline"
+                onClick={() => createMutation.mutate()}
+                disabled={createMutation.isPending}
+              >
+                <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                Create your first analysis
+              </Button>
+            )}
           </div>
         )}
       </div>

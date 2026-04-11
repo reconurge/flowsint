@@ -13,6 +13,7 @@ export const queryKeys = {
     sketches: (investigationId: string) => [investigationId, 'sketches'],
     analyses: (investigationId: string) => [investigationId, 'analyses'],
     flows: (investigationId: string) => [investigationId, 'flows'],
+    collaborators: (investigationId: string) => ['investigations', investigationId, 'collaborators'],
     dashboard: ['investigations', 'dashboard'],
     selector: (investigationId: string) => ['dashboard', 'selector', investigationId]
   },

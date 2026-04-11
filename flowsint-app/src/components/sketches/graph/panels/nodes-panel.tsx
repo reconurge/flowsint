@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { GraphNode } from '@/types'
 import { Checkbox } from '@/components/ui/checkbox'
+import { usePermissions } from '@/hooks/use-can'
 
 const ITEM_HEIGHT = 40
 // Mémoiser le composant NodeRenderer
@@ -31,7 +32,8 @@ const NodeRenderer = memo(
     isNodeChecked,
     isCurrent,
     centerOnNode,
-    autoZoomOnCurrentNode
+    autoZoomOnCurrentNode,
+    canEdit
   }: {
     node: GraphNode
     setCurrentNodeId: (nodeId: string | null) => void
@@ -40,6 +42,7 @@ const NodeRenderer = memo(
     isCurrent: (nodeId: string) => boolean
     centerOnNode: (x: number, y: number) => void
     autoZoomOnCurrentNode: boolean
+    canEdit: boolean
   }) => {
     const handleClick = useCallback(() => {
       setCurrentNodeId(node.id)
@@ -65,13 +68,15 @@ const NodeRenderer = memo(
           isCurrent(node.id) && 'bg-muted/70'
         )}
       >
-        <div className="pl-2">
-          <Checkbox
-            checked={isNodeChecked(node.id)}
-            onCheckedChange={handleCheckboxChange}
-            className="mr-1 border-border"
-          />
-        </div>
+        {canEdit && (
+          <div className="pl-2">
+            <Checkbox
+              checked={isNodeChecked(node.id)}
+              onCheckedChange={handleCheckboxChange}
+              className="mr-1 border-border"
+            />
+          </div>
+        )}
         <button
           className={cn(
             'flex-1 flex truncate mt-0 text-sm font-medium overflow-hidden duration-0 items-center justify-start p-4 !py-5 rounded-none text-left h-full'
@@ -95,7 +100,8 @@ const VirtualizedItem = memo(
     isNodeChecked,
     isCurrent,
     centerOnNode,
-    autoZoomOnCurrentNode
+    autoZoomOnCurrentNode,
+    canEdit
   }: {
     index: number
     node: GraphNode
@@ -105,6 +111,7 @@ const VirtualizedItem = memo(
     isCurrent: (nodeId: string) => boolean
     centerOnNode: (x: number, y: number) => void
     autoZoomOnCurrentNode: boolean
+    canEdit: boolean
   }) => {
     return (
       <NodeRenderer
@@ -115,12 +122,14 @@ const VirtualizedItem = memo(
         isNodeChecked={isNodeChecked}
         centerOnNode={centerOnNode}
         autoZoomOnCurrentNode={autoZoomOnCurrentNode}
+        canEdit={canEdit}
       />
     )
   }
 )
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?: boolean }) => {
+  const { canEdit } = usePermissions()
   const currentNodeId = useGraphStore((state) => state.currentNodeId)
   const setCurrentNodeId = useGraphStore((state) => state.setCurrentNodeId)
   const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
@@ -231,9 +240,11 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
       {/* Header fixe */}
       <div className="sticky border-b top-0 p-2 bg-card z-10 shrink-0">
         <div className="flex items-center gap-2">
-          <div>
-            <Checkbox onCheckedChange={handleCheckAll} className="mr-1" />
-          </div>
+          {canEdit && (
+            <div>
+              <Checkbox onCheckedChange={handleCheckAll} className="mr-1" />
+            </div>
+          )}
           <Badge className="h-7" variant={'outline'}>
             <span className="font-semibold">
               {filters?.length || searchQuery
@@ -369,6 +380,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                       isNodeChecked={isNodeChecked}
                       centerOnNode={centerOnNode}
                       autoZoomOnCurrentNode={autoZoomOnCurrentNode}
+                      canEdit={canEdit}
                     />
                   </div>
                 )

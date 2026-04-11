@@ -20,6 +20,7 @@ import { useLayoutStore } from '@/stores/layout-store'
 import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { cn } from '@/lib/utils'
+import { usePermissions } from '@/hooks/use-can'
 
 const flagColors = {
   red: 'text-red-400 fill-red-200',
@@ -34,6 +35,7 @@ type FlagColor = keyof typeof flagColors
 const NodeActions = memo(
   ({ node, setMenu }: { node: GraphNode; setMenu?: (menu: any | null) => void }) => {
     const { id: sketchId } = useParams({ strict: false })
+    const { canEdit } = usePermissions()
     const { confirm } = useConfirm()
     const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
     const setRelatedNodeToAdd = useGraphStore((state) => state.setRelatedNodeToAdd)
@@ -105,6 +107,8 @@ const NodeActions = memo(
       },
       [node.id, flagValue, updateNode, sketchId]
     )
+
+    if (!canEdit) return null
 
     return (
       <DropdownMenu>

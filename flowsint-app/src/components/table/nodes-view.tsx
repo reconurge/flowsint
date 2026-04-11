@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { CopyButton } from '../copy'
 import { GraphNode } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
+import { usePermissions } from '@/hooks/use-can'
 
 export type RelationshipType = {
   source: GraphNode
@@ -31,13 +32,15 @@ interface NodeItemProps {
   onNodeClick: (node: GraphNode) => void
   isSelected: boolean
   onSelectionChange: (node: GraphNode, checked: boolean) => void
+  canEdit: boolean
 }
 
 const NodeItem = memo(function NodeItem({
   node,
   onNodeClick,
   isSelected,
-  onSelectionChange
+  onSelectionChange,
+  canEdit
 }: NodeItemProps) {
   const SourceIcon = useIcon(node.nodeType, {
     nodeColor: node.nodeColor,
@@ -77,13 +80,15 @@ const NodeItem = memo(function NodeItem({
       <div
         className="grid items-center h-14 gap-3 text-sm border-b last:border-b-0"
         style={{
-          gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px'
+          gridTemplateColumns: canEdit ? '24px 32px auto 1fr 140px 160px 32px' : '32px auto 1fr 140px 160px 32px'
         }}
       >
         {/* Checkbox */}
-        <div className="flex items-center">
-          <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
-        </div>
+        {canEdit && (
+          <div className="flex items-center">
+            <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
+          </div>
+        )}
 
         {/* Icon */}
         <div className="flex items-center justify-center">
@@ -139,6 +144,7 @@ type NodesTableProps = {
   nodes: GraphNode[]
 }
 export default function NodesTable({ nodes }: NodesTableProps) {
+  const { canEdit } = usePermissions()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
   const parentRef = useRef<HTMLDivElement>(null)
@@ -284,19 +290,21 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       {/* Table Header */}
       <div
         className="grid items-center h-11 px-4 bg-muted/50 p-2 rounded-t-md border text-sm font-medium text-muted-foreground"
-        style={{ gridTemplateColumns: '24px 32px auto 1fr 140px 160px 32px' }}
+        style={{ gridTemplateColumns: canEdit ? '24px 32px auto 1fr 140px 160px 32px' : '32px auto 1fr 140px 160px 32px' }}
       >
-        <div className="flex items-center">
-          <Checkbox
-            checked={isAllSelected}
-            ref={(el) => {
-              if (el && 'indeterminate' in el) {
-                ;(el as HTMLInputElement).indeterminate = isIndeterminate
-              }
-            }}
-            onCheckedChange={handleSelectAll}
-          />
-        </div>
+        {canEdit && (
+          <div className="flex items-center">
+            <Checkbox
+              checked={isAllSelected}
+              ref={(el) => {
+                if (el && 'indeterminate' in el) {
+                  ;(el as HTMLInputElement).indeterminate = isIndeterminate
+                }
+              }}
+              onCheckedChange={handleSelectAll}
+            />
+          </div>
+        )}
         <div></div> {/* Icon */}
         <div className="text-left">Label</div>
         <div>Data</div>
@@ -336,6 +344,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
                   onNodeClick={onNodeClick}
                   isSelected={isNodeSelected(node.id)}
                   onSelectionChange={handleNodeSelectionChange}
+                  canEdit={canEdit}
                 />
               </div>
             )

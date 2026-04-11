@@ -32,8 +32,15 @@ class AuthService(BaseService):
 
         return {
             "access_token": access_token,
-            "user_id": user.id,
             "token_type": "bearer",
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "username": user.email.split("@")[0],
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "avatar_url": user.avatar_url,
+            },
         }
 
     def register(self, email: str, password: str) -> Dict[str, Any]:

@@ -10,6 +10,7 @@ import { type GraphNode, GraphEdge } from '@/types'
 import { useLinkCreation } from '../hooks/use-link-creation'
 import { useQuickAdd } from '../hooks/use-quick-add'
 import { QuickAddOverlay } from './quick-add-overlay'
+import { usePermissions } from '@/hooks/use-can'
 
 type BaseContextMenuProps = {
   rawTop: number
@@ -39,6 +40,7 @@ type BackgroundContextMenuProps = BaseContextMenuProps & {
 
 const GraphMain = () => {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit, canCreate } = usePermissions()
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
   const filteredEdges = useGraphStore((s) => s.filteredEdges)
   const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
@@ -89,7 +91,7 @@ const GraphMain = () => {
       const now = Date.now()
       if (event && now - lastBgClickRef.current < 400) {
         lastBgClickRef.current = 0
-        if (graphRef.current && containerRef.current) {
+        if (canCreate && graphRef.current && containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect()
           const sx = event.clientX - rect.left
           const sy = event.clientY - rect.top
@@ -232,14 +234,14 @@ const GraphMain = () => {
   )
 
   const linkCreationProp = useMemo(
-    () => ({
+    () => canCreate ? ({
       shiftHeld,
       sourceNode: linkCreation.sourceNode,
       onStartLinking: startLinking,
       onCompleteLinking: handleCompleteLinking,
       onCancel: cancelLinkCreation
-    }),
-    [shiftHeld, linkCreation.sourceNode, startLinking, handleCompleteLinking, cancelLinkCreation]
+    }) : undefined,
+    [canCreate, shiftHeld, linkCreation.sourceNode, startLinking, handleCompleteLinking, cancelLinkCreation]
   )
 
   const handleGraphRef = useCallback((ref: any) => {
@@ -259,7 +261,7 @@ const GraphMain = () => {
         showLabels={true}
         showIcons={true}
         onGraphRef={handleGraphRef}
-        enableNodeDrag={!shiftHeld}
+        enableNodeDrag={canEdit && !shiftHeld}
         allowLasso
         sketchId={sketchId}
         linkCreation={linkCreationProp}

@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNodesDisplaySettings, ITEM_TYPES, ItemType } from '@/stores/node-display-settings'
 import IconPicker, { NodeIconTrigger } from '@/components/shared/icon-picker'
 import { ColorPicker } from '@/components/shared/color-picker'
+import { usePermissions } from '@/hooks/use-can'
 
 // SettingItem Components
 interface SettingItemProps {
@@ -421,6 +422,7 @@ function DynamicSection({ categoryId, category, title, description }: DynamicSec
 }
 
 export default function GlobalSettings() {
+  const { canEdit } = usePermissions()
   const settingsModalOpen = useGraphSettingsStore((s) => s.settingsModalOpen)
   const setSettingsModalOpen = useGraphSettingsStore((s) => s.setSettingsModalOpen)
   const settings = useGraphSettingsStore((s) => s.settings)
@@ -567,7 +569,7 @@ export default function GlobalSettings() {
               label="Title"
               description="The name of your sketch"
               value={formData.title}
-              onValueChange={(value) => handleInputChange('title', value)}
+              onValueChange={canEdit ? (value) => handleInputChange('title', value) : () => {}}
               placeholder="Enter sketch title"
             />
 
@@ -575,7 +577,7 @@ export default function GlobalSettings() {
               label="Description"
               description="A brief description of what this sketch represents"
               value={formData.description}
-              onValueChange={(value) => handleInputChange('description', value)}
+              onValueChange={canEdit ? (value) => handleInputChange('description', value) : () => {}}
               placeholder="Enter sketch description"
               rows={4}
             />
@@ -584,7 +586,7 @@ export default function GlobalSettings() {
               label="Status"
               description="The current status of this sketch"
               value={formData.status}
-              onValueChange={(value) => handleInputChange('status', value)}
+              onValueChange={canEdit ? (value) => handleInputChange('status', value) : () => {}}
               options={[
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
@@ -594,21 +596,23 @@ export default function GlobalSettings() {
             />
           </div>
 
-          <div className="flex gap-3 pt-6">
-            <SheetClose asChild>
-              <Button variant="outline" type="button" className="flex-1 shadow-none">
-                Cancel
+          {canEdit && (
+            <div className="flex gap-3 pt-6">
+              <SheetClose asChild>
+                <Button variant="outline" type="button" className="flex-1 shadow-none">
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending}
+                onClick={handleSubmit}
+                className="flex-1 shadow-none"
+              >
+                {updateMutation.isPending ? 'Saving...' : 'Save changes'}
               </Button>
-            </SheetClose>
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending}
-              onClick={handleSubmit}
-              className="flex-1 shadow-none"
-            >
-              {updateMutation.isPending ? 'Saving...' : 'Save changes'}
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       )
     }

@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { queryKeys } from '@/api/query-keys'
 import ErrorState from '../shared/error-state'
+import { usePermissions } from '@/hooks/use-can'
 
 const AnalysisItem = ({ analysis, active }: { analysis: Analysis; active: boolean }) => {
   return (
@@ -46,6 +47,7 @@ const AnalysisItem = ({ analysis, active }: { analysis: Analysis; active: boolea
 }
 
 const AnalysisList = () => {
+  const { canEdit } = usePermissions()
   const { investigationId, id, type } = useParams({ strict: false })
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -112,16 +114,18 @@ const AnalysisList = () => {
   return (
     <div className="w-full h-full bg-card flex flex-col overflow-hidden">
       <div className="p-2 flex items-center h-11 gap-2 border-b shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => createMutation.mutate()}
-          disabled={createMutation.isPending}
-          title="Create New analysis"
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
+        {canEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => createMutation.mutate()}
+            disabled={createMutation.isPending}
+            title="Create New analysis"
+          >
+            <PlusIcon className="h-4 w-4" />
+          </Button>
+        )}
         <Input
           type="search"
           className="!border border-border h-7"

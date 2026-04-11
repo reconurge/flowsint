@@ -6,8 +6,10 @@ import { ItemsPanel } from './items-panel'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { useLayoutStore } from '@/stores/layout-store'
 import SelectedItemsPanel from './selected-items-panel'
+import { usePermissions } from '@/hooks/use-can'
 
 const GraphNavigation = () => {
+  const { canEdit } = usePermissions()
   const nodes = useGraphStore((s) => s.nodes)
   const activeTab = useLayoutStore((s) => s.activeTab)
   const setActiveTab = useLayoutStore((s) => s.setActiveTab)
@@ -25,9 +27,11 @@ const GraphNavigation = () => {
           <TabsTrigger value="entities">
             <Users className="h-3 w-3 opacity-60" /> Entities
           </TabsTrigger>
-          <TabsTrigger value="items">
-            <UserPlus className="h-3 w-3 opacity-60" /> Add
-          </TabsTrigger>
+          {canEdit && (
+            <TabsTrigger value="items">
+              <UserPlus className="h-3 w-3 opacity-60" /> Add
+            </TabsTrigger>
+          )}
         </TabsList>
         <TabsContent
           value="entities"
@@ -61,9 +65,11 @@ const GraphNavigation = () => {
             </ResizablePanel>
           </ResizablePanelGroup>
         </TabsContent>
-        <TabsContent value="items" className="my-0 grow h-full overflow-hidden min-h-0">
-          <ItemsPanel />
-        </TabsContent>
+        {canEdit && (
+          <TabsContent value="items" className="my-0 grow h-full overflow-hidden min-h-0">
+            <ItemsPanel />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

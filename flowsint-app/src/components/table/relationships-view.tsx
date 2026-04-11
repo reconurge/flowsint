@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { useConfirm } from '@/components/use-confirm-dialog'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/use-can'
 
 const ITEM_HEIGHT = 67 // Balanced spacing between items (55px card + 12px padding)
 
@@ -34,6 +35,7 @@ interface RelationshipItemProps {
   onNodeClick: (node: GraphNode) => void
   isSelected: boolean
   onSelectionChange: (edge: GraphEdge, checked: boolean) => void
+  canEdit: boolean
 }
 
 function RelationshipItem({
@@ -41,7 +43,8 @@ function RelationshipItem({
   style,
   onNodeClick,
   isSelected,
-  onSelectionChange
+  onSelectionChange,
+  canEdit
 }: RelationshipItemProps) {
   const SourceIcon = useIcon(relationship.source.nodeType, {
     nodeColor: relationship.source.nodeColor,
@@ -73,9 +76,11 @@ function RelationshipItem({
       <Card className="h-[55px] p-0 rounded-md">
         <CardContent className="p-3 h-[55px] flex items-center gap-3 min-w-0">
           {/* Checkbox */}
-          <div className="flex items-center shrink-0">
-            <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
-          </div>
+          {canEdit && (
+            <div className="flex items-center shrink-0">
+              <Checkbox checked={isSelected} onCheckedChange={handleCheckboxChange} />
+            </div>
+          )}
 
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
@@ -143,6 +148,7 @@ export default function RelationshipsTable() {
     queryFn: () => sketchService.getGraphDataById(sketchId as string, true)
   })
 
+  const { canEdit } = usePermissions()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
   const parentRef = useRef<HTMLDivElement>(null)
@@ -389,7 +395,7 @@ export default function RelationshipsTable() {
       </div>
 
       {/* Selection Controls */}
-      {filteredRelationships.length > 0 && (
+      {canEdit && filteredRelationships.length > 0 && (
         <div className="flex items-center gap-4 mb-2">
           <div className="flex items-center gap-2">
             <Checkbox
@@ -434,6 +440,7 @@ export default function RelationshipsTable() {
                 onNodeClick={onNodeClick}
                 isSelected={isEdgeSelected(relationship.edge.id)}
                 onSelectionChange={handleEdgeSelectionChange}
+                canEdit={canEdit}
                 style={{
                   position: 'absolute',
                   top: 0,

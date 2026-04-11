@@ -23,6 +23,7 @@ import {
 import LaunchFlow from '../launch-enricher'
 import NodeActions from '../graph/node/actions/node-actions'
 import { useParams } from '@tanstack/react-router'
+import { usePermissions } from '@/hooks/use-can'
 import { useGraphStore } from '@/stores/graph-store'
 import { useIcon } from '@/hooks/use-icon'
 import { useActionItems } from '@/hooks/use-action-items'
@@ -265,6 +266,7 @@ StatusCodeBadge.displayName = 'StatusCodeBadge'
 
 const DetailsPanel = memo(() => {
   const { id: sketchId } = useParams({ strict: false })
+  const { canEdit } = usePermissions()
   const nodesLength = useGraphStore((s) => s.nodesLength)
   const node = useGraphStore((s) => s.getCurrentNode())
   const updateNode = useGraphStore((s) => s.updateNode)
@@ -493,13 +495,21 @@ const DetailsPanel = memo(() => {
       {/* Hero */}
       <div className="px-6 pt-5 pb-4 space-y-3 shrink-0">
         <div className="flex items-start gap-3">
-          <button
-            onClick={() => setOpenIconPicker(true)}
-            className="shrink-0 mt-1.5 hover:opacity-70 transition-opacity"
-          >
-            <IconComponent size={24} />
-          </button>
-          <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} />
+          {canEdit ? (
+            <button
+              onClick={() => setOpenIconPicker(true)}
+              className="shrink-0 mt-1.5 hover:opacity-70 transition-opacity"
+            >
+              <IconComponent size={24} />
+            </button>
+          ) : (
+            <div className="shrink-0 mt-1.5"><IconComponent size={24} /></div>
+          )}
+          {canEdit ? (
+            <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} />
+          ) : (
+            <span className="min-w-0 flex-1 text-2xl font-bold truncate">{formData.nodeLabel}</span>
+          )}
           <div className="shrink-0 mt-0.5">
             <NodeActions node={node} />
           </div>
@@ -510,14 +520,16 @@ const DetailsPanel = memo(() => {
       </div>
 
       {/* Enrich CTA */}
-      <div className="px-6 pb-4 shrink-0">
-        <LaunchFlow values={[node.id]} type={node.nodeType}>
-          <Button className="rounded-full h-8 gap-1.5 px-4 text-sm" size="sm">
-            <Rocket className="size-3.5" strokeWidth={1.7} />
-            Enrich
-          </Button>
-        </LaunchFlow>
-      </div>
+      {canEdit && (
+        <div className="px-6 pb-4 shrink-0">
+          <LaunchFlow values={[node.id]} type={node.nodeType}>
+            <Button className="rounded-full h-8 gap-1.5 px-4 text-sm" size="sm">
+              <Rocket className="size-3.5" strokeWidth={1.7} />
+              Enrich
+            </Button>
+          </LaunchFlow>
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="properties" className="flex-1 min-h-0 flex flex-col overflow-hidden gap-0">
@@ -541,12 +553,14 @@ const DetailsPanel = memo(() => {
             >
               Relations
             </TabsTrigger>
-            <TabsTrigger
-              value="appearance"
-              className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
-            >
-              Style
-            </TabsTrigger>
+            {canEdit && (
+              <TabsTrigger
+                value="appearance"
+                className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
+              >
+                Style
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
@@ -561,11 +575,15 @@ const DetailsPanel = memo(() => {
                   copyValue={copyField(value)}
                 >
                   {typeof value === 'boolean' ? (
-                    <Switch
-                      checked={value}
-                      onCheckedChange={(checked) => handlePropertyBlur(key, checked)}
-                      className="scale-75"
-                    />
+                    canEdit ? (
+                      <Switch
+                        checked={value}
+                        onCheckedChange={(checked) => handlePropertyBlur(key, checked)}
+                        className="scale-75"
+                      />
+                    ) : (
+                      <span className="text-muted-foreground">{value ? 'Yes' : 'No'}</span>
+                    )
                   ) : typeof value === 'number' ? (
                     <StatusCodeBadge statusCode={value} />
                   ) : typeof value === 'string' && value.startsWith('https://') ? (
@@ -581,17 +599,23 @@ const DetailsPanel = memo(() => {
                   ) : value && typeof value === 'object' && value.constructor === Object ? (
                     <PopoverProperty label={key} property={value as object} />
                   ) : getNodePropertyType(key) === 'list' ? (
-                    <TagsInput
-                      value={value || []}
-                      onChange={(tags) => handlePropertyBlur(key, tags)}
-                      orientation='vertical'
-                      placeholder={value?.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
-                    />
-                  ) : (
+                    canEdit ? (
+                      <TagsInput
+                        value={value || []}
+                        onChange={(tags) => handlePropertyBlur(key, tags)}
+                        orientation='vertical'
+                        placeholder={value?.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                      />
+                    ) : (
+                      <span className="text-muted-foreground truncate">{Array.isArray(value) ? value.join(', ') : formatValue(value)}</span>
+                    )
+                  ) : canEdit ? (
                     <PropertyInput
                       value={String(value || '')}
                       onBlur={(val) => handlePropertyBlur(key, val)}
                     />
+                  ) : (
+                    <span className="text-muted-foreground truncate">{formatValue(value)}</span>
                   )}
                 </PropertyRow>
               ))
@@ -604,12 +628,13 @@ const DetailsPanel = memo(() => {
             <div className="min-h-[120px]">
               <MinimalTiptapEditor
                 value={formData.notes}
-                onChange={handleNotesChange}
+                onChange={canEdit ? handleNotesChange : undefined}
                 output="html"
-                placeholder="Write something..."
+                placeholder={canEdit ? "Write something..." : ""}
                 showToolbar={false}
                 editorContentClassName="px-6 py-3 !max-w-none prose-sm"
                 immediatelyRender={false}
+                editable={canEdit}
               />
             </div>
           </CollapsibleSection>

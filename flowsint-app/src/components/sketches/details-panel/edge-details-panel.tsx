@@ -6,6 +6,7 @@ import { useParams } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useIcon } from '@/hooks/use-icon'
 import { useConfirm } from '@/components/use-confirm-dialog'
+import { usePermissions } from '@/hooks/use-can'
 import { sketchService } from '@/api/sketch-service'
 import { CopyButton } from '@/components/copy'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 
 const EdgeDetailsPanel = memo(() => {
+  const { canEdit } = usePermissions()
   const { id: sketchId } = useParams({ strict: false })
   const nodes = useGraphStore((s) => s.nodes)
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
@@ -146,29 +148,32 @@ const EdgeDetailsPanel = memo(() => {
           defaultValue={edge.label || 'Relationship'}
           onChange={handleInputChange}
           onFocus={(e) => e.stopPropagation()}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
+          onBlur={canEdit ? handleBlur : undefined}
+          onKeyDown={canEdit ? handleKeyDown : undefined}
+          readOnly={!canEdit}
         />
         <div className="grow" />
-        <div className="flex items-center">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-3 w-3" strokeWidth={2} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete relationship</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        {canEdit && (
+          <div className="flex items-center">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="h-6 w-6 p-0 hover:bg-muted opacity-70 hover:opacity-100 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" strokeWidth={2} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete relationship</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       </div>
 
       {/* Content */}

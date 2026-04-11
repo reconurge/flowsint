@@ -19,6 +19,7 @@ import Settings, { KeyboardShortcuts } from './settings/settings'
 import { type GraphNode, type GraphEdge } from '@/types'
 import { MergeDialog } from './graph/actions/merge-nodes'
 import { useGraphRefresh } from '@/hooks/use-graph-refresh'
+import { usePermissions } from '@/hooks/use-can'
 const RelationshipsTable = lazy(() => import('@/components/table/relationships-view'))
 
 // Separate component for the drag overlay
@@ -43,6 +44,7 @@ interface GraphPanelProps {
 }
 
 const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
+  const { canCreate } = usePermissions()
   const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
   const view = useGraphControls((s) => s.view)
   const updateGraphData = useGraphStore((s) => s.updateGraphData)
@@ -120,10 +122,10 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
 
   return (
     <div
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={canCreate ? handleDragOver : undefined}
+      onDragEnter={canCreate ? handleDragEnter : undefined}
+      onDragLeave={canCreate ? handleDragLeave : undefined}
+      onDrop={canCreate ? handleDrop : undefined}
       className="h-full w-full flex flex-col relative outline-2 outline-transparent bg-background"
     >
       <Toolbar isLoading={isLoading} />

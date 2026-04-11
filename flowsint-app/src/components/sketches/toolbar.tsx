@@ -27,6 +27,7 @@ import { Separator } from '../ui/separator'
 import { ViewToggle } from './view-toggle'
 import { NetworkIcon } from '../icons/network'
 import { useKeyboard } from '@/hooks/use-keyboard'
+import { usePermissions } from '@/hooks/use-can'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +106,7 @@ const FloatingBar = ({
 
 export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean }) {
   const { confirm } = useConfirm()
+  const { canEdit } = usePermissions()
   const { id: sketchId } = useParams({ strict: false })
   const view = useGraphControls((s) => s.view)
   const setView = useGraphControls((s) => s.setView)
@@ -328,14 +330,14 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<GitPullRequestArrow className="h-4 w-4 opacity-70" />}
             tooltip="Connect"
             onClick={handleOpenAddRelationDialog}
-            disabled={!areExactlyTwoSelected}
+            disabled={!canEdit || !areExactlyTwoSelected}
             badge={areExactlyTwoSelected ? 2 : null}
           />
           <ToolbarButton
             icon={<Merge className="h-4 w-4 opacity-70" />}
             tooltip="Merge"
             onClick={handleOpenMergeDialog}
-            disabled={!areMergeable}
+            disabled={!canEdit || !areMergeable}
             badge={areMergeable ? selectedNodes.length : null}
           />
           <PathFinder />
@@ -344,13 +346,13 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
             icon={<NetworkIcon className="h-4 w-4 opacity-70" />}
             tooltip="Force layout"
             onClick={handleApplyForceLayout}
-            disabled={isLoading || view !== 'graph'}
+            disabled={!canEdit || isLoading || view !== 'graph'}
           />
           <ToolbarButton
             icon={<GitFork strokeWidth={1.4} className="h-4 w-4 opacity-70 rotate-180" />}
             tooltip="Hierarchy layout"
             onClick={handleApplyHierarchyLayout}
-            disabled={isLoading || view !== 'graph'}
+            disabled={!canEdit || isLoading || view !== 'graph'}
           />
         </FloatingBar>
       )}

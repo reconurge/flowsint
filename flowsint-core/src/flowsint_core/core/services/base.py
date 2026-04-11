@@ -54,6 +54,8 @@ class BaseService:
             for action in actions:
                 if role == Role.OWNER:
                     return True
+                if role == Role.ADMIN and action in ["read", "create", "update", "manage"]:
+                    return True
                 if role == Role.EDITOR and action in ["read", "create", "update"]:
                     return True
                 if role == Role.VIEWER and action == "read":

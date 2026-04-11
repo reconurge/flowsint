@@ -1,7 +1,6 @@
-import { Network, FileText, Users, Shield, Paperclip, CheckCircle } from "lucide-react"
+import { Network, FileText, Users, Shield } from "lucide-react"
 import { Investigation } from "@/types"
 import { useMemo } from "react"
-import { cn } from "@/lib/utils"
 
 type CaseOverviewPageProps = {
   investigation: Investigation
@@ -19,7 +18,8 @@ export function MetricsGrid({ investigation }: CaseOverviewPageProps) {
   ], [sketchCount, analysisCount])
 
   return (
-    <div className={cn("grid border grid-cols-3  gap-px bg-border rounded-lg overflow-hidden my-6", `md:grid-cols-${metrics.length}`)} >
+    <div className="my-6" style={{ containerType: 'inline-size' }}>
+    <div className="grid border grid-cols-2 cq-sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
       {
         metrics.map((metric) => (
           <div
@@ -32,6 +32,7 @@ export function MetricsGrid({ investigation }: CaseOverviewPageProps) {
           </div>
         ))
       }
-    </ div>
+    </div>
+    </div>
   )
 }

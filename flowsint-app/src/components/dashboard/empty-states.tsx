@@ -5,6 +5,7 @@ import NewAnalysis from "../analyses/new-analysis"
 
 interface EmptyStateProps {
     onAction?: () => void
+    canCreate?: boolean
 }
 
 export function EmptyInvestigations({ onAction }: EmptyStateProps) {
@@ -70,7 +71,7 @@ export function EmptySketches({ onAction }: EmptyStateProps) {
     )
 }
 
-export function EmptyAnalyses({ onAction }: EmptyStateProps) {
+export function EmptyAnalyses({ onAction, canCreate = true }: EmptyStateProps) {
     return (
         <div className="flex flex-col items-center justify-center py-10 px-4">
             {/* Minimal document illustration */}
@@ -93,12 +94,14 @@ export function EmptyAnalyses({ onAction }: EmptyStateProps) {
             <p className="text-xs text-muted-foreground text-center max-w-[200px] mb-4">
                 Document findings, patterns, and conclusions from your investigation
             </p>
-            <NewAnalysis>
-                <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
-                    <Plus className="w-3.5 h-3.5" />
-                    Write analysis
-                </Button>
-            </NewAnalysis>
+            {canCreate && (
+                <NewAnalysis>
+                    <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
+                        <Plus className="w-3.5 h-3.5" />
+                        Write analysis
+                    </Button>
+                </NewAnalysis>
+            )}
         </div>
     )
 }

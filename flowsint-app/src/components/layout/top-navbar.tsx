@@ -3,10 +3,15 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import InvestigationSelector from './investigation-selector'
 import SketchSelector from './sketch-selector'
 import { memo, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import { useLayoutStore } from '@/stores/layout-store'
 import { Button } from '@/components/ui/button'
+import { AvatarGroup } from '@/components/ui/avatar'
+import { investigationService } from '@/api/investigation-service'
+import { queryKeys } from '@/api/query-keys'
+import type { Collaborator } from '@/types'
 import { ImportSheet } from '../sketches/import-sheet'
 import {
   DropdownMenu,
@@ -22,6 +27,7 @@ import { Settings2, Upload } from 'lucide-react'
 import { isMac } from '@/lib/utils'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useMutation } from '@tanstack/react-query'
+import { Separator } from '../ui/separator'
 import { useConfirm } from '../use-confirm-dialog'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
@@ -32,6 +38,12 @@ export const TopNavbar = memo(() => {
   const { investigationId, id, type } = useParams({ strict: false })
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
   const isOpenAnalysis = useLayoutStore((s) => s.isOpenAnalysis)
+
+  const { data: collaborators = [] } = useQuery<Collaborator[]>({
+    queryKey: queryKeys.investigations.collaborators(investigationId!),
+    queryFn: () => investigationService.getCollaborators(investigationId!),
+    enabled: !!investigationId
+  })
 
   const handleToggleAnalysis = useCallback(() => toggleAnalysis(), [toggleAnalysis])
 
@@ -60,7 +72,13 @@ export const TopNavbar = memo(() => {
           <Command />
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {investigationId && collaborators.length > 0 && (
+          <>
+            <AvatarGroup users={collaborators.map((c) => c.user)} size="sm" max={5} />
+            <Separator orientation="vertical" className="h-5" />
+          </>
+        )}
         <div className="flex items-center space-x-2">
           {type === 'graph' && (
             <>
@@ -190,7 +208,7 @@ export function InvestigationMenu({
           </>
         )}
       </DropdownMenuContent>
-      <ImportSheet sketchId={sketchId} />
+      {canEdit && <ImportSheet sketchId={sketchId} />}
     </DropdownMenu>
   )
 }

@@ -16,7 +16,8 @@ export function DashboardStats({ casesCount, activeCasesCount }: DashboardStatsP
   ], [casesCount, activeCasesCount])
 
   return (
-    <div className="grid grid-cols-4 gap-4 mt-8">
+    <div className="mt-8" style={{ containerType: 'inline-size' }}>
+    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <div key={stat.label} className="px-4 py-3 border border-border rounded-lg bg-card/30">
           <div className="flex items-center gap-3">
@@ -30,6 +31,7 @@ export function DashboardStats({ casesCount, activeCasesCount }: DashboardStatsP
           </div>
         </div>
       ))}
+    </div>
     </div>
   )
 }

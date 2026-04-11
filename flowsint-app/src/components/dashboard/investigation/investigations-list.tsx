@@ -126,7 +126,8 @@ export function InvestigationsList({
           </table>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-3">
+        <div style={{ containerType: 'inline-size' }}>
+        <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-3">
           {filteredInvestigations.length === 0 && <div>No investigation found.</div>}
           {filteredInvestigations.map((inv) => (
             <Link
@@ -167,6 +168,7 @@ export function InvestigationsList({
               </div>
             </Link>
           ))}
+        </div>
         </div>
       )}
     </div>

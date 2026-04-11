@@ -32,7 +32,8 @@ export function SketchesSection({ sketches, canCreate = true }: SketchesSectionP
       {isEmpty ? (
         canCreate ? <EmptySketches onAction={() => console.log("Create sketch")} /> : <div className="text-sm text-muted-foreground py-4">No sketches yet.</div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div style={{ containerType: 'inline-size' }}>
+        <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 gap-3">
           {sketches.map((sketch) => (
             <Link
               to="/dashboard/investigations/$investigationId/$type/$id"
@@ -74,6 +75,7 @@ export function SketchesSection({ sketches, canCreate = true }: SketchesSectionP
               </div>
             </Link>
           ))}
+        </div>
         </div>
       )
       }

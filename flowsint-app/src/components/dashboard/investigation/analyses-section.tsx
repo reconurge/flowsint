@@ -28,7 +28,7 @@ export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionP
 
       {analyses.length === 0 ?
         <div className="border border-dashed rounded-md">
-          <EmptyAnalyses />
+          <EmptyAnalyses canCreate={canCreate} />
         </div> :
         <div className="space-y-1">
           {analyses.map((analysis) => (

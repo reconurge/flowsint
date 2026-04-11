@@ -5,10 +5,10 @@ import { authService } from '@/api/auth-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
-import { getDisplayName, getInitials } from '@/lib/user-display'
+import { getDisplayName } from '@/lib/user-display'
 import { SESSION_QUERY_KEY } from '@/hooks/use-auth'
 
 export const Route = createFileRoute('/_auth/dashboard/profile')({
@@ -80,7 +80,6 @@ function ProfilePage() {
   }
 
   const displayName = getDisplayName(profile)
-  const initials = getInitials(profile)
 
   return (
     <main className="flex-1 h-full overflow-auto">
@@ -92,10 +91,11 @@ function ProfilePage() {
 
         {/* Avatar preview */}
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            {form.avatar_url && <AvatarImage src={form.avatar_url} />}
-            <AvatarFallback className="text-lg">{initials}</AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            user={{ ...profile, avatar_url: form.avatar_url || undefined }}
+            size="xl"
+            className="size-16 text-lg"
+          />
           <div>
             <p className="font-medium">{displayName}</p>
             <p className="text-sm text-muted-foreground">{profile?.email}</p>

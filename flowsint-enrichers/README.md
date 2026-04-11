@@ -5,7 +5,7 @@ The repository containing open-source enrichers for flowsint.
 ## Testing
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 > ⚠️ 🚧 Work in progress !.

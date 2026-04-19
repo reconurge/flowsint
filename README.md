@@ -4,6 +4,7 @@
 [![Ethical Software](https://img.shields.io/badge/ethical-use-blue.svg)](./ETHICS.md)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20coffee-support-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dextmorgn)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-support-F16061?logo=ko-fi&logoColor=white)](https://ko-fi.com/P5P01W3GPJ)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/aST9HMQr)
 
 
 Flowsint is an open-source OSINT graph exploration tool designed for ethical investigation, transparency, and verification.

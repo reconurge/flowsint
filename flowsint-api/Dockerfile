@@ -46,6 +46,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Install httpX for 'to_ssl' enricher
+RUN apt-get update && apt-get install -y golang-go
+RUN rm -f /app/.venv/bin/httpx || true
+RUN go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+
 WORKDIR /app
 
 # Copy virtual environment from builder
@@ -88,6 +93,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+
+# Install httpX for 'to_ssl' enricher
+RUN apt-get update && apt-get install -y golang-go
+RUN rm -f /app/.venv/bin/httpx || true
+RUN go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
 
 # Create non-root user
 RUN groupadd -g 1001 flowsint && \

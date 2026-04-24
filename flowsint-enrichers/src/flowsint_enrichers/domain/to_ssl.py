@@ -1,7 +1,6 @@
 import json
 import os
 import requests
-import subprocess
 
 from typing import Any, Dict, List, Optional
 from flowsint_core.core.enricher_base import Enricher
@@ -10,6 +9,9 @@ from flowsint_types.domain import Domain
 from flowsint_types.website import Website
 from flowsint_core.core.logger import Logger
 from flowsint_types.address import Location
+
+from tools.network.httpx import HttpxTool
+
 
 @flowsint_enricher
 class DomainToTLS(Enricher):
@@ -38,31 +40,24 @@ class DomainToTLS(Enricher):
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
 
+        Logger.info(self.sketch_id, f"(DomainToTLS) Received {len(data)} inputs")
         for domain in data:
-            Logger.info(self.sketch_id, f"(DomainToTLS) Received {len(data)} inputs")
             try:
-                httpx_process = subprocess.Popen(
-                    ["/root/go/bin/httpx", "-tls-grab", "-json", "-silent"],
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
+                tool = HttpxTool()
+                httpx_results  = tool.launch(
+                    target=domain.domain,
+                    args=["-tls-probe"]
                 )
 
-                stdout, stderr = httpx_process.communicate(f'{domain.domain}\n')
-
-                if not stdout.strip():
+                if not httpx_results :
                     Logger.error(None, {"message": f"(DomainToTLS) No results for the domain '{domain.domain}'"})
                     continue
                 else:
-                    for line in stdout.splitlines():
-                        if line.strip():
-                            tlsdata = json.loads(line)
-
-                            web_url = tlsdata.get("url")
-                            web_title = tlsdata.get("title")
-                            web_content_type = tlsdata.get("content_type")
-                            web_statuscode = tlsdata.get("status_code") # status_code is int
+                    for r_line in httpx_results :
+                            web_url = r_line.get("url")
+                            web_title = r_line.get("title")
+                            web_content_type = r_line.get("content_type")
+                            web_statuscode = r_line.get("status_code") # status_code is int
 
                             results.append(
                                 Website(

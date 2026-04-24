@@ -19,6 +19,20 @@ NC='\033[0m'
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENVIRONMENT="${1:-development}"
 SERVICES="${2:-all}"
+COMMAND=""
+
+if [ "$#" -gt 0 ]; then
+    case "$1" in
+        status|stop|help|--help|-h)
+            COMMAND="$1"
+            ENVIRONMENT="${2:-development}"
+            ;;
+        *)
+            ENVIRONMENT="${1:-development}"
+            SERVICES="${2:-all}"
+            ;;
+    esac
+fi
 
 # Logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -46,7 +60,9 @@ check_env() {
         bash "$PROJECT_ROOT/setup.sh" "$ENVIRONMENT"
     fi
     
-    export $(cat "$env_file" | xargs)
+    set -a
+    . "$env_file"
+    set +a
 }
 
 # Start development environment
@@ -60,23 +76,6 @@ start_dev() {
             log_info "بدء جميع الخدمات | Starting all services..."
             docker-compose -f "$PROJECT_ROOT/docker-compose.dev.yml" up -d
             
-            sleep 5
-            
-            log_info "بدء الواجهة الخلفية | Starting backend..."
-            cd "$PROJECT_ROOT/flowsint-api"
-            uvicorn app.main:app --reload --host 0.0.0.0 --port 5001 &
-            BACKEND_PID=$!
-            
-            log_info "بدء Celery Worker | Starting Celery worker..."
-            cd "$PROJECT_ROOT/flowsint-api"
-            celery -A app.tasks worker --loglevel=info &
-            CELERY_PID=$!
-            
-            log_info "بدء الواجهة الأمامية | Starting frontend..."
-            cd "$PROJECT_ROOT/flowsint-app"
-            yarn dev &
-            FRONTEND_PID=$!
-            
             log_success "تم بدء جميع الخدمات | All services started"
             echo ""
             echo -e "${CYAN}الخدمات التي يتم تشغيلها:${NC}"
@@ -87,9 +86,6 @@ start_dev() {
             echo "  Neo4j        : http://localhost:7474"
             echo "  Redis        : localhost:6379"
             echo ""
-            
-            # Wait for process termination
-            wait
             ;;
         backend)
             log_info "بدء الخدمات الأساسية فقط | Starting infrastructure only..."
@@ -106,7 +102,7 @@ start_dev() {
             ;;
         infrastructure)
             log_info "بدء الخدمات الأساسية فقط | Starting infrastructure services only..."
-            docker-compose -f "$PROJECT_ROOT/docker-compose.dev.yml" up -d
+            docker-compose -f "$PROJECT_ROOT/docker-compose.dev.yml" up -d postgres neo4j redis
             log_success "تم بدء الخدمات الأساسية | Infrastructure services started"
             ;;
         *)
@@ -129,8 +125,8 @@ start_prod() {
         exit 1
     fi
     
-    if [ -z "$MASTER_VAULT_KEY" ]; then
-        log_error "MASTER_VAULT_KEY لم يتم تعيينه | MASTER_VAULT_KEY not set"
+    if [ -z "$MASTER_VAULT_KEY_V1" ]; then
+        log_error "MASTER_VAULT_KEY_V1 لم يتم تعيينه | MASTER_VAULT_KEY_V1 not set"
         exit 1
     fi
     
@@ -196,6 +192,7 @@ stop_services() {
 # Show help
 show_help() {
     echo "الاستخدام | Usage: $0 [environment] [services]"
+    echo "          | Usage: $0 {status|stop|help} [environment]"
     echo ""
     echo "البيئة | Environment:"
     echo "  development  - بيئة التطوير (Default)"
@@ -217,22 +214,28 @@ show_help() {
 # Main execution
 main() {
     show_banner
-    
+
+    case "$COMMAND" in
+        status)
+            show_status
+            return
+            ;;
+        stop)
+            stop_services
+            return
+            ;;
+        help|--help|-h)
+            show_help
+            return
+            ;;
+    esac
+
     case $ENVIRONMENT in
         development)
             start_dev
             ;;
         production)
             start_prod
-            ;;
-        status)
-            show_status
-            ;;
-        stop)
-            stop_services
-            ;;
-        help|--help|-h)
-            show_help
             ;;
         *)
             log_error "بيئة غير معروفة | Unknown environment: $ENVIRONMENT"

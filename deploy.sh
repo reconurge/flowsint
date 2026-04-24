@@ -54,15 +54,17 @@ pre_deployment_checks() {
     
     # Check required environment variables
     log_info "جاري التحقق من متغيرات البيئة | Checking environment variables..."
+    set -a
     source "$PROJECT_ROOT/.env.production"
+    set +a
     
     if [ -z "$JWT_SECRET_KEY" ]; then
         log_error "JWT_SECRET_KEY لم يتم تعيينه | JWT_SECRET_KEY not set"
         return 1
     fi
     
-    if [ -z "$MASTER_VAULT_KEY" ]; then
-        log_error "MASTER_VAULT_KEY لم يتم تعيينه | MASTER_VAULT_KEY not set"
+    if [ -z "$MASTER_VAULT_KEY_V1" ]; then
+        log_error "MASTER_VAULT_KEY_V1 لم يتم تعيينه | MASTER_VAULT_KEY_V1 not set"
         return 1
     fi
     
@@ -162,12 +164,14 @@ deploy_kubernetes() {
     
     # Create secrets from environment file
     log_info "جاري إنشاء المتغيرات السرية | Creating secrets..."
+    set -a
     source "$PROJECT_ROOT/.env.production"
+    set +a
     
     kubectl create secret generic flowsint-secrets \
         --from-literal=jwt-secret-key="$JWT_SECRET_KEY" \
         --from-literal=auth-secret="$AUTH_SECRET" \
-        --from-literal=master-vault-key="$MASTER_VAULT_KEY" \
+        --from-literal=master-vault-key-v1="$MASTER_VAULT_KEY_V1" \
         --from-literal=database-url="$DATABASE_URL" \
         --namespace=flowsint --dry-run=client -o yaml | kubectl apply -f -
     
@@ -207,7 +211,7 @@ health_check() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if curl -s http://localhost:5001/api/health | grep -q "ok"; then
+        if curl -fsS http://localhost:5001/health > /dev/null; then
             log_success "التطبيق يعمل بصحة | Application is healthy"
             return 0
         fi
@@ -271,7 +275,7 @@ EOF
 
 ### متغيرات البيئة المكتشفة | Detected Environment Variables
 - JWT_SECRET_KEY: $([ -z "$JWT_SECRET_KEY" ] && echo "❌ Not Set" || echo "✓ Set")
-- MASTER_VAULT_KEY: $([ -z "$MASTER_VAULT_KEY" ] && echo "❌ Not Set" || echo "✓ Set")
+- MASTER_VAULT_KEY_V1: $([ -z "$MASTER_VAULT_KEY_V1" ] && echo "❌ Not Set" || echo "✓ Set")
 - DATABASE_URL: $([ -z "$DATABASE_URL" ] && echo "❌ Not Set" || echo "✓ Set")
 
 ## الخطوات التالية | Next Steps

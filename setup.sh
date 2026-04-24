@@ -111,6 +111,7 @@ POSTGRES_DB=flowsint_dev
 POSTGRES_PORT=5433
 DATABASE_URL=postgresql://flowsint_dev:flowsint_dev_pass@localhost:5433/flowsint_dev
 
+NEO4J_USERNAME=neo4j
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=flowsint_neo4j_dev
 NEO4J_URI=bolt://localhost:7687
@@ -125,7 +126,7 @@ JWT_SECRET_KEY=dev-secret-key-change-in-production-min-32-chars!
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_HOURS=24
 AUTH_SECRET=dev-auth-secret-change-in-production!
-MASTER_VAULT_KEY=dev-master-vault-key-32-character!1
+MASTER_VAULT_KEY_V1=dev-master-vault-key-32-character!1
 
 # External APIs
 MISTRAL_API_KEY=your_mistral_api_key_here
@@ -168,6 +169,7 @@ POSTGRES_DB=flowsint
 POSTGRES_PORT=5432
 DATABASE_URL=postgresql://flowsint_prod:CHANGE_THIS_PASSWORD_IN_PRODUCTION@postgres:5432/flowsint
 
+NEO4J_USERNAME=neo4j
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=CHANGE_THIS_PASSWORD_IN_PRODUCTION
 NEO4J_URI=bolt://neo4j:7687
@@ -182,7 +184,7 @@ JWT_SECRET_KEY=GENERATE_NEW_SECRET_KEY_AT_LEAST_32_CHARACTERS_LONG!
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_HOURS=24
 AUTH_SECRET=GENERATE_NEW_AUTH_SECRET_AT_LEAST_32_CHARS!
-MASTER_VAULT_KEY=GENERATE_NEW_MASTER_VAULT_KEY_32_CHARS!
+MASTER_VAULT_KEY_V1=GENERATE_NEW_MASTER_VAULT_KEY_32_CHARS!
 
 # External APIs
 MISTRAL_API_KEY=your_production_mistral_api_key
@@ -250,6 +252,12 @@ setup_backend() {
     if ! command -v uv &> /dev/null; then
         log_warning "uv غير مثبت، جاري التثبيت | uv not installed, installing..."
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    if ! command -v uv &> /dev/null; then
+        log_error "تعذر إيجاد uv بعد التثبيت | uv not found after installation"
+        return 1
     fi
     
     # Install dependencies

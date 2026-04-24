@@ -129,7 +129,7 @@ install_docker_images() {
     log_info "جاري سحب صور Docker | Pulling Docker images..."
     
     docker pull postgres:15-alpine
-    docker pull neo4j:latest
+    docker pull neo4j:5
     docker pull redis:7-alpine
     docker pull node:20-alpine
     docker pull python:3.12-slim

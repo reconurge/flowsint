@@ -140,7 +140,7 @@ services:
       context: ./flowsint-app
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL}
+        - VITE_API_URL=
     container_name: flowsint-app-prod
     restart: always
     ports:

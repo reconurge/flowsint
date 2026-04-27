@@ -3,7 +3,7 @@ import { useGraphControls } from '@/stores/graph-controls-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { EventLevel } from '@/types'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 
 export function useGraphRefresh(sketch_id: string | undefined) {
   const refetchGraph = useGraphControls((s) => s.refetchGraph)

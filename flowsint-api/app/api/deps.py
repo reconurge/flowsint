@@ -2,20 +2,12 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from flowsint_core.core.auth import ALGORITHM
+from flowsint_core.core.auth import ALGORITHM, AUTH_SECRET
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.models import Profile
 from typing import Optional
 
-import os
-from dotenv import load_dotenv
-
-# Remplace avec ton URL de BDD
-AUTH_SECRET = os.getenv("AUTH_SECRET")
-
-load_dotenv()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 
 def get_current_user(

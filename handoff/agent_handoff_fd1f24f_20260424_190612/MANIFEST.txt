@@ -1,0 +1,15 @@
+agent_handoff_bundle
+commit_ref=fd1f24f
+commit_sha=fd1f24f091460097719cc3fd80a18c27405579b3
+generated_at=2026-04-24T19:06:13+00:00
+output_dir=/workspaces/flowsint/handoff/agent_handoff_fd1f24f_20260424_190612
+files=
+AGENT_PROMPT.md
+CHANGED_FILES.txt
+COMMIT_DETAILS.txt
+DIFFSTAT.txt
+EXECUTION_CHECKLIST.md
+MANIFEST.txt
+MODIFIED_FUNCTIONS.md
+PATCH.diff
+TOOLS_AND_WORKFLOW.md

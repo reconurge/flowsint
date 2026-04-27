@@ -6,12 +6,17 @@ import asyncio
 from uuid import UUID
 import redis.asyncio as redis
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class EventEmitter:
     def __init__(self):
         self.id = uuid.uuid4()
-        self.redis = redis.from_url(os.environ["REDIS_URL"])
+        self.redis = redis.from_url(
+            os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        )
         self.pubsubs: Dict[str, redis.client.PubSub] = {}
 
     async def subscribe(self, channel: str):

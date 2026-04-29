@@ -123,6 +123,14 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SKIP_MIGRATIONS=true
       - AUTH_SECRET=${AUTH_SECRET}
+    healthcheck:
+      # Celery has no HTTP server — Dockerfile's curl-based healthcheck always fails.
+      # Use celery's own ping primitive instead.
+      test: ["CMD-SHELL", "celery -A flowsint_core.core.celery inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy

@@ -175,4 +175,7 @@ cython_debug/
 .pypirc
 
 /certs
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/flowsint-transform-builder/

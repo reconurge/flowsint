@@ -1,0 +1,73 @@
+---
+title: "Syllabus"
+description: "Syllabus, just to make sure we speak the same language. Those definitions apply in the context of Flowsint platform."
+category: "Overview"
+order: 2
+author: "Flowsint Team"
+tags: ["documentation", "overview",  "syllabus"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+### OSINT
+
+      Open Source Intelligence consists of collecting, analyzing, and exploiting **freely** and **openly** available information from search engines, images, social networks, public archives, etc.
+
+### Investigation
+
+    A structured process aimed at collecting, correlating, and analyzing information from different sources and enrichers, in order to answer a question or solve a problem. An investigation can be **exploratory** (discovering unknown elements) or **targeted** (validating a hypothesis). An investigation can contain multiple **sketches** (each representing a different view or stage of the analysis) and one or more **analyses**.
+
+### Sketch
+
+    Visual result produced by executing one or more enrichers on one or more entities. A sketch represents the current state of the graph derived from collected data at a given moment in the investigation. Multiple sketches can exist for the same investigation to capture different perspectives or stages.
+
+### Analysis
+
+    Set of processing, interpretations, and verifications performed on data collected during the investigation. Analyses aim to identify trends, confirm or refute hypotheses, and produce actionable conclusions. They can be **quantitative** (measurements, statistics) or **qualitative** (contextual assessments, behavioral patterns).
+
+### Enricher
+
+    An **enricher** is an operation that, from an input element **A** (*source entity*), allows obtaining one or more elements **B** (*target entities*) by applying a search or correlation method called a **pivot**.
+
+    > Example:
+    >
+    >
+    > A = `my.domain.com` (*domain name*)
+    >
+    > p = "DNS resolution" (*pivot*)
+    >
+    > B = `12.23.34.45` (*IP address*).
+    >
+### Pivot
+
+    A **pivot** is the method or technical process used to derive **B** from **A**. The pivot defines **how** the enricher obtains its result (e.g., DNS resolution, WHOIS lookup, API query, etc.).
+
+    > Examples of pivots:
+    >
+    > DNS Resolution → domain → IP
+    > WHOIS Lookup → IP → owner
+    > Reverse Image Search → image → web pages containing this image
+
+### Tool
+
+    A tool generally refers to a script, program, or service providing a **pivot**, i.e., a means to retrieve or enricher information from an input element.
+
+### Entity
+
+    An identifiable object or element manipulated by enrichers (e.g., IP address, domain, email address, user identifier, file hash, etc.). An entity is always associated with a **Sketch**. In the graph, entities are represented as **nodes** (see [Graph format](/docs/developers/graph-format) for technical details).
+
+### Relationship
+
+    Defines a link between two entities. This link is generally named (in uppercase) and can be unidirectional or bidirectional.
+
+    > Examples of relationships:
+    >
+    >
+    > A = `my.domain.com` → `RESOLVES_TO` → `12.23.34.45`
+    >
+
+    A relationship is always associated between a **source** node (*from*) and a **target** node (*to*). In the graph, relationships are represented as **edges** (see [Graph format](/docs/developers/graph-format) for technical details).
+
+### Flow
+
+    The chaining of multiple enrichers, where the output of one becomes the input of the next, allowing to expand or deepen an investigation.

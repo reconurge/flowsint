@@ -1,0 +1,159 @@
+---
+title: "Flows"
+description: "Quick start guide to using Flows for your OSINT investigations."
+category: "Getting started"
+order: 5
+author: "Flowsint Team"
+tags: ["tutorial", "getting-started", "flows"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+### What are Flows?
+
+Flows are the chaining of multiple enrichers, where the output of one becomes the input of the next, allowing an investigation to be broadened or deepened.
+
+Some enrichers can be chained together, to that they can provide a reproductible and scalable research flow that can be re-applied to other entities of the same type.
+
+### Getting started with Flows
+
+The best way to get started with flows is to go to [http://localhost:5173/dashboard/flows](http://localhost:5173/dashboard/flows) and create a new flow.
+
+From that, you can start building your first flow; a flow consists of **one** input type, and multiple chained enrichers.
+
+Start by drag & dropping your input type to the canva and start using the "**+**" button to add more enrichers to your flow.
+
+Once you're satisfied with the flow, you can start viewing the execution order by pressing the "**compute**" button.
+
+Make sure you give it a descriptive name and save ! (`crtl + s` or presse the save button).
+
+Once it's done, go back to one of your sketches, right click on an item of the same type of the flow, and you should be able to launch it from the "flows" section.
+
+### Flow schema
+
+Every time a flow is launched, a log file is created at `flowsint_core/enricher_logs`.
+
+```json
+{
+  "sketch_id": "6aa808e4-1360-4c4a-b94f-4bed6c914836",
+  "scan_id": "52ba38a2-3f2c-4c8b-a7a5-42656f8fb845",
+  "created_at": "2025-10-26T15:57:52.243549",
+  "updated_at": "2025-10-26T15:57:52.424052",
+  "status": "completed",
+  "enricher_branches": [
+    {
+      "id": "branch-0",
+      "name": "Main Flow",
+      "steps": [
+        {
+          "nodeId": "Domain-1761469976169",
+          "params": {},
+          "type": "type",
+          "inputs": {},
+          "outputs": {
+            "domain": [
+              "example.com"
+            ]
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 0
+        },
+        {
+          "nodeId": "domain_to_ip-1761469978018",
+          "params": {},
+          "type": "enricher",
+          "inputs": {
+            "Domain": null
+          },
+          "outputs": {
+            "address": "example.com",
+            "latitude": "example.com",
+            "longitude": "example.com",
+            "country": "example.com",
+            "city": "example.com",
+            "isp": "example.com"
+          },
+          "status": "pending",
+          "branchId": "branch-0",
+          "depth": 1
+        }
+      ]
+    }
+  ],
+  "execution_log": [
+    {
+      "step_id": "branch-0_domain_to_ip-1761469978018",
+      "branch_id": "branch-0",
+      "branch_name": "Main Flow",
+      "node_id": "domain_to_ip-1761469978018",
+      "enricher_name": "domain_to_ip",
+      "inputs": [
+        "example.com"
+      ],
+      "outputs": [
+        {
+          "address": "12.34.56.78",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ],
+      "status": "completed",
+      "error": null,
+      "timestamp": "2025-10-26T15:57:52.274147",
+      "execution_time_ms": 144,
+      "cache_hit": false
+    }
+  ],
+  "summary": {
+    "total_steps": 1,
+    "completed_steps": 1,
+    "failed_steps": 0,
+    "total_execution_time_ms": 144
+  },
+  "final_results": {
+    "initial_values": [
+      "example.com"
+    ],
+    "branches": [
+      {
+        "id": "branch-0",
+        "name": "Main Flow",
+        "steps": [
+          {
+            "nodeId": "domain_to_ip-1761469978018",
+            "enricher": "domain_to_ip",
+            "status": "completed",
+            "outputs": [
+              {
+                "address": "12.34.56.78",
+                "latitude": null,
+                "longitude": null,
+                "country": null,
+                "city": null,
+                "isp": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "results": {
+      "domain_to_ip-1761469978018": [
+        {
+          "address": "12.34.56.78",
+          "latitude": null,
+          "longitude": null,
+          "country": null,
+          "city": null,
+          "isp": null
+        }
+      ]
+    },
+    "reference_mapping": {}
+  }
+}
+```

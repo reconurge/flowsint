@@ -1,0 +1,512 @@
+---
+title: "Managing tools"
+description: "This guide explains how to create a new tool in the Flowsint ecosystem. Tools are low-level wrappers around external utilities, Docker containers, and APIs that enrichers use to gather intelligence. Understanding the tool architecture will help you extend Flowsint's capabilities with new data sources and reconnaissance utilities."
+category: "Developers"
+order: 9
+author: "Flowsint Team"
+tags: ["tutorial", "developers", "creating-a-new-tool"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+## Understanding tools
+
+Tools in Flowsint serve as abstraction layers between enrichers and external systems. They provide a consistent interface for executing Docker containers, calling APIs, or running python libraries. While enrichers handle high-level orchestration and graph database operations, tools focus exclusively on executing external commands and returning raw results.
+
+Every tool implements a basic interface with methods for naming, categorization, and execution. Tools don't know anything about Pydantic types, Neo4j graphs, or the broader Flowsint architecture. They just wrap external functionality and return data.
+
+Flowsint currently includes tools for subdomain enumeration, port scanning, DNS queries, WHOIS lookups, web crawling, and business intelligence.
+
+## Tool architecture
+
+The tool system has a two-tier inheritance structure. At the base level, you have the abstract `Tool` class that defines the interface every tool must implement. For tools that run in Docker containers, there's an intermediate `DockerTool` class that handles all the container lifecycle management.
+
+### The Tool base class
+
+Every tool inherits from the abstract `Tool` class, which lives at `flowsint-enrichers/src/tools/base.py`. Here's what it looks like:
+
+```python
+from abc import ABC, abstractmethod
+from typing import Any
+
+class Tool(ABC):
+    """Abstract base class for all tools."""
+
+    @classmethod
+    @abstractmethod
+    def name(cls) -> str:
+        """Return the tool name."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def category(cls) -> str:
+        """Return the tool category."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def description(cls) -> str:
+        """Return a description of what the tool does."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def version(cls) -> str:
+        """Return the tool version."""
+        pass
+
+    @abstractmethod
+    def launch(self, value: str, *args, **kwargs) -> Any:
+        """Execute the tool and return results."""
+        pass
+```
+
+Any tool you create must implement these five methods. The first four are class methods that provide metadata about the tool. The `launch` method is where the actual work happens.
+
+### The DockerTool class
+
+Most security and reconnaissance tools run in Docker containers for isolation and portability. The `DockerTool` class at `flowsint-enrichers/src/tools/dockertool.py` provides all the infrastructure for running containerized tools.
+
+When you inherit from `DockerTool`, you get automatic image management, container execution, volume mounting, environment variable handling, and cleanup. You just specify the Docker image name and implement how to construct the command.
+
+Here's a simplified view of what `DockerTool` provides:
+
+```python
+class DockerTool(Tool):
+    """Base class for tools that run in Docker containers."""
+
+    def __init__(self, image: str, default_tag: str = "latest"):
+        """Initialize with Docker image information."""
+        self.image = image
+        self.default_tag = default_tag
+        self.docker_client = docker.from_env()
+
+    def install(self) -> None:
+        """Pull the Docker image if not already present."""
+        # Pulls image from Docker Hub
+        pass
+
+    def is_installed(self) -> bool:
+        """Check if the Docker image exists locally."""
+        # Checks local images
+        pass
+
+    def launch(self, command: str, volumes: dict = None,
+               timeout: int = 30, environment: dict = None) -> Any:
+        """Run a command in the Docker container."""
+        # Executes container and returns output
+        pass
+```
+
+The `launch` method in `DockerTool` handles container execution. It sets up the environment, mounts volumes if needed, runs the container, captures output, and cleans up afterward.
+
+## Creating a simple API-based tool
+
+Let's start with the simpler case of creating a tool that calls an external API. We'll create a hypothetical tool for querying a threat intelligence service.
+
+### File structure
+
+Create a new python file in the appropriate category directory under `flowsint-enrichers/src/tools/`. For a security-related tool, you might use `tools/security/`:
+
+```bash
+cd flowsint-enrichers/src/tools/security/
+touch threat_intel.py
+```
+
+If the category directory doesn't exist, create it first and add an `__init__.py` file to make it a python package.
+
+### Basic implementation
+
+Here's a complete example of an API-based tool:
+
+```python
+from tools.base import Tool
+from typing import Any, Dict, List, Optional
+import requests
+
+class ThreatIntelTool(Tool):
+    """Query threat intelligence data from an external API."""
+
+    api_endpoint = "https://api.threatintel.example.com/v1"
+
+    @classmethod
+    def name(cls) -> str:
+        """Return the tool name."""
+        return "threatintel"
+
+    @classmethod
+    def category(cls) -> str:
+        """Return the category this tool belongs to."""
+        return "Threat Intelligence"
+
+    @classmethod
+    def description(cls) -> str:
+        """Return a description of what this tool does."""
+        return "Queries threat intelligence data for IPs, domains, and hashes"
+
+    @classmethod
+    def version(cls) -> str:
+        """Return the tool version."""
+        return "1.0.0"
+
+    def launch(
+        self,
+        indicator: str,
+        indicator_type: str = "ip",
+        api_key: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Query the threat intelligence API.
+
+        Args:
+            indicator: The indicator to query (IP, domain, hash, etc.)
+            indicator_type: Type of indicator (ip, domain, hash)
+            api_key: API key for authentication
+
+        Returns:
+            List of threat intelligence records
+        """
+        if not api_key:
+            raise ValueError("API key is required")
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        params = {
+            "indicator": indicator,
+            "type": indicator_type
+        }
+
+        try:
+            response = requests.get(
+                f"{self.api_endpoint}/query",
+                headers=headers,
+                params=params,
+                timeout=30
+            )
+            response.raise_for_status()
+            return response.json().get("results", [])
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error querying threat intel API: {e}")
+            return []
+```
+
+This tool follows a straightforward pattern. The class methods provide metadata that enrichers and the registry use. The `launch` method implements the actual API interaction, handling authentication, making the request, and returning structured data.
+
+Notice how the tool returns simple python data structures like lists and dictionaries. Tools don't know about Pydantic types or Flowsint models. That's the enricher's job.
+
+## Creating a docker-based tool
+
+Docker-based tools are more common in Flowsint because most reconnaissance utilities need specific dependencies and isolated environments. Let's walk through creating a tool that wraps a hypothetical Docker-based subdomain scanner.
+
+### Setting up the class
+
+Start by inheriting from `DockerTool` and providing the Docker image information:
+
+```python
+from tools.dockertool import DockerTool
+from typing import List, Optional, Any
+
+class MySubdomainTool(DockerTool):
+    """Wrapper for a Docker-based subdomain enumeration tool."""
+
+    image = "org/subdomain-scanner"
+    default_tag = "latest"
+
+    def __init__(self):
+        """Initialize the tool with Docker image information."""
+        super().__init__(self.image, self.default_tag)
+```
+
+The `image` and `default_tag` class attributes tell `DockerTool` which Docker image to use. When you instantiate the tool, it will automatically connect to the Docker daemon.
+
+### Implementing the launch method
+
+The `launch` method needs to construct the command that runs inside the container and handle the results:
+
+```python
+    def launch(
+        self,
+        domain: str,
+        timeout: int = 300,
+        wordlist: Optional[str] = None
+    ) -> List[str]:
+        """
+        Enumerate subdomains for a given domain.
+
+        Args:
+            domain: Target domain to enumerate
+            timeout: Maximum execution time in seconds
+            wordlist: Optional path to custom wordlist file
+
+        Returns:
+            List of discovered subdomain strings
+        """
+        # Ensure the Docker image is available
+        if not self.is_installed():
+            self.install()
+
+        # Build the command that runs inside the container
+        command = f"-d {domain}"
+
+        if wordlist:
+            command += f" -w {wordlist}"
+
+        # Add JSON output flag for easier parsing
+        command += " -json"
+
+        # Execute the container
+        try:
+            result = super().launch(
+                command=command,
+                timeout=timeout
+            )
+
+            # Parse the output
+            subdomains = self._parse_output(result)
+            return subdomains
+
+        except Exception as e:
+            print(f"Error running subdomain scanner: {e}")
+            return []
+
+    def _parse_output(self, output: str) -> List[str]:
+        """Parse the tool output and extract subdomains."""
+        import json
+
+        subdomains = []
+        for line in output.strip().split('\n'):
+            if not line:
+                continue
+            try:
+                data = json.loads(line)
+                if 'subdomain' in data:
+                    subdomains.append(data['subdomain'])
+            except json.JSONDecodeError:
+                continue
+
+        return list(set(subdomains))  # Remove duplicates
+```
+
+This implementation shows several important patterns. First, it checks if the Docker image is installed and pulls it if necessary. Second, it constructs the command string that will run inside the container. Third, it calls the parent class's `launch` method to handle the actual container execution. Finally, it parses the output into a clean python data structure.
+
+### Handling volumes
+
+Some tools need access to files on the host system. You can mount volumes when calling the parent's `launch` method:
+
+```python
+    def launch(self, domain: str, wordlist_path: str = None) -> List[str]:
+        """Run the tool with optional wordlist file."""
+
+        command = f"-d {domain}"
+        volumes = None
+
+        if wordlist_path:
+            # Mount the wordlist file into the container
+            volumes = {
+                wordlist_path: {
+                    'bind': '/wordlist.txt',
+                    'mode': 'ro'  # read-only
+                }
+            }
+            command += " -w /wordlist.txt"
+
+        result = super().launch(
+            command=command,
+            volumes=volumes
+        )
+
+        return self._parse_output(result)
+```
+
+The volumes dictionary maps host paths to container paths. You can specify the mount mode as 'ro' for read-only or 'rw' for read-write.
+
+### Using environment variables
+
+For tools that need API keys or configuration through environment variables:
+
+```python
+    def launch(self, domain: str, api_key: Optional[str] = None) -> List[str]:
+        """Run the tool with optional API key for enhanced scanning."""
+
+        command = f"-d {domain}"
+        environment = {}
+
+        if api_key:
+            environment['API_KEY'] = api_key
+
+        result = super().launch(
+            command=command,
+            environment=environment
+        )
+
+        return self._parse_output(result)
+```
+
+## Testing your tool
+
+Creating tests for your tool helps ensure it works correctly and makes it easier to catch regressions. Create a test file in `flowsint-enrichers/tests/tools/` that mirrors your tool's location:
+
+```python
+# tests/tools/security/test_threat_intel.py
+from tools.security.threat_intel import ThreatIntelTool
+import pytest
+
+def test_tool_metadata():
+    """Test that tool metadata is correctly defined."""
+    assert ThreatIntelTool.name() == "threatintel"
+    assert ThreatIntelTool.category() == "Threat Intelligence"
+    assert "threat" in ThreatIntelTool.description().lower()
+
+def test_tool_launch_requires_api_key():
+    """Test that launch method requires an API key."""
+    tool = ThreatIntelTool()
+    with pytest.raises(ValueError):
+        tool.launch("192.0.2.1")
+
+def test_tool_launch_with_api_key(monkeypatch):
+    """Test successful API query with mocked response."""
+    tool = ThreatIntelTool()
+
+    # Mock the requests.get call
+    def mock_get(*args, **kwargs):
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"results": [{"indicator": "192.0.2.1", "threat_level": "high"}]}
+        return MockResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    results = tool.launch("192.0.2.1", api_key="test_key")
+    assert len(results) == 1
+    assert results[0]["indicator"] == "192.0.2.1"
+```
+
+For docker-based tools, your tests need Docker to be running:
+
+```python
+# tests/tools/network/test_my_subdomain_tool.py
+from tools.network.my_subdomain_tool import MySubdomainTool
+import pytest
+
+@pytest.mark.docker
+def test_tool_install():
+    """Test that the Docker image can be pulled."""
+    tool = MySubdomainTool()
+    tool.install()
+    assert tool.is_installed()
+
+@pytest.mark.docker
+def test_tool_launch():
+    """Test running the tool against a domain."""
+    tool = MySubdomainTool()
+    results = tool.launch("example.com")
+    assert isinstance(results, list)
+```
+
+The `@pytest.mark.docker` decorator helps you separate tests that require Docker from those that don't.
+
+## Best practices
+
+When creating tools, focus on simplicity and single responsibility. Each tool should wrap exactly one external utility or API. Don't try to combine multiple data sources in a single tool. That's what enrichers are for.
+
+Always handle errors gracefully. Network requests fail, Docker containers crash, and APIs return unexpected data. Your tool should catch these errors, log them appropriately, and return empty results or raise clear exceptions rather than crashing.
+
+Return simple data structures from the `launch` method. Use lists, dictionaries, strings, and numbers. Don't return Pydantic models or other complex objects. Remember that tools are low-level utilities that enrichers build upon.
+
+For Docker tools, always check if the image is installed before running it. The pattern of checking `is_installed()` and calling `install()` if necessary ensures the tool works even on fresh installations.
+
+When parsing tool output, be defensive. External tools can return unexpected formats, partial results, or garbage data. Validate and clean the output before returning it. Use try-except blocks around parsing logic.
+
+Document your tool thoroughly. The docstrings and parameter descriptions help other developers understand how to use your tool. Future enrichers will rely on this documentation.
+
+## Integrating your tool
+
+Unlike types, tools don't need to be explicitly registered in a central registry. Enrichers import and use them directly. When you create an enricher that uses your new tool, you simply import it:
+
+```python
+# In an enricher file
+from tools.security.threat_intel import ThreatIntelTool
+
+class IpToThreatIntelEnricher(Enricher):
+    async def scan(self, data: List[Ip]) -> List[ThreatReport]:
+        tool = ThreatIntelTool()
+        results = []
+
+        for ip in data:
+            intel = tool.launch(
+                indicator=ip.address,
+                indicator_type="ip",
+                api_key=api_key
+            )
+            # Process results...
+
+        return results
+```
+
+The enricher instantiates your tool, calls its `launch` method with appropriate parameters, and processes the results into Flowsint types.
+
+## Common patterns
+
+Several patterns appear frequently in Flowsint tools. Understanding these will help you write tools that fit naturally into the ecosystem.
+
+### The install-check pattern
+
+Most Docker tools follow this pattern at the start of `launch`:
+
+```python
+def launch(self, ...):
+    if not self.is_installed():
+        self.install()
+
+    # Continue with execution
+```
+
+This ensures the docker image is available before trying to run it.
+
+### The command builder pattern
+
+Complex tools often build commands incrementally based on parameters:
+
+```python
+def launch(self, target: str, mode: str = "fast", verbose: bool = False):
+    command = f"-target {target}"
+
+    if mode == "thorough":
+        command += " --thorough"
+
+    if verbose:
+        command += " -v"
+
+    result = super().launch(command)
+```
+
+### The output parser pattern
+
+Many tools separate execution from parsing:
+
+```python
+def launch(self, ...):
+    raw_output = super().launch(command)
+    return self._parse_output(raw_output)
+
+def _parse_output(self, output: str) -> List[Dict]:
+    """Parse raw tool output into structured data."""
+    # Parsing logic here
+```
+
+This separation makes the code easier to test and maintain.
+
+## Next steps
+
+Once you've created your tool and tested it, you can build enrichers that use it. Enrichers orchestrate one or more tools to gather intelligence, validate the results, convert them to Flowsint types, and create graph database nodes and relationships.
+
+If your tool requires API keys or other secrets, enrichers can access them through the vault system. When you implement an enricher that uses your tool, you can define parameters of type `vaultSecret` that pull credentials from the user's encrypted vault.
+
+Remember that tools are just one layer in the Flowsint architecture. They provide the raw capabilities, but enrichers provide the intelligence and graph-building logic that makes the platform powerful.

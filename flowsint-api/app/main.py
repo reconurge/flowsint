@@ -16,9 +16,7 @@ from app.api.routes import types
 from app.api.routes import custom_types
 from app.api.routes import enricher_templates
 
-origins = [
-    "*",
-]
+origins = []
 
 
 app = FastAPI(ignore_trailing_slash=True, redirect_slashes=False)

@@ -11,8 +11,15 @@ import os
 class EventEmitter:
     def __init__(self):
         self.id = uuid.uuid4()
-        self.redis = redis.from_url(os.environ["REDIS_URL"])
+        self.redis = None
         self.pubsubs: Dict[str, redis.client.PubSub] = {}
+
+    def connect(self):
+        """Connect to Redis server using REDIS_URL environment variable
+        To avoid to connect to Redis when the module is imported (e.g. when importing flowsint_enrichers)
+        """
+        if self.redis is None:
+            self.redis = redis.from_url(os.environ["REDIS_URL"])
 
     async def subscribe(self, channel: str):
         """Subscribe to Redis channel"""

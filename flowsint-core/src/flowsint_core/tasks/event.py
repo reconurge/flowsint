@@ -4,12 +4,17 @@ import os
 from typing import Dict
 
 import redis
+from dotenv import load_dotenv
 
 from ..core.celery import celery
 from ..core.enums import EventLevel
 from ..core.types import Event
 
+load_dotenv()
+
 logger = logging.getLogger(__name__)
+
+_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
 @celery.task(name="emit_event")
@@ -19,7 +24,7 @@ def emit_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: 
         event = Event(
             id=log_id, sketch_id=sketch_id, type=log_type, payload=content
         ).model_dump_json()
-        redis_client = redis.from_url(os.environ["REDIS_URL"])
+        redis_client = redis.from_url(_REDIS_URL)
         redis_client.publish(sketch_id, event)
     except Exception as e:
         raise
@@ -34,8 +39,7 @@ def emit_status_event_task(
         event = Event(
             id=log_id, sketch_id=sketch_id, type=log_type, payload=content
         ).model_dump_json()
-        redis_client = redis.from_url(os.environ["REDIS_URL"])
-        # Publish to status channel
+        redis_client = redis.from_url(_REDIS_URL)
         redis_client.publish(f"{sketch_id}_status", event)
     except Exception as e:
         raise

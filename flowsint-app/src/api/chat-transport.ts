@@ -1,7 +1,7 @@
 import { DefaultChatTransport } from 'ai'
 import { useAuthStore } from '@/stores/auth-store'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 
 export function createChatTransport(chatId: string) {
   return new DefaultChatTransport({

@@ -1,6 +1,6 @@
 ---
 name: flowsint-transform-builder
-description: Expert guidance for building Flowsint enrichers (a.k.a. transforms) and their supporting types. Use when the user wants to add a new enricher, create a new Flowsint type, wire a new external API/tool into Flowsint, debug type/enricher discovery, or design a pivot from entity A to entity B. Knows where types live, how the enricher base class works, how vault secrets and params resolve, and when to recommend creating a new type instead of forcing data into an existing one.
+description: Expert guidance for building Flowsint enrichers and their supporting types. Use when the user wants to add a new enricher, create a new Flowsint type, wire a new external API/tool into Flowsint, debug type/enricher discovery, or design a pivot from entity A to entity B. Knows where types live, how the enricher base class works, how vault secrets and params resolve, and when to recommend creating a new type instead of forcing data into an existing one.
 ---
 
 # Flowsint Transform Builder

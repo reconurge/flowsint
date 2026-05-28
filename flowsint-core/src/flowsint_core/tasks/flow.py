@@ -65,10 +65,10 @@ def run_flow(
         results = enricher.scan(values=serialized_objects)
 
         scan.status = EventLevel.COMPLETED
-        scan.results = to_json_serializable(results)
+        scan.details = to_json_serializable(results)
         session.commit()
 
-        return {"result": scan.results}
+        return {"result": scan.details}
 
     except Exception as ex:
         session.rollback()
@@ -78,7 +78,7 @@ def run_flow(
         scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
         if scan:
             scan.status = EventLevel.FAILED
-            scan.results = {"error": error_logs}
+            scan.details = {"error": error_logs}
             session.commit()
 
         self.update_state(state=states.FAILURE)

@@ -91,11 +91,11 @@ logs-prod:
 	$(COMPOSE_PROD) logs -f
 
 open-browser-prod:
-	@echo "Waiting for frontend on port 80 (Traefik)..."
-	@bash -c 'until curl -s http://localhost > /dev/null 2>&1; do sleep 2; done'
-	@open http://localhost 2>/dev/null || \
-	 xdg-open http://localhost 2>/dev/null || \
-	 echo "Frontend ready at http://localhost"
+	@echo "Waiting for frontend on port 5173..."
+	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+	@open http://localhost:5173 2>/dev/null || \
+	 xdg-open http://localhost:5173 2>/dev/null || \
+	 echo "Frontend ready at http://localhost:5173"
 
 deploy:
 	@echo "Starting DEPLOY environment (GHCR images)..."
@@ -104,7 +104,7 @@ deploy:
 	$(COMPOSE_DEPLOY) up -d
 	@echo ""
 	@echo "Deploy started!"
-	@echo "  Frontend: http://localhost (via Traefik)"
+	@echo "  Frontend: http://localhost"
 	@echo "  API:      http://localhost/api"
 
 up-deploy:

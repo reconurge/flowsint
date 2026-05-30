@@ -4,7 +4,7 @@ Chat service for managing chats and messages with AI integration.
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Dict, List, Optional
 from uuid import UUID, uuid4
 
@@ -76,8 +76,8 @@ class ChatService(BaseService):
             description=description,
             owner_id=owner_id,
             investigation_id=investigation_id,
-            created_at=datetime.utcnow(),
-            last_updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            last_updated_at=datetime.now(timezone.utc),
         )
         self._chat_repo.add(new_chat)
         self._commit()
@@ -103,7 +103,7 @@ class ChatService(BaseService):
         if not chat:
             raise NotFoundError("Chat not found")
 
-        chat.last_updated_at = datetime.utcnow()
+        chat.last_updated_at = datetime.now(timezone.utc)
 
         user_message = ChatMessage(
             id=uuid4(),
@@ -111,7 +111,7 @@ class ChatService(BaseService):
             context=context,
             chat_id=chat_id,
             is_bot=False,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         self._chat_repo.add_message(user_message)
         self._commit()
@@ -124,7 +124,7 @@ class ChatService(BaseService):
             content=content,
             chat_id=chat_id,
             is_bot=True,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         self._chat_repo.add_message(chat_message)
         self._commit()

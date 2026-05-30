@@ -8,7 +8,7 @@ class ScanCreate(BaseModel):
     values: Optional[List[str]] = None
     sketch_id: Optional[UUID4] = None
     status: Optional[str] = None
-    results: Optional[Any] = None
+    details: Optional[Any] = None
 
 
 class ScanRead(ORMBase):

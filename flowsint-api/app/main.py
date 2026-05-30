@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,8 +18,12 @@ from app.api.routes import types
 from app.api.routes import custom_types
 from app.api.routes import enricher_templates
 
+# Comma-separated list of allowed origins, e.g. "https://app.example.com,https://staging.example.com"
+# Falls back to localhost dev origin when unset. Never use "*" with allow_credentials=True.
 origins = [
-    "*",
+    o.strip()
+    for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    if o.strip()
 ]
 
 

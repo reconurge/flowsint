@@ -53,7 +53,7 @@ class MaigretEnricher(Enricher):
             return results
 
         try:
-            with open(output_file, "r") as f:
+            with open(output_file, "r", encoding="utf-8") as f:
                 raw_data = json.load(f)
         except Exception as e:
             Logger.error(

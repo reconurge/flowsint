@@ -178,4 +178,4 @@ cython_debug/
 .claude/*
 !.claude/skills/
 .claude/skills/*
-!.claude/skills/flowsint-transform-builder/
+!.claude/skills/flowsint-enricher-builder/

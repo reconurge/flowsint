@@ -2,7 +2,7 @@
 Flow service for managing flows and flow computations.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
@@ -82,8 +82,8 @@ class FlowService(BaseService):
             description=description,
             category=category,
             flow_schema=flow_schema,
-            created_at=datetime.utcnow(),
-            last_updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            last_updated_at=datetime.now(timezone.utc),
         )
         self._flow_repo.add(new_flow)
         self._commit()
@@ -101,7 +101,7 @@ class FlowService(BaseService):
                     value.append("Username")
             setattr(flow, key, value)
 
-        flow.last_updated_at = datetime.utcnow()
+        flow.last_updated_at = datetime.now(timezone.utc)
         self._commit()
         self._refresh(flow)
         return flow

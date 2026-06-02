@@ -1,5 +1,8 @@
 import datetime
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Tuple
+
+import requests
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
@@ -7,6 +10,15 @@ from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.ip import Ip
 from flowsint_types.port import Port
 from flowsint_types.risk_profile import RiskProfile
+
+
+# NVD API v2 — authoritative CVSS scores per CVE ID
+_NVD_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+# Used ONLY as a last resort when both Shodan and NVD fail to provide a score
+_NVD_FALLBACK_CVSS = 6.5
+# Rate-limit delays: NVD allows 5 req/30s unauthenticated, 50 req/30s with key
+_NVD_DELAY_NO_KEY = 6.1   # seconds between requests without an API key
+_NVD_DELAY_WITH_KEY = 0.7  # seconds between requests with an API key
 
 
 # Scoring weights (sum to 1.0)
@@ -81,6 +93,94 @@ def _compute_risk_score(
     return round(min(base * _EVIDENCE_MULTIPLIERS.get(evidence, 0.90), 100.0), 2)
 
 
+def _fetch_nvd_cvss(cve_id: str, api_key: Optional[str] = None) -> Optional[float]:
+    """
+    Query NVD API v2 for the real CVSS base score of a CVE.
+
+    Priority order: CVSSv3.1 → CVSSv3.0 → CVSSv2.
+    Returns None if the CVE is not found or the request fails.
+    """
+    headers: Dict[str, str] = {}
+    if api_key:
+        headers["apiKey"] = api_key
+
+    def _do_request() -> Optional[float]:
+        resp = requests.get(
+            _NVD_BASE_URL,
+            params={"cveId": cve_id},
+            headers=headers,
+            timeout=10,
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        data = resp.json()
+
+        vulns = data.get("vulnerabilities", [])
+        if not vulns:
+            return None
+
+        metrics = vulns[0].get("cve", {}).get("metrics", {})
+        for metric_key in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+            for entry in metrics.get(metric_key, []):
+                score = entry.get("cvssData", {}).get("baseScore")
+                if score is not None:
+                    return float(score)
+        return None
+
+    try:
+        return _do_request()
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 429:
+            # Rate-limited — wait the full window and retry once
+            time.sleep(30)
+            try:
+                return _do_request()
+            except Exception:
+                return None
+        return None
+    except Exception:
+        return None
+
+
+def _resolve_cvss_scores(
+    raw_vulns: Dict[str, Any],
+    nvd_api_key: Optional[str] = None,
+) -> Tuple[Dict[str, float], float]:
+    """
+    Build a {cve_id: cvss_score} map using real scores from Shodan where
+    available, and NVD API v2 where Shodan's value is missing or zero.
+
+    Returns (cvss_per_cve, max_cvss).
+
+    Fallback chain per CVE:
+        1. Shodan-provided score (if > 0)
+        2. NVD API v2 lookup
+        3. _NVD_FALLBACK_CVSS (6.5) — only if both above fail
+    """
+    delay = _NVD_DELAY_WITH_KEY if nvd_api_key else _NVD_DELAY_NO_KEY
+    cvss_per_cve: Dict[str, float] = {}
+
+    for cve_id, meta in raw_vulns.items():
+        shodan_score = float(meta.get("cvss") or 0.0)
+
+        if shodan_score > 0.0:
+            cvss_per_cve[cve_id] = shodan_score
+        else:
+            # Shodan didn't give us a real score — ask NVD
+            nvd_score = _fetch_nvd_cvss(cve_id, nvd_api_key)
+            if nvd_score is not None:
+                cvss_per_cve[cve_id] = nvd_score
+            else:
+                # NVD also failed (network error, unknown CVE, etc.)
+                cvss_per_cve[cve_id] = _NVD_FALLBACK_CVSS
+
+            time.sleep(delay)
+
+    max_cvss = max(cvss_per_cve.values(), default=0.0)
+    return cvss_per_cve, max_cvss
+
+
 @flowsint_enricher
 class IpToSecurityRisk(Enricher):
     """
@@ -140,6 +240,16 @@ class IpToSecurityRisk(Enricher):
                 "description": "Shodan API key (1 credit per IP lookup).",
                 "required": True,
             },
+            {
+                "name": "NVD_API_KEY",
+                "type": "vaultSecret",
+                "description": (
+                    "NVD API key (optional). Without it, NVD lookups are rate-limited "
+                    "to 5 req/30s which adds ~6s per CVE with a missing Shodan score. "
+                    "Get a free key at https://nvd.nist.gov/developers/request-an-api-key"
+                ),
+                "required": False,
+            },
         ]
 
     @classmethod
@@ -185,10 +295,18 @@ a cybersecurity M&A due-diligence tool.
 7. Emits a `RiskProfile` node linked to the IP, plus a `Port` node for every
    open port Shodan reports.
 
-### Required vault secret
-| Key | Source |
-|-----|--------|
-| `SHODAN_API_KEY` | https://account.shodan.io |
+### Vault secrets
+| Key | Required | Source |
+|-----|----------|--------|
+| `SHODAN_API_KEY` | Yes | https://account.shodan.io (1 credit per `api.host()` call) |
+| `NVD_API_KEY` | No | https://nvd.nist.gov/developers/request-an-api-key |
+
+Shodan often returns CVE IDs with a missing or zero CVSS score.  When that
+happens this enricher automatically queries the **NVD API v2** for the real
+`baseScore` (CVSSv3.1 → CVSSv3.0 → CVSSv2 in priority order).  Without an NVD
+API key, requests are rate-limited to 5/30s which adds ~6 s per affected CVE.
+With a key the limit rises to 50/30s (≈0.7 s per CVE).  Only if NVD also
+fails to return a score does it fall back to a conservative default of 6.5.
 
 ### Scoring reference
 | Factor | Value | Score |
@@ -233,6 +351,7 @@ a cybersecurity M&A due-diligence tool.
             return results
 
         api = shodan.Shodan(api_key)
+        nvd_api_key = self.get_secret("NVD_API_KEY")
 
         for ip_obj in data:
             address = ip_obj.address
@@ -255,7 +374,21 @@ a cybersecurity M&A due-diligence tool.
                 )
                 continue
 
-            risk_profile = self._build_risk_profile(address, host)
+            # Resolve real CVSS scores — Shodan first, NVD for anything missing
+            raw_vulns: Dict[str, Any] = host.get("vulns", {})
+            if raw_vulns:
+                Logger.info(
+                    self.sketch_id,
+                    {
+                        "message": (
+                            f"[SecurityRisk] Resolving CVSS for {len(raw_vulns)} CVE(s) "
+                            f"on {address} via NVD where Shodan score is missing…"
+                        )
+                    },
+                )
+            cvss_per_cve, max_cvss = _resolve_cvss_scores(raw_vulns, nvd_api_key)
+
+            risk_profile = self._build_risk_profile(address, host, cvss_per_cve, max_cvss)
             results.append(risk_profile)
 
             Logger.info(
@@ -327,8 +460,18 @@ a cybersecurity M&A due-diligence tool.
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _build_risk_profile(self, address: str, host: Dict[str, Any]) -> RiskProfile:
-        """Parse a raw Shodan host response into a scored RiskProfile."""
+    def _build_risk_profile(
+        self,
+        address: str,
+        host: Dict[str, Any],
+        cvss_per_cve: Dict[str, float],
+        max_cvss: float,
+    ) -> RiskProfile:
+        """
+        Build a scored RiskProfile from a Shodan host dict and pre-resolved
+        CVSS scores.  cvss_per_cve and max_cvss come from _resolve_cvss_scores()
+        so every score here is real — sourced from Shodan or NVD, not a guess.
+        """
 
         # ── Collect open ports ────────────────────────────────────────
         shodan_ports: List[Dict[str, Any]] = []
@@ -359,18 +502,8 @@ a cybersecurity M&A due-diligence tool.
             for p in host.get("ports", []):
                 shodan_ports.append({"number": p, "protocol": "tcp", "service": None, "banner": None})
 
-        # ── CVEs ──────────────────────────────────────────────────────
-        raw_vulns: Dict[str, Any] = host.get("vulns", {})
-        cve_ids: List[str] = sorted(raw_vulns.keys())
-        max_cvss = 0.0
-        for cve_id, cve_meta in raw_vulns.items():
-            cvss = cve_meta.get("cvss", 0.0) or 0.0
-            if cvss > max_cvss:
-                max_cvss = float(cvss)
-
-        # Floor CVSS at 6.5 when CVEs are present (matches RedFlag's Shodan enricher)
-        if cve_ids and max_cvss < 6.5:
-            max_cvss = 6.5
+        # ── CVEs (already resolved by _resolve_cvss_scores) ──────────
+        cve_ids: List[str] = sorted(cvss_per_cve.keys())
 
         # ── Exposure ──────────────────────────────────────────────────
         open_port_numbers = {p["number"] for p in shodan_ports}
@@ -396,7 +529,10 @@ a cybersecurity M&A due-diligence tool.
         if is_internet_facing:
             risk_factors.append(f"Internet-facing ({len(open_port_numbers)} open ports)")
         if cve_ids:
-            risk_factors.append(f"{len(cve_ids)} CVE(s) linked by Shodan (max CVSS {max_cvss})")
+            # Show real per-CVE scores (top 3 by severity)
+            top_cves = sorted(cvss_per_cve.items(), key=lambda x: x[1], reverse=True)[:3]
+            top_str = ", ".join(f"{cid} ({score})" for cid, score in top_cves)
+            risk_factors.append(f"{len(cve_ids)} CVE(s): {top_str}")
         if max_cvss >= 9.0:
             risk_factors.append("Critical-severity CVE (CVSS ≥ 9.0)")
         if 3389 in open_port_numbers:

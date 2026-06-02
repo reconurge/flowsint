@@ -24,6 +24,7 @@ dependencies = [
     "reconcrawl",
     "reconspread",
     "dnspython>=2.4,<3.0",
+    "shodan>=1.31,<2.0",
 ]
 
 [dependency-groups]

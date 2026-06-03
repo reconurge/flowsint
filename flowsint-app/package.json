@@ -19,6 +19,7 @@
     "@ai-sdk/react": "^3.0.79",
     "@dagrejs/dagre": "^1.1.4",
     "@hookform/resolvers": "^5.0.1",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { useGraphControls } from '@/stores/graph-controls-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { EventLevel } from '@/types'
@@ -25,55 +26,66 @@ export function useGraphRefresh(sketch_id: string | undefined) {
 
   useEffect(() => {
     if (!sketch_id || !token) return
-    const eventSource = new EventSource(
-      `${API_URL}/api/events/sketch/${sketch_id}/status/stream?token=${token}`
-    )
-    eventSource.onmessage = (e) => {
-      try {
-        // Handle malformed SSE data (connection message has extra "data: " prefix)
-        let dataStr = e.data
-        if (dataStr.startsWith('data: ')) {
-          dataStr = dataStr.substring(6) // Remove "data: " prefix
-        }
-        const raw = JSON.parse(dataStr) as any
-        // Ignore connection messages
-        if (raw.event === 'connected') {
-          return
-        }
-        // Only process status events
-        if (raw.event !== 'status') {
-          return
-        }
-        const event = JSON.parse(raw.data) as any
-        // Only handle COMPLETED events
-        if (event.type === EventLevel.COMPLETED) {
-          const refetch = refetchGraphRef.current
-          const regenerate = regenerateLayoutRef.current
-          const layoutType = currentLayoutTypeRef.current
 
-          if (typeof refetch !== 'function') {
+    const controller = new AbortController()
+
+    fetchEventSource(`${API_URL}/api/events/sketch/${sketch_id}/status/stream`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+      onmessage(e) {
+        try {
+          // Handle malformed SSE data (connection message has extra "data: " prefix)
+          let dataStr = e.data
+          if (dataStr.startsWith('data: ')) {
+            dataStr = dataStr.substring(6) // Remove "data: " prefix
+          }
+
+          const raw = JSON.parse(dataStr) as any
+
+          // Ignore connection messages
+          if (raw.event === 'connected') {
             return
           }
 
-          // Refetch graph data with callback to regenerate layout after
-          refetch(() => {
-            // After refetch completes, regenerate layout if we have one active
-            if (layoutType && typeof regenerate === 'function') {
-              regenerate(layoutType)
-            }
-          })
-        }
-      } catch (error) {
-        console.error('[useGraphRefresh] Failed to parse SSE event:', error, e.data)
-      }
-    }
+          // Only process status events
+          if (raw.event !== 'status') {
+            return
+          }
 
-    eventSource.onerror = () => {
-      eventSource.close()
-    }
+          const event = JSON.parse(raw.data) as any
+
+          // Only handle COMPLETED events
+          if (event.type === EventLevel.COMPLETED) {
+            const refetch = refetchGraphRef.current
+            const regenerate = regenerateLayoutRef.current
+            const layoutType = currentLayoutTypeRef.current
+
+            if (typeof refetch !== 'function') {
+              return
+            }
+
+            // Refetch graph data with callback to regenerate layout after
+            refetch(() => {
+              // After refetch completes, regenerate layout if we have one active
+              if (layoutType && typeof regenerate === 'function') {
+                regenerate(layoutType)
+              }
+            })
+          }
+        } catch (error) {
+          console.error('[useGraphRefresh] Failed to parse SSE event:', error, e.data)
+        }
+      },
+      onerror() {
+        // Rethrow to stop automatic retrying
+        throw new Error('[useGraphRefresh] SSE connection error')
+      },
+    })
 
     return () => {
-      eventSource.close()
+      controller.abort()
     }
   }, [sketch_id, token]) // Only reconnect when sketch_id or token changes
 }

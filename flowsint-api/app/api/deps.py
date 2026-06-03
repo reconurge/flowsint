@@ -35,22 +35,20 @@ def get_current_user_sse(
     request: Request, db: Session = Depends(get_db)
 ) -> Profile:
     """
-    Alternative authentication for SSE endpoints that accepts token via query parameter.
-    EventSource API doesn't support custom headers, so we need to pass the token in the URL.
+    Authentication for SSE endpoints via Authorization header.
+    Uses fetch-event-source on the client side, which supports custom headers
+    unlike the native EventSource API.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
     )
 
-    # Try to get token from query parameter
-    token: Optional[str] = request.query_params.get("token")
+    token: Optional[str] = None
 
-    # Fallback to Authorization header if query param not present
-    if not token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.replace("Bearer ", "")
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
 
     if not token:
         raise credentials_exception

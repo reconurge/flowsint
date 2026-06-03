@@ -197,5 +197,38 @@ def load_all_types() -> None:
             # Log but don't fail - some modules might have optional dependencies
             print(f"Warning: Failed to import {modname}: {e}", file=sys.stderr)
 
+    # Discover third-party type packs declared via the "flowsint.types"
+    # entry-point group, so external packages can ship their own FlowsintType
+    # subclasses without living inside flowsint_types/.
+    _load_type_plugins()
+
     # Mark as loaded
     _types_loaded = True
+
+
+def _load_type_plugins() -> None:
+    """Import every package registered under the ``flowsint.types`` entry-point group.
+
+    External packages register themselves in their pyproject.toml::
+
+        [project.entry-points."flowsint.types"]
+        my_pack = "my_pack.types"
+
+    Importing the referenced module triggers the @flowsint_type decorators,
+    registering the plugin's types in the global TYPE_REGISTRY.
+    """
+    try:
+        from importlib.metadata import entry_points
+    except ImportError:  # pragma: no cover - importlib.metadata is stdlib on 3.12
+        return
+
+    for ep in entry_points(group="flowsint.types"):
+        if ep.value in sys.modules:
+            continue
+        try:
+            importlib.import_module(ep.value)
+        except Exception as e:
+            print(
+                f"Warning: Failed to load type plugin '{ep.name}' ({ep.value}): {e}",
+                file=sys.stderr,
+            )

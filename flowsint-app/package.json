@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -19,6 +20,7 @@
     "@ai-sdk/react": "^3.0.79",
     "@dagrejs/dagre": "^1.1.4",
     "@hookform/resolvers": "^5.0.1",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -139,6 +141,7 @@
     "react-dom": "^19.2.0",
     "standard-version": "^9.5.0",
     "typescript": "^5.5.2",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "vitest": "^2.1.9"
   }
 }

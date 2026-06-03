@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { logService } from '@/api/log-service'
 import { queryKeys } from '@/api/query-keys'
 import { useAuthStore } from '@/stores/auth-store'
+import { connectSSE } from '@/api/sse'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -30,45 +31,21 @@ export function useEvents(sketch_id: string | undefined) {
   useEffect(() => {
     if (!sketch_id || !token) return
 
-    const eventSource = new EventSource(
-      `${API_URL}/api/events/sketch/${sketch_id}/stream?token=${token}`
-    )
-
-    eventSource.onmessage = (e) => {
-      try {
-        // Handle malformed SSE data (connection message has extra "data: " prefix)
-        let dataStr = e.data
-        if (dataStr.startsWith('data: ')) {
-          dataStr = dataStr.substring(6) // Remove "data: " prefix
-        }
-
-        const raw = JSON.parse(dataStr) as any
-
-        // Ignore connection messages
-        if (raw.event === 'connected') {
-          return
-        }
-
+    const dispose = connectSSE({
+      url: `${API_URL}/api/events/sketch/${sketch_id}/stream`,
+      onMessage: (raw) => {
         // Only process log events
-        if (raw.event !== 'log') {
-          return
+        if (raw.event !== 'log') return
+        try {
+          const event = JSON.parse(raw.data as string) as Event
+          setLiveLogs((prev) => [...prev.slice(-99), event])
+        } catch (error) {
+          console.error('[useSketchEvents] Failed to parse log payload:', error, raw.data)
         }
+      },
+    })
 
-        const event = JSON.parse(raw.data) as Event
-        setLiveLogs((prev) => [...prev.slice(-99), event])
-      } catch (error) {
-        console.error('[useSketchEvents] Failed to parse SSE event:', error, e.data)
-      }
-    }
-
-    eventSource.onerror = (error) => {
-      console.error('[useSketchEvents] EventSource error:', error)
-      eventSource.close()
-    }
-
-    return () => {
-      eventSource.close()
-    }
+    return dispose
   }, [sketch_id, token])
 
   const logs = useMemo(

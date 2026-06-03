@@ -90,6 +90,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.0.6",
     "input-otp": "^1.4.2",
+    "linkifyjs": "4.3.2",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.511.0",
     "maplibre-gl": "^5.1.1",

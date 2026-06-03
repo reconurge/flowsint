@@ -14,7 +14,7 @@ from flowsint_core.core.services import (
     PermissionDeniedError,
     DatabaseError,
 )
-from app.api.deps import get_current_user, get_current_user_sse
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -42,7 +42,7 @@ async def stream_events(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse),
+    current_user: Profile = Depends(get_current_user),
 ):
     """Stream events for a specific sketch in real-time."""
     service = create_log_service(db)
@@ -58,7 +58,7 @@ async def stream_events(
         channel = sketch_id
         await event_emitter.subscribe(channel)
         try:
-            yield 'data: {"event": "connected", "data": "Connected to log stream"}\n\n'
+            yield json.dumps({"event": "connected", "data": "Connected to log stream"})
             while True:
                 if await request.is_disconnected():
                     break
@@ -115,7 +115,7 @@ async def stream_sketch_status(
     request: Request,
     sketch_id: str,
     db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse),
+    current_user: Profile = Depends(get_current_user),
 ):
     """Stream COMPLETED events for a specific sketch (for graph refresh)."""
     service = create_log_service(db)
@@ -150,52 +150,6 @@ async def stream_sketch_status(
             print(f"[EventEmitter] Error in stream_sketch_status: {str(e)}")
         finally:
             await event_emitter.unsubscribe(channel)
-
-    return EventSourceResponse(
-        status_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
-
-
-@router.get("/status/scan/{scan_id}/stream")
-async def stream_status(
-    request: Request,
-    scan_id: str,
-    db: Session = Depends(get_db),
-    current_user: Profile = Depends(get_current_user_sse),
-):
-    """Stream status updates for a specific scan in real-time."""
-    service = create_log_service(db)
-    try:
-        service.get_scan_with_permission(scan_id, current_user.id)
-    except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionDeniedError:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-    async def status_generator():
-        print("[EventEmitter] Start status generator")
-        await event_emitter.subscribe(f"scan_{scan_id}_status")
-        try:
-            yield 'data: {"event": "connected", "data": "Connected to status stream"}\n\n'
-
-            while True:
-                data = await event_emitter.get_message(f"scan_{scan_id}_status")
-                if data is None:
-                    await asyncio.sleep(0.1)
-                    continue
-                print(f"[EventEmitter] Received status data: {data}")
-                yield f"data: {data}\n\n"
-
-        except asyncio.CancelledError:
-            print(f"[EventEmitter] Client disconnected from status stream for scan_id: {scan_id}")
-        finally:
-            await event_emitter.unsubscribe(f"scan_{scan_id}_status")
 
     return EventSourceResponse(
         status_generator(),

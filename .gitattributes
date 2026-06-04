@@ -1,0 +1,5 @@
+# Force LF on files executed or parsed inside Linux containers,
+# regardless of the host OS / core.autocrlf setting.
+*.sh text eol=lf
+.env.example text eol=lf
+Makefile text eol=lf

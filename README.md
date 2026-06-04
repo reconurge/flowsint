@@ -48,7 +48,7 @@ make prod
 
 ### Windows
 
-No Make needed. Use PowerShell.
+No Make needed. Works in both **Command Prompt (cmd)** and **PowerShell**.
 
 #### 1. Install pre-requisites
 
@@ -57,19 +57,19 @@ No Make needed. Use PowerShell.
 
 #### 2. Clone and set up environment files
 
-```powershell
+```bat
 git clone https://github.com/reconurge/flowsint.git
 cd flowsint
 
-# Create the .env files from the example
-foreach ($dir in ".", "flowsint-api", "flowsint-core", "flowsint-app") {
-    if (-not (Test-Path "$dir\.env")) { Copy-Item ".env.example" "$dir\.env" }
-}
+copy .env.example .env
+copy .env.example flowsint-api\.env
+copy .env.example flowsint-core\.env
+copy .env.example flowsint-app\.env
 ```
 
 #### 3. Build and start
 
-```powershell
+```bat
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -181,9 +181,9 @@ flowsint-types (types)
 make dev
 ```
 
-**Windows** (PowerShell, no Make — create the `.env` files first, see [Get started](#windows)):
+**Windows** (cmd or PowerShell, no Make — create the `.env` files first, see [Get started](#windows)):
 
-```powershell
+```bat
 docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml logs -f
 ```

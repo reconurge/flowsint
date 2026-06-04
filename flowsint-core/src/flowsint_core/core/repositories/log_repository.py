@@ -1,5 +1,5 @@
 """Repository for Log model."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from uuid import UUID
 
@@ -26,7 +26,7 @@ class LogRepository(BaseRepository[Log]):
             query = query.filter(Log.created_at > since)
         else:
             query = query.filter(
-                Log.created_at > datetime.utcnow() - timedelta(days=1)
+                Log.created_at > datetime.now(timezone.utc) - timedelta(days=1)
             )
 
         return query.limit(limit).all()

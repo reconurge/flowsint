@@ -1,9 +1,12 @@
 """Auth and shape contract for the SSE event endpoints."""
 
 import importlib
+from datetime import datetime, timezone
 
 import pytest
+from jose import jwt
 
+from flowsint_core.core import auth
 from flowsint_core.core.auth import create_access_token
 from flowsint_core.core.models import Profile
 
@@ -48,3 +51,23 @@ def test_get_current_user_accepts_valid_bearer(db_session):
     token = create_access_token({"sub": "user@example.com"})
     user = get_current_user(token=token, db=db_session)
     assert user.email == "user@example.com"
+
+
+def test_create_access_token_uses_timezone_aware_expiration(monkeypatch):
+    class Clock:
+        @staticmethod
+        def now(tz=None):
+            assert tz == timezone.utc
+            return datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+        @staticmethod
+        def utcnow():
+            raise AssertionError("create_access_token should not use datetime.utcnow()")
+
+    monkeypatch.setattr(auth, "datetime", Clock)
+
+    token = create_access_token({"sub": "user@example.com"})
+
+    decoded = jwt.decode(token, auth.AUTH_SECRET, algorithms=[auth.ALGORITHM])
+
+    assert decoded["sub"] == "user@example.com"

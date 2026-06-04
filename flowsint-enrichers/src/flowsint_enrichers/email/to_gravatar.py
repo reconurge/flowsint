@@ -15,6 +15,10 @@ class EmailToGravatarEnricher(Enricher):
     InputType = Email
     OutputType = Gravatar
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email_gravatar_mapping: List[tuple[Email, Gravatar]] = []
+
     @classmethod
     def name(cls) -> str:
         return "email_to_gravatar"
@@ -29,6 +33,7 @@ class EmailToGravatarEnricher(Enricher):
 
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
+        self.email_gravatar_mapping = []
 
         for email in data:
             try:
@@ -72,6 +77,7 @@ class EmailToGravatarEnricher(Enricher):
 
                     gravatar = Gravatar(**gravatar_data)
                     results.append(gravatar)
+                    self.email_gravatar_mapping.append((email, gravatar))
 
             except Exception as e:
                 Logger.error(
@@ -85,13 +91,12 @@ class EmailToGravatarEnricher(Enricher):
         return results
 
     def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
-        for email_obj, gravatar_obj in zip(original_input, results):
+        for email_obj, gravatar_obj in self.email_gravatar_mapping:
             if not self._graph_service:
                 continue
             # Create email node
             self.create_node(email_obj)
             # Create gravatar node
-            gravatar_key = f"{email_obj.email}_{self.sketch_id}"
             self.create_node(gravatar_obj)
             # Create relationship between email and gravatar
             self.create_relationship(email_obj, gravatar_obj, "HAS_GRAVATAR")

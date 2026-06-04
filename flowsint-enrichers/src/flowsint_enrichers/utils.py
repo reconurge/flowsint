@@ -155,7 +155,7 @@ def get_root_domain(domain: str) -> str:
         return domain
 
 
-def is_valid_number(phone: str, region: str = "FR") -> None:
+def is_valid_number(phone: str, region: str = "FR") -> bool:
     """
     Validates a phone number. Raises InvalidPhoneNumberError if invalid.
     - `region` should be ISO 3166-1 alpha-2 country code (e.g., 'FR' for France)
@@ -166,6 +166,8 @@ def is_valid_number(phone: str, region: str = "FR") -> None:
             return False
     except NumberParseException:
         return False
+
+    return True
 
 
 def parse_asn(asn: str) -> int:

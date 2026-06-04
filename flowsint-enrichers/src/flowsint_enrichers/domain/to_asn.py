@@ -33,6 +33,7 @@ class DomainToAsnEnricher(Enricher):
             vault=vault,
             params=params,
         )
+        self.domain_asn_mapping: List[tuple[Domain, ASN]] = []
 
     @classmethod
     def required_params(cls) -> bool:
@@ -64,6 +65,7 @@ class DomainToAsnEnricher(Enricher):
 
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
+        self.domain_asn_mapping = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -87,6 +89,7 @@ class DomainToAsnEnricher(Enricher):
                         description=asn_data.get("as_name", ""),
                     )
                     results.append(asn)
+                    self.domain_asn_mapping.append((domain, asn))
 
                     Logger.info(
                         self.sketch_id,
@@ -115,8 +118,8 @@ class DomainToAsnEnricher(Enricher):
         self, results: List[OutputType], input_data: List[InputType] = None
     ) -> List[OutputType]:
         # Create Neo4j relationships between domains and their corresponding ASNs
-        if input_data and self._graph_service:
-            for domain, asn in zip(input_data, results):
+        if self._graph_service:
+            for domain, asn in self.domain_asn_mapping:
                 # Create domain node
                 self.create_node(domain)
                 # Create ASN node

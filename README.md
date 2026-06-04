@@ -31,6 +31,8 @@ Flowsint is still in early development and definetly needs the help of the commu
 
 Don't want to read ? Got it. Here's your install instructions:
 
+### Linux / macOS
+
 #### 1. Install pre-requisites
 
 - Docker
@@ -43,6 +45,35 @@ git clone https://github.com/reconurge/flowsint.git
 cd flowsint
 make prod
 ```
+
+### Windows
+
+No Make needed. Use PowerShell.
+
+#### 1. Install pre-requisites
+
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) (make sure it is **running** before the next step)
+- Git
+
+#### 2. Clone and set up environment files
+
+```powershell
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+
+# Create the .env files from the example
+foreach ($dir in ".", "flowsint-api", "flowsint-core", "flowsint-app") {
+    if (-not (Test-Path "$dir\.env")) { Copy-Item ".env.example" "$dir\.env" }
+}
+```
+
+#### 3. Build and start
+
+```powershell
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+### First login
 
 Then go to [http://localhost:5173/register](http://localhost:5173/register) and create an account. There are no credentials or account by default.
 
@@ -144,10 +175,17 @@ flowsint-types (types)
 
 ### Run
 
-Make sure you have **Make** installed.
+**Linux / macOS** (requires **Make**):
 
 ```bash
 make dev
+```
+
+**Windows** (PowerShell, no Make — create the `.env` files first, see [Get started](#windows)):
+
+```powershell
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ### Development

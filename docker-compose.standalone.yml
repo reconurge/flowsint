@@ -1,0 +1,152 @@
+name: flowsint-standalone
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: flowsint-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: flowsint
+      POSTGRES_PASSWORD: flowsint
+      POSTGRES_DB: flowsint
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowsint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  # Redis for Celery & cache
+  redis:
+    image: redis:alpine
+    container_name: flowsint-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j graph database
+  neo4j:
+    image: neo4j:5
+    container_name: flowsint-neo4j
+    restart: always
+    ports:
+      - "7474:7474"  # Web UI
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/flowsint123
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    networks:
+      - flowsint_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  api:
+    image: ghcr.io/reconurge/flowsint-api:latest
+    container_name: flowsint-api
+    restart: always
+    ports:
+      - "5001:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=flowsint123
+      - AUTH_SECRET=dev-secret-change-in-production
+      - MASTER_VAULT_KEY_V1=dev-vault-key-change-in-production
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flowsint_network
+
+  # Celery Worker
+  celery:
+    image: ghcr.io/reconurge/flowsint-api:latest
+    container_name: flowsint-celery
+    restart: always
+    command: celery -A flowsint_core.core.celery worker --loglevel=info --pool=solo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DATABASE_URL=postgresql://flowsint:flowsint@postgres:5432/flowsint
+      - NEO4J_URI_BOLT=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=flowsint123
+      - MASTER_VAULT_KEY_V1=dev-vault-key-change-in-production
+      - REDIS_URL=redis://redis:6379/0
+      - SKIP_MIGRATIONS=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - flowsint_network
+
+  # Frontend
+  app:
+    image: ghcr.io/reconurge/flowsint-app:latest
+    container_name: flowsint-app
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5001
+    networks:
+      - flowsint_network
+    depends_on:
+      api:
+        condition: service_healthy
+
+networks:
+  flowsint_network:
+    name: flowsint_network
+    driver: bridge
+
+volumes:
+  pg_data:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:

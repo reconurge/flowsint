@@ -2,18 +2,17 @@ PROJECT_ROOT := $(shell pwd)
 
 COMPOSE_DEV    := docker compose -f docker-compose.dev.yml
 COMPOSE_PROD   := docker compose -f docker-compose.prod.yml
-COMPOSE_DEPLOY := docker compose -f docker-compose.deploy.yml
 
 .PHONY: \
-	dev prod deploy \
-	build-dev build-prod \
-	up-dev up-prod up-deploy down \
+	dev prod \
+	build-dev \
+	up-dev up-prod down \
 	infra-dev infra-prod infra-stop-dev infra-stop-prod \
 	migrate-dev migrate-prod \
 	alembic-upgrade alembic-downgrade alembic-revision \
 	api frontend celery \
 	test install clean check-env open-browser-dev open-browser-prod \
-	logs-dev logs-prod logs-deploy status \
+	logs-dev logs-prod status \
 	regenerate-router
 
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
@@ -63,18 +62,14 @@ open-browser-dev:
 	 echo "Frontend ready at http://localhost:5173"
 
 prod:
-	@echo "Starting PROD environment..."
+	@echo "Starting PROD environment (pre-built images)..."
 	$(MAKE) check-env
-	$(MAKE) build-prod
+	$(COMPOSE_PROD) pull
 	$(MAKE) up-prod
 	@echo ""
 	@echo "Production started!"
 	@echo "  Frontend: http://localhost:5173"
-	@echo "  API:      http://localhost:5001"
-
-build-prod:
-	@echo "Building PROD images..."
-	$(COMPOSE_PROD) build
+	@echo "  API:      http://localhost:5173/api (proxied)"
 
 up-prod:
 	$(COMPOSE_PROD) up -d
@@ -91,27 +86,11 @@ logs-prod:
 	$(COMPOSE_PROD) logs -f
 
 open-browser-prod:
-	@echo "Waiting for frontend on port 80 (Traefik)..."
-	@bash -c 'until curl -s http://localhost > /dev/null 2>&1; do sleep 2; done'
-	@open http://localhost 2>/dev/null || \
-	 xdg-open http://localhost 2>/dev/null || \
-	 echo "Frontend ready at http://localhost"
-
-deploy:
-	@echo "Starting DEPLOY environment (GHCR images)..."
-	$(MAKE) check-env
-	$(COMPOSE_DEPLOY) pull
-	$(COMPOSE_DEPLOY) up -d
-	@echo ""
-	@echo "Deploy started!"
-	@echo "  Frontend: http://localhost (via Traefik)"
-	@echo "  API:      http://localhost/api"
-
-up-deploy:
-	$(COMPOSE_DEPLOY) up -d
-
-logs-deploy:
-	$(COMPOSE_DEPLOY) logs -f
+	@echo "Waiting for frontend on port 5173..."
+	@bash -c 'until curl -s http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+	@open http://localhost:5173 2>/dev/null || \
+	 xdg-open http://localhost:5173 2>/dev/null || \
+	 echo "Frontend ready at http://localhost:5173"
 
 migrate-dev:
 	@echo "Running DEV migrations..."
@@ -177,7 +156,6 @@ status:
 down:
 	-$(COMPOSE_DEV) down
 	-$(COMPOSE_PROD) down
-	-$(COMPOSE_DEPLOY) down
 
 clean:
 	@echo "This will remove ALL Docker data. Continue? [y/N]"
@@ -185,7 +163,6 @@ clean:
 	if [ "$$confirm" != "y" ]; then exit 1; fi
 	-$(COMPOSE_DEV) down -v --rmi all --remove-orphans
 	-$(COMPOSE_PROD) down -v --rmi all --remove-orphans
-	-$(COMPOSE_DEPLOY) down -v --rmi all --remove-orphans
 	rm -rf flowsint-app/node_modules
 	rm -rf .venv
 
@@ -203,16 +180,10 @@ help:
 	@echo "  make logs-dev     - Follow DEV logs"
 	@echo "  make infra-dev    - Start only infra (postgres/redis/neo4j)"
 	@echo ""
-	@echo "Production (local build):"
-	@echo "  make prod         - Start PROD environment (local build + Traefik)"
-	@echo "  make build-prod   - Build PROD images"
+	@echo "Production (pre-built GHCR images):"
+	@echo "  make prod         - Pull images and start PROD environment"
 	@echo "  make up-prod      - Start PROD containers"
 	@echo "  make logs-prod    - Follow PROD logs"
-	@echo ""
-	@echo "Deploy (GHCR images):"
-	@echo "  make deploy       - Start with GHCR images (no build)"
-	@echo "  make up-deploy    - Start DEPLOY containers"
-	@echo "  make logs-deploy  - Follow DEPLOY logs"
 	@echo ""
 	@echo "Local (no Docker):"
 	@echo "  make api          - Run API locally"

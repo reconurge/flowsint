@@ -23,18 +23,18 @@ dependencies = [
     "sse-starlette>=1.8,<2.0",
     "alembic==1.13.0",
     "phonenumbers>=9.0.8,<10.0.0",
-    "python-multipart>=0.0.20,<0.0.21",
+    "python-multipart>=0.0.27,<0.1.0",
     "docker>=7.1.0,<8.0.0",
-    "pytest>=8.4.2,<9.0.0",
-    "cryptography>=45.0.7,<46.0.0",
+    "pytest>=9.0.3,<10.0.0",
+    "cryptography>=46.0.7,<47.0.0",
     "openpyxl>=3.1,<4.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest-asyncio>=0.21,<0.22",
-    "pytest-httpx>=0.35,<0.36",
-    "black>=25.0,<26.0",
+    "pytest-asyncio>=0.21,<2.0",
+    "pytest-httpx>=0.36,<1.0",
+    "black>=26.3.1,<27.0",
     "isort>=6.0,<7.0",
     "flake8>=7.0,<8.0",
     "mypy>=1.17,<2.0",

@@ -29,3 +29,7 @@ jobs:
       # Same entrypoint as local development — keeps CI and `make test` in sync.
       - name: Run tests
         run: make test
+        env:
+          # flowsint_core requires AUTH_SECRET at import time (provided by
+          # .env locally). Dummy value — no service is reached during tests.
+          AUTH_SECRET: ci-only-dummy-secret

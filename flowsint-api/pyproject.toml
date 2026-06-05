@@ -9,7 +9,7 @@ dependencies = [
     "flowsint-core",
     "flowsint-types",
     "flowsint-enrichers",
-    "fastapi[standard]>=0.115.0,<0.116.0",
+    "fastapi[standard]>=0.115.0,<1.0.0",
     "uvicorn>=0.32.0,<0.33.0",
     "redis>=5.0,<6.0",
     "celery>=5.3,<6.0",
@@ -28,14 +28,14 @@ dependencies = [
     "networkx>=2.6.3,<3.0.0",
     "email-validator>=2.2.0,<3.0.0",
     "mistralai>=1.9.3,<2.0.0",
-    "python-multipart>=0.0.20,<0.0.21",
+    "python-multipart>=0.0.27,<0.1.0",
     "openpyxl>=3.1.2,<4.0.0",
     "jsonschema>=4.25.1,<5.0.0",
 ]
 
 [dependency-groups]
 dev = [
-    "black>=25.0,<26.0",
+    "black>=26.3.1,<27.0",
     "isort>=6.0,<7.0",
     "flake8>=7.0,<8.0",
     "mypy>=1.17,<2.0",

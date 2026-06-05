@@ -10,7 +10,7 @@ dependencies = [
     "flowsint-enrichers",
     "flowsint-api",
     "pydantic[email]>=2.11.7,<3.0.0",
-    "python-multipart>=0.0.20,<0.0.21",
+    "python-multipart>=0.0.27,<0.1.0",
     "docker>=7.1.0,<8.0.0",
 ]
 

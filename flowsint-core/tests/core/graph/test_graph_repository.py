@@ -43,7 +43,9 @@ class TestCreateNode:
         mock_connection.query.assert_called_once()
 
     def test_create_node_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
+        # Pass a mock to avoid the constructor's singleton fallback, which
+        # requires NEO4J_* credentials; the test wants no connection at all.
+        repo = Neo4jGraphRepository(neo4j_connection=MagicMock())
         repo._connection = None
 
         result = repo.create_node({"nodeLabel": "test", "nodeType": "domain"}, "sketch-1")

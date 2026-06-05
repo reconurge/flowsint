@@ -140,6 +140,7 @@ test:
 	cd flowsint-types && uv run pytest
 	cd flowsint-core && uv run pytest
 	cd flowsint-enrichers && uv run pytest
+	cd flowsint-api && uv run pytest
 
 install:
 	$(MAKE) infra-dev

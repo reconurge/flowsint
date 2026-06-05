@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # Same entrypoint as local development — keeps CI and `make test` in sync.
+      - name: Run tests
+        run: make test
+        env:
+          # flowsint_core hard-requires these at import time (provided by .env
+          # locally). Dummy values — no service is reached during tests:
+          # connections (redis.from_url, create_engine) are lazy.
+          AUTH_SECRET: ci-only-dummy-secret
+          REDIS_URL: redis://127.0.0.1:6379/0

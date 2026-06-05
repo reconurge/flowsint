@@ -14,6 +14,7 @@ dependencies = [
     "redis>=5.0,<6.0",
     "celery>=5.3,<6.0",
     "python-dotenv>=1.0,<2.0",
+    "pyyaml>=6.0,<7.0",
     "requests>=2.31,<3.0",
     "httpx>=0.28,<0.29",
     "networkx>=2.6.3,<3.0.0",

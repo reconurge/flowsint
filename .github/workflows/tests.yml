@@ -30,6 +30,8 @@ jobs:
       - name: Run tests
         run: make test
         env:
-          # flowsint_core requires AUTH_SECRET at import time (provided by
-          # .env locally). Dummy value — no service is reached during tests.
+          # flowsint_core hard-requires these at import time (provided by .env
+          # locally). Dummy values — no service is reached during tests:
+          # connections (redis.from_url, create_engine) are lazy.
           AUTH_SECRET: ci-only-dummy-secret
+          REDIS_URL: redis://127.0.0.1:6379/0

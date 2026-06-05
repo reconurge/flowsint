@@ -34,9 +34,8 @@ class IgnorantEnricher(Enricher):
         results: List[OutputType] = []
         for phone_obj in data:
             try:
-                cleaned_phone = is_valid_number(phone_obj.number)
-                if cleaned_phone:
-                    result = await self._perform_ignorant_research(cleaned_phone)
+                if is_valid_number(phone_obj.number):
+                    result = await self._perform_ignorant_research(phone_obj.number)
                     results.append(result)
                 else:
                     results.append({"number": phone_obj.number, "error": "Invalid phone number"})

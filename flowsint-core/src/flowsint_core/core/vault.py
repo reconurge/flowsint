@@ -25,7 +25,7 @@ class Vault(VaultProtocol):
         if not owner_id:
             raise ValueError("owner_id is required to use the vault.")
         self.db = db
-        self.owner_id = str(owner_id)
+        self.owner_id = owner_id
         self.version = "V1"
 
     def _get_master_key(self) -> bytes:
@@ -52,7 +52,7 @@ class Vault(VaultProtocol):
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
-            info=self.owner_id.encode("utf-8"),
+            info=str(self.owner_id).encode("utf-8"),
         )
         master_key = self._get_master_key()
         return hkdf.derive(master_key)
@@ -72,7 +72,7 @@ class Vault(VaultProtocol):
         ciphertext = aesgcm.encrypt(
             iv,
             plaintext.encode("utf-8"),
-            self.owner_id.encode("utf-8"),  # AAD = links secret to user_id
+            str(self.owner_id).encode("utf-8"),  # AAD = links secret to user_id
         )
 
         return {
@@ -92,7 +92,7 @@ class Vault(VaultProtocol):
         plaintext = aesgcm.decrypt(
             row.get("iv"),
             row.get("ciphertext"),
-            self.owner_id.encode("utf-8"),
+            str(self.owner_id).encode("utf-8"),
         )
         return plaintext.decode("utf-8")
 

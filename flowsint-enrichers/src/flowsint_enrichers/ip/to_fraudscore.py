@@ -33,6 +33,7 @@ class IpToFraudScore(Enricher):
             vault=vault,
             params=params,
         )
+        self.ip_risk_mapping: List[tuple[Ip, RiskProfile]] = []
 
     # @classmethod
     # def required_params(cls) -> bool:
@@ -70,6 +71,7 @@ class IpToFraudScore(Enricher):
 
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
+        self.ip_risk_mapping = []
 
         api_username = self.get_secret("SCAMLYTICS_USERNAME", os.getenv("SCAMLYTICS_USERNAME")) 
         api_key = self.get_secret("SCAMLYTICS_API_KEY", os.getenv("SCAMLYTICS_API_KEY")) 
@@ -98,7 +100,7 @@ class IpToFraudScore(Enricher):
                     Logger.error(
                         self.sketch_id,
                         {
-                            "message": f"(IpToFraudScore) Request to Scamlytics failed (status): '{response_json["status"]}'."
+                            "message": f"(IpToFraudScore) Request to Scamlytics failed (status): '{response_json['status']}'."
                         },
                     )
                     continue
@@ -121,11 +123,11 @@ class IpToFraudScore(Enricher):
                     if proxy_info.get(key):
                         proxy_flags.append(label)
 
-                results.append(
-                    RiskProfile(
-                        entity_id=ip.address, entity_type="IP address", overall_risk_score=fraud_score, risk_level=fraud_risk, last_updated=datetime.datetime.utcnow().isoformat(), risk_factors=proxy_flags, source="Scamalytics"
-                        )
-                    )
+                risk_profile = RiskProfile(
+                    entity_id=ip.address, entity_type="IP address", overall_risk_score=fraud_score, risk_level=fraud_risk, last_updated=datetime.datetime.utcnow().isoformat(), risk_factors=proxy_flags, source="Scamalytics"
+                )
+                results.append(risk_profile)
+                self.ip_risk_mapping.append((ip, risk_profile))
 
             except Exception as e:
                 Logger.error(self.sketch_id, {"message": f"(IpToFraudScore) Exception while querying {ip.address}: {e}"})
@@ -138,16 +140,15 @@ class IpToFraudScore(Enricher):
         if not self._graph_service:
             return results
 
-        if input_data and self._graph_service:
-            for ip, risk_profile in zip(input_data, results):
-                self.create_node(ip)
-                self.create_node(risk_profile)
+        for ip, risk_profile in self.ip_risk_mapping:
+            self.create_node(ip)
+            self.create_node(risk_profile)
 
-                # Create relationship
-                self.create_relationship(ip, risk_profile, "HAS_RISK_PROFILE")
-                self.log_graph_message(
-                    f"(IpToFraudScore) IP {ip.address} has risk level of {risk_profile.risk_level}"
-                )
+            # Create relationship
+            self.create_relationship(ip, risk_profile, "HAS_RISK_PROFILE")
+            self.log_graph_message(
+                f"(IpToFraudScore) IP {ip.address} has risk level of {risk_profile.risk_level}"
+            )
 
         return results
 

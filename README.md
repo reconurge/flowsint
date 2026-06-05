@@ -67,11 +67,13 @@ copy .env.example flowsint-core\.env
 copy .env.example flowsint-app\.env
 ```
 
-#### 3. Build and start
+#### 3. Start
 
 ```bat
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d
 ```
+
+This pulls the pre-built images from GitHub Container Registry — no local build needed.
 
 ### First login
 
@@ -79,6 +81,40 @@ Then go to [http://localhost:5173/register](http://localhost:5173/register) and 
 
 
 > ✅ OSINT investigations need a high level of privacy. Everything is stored on your machine.
+
+### Deploy on a network (team / server)
+
+The same setup works out of the box on a server: the frontend serves the UI **and** proxies all API calls internally, so no extra configuration is needed for clients.
+
+```bash
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+cp .env.example .env
+# Edit .env — see "Before exposing to a network" below
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Anyone on the network can then access Flowsint at `http://<server-ip>:5173`.
+
+**Before exposing to a network, change the default secrets in `.env`:**
+
+- `AUTH_SECRET` — signs authentication tokens. Generate one: `openssl rand -hex 32`
+- `MASTER_VAULT_KEY_V1` — encrypts stored API keys. Generate one: `python3 -c "import os, base64; print('base64:' + base64.b64encode(os.urandom(32)).decode())"`
+- `NEO4J_PASSWORD` — Neo4j database password.
+
+Only port `5173` is exposed to the network. PostgreSQL, Redis, Neo4j and the API are bound to `127.0.0.1` on the server and reachable only through the frontend proxy.
+
+To pin a specific version instead of `latest`, set `FLOWSINT_VERSION` in `.env` (e.g. `FLOWSINT_VERSION=1.2.10`).
+
+**HTTPS (recommended beyond a trusted LAN):** put any reverse proxy in front of port 5173. Example with [Caddy](https://caddyserver.com/):
+
+```
+flowsint.example.com {
+    reverse_proxy 127.0.0.1:5173
+}
+```
+
+When fronting with a reverse proxy, also bind the app port to localhost in `docker-compose.prod.yml` (`"127.0.0.1:5173:8080"`) so clients can only go through HTTPS.
 
 
 ## What is it?

@@ -10,8 +10,9 @@ RUN yarn install --network-timeout 100000
 
 COPY . .
 
-# Build argument for API URL (injected at build time)
-ARG VITE_API_URL
+# API URL baked at build time. Empty = same-origin relative URLs (/api/...),
+# served through the nginx reverse proxy below. Only override for an external API origin.
+ARG VITE_API_URL=""
 ENV VITE_API_URL=${VITE_API_URL}
 
 RUN yarn build

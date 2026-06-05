@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flowsint}
       POSTGRES_DB: ${POSTGRES_DB:-flowsint}
     ports:
-      - "5433:5432"
+      # Bound to localhost: host-only debugging access, never exposed to the network.
+      - "127.0.0.1:5433:5432"
     volumes:
       - pg_data_prod:/var/lib/postgresql/data
     networks:
@@ -26,7 +27,7 @@ services:
     container_name: flowsint-redis-prod
     restart: always
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
       - flowsint_network
     healthcheck:
@@ -40,8 +41,8 @@ services:
     container_name: flowsint-neo4j-prod
     restart: always
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
       - NEO4J_PLUGINS=["apoc"]
@@ -62,14 +63,13 @@ services:
       retries: 10
 
   api:
-    build:
-      context: .
-      dockerfile: flowsint-api/Dockerfile
-      target: production
+    image: ghcr.io/reconurge/flowsint-api:${FLOWSINT_VERSION:-latest}
     container_name: flowsint-api-prod
     restart: always
     ports:
-      - "5001:5001"
+      # The frontend's nginx proxies /api/ to this service over the Docker
+      # network — direct access is host-only, for debugging.
+      - "127.0.0.1:5001:5001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
@@ -96,10 +96,7 @@ services:
       - flowsint_network
 
   celery:
-    build:
-      context: .
-      dockerfile: flowsint-api/Dockerfile
-      target: production
+    image: ghcr.io/reconurge/flowsint-api:${FLOWSINT_VERSION:-latest}
     container_name: flowsint-celery-prod
     restart: always
     command:
@@ -144,14 +141,13 @@ services:
       - flowsint_network
 
   app:
-    build:
-      context: ./flowsint-app
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL}
+    # Frontend bundle uses same-origin relative URLs; nginx inside the image
+    # proxies /api/ to the "api" service. No VITE_API_URL needed.
+    image: ghcr.io/reconurge/flowsint-app:${FLOWSINT_VERSION:-latest}
     container_name: flowsint-app-prod
     restart: always
     ports:
+      # The only network-facing port. Serves the UI and proxies /api/ to the API.
       - "5173:8080"
     networks:
       - flowsint_network

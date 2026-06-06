@@ -362,7 +362,7 @@ class CustomType(Base):
     color: Mapped[str] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, server_default="draft", nullable=False)
     category: Mapped[str] = mapped_column(
-        String, server_default="Custom types", nullable=False
+        String, server_default="custom_types_category", nullable=False
     )
     checksum: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)

@@ -19,7 +19,9 @@ class CustomTypeCreate(BaseModel):
         None, description="Optional description of the custom type"
     )
     status: str = Field("draft", description="Status of the custom type")
-    category: str = Field("Custom types", description="Category of the custom type")
+    category: str = Field(
+        "custom_types_category", description="Category of the custom type"
+    )
     color: str = Field("#8E9E8C", description="Default color")
     icon: str = Field("Minus", description="Default icon")
 

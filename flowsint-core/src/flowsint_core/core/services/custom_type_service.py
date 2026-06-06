@@ -48,7 +48,7 @@ class CustomTypeService(BaseService):
         user_id: UUID,
         description: Optional[str] = None,
         status: str = "draft",
-        category: str = "Custom types",
+        category: str = "custom_types_category",
         validate_schema_func=None,
         calculate_checksum_func=None,
     ) -> CustomType:

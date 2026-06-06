@@ -1,0 +1,42 @@
+---
+title: "Installation"
+description: "Quick start guide to using Flowsint for your OSINT investigations."
+category: "Getting started"
+order: 3
+author: "Flowsint Team"
+tags: ["tutorial", "quickstart", "installation"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+### Prerequisites
+
+Before installing Flowsint, ensure you have the following installed on your system:
+
+- **Docker** and **Docker Compose**
+- **Make** (for build automation)
+- **Git**
+
+### Installation
+
+Clone the repo and run the start command.
+
+```bash
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+make prod
+```
+
+Some enrichers require API keys. Check out [this section](/docs/getting-started/enrichers#api-keys) to learn more.
+
+The application should automatically open at http://localhost:5173.
+
+### Create your first investigation
+
+Start by logging in or registering from the home page. From your dashboard, create a new investigation by clicking "New investigation." Add your first entity—such as a domain name—to the canvas. Right-click the entity to open the context menu and run an enricher. As results appear, explore the newly discovered entities and relationships directly in the graph.
+
+### Running your first enricher
+
+You could start by discovering subdomains for a domain for example.
+
+Add a domain entity like `example.com` to your investigation, then right-click the domain node and select the "domain_to_subdomains" enricher. Wait for the enricher to complete; newly discovered subdomains will be added to your graph for you to review.

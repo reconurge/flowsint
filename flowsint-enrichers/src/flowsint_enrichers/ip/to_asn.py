@@ -32,6 +32,7 @@ class IpToAsnEnricher(Enricher):
             vault=vault,
             params=params,
         )
+        self.ip_asn_mapping: List[tuple[Ip, ASN]] = []
 
     @classmethod
     def required_params(cls) -> bool:
@@ -63,6 +64,7 @@ class IpToAsnEnricher(Enricher):
 
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
+        self.ip_asn_mapping = []
         asnmap = AsnmapTool()
 
         # Retrieve API key from vault or environment
@@ -84,6 +86,7 @@ class IpToAsnEnricher(Enricher):
                         description=asn_data.get("as_name", ""),
                     )
                     results.append(asn)
+                    self.ip_asn_mapping.append((ip, asn))
                     Logger.info(
                         self.sketch_id,
                         {
@@ -110,8 +113,8 @@ class IpToAsnEnricher(Enricher):
         self, results: List[OutputType], input_data: List[InputType] = None
     ) -> List[OutputType]:
         # Create Neo4j relationships between IPs and their corresponding ASNs
-        if input_data and self._graph_service:
-            for ip, asn in zip(input_data, results):
+        if self._graph_service:
+            for ip, asn in self.ip_asn_mapping:
                 # Create IP node
                 self.create_node(ip)
                 # Create ASN node

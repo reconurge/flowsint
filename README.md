@@ -12,8 +12,16 @@ Flowsint is an open-source OSINT graph exploration tool designed for ethical inv
 **Ethics:** Please read [ETHICS.md](./ETHICS.md) for responsible use guidelines.
 
 <img width="1439" height="899" alt="hero-dark" src="https://github.com/user-attachments/assets/01eb128e-bef4-486e-9276-c4da58f829ae" />
-<img width="1511" height="946" alt="Capture d’écran 2026-01-13 à 09 15 58" src="https://github.com/user-attachments/assets/d1a9eca6-9ec4-4402-93f4-303c3dc30de1" />
-<img width="1511" height="948" alt="Capture d’écran 2026-01-13 à 09 19 45" src="https://github.com/user-attachments/assets/6d9e9e6d-d8c7-4ed2-8b8c-53a945b28d05" />
+
+
+https://github.com/user-attachments/assets/eaabfa81-d7b3-414d-8cf7-f69b4e37bab6
+
+
+https://github.com/user-attachments/assets/7457d94a-cf1d-4a97-949f-f9b1d8d92644
+
+
+https://github.com/user-attachments/assets/65c3f26e-7132-4853-be45-21b8933688bd
+
 
 ## Contributing
 
@@ -22,6 +30,8 @@ Flowsint is still in early development and definetly needs the help of the commu
 ## Get started
 
 Don't want to read ? Got it. Here's your install instructions:
+
+### Linux / macOS
 
 #### 1. Install pre-requisites
 
@@ -36,10 +46,75 @@ cd flowsint
 make prod
 ```
 
+### Windows
+
+No Make needed. Works in both **Command Prompt (cmd)** and **PowerShell**.
+
+#### 1. Install pre-requisites
+
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) (make sure it is **running** before the next step)
+- Git
+
+#### 2. Clone and set up environment files
+
+```bat
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+
+copy .env.example .env
+copy .env.example flowsint-api\.env
+copy .env.example flowsint-core\.env
+copy .env.example flowsint-app\.env
+```
+
+#### 3. Start
+
+```bat
+docker compose -f docker-compose.prod.yml up -d
+```
+
+This pulls the pre-built images from GitHub Container Registry — no local build needed.
+
+### First login
+
 Then go to [http://localhost:5173/register](http://localhost:5173/register) and create an account. There are no credentials or account by default.
 
 
 > ✅ OSINT investigations need a high level of privacy. Everything is stored on your machine.
+
+### Deploy on a network (team / server)
+
+The same setup works out of the box on a server: the frontend serves the UI **and** proxies all API calls internally, so no extra configuration is needed for clients.
+
+```bash
+git clone https://github.com/reconurge/flowsint.git
+cd flowsint
+cp .env.example .env
+# Edit .env — see "Before exposing to a network" below
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Anyone on the network can then access Flowsint at `http://<server-ip>:5173`.
+
+**Before exposing to a network, change the default secrets in `.env`:**
+
+- `AUTH_SECRET` — signs authentication tokens. Generate one: `openssl rand -hex 32`
+- `MASTER_VAULT_KEY_V1` — encrypts stored API keys. Generate one: `python3 -c "import os, base64; print('base64:' + base64.b64encode(os.urandom(32)).decode())"`
+- `NEO4J_PASSWORD` — Neo4j database password.
+
+Only port `5173` is exposed to the network. PostgreSQL, Redis, Neo4j and the API are bound to `127.0.0.1` on the server and reachable only through the frontend proxy.
+
+To pin a specific version instead of `latest`, set `FLOWSINT_VERSION` in `.env` (e.g. `FLOWSINT_VERSION=1.2.10`).
+
+**HTTPS (recommended beyond a trusted LAN):** put any reverse proxy in front of port 5173. Example with [Caddy](https://caddyserver.com/):
+
+```
+flowsint.example.com {
+    reverse_proxy 127.0.0.1:5173
+}
+```
+
+When fronting with a reverse proxy, also bind the app port to localhost in `docker-compose.prod.yml` (`"127.0.0.1:5173:8080"`) so clients can only go through HTTPS.
 
 
 ## What is it?
@@ -136,10 +211,17 @@ flowsint-types (types)
 
 ### Run
 
-Make sure you have **Make** installed.
+**Linux / macOS** (requires **Make**):
 
 ```bash
 make dev
+```
+
+**Windows** (cmd or PowerShell, no Make — create the `.env` files first, see [Get started](#windows)):
+
+```bat
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ### Development

@@ -1,0 +1,1253 @@
+---
+title: "Managing types"
+description: "This guide walks you through the process of creating a new data type in the Flowsint ecosystem and integrating it throughout the platform. Types in Flowsint serve as the foundation for all data modeling, providing structure, validation, and schema generation for the entire system."
+category: "Developers"
+order: 8
+author: "Flowsint Team"
+tags: ["tutorial", "developers", "creating-a-new-type"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+## Understanding the type system
+
+The Flowsint type system is built on Pydantic models and lives in the `flowsint-types` package. Every type is a python class that inherits from `FlowsintType`, which itself inherits from `pydantic.BaseModel`, **and must be decorated with `@flowsint_type`** to be registered in the global type registry. This provides automatic validation, serialization, JSON schema generation, auto-discovery, and graph-specific functionality like automatic label generation. The architecture is deliberately simple with minimal inheritance hierarchies. Each type inherits from FlowsintType and defines its own fields and behavior.
+
+The package structure is straightforward. Inside `flowsint-types/src/flowsint_types/`, you'll find individual python files for each type. Most types get their own file, though closely related types sometimes share a file. For example, `wallet.py` contains `CryptoWallet`, `CryptoWalletTransaction`, and `CryptoNFT` because they work together as a conceptual unit.
+
+Currently, Flowsint includes 39 built-in types covering everything from network entities like domains and IPs to identity information like individuals and organizations, security data like credentials and breaches, and financial information like bank accounts and crypto wallets.
+
+### What is FlowsintType?
+
+`FlowsintType` is the base class for all Flowsint entity types. It extends Pydantic's `BaseModel` with additional functionality specific to Flowsint's graph database and UI needs:
+
+```python
+class FlowsintType(BaseModel):
+    """Base class for all Flowsint entity types with nodeLabel support.
+    nodeLabel is optional but computed at definition time.
+
+    All classes that inherit from FlowsintType must be decorated with @flowsint_type
+    to be registered in the global TYPE_REGISTRY and accessed by their class name.
+
+    Usage:
+        from flowsint_types.registry import flowsint_type
+
+        @flowsint_type
+        class Domain(FlowsintType):
+            domain: str
+    """
+
+    nodeLabel: Optional[str] = Field(
+        None,
+        description="UI-readable label for this entity, the one used on the graph.",
+        title="Label",
+    )
+
+    # Allow extra keys to support additional properties from user
+    class ConfigDict:
+        extra = "allow"
+```
+
+The `nodeLabel` field is automatically set by types using a `@model_validator` decorator, and this label is what appears on graph nodes in the Neo4j database and in the frontend UI. Every type should compute its own meaningful label based on its fields.
+
+The `ConfigDict` with `extra = "allow"` means types accept additional properties beyond their defined fields, which is useful for user-provided metadata.
+
+### The `@flowsint_type` decorator
+
+Every type **must** be decorated with `@flowsint_type` from `flowsint_types.registry`. This decorator registers the type in the global `TYPE_REGISTRY`, which enables:
+
+- Auto-discovery of all types at startup via `load_all_types()`
+- Lookup by class name (e.g., `TYPE_REGISTRY.get("Domain")`)
+- Lookup by lowercase name (e.g., `TYPE_REGISTRY.get_lowercase("domain")`) for Neo4j matching
+
+```python
+from flowsint_types.registry import flowsint_type
+from .flowsint_base import FlowsintType
+
+@flowsint_type  # Required for registration
+class MyType(FlowsintType):
+    ...
+```
+
+Without this decorator, your type will not be discoverable by the system.
+
+## Creating a new type
+
+Let's walk through the process of creating a new type from scratch. We'll use a hypothetical `Vehicle` type as our example.
+
+### Setting up the file
+
+Start by creating a new python file in the types directory. The filename should be lowercase and match your type name in snake_case. For a `Vehicle` type, you would create `vehicle.py`:
+
+```bash
+cd flowsint-types/src/flowsint_types/
+touch vehicle.py
+```
+
+### Basic structure
+
+Every type follows the same structural pattern. Here's what a basic type looks like:
+
+```python
+from pydantic import Field, model_validator
+from typing import Optional, Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class Vehicle(FlowsintType):
+    """Represents a vehicle with identifying information."""
+
+    license_plate: str = Field(
+        ...,
+        description="Vehicle license plate number",
+        title="License Plate",
+        json_schema_extra={"primary": True},
+    )
+    brand: Optional[str] = Field(
+        None,
+        description="Vehicle manufacturer such as Toyota or Ford",
+        title="Make"
+    )
+    model: Optional[str] = Field(
+        None,
+        description="Vehicle model name",
+        title="Model"
+    )
+    year: Optional[int] = Field(
+        None,
+        description="Year of manufacture",
+        title="Year"
+    )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute a human-readable label for this vehicle."""
+        if self.brand and self.model and self.year:
+            self.nodeLabel = f"{self.license_plate} ({self.brand} {self.model} {self.year})"
+        else:
+            self.nodeLabel = self.license_plate
+        return self
+```
+
+Let's break down the key components:
+
+**Inheritance, imports, and decorator:**
+- The class inherits from `FlowsintType`
+- Import `FlowsintType` from `.flowsint_base`
+- Import `flowsint_type` from `.registry` and apply it as a decorator
+- Import `model_validator` and `Self` from Pydantic for the label computation
+
+**Docstring:**
+- Every type starts with a clear docstring explaining what it represents
+
+**Field definitions:**
+- Each field is defined as a class attribute with type hints
+- Use Pydantic's `Field()` function to provide metadata
+- Required fields use the ellipsis (`...`) as their default value
+- Optional fields use `Optional[Type]` in their type hint and `None` as the default value
+- Always provide `description` (for API docs) and `title` (for UI labels)
+
+**Primary field:**
+- The `json_schema_extra={"primary": True}` marks the unique identifier for this type
+- This field is used as the key when creating Neo4j nodes
+- **Critical:** Every type must have exactly one primary field
+- Choose a field that uniquely identifies instances of this type
+
+**Label computation:**
+- The `@model_validator(mode='after')` decorator runs after all field validation
+- The method must be named `compute_label` and return `self`
+- It sets `self.nodeLabel` to a human-readable string that will appear in the UI and graph
+- Handle cases where optional fields might be `None` to avoid ugly labels
+- The label should help users quickly identify what this entity is
+
+### Naming conventions
+
+Flowsint follows strict naming conventions to maintain consistency across the codebase. Class names use PascalCase (like `Vehicle`, `SocialAccount`, or `CryptoWallet`). Field names use snake_case (like `license_plate`, `phone_number`, or `email_address`). This matches python's standard conventions and makes the codebase more readable.
+
+### Understanding primary fields and labels
+
+Two concepts are crucial for every Flowsint type: the **primary field** and the **nodeLabel**. Understanding these will help you create types that work seamlessly with the graph database and UI.
+
+**Why it matters:**
+- When creating Neo4j nodes, this field is used as the key in `MERGE` operations
+- It ensures each entity is uniquely identified in the graph
+- The graph service extracts this field to determine node uniqueness
+
+**Rules for primary fields:**
+- Every type must have exactly one primary field
+- The primary field should uniquely identify instances
+- It's typically a required field (using `...` as default)
+- Common choices: IDs, usernames, emails, license plates, domain names
+
+**Examples of good primary fields:**
+- `Domain`: `domain` field (e.g., "example.com")
+- `Email`: `email` field (e.g., "user@example.com")
+- `Username`: `value` field (e.g., "john_doe")
+- `Ip`: `address` field (e.g., "192.168.1.1")
+- `SocialAccount`: `id` field (computed as "username@platform")
+
+#### The nodeLabel field and compute_label
+
+The `nodeLabel` is what users see in the UI and on graph nodes. It should be human-readable and help users quickly understand what an entity represents.
+
+**How it works:**
+1. `FlowsintType` provides a `nodeLabel` field (`Optional[str]`)
+2. Your type defines a `compute_label` method to set this field
+3. The method runs automatically after validation using `@model_validator(mode='after')`
+
+**Basic pattern:**
+
+```python
+from pydantic import model_validator
+from typing import Self
+
+@model_validator(mode='after')
+def compute_label(self) -> Self:
+    """Compute a human-readable label."""
+    self.nodeLabel = f"@{self.value}"
+    return self
+```
+
+**Advanced patterns:**
+
+When you have optional fields, handle `None` values gracefully:
+
+```python
+@model_validator(mode='after')
+def compute_label(self) -> Self:
+    """Compute label with optional display name."""
+    if self.display_name:
+        self.nodeLabel = f"{self.display_name} (@{self.username.value})"
+    else:
+        self.nodeLabel = f"@{self.username.value}"
+    return self
+```
+
+For types with multiple identifiers, you might compute a composite ID:
+
+```python
+@model_validator(mode='after')
+def compute_label_and_id(self) -> Self:
+    """Compute both ID and label."""
+    # Compute unique ID from username and platform
+    if self.username and self.platform:
+        self.id = f"{self.username.value}@{self.platform}"
+    elif self.username:
+        self.id = self.username.value
+
+    # Compute display label
+    if self.display_name:
+        self.nodeLabel = f"{self.display_name} (@{self.username.value})"
+    else:
+        self.nodeLabel = f"@{self.username.value}"
+    return self
+```
+
+**Best practices for labels:**
+- Keep labels concise but informative
+- Include the most identifying information first
+- Handle `None` values for optional fields
+- Use parentheses or separators to structure complex labels
+- Think about what users need to see at a glance on the graph
+
+**Real-world examples**
+
+```python
+# Simple: just the value
+# Username: "@john_doe"
+self.nodeLabel = f"@{self.value}"
+
+# With context: show platform if available
+# Username: "@john_doe (twitter)"
+if self.platform:
+    self.nodeLabel = f"@{self.value} ({self.platform})"
+else:
+    self.nodeLabel = f"@{self.value}"
+
+# Rich: combine multiple fields
+# Individual: "John Doe (john@example.com)"
+if self.email:
+    self.nodeLabel = f"{self.full_name} ({self.email})"
+else:
+    self.nodeLabel = self.full_name
+
+# Complex: show key information
+# Breach: "LinkedIn (2021) - 700M records"
+self.nodeLabel = f"{self.title} ({self.breachdate.split('-')[0]}) - {self.pwncount:,} records"
+```
+
+### Working with different field types
+
+Pydantic supports a wide range of field types beyond simple strings and integers. Here are the most common ones you'll use:
+
+```python
+from pydantic import Field, HttpUrl, model_validator
+from typing import Optional, List, Dict, Any, Self
+from datetime import datetime
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class ExampleType(FlowsintType):
+    """Demonstrates various field types."""
+
+    # Primary identifier
+    id: str = Field(
+        ...,
+        description="Unique identifier",
+        title="ID",
+        json_schema_extra={"primary": True}
+    )
+
+    # Primitive types
+    text_field: str = Field(..., description="A text string", title="Text")
+    number_field: int = Field(..., description="An integer number", title="Number")
+    decimal_field: float = Field(..., description="A decimal number", title="Decimal")
+    boolean_field: bool = Field(..., description="True or false value", title="Boolean")
+
+    # Optional fields
+    optional_text: Optional[str] = Field(None, description="Optional text", title="Optional Text")
+
+    # Collections - note the use of default_factory
+    tags: List[str] = Field(
+        default_factory=list,
+        description="List of tag strings",
+        title="Tags"
+    )
+
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Arbitrary metadata dictionary",
+        title="Metadata"
+    )
+
+    # Special Pydantic types
+    website: HttpUrl = Field(..., description="A validated URL", title="Website")
+    timestamp: datetime = Field(..., description="Date and time", title="Timestamp")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this example."""
+        self.nodeLabel = f"{self.id} - {self.text_field}"
+        return self
+```
+
+When working with mutable types like lists and dictionaries, always use `default_factory` instead of providing a default value directly. Using `default_factory=list` is correct, while using `default=[]` would cause all instances to share the same list object, leading to subtle bugs.
+
+### Adding validation
+
+Sometimes you need more sophisticated validation than just type checking. Pydantic lets you add custom validators using the `field_validator` decorator:
+
+```python
+from pydantic import Field, field_validator
+from typing import Optional, Any, Self
+import ipaddress
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class Ip(FlowsintType):
+    """Represents an IP address with geolocation and ISP information."""
+
+    address: str = Field(
+        ...,
+        description="IP address",
+        title="IP Address",
+        json_schema_extra={"primary": True},
+    )
+   ...
+    @field_validator("address")
+    @classmethod
+    def validate_ip_address(cls, v: str) -> str:
+        """Validate that the address is a valid IP address."""
+        try:
+            ipaddress.ip_address(v)
+            return v
+        except ValueError:
+            raise ValueError(f"Invalid IP address: {v}")
+```
+
+Validators receive the field value and can either return a (potentially modified) value or raise a `ValueError` with an error message. Note that `@field_validator` runs before `@model_validator`, so the field is validated and normalized before the label is computed.
+
+### Referencing other types
+
+Types often need to reference other Flowsint types. You can import and use them just like any other python type:
+
+```python
+from pydantic import Field, model_validator
+from typing import Optional, Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+from .email import Email
+from .phone import Phone
+
+@flowsint_type
+class Contact(FlowsintType):
+    """Represents contact information for a person."""
+
+    name: str = Field(
+        ...,
+        description="Contact name",
+        title="Name",
+        json_schema_extra={"primary": True}
+    )
+    email: Optional[Email] = Field(None, description="Email address", title="Email")
+    phone: Optional[Phone] = Field(None, description="Phone number", title="Phone")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this contact."""
+        self.nodeLabel = self.name
+        return self
+```
+
+For types with circular references or complex relationships, you may need to call `model_rebuild()` at the end of your file:
+
+```python
+from pydantic import Field, model_validator
+from typing import Optional, Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class CryptoWallet(FlowsintType):
+    """Represents a cryptocurrency wallet."""
+
+    address: str = Field(
+        ...,
+        description="Wallet address",
+        title="Address",
+        json_schema_extra={"primary": True}
+    )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this wallet."""
+        self.nodeLabel = self.address
+        return self
+
+@flowsint_type
+class CryptoWalletTransaction(FlowsintType):
+    """Represents a transaction between wallets."""
+
+    transaction_id: str = Field(
+        ...,
+        description="Unique transaction ID",
+        title="Transaction ID",
+        json_schema_extra={"primary": True}
+    )
+    source: CryptoWallet = Field(..., description="Source wallet", title="Source")
+    target: Optional[CryptoWallet] = Field(None, description="Target wallet", title="Target")
+    amount: float = Field(..., description="Transaction amount", title="Amount")
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this transaction."""
+        self.nodeLabel = f"{self.amount} ({self.transaction_id[:8]}...)"
+        return self
+
+# Rebuild models to resolve forward references
+CryptoWallet.model_rebuild()
+CryptoWalletTransaction.model_rebuild()
+```
+
+## Exporting your type
+
+Once you've created your type, the `@flowsint_type` decorator handles registration automatically. However, you also need to export it from the package for convenient imports.
+
+### Updating the package exports
+
+Open `flowsint-types/src/flowsint_types/__init__.py` and add two things. First, import your new type at the top of the file with the other imports:
+
+```python
+from .address import Location
+from .affiliation import Affiliation
+from .alias import Alias
+# ... other imports ...
+from .vehicle import Vehicle  # Add your import here
+```
+
+Second, add your type name to the `__all__` list:
+
+```python
+__all__ = [
+    "Location",
+    "Affiliation",
+    "Alias",
+    # ... other types ...
+    "Vehicle",  # Add your type here
+]
+```
+
+The `__all__` list explicitly defines what gets exported when someone does `from flowsint_types import *`. While wildcard imports aren't always recommended, this ensures your type is properly exposed by the package.
+
+Note that the `@flowsint_type` decorator already registers your type in the `TYPE_REGISTRY` automatically when the module is imported, so the explicit import in `__init__.py` ensures it gets loaded at startup alongside all other types.
+
+### Installing the package
+
+After making these changes, you need to reinstall the package for them to take effect:
+
+```bash
+make prod
+#or
+cd flowsint-types
+poetry install
+```
+
+This updates the package in your development environment so enrichers and the API can import your new type.
+
+## Integrating with the API
+
+The final step is making your type available through the API so frontends can discover it and create instances.
+
+### Categorizing your type
+
+The API organizes types into logical categories that appear in the frontend. In the `TypeRegistryService._get_category_definitions()` method (located in `flowsint-core/src/flowsint_core/core/services/type_registry_service.py`), you'll find a list of category dictionaries. You need to add your type to an appropriate category or create a new one.
+
+Each category's `children` list contains tuples of `(TypeName, label_key, icon)`:
+- **TypeName**: The PascalCase class name of your type (e.g., `"Vehicle"`)
+- **label_key**: The field name used as the display key (e.g., `"license_plate"`)
+- **icon**: Optional icon override, or `None` to use the lowercase type name as icon
+
+You can either add to an existing category or create a new one.
+
+```python
+def _get_category_definitions(self) -> List[Dict[str, Any]]:
+    """Get the category definitions for types."""
+    return [
+        {
+            "id": uuid4(),
+            "type": "global",
+            "key": "global_category",
+            "icon": "phrase",
+            "label": "Global",
+            "fields": [],
+            "children": [
+                ("Phrase", "text", None),
+                ("Location", "address", None),
+            ],
+        },
+        {
+            "id": uuid4(),
+            "type": "person",
+            "key": "person_category",
+            "icon": "individual",
+            "label": "Identities & Entities",
+            "fields": [],
+            "children": [
+                ("Individual", "full_name", None),
+                ("Username", "value", "username"),
+                ("Organization", "name", None),
+            ],
+        },
+    ...
+```
+
+
+### Available categories
+
+Flowsint currently organizes types into these standard categories:
+
+- **Global** contains general-purpose types like Location and Phrase that don't fit neatly into other categories.
+
+- **Identities & Entities** includes Individual, Username, and Organization for representing people and groups.
+
+- **Organization** contains Organization for dedicated organizational lookups.
+
+- **Communication & Contact** covers Phone, Email, Username, SocialAccount, and Message for communication-related data.
+
+- **Network** encompasses all network-related types including ASN, CIDR, Domain, Website, Ip, Port, DNSRecord, SSLCertificate, and WebTracker.
+
+- **Security & Access** groups security-relevant types like Credential, Session, Device, Malware, and Weapon.
+
+- **Files & Documents** contains Document and File for representing digital files.
+
+- **Financial Data** includes BankAccount and CreditCard for financial information.
+
+- **Leaks** covers data breach information with the Leak type.
+
+- **Crypto** contains cryptocurrency-related types including CryptoWallet, CryptoWalletTransaction, and CryptoNFT.
+
+You can add your type to any of these categories or create a new category if none fit.
+
+<Alert variant="info">
+    <AlertTitle>Registered but uncategorized types</AlertTitle>
+    <AlertDescription>
+    Some types are registered (via `@flowsint_type`) and used as enricher inputs or outputs, but are intentionally not placed in any built-in category: `Affiliation`, `Alias`, `Breach`, `Gravatar`, `ReputationScore`, `RiskProfile`, `Script`, and `Whois`. They show up in the graph as nodes produced by enrichers (e.g. `Whois` is produced by `domain_to_whois`) but they don't appear in the type picker until you add them to `_get_category_definitions()`.
+    </AlertDescription>
+</Alert>
+
+## Complete examples
+
+Let' see some complete, real-world examples to illustrate different patterns.
+
+### Simple type example
+
+The simplest types have just one or two required fields and minimal complexity:
+
+```python
+from pydantic import Field, model_validator
+from typing import Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class Hashtag(FlowsintType):
+    """Represents a social media hashtag."""
+
+    tag: str = Field(
+        ...,
+        description="Hashtag text without the # symbol",
+        title="Hashtag",
+        json_schema_extra={"primary": True}
+    )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this hashtag."""
+        self.nodeLabel = f"#{self.tag}"
+        return self
+```
+
+### Type with validation
+
+This example shows a Social Security Number type with format validation:
+
+```python
+from pydantic import Field, field_validator, model_validator
+from typing import Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+import re
+
+@flowsint_type
+class SocialSecurityNumber(FlowsintType):
+    """Represents a US Social Security Number."""
+
+    ssn: str = Field(
+        ...,
+        description="Social Security Number in format XXX-XX-XXXX",
+        title="SSN",
+        json_schema_extra={"primary": True}
+    )
+
+    @field_validator('ssn')
+    @classmethod
+    def validate_ssn_format(cls, v: str) -> str:
+        """Validate SSN format and normalize to standard format."""
+        clean = v.replace("-", "").replace(" ", "")
+
+        if not re.match(r"^\d{9}$", clean):
+            raise ValueError(
+                "SSN must be exactly 9 digits (format: XXX-XX-XXXX or XXXXXXXXX)"
+            )
+
+        return f"{clean[:3]}-{clean[3:5]}-{clean[5:]}"
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this SSN."""
+        # Mask most digits for privacy
+        self.nodeLabel = f"SSN ***-**-{self.ssn[-4:]}"
+        return self
+```
+
+### Type with related types
+
+This example shows how types can reference other types to build rich data models:
+
+```python
+from pydantic import Field, model_validator
+from typing import Optional, Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+from .email import Email
+from .domain import Domain
+
+@flowsint_type
+class Whois(FlowsintType):
+    """Represents WHOIS domain registration information."""
+
+    domain: Domain = Field(
+        ...,
+        description="Domain",
+        title="Domain",
+    )
+
+    registrar: Optional[str] = Field(
+        None,
+        description="Name of the domain registrar",
+        title="Registrar"
+    )
+
+    email: Optional[Email] = Field(
+        None,
+        description="Contact email address from WHOIS record",
+        title="Contact Email"
+    )
+
+    creation_date: Optional[str] = Field(
+        None,
+        description="Date when the domain was first registered",
+        title="Creation Date"
+    )
+
+    expiration_date: Optional[str] = Field(
+        None,
+        description="Date when the domain registration expires",
+        title="Expiration Date"
+    )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this WHOIS record."""
+        if self.registrar:
+            self.nodeLabel = f"{self.domain.domain} (via {self.registrar})"
+        else:
+            self.nodeLabel = f"WHOIS: {self.domain.domain}"
+        return self
+```
+
+### Complex type with collections
+
+This example demonstrates a type with lists of other types and rich metadata:
+
+```python
+from pydantic import Field, model_validator
+from typing import Optional, List, Dict, Any, Self
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+from .individual import Individual
+from .address import Location
+
+@flowsint_type
+class Organization(FlowsintType):
+    """Represents an organization with comprehensive business information."""
+
+    name: str = Field(
+        ...,
+        description="Legal name of the organization",
+        title="Organization Name",
+        json_schema_extra={"primary": True}
+    )
+
+    registration_number: Optional[str] = Field(
+        None,
+        description="Official business registration number",
+        title="Registration Number"
+    )
+
+    headquarters: Optional[Location] = Field(
+        None,
+        description="Primary headquarters location",
+        title="Headquarters"
+    )
+
+    executives: List[Individual] = Field(
+        default_factory=list,
+        description="List of company executives and board members",
+        title="Executives"
+    )
+
+    locations: List[Location] = Field(
+        default_factory=list,
+        description="All office and facility locations",
+        title="Locations"
+    )
+
+    employee_count: Optional[int] = Field(
+        None,
+        description="Total number of employees",
+        title="Employee Count"
+    )
+
+    revenue: Optional[float] = Field(
+        None,
+        description="Annual revenue in USD",
+        title="Revenue"
+    )
+
+    industry: Optional[str] = Field(
+        None,
+        description="Primary industry sector",
+        title="Industry"
+    )
+
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional metadata and custom fields",
+        title="Metadata"
+    )
+
+    @model_validator(mode='after')
+    def compute_label(self) -> Self:
+        """Compute label for this organization."""
+        if self.industry:
+            self.nodeLabel = f"{self.name} ({self.industry})"
+        else:
+            self.nodeLabel = self.name
+        return self
+```
+
+## Best practices and common patterns
+
+### Documentation
+
+Keep documentation at the forefront. Every type should have:
+- A clear docstring explaining what it represents
+- A descriptive `description` parameter for each field (for API docs)
+- A meaningful `title` parameter for each field (for UI labels)
+
+Future developers (including yourself) will thank you for this clarity.
+
+### Required vs optional fields
+
+Think carefully about what should be required versus optional:
+- **Required fields** (using `...`): Only fields that uniquely identify an entity or are absolutely essential
+- **Optional fields** (using `Optional[Type]` and `None`): Most other fields should be optional since intelligence gathering is incremental and you rarely have complete information upfront
+
+### Always inherit from FlowsintType and use the decorator
+
+Never inherit directly from Pydantic's `BaseModel`. Always use `FlowsintType` and the `@flowsint_type` decorator:
+
+```python
+# Correct
+from .flowsint_base import FlowsintType
+from .registry import flowsint_type
+
+@flowsint_type
+class MyType(FlowsintType):
+    ...
+
+# Wrong - missing decorator
+from .flowsint_base import FlowsintType
+
+class MyType(FlowsintType):  # Not registered!
+    ...
+
+# Wrong - wrong base class
+from pydantic import BaseModel
+
+class MyType(BaseModel):  # Missing FlowsintType features
+    ...
+```
+
+### Always implement compute_label
+
+Every type must implement a `compute_label` method to set the `nodeLabel` displayed in the UI and graph:
+
+```python
+@model_validator(mode='after')
+def compute_label(self) -> Self:
+    """Compute a human-readable label."""
+    # Handle None values gracefully
+    if self.optional_field:
+        self.nodeLabel = f"{self.primary_field} ({self.optional_field})"
+    else:
+        self.nodeLabel = self.primary_field
+    return self
+```
+
+**Best practices for labels:**
+- Keep them concise but informative
+- Handle None values for optional fields gracefully
+- Put the most important information first
+- Think about what users need to see at a glance on the graph
+
+### Type hints and validation
+
+Use type hints everywhere. They provide:
+- Automatic validation
+- Better IDE support and autocomplete
+- Inline documentation
+- Runtime type checking via Pydantic
+
+For mutable default values like lists and dictionaries, always use `default_factory`:
+
+```python
+# Correct
+tags: List[str] = Field(default_factory=list)
+metadata: Dict[str, Any] = Field(default_factory=dict)
+
+# Wrong - all instances will share the same object!
+tags: List[str] = Field(default=[])
+metadata: Dict[str, Any] = Field(default={})
+```
+
+### Importing other types
+
+When referencing other Flowsint types, use relative imports to avoid circular import issues:
+
+```python
+# Correct
+from .email import Email
+from .phone import Phone
+
+# Avoid
+from flowsint_types import Email, Phone  # Can cause circular imports
+```
+
+If you encounter circular import problems, you can use forward references (strings) in type hints and call `model_rebuild()` at the end of your module.
+
+### Custom validation
+
+Consider adding custom validators for complex validation logic that goes beyond simple type checking:
+
+```python
+@field_validator('email')
+@classmethod
+def validate_email(cls, v: str) -> str:
+    """Validate and normalize email format."""
+    if not is_valid_email(v):
+        raise ValueError("Invalid email format")
+    return v.lower()
+```
+
+This keeps validation logic close to the type definition and ensures data integrity throughout the system.
+
+### Order of execution
+
+Remember the order in which Pydantic processes your type:
+1. **Field validators** (`@field_validator`) run first, validating and potentially transforming individual fields
+2. **Model validators** (`@model_validator`) run after, operating on the entire validated model
+3. Your `compute_label` method (a model validator) runs last, after all fields are validated
+
+This means you can safely access validated field values in `compute_label`.
+
+## Testing your type
+
+Writing tests for your types ensures they work correctly and helps catch bugs early. Create a test file in `flowsint-types/tests/` that matches your type filename.
+
+### Basic test structure
+
+```python
+# flowsint_types/tests/test_vehicle.py
+from flowsint_types import Vehicle
+import pytest
+
+def test_vehicle_creation():
+    """Test creating a vehicle with required fields."""
+    vehicle = Vehicle(license_plate="ABC123")
+    assert vehicle.license_plate == "ABC123"
+
+def test_vehicle_with_optional_fields():
+    """Test creating a vehicle with optional fields."""
+    vehicle = Vehicle(
+        license_plate="ABC123",
+        brand="Toyota",
+        model="Camry",
+        year=2020
+    )
+    assert vehicle.brand == "Toyota"
+    assert vehicle.year == 2020
+
+def test_vehicle_missing_required_field():
+    """Test that validation fails without required fields."""
+    with pytest.raises(ValueError):
+        Vehicle()  # Should fail - missing required field
+```
+
+### Testing label computation
+
+The label is crucial for UI display, so test it thoroughly:
+
+```python
+def test_vehicle_label_basic():
+    """Test label computation with only required fields."""
+    vehicle = Vehicle(license_plate="ABC123")
+    assert vehicle.nodeLabel == "ABC123"
+
+def test_vehicle_label_with_details():
+    """Test label computation with optional fields."""
+    vehicle = Vehicle(
+        license_plate="ABC123",
+        brand="Toyota",
+        model="Camry",
+        year=2020
+    )
+    assert vehicle.nodeLabel == "ABC123 (Toyota Camry 2020)"
+
+def test_vehicle_label_partial_details():
+    """Test label computation with some optional fields."""
+    vehicle = Vehicle(
+        license_plate="ABC123",
+        brand="Toyota"
+    )
+    # Should handle None values gracefully
+    assert vehicle.nodeLabel == "ABC123"
+```
+
+### Testing field validators
+
+If your type has custom validators, test both valid and invalid inputs:
+
+```python
+# tests/test_username.py
+from flowsint_types import Username
+import pytest
+
+def test_username_valid():
+    """Test valid username creation."""
+    username = Username(value="john_doe")
+    assert username.value == "john_doe"
+    assert username.nodeLabel == "john_doe"
+
+def test_username_validation_too_short():
+    """Test that usernames under 3 characters are rejected."""
+    with pytest.raises(ValueError, match="Must be 3-80 characters"):
+        Username(value="ab")
+
+def test_username_validation_invalid_chars():
+    """Test that invalid characters are rejected."""
+    with pytest.raises(ValueError, match="only letters, numbers, underscores, and hyphens"):
+        Username(value="john@doe")
+
+def test_username_validation_boundaries():
+    """Test boundary conditions."""
+    # Minimum length
+    username = Username(value="abc")
+    assert username.value == "abc"
+
+    # Maximum length
+    long_name = "a" * 80
+    username = Username(value=long_name)
+    assert username.value == long_name
+
+    # Too long
+    with pytest.raises(ValueError):
+        Username(value="a" * 81)
+```
+
+### Testing types with nested objects
+
+When your type contains other Flowsint types, test the relationships:
+
+```python
+# tests/test_social_account.py
+from flowsint_types import SocialAccount, Username
+import pytest
+
+def test_social_account_creation():
+    """Test creating a social account with a username object."""
+    username = Username(value="john_doe")
+    account = SocialAccount(
+        username=username,
+        platform="twitter",
+        profile_url="https://twitter.com/john_doe"
+    )
+
+    assert account.username.value == "john_doe"
+    assert account.platform == "twitter"
+    assert account.id == "john_doe@twitter"
+
+def test_social_account_label_with_display_name():
+    """Test label computation with display name."""
+    username = Username(value="john_doe")
+    account = SocialAccount(
+        username=username,
+        platform="twitter",
+        display_name="John Doe"
+    )
+
+    assert account.nodeLabel == "John Doe (@john_doe)"
+
+def test_social_account_label_without_display_name():
+    """Test label computation without display name."""
+    username = Username(value="john_doe")
+    account = SocialAccount(
+        username=username,
+        platform="twitter"
+    )
+
+    assert account.nodeLabel == "@john_doe"
+```
+
+### Testing serialization
+
+Verify that your types serialize correctly to JSON:
+
+```python
+def test_vehicle_serialization():
+    """Test that vehicle serializes to JSON correctly."""
+    vehicle = Vehicle(
+        license_plate="ABC123",
+        brand="Toyota",
+        model="Camry",
+        year=2020
+    )
+
+    # Convert to dict
+    data = vehicle.model_dump()
+    assert data["license_plate"] == "ABC123"
+    assert data["brand"] == "Toyota"
+    assert data["nodeLabel"] == "ABC123 (Toyota Camry 2020)"
+
+    # Convert to JSON string
+    json_str = vehicle.model_dump_json()
+    assert "ABC123" in json_str
+
+def test_vehicle_deserialization():
+    """Test creating vehicle from dictionary."""
+    data = {
+        "license_plate": "ABC123",
+        "brand": "Toyota",
+        "model": "Camry",
+        "year": 2020
+    }
+
+    vehicle = Vehicle(**data)
+    assert vehicle.license_plate == "ABC123"
+    assert vehicle.nodeLabel == "ABC123 (Toyota Camry 2020)"
+```
+
+### Running the tests
+
+To run your tests:
+
+```bash
+cd flowsint-types
+poetry run pytest tests/test_vehicle.py -v
+
+# Run all tests
+poetry run pytest -v
+
+# Run with coverage
+poetry run pytest --cov=flowsint_types tests/
+```
+
+### Best practices for testing
+
+- **Test the happy path first**: Basic creation with valid data
+- **Test validation**: Both valid and invalid inputs
+- **Test edge cases**: Empty strings, very long strings, boundary values
+- **Test label computation**: With and without optional fields
+- **Test serialization**: To/from dict and JSON
+- **Use descriptive test names**: The test name should describe what it tests
+- **Use pytest fixtures** for complex setup that's reused across tests
+
+Example with fixtures:
+
+```python
+import pytest
+from flowsint_types import Username, SocialAccount
+
+@pytest.fixture
+def sample_username():
+    """Fixture providing a sample username."""
+    return Username(value="john_doe")
+
+@pytest.fixture
+def sample_account(sample_username):
+    """Fixture providing a sample social account."""
+    return SocialAccount(
+        username=sample_username,
+        platform="twitter",
+        profile_url="https://twitter.com/john_doe"
+    )
+
+def test_with_fixtures(sample_account):
+    """Test using fixtures."""
+    assert sample_account.username.value == "john_doe"
+    assert sample_account.platform == "twitter"
+```
+
+## Troubleshooting common issues
+
+### Import errors
+
+If you encounter import errors after creating your type, make sure you've run `poetry install` in the `flowsint-types` directory. The package needs to be reinstalled for changes to take effect:
+
+```bash
+cd flowsint-types
+poetry install
+```
+
+### Type not appearing in the API
+
+If your type doesn't appear in the API, verify that you've:
+1. Decorated it with `@flowsint_type`
+2. Imported it in `flowsint_types/__init__.py`
+3. Added it to the `__all__` list in `flowsint_types/__init__.py`
+4. Added it to the appropriate category in `_get_category_definitions()` in `flowsint-core/src/flowsint_core/core/services/type_registry_service.py`
+
+### Type not found in TYPE_REGISTRY
+
+If `TYPE_REGISTRY.get("MyType")` returns `None`:
+- Ensure the `@flowsint_type` decorator is applied to the class
+- Ensure the module is imported (either in `__init__.py` or via `load_all_types()`)
+- Check for import errors in your type file that prevent the module from loading
+
+### Validation errors
+
+For validation errors, check that you're using:
+- The ellipsis (`...`) for required fields
+- `None` for optional fields
+- `Optional[Type]` in type hints for optional fields
+
+### Nodes not appearing in the graph
+
+If your type's instances aren't appearing in Neo4j:
+- **Check the enricher**: Verify that enrichers using this type call `self.create_node(instance)`
+- **Check the created node**: Make sure the format of the created node is correct, no missing required field, etc.
+
+### Label not appearing correctly
+
+If labels aren't displaying correctly in the UI or graph:
+- **Missing compute_label**: Ensure you've implemented the `@model_validator(mode='after')` method
+- **Wrong field name**: Make sure you set `self.nodeLabel`, not `self.label`
+- **Not returning Self**: The method must return `self`
+- **None handling**: Check that you handle None values for optional fields gracefully
+- **Method name**: The method must be named `compute_label` exactly
+
+### Circular imports
+
+If you're seeing issues with circular imports:
+- Use relative imports (`from .email import Email`) instead of absolute imports
+- Use forward references (string type hints) if needed
+- Call `model_rebuild()` at the end of your module to resolve forward references
+
+### Enricher errors with your type
+
+If enrichers fail when using your type:
+- **Validation failures**: Your field validators might be too strict; check validator error messages in logs
+- **Nested object issues**: When passing nested Flowsint types, pass the complete object, don't recreate it
+- **Primary key extraction**: The graph service needs to extract a primitive value from your primary field
+
+## Next steps
+
+Once you've created and registered your type, you can use it in enrichers to build intelligence gathering workflows. Types serve as the input and output specifications for enrichers, and they define the structure of nodes in the Neo4j graph database.
+
+### Key checklist for new types
+
+Before considering your type complete, verify that you've:
+
+- Decorated with `@flowsint_type`
+- Inherited from `FlowsintType`
+- Marked exactly one field as primary with `json_schema_extra={"primary": True}`
+- Implemented `compute_label` method that sets `self.nodeLabel` and handles None values gracefully
+- Provided `description` and `title` for all fields
+- Used `default_factory` for list and dict fields
+- Written tests for creation, validation, primary field, and label computation
+- Exported your type in `flowsint_types/__init__.py`
+- Added it to a category in `flowsint-core/src/flowsint_core/core/services/type_registry_service.py`
+- Run `poetry install` to make the type available
+
+### Exploring further
+
+You might also want to explore:
+
+- **Creating enrichers**: Use your type as input/output in custom enrichers
+- **Custom types via API**: Flowsint supports runtime type creation using JSON Schema (see `flowsint-core/src/flowsint_core/core/models.py`)
+- **Graph format**: Learn about the [node and edge format](/docs/developers/graph-format) used in the frontend
+- **Type schemas**: Understand how Pydantic schemas are used for API validation
+
+### Final thoughts
+
+Remember that types are the foundation of everything in Flowsint:
+- **Well-designed types** make enrichers easier to write
+- **Clear primary fields** ensure proper node identification in the graph
+- **Meaningful labels** make the UI and graph database more intuitive
+- **Thorough validation** ensures data integrity throughout the platform
+
+With these concepts mastered, you're ready to create powerful, robust types that will make the entire Flowsint platform more effective for intelligence gathering.

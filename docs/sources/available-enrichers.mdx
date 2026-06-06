@@ -1,0 +1,163 @@
+---
+title: "Enrichers catalog"
+description: "Quick start guide to using Enrichers for your OSINT investigations."
+category: "Sources"
+order: 11
+author: "Flowsint Team"
+tags: ["tutorial", "getting-started", "enrichers"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+### ASN
+**asn_to_cidrs**: Given an ASN, enumerate its announced CIDR ranges.
+Tools/Pivots: [asnmap](https://github.com/projectdiscovery/asnmap) (CLI), [jq](https://jqlang.github.io/jq/) (CLI)
+
+### CIDR
+**cidr_to_ips**: Expand a CIDR to IPs by PTR enumeration heuristics.
+Tools/Pivots: [dnsx](https://github.com/projectdiscovery/dnsx) (CLI)
+
+### Crypto
+**cryptowallet_to_transactions**: Fetch ETH wallet transactions and map wallet-to-wallet relationships.
+Tools/APIs: [Etherscan API](https://docs.etherscan.io/)
+
+**cryptowallet_to_nfts**: Fetch ERC-721/1155 NFT transfers for a wallet.
+Tools/APIs: [Etherscan API](https://docs.etherscan.io/)
+
+### Domain
+**domain_to_ip**: Resolve domains to IPv4 addresses.
+Tools/Pivots: DNS resolution (socket)
+
+**domain_to_subdomains**: Discover subdomains for a domain.
+Tools/APIs: [subfinder](https://github.com/projectdiscovery/subfinder) (CLI), fallback to [crt.sh JSON API](https://crt.sh/?output=json)
+
+**domain_to_whois**: Retrieve WHOIS registration data for a domain.
+Tools/APIs: [python-whois](https://pypi.org/project/python-whois/)
+
+**domain_to_asn**: Map a domain to its ASN by resolving and querying ASN data.
+Tools/Pivots: system DNS, [asnmap](https://github.com/projectdiscovery/asnmap) (CLI)
+
+**domain_to_root_domain**: Convert a subdomain to its registrable root.
+Tools/Pivots: internal domain utils
+
+**domain_to_history**: Retrieve historical WHOIS records and extract related entities (individuals, organizations, emails, phones, locations).
+Tools/APIs: [Whoxy API](https://www.whoxy.com/api/)
+
+**domain_to_website**: Convert a domain to a reachable website URL (HTTP/HTTPS), following redirects.
+Tools/Pivots: HTTP HEAD requests
+
+**domain_to_tls**: Retrieve TLS/SSL certificate information for a domain.
+Tools/Pivots: [httpx](https://github.com/projectdiscovery/httpx) (CLI)
+
+**domain_to_whois_history**: Retrieve historical WHOIS records for a domain and extract related entities (individuals, organizations, emails, locations).
+Tools/APIs: [WhoisXML API](https://whois.whoisxmlapi.com/)
+
+**domain_to_dehashed**: Get breach intelligence (credentials, related individuals) associated with a domain.
+Tools/APIs: [DeHashed API](https://www.dehashed.com/docs)
+
+### Email
+**email_to_breaches**: Check whether an email appears in known breaches.
+Tools/APIs: [Have I Been Pwned API](https://haveibeenpwned.com/API/v3)
+
+**email_to_gravatar**: Check Gravatar existence and profile for an email (via MD5 hash).
+Tools/APIs: [Gravatar endpoints](https://en.gravatar.com/site/implement/images/)
+
+**email_to_domain**: Extract the domain part of an email address.
+Tools/Pivots: internal email parser
+
+**email_to_domains**: Find domains registered by a given email address; extract related contacts and entities.
+Tools/APIs: [Whoxy API](https://www.whoxy.com/api/)
+
+**email_to_username**: Extract the local-part of an email as a Username entity.
+Tools/Pivots: internal email parser
+
+**email_to_intelligence**: Get breach intelligence (credentials, related individuals) associated with an email.
+Tools/APIs: [DeHashed API](https://www.dehashed.com/docs)
+
+**email_to_device_hudsonrock**: Look up devices compromised by infostealers and associated with an email.
+Tools/APIs: [HudsonRock API](https://www.hudsonrock.com/)
+
+### Individual
+**individual_to_domains**: Find domains registered by a specific person; extract related contacts and attributes.
+Tools/APIs: [Whoxy API](https://www.whoxy.com/api/)
+
+**individual_to_organization**: Find organizations related to a person in French registries.
+Tools/APIs: SIRENE (via internal SireneTool) — see [INSEE Sirene API](https://api.insee.fr/catalogue/#/datasets/sirene)
+
+### IP
+**ip_to_domain**: Reverse-resolve IPs to domains via PTR and Certificate Transparency pivots.
+Tools/APIs: DNS PTR (socket), [crt.sh JSON API](https://crt.sh/?output=json)
+
+**ip_to_infos**: Enrich IPs with geolocation and ISP data.
+Tools/APIs: [ip-api.com](https://ip-api.com/)
+
+**ip_to_asn**: Map IPs to their ASN.
+Tools/Pivots: AsnmapTool ([asnmap](https://github.com/projectdiscovery/asnmap))
+
+**ip_to_ports**: Scan an IP for open ports and services.
+Tools/Pivots: [naabu](https://github.com/projectdiscovery/naabu) (CLI)
+
+**ip_to_fraudscore**: Compute a fraud risk score for an IP address.
+Tools/APIs: [Scamalytics API](https://scamalytics.com/ip-api)
+
+**ip_to_intelligence**: Get breach intelligence (credentials, related individuals) associated with an IP.
+Tools/APIs: [DeHashed API](https://www.dehashed.com/docs)
+
+### Organization
+**org_to_domains**: Find domains registered by an organization; extract contacts and related entities.
+Tools/APIs: [Whoxy API](https://www.whoxy.com/api/)
+
+**org_to_infos**: Enrich organizations with French registry data and leaders.
+Tools/APIs: SIRENE (SireneTool) — see [INSEE Sirene API](https://api.insee.fr/catalogue/#/datasets/sirene)
+
+**org_to_asn**: Find ASNs associated with an organization name.
+Tools/Pivots: [asnmap](https://github.com/projectdiscovery/asnmap) (CLI), [jq](https://jqlang.github.io/jq/) (CLI)
+
+### Phone
+**phone_to_infos**: Probe phone footprint across services (demo modules) and normalize number.
+Tools/APIs: ignorant modules (Amazon, Snapchat, Instagram), [httpx](https://github.com/projectdiscovery/httpx)
+
+**phone_to_carrier**: Look up carrier, country, and validity metadata for a phone number.
+Tools/APIs: [Veriphone API](https://veriphone.io/)
+
+**phone_to_device_hudsonrock**: Look up devices compromised by infostealers and associated with a phone number.
+Tools/APIs: [HudsonRock API](https://www.hudsonrock.com/)
+
+### Social
+**username_to_socials_sherlock**: Enumerate social accounts for a username using Sherlock.
+Tools/Pivots: [sherlock](https://github.com/sherlock-project/sherlock) (CLI)
+
+**username_to_socials_maigret**: Enumerate social accounts for a username using Maigret and parse rich metadata.
+Tools/Pivots: [maigret](https://github.com/soxoj/maigret) (CLI)
+
+**username_to_dehashed**: Get breach intelligence (credentials, related individuals) associated with a username.
+Tools/APIs: [DeHashed API](https://www.dehashed.com/docs)
+
+**username_to_device_hudsonrock**: Look up devices compromised by infostealers and associated with a username.
+Tools/APIs: [HudsonRock API](https://www.hudsonrock.com/)
+
+### Website
+**website_to_crawler**: Crawl a website to extract emails and phone numbers.
+Tools/APIs: ReconCrawlTool (`reconcrawl`)
+
+**website_to_domain**: Extract the domain name from a website URL.
+Tools/Pivots: internal URL parser
+
+**website_to_subdomains**: Find subdomains of a website's domain via external scan.
+Tools/APIs: [c99.nl API](https://api.c99.nl/)
+
+**website_to_links**: Crawl a website and collect internal/external links and domains.
+Tools/APIs: reconspread Crawler
+
+**website_to_text**: Fetch and extract visible text from a webpage.
+Tools/APIs: HTTP GET, [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+
+**website_to_webtrackers**: Extract analytics/ads tracking codes from a website.
+Tools/APIs: recontrack TrackingCodeExtractor
+
+---
+
+Notes
+- Some enrichers optionally depend on docker binaries: `subfinder`, `asnmap`, `dnsx`, `naabu`, `httpx`, and `jq` which are installed in the docker container.
+- API-keyed enrichers read keys from params or environment (e.g., `HIBP_API_KEY`, `ETHERSCAN_API_KEY`, `WHOXY_API_KEY`, `WHOISXML_API_KEY`, `DEHASHED_API_KEY`, `SCAMALYTICS_API_KEY`, `VERIPHONE_API_KEY`, `C99_API_KEY`).
+- Internal/test enrichers (`domain_to_dummy`, `ip_to_dummy_domains`, `n8n_connector`) are not listed here — they exist in the codebase but are not part of the public catalog.

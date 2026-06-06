@@ -2,9 +2,9 @@
 Analysis service for managing analyses within investigations.
 """
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -64,8 +64,8 @@ class AnalysisService(BaseService):
             content=content,
             owner_id=owner_id,
             investigation_id=investigation_id,
-            created_at=datetime.utcnow(),
-            last_updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            last_updated_at=datetime.now(timezone.utc),
         )
         self._analysis_repo.add(new_analysis)
         self._commit()
@@ -97,7 +97,7 @@ class AnalysisService(BaseService):
             self._check_permission(user_id, investigation_id, ["update"])
             analysis.investigation_id = investigation_id
 
-        analysis.last_updated_at = datetime.utcnow()
+        analysis.last_updated_at = datetime.now(timezone.utc)
         self._commit()
         self._refresh(analysis)
         return analysis

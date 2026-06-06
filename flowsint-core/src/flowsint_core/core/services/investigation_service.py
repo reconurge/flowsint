@@ -4,7 +4,7 @@ Investigation service for managing investigations and user roles.
 
 from typing import List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -109,7 +109,7 @@ class InvestigationService(BaseService):
         investigation.name = name
         investigation.description = description
         investigation.status = status
-        investigation.last_updated_at = datetime.utcnow()
+        investigation.last_updated_at = datetime.now(timezone.utc)
 
         self._commit()
         self._refresh(investigation)

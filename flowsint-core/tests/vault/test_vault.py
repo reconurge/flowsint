@@ -45,7 +45,7 @@ class TestVaultInitialization:
         """Test successful Vault initialization."""
         vault = Vault(db=mock_db, owner_id=owner_id)
         assert vault.db == mock_db
-        assert vault.owner_id == str(owner_id)
+        assert vault.owner_id == owner_id
         assert vault.version == "V1"
 
 

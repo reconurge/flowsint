@@ -1,0 +1,244 @@
+---
+title: "Graph format"
+description: "Reference for the GraphNode and GraphEdge types used to represent entities and relationships in the Flowsint graph. Understanding these structures is essential for working with the frontend visualization and the graph database layer."
+category: "Developers"
+order: 11
+author: "Flowsint Team"
+tags: ["tutorial", "developers", "graph", "nodes", "edges"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+## Overview
+
+Flowsint's graph visualization is built on two core data structures: **GraphNode** (representing entities) and **GraphEdge** (representing relationships between entities). These types are defined in `flowsint-app/src/types/graph.ts` and are used throughout the frontend for rendering, interaction, and data management.
+
+Understanding these structures is important when:
+- Building enrichers that create nodes and relationships
+- Working on the frontend visualization
+- Debugging graph rendering issues
+- Extending the graph with new visual features
+
+## GraphNode
+
+A `GraphNode` represents a single entity in the graph (e.g., a domain, an IP address, a person). Every node created by an enricher's `create_node()` method ends up as a `GraphNode` in the frontend.
+
+```typescript
+type GraphNode = {
+  id: string
+  nodeType: string
+  nodeLabel: string
+  nodeProperties: NodeProperties
+  nodeSize: number
+  nodeColor: string | null
+  nodeIcon: keyof typeof LucideIcons | null
+  nodeImage: string | null
+  nodeFlag: flagColor | null
+  nodeShape: NodeShape | null
+  nodeMetadata: NodeMetadata
+  x: number
+  y: number
+  val?: number
+  neighbors?: any[]
+  links?: any[]
+}
+```
+
+### Field reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique identifier for the node. Derived from the type's primary field value. |
+| `nodeType` | `string` | The entity type (e.g., `"Domain"`, `"Ip"`, `"Email"`). Maps to the Pydantic type class name. |
+| `nodeLabel` | `string` | Human-readable label displayed on the node. Set by the type's `compute_label()` method. |
+| `nodeProperties` | `NodeProperties` | All properties of the entity as key-value pairs. Contains the serialized fields from the Pydantic type. |
+| `nodeSize` | `number` | Visual size of the node in the graph. |
+| `nodeColor` | `string \| null` | Custom color override for the node (CSS color string), or `null` for default. |
+| `nodeIcon` | `keyof LucideIcons \| null` | Icon to display on the node, from the [Lucide icon set](https://lucide.dev/icons/), or `null` for default. |
+| `nodeImage` | `string \| null` | URL to an image to display on the node (e.g., a profile picture), or `null`. |
+| `nodeFlag` | `flagColor \| null` | Color flag for visual tagging (see Flag colors below), or `null`. |
+| `nodeShape` | `NodeShape \| null` | Shape of the node (see Node shapes below), or `null` for default circle. |
+| `nodeMetadata` | `NodeMetadata` | Additional metadata as key-value pairs. Used for internal tracking and extended features. |
+| `x` | `number` | X coordinate position in the graph canvas. |
+| `y` | `number` | Y coordinate position in the graph canvas. |
+| `val` | `number` (optional) | Value used by the force-graph engine for sizing calculations. |
+| `neighbors` | `any[]` (optional) | Adjacent nodes, populated by the graph engine at runtime. |
+| `links` | `any[]` (optional) | Connected edges, populated by the graph engine at runtime. |
+
+### NodeProperties
+
+```typescript
+type NodeProperties = {
+  [key: string]: any
+}
+```
+
+A flexible key-value object containing all the entity's properties. When a Pydantic type is serialized into a node, its fields become entries in `nodeProperties`. For example, a `Domain` node would have `nodeProperties.domain`, `nodeProperties.root`, etc.
+
+### NodeMetadata
+
+```typescript
+type NodeMetadata = {
+  [key: string]: any
+}
+```
+
+Similar to `nodeProperties` but used for system-level metadata rather than entity data. This can include information like creation timestamps, source enricher, or other tracking data.
+
+### Node shapes
+
+Nodes can be rendered in four shapes:
+
+```typescript
+type NodeShape = 'circle' | 'square' | 'hexagon' | 'triangle'
+```
+
+| Shape | Use case |
+|-------|----------|
+| `circle` | Default shape for most entity types |
+| `square` | Often used for infrastructure entities |
+| `hexagon` | Used for grouped or aggregate entities |
+| `triangle` | Used for alert or warning-related entities |
+
+### Flag colors
+
+Flags provide a visual tagging system for nodes. Users can flag nodes to highlight them during an investigation.
+
+```typescript
+type flagColor = 'red' | 'orange' | 'blue' | 'green' | 'yellow'
+```
+
+Each flag color maps to specific Tailwind CSS classes for consistent styling:
+
+| Flag | Style |
+|------|-------|
+| `red` | `text-red-400 fill-red-200` |
+| `orange` | `text-orange-400 fill-orange-200` |
+| `blue` | `text-blue-400 fill-blue-200` |
+| `green` | `text-green-400 fill-green-200` |
+| `yellow` | `text-yellow-400 fill-yellow-200` |
+
+## GraphEdge
+
+A `GraphEdge` represents a relationship between two nodes (e.g., "RESOLVES_TO", "HAS_SUBDOMAIN", "FOUND_IN_BREACH"). Every relationship created by an enricher's `create_relationship()` method ends up as a `GraphEdge` in the frontend.
+
+```typescript
+type GraphEdge = {
+  source: GraphNode['id']
+  target: GraphNode['id']
+  date?: string
+  id: string
+  label: string
+  caption?: string
+  type?: string
+  weight?: number
+  confidence_level?: number | string
+}
+```
+
+### Field reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | `string` | ID of the source node (the "from" node in the relationship). |
+| `target` | `string` | ID of the target node (the "to" node in the relationship). |
+| `id` | `string` | Unique identifier for this edge. |
+| `label` | `string` | Display label for the edge (e.g., `"RESOLVES_TO"`, `"HAS_EMAIL"`). This is the relationship type string passed to `create_relationship()`. |
+| `date` | `string` (optional) | Timestamp associated with the relationship (ISO 8601 format). |
+| `caption` | `string` (optional) | Additional descriptive text displayed on or near the edge. |
+| `type` | `string` (optional) | Relationship classification type for filtering or styling. |
+| `weight` | `number` (optional) | Numerical weight of the relationship, can be used for visual thickness or importance ranking. |
+| `confidence_level` | `number \| string` (optional) | Confidence score for the relationship, indicating how reliable the connection is. |
+
+## How enrichers map to the graph
+
+When you write an enricher and call graph methods in `postprocess()`, here's how the data flows:
+
+### Creating nodes
+
+```python
+# In your enricher's postprocess method
+self.create_node(domain)  # domain is a Pydantic Domain object
+```
+
+The graph service automatically:
+1. Extracts the **type name** from the Pydantic class (e.g., `"Domain"`) -> `nodeType`
+2. Reads the **primary field** value (e.g., `domain.domain`) -> used for `id`
+3. Reads the **nodeLabel** field (set by `compute_label()`) -> `nodeLabel`
+4. Serializes all fields into `nodeProperties`
+5. Sets defaults for visual properties (`nodeSize`, `nodeColor`, etc.)
+
+### Creating relationships
+
+```python
+# In your enricher's postprocess method
+self.create_relationship(domain, ip, "RESOLVES_TO")
+```
+
+The graph service automatically:
+1. Identifies the **source node** from `domain`'s type and primary field -> `source`
+2. Identifies the **target node** from `ip`'s type and primary field -> `target`
+3. Uses the relationship label `"RESOLVES_TO"` -> `label`
+4. Generates a unique `id` for the edge
+
+### Relationship naming conventions
+
+Relationship labels follow these conventions:
+- Use **UPPER_SNAKE_CASE** (e.g., `"RESOLVES_TO"`, `"HAS_SUBDOMAIN"`)
+- Use **verb phrases** that describe the relationship direction (source -> target)
+- The default relationship label is `"IS_RELATED_TO"` if none is specified
+- Common patterns:
+  - `HAS_*` for ownership/containment (e.g., `"HAS_EMAIL"`, `"HAS_SUBDOMAIN"`)
+  - `RESOLVES_TO` for DNS-type lookups
+  - `FOUND_IN_*` for breach/leak associations
+  - `REGISTERED_BY` for WHOIS data
+
+## Graph settings
+
+The graph visualization is configurable through settings types:
+
+### ForceGraphSetting
+
+Controls the physics simulation of the force-directed graph layout:
+
+```typescript
+type ForceGraphSetting = {
+  value: any
+  min?: number
+  max?: number
+  step?: number
+  type?: string
+  description?: string
+}
+```
+
+### ExtendedSetting
+
+General-purpose settings with richer type information:
+
+```typescript
+type ExtendedSetting = {
+  value: any
+  type: string
+  min?: number
+  max?: number
+  step?: number
+  options?: { value: string; label: string }[]
+  description?: string
+}
+```
+
+These settings allow users to customize graph behavior like node repulsion, link distance, simulation speed, and visual preferences.
+
+## Reserved properties
+
+When creating nodes, certain property names are reserved by the system and should not be used as field names in your custom types:
+
+- `id` - Node identifier
+- `x`, `y` - Position coordinates
+- `nodeLabel` - Display label (set by `compute_label()`)
+- `label` - Legacy label field
+- `nodeType`, `type` - Entity type identifiers
+- `nodeImage`, `nodeIcon`, `nodeColor`, `nodeSize` - Visual properties
+- `created_at` - Creation timestamp
+- `sketch_id` - Investigation sketch association

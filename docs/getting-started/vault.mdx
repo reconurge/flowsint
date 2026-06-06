@@ -1,0 +1,58 @@
+---
+title: "Vault"
+description: "Quick start guide to using the Vault to secure your services API keys and secrets."
+category: "Getting started"
+order: 6
+author: "Flowsint Team"
+tags: ["tutorial", "getting-started", "vault"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+## What is the Vault
+
+A good amount of the tools you'll be using in Flowsint require third party API keys.
+
+The **Vault** (*"Coffre fort"* in french) is the place to centralize and securely store those API keys. 
+Weither you have a local instance of Flowsint or one fully deployed on a distributed system, you need to have your keys securely stored.
+
+## Adding a key
+
+In the Flowsint enricher ecosystem, the API keys follow a specific format, being in uppercase letters, and with a declarative name that follows `<service>_API_KEY`.
+
+## Current limitations
+
+For now, we cannot match a particular key from the Vault to an enricher **directly from the UI**. The enricher declares the API key variable name it requires, like the following in the core of the Enricher:
+
+```python
+@classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this enricher"""
+        return [
+            {
+                "name": "PDCP_API_KEY",
+                "type": "vaultSecret",
+                "description": "The ProjectDiscovery Cloud Platform API key for asnmap.",
+                "required": True,
+            },
+        ]
+```
+
+This is a known limitation and we are working on improving this. 
+
+In the meanwhile, here is a list of the needed keys to run Flowsint at it's full potential:
+
+```bash
+# for enrichers
+WHOXY_API_KEY # Whoxy domain search engine [WHOXY]
+PDCP_API_KEY # ProjectDiscovery Cloud Platform [ASNMAP], [NAABU] etc
+HIBP_API_KEY # HaveIBeenPwned API key [HIBP]
+ETHERSCAN_API_KEY # Etherscan crypto API key [ETHERSCAN]
+# for Flo, AI assistant
+MISTRAL_API_KEY
+# but other providers will be supported soon (ChatGPT, etc.)
+```
+
+There are also some other tools that could need a bunch of other API keys like [Subfinder](https://github.com/projectdiscovery/subfinder). Configuring them is not possible for now, but will be soon.
+
+Stay tuned for updates as those mechanisms may vary in the future, as the goal is to keep the user experience as smooth as possible.

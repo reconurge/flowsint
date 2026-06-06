@@ -1,0 +1,53 @@
+---
+title: "Enrichers"
+description: "Quick start guide to using Enrichers for your OSINT investigations."
+category: "Getting started"
+order: 4
+author: "Flowsint Team"
+tags: ["tutorial", "getting-started", "enrichers"]
+version: "1.2.8"
+last_updated_at: "2026-05-15"
+---
+
+### What is an Enricher?
+
+An enricher is an operation that, starting from an input element A (source entity), produces one or more elements B (target entities) by applying a search or correlation method called a pivot.
+
+Example:
+
+```bash
+A = my.domain.com (domain name)
+    ↓
+p = “DNS resolution” (pivot)
+    ↓
+B = 12.23.34.45 (IP address)
+```
+
+That said, a pivot is the method or technical process used to derive B from A. The pivot defines how the transformation obtains its result (e.g., DNS resolution, WHOIS lookup, API query, etc.).
+
+Example:
+
+```bash
+DNS Resolution → domain → IP
+    ↓
+WHOIS Lookup → IP → owner
+    ↓
+Reverse Image Search → image → web pages containing that image
+```
+
+Flowsint comes with a bunch of prebuilt enrichers, divided into multiple categories. Those enrichers can use standard pivots that your machine can support by default (DNS resolution, WHOIS request, etc.) and some other that depend on external tools. 
+
+Those can be : 
+
+- Native : DNS resolutions, Whois, etc.
+- Docker tools: [subfinder](https://github.com/projectdiscovery/subfinder), [asnmap](https://github.com/projectdiscovery/asnmap), etc.
+- Python tools: [sherlock](https://github.com/sherlock-project/sherlock), [maigret](https://github.com/soxoj/maigret), [reconurge/recontrack](https://github.com/reconurge/recontrack), [reconurge/reconcrawl](https://github.com/reconurge/reconcrawl), [reconurge/reconspread](https://github.com/reconurge/reconspread), etc. 
+- External services (paid or free): [shodan](https://www.shodan.io/), [whoxy](https://www.whoxy.com/), [whoisxmlapi](https://www.whoisxmlapi.com), etc.
+
+### Making your own enrichers
+
+Creating your own enrichers invloves multiple steps, but is not that trivial.
+
+If you plan on writting your own enrichers and think they could help the community, please contribute by making a pull request !
+
+Please refer to [this section](/docs/developers/managing-enrichers) to start building your own enrichers.

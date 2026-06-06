@@ -23,8 +23,15 @@ def parse_json(
     try:
         file_bytes = file_bytes.lstrip()
         entities: Dict[str, Entity] = {}
-        my_bytes_value = file_bytes.decode().replace("'", '"')
-        graph = json.loads(my_bytes_value)
+        decoded = file_bytes.decode()
+        # Parse strict JSON first so apostrophes inside string values (e.g.
+        # "Sarah O'Brien") are preserved. Only fall back to the lenient
+        # single-quote replacement for Python-dict-style payloads that are not
+        # valid JSON on their own.
+        try:
+            graph = json.loads(decoded)
+        except json.JSONDecodeError:
+            graph = json.loads(decoded.replace("'", '"'))
         node_key = next((k for k in VALID_NODES_KEYS if k in graph), None)
         edge_key = next((k for k in VALID_EDGES_KEYS if k in graph), None)
         if node_key is None:

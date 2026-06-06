@@ -7,6 +7,17 @@ from datetime import datetime, timezone
 from flowsint_core.core.graph import Neo4jGraphRepository
 
 
+def repo_without_connection() -> Neo4jGraphRepository:
+    """Repository with no underlying connection.
+
+    Constructed with a mock to avoid the constructor's singleton fallback,
+    which requires NEO4J_* credentials from the environment.
+    """
+    repo = Neo4jGraphRepository(neo4j_connection=MagicMock())
+    repo._connection = None
+    return repo
+
+
 class TestNeo4jGraphRepositoryInit:
     def test_init_with_connection(self):
         mock_connection = MagicMock()
@@ -43,8 +54,7 @@ class TestCreateNode:
         mock_connection.query.assert_called_once()
 
     def test_create_node_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.create_node({"nodeLabel": "test", "nodeType": "domain"}, "sketch-1")
 
@@ -80,8 +90,7 @@ class TestCreateRelationship:
         mock_connection.execute_write.assert_called_once()
 
     def test_create_relationship_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         rel_obj = {
             "from_type": "domain",
@@ -231,8 +240,7 @@ class TestBatchOperations:
         mock_connection.execute_batch.assert_not_called()
 
     def test_flush_batch_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
         repo._batch_operations = [("query", {})]
 
         repo.flush_batch()
@@ -285,8 +293,7 @@ class TestBatchCreateNodes:
         assert result["errors"] == []
 
     def test_batch_create_nodes_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.batch_create_nodes(
             [{"nodeLabel": "test", "nodeType": "domain"}], sketch_id="sketch-1"
@@ -338,8 +345,7 @@ class TestBatchCreateEdges:
         assert result["errors"] == []
 
     def test_batch_create_edges_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.batch_create_edges([{}], sketch_id="sketch-1")
 
@@ -385,8 +391,7 @@ class TestBatchCreateEdgesByElementId:
         assert any("Missing required fields" in e for e in result["errors"])
 
     def test_batch_create_edges_by_element_id_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.batch_create_edges_by_element_id([{}], sketch_id="sketch-1")
 
@@ -409,8 +414,7 @@ class TestUpdateNode:
         assert result == "elem-1"
 
     def test_update_node_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.update_node("elem-1", {"nodeLabel": "x"}, "sketch-1")
 
@@ -428,8 +432,7 @@ class TestDeleteNodes:
         assert result == 3
 
     def test_delete_nodes_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.delete_nodes(["id-1"], sketch_id="sketch-1")
 
@@ -456,8 +459,7 @@ class TestDeleteRelationships:
         assert result == 2
 
     def test_delete_relationships_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.delete_relationships(["rel-1"], sketch_id="sketch-1")
 
@@ -483,8 +485,7 @@ class TestDeleteAllSketchNodes:
         assert result == 10
 
     def test_delete_all_sketch_nodes_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.delete_all_sketch_nodes(sketch_id="sketch-1")
 
@@ -519,8 +520,7 @@ class TestGetSketchGraph:
         assert len(result["edges"]) == 1
 
     def test_get_sketch_graph_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.get_sketch_graph(sketch_id="sketch-1")
 
@@ -553,8 +553,7 @@ class TestUpdateRelationship:
         assert result["id"] == "rel-1"
 
     def test_update_relationship_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.update_relationship("rel-1", {}, "sketch-1")
 
@@ -577,8 +576,7 @@ class TestCreateRelationshipByElementId:
         assert result["sketch_id"] == "sketch-1"
 
     def test_create_relationship_by_element_id_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.create_relationship_by_element_id(
             "elem-1", "elem-2", "CONNECTS", "sketch-1"
@@ -598,8 +596,7 @@ class TestQuery:
         assert result == [{"count": 5}]
 
     def test_query_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.query("MATCH (n) RETURN n", {})
 
@@ -622,8 +619,7 @@ class TestUpdateNodesPositions:
         assert result == 2
 
     def test_update_nodes_positions_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.update_nodes_positions([{"nodeId": "x", "x": 0, "y": 0}], "s")
 
@@ -652,8 +648,7 @@ class TestGetNodesByIds:
         assert len(result) == 2
 
     def test_get_nodes_by_ids_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.get_nodes_by_ids(["id-1"], sketch_id="sketch-1")
 
@@ -706,8 +701,7 @@ class TestMergeNodes:
         assert result == "old-1"
 
     def test_merge_nodes_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.merge_nodes(["old-1"], {}, None, "sketch-1")
 
@@ -764,8 +758,7 @@ class TestGetNeighbors:
         assert len(result["edges"]) == 0
 
     def test_get_neighbors_no_connection(self):
-        repo = Neo4jGraphRepository(neo4j_connection=None)
-        repo._connection = None
+        repo = repo_without_connection()
 
         result = repo.get_neighbors("node-1", "sketch-1")
 

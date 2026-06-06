@@ -200,29 +200,34 @@ class TypeRegistryService(BaseService):
                     else "value"
                 )
 
-                custom_types_children.append(
-                    {
-                        "id": custom_type.id,
-                        "type": custom_type.name,
-                        "key": custom_type.name.lower(),
-                        "label_key": label_key,
-                        "icon": custom_type.icon or "custom",
-                        "color": custom_type.color,
-                        "label": custom_type.name,
-                        "description": custom_type.description or "",
-                        "fields": [
-                            {
-                                "name": prop,
-                                "label": info.get("title", prop),
-                                "description": info.get("description", ""),
-                                "type": "text",
-                                "required": prop in required,
-                            }
-                            for prop, info in properties.items()
-                        ],
-                        "custom": True,
-                    }
-                )
+                custom_type_obj = {
+                    "id": custom_type.id,
+                    "type": custom_type.category or "custom_types_category",
+                    "key": custom_type.name.lower(),
+                    "label_key": label_key,
+                    "icon": custom_type.icon or "custom",
+                    "color": custom_type.color,
+                    "label": custom_type.name,
+                    "description": custom_type.description or "",
+                    "fields": [
+                        {
+                            "name": prop,
+                            "label": info.get("title", prop),
+                            "description": info.get("description", ""),
+                            "type": "text",
+                            "required": prop in required,
+                        }
+                        for prop, info in properties.items()
+                    ],
+                    "custom": True,
+                }
+
+                if custom_type.category == "custom_types_category":
+                    custom_types_children.append(custom_type_obj)
+                else:
+                    for t in types:
+                        if t["type"] == custom_type.category:
+                            t["children"].append(custom_type_obj)
 
             types.append(
                 {
@@ -435,7 +440,11 @@ class TypeRegistryService(BaseService):
             ):
                 return True
         # Direct array (non-optional)
-        if schema.get("type") == "array" and isinstance(schema.get("items"), dict) and schema["items"].get("type") == "string":
+        if (
+            schema.get("type") == "array"
+            and isinstance(schema.get("items"), dict)
+            and schema["items"].get("type") == "string"
+        ):
             return True
         return False
 

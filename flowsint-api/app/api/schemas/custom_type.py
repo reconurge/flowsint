@@ -19,6 +19,7 @@ class CustomTypeCreate(BaseModel):
         None, description="Optional description of the custom type"
     )
     status: str = Field("draft", description="Status of the custom type")
+    category: str = Field("Custom types", description="Category of the custom type")
     color: str = Field("#8E9E8C", description="Default color")
     icon: str = Field("Minus", description="Default icon")
 
@@ -40,6 +41,7 @@ class CustomTypeUpdate(BaseModel):
     json_schema: Optional[Dict[str, Any]] = Field(None, alias="schema")
     description: Optional[str] = None
     status: Optional[str] = None
+    category: Optional[str] = None
     color: Optional[str] = None
     icon: Optional[str] = None
 
@@ -64,6 +66,7 @@ class CustomTypeRead(ORMBase):
     icon: Optional[str]
     json_schema: Dict[str, Any] = Field(..., alias="schema")
     status: str
+    category: str
     checksum: Optional[str]
     description: Optional[str]
     created_at: datetime

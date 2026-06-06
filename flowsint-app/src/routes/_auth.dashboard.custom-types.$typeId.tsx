@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { clearIconTypeCache } from '@/components/sketches/graph/utils/image-cache'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
+import { useActionItems } from '@/hooks/use-action-items'
 
 export const Route = createFileRoute('/_auth/dashboard/custom-types/$typeId')({
   component: CustomTypeEditor
@@ -40,10 +41,14 @@ function CustomTypeEditor() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [status, setStatus] = useState<'draft' | 'published'>('draft')
+  const [category, setCategory] = useState<string>('custom_types_category')
   const [icon, setIcon] = useState(DEFAULT_ICON)
   const [color, setColor] = useState(DEFAULT_COLOR)
   const [fields, setFields] = useState<SchemaField[]>([])
   const [showPreview, setShowPreview] = useState(true)
+
+  // Hooks
+  const { actionItems, isLoading: actionLoading } = useActionItems()
 
   // Load existing type if editing
   const { data: existingType, isLoading } = useQuery<CustomType>({
@@ -57,6 +62,7 @@ function CustomTypeEditor() {
       setName(existingType.name)
       setDescription(existingType.description || '')
       setStatus(existingType.status === 'archived' ? 'draft' : existingType.status)
+      setCategory(existingType.category || 'custom_types_category')
       setIcon(existingType.icon || DEFAULT_ICON)
       setColor(existingType.color || DEFAULT_COLOR)
       parseSchemaToFields(existingType.schema)
@@ -179,7 +185,8 @@ function CustomTypeEditor() {
       schema: fieldsToSchema(),
       icon,
       color,
-      status
+      status,
+      category
     }
 
     if (isNew) {
@@ -287,27 +294,45 @@ function CustomTypeEditor() {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground/60">Status</span>
-                <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                  <SelectTrigger className="w-[130px] h-7 text-xs border-border/40 bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                        Draft
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="published">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        Published
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col gap-3 items-end">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground/60">Status</span>
+                  <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                    <SelectTrigger className="w-[130px] h-7 text-xs border-border/40 bg-transparent">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+                          Draft
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="published">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          Published
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground/60">Category</span>
+                  <Select value={category} onValueChange={(v: any) => setCategory(v)}>
+                    <SelectTrigger className="w-[130px] h-7 text-xs border-border/40 bg-transparent">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {!actionLoading &&
+                        actionItems.map((item) => (
+                          <SelectItem value={item.type}>
+                            <div className="flex items-center gap-2">{item.label}</div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <Separator className="opacity-40" />
@@ -400,6 +425,7 @@ function CustomTypeEditor() {
                   color={color}
                   fields={fields}
                   status={status}
+                  category={category}
                 />
               </div>
             </div>

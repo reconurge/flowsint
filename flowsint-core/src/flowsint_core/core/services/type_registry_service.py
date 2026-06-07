@@ -202,7 +202,7 @@ class TypeRegistryService(BaseService):
 
                 custom_type_obj = {
                     "id": custom_type.id,
-                    "type": custom_type.category or "custom_types_category",
+                    "type": custom_type.name,
                     "key": custom_type.name.lower(),
                     "label_key": label_key,
                     "icon": custom_type.icon or "custom",

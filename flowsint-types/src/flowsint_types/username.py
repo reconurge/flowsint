@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Self
+from typing import Optional, Self
 
 from pydantic import Field, field_validator, model_validator
 
@@ -58,6 +58,11 @@ class Username(FlowsintType):
         """Detect if a line of text contains a username."""
         line = line.strip()
         if not line:
+            return False
+
+        # Don't claim file hashes (MD5/SHA1/SHA256) — those are File entities.
+        # This keeps hash detection independent of type-registration order.
+        if len(line) in (32, 40, 64) and re.fullmatch(r"[0-9a-fA-F]+", line):
             return False
 
         # Username pattern: 3-80 characters, only letters, numbers, underscores, hyphens

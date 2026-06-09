@@ -1,8 +1,26 @@
+import re
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
+from typing import Optional, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
+
+# Map of hex-hash length -> the File field that should hold it.
+_HASH_LENGTH_TO_FIELD = {
+    32: "hash_md5",
+    40: "hash_sha1",
+    64: "hash_sha256",
+}
+_HASH_RE = re.compile(r"^[0-9a-fA-F]+$")
+
+
+def _hash_field_for(value: str) -> Optional[str]:
+    """Return the File hash field name for an MD5/SHA1/SHA256 hex string, else None."""
+    value = value.strip()
+    if not _HASH_RE.match(value):
+        return None
+    return _HASH_LENGTH_TO_FIELD.get(len(value))
 
 
 @flowsint_type
@@ -73,10 +91,22 @@ class File(FlowsintType):
 
     @classmethod
     def from_string(cls, line: str):
-        """Parse a file from a raw string."""
-        return cls(filename=line.strip())
+        """Parse a file from a raw string.
+
+        If the value is an MD5/SHA1/SHA256 hash, store it in the matching
+        hash field as well as the filename (so the node keeps a label).
+        """
+        line = line.strip()
+        hash_field = _hash_field_for(line)
+        if hash_field:
+            return cls(filename=line, **{hash_field: line.lower()})
+        return cls(filename=line)
 
     @classmethod
     def detect(cls, line: str) -> bool:
-        """File cannot be reliably detected from a single line of text."""
-        return False
+        """Detect a file hash (MD5 / SHA1 / SHA256) from a single line.
+
+        Only hashes are auto-detected; arbitrary filenames are too ambiguous
+        to detect reliably, so non-hash values still return False.
+        """
+        return _hash_field_for(line) is not None

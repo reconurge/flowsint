@@ -19,7 +19,7 @@ interface ImportSheetProps {
   sketchId: string
 }
 
-const ALLOWED_EXTENSIONS = ['.txt', '.json']
+const ALLOWED_EXTENSIONS = ['.txt', '.json', '.xml']
 
 export function ImportSheet({ sketchId }: ImportSheetProps) {
   const onOpenChange = useGraphSettingsStore((s) => s.setImportModalOpen)

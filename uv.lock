@@ -788,6 +788,15 @@ wheels = [
 ]
 
 [[package]]
+name = "defusedxml"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/d5/c66da9b79e5bdb124974bfe172b4daf3c984ebd9c2a06e2b8a4dc7331c72/defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69", size = 75520, upload-time = "2021-03-08T10:59:26.269Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61", size = 25604, upload-time = "2021-03-08T10:59:24.45Z" },
+]
+
+[[package]]
 name = "dnspython"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1169,6 +1178,7 @@ dependencies = [
     { name = "bcrypt" },
     { name = "celery" },
     { name = "cryptography" },
+    { name = "defusedxml" },
     { name = "docker" },
     { name = "flowsint-enrichers" },
     { name = "httpx" },
@@ -1207,6 +1217,7 @@ requires-dist = [
     { name = "bcrypt", specifier = ">=4.0.0,<5.0.0" },
     { name = "celery", specifier = ">=5.3,<6.0" },
     { name = "cryptography", specifier = ">=45.0.7,<46.0.0" },
+    { name = "defusedxml", specifier = ">=0.7,<0.8" },
     { name = "docker", specifier = ">=7.1.0,<8.0.0" },
     { name = "flowsint-enrichers", editable = "flowsint-enrichers" },
     { name = "httpx", specifier = ">=0.28,<0.29" },

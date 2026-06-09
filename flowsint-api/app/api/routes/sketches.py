@@ -420,10 +420,12 @@ async def analyze_import_file(
     except PermissionDeniedError:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if not file.filename or not file.filename.lower().endswith((".txt", ".json")):
+    if not file.filename or not file.filename.lower().endswith(
+        (".txt", ".json", ".xml")
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Only .txt and .json files are supported. Please upload a correct format.",
+            detail="Only .txt, .json and .xml files are supported. Please upload a correct format.",
         )
 
     try:

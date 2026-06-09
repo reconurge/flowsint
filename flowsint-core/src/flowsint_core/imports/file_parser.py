@@ -10,10 +10,11 @@ from typing import BinaryIO, Optional, Union
 from flowsint_core.core.graph.serializer import TypeResolver
 
 from .json import parse_json
+from .nmap import parse_nmap_xml
 from .txt import parse_txt
 from .types import FileParseResult
 
-ALLOWED_EXTENSIONS = [".txt", ".json"]
+ALLOWED_EXTENSIONS = [".txt", ".json", ".xml"]
 
 
 def parse_import_file(
@@ -44,3 +45,5 @@ def parse_import_file(
         return parse_txt(file_bytes, max_preview_rows)
     elif file_ext in [".json"]:
         return parse_json(file_bytes, max_preview_rows, type_resolver=type_resolver)
+    elif file_ext == ".xml":
+        return parse_nmap_xml(file_bytes, max_preview_rows, type_resolver=type_resolver)

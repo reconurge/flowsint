@@ -260,7 +260,6 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
         duration: response.duration_ms,
         url: response.url
       })
-      console.log(response)
     } catch (error) {
       setTestResult({
         success: false,

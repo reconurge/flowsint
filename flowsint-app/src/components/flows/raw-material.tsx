@@ -19,8 +19,6 @@ export default function RawMaterial() {
   })
   const [searchTerm, setSearchTerm] = useState<string>('')
 
-  console.log(materials)
-
   const filteredEnrichers = useMemo(() => {
     if (!materials?.items) return {}
     const result: Record<string, Enricher[]> = {}

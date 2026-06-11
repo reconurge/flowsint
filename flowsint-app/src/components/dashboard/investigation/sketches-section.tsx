@@ -30,7 +30,7 @@ export function SketchesSection({ sketches, canCreate = true }: SketchesSectionP
       </div>
 
       {isEmpty ? (
-        canCreate ? <EmptySketches onAction={() => console.log("Create sketch")} /> : <div className="text-sm text-muted-foreground py-4">No sketches yet.</div>
+        canCreate ? <EmptySketches /> : <div className="text-sm text-muted-foreground py-4">No sketches yet.</div>
       ) : (
         <div style={{ containerType: 'inline-size' }}>
         <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 gap-3">

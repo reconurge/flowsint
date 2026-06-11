@@ -102,6 +102,8 @@ Anyone on the network can then access Flowsint at `http://<server-ip>:5173`.
 - `MASTER_VAULT_KEY_V1` — encrypts stored API keys. Generate one: `python3 -c "import os, base64; print('base64:' + base64.b64encode(os.urandom(32)).decode())"`
 - `NEO4J_PASSWORD` — Neo4j database password.
 
+**Also add your server hostname/IP to the Host-header allowlist** in `flowsint-app/nginx.conf` (look for `map $http_host $is_flowsint_host`). The default allowlist accepts only `localhost` / `127.0.0.1` / `[::1]`, which defends single-user installs against DNS rebinding; LAN and public deploys must opt-in their own hostname. Two commented-out template lines in the same map block show the format.
+
 Only port `5173` is exposed to the network. PostgreSQL, Redis, Neo4j and the API are bound to `127.0.0.1` on the server and reachable only through the frontend proxy.
 
 To pin a specific version instead of `latest`, set `FLOWSINT_VERSION` in `.env` (e.g. `FLOWSINT_VERSION=1.2.10`).

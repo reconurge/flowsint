@@ -9,9 +9,18 @@ interface TypePreviewProps {
   color: string
   fields: SchemaField[]
   status: 'draft' | 'published'
+  category: string
 }
 
-export function TypePreview({ name, description, icon, color, fields, status }: TypePreviewProps) {
+export function TypePreview({
+  name,
+  description,
+  icon,
+  color,
+  fields,
+  status,
+  category
+}: TypePreviewProps) {
   const Icon = (LucideIcons as any)[icon] || LucideIcons.FileQuestion
   const validFields = fields.filter((f) => f.key.trim())
 

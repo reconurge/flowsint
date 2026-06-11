@@ -16,6 +16,7 @@ import {
   BadgeAlert,
   Plus,
   Download,
+  FileJson,
   Trash2
 } from 'lucide-react'
 import { Enricher, Flow, GraphNode } from '@/types'
@@ -423,10 +424,47 @@ type SubActionsProps = {
   selectedNodes: GraphNode[]
 }
 const SubActions = memo(({ selectedNodes }: SubActionsProps) => {
-  const contentToCopy = useMemo(() => selectedNodes.map((node) => node.nodeLabel).join('\n'), [])
+  const contentToCopy = useMemo(
+    () => selectedNodes.map((node) => node.nodeLabel).join('\n'),
+    [selectedNodes]
+  )
+  const edges = useGraphStore((s) => s.edges)
+  const selectedEdges = useMemo(() => {
+    const selectedNodeIds = new Set(selectedNodes.map((node) => node.id))
+    return edges.filter(
+      (edge) => selectedNodeIds.has(edge.source) && selectedNodeIds.has(edge.target)
+    )
+  }, [edges, selectedNodes])
+
+  const handleExportJson = useCallback(() => {
+    const payload = {
+      exported_at: new Date().toISOString(),
+      nodes: selectedNodes,
+      edges: selectedEdges
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const href = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = href
+    link.download = `flowsint-selection-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(href)
+  }, [selectedEdges, selectedNodes])
+
   return (
-    <div>
+    <div className="flex flex-col gap-1">
       <CopyButton label={`Copy ${selectedNodes.length} items as txt`} content={contentToCopy} />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="w-full justify-start gap-2"
+        onClick={handleExportJson}
+      >
+        <FileJson className="h-4 w-4 opacity-60" />
+        Export {selectedNodes.length} node(s), {selectedEdges.length} edge(s) as JSON
+      </Button>
     </div>
   )
 })

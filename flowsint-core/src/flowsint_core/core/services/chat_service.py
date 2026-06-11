@@ -214,9 +214,20 @@ class ChatService(BaseService):
         yield f"data: {json.dumps({'type': 'start', 'messageId': message_id})}\n\n"
         yield f"data: {json.dumps({'type': 'text-start', 'id': text_id})}\n\n"
 
-        async for token in provider.stream(llm_messages):
-            accumulated.append(token)
-            yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': token})}\n\n"
+        try:
+            async for token in provider.stream(llm_messages):
+                accumulated.append(token)
+                yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': token})}\n\n"
+        except Exception as exc:
+            # Keep the stream protocol valid so the UI can render an error message
+            # instead of showing a broken connection.
+            error_msg = "AI provider error. Please verify your API key and provider settings."
+            yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': error_msg})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'errorText': str(exc)})}\n\n"
+            yield f"data: {json.dumps({'type': 'text-end', 'id': text_id})}\n\n"
+            yield f"data: {json.dumps({'type': 'finish'})}\n\n"
+            yield "data: [DONE]\n\n"
+            return
 
         yield f"data: {json.dumps({'type': 'text-end', 'id': text_id})}\n\n"
         yield f"data: {json.dumps({'type': 'finish'})}\n\n"

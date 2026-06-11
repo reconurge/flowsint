@@ -5,6 +5,7 @@ import { queryKeys } from '@/api/query-keys'
 import { useAuthStore } from '@/stores/auth-store'
 import { connectSSE } from '@/api/sse'
 
+const API_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 

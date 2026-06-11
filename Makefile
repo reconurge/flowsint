@@ -92,6 +92,22 @@ open-browser-prod:
 	 xdg-open http://localhost:5173 2>/dev/null || \
 	 echo "Frontend ready at http://localhost:5173"
 
+deploy:
+	@echo "Starting DEPLOY environment (GHCR images)..."
+	$(MAKE) check-env
+	$(COMPOSE_DEPLOY) pull
+	$(COMPOSE_DEPLOY) up -d
+	@echo ""
+	@echo "Deploy started!"
+	@echo "  Frontend: http://localhost"
+	@echo "  API:      http://localhost/api"
+
+up-deploy:
+	$(COMPOSE_DEPLOY) up -d
+
+logs-deploy:
+	$(COMPOSE_DEPLOY) logs -f
+
 migrate-dev:
 	@echo "Running DEV migrations..."
 	@if ! $(COMPOSE_DEV) ps -q neo4j | grep -q .; then \

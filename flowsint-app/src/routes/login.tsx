@@ -11,7 +11,7 @@ export const Route = createFileRoute('/login')({
 })
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
+  email: z.string().email('Email is required'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional()
 })
@@ -23,7 +23,7 @@ function Login() {
   const methods = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
+      email: '',
       password: '',
       rememberMe: false
     }
@@ -34,7 +34,7 @@ function Login() {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       await login.mutateAsync({
-        username: data.username,
+        email: data.email,
         password: data.password
       })
     } catch (error) {
@@ -61,7 +61,7 @@ function Login() {
             <div className="rounded-md space-y-4">
               {/* Username field */}
               <FormField
-                name="username"
+                name="email"
                 label="Email"
                 placeholder="Your email"
                 disabled={login.isPending}

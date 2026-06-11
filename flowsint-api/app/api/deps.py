@@ -5,6 +5,9 @@ from sqlalchemy.orm import Session
 from flowsint_core.core.auth import ALGORITHM, AUTH_SECRET
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.models import Profile
+from typing import Optional
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

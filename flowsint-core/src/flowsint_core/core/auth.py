@@ -14,7 +14,7 @@ if not AUTH_SECRET:
         "AUTH_SECRET environment variable is not set. Please set it in your .env file."
     )
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

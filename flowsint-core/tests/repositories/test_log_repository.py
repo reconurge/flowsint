@@ -59,3 +59,20 @@ class TestLogRepository:
         repo = LogRepository(db_session)
         results = repo.get_by_sketch(uuid4(), since=datetime(2000, 1, 1))
         assert len(results) == 0
+
+    def test_get_by_sketch_defaults_to_recent_aware_utc_cutoff(self, db_session):
+        self._setup(db_session)
+        sketch = SketchFactory()
+        LogFactory(
+            sketch_id=sketch.id,
+            created_at=datetime.now(timezone.utc) - timedelta(hours=2),
+        )
+        LogFactory(
+            sketch_id=sketch.id,
+            created_at=datetime.now(timezone.utc) - timedelta(days=2),
+        )
+
+        repo = LogRepository(db_session)
+        results = repo.get_by_sketch(sketch.id)
+
+        assert len(results) == 1

@@ -109,7 +109,7 @@ def sanitize_url_component(value: str) -> str:
 class YamlLoader:
     @staticmethod
     def load_enricher_yaml(filename: str) -> dict[str, Any] | yaml.YAMLError:
-        with open(filename) as stream:
+        with open(filename, encoding="utf-8") as stream:
             try:
                 return yaml.safe_load(stream)
             except yaml.YAMLError as exc:

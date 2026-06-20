@@ -43,6 +43,7 @@ from .script import Script
 from .session import Session
 from .social_account import SocialAccount
 from .ssl_certificate import SSLCertificate
+from .technology import Technology
 from .username import Username
 from .wallet import CryptoNFT, CryptoWallet, CryptoWalletTransaction
 from .weapon import Weapon
@@ -87,6 +88,7 @@ __all__ = [
     "Session",
     "SocialAccount",
     "SSLCertificate",
+    "Technology",
     "Username",
     "CryptoWallet",
     "CryptoWalletTransaction",
@@ -134,6 +136,7 @@ TYPE_TO_MODEL: Dict[str, Type[BaseModel]] = {
     "file": File,
     "malware": Malware,
     "sslcertificate": SSLCertificate,
+    "technology": Technology,
     "location": Location,
     "affiliation": Affiliation,
     "alias": Alias,

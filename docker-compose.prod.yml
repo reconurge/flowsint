@@ -149,6 +149,9 @@ services:
     ports:
       # The only network-facing port. Serves the UI and proxies /api/ to the API.
       - "5173:8080"
+    volumes:
+      # Override the baked-in nginx.conf to use system resolver (Podman-compatible).
+      - ./flowsint-app/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - flowsint_network
     depends_on:

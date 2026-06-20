@@ -6,6 +6,7 @@ export interface CustomType {
   owner_id: string
   schema: Record<string, any>
   status: 'draft' | 'published' | 'archived'
+  category: string
   checksum?: string
   description?: string
   icon?: string
@@ -21,6 +22,7 @@ export interface CustomTypeCreate {
   icon?: string
   color?: string
   status?: 'draft' | 'published'
+  category?: string
 }
 
 export interface CustomTypeUpdate {
@@ -30,6 +32,7 @@ export interface CustomTypeUpdate {
   icon?: string
   color?: string
   status?: 'draft' | 'published' | 'archived'
+  category?: string
 }
 
 export interface ValidatePayload {

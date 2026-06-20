@@ -46,6 +46,7 @@ def create_custom_type(
             user_id=current_user.id,
             description=custom_type.description,
             status=custom_type.status,
+            category=custom_type.category,
             validate_schema_func=validate_json_schema,
             calculate_checksum_func=calculate_schema_checksum,
         )
@@ -116,6 +117,7 @@ def update_custom_type(
             json_schema=update_data.json_schema,
             description=update_data.description,
             status=update_data.status,
+            category=update_data.category,
             validate_schema_func=validate_json_schema,
             calculate_checksum_func=calculate_schema_checksum,
         )

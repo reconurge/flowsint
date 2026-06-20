@@ -48,6 +48,7 @@ class CustomTypeService(BaseService):
         user_id: UUID,
         description: Optional[str] = None,
         status: str = "draft",
+        category: str = "custom_types_category",
         validate_schema_func=None,
         calculate_checksum_func=None,
     ) -> CustomType:
@@ -68,6 +69,7 @@ class CustomTypeService(BaseService):
             schema=json_schema,
             description=description,
             status=status,
+            category=category,
             checksum=checksum,
         )
 
@@ -85,6 +87,7 @@ class CustomTypeService(BaseService):
         json_schema: Optional[Dict[str, Any]] = None,
         description: Optional[str] = None,
         status: Optional[str] = None,
+        category: Optional[str] = None,
         color: Optional[str] = None,
         icon: Optional[str] = None,
         validate_schema_func=None,
@@ -110,6 +113,9 @@ class CustomTypeService(BaseService):
 
         if status is not None:
             custom_type.status = status
+
+        if category is not None:
+            custom_type.category = category
 
         if icon is not None:
             custom_type.icon = icon

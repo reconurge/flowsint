@@ -1,4 +1,4 @@
-from flowsint_types import Domain, Ip, Phone
+from flowsint_types import Domain, File, Ip, Phone
 
 from flowsint_core.imports import detect_type
 
@@ -38,6 +38,20 @@ def test_detection_ips():
     assert results[0].address == "240.123.123.234"
     # ip 2
     assert results[1].address == "12.43.23.12"
+
+
+def test_detection_file_hashes():
+    hashes = {
+        "d41d8cd98f00b204e9800998ecf8427e": "hash_md5",
+        "da39a3ee5e6b4b0d3255bfef95601890afd80709": "hash_sha1",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": "hash_sha256",
+    }
+    for value, field in hashes.items():
+        DetectedType = detect_type(value)
+        assert DetectedType is File, f"{value} should be detected as File"
+        obj = DetectedType.from_string(value)
+        assert isinstance(obj, File)
+        assert getattr(obj, field) == value
 
 
 def test_detection_mixed():

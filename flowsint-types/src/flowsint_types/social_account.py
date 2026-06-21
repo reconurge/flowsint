@@ -17,13 +17,15 @@ class SocialAccount(FlowsintType):
         title="ID",
         json_schema_extra={"primary": True},
     )
-    username: Username = Field(
-        ..., description="Username associated with this account", title="Username"
+    username: Optional[Username] = Field(
+        None, description="Username associated with this account", title="Username"
     )
 
     @field_validator("username", mode="before")
     @classmethod
     def convert_username(cls, v: Union[str, Username]) -> Username:
+        if not v:
+            return Username(value="")
         """Convert string to Username object if needed."""
         if isinstance(v, str):
             return Username(value=v)

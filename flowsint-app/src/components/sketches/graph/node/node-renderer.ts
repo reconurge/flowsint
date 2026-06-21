@@ -103,9 +103,11 @@ const drawClippedImage = (
     drawHeight = diameter / imgAspect
   }
 
+  ctx.save()
   drawNodePath(ctx, x, y, size, shape)
   ctx.clip()
   ctx.drawImage(img, x - drawWidth / 2, y - drawHeight / 2, drawWidth, drawHeight)
+  ctx.restore()
 }
 
 // --- Node visual resolution ---

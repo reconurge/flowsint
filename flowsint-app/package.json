@@ -88,7 +88,7 @@
     "d3": "^7.9.0",
     "d3-force": "^3.0.0",
     "date-fns": "^3.6.0",
-    "dompurify": "^3.3.0",
+    "dompurify": "^3.4.11",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.0.6",
     "input-otp": "^1.4.2",

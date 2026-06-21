@@ -27,7 +27,7 @@ dependencies = [
     "python-multipart>=0.0.27,<0.1.0",
     "docker>=7.1.0,<8.0.0",
     "pytest>=9.0.3,<10.0.0",
-    "cryptography>=46.0.7,<47.0.0",
+    "cryptography>=48.0.1,<49.0.0",
     "openpyxl>=3.1,<4.0",
 ]
 

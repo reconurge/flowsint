@@ -124,7 +124,13 @@ class IpToFraudScore(Enricher):
                         proxy_flags.append(label)
 
                 risk_profile = RiskProfile(
-                    entity_id=ip.address, entity_type="IP address", overall_risk_score=fraud_score, risk_level=fraud_risk, last_updated=datetime.datetime.utcnow().isoformat(), risk_factors=proxy_flags, source="Scamalytics"
+                    entity_id=ip.address,
+                    entity_type="IP address",
+                    overall_risk_score=fraud_score,
+                    risk_level=fraud_risk,
+                    last_updated=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    risk_factors=proxy_flags,
+                    source="Scamalytics",
                 )
                 results.append(risk_profile)
                 self.ip_risk_mapping.append((ip, risk_profile))

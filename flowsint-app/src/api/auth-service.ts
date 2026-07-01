@@ -2,14 +2,18 @@ import { useAuthStore } from '@/stores/auth-store'
 import { fetchWithAuth } from './api'
 
 export interface RegisterData {
-  username: string
   email: string
   password: string
 }
 
 export interface LoginData {
-  username: string
+  email: string
   password: string
+}
+
+export interface RegisterResponse {
+  message: string
+  email: string
 }
 
 export interface AuthResponse {
@@ -23,7 +27,7 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  register: async (data: RegisterData): Promise<AuthResponse> => {
+  register: async (data: RegisterData): Promise<RegisterResponse> => {
     return fetchWithAuth('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)
@@ -33,7 +37,7 @@ export const authService = {
   login: async (data: LoginData): Promise<AuthResponse> => {
     // Création d'un FormData ou URLSearchParams pour la requête d'authentification
     const formData = new URLSearchParams()
-    formData.append('username', data.username)
+    formData.append('username', data.email)
     formData.append('password', data.password)
 
     return fetchWithAuth('/api/auth/token', {

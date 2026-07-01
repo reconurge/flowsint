@@ -13,10 +13,6 @@ export const Route = createFileRoute('/register')({
 
 const registerSchema = z
   .object({
-    username: z
-      .string()
-      .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
-      .max(50, "Le nom d'utilisateur ne peut pas dépasser 50 caractères"),
     email: z.string().email('Veuillez entrer une adresse email valide'),
     password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
     confirmPassword: z.string()
@@ -32,7 +28,6 @@ function Register() {
   const methods = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: '',
       email: '',
       password: '',
       confirmPassword: ''
@@ -68,7 +63,6 @@ function Register() {
             )}
 
             <div className="space-y-4">
-              <FormField name="username" label="Username" />
               <FormField name="email" label="Email" type="email" />
               <FormField name="password" label="Password" type="password" />
               <FormField name="confirmPassword" label="Confirm password" type="password" />

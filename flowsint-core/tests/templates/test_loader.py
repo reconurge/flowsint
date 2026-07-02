@@ -248,6 +248,36 @@ class TestSSRFProtection:
         with pytest.raises(SSRFError):
             validate_url_safe("http://metadata.google.internal/")
 
+    def test_is_ip_blocked_numeric_loopback_encodings(self):
+        """Legacy numeric IPv4 encodings of loopback must be blocked.
+
+        HTTP clients and the OS resolver accept decimal/hex/octal/short forms
+        of 127.0.0.1; they previously slipped past the blocklist because
+        ipaddress.ip_address rejects them.
+        """
+        assert is_ip_blocked("2130706433") is True  # decimal 127.0.0.1
+        assert is_ip_blocked("0x7f000001") is True  # hex 127.0.0.1
+        assert is_ip_blocked("017700000001") is True  # octal 127.0.0.1
+        assert is_ip_blocked("127.1") is True  # short form 127.0.0.1
+        assert is_ip_blocked("0") is True  # 0.0.0.0 (current network)
+
+    def test_is_ip_blocked_numeric_public_still_allowed(self):
+        """A numeric encoding of a public IP must not be falsely blocked."""
+        assert is_ip_blocked("0x08080808") is False  # hex 8.8.8.8
+
+    def test_validate_url_safe_numeric_ip_bypass(self):
+        """SSRF protection must block numeric-encoded loopback/metadata URLs."""
+        with pytest.raises(SSRFError):
+            validate_url_safe("http://2130706433/")  # 127.0.0.1
+        with pytest.raises(SSRFError):
+            validate_url_safe("http://0x7f000001/")  # 127.0.0.1
+        with pytest.raises(SSRFError):
+            validate_url_safe("http://017700000001/")  # 127.0.0.1
+        with pytest.raises(SSRFError):
+            validate_url_safe("http://127.1/")  # short form 127.0.0.1
+        # Legitimate public host expressed numerically still passes.
+        validate_url_safe("http://0x08080808/")  # 8.8.8.8
+
     def test_validate_url_safe_file_scheme(self):
         """File scheme should be blocked."""
         with pytest.raises(SSRFError):

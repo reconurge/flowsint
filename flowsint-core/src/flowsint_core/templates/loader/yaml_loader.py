@@ -1,5 +1,6 @@
 import ipaddress
 import re
+import socket
 from typing import Any, Optional, Set
 from urllib.parse import urlparse
 
@@ -53,17 +54,36 @@ class TemplateRenderError(Exception):
     pass
 
 
+def _normalize_ip(ip_str: str) -> Optional[ipaddress._BaseAddress]:
+    """Resolve a host literal to an IP address, including legacy numeric forms.
+
+    ``ipaddress.ip_address`` only accepts canonical notations, but HTTP
+    clients and the OS resolver also accept decimal ("2130706433"), hex
+    ("0x7f000001"), octal ("017700000001") and short ("127.1") IPv4 forms.
+    Those all resolve to 127.0.0.1, so they must be canonicalized before the
+    blocklist check or they bypass SSRF protection.
+    """
+    try:
+        return ipaddress.ip_address(ip_str)
+    except ValueError:
+        pass
+    try:
+        # inet_aton accepts the same legacy IPv4 forms as the C resolver.
+        return ipaddress.ip_address(socket.inet_aton(ip_str))
+    except (OSError, ValueError):
+        return None
+
+
 def is_ip_blocked(ip_str: str) -> bool:
     """Check if an IP address is in a blocked range."""
-    try:
-        ip = ipaddress.ip_address(ip_str)
-        for blocked_range in BLOCKED_IP_RANGES:
-            if ip in blocked_range:
-                return True
-        return False
-    except ValueError:
+    ip = _normalize_ip(ip_str)
+    if ip is None:
         # Not a valid IP address
         return False
+    for blocked_range in BLOCKED_IP_RANGES:
+        if ip in blocked_range:
+            return True
+    return False
 
 
 def validate_url_safe(url: str) -> None:

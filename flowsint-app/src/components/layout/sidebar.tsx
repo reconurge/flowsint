@@ -7,6 +7,7 @@ import { memo } from 'react'
 import { isMac } from '@/lib/utils'
 import { NavUser } from '../nav-user'
 import { CONFIG } from '@/config'
+import { useTranslation } from 'react-i18next'
 
 interface NavItem {
   icon: LucideIcon
@@ -16,16 +17,17 @@ interface NavItem {
 
 export const Sidebar = memo(() => {
   const togglePanel = useLayoutStore((s) => s.togglePanel)
+  const { t } = useTranslation()
 
   const navItems: NavItem[] = [
-    { icon: Home, label: 'Dashboard', href: '/dashboard/' },
-    { icon: Workflow, label: 'Flows', href: '/dashboard/flows' },
-    { icon: Shapes, label: 'Custom types', href: '/dashboard/custom-types' },
-    { icon: Lock, label: 'Vault', href: '/dashboard/vault' }
+    { icon: Home, label: t('sidebar.dashboard'), href: '/dashboard/' },
+    { icon: Workflow, label: t('sidebar.flows'), href: '/dashboard/flows' },
+    { icon: Shapes, label: t('sidebar.customTypes'), href: '/dashboard/custom-types' },
+    { icon: Lock, label: t('sidebar.vault'), href: '/dashboard/vault' }
   ]
 
   if (CONFIG.ENRICHER_TEMPLATES_FEATURE_FLAG)
-    navItems.push({ icon: Puzzle, label: 'Enrichers', href: '/dashboard/enrichers' })
+    navItems.push({ icon: Puzzle, label: t('sidebar.enrichers'), href: '/dashboard/enrichers' })
 
   const commonClasses = 'flex items-center justify-center h-12 w-full rounded-sm hover:bg-muted'
 
@@ -76,7 +78,7 @@ export const Sidebar = memo(() => {
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
-              Toggle panel
+              {t('sidebar.togglePanel')}
               <span className="text-[.7rem] ml-1 opacity-60">({isMac ? '⌘' : 'ctrl'}B)</span>
             </TooltipContent>
           </Tooltip>

@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "error": "Произошла ошибка",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "settings": "Настройки"
+  },
+  "sidebar": {
+    "dashboard": "Дашборд",
+    "flows": "Сценарии",
+    "customTypes": "Пользовательские типы",
+    "vault": "Хранилище",
+    "enrichers": "Модули",
+    "togglePanel": "Переключить панель"
+  },
+  "navUser": {
+    "preferences": "Настройки",
+    "theme": "Тема",
+    "language": "Язык",
+    "profile": "Профиль",
+    "logout": "Выйти"
+  },
+  "command": {
+    "searchFlowsint": "Поиск Flowsint",
+    "placeholder": "Введите команду или поиск...",
+    "noResults": "Ничего не найдено.",
+    "investigations": "Расследования",
+    "quickActions": "Быстрые действия",
+    "allInvestigations": "Все расследования",
+    "enrichers": "Модули"
+  },
+  "dashboard": {
+    "title": "Расследования",
+    "description": "Управляйте и отслеживайте ваши OSINT расследования",
+    "newInvestigation": "Новое расследование",
+    "searchPlaceholder": "Поиск расследований...",
+    "all": "Все",
+    "active": "Активные",
+    "closed": "Закрытые",
+    "onHold": "На паузе",
+    "noInvestigations": "Расследования не найдены.",
+    "table": {
+      "name": "Название",
+      "status": "Статус",
+      "updated": "Обновлено"
+    }
+  },
+  "newInvestigation": {
+    "title": "Новое расследование",
+    "description": "Создайте новое пустое расследование.",
+    "form": {
+      "name": "Название расследования",
+      "namePlaceholder": "Подозрение на мошенничество",
+      "desc": "Описание",
+      "descPlaceholder": "Расследование фишинговой кампании через LinkedIn.",
+      "creating": "Создание...",
+      "createBtn": "Создать расследование"
+    },
+    "validation": {
+      "nameRequired": "Имя расследования обязательно",
+      "nameMin": "Имя должно содержать не менее 3 символов",
+      "nameMax": "Имя должно содержать менее 100 символов",
+      "descMax": "Описание должно быть короче 500 символов"
+    },
+    "toast": {
+      "success": "Новое расследование создано.",
+      "failed": "Не удалось создать расследование"
+    }
+  }
+}

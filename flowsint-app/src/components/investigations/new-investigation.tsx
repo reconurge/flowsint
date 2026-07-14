@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from '@tanstack/react-router'
@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { investigationService } from '@/api/investigation-service'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -34,16 +35,16 @@ import { Input } from '@/components/ui/input'
 import * as z from 'zod'
 
 // Schema de validation Zod
-const investigationSchema = z.object({
+const getInvestigationSchema = (t: any) => z.object({
   name: z
     .string()
-    .min(1, 'Investigation name is required')
-    .min(3, 'Investigation name must be at least 3 characters')
-    .max(100, 'Investigation name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional()
+    .min(1, t('newInvestigation.validation.nameRequired'))
+    .min(3, t('newInvestigation.validation.nameMin'))
+    .max(100, t('newInvestigation.validation.nameMax')),
+  description: z.string().max(500, t('newInvestigation.validation.descMax')).optional()
 })
 
-type InvestigationFormData = z.infer<typeof investigationSchema>
+type InvestigationFormData = z.infer<ReturnType<typeof getInvestigationSchema>>
 
 interface NewInvestigationProps {
   children: ReactNode
@@ -51,12 +52,15 @@ interface NewInvestigationProps {
 }
 
 export default function NewInvestigation({ children, noDropDown = false }: NewInvestigationProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const queryClient = useQueryClient()
 
+  const schema = useMemo(() => getInvestigationSchema(t), [t])
+
   const form = useForm<InvestigationFormData>({
-    resolver: zodResolver(investigationSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: '',
       description: ''
@@ -74,14 +78,14 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
     mutationFn: investigationService.create,
     onSuccess: (result) => {
       if (result.id) {
-        toast.success('New investigation created.')
+        toast.success(t('newInvestigation.toast.success'))
         router.navigate({ to: `/dashboard/investigations/${result.id}` })
         // Invalidate investigations list
         queryClient.invalidateQueries({
           queryKey: queryKeys.investigations.list
         })
       } else {
-        toast.error(result.error || 'Failed to create investigation')
+        toast.error(result.error || t('newInvestigation.toast.failed'))
       }
     },
     onError: (error) => {
@@ -111,11 +115,11 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Investigation name</FormLabel>
+                <FormLabel>{t('newInvestigation.form.name')}</FormLabel>
                 <FormControl>
                   <Input
                     required
-                    placeholder="Fraud suspicion"
+                    placeholder={t('newInvestigation.form.namePlaceholder')}
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -130,10 +134,10 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('newInvestigation.form.desc')}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Investigation into a phishing campaign via LinkedIn."
+                    placeholder={t('newInvestigation.form.descPlaceholder')}
                     disabled={isSubmitting}
                     {...field}
                   />
@@ -146,10 +150,10 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Investigation'}
+            {isSubmitting ? t('newInvestigation.form.creating') : t('newInvestigation.form.createBtn')}
           </Button>
         </DialogFooter>
       </form>
@@ -164,8 +168,8 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>New investigation</DialogTitle>
-            <DialogDescription>Create a new blank investigation.</DialogDescription>
+            <DialogTitle>{t('newInvestigation.title')}</DialogTitle>
+            <DialogDescription>{t('newInvestigation.description')}</DialogDescription>
           </DialogHeader>
           <InvestigationForm />
         </DialogContent>
@@ -179,7 +183,7 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => setOpen(true)}>
-            New investigation
+            {t('newInvestigation.title')}
             <span className="ml-auto text-xs text-muted-foreground">⌘ E</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -187,8 +191,8 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>New investigation</DialogTitle>
-            <DialogDescription>Create a new blank investigation.</DialogDescription>
+            <DialogTitle>{t('newInvestigation.title')}</DialogTitle>
+            <DialogDescription>{t('newInvestigation.description')}</DialogDescription>
           </DialogHeader>
           <InvestigationForm />
         </DialogContent>

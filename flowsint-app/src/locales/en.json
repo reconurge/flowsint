@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "flows": "Flows",
+    "customTypes": "Custom types",
+    "vault": "Vault",
+    "enrichers": "Enrichers",
+    "togglePanel": "Toggle panel"
+  },
+  "navUser": {
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "language": "Language",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "command": {
+    "searchFlowsint": "Search Flowsint",
+    "placeholder": "Type a command or search...",
+    "noResults": "No results found.",
+    "investigations": "Investigations",
+    "quickActions": "Quick Actions",
+    "allInvestigations": "All Investigations",
+    "enrichers": "Enrichers"
+  },
+  "dashboard": {
+    "title": "Investigations",
+    "description": "Manage and track your OSINT investigations",
+    "newInvestigation": "New Investigation",
+    "searchPlaceholder": "Search investigations...",
+    "all": "All",
+    "active": "Active",
+    "closed": "Closed",
+    "onHold": "On Hold",
+    "noInvestigations": "No investigation found.",
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "updated": "Updated"
+    }
+  },
+  "newInvestigation": {
+    "title": "New investigation",
+    "description": "Create a new blank investigation.",
+    "form": {
+      "name": "Investigation name",
+      "namePlaceholder": "Fraud suspicion",
+      "desc": "Description",
+      "descPlaceholder": "Investigation into a phishing campaign via LinkedIn.",
+      "creating": "Creating...",
+      "createBtn": "Create Investigation"
+    },
+    "validation": {
+      "nameRequired": "Investigation name is required",
+      "nameMin": "Investigation name must be at least 3 characters",
+      "nameMax": "Investigation name must be less than 100 characters",
+      "descMax": "Description must be less than 500 characters"
+    },
+    "toast": {
+      "success": "New investigation created.",
+      "failed": "Failed to create investigation"
+    }
+  }
+}

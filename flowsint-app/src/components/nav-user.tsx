@@ -1,11 +1,16 @@
 import { LogOut, UserIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu'
 import { Button } from './ui/button'
 import { ModeToggle } from './mode-toggle'
@@ -17,6 +22,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { getDisplayName } from '@/lib/user-display'
 
 export function NavUser() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const displayName = getDisplayName(user)
@@ -49,21 +55,41 @@ export function NavUser() {
             </div>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuLabel className="text-xs font-light opacity-60">Preferences</DropdownMenuLabel>
-        <div className="flex text-sm items-center justify-between px-3">
-          Theme
+        <DropdownMenuLabel className="text-xs font-light opacity-60">{t('navUser.preferences')}</DropdownMenuLabel>
+        <div className="flex text-sm items-center justify-between px-3 py-1.5">
+          {t('navUser.theme')}
           <ModeToggle />
+        </div>
+        <div className="flex text-sm items-center justify-between px-3 py-1.5">
+          {t('navUser.language')}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div>
+                <Button variant="ghost" className="h-6 px-2 text-xs">
+                  {i18n.resolvedLanguage === 'ru' ? 'RU' : 'EN'}
+                </Button>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => i18n.changeLanguage('en')}>
+                English {i18n.resolvedLanguage === 'en' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => i18n.changeLanguage('ru')}>
+                Русский {i18n.resolvedLanguage === 'ru' && '✓'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/dashboard/profile">
             <UserIcon />
-            Profile
+            {t('navUser.profile')}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={logout}>
           <LogOut />
-          Log out
+          {t('navUser.logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

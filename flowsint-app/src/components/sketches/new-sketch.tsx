@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useTranslation } from 'react-i18next'
 
 interface FormValues {
   title: string
@@ -28,6 +29,7 @@ interface NewSketchProps {
 }
 
 export default function NewSketch({ children }: NewSketchProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const { investigationId, id: sketchId } = useParams({ strict: false })
@@ -45,7 +47,7 @@ export default function NewSketch({ children }: NewSketchProps) {
     mutationFn: sketchService.create,
     onSuccess: (result) => {
       if (result.id) {
-        toast.success('New sketch created.')
+        toast.success(t('newSketch.toast.success'))
         router.navigate({
           to: `/dashboard/investigations/${investigationId}/graph/${result.id}`
         })
@@ -61,7 +63,7 @@ export default function NewSketch({ children }: NewSketchProps) {
         }
         if (sketchId) setOpen(false)
       } else {
-        toast.error(result.error || 'Failed to create sketch.')
+        toast.error(result.error || t('newSketch.toast.failed'))
       }
     },
     onError: (error) => {
@@ -71,7 +73,7 @@ export default function NewSketch({ children }: NewSketchProps) {
 
   async function onSubmit(data: FormValues) {
     if (!investigationId) {
-      toast.error('A sketch must be related to an investigation.')
+      toast.error(t('newSketch.toast.noInvestigation'))
       return
     }
 
@@ -90,11 +92,11 @@ export default function NewSketch({ children }: NewSketchProps) {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
-          <Label htmlFor="title">Sketch name</Label>
+          <Label htmlFor="title">{t('newSketch.form.name')}</Label>
           <Input
             id="title"
-            {...register('title', { required: 'Title is required' })}
-            placeholder="Fraud suspicion"
+            {...register('title', { required: t('newSketch.validation.titleRequired') })}
+            placeholder={t('newSketch.form.namePlaceholder')}
             aria-invalid={errors.title ? 'true' : 'false'}
           />
           {errors.title && (
@@ -104,11 +106,11 @@ export default function NewSketch({ children }: NewSketchProps) {
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">{t('newSketch.form.desc')}</Label>
           <Input
             id="description"
             {...register('description')}
-            placeholder="Phishing domain external scope"
+            placeholder={t('newSketch.form.descPlaceholder')}
           />
         </div>
       </div>
@@ -123,10 +125,10 @@ export default function NewSketch({ children }: NewSketchProps) {
           }}
           disabled={isSubmitting}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save'}
+          {isSubmitting ? t('newSketch.form.saving') : t('newSketch.form.saveBtn')}
         </Button>
       </DialogFooter>
     </form>
@@ -139,8 +141,8 @@ export default function NewSketch({ children }: NewSketchProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>New sketch</DialogTitle>
-          <DialogDescription>Create a new blank sketch.</DialogDescription>
+          <DialogTitle>{t('newSketch.title')}</DialogTitle>
+          <DialogDescription>{t('newSketch.description')}</DialogDescription>
         </DialogHeader>
         {formContent}
       </DialogContent>

@@ -4,6 +4,7 @@
     "error": "An error occurred",
     "save": "Save",
     "cancel": "Cancel",
+    "delete": "Delete",
     "settings": "Settings"
   },
   "sidebar": {
@@ -66,6 +67,103 @@
     "toast": {
       "success": "New investigation created.",
       "failed": "Failed to create investigation"
+    }
+  },
+  "investigationDetails": {
+    "breadcrumbs": {
+      "cases": "Cases"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    },
+    "header": {
+      "status": "Status",
+      "priority": "Priority",
+      "medium": "Medium",
+      "updated": "Updated",
+      "investigatorsCount_one": "{{count}} investigator",
+      "investigatorsCount_other": "{{count}} investigators",
+      "invite": "Invite"
+    },
+    "sketches": {
+      "title": "Sketches",
+      "new": "New",
+      "noSketches": "No sketches yet.",
+      "noDescription": "No description provided."
+    },
+    "analyses": {
+      "title": "Analyses",
+      "new": "New"
+    },
+    "emptyStates": {
+      "sketches": {
+        "title": "No sketches",
+        "desc": "Visualize relationships between entities, infrastructure, and actors",
+        "action": "Create sketch"
+      },
+      "analyses": {
+        "title": "No analyses",
+        "desc": "Document findings, patterns, and conclusions from your investigation",
+        "action": "Write analysis"
+      }
+    }
+  },
+  "shareDialog": {
+    "title": "Share investigation",
+    "description": "Invite collaborators and manage access.",
+    "searchPlaceholder": "Search by name or email...",
+    "invite": "Invite",
+    "noCollaborators": "No collaborators yet",
+    "membersAccess_one": "{{count}} member has access",
+    "membersAccess_other": "{{count}} members have access",
+    "toast": {
+      "added": "Collaborator added",
+      "addFailed": "Failed to add collaborator",
+      "roleUpdated": "Role updated",
+      "updateFailed": "Failed to update role",
+      "removed": "Collaborator removed",
+      "removeFailed": "Failed to remove collaborator"
+    }
+  },
+  "newAnalysis": {
+    "title": "New analysis",
+    "description": "Create a new blank analysis.",
+    "form": {
+      "name": "Analysis name",
+      "namePlaceholder": "Fraud suspicion",
+      "saving": "Saving...",
+      "saveBtn": "Save"
+    },
+    "validation": {
+      "titleRequired": "Title is required"
+    },
+    "toast": {
+      "success": "New analysis created.",
+      "failed": "Failed to create analysis.",
+      "noInvestigation": "An analysis must be related to an investigation."
+    }
+  },
+  "newSketch": {
+    "title": "New sketch",
+    "description": "Create a new blank sketch.",
+    "form": {
+      "name": "Sketch name",
+      "namePlaceholder": "Fraud suspicion",
+      "desc": "Description",
+      "descPlaceholder": "Phishing domain external scope",
+      "saving": "Saving...",
+      "saveBtn": "Save"
+    },
+    "validation": {
+      "titleRequired": "Title is required"
+    },
+    "toast": {
+      "success": "New sketch created.",
+      "failed": "Failed to create sketch.",
+      "noInvestigation": "A sketch must be related to an investigation."
     }
   }
 }

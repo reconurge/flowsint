@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Upload } from "lucide-react"
 import NewSketch from "../sketches/new-sketch"
 import NewAnalysis from "../analyses/new-analysis"
+import { useTranslation } from "react-i18next"
 
 interface EmptyStateProps {
     onAction?: () => void
@@ -44,6 +45,8 @@ export function EmptyInvestigations({ onAction }: EmptyStateProps) {
 }
 
 export function EmptySketches({ onAction }: EmptyStateProps) {
+    const { t } = useTranslation()
+
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-border rounded-lg">
             {/* Minimal graph/network illustration */}
@@ -57,14 +60,14 @@ export function EmptySketches({ onAction }: EmptyStateProps) {
                     <path d="M20 42H36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
             </div>
-            <h3 className="text-sm font-medium text-foreground mb-1">No sketches</h3>
+            <h3 className="text-sm font-medium text-foreground mb-1">{t('investigationDetails.emptyStates.sketches.title')}</h3>
             <p className="text-xs text-muted-foreground text-center max-w-[200px] mb-4">
-                Visualize relationships between entities, infrastructure, and actors
+                {t('investigationDetails.emptyStates.sketches.desc')}
             </p>
             <NewSketch>
                 <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
                     <Plus className="w-3.5 h-3.5" />
-                    Create sketch
+                    {t('investigationDetails.emptyStates.sketches.action')}
                 </Button>
             </NewSketch>
         </div>
@@ -72,6 +75,8 @@ export function EmptySketches({ onAction }: EmptyStateProps) {
 }
 
 export function EmptyAnalyses({ onAction, canCreate = true }: EmptyStateProps) {
+    const { t } = useTranslation()
+
     return (
         <div className="flex flex-col items-center justify-center py-10 px-4">
             {/* Minimal document illustration */}
@@ -90,15 +95,15 @@ export function EmptyAnalyses({ onAction, canCreate = true }: EmptyStateProps) {
                     <path d="M16 36H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
             </div>
-            <h3 className="text-sm font-medium text-foreground mb-1">No analyses</h3>
+            <h3 className="text-sm font-medium text-foreground mb-1">{t('investigationDetails.emptyStates.analyses.title')}</h3>
             <p className="text-xs text-muted-foreground text-center max-w-[200px] mb-4">
-                Document findings, patterns, and conclusions from your investigation
+                {t('investigationDetails.emptyStates.analyses.desc')}
             </p>
             {canCreate && (
                 <NewAnalysis>
                     <Button onClick={onAction} variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
                         <Plus className="w-3.5 h-3.5" />
-                        Write analysis
+                        {t('investigationDetails.emptyStates.analyses.action')}
                     </Button>
                 </NewAnalysis>
             )}

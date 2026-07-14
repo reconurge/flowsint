@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Analysis } from "@/types"
 import { formatDistanceToNow } from "date-fns"
+import { ru, enUS } from 'date-fns/locale'
 import { Plus, FileText, ChevronRight } from "lucide-react"
 import { EmptyAnalyses } from "../empty-states"
 import NewAnalysis from "@/components/analyses/new-analysis"
 import { Link } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 interface AnalysesSectionProps {
   analyses: Analysis[]
@@ -12,15 +14,18 @@ interface AnalysesSectionProps {
 }
 
 export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionProps) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'ru' ? ru : enUS
+
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-medium text-foreground">Analyses</h2>
+        <h2 className="text-sm font-medium text-foreground">{t('investigationDetails.analyses.title')}</h2>
         {canCreate && (
           <NewAnalysis>
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
               <Plus className="w-3.5 h-3.5" />
-              New
+              {t('investigationDetails.analyses.new')}
             </Button>
           </NewAnalysis>
         )}
@@ -52,7 +57,8 @@ export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionP
                   <span>{analysis.owner_id}</span>
                   <span>·</span>
                   <span>{formatDistanceToNow(new Date(analysis.last_updated_at), {
-                    addSuffix: true
+                    addSuffix: true,
+                    locale
                   })}</span>
                 </div>
               </div>

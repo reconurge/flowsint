@@ -4,6 +4,7 @@
     "error": "Произошла ошибка",
     "save": "Сохранить",
     "cancel": "Отмена",
+    "delete": "Удалить",
     "settings": "Настройки"
   },
   "sidebar": {
@@ -66,6 +67,107 @@
     "toast": {
       "success": "Новое расследование создано.",
       "failed": "Не удалось создать расследование"
+    }
+  },
+  "investigationDetails": {
+    "breadcrumbs": {
+      "cases": "Расследования"
+    },
+    "roles": {
+      "owner": "Владелец",
+      "admin": "Админ",
+      "editor": "Редактор",
+      "viewer": "Читатель"
+    },
+    "header": {
+      "status": "Статус",
+      "priority": "Приоритет",
+      "medium": "Средний",
+      "updated": "Обновлено",
+      "investigatorsCount_one": "{{count}} участник",
+      "investigatorsCount_few": "{{count}} участника",
+      "investigatorsCount_many": "{{count}} участников",
+      "investigatorsCount_other": "{{count}} участников",
+      "invite": "Пригласить"
+    },
+    "sketches": {
+      "title": "Схемы",
+      "new": "Создать",
+      "noSketches": "Пока нет схем.",
+      "noDescription": "Описание не предоставлено."
+    },
+    "analyses": {
+      "title": "Отчеты",
+      "new": "Создать"
+    },
+    "emptyStates": {
+      "sketches": {
+        "title": "Нет схем",
+        "desc": "Визуализируйте связи между сущностями, инфраструктурой и субъектами",
+        "action": "Создать схему"
+      },
+      "analyses": {
+        "title": "Нет отчетов",
+        "desc": "Документируйте находки, паттерны и выводы вашего расследования",
+        "action": "Написать отчет"
+      }
+    }
+  },
+  "shareDialog": {
+    "title": "Поделиться расследованием",
+    "description": "Приглашайте участников и управляйте доступом.",
+    "searchPlaceholder": "Поиск по имени или email...",
+    "invite": "Пригласить",
+    "noCollaborators": "Пока нет участников",
+    "membersAccess_one": "{{count}} участник имеет доступ",
+    "membersAccess_few": "{{count}} участника имеют доступ",
+    "membersAccess_many": "{{count}} участников имеют доступ",
+    "membersAccess_other": "{{count}} участников имеют доступ",
+    "toast": {
+      "added": "Участник добавлен",
+      "addFailed": "Не удалось добавить участника",
+      "roleUpdated": "Роль обновлена",
+      "updateFailed": "Не удалось обновить роль",
+      "removed": "Участник удален",
+      "removeFailed": "Не удалось удалить участника"
+    }
+  },
+  "newAnalysis": {
+    "title": "Новый отчет",
+    "description": "Создайте новый пустой отчет.",
+    "form": {
+      "name": "Название отчета",
+      "namePlaceholder": "Подозрение на мошенничество",
+      "saving": "Сохранение...",
+      "saveBtn": "Сохранить"
+    },
+    "validation": {
+      "titleRequired": "Название обязательно"
+    },
+    "toast": {
+      "success": "Новый отчет создан.",
+      "failed": "Не удалось создать отчет.",
+      "noInvestigation": "Отчет должен быть привязан к расследованию."
+    }
+  },
+  "newSketch": {
+    "title": "Новая схема",
+    "description": "Создайте новую пустую схему.",
+    "form": {
+      "name": "Название схемы",
+      "namePlaceholder": "Подозрение на мошенничество",
+      "desc": "Описание",
+      "descPlaceholder": "Внешний периметр фишингового домена",
+      "saving": "Сохранение...",
+      "saveBtn": "Сохранить"
+    },
+    "validation": {
+      "titleRequired": "Название обязательно"
+    },
+    "toast": {
+      "success": "Новая схема создана.",
+      "failed": "Не удалось создать схему.",
+      "noInvestigation": "Схема должна быть привязана к расследованию."
     }
   }
 }

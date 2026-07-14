@@ -1,5 +1,8 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation, Trans } from 'react-i18next'
+import { formatDistanceToNow } from 'date-fns'
+import { ru, enUS } from 'date-fns/locale'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PlusIcon, FileCode2, Clock, FileX, Upload, FlaskConical, X } from 'lucide-react'
@@ -7,7 +10,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { SkeletonList } from '@/components/shared/skeleton-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ErrorState from '@/components/shared/error-state'
@@ -27,6 +29,8 @@ export const Route = createFileRoute('/_auth/dashboard/enrichers/')({
 })
 
 function TemplatesPage() {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'ru' ? ru : enUS
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isBannerDismissed, setIsBannerDismissed] = useState(false)
@@ -50,7 +54,7 @@ function TemplatesPage() {
     if (!file) return
 
     if (!file.name.endsWith('.yaml') && !file.name.endsWith('.yml')) {
-      toast.error('Only YAML files (.yaml, .yml) are supported')
+      toast.error(t('enricherTemplates.toast.unsupportedFile'))
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
@@ -64,7 +68,7 @@ function TemplatesPage() {
       })
     }
     reader.onerror = () => {
-      toast.error('Failed to read file')
+      toast.error(t('enricherTemplates.toast.readFileFailed'))
     }
     reader.readAsText(file)
 
@@ -81,12 +85,13 @@ function TemplatesPage() {
     }, []) || []
 
   // Add "All" to categories
-  const allCategories = ['All', ...categories]
+  const ALL_KEY = t('enricherTemplates.all')
+  const allCategories = [ALL_KEY, ...categories]
 
   return (
     <PageLayout
-      title="Enricher Templates"
-      description="Create and manage your enricher templates."
+      title={t('enricherTemplates.title')}
+      description={t('enricherTemplates.description')}
       isLoading={isLoading}
       loadingComponent={
         <div className="p-2">
@@ -96,8 +101,8 @@ function TemplatesPage() {
       error={error}
       errorComponent={
         <ErrorState
-          title="Couldn't load templates"
-          description="Something went wrong while fetching data. Please try again."
+          title={t('enricherTemplates.errorTitle')}
+          description={t('enricherTemplates.errorDesc')}
           error={error}
           onRetry={() => refetch()}
         />
@@ -113,11 +118,11 @@ function TemplatesPage() {
           />
           <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Upload className="w-4 h-4 mr-2" />
-            Import
+            {t('enricherTemplates.import')}
           </Button>
           <Button size="sm" onClick={() => navigate({ to: '/dashboard/enrichers/new' as string })}>
             <PlusIcon className="w-4 h-4 mr-2" />
-            New template
+            {t('enricherTemplates.newTemplate')}
           </Button>
         </div>
       }
@@ -126,16 +131,20 @@ function TemplatesPage() {
         <div className="mb-6 flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
           <FlaskConical className="h-4 w-4 shrink-0 text-primary" />
           <p className="flex-1 text-sm text-primary">
-            Template enrichers are currently in <strong>beta</strong>. Feel free to{' '}
-            <a
-              href="https://github.com/reconurge/flowsint/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium underline underline-offset-2"
-            >
-              raise an issue
-            </a>{' '}
-            if you encounter any problems.
+            <Trans
+              i18nKey="enricherTemplates.betaWarning"
+              components={{
+                strong: <strong />,
+                a: (
+                  <a
+                    href="https://github.com/reconurge/flowsint/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline underline-offset-2"
+                  />
+                )
+              }}
+            />
           </p>
           <button
             onClick={dismissBanner}
@@ -153,14 +162,13 @@ function TemplatesPage() {
             <div className="rounded-full bg-muted/50 p-4 mb-4">
               <FileX className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No templates yet</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('enricherTemplates.noTemplates')}</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Get started by creating your first enricher template. Templates allow you to define
-              custom enrichers using YAML configuration.
+              {t('enricherTemplates.noTemplatesDesc')}
             </p>
             <Button onClick={() => navigate({ to: '/dashboard/enrichers/new' as string })}>
               <PlusIcon className="w-4 h-4 mr-2" />
-              Create your first template
+              {t('enricherTemplates.createFirst')}
             </Button>
           </div>
         ) : (
@@ -182,7 +190,7 @@ function TemplatesPage() {
                 <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6">
                   {templates
                     ?.filter((template) =>
-                      category === 'All' ? true : template.category === category
+                      category === ALL_KEY ? true : template.category === category
                     )
                     .map((template) => (
                       <Card
@@ -193,7 +201,7 @@ function TemplatesPage() {
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-lg font-medium group-hover:text-primary transition-colors">
-                              {template.name || '(Unnamed template)'}
+                              {template.name || t('enricherTemplates.unnamed')}
                             </CardTitle>
                             <Badge variant="outline">
                               <FileCode2 className="w-4 h-4 text-muted-foreground" />v
@@ -210,7 +218,7 @@ function TemplatesPage() {
                               <Clock className="w-4 h-4 mr-1" />
                               {formatDistanceToNow(
                                 new Date(template.updated_at || template.created_at),
-                                { addSuffix: true }
+                                { addSuffix: true, locale }
                               )}
                             </div>
                             <Badge variant="secondary">{template.category}</Badge>

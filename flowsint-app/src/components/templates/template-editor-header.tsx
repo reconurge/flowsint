@@ -12,6 +12,7 @@ import {
   Save
 } from 'lucide-react'
 import type { editor } from 'monaco-editor'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -53,6 +54,7 @@ export function TemplateEditorHeader({
   onGenerateClick,
   onNavigateBack
 }: TemplateEditorHeaderProps) {
+  const { t } = useTranslation()
   return (
     <header className="shrink-0 flex items-center justify-between px-4 py-2 border-b bg-card/30">
       {/* Left: Breadcrumb + Status */}
@@ -61,10 +63,10 @@ export function TemplateEditorHeader({
           onClick={onNavigateBack}
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
-          Templates
+          {t('enricherEditor.header.templates')}
         </button>
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
-        <span className="font-medium">{isEditMode ? templateName : 'New Template'}</span>
+        <span className="font-medium">{isEditMode ? templateName : t('enricherEditor.header.newTemplate')}</span>
 
         {isEditMode ? (
           hasChanges ? (
@@ -72,7 +74,7 @@ export function TemplateEditorHeader({
               variant="outline"
               className="ml-1 text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20"
             >
-              Unsaved
+              {t('enricherEditor.header.unsaved')}
             </Badge>
           ) : (
             !hasErrors && (
@@ -81,7 +83,7 @@ export function TemplateEditorHeader({
                 className="ml-1 text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
               >
                 <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
-                Saved
+                {t('enricherEditor.header.saved')}
               </Badge>
             )
           )
@@ -90,7 +92,7 @@ export function TemplateEditorHeader({
             variant="outline"
             className="ml-1 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20"
           >
-            Draft
+            {t('enricherEditor.header.draft')}
           </Badge>
         )}
       </div>
@@ -108,12 +110,12 @@ export function TemplateEditorHeader({
               {hasErrors ? (
                 <>
                   <XCircle className="h-3.5 w-3.5" />
-                  {totalErrors} error{totalErrors !== 1 ? 's' : ''}
+                  {t('enricherEditor.errors', { count: totalErrors })}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Valid
+                  {t('enricherEditor.valid')}
                 </>
               )}
             </Button>
@@ -121,7 +123,7 @@ export function TemplateEditorHeader({
           <PopoverContent align="end" className="w-80 p-0">
             <div className="p-3 border-b">
               <p className="text-sm font-medium">
-                {hasErrors ? 'Validation Errors' : 'Validation Passed'}
+                {hasErrors ? t('enricherEditor.header.validationErrors') : t('enricherEditor.header.validationPassed')}
               </p>
             </div>
             {hasErrors ? (
@@ -138,7 +140,7 @@ export function TemplateEditorHeader({
                     <div key={`e-${i}`} className="flex gap-2 text-xs">
                       <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
                       <span className="text-destructive">
-                        Line {error.startLineNumber}: {error.message}
+                        {t('enricherEditor.header.lineError', { line: error.startLineNumber, message: error.message })}
                       </span>
                     </div>
                   ))}
@@ -146,7 +148,7 @@ export function TemplateEditorHeader({
             ) : (
               <div className="p-3">
                 <p className="text-xs text-muted-foreground">
-                  All required fields are present and valid.
+                  {t('enricherEditor.header.allValid')}
                 </p>
               </div>
             )}
@@ -165,10 +167,10 @@ export function TemplateEditorHeader({
               className="h-7 gap-1.5 text-xs"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Generate
+              {t('enricherEditor.header.generate')}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Focus AI assistant</TooltipContent>
+          <TooltipContent>{t('enricherEditor.header.focusAi')}</TooltipContent>
         </Tooltip>
 
         <div className="w-px h-4 bg-border mx-0.5" />
@@ -180,7 +182,7 @@ export function TemplateEditorHeader({
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Copy YAML</TooltipContent>
+          <TooltipContent>{t('enricherEditor.header.copyYaml')}</TooltipContent>
         </Tooltip>
 
         {/* Save */}
@@ -197,7 +199,7 @@ export function TemplateEditorHeader({
               ) : (
                 <Save className="h-3.5 w-3.5" />
               )}
-              Save Enricher
+              {t('enricherEditor.header.saveEnricher')}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -223,7 +225,7 @@ export function TemplateEditorHeader({
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Delete template</TooltipContent>
+              <TooltipContent>{t('enricherEditor.header.deleteTemplate')}</TooltipContent>
             </Tooltip>
           </>
         )}

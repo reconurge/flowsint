@@ -330,5 +330,94 @@
     },
     "keysCount": "{{count}} key",
     "keysCount_plural": "{{count}} keys"
+  },
+  "enricherTemplates": {
+    "title": "Enricher Templates",
+    "description": "Create and manage your enricher templates.",
+    "errorTitle": "Couldn't load templates",
+    "errorDesc": "Something went wrong while fetching data. Please try again.",
+    "import": "Import",
+    "newTemplate": "New template",
+    "betaWarning": "Template enrichers are currently in <strong>beta</strong>. Feel free to <a>raise an issue</a> if you encounter any problems.",
+    "noTemplates": "No templates yet",
+    "noTemplatesDesc": "Get started by creating your first enricher template. Templates allow you to define custom enrichers using YAML configuration.",
+    "createFirst": "Create your first template",
+    "all": "All",
+    "unnamed": "(Unnamed template)",
+    "toast": {
+      "unsupportedFile": "Only YAML files (.yaml, .yml) are supported",
+      "readFileFailed": "Failed to read file"
+    }
+  },
+  "enricherEditor": {
+    "toast": {
+      "created": "Template created successfully",
+      "createFailed": "Failed to create: ",
+      "saved": "Template saved successfully",
+      "saveFailed": "Failed to save: ",
+      "deleted": "Template deleted",
+      "deleteFailed": "Failed to delete: ",
+      "fixBeforeSave": "Please fix validation errors before saving",
+      "copied": "Copied to clipboard",
+      "copyFailed": "Failed to copy",
+      "enterTestValue": "Please enter a test value",
+      "fixBeforeTesting": "Please fix validation errors before testing",
+      "appliedToEditor": "Applied to editor"
+    },
+    "deleteConfirm": {
+      "title": "Delete template?",
+      "message": "This action cannot be undone. This will permanently delete the template."
+    },
+    "tabs": {
+      "editor": "Editor",
+      "test": "Test"
+    },
+    "errors": "{{count}} error",
+    "errors_plural": "{{count}} errors",
+    "valid": "Valid",
+    "modified": "Modified",
+    "lines": "{{count}} line",
+    "lines_plural": "{{count}} lines",
+    "header": {
+      "templates": "Templates",
+      "newTemplate": "New Template",
+      "unsaved": "Unsaved",
+      "saved": "Saved",
+      "draft": "Draft",
+      "validationErrors": "Validation Errors",
+      "validationPassed": "Validation Passed",
+      "lineError": "Line {{line}}: {{message}}",
+      "allValid": "All required fields are present and valid.",
+      "generate": "Generate",
+      "focusAi": "Focus AI assistant",
+      "copyYaml": "Copy YAML",
+      "saveEnricher": "Save Enricher",
+      "deleteTemplate": "Delete template"
+    },
+    "ai": {
+      "title": "AI Assistant",
+      "assistantName": "Template Assistant",
+      "welcomeMessage": "Describe the enricher you want to build. I understand OSINT concepts, HTTP APIs, and data enrichment workflows.",
+      "suggestionBasic": "Generate a basic enricher",
+      "suggestionHttp": "Add an HTTP source",
+      "placeholder": "Describe the enricher you need...",
+      "errorMessage": "I encountered an error: {{message}}. Please try again.",
+      "clear": "Clear",
+      "you": "You",
+      "assistant": "Assistant",
+      "applyToEditor": "Apply to Editor",
+      "copied": "Copied",
+      "copy": "Copy"
+    },
+    "test": {
+      "title": "Test your template",
+      "description": "Enter a test value to simulate the enricher request.",
+      "inputValue": "Input Value",
+      "valueLabel": "(value)",
+      "inputPlaceholder": "Enter Username...",
+      "requestUrl": "Request URL",
+      "runTestBtn": "Run test",
+      "noResult": "Run a test to see the response here."
+    }
   }
 }

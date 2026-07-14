@@ -341,5 +341,98 @@
     "keysCount_few": "{{count}} ключа",
     "keysCount_many": "{{count}} ключей",
     "keysCount_other": "{{count}} ключей"
+  },
+  "enricherTemplates": {
+    "title": "Шаблоны модулей",
+    "description": "Создавайте и управляйте своими шаблонами модулей.",
+    "errorTitle": "Не удалось загрузить шаблоны",
+    "errorDesc": "Что-то пошло не так при получении данных. Пожалуйста, попробуйте еще раз.",
+    "import": "Импорт",
+    "newTemplate": "Новый шаблон",
+    "betaWarning": "Шаблоны модулей сейчас в <strong>бете</strong>. Не стесняйтесь <a>открыть обращение</a>, если вы столкнетесь с проблемами.",
+    "noTemplates": "Пока нет шаблонов",
+    "noTemplatesDesc": "Начните с создания вашего первого шаблона модуля. Шаблоны позволяют вам создавать собственные модули используя YAML конфигурацию.",
+    "createFirst": "Создать первый шаблон",
+    "all": "Все",
+    "unnamed": "(Шаблон без названия)",
+    "toast": {
+      "unsupportedFile": "Поддерживаются только YAML файлы (.yaml, .yml)",
+      "readFileFailed": "Не удалось прочитать файл"
+    }
+  },
+  "enricherEditor": {
+    "toast": {
+      "created": "Шаблон успешно создан",
+      "createFailed": "Не удалось создать: ",
+      "saved": "Шаблон успешно сохранен",
+      "saveFailed": "Не удалось сохранить: ",
+      "deleted": "Шаблон удален",
+      "deleteFailed": "Не удалось удалить: ",
+      "fixBeforeSave": "Пожалуйста, исправьте ошибки валидации перед сохранением",
+      "copied": "Скопировано в буфер обмена",
+      "copyFailed": "Не удалось скопировать",
+      "enterTestValue": "Пожалуйста, введите тестовое значение",
+      "fixBeforeTesting": "Пожалуйста, исправьте ошибки валидации перед тестированием",
+      "appliedToEditor": "Применено в редакторе"
+    },
+    "deleteConfirm": {
+      "title": "Удалить шаблон?",
+      "message": "Это действие нельзя отменить. Шаблон будет удален навсегда."
+    },
+    "tabs": {
+      "editor": "Редактор",
+      "test": "Тест"
+    },
+    "errors_one": "{{count}} ошибка",
+    "errors_few": "{{count}} ошибки",
+    "errors_many": "{{count}} ошибок",
+    "errors_other": "{{count}} ошибок",
+    "valid": "Валидно",
+    "modified": "Изменено",
+    "lines_one": "{{count}} строка",
+    "lines_few": "{{count}} строки",
+    "lines_many": "{{count}} строк",
+    "lines_other": "{{count}} строк",
+    "header": {
+      "templates": "Шаблоны",
+      "newTemplate": "Новый шаблон",
+      "unsaved": "Не сохранено",
+      "saved": "Сохранено",
+      "draft": "Черновик",
+      "validationErrors": "Ошибки валидации",
+      "validationPassed": "Валидация пройдена",
+      "lineError": "Строка {{line}}: {{message}}",
+      "allValid": "Все обязательные поля присутствуют и валидны.",
+      "generate": "Сгенерировать",
+      "focusAi": "Фокус на ИИ-ассистенте",
+      "copyYaml": "Копировать YAML",
+      "saveEnricher": "Сохранить модуль",
+      "deleteTemplate": "Удалить шаблон"
+    },
+    "ai": {
+      "title": "AI Ассистент",
+      "assistantName": "Template Assistant",
+      "welcomeMessage": "Опишите модуль, который хотите создать. Я понимаю концепции OSINT, HTTP API и процессы обогащения данных.",
+      "suggestionBasic": "Сгенерировать базовый модуль",
+      "suggestionHttp": "Добавить HTTP-источник",
+      "placeholder": "Опишите нужный вам модуль...",
+      "errorMessage": "Я столкнулся с ошибкой: {{message}}. Пожалуйста, попробуйте еще раз.",
+      "clear": "Очистить",
+      "you": "Вы",
+      "assistant": "Ассистент",
+      "applyToEditor": "Применить в Редакторе",
+      "copied": "Скопировано",
+      "copy": "Копировать"
+    },
+    "test": {
+      "title": "Тестирование шаблона",
+      "description": "Введите тестовое значение для имитации запроса модуля.",
+      "inputValue": "Входное значение",
+      "valueLabel": "(значение)",
+      "inputPlaceholder": "Введите Username...",
+      "requestUrl": "URL запроса",
+      "runTestBtn": "Запустить тест",
+      "noResult": "Запустите тест, чтобы увидеть ответ здесь."
+    }
   }
 }

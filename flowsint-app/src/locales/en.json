@@ -6,7 +6,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "settings": "Settings",
-    "edit": "Редактировать"
+    "edit": "Edit"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -89,9 +89,7 @@
       "updated": "Updated",
       "investigatorsCount_one": "{{count}} investigator",
       "investigatorsCount_other": "{{count}} investigators",
-      "invite": "Invite",
-      "investigatorsCount_few": "{{count}} участника",
-      "investigatorsCount_many": "{{count}} участников"
+      "invite": "Invite"
     },
     "sketches": {
       "title": "Sketches",
@@ -131,9 +129,7 @@
       "updateFailed": "Failed to update role",
       "removed": "Collaborator removed",
       "removeFailed": "Failed to remove collaborator"
-    },
-    "membersAccess_few": "{{count}} участника имеют доступ",
-    "membersAccess_many": "{{count}} участников имеют доступ"
+    }
   },
   "newAnalysis": {
     "title": "New analysis",
@@ -254,13 +250,13 @@
         "items": "Items"
       },
       "enricherItem": {
-        "inputProperties": "Входные свойства",
-        "outputProperties": "Выходные свойства",
-        "module": "Модуль",
-        "description": "Описание",
-        "input": "Вход:",
-        "output": "Выход:",
-        "configRequired": "Требуется настройка"
+        "inputProperties": "Input Properties",
+        "outputProperties": "Output Properties",
+        "module": "Module",
+        "description": "Description",
+        "input": "Input:",
+        "output": "Output:",
+        "configRequired": "Configuration required"
       }
     }
   },
@@ -334,14 +330,10 @@
         "fields": "{{count}} field",
         "fields_plural": "{{count}} fields",
         "jsonSchema": "JSON Schema",
-        "moreFields_one": "+ еще {{count}} поле",
-        "moreFields_few": "+ еще {{count}} поля",
-        "moreFields_many": "+ еще {{count}} полей",
-        "moreFields_other": "+ еще {{count}} полей",
-        "fields_one": "{{count}} поле",
-        "fields_few": "{{count}} поля",
-        "fields_many": "{{count}} полей",
-        "fields_other": "{{count}} полей"
+        "moreFields_one": "{{count}} field",
+        "moreFields_other": "{{count}} fields",
+        "fields_one": "{{count}} field",
+        "fields_other": "{{count}} fields"
       }
     }
   },
@@ -379,10 +371,8 @@
     },
     "keysCount": "{{count}} key",
     "keysCount_plural": "{{count}} keys",
-    "keysCount_one": "{{count}} ключ",
-    "keysCount_few": "{{count}} ключа",
-    "keysCount_many": "{{count}} ключей",
-    "keysCount_other": "{{count}} ключей"
+    "keysCount_one": "{{count}} key",
+    "keysCount_other": "{{count}} keys"
   },
   "enricherTemplates": {
     "title": "Enricher Templates",
@@ -472,14 +462,10 @@
       "runTestBtn": "Run test",
       "noResult": "Run a test to see the response here."
     },
-    "errors_one": "{{count}} ошибка",
-    "errors_few": "{{count}} ошибки",
-    "errors_many": "{{count}} ошибок",
-    "errors_other": "{{count}} ошибок",
-    "lines_one": "{{count}} строка",
-    "lines_few": "{{count}} строки",
-    "lines_many": "{{count}} строк",
-    "lines_other": "{{count}} строк"
+    "errors_one": "{{count}} error",
+    "errors_other": "{{count}} errors",
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines"
   },
   "profile": {
     "toast": {

@@ -24,6 +24,7 @@ import type { FormField } from '@/lib/action-items'
 import { MetadataField } from '@/components/sketches/metadata-field'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 interface DynamicFormProps {
   currentNodeType: any
@@ -41,6 +42,7 @@ export function DynamicForm({
   loading = false
 }: DynamicFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t } = useTranslation()
 
   const dynamicSchema = useMemo(() => {
     const createDynamicSchema = () => {
@@ -52,7 +54,7 @@ export function DynamicForm({
             schemaMap[field.name] = field.required
               ? z
                   .string()
-                  .min(1, { message: `${field.label} is required` })
+                  .min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
                   .email({ message: 'Email invalide' })
               : z.string().email({ message: 'Email invalide' }).optional()
             break
@@ -60,7 +62,7 @@ export function DynamicForm({
             schemaMap[field.name] = field.required
               ? z
                   .string()
-                  .min(1, { message: `${field.label} is required` })
+                  .min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
                   .url({ message: 'URL invalide' })
               : z.string().url({ message: 'URL invalide' }).optional()
             break
@@ -68,7 +70,7 @@ export function DynamicForm({
             schemaMap[field.name] = field.required
               ? z
                   .string()
-                  .min(1, { message: `${field.label} is required` })
+                  .min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
                   .refine((val) => !isNaN(Number(val)), {
                     message: 'Doit être un nombre valide'
                   })
@@ -85,7 +87,7 @@ export function DynamicForm({
               schemaMap[field.name] = field.required
                 ? z
                     .string()
-                    .min(1, { message: `${field.label} is required` })
+                    .min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
                     .refine((val) => validValues.includes(val), {
                       message: 'Valeur non valide'
                     })
@@ -97,13 +99,13 @@ export function DynamicForm({
                     .optional()
             } else {
               schemaMap[field.name] = field.required
-                ? z.string().min(1, { message: `${field.label} is required` })
+                ? z.string().min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
                 : z.string().optional()
             }
             break
           case 'date':
             schemaMap[field.name] = field.required
-              ? z.string().min(1, { message: `${field.label} is required` })
+              ? z.string().min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
               : z.string().optional()
             break
           case 'hidden':
@@ -111,7 +113,7 @@ export function DynamicForm({
             break
           case 'textarea':
             schemaMap[field.name] = field.required
-              ? z.string().min(1, { message: `${field.label} is required` })
+              ? z.string().min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
               : z.string().optional()
             break
           case 'metadata':
@@ -123,12 +125,12 @@ export function DynamicForm({
             break
           case 'list':
             schemaMap[field.name] = field.required
-              ? z.array(z.string()).min(1, { message: `${field.label} is required` })
+              ? z.array(z.string()).min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
               : z.array(z.string()).optional().default([])
             break
           default:
             schemaMap[field.name] = field.required
-              ? z.string().min(1, { message: `${field.label} is required` })
+              ? z.string().min(1, { message: `${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })} is required` })
               : z.string().optional()
         }
       })
@@ -219,7 +221,7 @@ export function DynamicForm({
             <InfoIcon className="h-4 w-4 text-muted-foreground ml-1 cursor-help" />
           </TooltipTrigger>
           <TooltipContent>
-            <p className="max-w-xs">{field.description}</p>
+            <p className="max-w-xs">{t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.description', { defaultValue: field.description })}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -234,7 +236,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -242,7 +244,7 @@ export function DynamicForm({
             <Input
               id={field.name}
               type={field.type}
-              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              placeholder={field.placeholder || `${t('sketches.itemsPanel.enter', { defaultValue: 'Enter' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label }).toLowerCase()}`}
               className={errors[field.name] ? 'border-destructive' : ''}
               {...register(field.name)}
             />
@@ -257,7 +259,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -270,7 +272,7 @@ export function DynamicForm({
                 <TagsInput
                   value={Array.isArray(value) ? value : []}
                   onChange={(tags) => onChange(tags)}
-                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                  placeholder={field.placeholder || `${t('sketches.itemsPanel.enter', { defaultValue: 'Enter' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label }).toLowerCase()}`}
                   orientation="vertical"
                   variant='full'
                 />
@@ -287,14 +289,14 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
             </div>
             <Textarea
               id={field.name}
-              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              placeholder={field.placeholder || `${t('sketches.itemsPanel.enter', { defaultValue: 'Enter' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label }).toLowerCase()}`}
               className={errors[field.name] ? 'border-destructive' : ''}
               {...register(field.name)}
             />
@@ -309,7 +311,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -325,7 +327,7 @@ export function DynamicForm({
                     className={errors[field.name] ? 'border-destructive' : ''}
                   >
                     <SelectValue
-                      placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`}
+                      placeholder={field.placeholder || `${t('sketches.itemsPanel.select', { defaultValue: 'Select' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label }).toLowerCase()}`}
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -350,7 +352,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -416,7 +418,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -424,7 +426,7 @@ export function DynamicForm({
             <Input
               id={field.name}
               type="url"
-              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              placeholder={field.placeholder || `${t('sketches.itemsPanel.enter', { defaultValue: 'Enter' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label }).toLowerCase()}`}
               className={errors[field.name] ? 'border-destructive' : ''}
               {...register(field.name)}
             />
@@ -439,7 +441,7 @@ export function DynamicForm({
           <div className="space-y-2" key={field.name}>
             <div className="flex items-center">
               <Label htmlFor={field.name} className="text-sm font-medium">
-                {field.label}
+                {t('types.' + currentNodeType.type.toLowerCase() + '.fields.' + field.name + '.label', { defaultValue: field.label })}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
               {FieldDescription}
@@ -480,7 +482,7 @@ export function DynamicForm({
               Submitting...
             </>
           ) : (
-            `Add ${currentNodeType.label}`
+            `${t('sketches.itemsPanel.add', { defaultValue: 'Add' })} ${t('types.' + currentNodeType.type.toLowerCase() + '.name', { defaultValue: currentNodeType.label })}`
           )}
         </Button>
       </div>

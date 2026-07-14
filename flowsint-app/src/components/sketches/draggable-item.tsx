@@ -74,8 +74,8 @@ export const DraggableItem = memo(function DraggableItem({
               <IconComponent size={16} type={type} />
             </div>
             <div className="w-full p-1 text-left flex-1 min-w-0">
-              <h3 className="text-sm font-medium truncate w-full">{t('types.' + type + '.name', { defaultValue: label })}</h3>
-              <p className="text-xs opacity-60 truncate w-full">{t('types.' + type + '.description', { defaultValue: description })}</p>
+              <h3 className="text-sm font-medium truncate w-full">{t('types.' + type.toLowerCase() + '.name', { defaultValue: label })}</h3>
+              <p className="text-xs opacity-60 truncate w-full">{t('types.' + type.toLowerCase() + '.description', { defaultValue: description })}</p>
             </div>
           </button>
         </TooltipTrigger>

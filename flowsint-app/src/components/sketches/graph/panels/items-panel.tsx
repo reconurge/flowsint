@@ -76,7 +76,7 @@ export const ItemsPanel = memo(function LeftPanel() {
           <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search type..."
+            placeholder={t('sketches.itemsPanel.searchPlaceholder', { defaultValue: 'Search type...' })}
             className="pl-8 h-7 border-border"
             value={searchQuery}
             onChange={handleSearchChange}
@@ -85,7 +85,7 @@ export const ItemsPanel = memo(function LeftPanel() {
       </div>
       <div className="my-1">
         <Button onClick={handleOpenImportModal} className="w-full shadow-none" variant={'outline'}>
-          <Download /> Import entities
+          <Download /> {t('sketches.itemsPanel.importEntities', { defaultValue: 'Import entities' })}
         </Button>
       </div>
       <div className="flex flex-col gap-3">
@@ -99,7 +99,7 @@ export const ItemsPanel = memo(function LeftPanel() {
                   <div className="py-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <span>
-                        {t('types.' + item.type + '.name', { defaultValue: item.label })} ({item.children.length})
+                        {t('sketches.itemsPanel.groups.' + item.label, { defaultValue: item.label })} ({item.children.length})
                       </span>
                       {item.comingSoon && (
                         <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>

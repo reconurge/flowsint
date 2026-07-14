@@ -16,6 +16,7 @@ import { useParams } from '@tanstack/react-router'
 import { useIcon } from '@/hooks/use-icon'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useActionItems } from '@/hooks/use-action-items'
+import { useTranslation } from 'react-i18next'
 import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useGraphControls } from '@/stores/graph-controls-store'
@@ -41,6 +42,7 @@ export default function AddItemDialog() {
 
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
+  const { t } = useTranslation()
 
   const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
   const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
@@ -288,9 +290,9 @@ export default function AddItemDialog() {
       <Dialog open={openFormDialog} onOpenChange={setOpenFormDialog}>
         <DialogContent className="max-h-[95vh] flex flex-col">
           <DialogTitle>
-            {currentNodeType && <>Add {currentNodeType.label.toLowerCase()}</>}
+            {currentNodeType && <>{t('sketches.itemsPanel.add', { defaultValue: 'Add' })} {t('types.' + currentNodeType.type.toLowerCase() + '.name', { defaultValue: currentNodeType.label })}</>}
           </DialogTitle>
-          <DialogDescription>{currentNodeType?.description}</DialogDescription>
+          <DialogDescription>{currentNodeType && t('types.' + currentNodeType.type.toLowerCase() + '.description', { defaultValue: currentNodeType.description })}</DialogDescription>
           {currentNodeType && (
             <div className="grow overflow-y-auto">
               <DynamicForm

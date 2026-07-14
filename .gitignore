@@ -177,6 +177,7 @@ cython_debug/
 
 /certs
 .claude/*
+.agents/*
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/flowsint-enricher-builder/

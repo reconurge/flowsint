@@ -45,7 +45,9 @@
       "name": "Name",
       "status": "Status",
       "updated": "Updated"
-    }
+    },
+    "errorTitle": "Couldn't load investigations",
+    "errorDesc": "Something went wrong while fetching data. Please try again."
   },
   "newInvestigation": {
     "title": "New investigation",
@@ -169,6 +171,8 @@
   "flows": {
     "title": "Flows",
     "description": "Create and manage your flows.",
+    "searchPlaceholder": "Search flows...",
+    "noMatchingFlows": "No matching flows found",
     "newFlow": "New flow",
     "noFlows": "No flow yet",
     "noFlowsDesc": "Get started by creating your first flow. You can use flows to process and manipulate your data in powerful ways.",
@@ -220,6 +224,29 @@
           "zoomIn": "Zoom In",
           "zoomOut": "Zoom Out"
         }
+      },
+      "paramsDialog": {
+        "configure": "Configure",
+        "parameters": "Parameters",
+        "documentation": "Documentation",
+        "saveConfig": "Save configuration"
+      },
+      "searchModules": "Search modules...",
+      "noModulesMatching": "No modules found matching \"{{term}}\"",
+      "flowSheet": {
+        "addConnectorTo": "Add connector to",
+        "chooseModule": "Choose a module to launch from the list below.",
+        "loading": "Loading modules...",
+        "loadFailed": "Failed to load modules. Please try again.",
+        "noModulesSearch": "No modules found matching your search.",
+        "noModulesAvailable": "No modules available for this node type.",
+        "takes": "Takes",
+        "returns": "Returns",
+        "apiKeyRequired": "API key required"
+      },
+      "tabs": {
+        "flows": "Flows",
+        "items": "Items"
       }
     }
   },
@@ -435,5 +462,33 @@
     "email": "Email",
     "saving": "Saving...",
     "saveChanges": "Save changes"
+  },
+  "footer": {
+    "vault": "Vault",
+    "toggleTheme": "Toggle theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "info": {
+      "title": "About Flowsint",
+      "p1": "<0>Flowsint</0> is an <1>investigation and intelligence platform</1> built to support complex research workflows involving <2>people, organizations, infrastructure, and online activity</2>.",
+      "p2": "Whether you're conducting <0>cyber investigations</0>, mapping out <1>fraud networks</1>, or gathering intelligence for <2>threat assessments</2>, Flowsint helps you collect, visualize, and understand fragmented data points in a structured and interactive way.",
+      "whatItDoes": "What Flowsint Does",
+      "does1": "<0>Connects scattered data</0> — emails, domains, social accounts, IPs, phone numbers, addresses, and more — into a single <1>investigative graph</1>.",
+      "does2": "Offers <0>visual enrichers</0> to pivot from one entity to related ones: find <1>connected individuals</1>, discover <2>infrastructure</2>, uncover <3>aliases</3>.",
+      "does3": "<0>Tracks and saves investigation states</0> over time, letting you explore multiple hypotheses or revisit older threads without losing context.",
+      "does4": "Supports <0>live data enrichment</0> from custom or built-in enrichers, giving you <1>actionable insights</1> as you explore.",
+      "whyUse": "Why Use Flowsint?",
+      "why1": "Built for <0>speed and clarity</0> — fast graph rendering, clean UI, responsive enrichers.",
+      "why2": "<0>Flexible graph model</0> that mirrors how investigators think — not just tables and tags, but <1>relationships</1>.",
+      "why3": "Ideal for <0>solo analysts and teams</0> that need to move fast, explore freely, and make sense of <1>partial or messy data</1>.",
+      "useCases": "Use Cases",
+      "case1": "Mapping <0>digital infrastructure</0> of individuals or organizations",
+      "case2": "Investigating <0>online fraud schemes</0> or <1>fake identities</1>",
+      "case3": "Uncovering <0>links between actors</0> across platforms",
+      "case4": "Visualizing the reach of <0>leaked or exposed data</0>",
+      "case5": "Tracking <0>threat actor behavior</0> across social and technical surfaces",
+      "p3": "Flowsint is designed for <0>professionals</0> who need <1>full control</1> over their investigation logic, from how data is structured to how relationships are interpreted. It's not just a tool — it's a <2>flexible workspace</2> for building intelligence."
+    }
   }
 }

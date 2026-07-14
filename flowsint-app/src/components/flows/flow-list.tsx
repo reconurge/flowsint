@@ -10,8 +10,10 @@ import { Button } from '../ui/button'
 import NewFlow from './new-flow'
 import ErrorState from '../shared/error-state'
 import { Flow } from '@/types'
+import { useTranslation } from 'react-i18next'
 
 const FlowsList = () => {
+  const { t } = useTranslation()
   const {
     data: flows,
     isLoading,
@@ -48,8 +50,8 @@ const FlowsList = () => {
   if (error)
     return (
       <ErrorState
-        title="Couldn't load flows"
-        description="Something went wrong while fetching data. Please try again."
+        title={t('flows.errorTitle')}
+        description={t('flows.errorDesc')}
         error={error}
         onRetry={() => refetch()}
       />
@@ -66,7 +68,7 @@ const FlowsList = () => {
         <Input
           type="search"
           className="h-7"
-          placeholder="Search flows..."
+          placeholder={t('flows.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -80,10 +82,10 @@ const FlowsList = () => {
                 to={`/dashboard/flows/$flowId`}
                 params={{ flowId: flow.id }}
                 className="block px-4 py-3 hover:bg-muted cursor-pointer"
-                title={flow.description || 'No description'}
+                title={flow.description || t('flows.noDescription')}
               >
                 <div className="font-semibold text-sm truncate">
-                  {flow.name || '(Unnamed flow)'}
+                  {flow.name || t('flows.unnamed')}
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                   {flow.category && (
@@ -107,7 +109,7 @@ const FlowsList = () => {
         </ul>
       ) : (
         <div className="flex-1 flex items-center justify-center p-4 text-center text-muted-foreground">
-          {searchQuery ? 'No matching flows found' : 'No flows found'}
+          {searchQuery ? t('flows.noMatchingFlows') : t('flows.noFlows')}
         </div>
       )}
     </div>

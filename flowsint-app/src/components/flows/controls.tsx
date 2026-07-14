@@ -3,6 +3,7 @@ import { Panel } from '@xyflow/react'
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { FlowNamePanel } from './flow-name-panel'
+import { useTranslation } from 'react-i18next'
 
 interface FlowControlsProps {
   loading: boolean
@@ -27,6 +28,7 @@ export function FlowControls({
   isSaved,
   flow
 }: FlowControlsProps): JSX.Element {
+  const { t } = useTranslation()
   return (
     <TooltipProvider>
       <FlowNamePanel flow={flow} />
@@ -45,7 +47,7 @@ export function FlowControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Save flow</p>
+            <p>{t('flows.editor.controls.tooltips.save')}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -63,7 +65,7 @@ export function FlowControls({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Delete flow</p>
+              <p>{t('flows.editor.controls.tooltips.delete')}</p>
             </TooltipContent>
           </Tooltip>
         )}
@@ -81,7 +83,7 @@ export function FlowControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Auto Layout</p>
+            <p>{t('flows.editor.controls.tooltips.layout')}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -92,7 +94,7 @@ export function FlowControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Fit View</p>
+            <p>{t('flows.editor.controls.tooltips.fitView')}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -103,7 +105,7 @@ export function FlowControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Zoom In</p>
+            <p>{t('flows.editor.controls.tooltips.zoomIn')}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -114,7 +116,7 @@ export function FlowControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Zoom Out</p>
+            <p>{t('flows.editor.controls.tooltips.zoomOut')}</p>
           </TooltipContent>
         </Tooltip>
       </Panel>

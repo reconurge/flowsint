@@ -43,6 +43,7 @@ import ContextMenu from './context-menu'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/query-keys'
+import { useTranslation } from 'react-i18next'
 
 const nodeTypes: NodeTypes = {
   enricher: EnricherNode,
@@ -75,6 +76,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const [showModal, setShowModal] = useState(false)
   const hasInitialized = useRef(false)
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   // #### Simulation State ####
   const [isSimulating, setIsSimulating] = useState(false)
@@ -99,12 +101,12 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const createFlowMutation = useMutation({
     mutationFn: flowService.create,
     onSuccess: (data) => {
-      toast.success('Enricher saved successfully.')
+      toast.success(t('flows.editor.toast.saved'))
       router.navigate({ to: `/dashboard/flows/${data.id}` })
     },
     onError: (error) => {
       toast.error(
-        'Error creating enricher: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('flows.editor.toast.saveFailed') + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -114,7 +116,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     mutationFn: ({ flowId, body }: { flowId: string; body: BodyInit }) =>
       flowService.update(flowId, body),
     onSuccess: () => {
-      toast.success('Enricher saved successfully.')
+      toast.success(t('flows.editor.toast.saved'))
       // Invalidate the flow detail query
       if (flowId) {
         queryClient.invalidateQueries({
@@ -124,7 +126,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     },
     onError: (error) => {
       toast.error(
-        'Error saving enricher: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('flows.editor.toast.saveFailed') + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -134,7 +136,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     mutationFn: flowService.delete,
     onSuccess: () => {
       router.navigate({ to: '/dashboard/flows' })
-      toast.success('Flow deleted successfully.')
+      toast.success(t('flows.editor.toast.deleted'))
       // Invalidate flows list
       queryClient.invalidateQueries({
         queryKey: queryKeys.flows.list
@@ -142,7 +144,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     },
     onError: (error) => {
       toast.error(
-        'Error deleting flow: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('flows.editor.toast.deleteFailed') + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -157,7 +159,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     },
     onError: (error) => {
       toast.error(
-        'Error computing flow: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('flows.editor.toast.computeFailed') + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -244,7 +246,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       if (enricherData.type === 'type') {
         const existsType = nodes.find((node) => node.data.type === 'type')
         if (existsType) {
-          return toast.error('Only one type node is allowed')
+          return toast.error(t('flows.editor.toast.onlyOneType'))
         }
       }
       const position = reactFlowInstance.screenToFlowPosition({
@@ -341,7 +343,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       try {
         const inputType = nodes.find((node) => node.data.type === 'type')?.data?.class_name
         if (!inputType) {
-          toast.error('Make sure your enricher contains an input type.')
+          toast.error(t('flows.editor.toast.noInputType'))
           return
         }
 
@@ -378,8 +380,8 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     if (!flowId) return
     if (
       await confirm({
-        title: 'Are you sure you want to delete this flow ?',
-        message: "All of the flow's settings will be lost."
+        title: t('flows.editor.deleteConfirm.title'),
+        message: t('flows.editor.deleteConfirm.message')
       })
     ) {
       setLoading(true)
@@ -391,7 +393,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   // #### Flow Computation ####
   const handleComputeFlow = useCallback(async () => {
     if (!flowId) {
-      toast.error('Save the flow first to compute it.')
+      toast.error(t('flows.editor.toast.saveToCompute'))
       return
     }
     await handleSaveFlow()
@@ -637,7 +639,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
             >
               {isSimulating ? (
                 <Button size="sm" variant="outline" className="h-7" onClick={pauseSimulation}>
-                  <Pause className="h-4 w-4 mr-1" /> Pause
+                  <Pause className="h-4 w-4 mr-1" /> {t('flows.editor.controls.pause')}
                 </Button>
               ) : (
                 <Button
@@ -647,27 +649,27 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
                   onClick={handleComputeFlow}
                   data-tour-id="compute-button"
                 >
-                  <Play className="h-4 w-4 mr-1" /> Compute
+                  <Play className="h-4 w-4 mr-1" /> {t('flows.editor.controls.compute')}
                 </Button>
               )}
               <Button size="sm" variant="outline" className="h-7" onClick={skipToEnd}>
-                <SkipForward className="h-4 w-4 mr-1" /> Skip
+                <SkipForward className="h-4 w-4 mr-1" /> {t('flows.editor.controls.skip')}
               </Button>
               <Button size="sm" variant="outline" className="h-7" onClick={resetSimulation}>
-                <RefreshCw className="h-4 w-4 mr-1" /> Reset
+                <RefreshCw className="h-4 w-4 mr-1" /> {t('flows.editor.controls.reset')}
               </Button>
               <Select
                 value={String(simulationSpeed)}
                 onValueChange={(value) => setSimulationSpeed(Number(value))}
               >
                 <SelectTrigger className="!h-7">
-                  <SelectValue placeholder="Select speed" />
+                  <SelectValue placeholder={t('flows.editor.controls.speed.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2000">Slow</SelectItem>
-                  <SelectItem value="1000">Normal</SelectItem>
-                  <SelectItem value="750">Fast</SelectItem>
-                  <SelectItem value="400">Very fast</SelectItem>
+                  <SelectItem value="2000">{t('flows.editor.controls.speed.slow')}</SelectItem>
+                  <SelectItem value="1000">{t('flows.editor.controls.speed.normal')}</SelectItem>
+                  <SelectItem value="750">{t('flows.editor.controls.speed.fast')}</SelectItem>
+                  <SelectItem value="400">{t('flows.editor.controls.speed.veryFast')}</SelectItem>
                 </SelectContent>
               </Select>
             </Panel>

@@ -165,5 +165,62 @@
       "failed": "Failed to create sketch.",
       "noInvestigation": "A sketch must be related to an investigation."
     }
+  },
+  "flows": {
+    "title": "Flows",
+    "description": "Create and manage your flows.",
+    "newFlow": "New flow",
+    "noFlows": "No flow yet",
+    "noFlowsDesc": "Get started by creating your first flow. You can use flows to process and manipulate your data in powerful ways.",
+    "createFirst": "Create your first flow",
+    "all": "All",
+    "uncategorized": "Uncategorized",
+    "unnamed": "(Unnamed flow)",
+    "noDescription": "No description provided",
+    "errorTitle": "Couldn't load flows",
+    "errorDesc": "Something went wrong while fetching data. Please try again.",
+    "editor": {
+      "toast": {
+        "creating": "Creating flow...",
+        "created": "Flow created successfully.",
+        "createFailed": "Failed to create flow.",
+        "createFailedReason": "Failed to create flow: ",
+        "saved": "Flow saved successfully.",
+        "saveFailed": "Error saving flow: ",
+        "deleted": "Flow deleted successfully.",
+        "deleteFailed": "Error deleting flow: ",
+        "computeFailed": "Error computing flow: ",
+        "onlyOneType": "Only one type node is allowed",
+        "noInputType": "Make sure your flow contains an input type.",
+        "saveToCompute": "Save the flow first to compute it."
+      },
+      "defaultName": "New flow",
+      "defaultDesc": "A new example flow.",
+      "deleteConfirm": {
+        "title": "Are you sure you want to delete this flow?",
+        "message": "All of the flow's settings will be lost."
+      },
+      "controls": {
+        "pause": "Pause",
+        "compute": "Compute",
+        "skip": "Skip",
+        "reset": "Reset",
+        "speed": {
+          "placeholder": "Select speed",
+          "slow": "Slow",
+          "normal": "Normal",
+          "fast": "Fast",
+          "veryFast": "Very fast"
+        },
+        "tooltips": {
+          "save": "Save flow",
+          "delete": "Delete flow",
+          "layout": "Auto Layout",
+          "fitView": "Fit View",
+          "zoomIn": "Zoom In",
+          "zoomOut": "Zoom Out"
+        }
+      }
+    }
   }
 }

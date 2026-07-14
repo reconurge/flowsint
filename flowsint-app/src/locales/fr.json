@@ -6,7 +6,15 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "settings": "Paramètres",
-    "edit": "Edit"
+    "edit": "Edit",
+    "saveStatus": {
+      "allSaved": "All changes saved",
+      "pending": "Pending...",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "error": "Error saving",
+      "unknown": "Unknown"
+    }
   },
   "sidebar": {
     "dashboard": "Tableau de bord",
@@ -671,6 +679,10 @@
     "whois": {
       "name": "Whois",
       "description": "Represents whois entity."
+    },
+    "geolocation": {
+      "name": "Geolocation",
+      "description": "Represents a geographical location for IP or domain."
     }
   },
   "enrichers": {
@@ -869,6 +881,67 @@
     "IpToDummyDomainsEnricher": {
       "name": "IpToDummyDomainsEnricher",
       "description": "IpToDummyDomainsEnricher module."
+    }
+  },
+  "sketches": {
+    "views": {
+      "graph": "Graph",
+      "table": "Table",
+      "relationships": "Relationships",
+      "map": "Map"
+    },
+    "emptyState": {
+      "title": "No data to visualize",
+      "subtitle": "Start your investigation by adding nodes to see them displayed in the graph view.",
+      "tipTitle": "Tip:",
+      "tipText": "Use the search bar to find entities or import data to get started",
+      "exploreTitle": "Explore:",
+      "exploreText": "Try searching for domains, emails, or other entities",
+      "labelsTitle": "Labels:",
+      "labelsText": "Zoom in (over 2x) to see all labels, icons, and edges",
+      "addFirst": "Add your first item",
+      "importData": "Import data",
+      "or": "or"
+    },
+    "navigation": {
+      "entities": "Entities",
+      "add": "Add"
+    },
+    "nodesPanel": {
+      "dragAndDrop": "Drag and drop you first node in the \"items\" section.",
+      "search": "Search...",
+      "filters": "filters",
+      "filterCount_one": "{{count}} filter(s)",
+      "filterCount_other": "{{count}} filter(s)",
+      "all": "All",
+      "nodes": "nodes",
+      "noResults": "No nodes match your search"
+    },
+    "toolbar": {
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "fitToView": "Fit to View",
+      "zoomToSelection": "Zoom to Selection",
+      "selectHold": "Select (hold S)",
+      "selectionMode": "Selection mode",
+      "lasso": "Lasso",
+      "rectangle": "Rectangle",
+      "connect": "Connect",
+      "merge": "Merge",
+      "forceLayout": "Force layout",
+      "hierarchyLayout": "Hierarchy layout",
+      "filters": "Filters",
+      "export": "Export",
+      "exportJson": "Export as JSON",
+      "exportPng": "Export as PNG",
+      "refresh": "Refresh",
+      "findPath": "Find Path"
+    },
+    "pathFinder": {
+      "noPath": "No path found between these nodes",
+      "failed": "Failed to find path",
+      "path_one": "Path ({{count}} node)",
+      "path_other": "Path ({{count}} nodes)"
     }
   }
 }

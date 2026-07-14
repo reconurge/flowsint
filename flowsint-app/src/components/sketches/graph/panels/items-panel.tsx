@@ -8,6 +8,7 @@ import { useActionItems } from '@/hooks/use-action-items'
 import { SkeletonList } from '@/components/shared/skeleton-list'
 import { useGraphStore } from '@/stores/graph-store'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
+import { useTranslation } from 'react-i18next'
 
 export const ItemsPanel = memo(function LeftPanel() {
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -26,6 +27,7 @@ export const ItemsPanel = memo(function LeftPanel() {
     setImportModalOpen(true)
   }, [setImportModalOpen])
 
+  const { t } = useTranslation()
   const { actionItems, isLoading } = useActionItems()
 
   const filteredItems = useMemo(() => {
@@ -97,7 +99,7 @@ export const ItemsPanel = memo(function LeftPanel() {
                   <div className="py-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <span>
-                        {item.label} ({item.children.length})
+                        {t('types.' + item.type + '.name', { defaultValue: item.label })} ({item.children.length})
                       </span>
                       {item.comingSoon && (
                         <span className="ml-1 text-xs text-muted-foreground">(Soon)</span>

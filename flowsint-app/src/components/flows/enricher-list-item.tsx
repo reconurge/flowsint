@@ -14,6 +14,7 @@ import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { Badge } from '../ui/badge'
 import { type EnricherItemProps } from '@/types/enricher'
 import { useIcon } from '@/hooks/use-icon'
+import { useTranslation } from 'react-i18next'
 
 // Custom equality function for EnricherItem
 function areEqual(prevProps: EnricherItemProps, nextProps: EnricherItemProps) {
@@ -40,6 +41,27 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
         : null
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { t } = useTranslation()
+
+  const isType = enricher.type === 'type'
+  const typeKey = enricher.outputs?.type?.toLowerCase() || ''
+  
+  const displayName = isType 
+    ? t('types.' + typeKey + '.name', { defaultValue: enricher.class_name }) 
+    : t('enrichers.' + enricher.class_name + '.name', { defaultValue: enricher.class_name })
+
+  const displayDesc = isType
+    ? t('types.' + typeKey + '.description', { defaultValue: enricher.description })
+    : t('enrichers.' + enricher.class_name + '.description', { defaultValue: enricher.description })
+
+  const tInputProps = t('flows.editor.enricherItem.inputProperties', { defaultValue: 'Input Properties' })
+  const tOutputProps = t('flows.editor.enricherItem.outputProperties', { defaultValue: 'Output Properties' })
+  const tModule = t('flows.editor.enricherItem.module', { defaultValue: 'Module' })
+  const tDescription = t('flows.editor.enricherItem.description', { defaultValue: 'Description' })
+  const tInput = t('flows.editor.enricherItem.input', { defaultValue: 'Input:' })
+  const tOutput = t('flows.editor.enricherItem.output', { defaultValue: 'Output:' })
+  const tConfigRequired = t('flows.editor.enricherItem.configRequired', { defaultValue: 'Configuration required' })
+  const tNoDescription = t('customTypes.noDescription', { defaultValue: 'No description available' })
 
   // Handler for drag start - using useCallback to prevent recreation on each render
   const onDragStart = useCallback(
@@ -77,24 +99,24 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
                 <div className="flex items-center gap-2 truncate text-ellipsis">
                   {Icon && <Icon size={24} />}
                   <h3 className="text-sm font-medium truncate text-ellipsis">
-                    {enricher.class_name}
+                    {displayName}
                   </h3>
                 </div>
                 <p className="text-xs font-normal truncate text-ellipsis opacity-60">
-                  {enricher.description}
+                  {displayDesc}
                 </p>
                 {enricher.type !== 'type' && (
                   <div className="mt-2 text-xs">
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Input:</span>
+                      <span className="font-medium">{tInput}</span>
                       <span className="text-muted-foreground truncate text-ellipsis">
-                        {enricher.inputs.type}
+                        {t('types.' + enricher.inputs.type.toLowerCase() + '.name', { defaultValue: enricher.inputs.type })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Output:</span>
+                      <span className="font-medium">{tOutput}</span>
                       <span className="text-muted-foreground truncate text-ellipsis">
-                        {enricher.outputs.type}
+                        {t('types.' + enricher.outputs.type.toLowerCase() + '.name', { defaultValue: enricher.outputs.type })}
                       </span>
                     </div>
                   </div>
@@ -116,7 +138,7 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
                   <TriangleAlert className="h-4 w-4 text-yellow-500" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Configuration required</p>
+                  <p>{tConfigRequired}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -126,39 +148,41 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: borderInputColor }} />
-              {enricher.class_name}
+              {displayName}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {isConfigurationRequired && (
               <div>
                 <Badge variant={'outline'} className=" top-3 right-3">
-                  Configuration required <TriangleAlert className="h-4 w-4 text-orange-500" />
+                  {tConfigRequired} <TriangleAlert className="h-4 w-4 text-orange-500" />
                 </Badge>
               </div>
             )}
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>
-                Description
+                {tDescription}
               </h4>
               <p className="text-sm text-muted-foreground">
-                {enricher.description || 'No description available'}
+                {displayDesc || tNoDescription}
               </p>
             </div>
+            {enricher.module && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>
+                  {tModule}
+                </h4>
+                <p className="text-sm text-muted-foreground">{enricher.module}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>
-                Module
-              </h4>
-              <p className="text-sm text-muted-foreground">{enricher.module}</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm" style={{ color: borderInputColor }}>
-                Input Properties
+                {tInputProps}
               </h4>
               <div className="space-y-1">
                 {enricher?.inputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
-                    <span className="font-medium">{prop.name}:</span>{' '}
+                    <span className="font-medium">{t('types.' + enricher.inputs.type.toLowerCase() + '.fields.' + prop.name, { defaultValue: prop.name })}:</span>{' '}
                     <span className="text-muted-foreground">{prop.type}</span>
                   </div>
                 ))}
@@ -166,12 +190,12 @@ const EnricherItem = memo(({ enricher, category }: EnricherItemProps) => {
             </div>
             <div className="space-y-2">
               <h4 className="font-medium text-sm" style={{ color: borderOutputColor }}>
-                Output Properties
+                {tOutputProps}
               </h4>
               <div className="space-y-1">
                 {enricher?.outputs?.properties?.map((prop, index) => (
                   <div key={index} className="text-sm">
-                    <span className="font-medium">{prop.name}:</span>{' '}
+                    <span className="font-medium">{t('types.' + enricher.outputs.type.toLowerCase() + '.fields.' + prop.name, { defaultValue: prop.name })}:</span>{' '}
                     <span className="text-muted-foreground">{prop.type}</span>
                   </div>
                 ))}

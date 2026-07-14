@@ -20,6 +20,16 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { UserAvatar } from './ui/avatar'
 import { useAuthStore } from '@/stores/auth-store'
 import { getDisplayName } from '@/lib/user-display'
+import { availableLanguages } from '@/i18n'
+
+function getLanguageDisplayName(lng: string) {
+  try {
+    const name = new Intl.DisplayNames([lng], { type: 'language' }).of(lng) || lng
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  } catch (e) {
+    return lng.toUpperCase()
+  }
+}
 
 export function NavUser() {
   const { t, i18n } = useTranslation()
@@ -66,17 +76,16 @@ export function NavUser() {
             <DropdownMenuTrigger asChild>
               <div>
                 <Button variant="ghost" className="h-6 px-2 text-xs">
-                  {i18n.resolvedLanguage === 'ru' ? 'RU' : 'EN'}
+                  {i18n.resolvedLanguage ? i18n.resolvedLanguage.toUpperCase() : 'EN'}
                 </Button>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => i18n.changeLanguage('en')}>
-                English {i18n.resolvedLanguage === 'en' && '✓'}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => i18n.changeLanguage('ru')}>
-                Русский {i18n.resolvedLanguage === 'ru' && '✓'}
-              </DropdownMenuItem>
+              {availableLanguages.map((lng) => (
+                <DropdownMenuItem key={lng} onClick={() => i18n.changeLanguage(lng)}>
+                  {getLanguageDisplayName(lng)} {i18n.resolvedLanguage === lng && '✓'}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

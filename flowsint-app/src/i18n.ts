@@ -1,8 +1,21 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-import enTranslation from './locales/en.json'
-import ruTranslation from './locales/ru.json'
+const locales = import.meta.glob('./locales/*.json', { eager: true })
+
+const resources: Record<string, any> = {}
+
+Object.keys(locales).forEach((path) => {
+  const match = path.match(/\/([^/]+)\.json$/)
+  if (match) {
+    const lng = match[1]
+    resources[lng] = {
+      translation: (locales[path] as any).default || locales[path]
+    }
+  }
+})
+
+export const availableLanguages = Object.keys(resources).sort()
 
 const STORAGE_KEY = 'vite-ui-language'
 const savedLanguage = localStorage.getItem(STORAGE_KEY) || 'en'
@@ -10,14 +23,7 @@ const savedLanguage = localStorage.getItem(STORAGE_KEY) || 'en'
 i18n
   .use(initReactI18next)
   .init({
-    resources: {
-      en: {
-        translation: enTranslation
-      },
-      ru: {
-        translation: ruTranslation
-      }
-    },
+    resources,
     lng: savedLanguage,
     fallbackLng: 'en',
     interpolation: {

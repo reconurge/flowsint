@@ -295,5 +295,40 @@
         "jsonSchema": "JSON Schema"
       }
     }
+  },
+  "vault": {
+    "title": "Vault",
+    "description": "Securely manage your API keys for third-party services.",
+    "addKeyBtn": "Add API Key",
+    "addKeyDesc": "Add a new API key with a custom name. Your keys are encrypted and stored securely.",
+    "keyName": "Key Name",
+    "keyNamePlaceholder": "e.g., OpenAI, GitHub, Shodan...",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter your API key",
+    "cancel": "Cancel",
+    "submitBtn": "Add Key",
+    "noKeys": "No keys yet",
+    "noKeysDesc": "Add your first API key to use third-party services in your investigations.",
+    "addFirstKey": "Add your first key",
+    "tableTitle": "API Keys",
+    "tableDesc": "Your encrypted API keys for external services. These keys will be available for your investigations.",
+    "tableName": "Name",
+    "tableAdded": "Added",
+    "tableActions": "Actions",
+    "errorTitle": "Couldn't load keys",
+    "errorDesc": "Something went wrong while fetching data. Please try again.",
+    "toast": {
+      "added": "API key added successfully!",
+      "addFailed": "Failed to add API key. Please try again.",
+      "deleted": "API key deleted successfully!",
+      "deleteFailed": "Failed to delete API key. Please try again.",
+      "enterBoth": "Please enter both a name and an API key"
+    },
+    "deleteConfirm": {
+      "title": "Delete API Key",
+      "message": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone."
+    },
+    "keysCount": "{{count}} key",
+    "keysCount_plural": "{{count}} keys"
   }
 }

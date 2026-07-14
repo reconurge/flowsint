@@ -1,6 +1,7 @@
 import * as LucideIcons from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { SchemaField } from './field-row'
+import { useTranslation } from 'react-i18next'
 
 interface TypePreviewProps {
   name: string
@@ -21,6 +22,7 @@ export function TypePreview({
   status,
   category
 }: TypePreviewProps) {
+  const { t } = useTranslation()
   const Icon = (LucideIcons as any)[icon] || LucideIcons.FileQuestion
   const validFields = fields.filter((f) => f.key.trim())
 
@@ -28,7 +30,7 @@ export function TypePreview({
     <div className="space-y-6">
       {/* Entity card preview */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-3">Entity card</p>
+        <p className="text-xs font-medium text-muted-foreground mb-3">{t('customTypes.editor.preview.entityCard')}</p>
         <div className="border border-border/60 rounded-xl p-5 bg-card max-w-sm">
           <div className="flex items-start gap-3.5">
             <div
@@ -39,10 +41,10 @@ export function TypePreview({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-sm truncate">{name || 'Untitled type'}</h4>
+                <h4 className="font-semibold text-sm truncate">{name || t('customTypes.editor.untitledType')}</h4>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {description || 'No description'}
+                {description || t('customTypes.noDescription')}
               </p>
             </div>
           </div>
@@ -60,7 +62,7 @@ export function TypePreview({
               ))}
               {validFields.length > 4 && (
                 <p className="text-[10px] text-muted-foreground/50">
-                  +{validFields.length - 4} more fields
+                  {t('customTypes.editor.preview.moreFields', { count: validFields.length - 4 })}
                 </p>
               )}
             </div>
@@ -70,7 +72,7 @@ export function TypePreview({
 
       {/* Graph node preview */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-3">Graph node</p>
+        <p className="text-xs font-medium text-muted-foreground mb-3">{t('customTypes.editor.preview.graphNode')}</p>
         <div className="flex items-center gap-3 p-4 border border-border/60 rounded-xl bg-card max-w-[200px]">
           <div
             className="rounded-full flex items-center justify-center shrink-0"
@@ -79,9 +81,9 @@ export function TypePreview({
             <Icon className="text-white" size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium truncate">{name || 'Untitled'}</p>
+            <p className="text-xs font-medium truncate">{name || t('customTypes.editor.untitled')}</p>
             <p className="text-[10px] text-muted-foreground">
-              {validFields.length} field{validFields.length !== 1 ? 's' : ''}
+              {t('customTypes.editor.preview.fields', { count: validFields.length })}
             </p>
           </div>
         </div>
@@ -89,7 +91,7 @@ export function TypePreview({
 
       {/* Schema preview */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-3">JSON Schema</p>
+        <p className="text-xs font-medium text-muted-foreground mb-3">{t('customTypes.editor.preview.jsonSchema')}</p>
         <pre className="p-4 bg-muted/50 rounded-lg text-xs font-mono overflow-x-auto text-muted-foreground leading-relaxed">
           {JSON.stringify(buildSchema(name, fields), null, 2)}
         </pre>

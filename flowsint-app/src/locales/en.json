@@ -222,5 +222,78 @@
         }
       }
     }
+  },
+  "customTypes": {
+    "title": "Custom types",
+    "description": "Create and manage your custom data types.",
+    "newCustomType": "New custom type",
+    "noCustomTypes": "No custom types yet",
+    "noCustomTypesDesc": "Get started by creating your first custom type. Custom types allow you to define your own data structures for use in flows and investigations.",
+    "createFirst": "Create your first custom type",
+    "errorTitle": "Couldn't load custom types",
+    "errorDesc": "Something went wrong while fetching data. Please try again.",
+    "toast": {
+      "deleted": "Custom type deleted successfully",
+      "deleteFailed": "Failed to delete custom type: "
+    },
+    "deleteConfirm": {
+      "title": "Are you sure you want to delete this custom type?",
+      "message": "This action is irreversible."
+    },
+    "tabs": {
+      "all": "All",
+      "published": "Published",
+      "drafts": "Drafts",
+      "archived": "Archived"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "noInCategory": "No custom types in this category",
+    "noDescription": "No description",
+    "updated": "Updated",
+    "edit": "Edit",
+    "editor": {
+      "newType": "New type",
+      "untitled": "Untitled",
+      "previewBtn": "Preview",
+      "saving": "Saving...",
+      "create": "Create",
+      "save": "Save",
+      "untitledType": "Untitled type",
+      "addDescription": "Add a description...",
+      "status": "Status",
+      "category": "Category",
+      "properties": "Properties",
+      "defineDataStructure": "Define the data structure for this entity type",
+      "addProperty": "Add property",
+      "addFirstProperty": "Add your first property",
+      "newProperty": "New property",
+      "table": {
+        "key": "Key",
+        "label": "Label",
+        "type": "Type",
+        "format": "Format"
+      },
+      "toast": {
+        "created": "Custom type created",
+        "createFailed": "Failed to create: ",
+        "saved": "Changes saved",
+        "saveFailed": "Failed to save: ",
+        "enterName": "Please enter a name",
+        "uniqueKeys": "Field keys must be unique",
+        "oneField": "Add at least one field"
+      },
+      "preview": {
+        "entityCard": "Entity card",
+        "moreFields": "+{{count}} more fields",
+        "graphNode": "Graph node",
+        "fields": "{{count}} field",
+        "fields_plural": "{{count}} fields",
+        "jsonSchema": "JSON Schema"
+      }
+    }
   }
 }

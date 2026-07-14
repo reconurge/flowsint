@@ -5,7 +5,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
-    "settings": "Settings"
+    "settings": "Settings",
+    "edit": "Редактировать"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -88,7 +89,9 @@
       "updated": "Updated",
       "investigatorsCount_one": "{{count}} investigator",
       "investigatorsCount_other": "{{count}} investigators",
-      "invite": "Invite"
+      "invite": "Invite",
+      "investigatorsCount_few": "{{count}} участника",
+      "investigatorsCount_many": "{{count}} участников"
     },
     "sketches": {
       "title": "Sketches",
@@ -128,7 +131,9 @@
       "updateFailed": "Failed to update role",
       "removed": "Collaborator removed",
       "removeFailed": "Failed to remove collaborator"
-    }
+    },
+    "membersAccess_few": "{{count}} участника имеют доступ",
+    "membersAccess_many": "{{count}} участников имеют доступ"
   },
   "newAnalysis": {
     "title": "New analysis",
@@ -247,6 +252,15 @@
       "tabs": {
         "flows": "Flows",
         "items": "Items"
+      },
+      "enricherItem": {
+        "inputProperties": "Входные свойства",
+        "outputProperties": "Выходные свойства",
+        "module": "Модуль",
+        "description": "Описание",
+        "input": "Вход:",
+        "output": "Выход:",
+        "configRequired": "Требуется настройка"
       }
     }
   },
@@ -319,7 +333,15 @@
         "graphNode": "Graph node",
         "fields": "{{count}} field",
         "fields_plural": "{{count}} fields",
-        "jsonSchema": "JSON Schema"
+        "jsonSchema": "JSON Schema",
+        "moreFields_one": "+ еще {{count}} поле",
+        "moreFields_few": "+ еще {{count}} поля",
+        "moreFields_many": "+ еще {{count}} полей",
+        "moreFields_other": "+ еще {{count}} полей",
+        "fields_one": "{{count}} поле",
+        "fields_few": "{{count}} поля",
+        "fields_many": "{{count}} полей",
+        "fields_other": "{{count}} полей"
       }
     }
   },
@@ -356,7 +378,11 @@
       "message": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone."
     },
     "keysCount": "{{count}} key",
-    "keysCount_plural": "{{count}} keys"
+    "keysCount_plural": "{{count}} keys",
+    "keysCount_one": "{{count}} ключ",
+    "keysCount_few": "{{count}} ключа",
+    "keysCount_many": "{{count}} ключей",
+    "keysCount_other": "{{count}} ключей"
   },
   "enricherTemplates": {
     "title": "Enricher Templates",
@@ -445,7 +471,15 @@
       "requestUrl": "Request URL",
       "runTestBtn": "Run test",
       "noResult": "Run a test to see the response here."
-    }
+    },
+    "errors_one": "{{count}} ошибка",
+    "errors_few": "{{count}} ошибки",
+    "errors_many": "{{count}} ошибок",
+    "errors_other": "{{count}} ошибок",
+    "lines_one": "{{count}} строка",
+    "lines_few": "{{count}} строки",
+    "lines_many": "{{count}} строк",
+    "lines_other": "{{count}} строк"
   },
   "profile": {
     "toast": {
@@ -489,6 +523,366 @@
       "case4": "Visualizing the reach of <0>leaked or exposed data</0>",
       "case5": "Tracking <0>threat actor behavior</0> across social and technical surfaces",
       "p3": "Flowsint is designed for <0>professionals</0> who need <1>full control</1> over their investigation logic, from how data is structured to how relationships are interpreted. It's not just a tool — it's a <2>flexible workspace</2> for building intelligence."
+    }
+  },
+  "types": {
+    "location": {
+      "name": "Location",
+      "description": "Represents location entity."
+    },
+    "affiliation": {
+      "name": "Affiliation",
+      "description": "Represents affiliation entity."
+    },
+    "alias": {
+      "name": "Alias",
+      "description": "Represents alias entity."
+    },
+    "asn": {
+      "name": "Asn",
+      "description": "Represents asn entity."
+    },
+    "bankaccount": {
+      "name": "Bankaccount",
+      "description": "Represents bankaccount entity."
+    },
+    "breach": {
+      "name": "Breach",
+      "description": "Represents breach entity."
+    },
+    "cidr": {
+      "name": "Cidr",
+      "description": "Represents cidr entity."
+    },
+    "credential": {
+      "name": "Credential",
+      "description": "Represents credential entity."
+    },
+    "creditcard": {
+      "name": "Creditcard",
+      "description": "Represents creditcard entity."
+    },
+    "cryptonft": {
+      "name": "Cryptonft",
+      "description": "Represents cryptonft entity."
+    },
+    "cryptowallet": {
+      "name": "Cryptowallet",
+      "description": "Represents cryptowallet entity."
+    },
+    "cryptowallettransaction": {
+      "name": "Cryptowallettransaction",
+      "description": "Represents cryptowallettransaction entity."
+    },
+    "device": {
+      "name": "Device",
+      "description": "Represents device entity."
+    },
+    "dnsrecord": {
+      "name": "Dnsrecord",
+      "description": "Represents dnsrecord entity."
+    },
+    "document": {
+      "name": "Document",
+      "description": "Represents document entity."
+    },
+    "domain": {
+      "name": "Domain",
+      "description": "Represents domain entity."
+    },
+    "email": {
+      "name": "Email",
+      "description": "Represents email entity."
+    },
+    "file": {
+      "name": "File",
+      "description": "Represents file entity."
+    },
+    "gravatar": {
+      "name": "Gravatar",
+      "description": "Represents gravatar entity."
+    },
+    "individual": {
+      "name": "Individual",
+      "description": "Represents individual entity."
+    },
+    "ip": {
+      "name": "Ip",
+      "description": "Represents ip entity."
+    },
+    "leak": {
+      "name": "Leak",
+      "description": "Represents leak entity."
+    },
+    "malware": {
+      "name": "Malware",
+      "description": "Represents malware entity."
+    },
+    "message": {
+      "name": "Message",
+      "description": "Represents message entity."
+    },
+    "organization": {
+      "name": "Organization",
+      "description": "Represents organization entity."
+    },
+    "phone": {
+      "name": "Phone",
+      "description": "Represents phone entity."
+    },
+    "phrase": {
+      "name": "Phrase",
+      "description": "Represents phrase entity."
+    },
+    "port": {
+      "name": "Port",
+      "description": "Represents port entity."
+    },
+    "reputationscore": {
+      "name": "Reputationscore",
+      "description": "Represents reputationscore entity."
+    },
+    "riskprofile": {
+      "name": "Riskprofile",
+      "description": "Represents riskprofile entity."
+    },
+    "script": {
+      "name": "Script",
+      "description": "Represents script entity."
+    },
+    "session": {
+      "name": "Session",
+      "description": "Represents session entity."
+    },
+    "socialaccount": {
+      "name": "Socialaccount",
+      "description": "Represents socialaccount entity."
+    },
+    "sslcertificate": {
+      "name": "Sslcertificate",
+      "description": "Represents sslcertificate entity."
+    },
+    "technology": {
+      "name": "Technology",
+      "description": "Represents technology entity."
+    },
+    "username": {
+      "name": "Username",
+      "description": "Represents username entity."
+    },
+    "weapon": {
+      "name": "Weapon",
+      "description": "Represents weapon entity."
+    },
+    "webtracker": {
+      "name": "Webtracker",
+      "description": "Represents webtracker entity."
+    },
+    "website": {
+      "name": "Website",
+      "description": "Represents website entity."
+    },
+    "whois": {
+      "name": "Whois",
+      "description": "Represents whois entity."
+    }
+  },
+  "enrichers": {
+    "AsnToCidrsEnricher": {
+      "name": "AsnToCidrsEnricher",
+      "description": "AsnToCidrsEnricher module."
+    },
+    "CidrToIpsEnricher": {
+      "name": "CidrToIpsEnricher",
+      "description": "CidrToIpsEnricher module."
+    },
+    "CryptoWalletAddressToNFTs": {
+      "name": "CryptoWalletAddressToNFTs",
+      "description": "CryptoWalletAddressToNFTs module."
+    },
+    "CryptoWalletAddressToTransactions": {
+      "name": "CryptoWalletAddressToTransactions",
+      "description": "CryptoWalletAddressToTransactions module."
+    },
+    "DomainToAsnEnricher": {
+      "name": "DomainToAsnEnricher",
+      "description": "DomainToAsnEnricher module."
+    },
+    "DomainToDehashed": {
+      "name": "DomainToDehashed",
+      "description": "DomainToDehashed module."
+    },
+    "DomainToDnsEnricher": {
+      "name": "DomainToDnsEnricher",
+      "description": "DomainToDnsEnricher module."
+    },
+    "DomainToHistoryEnricher": {
+      "name": "DomainToHistoryEnricher",
+      "description": "DomainToHistoryEnricher module."
+    },
+    "ResolveEnricher": {
+      "name": "ResolveEnricher",
+      "description": "ResolveEnricher module."
+    },
+    "DomainToRootDomain": {
+      "name": "DomainToRootDomain",
+      "description": "DomainToRootDomain module."
+    },
+    "DomainToTLS": {
+      "name": "DomainToTLS",
+      "description": "DomainToTLS module."
+    },
+    "SubdomainEnricher": {
+      "name": "SubdomainEnricher",
+      "description": "SubdomainEnricher module."
+    },
+    "DomainToWebsiteEnricher": {
+      "name": "DomainToWebsiteEnricher",
+      "description": "DomainToWebsiteEnricher module."
+    },
+    "WhoisEnricher": {
+      "name": "WhoisEnricher",
+      "description": "WhoisEnricher module."
+    },
+    "DomainToWhoisHistoryEnricher": {
+      "name": "DomainToWhoisHistoryEnricher",
+      "description": "DomainToWhoisHistoryEnricher module."
+    },
+    "EmailToDehashed": {
+      "name": "EmailToDehashed",
+      "description": "EmailToDehashed module."
+    },
+    "EmailToDomainEnricher": {
+      "name": "EmailToDomainEnricher",
+      "description": "EmailToDomainEnricher module."
+    },
+    "EmailToDomainsEnricher": {
+      "name": "EmailToDomainsEnricher",
+      "description": "EmailToDomainsEnricher module."
+    },
+    "EmailToGravatarEnricher": {
+      "name": "EmailToGravatarEnricher",
+      "description": "EmailToGravatarEnricher module."
+    },
+    "HudsonRockToEmail": {
+      "name": "HudsonRockToEmail",
+      "description": "HudsonRockToEmail module."
+    },
+    "EmailToBreachesEnricher": {
+      "name": "EmailToBreachesEnricher",
+      "description": "EmailToBreachesEnricher module."
+    },
+    "EmailToUsernameEnricher": {
+      "name": "EmailToUsernameEnricher",
+      "description": "EmailToUsernameEnricher module."
+    },
+    "IndividualToDomainsEnricher": {
+      "name": "IndividualToDomainsEnricher",
+      "description": "IndividualToDomainsEnricher module."
+    },
+    "IndividualToOrgEnricher": {
+      "name": "IndividualToOrgEnricher",
+      "description": "IndividualToOrgEnricher module."
+    },
+    "IpToAsnEnricher": {
+      "name": "IpToAsnEnricher",
+      "description": "IpToAsnEnricher module."
+    },
+    "IpToIntelligence": {
+      "name": "IpToIntelligence",
+      "description": "IpToIntelligence module."
+    },
+    "ReverseResolveEnricher": {
+      "name": "ReverseResolveEnricher",
+      "description": "ReverseResolveEnricher module."
+    },
+    "IpToFraudScore": {
+      "name": "IpToFraudScore",
+      "description": "IpToFraudScore module."
+    },
+    "IpToInfosEnricher": {
+      "name": "IpToInfosEnricher",
+      "description": "IpToInfosEnricher module."
+    },
+    "IpToPortsEnricher": {
+      "name": "IpToPortsEnricher",
+      "description": "IpToPortsEnricher module."
+    },
+    "N8nConnector": {
+      "name": "N8nConnector",
+      "description": "N8nConnector module."
+    },
+    "OrgToAsnEnricher": {
+      "name": "OrgToAsnEnricher",
+      "description": "OrgToAsnEnricher module."
+    },
+    "OrgToDomainsEnricher": {
+      "name": "OrgToDomainsEnricher",
+      "description": "OrgToDomainsEnricher module."
+    },
+    "OrgToInfosEnricher": {
+      "name": "OrgToInfosEnricher",
+      "description": "OrgToInfosEnricher module."
+    },
+    "PhoneToCarrier": {
+      "name": "PhoneToCarrier",
+      "description": "PhoneToCarrier module."
+    },
+    "HudsonRockToPhone": {
+      "name": "HudsonRockToPhone",
+      "description": "HudsonRockToPhone module."
+    },
+    "UsernameToDehashed": {
+      "name": "UsernameToDehashed",
+      "description": "UsernameToDehashed module."
+    },
+    "HudsonRockToUsername": {
+      "name": "HudsonRockToUsername",
+      "description": "HudsonRockToUsername module."
+    },
+    "MaigretEnricher": {
+      "name": "MaigretEnricher",
+      "description": "MaigretEnricher module."
+    },
+    "SherlockEnricher": {
+      "name": "SherlockEnricher",
+      "description": "SherlockEnricher module."
+    },
+    "WebsiteToCrawler": {
+      "name": "WebsiteToCrawler",
+      "description": "WebsiteToCrawler module."
+    },
+    "WebsiteToDomainEnricher": {
+      "name": "WebsiteToDomainEnricher",
+      "description": "WebsiteToDomainEnricher module."
+    },
+    "WebsiteToLinks": {
+      "name": "WebsiteToLinks",
+      "description": "WebsiteToLinks module."
+    },
+    "WebsiteToSubdomains": {
+      "name": "WebsiteToSubdomains",
+      "description": "WebsiteToSubdomains module."
+    },
+    "TechDetectEnricher": {
+      "name": "TechDetectEnricher",
+      "description": "TechDetectEnricher module."
+    },
+    "WebsiteToText": {
+      "name": "WebsiteToText",
+      "description": "WebsiteToText module."
+    },
+    "WebsiteToWebtrackersEnricher": {
+      "name": "WebsiteToWebtrackersEnricher",
+      "description": "WebsiteToWebtrackersEnricher module."
+    },
+    "ToDummyEnricher": {
+      "name": "ToDummyEnricher",
+      "description": "ToDummyEnricher module."
+    },
+    "IpToDummyDomainsEnricher": {
+      "name": "IpToDummyDomainsEnricher",
+      "description": "IpToDummyDomainsEnricher module."
     }
   }
 }

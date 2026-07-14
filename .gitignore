@@ -180,3 +180,5 @@ cython_debug/
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/flowsint-enricher-builder/
+sync.py
+sync_locales.js

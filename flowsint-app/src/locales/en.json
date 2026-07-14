@@ -419,5 +419,21 @@
       "runTestBtn": "Run test",
       "noResult": "Run a test to see the response here."
     }
+  },
+  "profile": {
+    "toast": {
+      "updated": "Profile updated",
+      "updateFailed": "Failed to update profile"
+    },
+    "title": "Profile",
+    "description": "Manage your account information.",
+    "firstName": "First name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Doe",
+    "avatarUrl": "Avatar URL",
+    "email": "Email",
+    "saving": "Saving...",
+    "saveChanges": "Save changes"
   }
 }

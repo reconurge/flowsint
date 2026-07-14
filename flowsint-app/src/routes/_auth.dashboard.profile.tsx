@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { UserAvatar } from '@/components/ui/avatar'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { getDisplayName } from '@/lib/user-display'
 import { SESSION_QUERY_KEY } from '@/hooks/use-auth'
@@ -16,6 +17,7 @@ export const Route = createFileRoute('/_auth/dashboard/profile')({
 })
 
 function ProfilePage() {
+  const { t } = useTranslation()
   const authUser = useAuthStore((s) => s.user)
   const setAuth = useAuthStore((s) => s.setAuth)
   const token = useAuthStore((s) => s.token)
@@ -57,9 +59,9 @@ function ProfilePage() {
           username: [data.first_name, data.last_name].filter(Boolean).join(' ') || authUser.email,
         })
       }
-      toast.success('Profile updated')
+      toast.success(t('profile.toast.updated'))
     },
-    onError: () => toast.error('Failed to update profile'),
+    onError: () => toast.error(t('profile.toast.updateFailed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,8 +87,8 @@ function ProfilePage() {
     <main className="flex-1 h-full overflow-auto">
       <div className="max-w-xl mx-auto px-8 py-12 space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your account information.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('profile.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('profile.description')}</p>
         </div>
 
         {/* Avatar preview */}
@@ -105,27 +107,27 @@ function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="first_name">First name</Label>
+              <Label htmlFor="first_name">{t('profile.firstName')}</Label>
               <Input
                 id="first_name"
                 value={form.first_name}
                 onChange={(e) => handleChange('first_name', e.target.value)}
-                placeholder="John"
+                placeholder={t('profile.firstNamePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last_name">Last name</Label>
+              <Label htmlFor="last_name">{t('profile.lastName')}</Label>
               <Input
                 id="last_name"
                 value={form.last_name}
                 onChange={(e) => handleChange('last_name', e.target.value)}
-                placeholder="Doe"
+                placeholder={t('profile.lastNamePlaceholder')}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="avatar_url">Avatar URL</Label>
+            <Label htmlFor="avatar_url">{t('profile.avatarUrl')}</Label>
             <Input
               id="avatar_url"
               value={form.avatar_url}
@@ -135,13 +137,13 @@ function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>{t('profile.email')}</Label>
             <Input value={profile?.email ?? ''} disabled className="opacity-60" />
           </div>
 
           <div className="pt-2">
             <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? 'Saving...' : 'Save changes'}
+              {updateMutation.isPending ? t('profile.saving') : t('profile.saveChanges')}
             </Button>
           </div>
         </form>

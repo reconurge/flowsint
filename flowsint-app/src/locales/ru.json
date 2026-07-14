@@ -434,5 +434,21 @@
       "runTestBtn": "Запустить тест",
       "noResult": "Запустите тест, чтобы увидеть ответ здесь."
     }
+  },
+  "profile": {
+    "toast": {
+      "updated": "Профиль обновлен",
+      "updateFailed": "Не удалось обновить профиль"
+    },
+    "title": "Профиль",
+    "description": "Управление информацией аккаунта.",
+    "firstName": "Имя",
+    "firstNamePlaceholder": "Иван",
+    "lastName": "Фамилия",
+    "lastNamePlaceholder": "Иванов",
+    "avatarUrl": "URL аватара",
+    "email": "Email",
+    "saving": "Сохранение...",
+    "saveChanges": "Сохранить изменения"
   }
 }

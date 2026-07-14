@@ -1,0 +1,494 @@
+{
+  "common": {
+    "loading": "Caricamento...",
+    "error": "Si è verificato un errore",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "settings": "Impostazioni"
+  },
+  "sidebar": {
+    "dashboard": "Pannello di controllo",
+    "flows": "Flussi",
+    "customTypes": "Tipi personalizzati",
+    "vault": "Cassaforte",
+    "enrichers": "Moduli",
+    "togglePanel": "Attiva/disattiva pannello"
+  },
+  "navUser": {
+    "preferences": "Preferenze",
+    "theme": "Tema",
+    "language": "Lingua",
+    "profile": "Profilo",
+    "logout": "Esci"
+  },
+  "command": {
+    "searchFlowsint": "Cerca in Flowsint",
+    "placeholder": "Digita un comando o cerca...",
+    "noResults": "Nessun risultato trovato.",
+    "investigations": "Indagini",
+    "quickActions": "Azioni rapide",
+    "allInvestigations": "Tutte le indagini",
+    "enrichers": "Moduli"
+  },
+  "dashboard": {
+    "title": "Indagini",
+    "description": "Gestisci e traccia le tue indagini OSINT",
+    "newInvestigation": "Nuova indagine",
+    "searchPlaceholder": "Cerca indagini...",
+    "all": "Tutte",
+    "active": "Attive",
+    "closed": "Chiuse",
+    "onHold": "In attesa",
+    "noInvestigations": "Nessuna indagine trovata.",
+    "table": {
+      "name": "Nome",
+      "status": "Stato",
+      "updated": "Aggiornato"
+    },
+    "errorTitle": "Impossibile caricare le indagini",
+    "errorDesc": "Si è verificato un errore durante il recupero dei dati. Riprova."
+  },
+  "newInvestigation": {
+    "title": "Nuova indagine",
+    "description": "Crea una nuova indagine vuota.",
+    "form": {
+      "name": "Nome indagine",
+      "namePlaceholder": "Sospetto di frode",
+      "desc": "Descrizione",
+      "descPlaceholder": "Indagine su una campagna di phishing tramite LinkedIn.",
+      "creating": "Creazione...",
+      "createBtn": "Crea indagine"
+    },
+    "validation": {
+      "nameRequired": "Il nome dell'indagine è obbligatorio",
+      "nameMin": "Il nome dell'indagine deve contenere almeno 3 caratteri",
+      "nameMax": "Il nome dell'indagine deve contenere meno di 100 caratteri",
+      "descMax": "La descrizione deve contenere meno di 500 caratteri"
+    },
+    "toast": {
+      "success": "Nuova indagine creata.",
+      "failed": "Impossibile creare l'indagine"
+    }
+  },
+  "investigationDetails": {
+    "breadcrumbs": {
+      "cases": "Casi"
+    },
+    "roles": {
+      "owner": "Proprietario",
+      "admin": "Amministratore",
+      "editor": "Editore",
+      "viewer": "Visualizzatore"
+    },
+    "header": {
+      "status": "Stato",
+      "priority": "Priorità",
+      "medium": "Media",
+      "updated": "Aggiornato",
+      "investigatorsCount_one": "{{count}} investigatore",
+      "investigatorsCount_other": "{{count}} investigatori",
+      "invite": "Invita"
+    },
+    "sketches": {
+      "title": "Schemi",
+      "new": "Nuovo",
+      "noSketches": "Nessuno schema per ora.",
+      "noDescription": "Nessuna descrizione fornita."
+    },
+    "analyses": {
+      "title": "Analisi",
+      "new": "Nuova"
+    },
+    "emptyStates": {
+      "sketches": {
+        "title": "Nessuno schema",
+        "desc": "Visualizza le relazioni tra entità, infrastrutture e attori",
+        "action": "Crea schema"
+      },
+      "analyses": {
+        "title": "Nessuna analisi",
+        "desc": "Documenta scoperte, schemi e conclusioni della tua indagine",
+        "action": "Scrivi analisi"
+      }
+    }
+  },
+  "shareDialog": {
+    "title": "Condividi indagine",
+    "description": "Invita collaboratori e gestisci gli accessi.",
+    "searchPlaceholder": "Cerca per nome o email...",
+    "invite": "Invita",
+    "noCollaborators": "Nessun collaboratore per ora",
+    "membersAccess_one": "{{count}} membro ha accesso",
+    "membersAccess_other": "{{count}} membri hanno accesso",
+    "toast": {
+      "added": "Collaboratore aggiunto",
+      "addFailed": "Impossibile aggiungere il collaboratore",
+      "roleUpdated": "Ruolo aggiornato",
+      "updateFailed": "Impossibile aggiornare il ruolo",
+      "removed": "Collaboratore rimosso",
+      "removeFailed": "Impossibile rimuovere il collaboratore"
+    }
+  },
+  "newAnalysis": {
+    "title": "Nuova analisi",
+    "description": "Crea una nuova analisi vuota.",
+    "form": {
+      "name": "Nome analisi",
+      "namePlaceholder": "Sospetto di frode",
+      "saving": "Salvataggio...",
+      "saveBtn": "Salva"
+    },
+    "validation": {
+      "titleRequired": "Il titolo è obbligatorio"
+    },
+    "toast": {
+      "success": "Nuova analisi creata.",
+      "failed": "Impossibile creare l'analisi.",
+      "noInvestigation": "Un'analisi deve essere collegata a un'indagine."
+    }
+  },
+  "newSketch": {
+    "title": "Nuovo schema",
+    "description": "Crea un nuovo schema vuoto.",
+    "form": {
+      "name": "Nome schema",
+      "namePlaceholder": "Sospetto di frode",
+      "desc": "Descrizione",
+      "descPlaceholder": "Ambito esterno dominio di phishing",
+      "saving": "Salvataggio...",
+      "saveBtn": "Salva"
+    },
+    "validation": {
+      "titleRequired": "Il titolo è obbligatorio"
+    },
+    "toast": {
+      "success": "Nuovo schema creato.",
+      "failed": "Impossibile creare lo schema.",
+      "noInvestigation": "Uno schema deve essere collegato a un'indagine."
+    }
+  },
+  "flows": {
+    "title": "Flussi",
+    "description": "Crea e gestisci i tuoi flussi.",
+    "searchPlaceholder": "Cerca flussi...",
+    "noMatchingFlows": "Nessun flusso corrispondente trovato",
+    "newFlow": "Nuovo flusso",
+    "noFlows": "Nessun flusso per ora",
+    "noFlowsDesc": "Inizia creando il tuo primo flusso. Puoi usare i flussi per elaborare e manipolare i tuoi dati in modo potente.",
+    "createFirst": "Crea il tuo primo flusso",
+    "all": "Tutti",
+    "uncategorized": "Non categorizzato",
+    "unnamed": "(Flusso senza nome)",
+    "noDescription": "Nessuna descrizione fornita",
+    "errorTitle": "Impossibile caricare i flussi",
+    "errorDesc": "Si è verificato un errore durante il recupero dei dati. Riprova.",
+    "editor": {
+      "toast": {
+        "creating": "Creazione del flusso...",
+        "created": "Flusso creato con successo.",
+        "createFailed": "Impossibile creare il flusso.",
+        "createFailedReason": "Impossibile creare il flusso: ",
+        "saved": "Flusso salvato con successo.",
+        "saveFailed": "Errore durante il salvataggio: ",
+        "deleted": "Flusso eliminato con successo.",
+        "deleteFailed": "Errore durante l'eliminazione: ",
+        "computeFailed": "Errore durante l'esecuzione del flusso: ",
+        "onlyOneType": "È consentito un solo nodo di tipo",
+        "noInputType": "Assicurati che il flusso contenga un tipo di input.",
+        "saveToCompute": "Salva il flusso prima di eseguirlo."
+      },
+      "defaultName": "Nuovo flusso",
+      "defaultDesc": "Un nuovo flusso di esempio.",
+      "deleteConfirm": {
+        "title": "Sei sicuro di voler eliminare questo flusso?",
+        "message": "Tutte le impostazioni del flusso andranno perse."
+      },
+      "controls": {
+        "pause": "Pausa",
+        "compute": "Esegui",
+        "skip": "Salta",
+        "reset": "Ripristina",
+        "speed": {
+          "placeholder": "Seleziona velocità",
+          "slow": "Lenta",
+          "normal": "Normale",
+          "fast": "Veloce",
+          "veryFast": "Molto veloce"
+        },
+        "tooltips": {
+          "save": "Salva flusso",
+          "delete": "Elimina flusso",
+          "layout": "Disposizione automatica",
+          "fitView": "Adatta alla vista",
+          "zoomIn": "Ingrandisci",
+          "zoomOut": "Riduci"
+        }
+      },
+      "paramsDialog": {
+        "configure": "Configura",
+        "parameters": "Parametri",
+        "documentation": "Documentazione",
+        "saveConfig": "Salva configurazione"
+      },
+      "searchModules": "Cerca moduli...",
+      "noModulesMatching": "Nessun modulo trovato per \"{{term}}\"",
+      "flowSheet": {
+        "addConnectorTo": "Aggiungi connettore a",
+        "chooseModule": "Scegli un modulo da lanciare dall'elenco sottostante.",
+        "loading": "Caricamento moduli...",
+        "loadFailed": "Impossibile caricare i moduli. Riprova.",
+        "noModulesSearch": "Nessun modulo trovato corrispondente alla ricerca.",
+        "noModulesAvailable": "Nessun modulo disponibile per questo tipo di nodo.",
+        "takes": "Accetta",
+        "returns": "Restituisce",
+        "apiKeyRequired": "Chiave API richiesta"
+      },
+      "tabs": {
+        "flows": "Flussi",
+        "items": "Elementi"
+      }
+    }
+  },
+  "customTypes": {
+    "title": "Tipi personalizzati",
+    "description": "Crea e gestisci i tuoi tipi di dati personalizzati.",
+    "newCustomType": "Nuovo tipo personalizzato",
+    "noCustomTypes": "Nessun tipo personalizzato",
+    "noCustomTypesDesc": "Inizia creando il tuo primo tipo personalizzato. Ti permettono di definire strutture dati proprie per flussi e indagini.",
+    "createFirst": "Crea il tuo primo tipo personalizzato",
+    "errorTitle": "Impossibile caricare i tipi",
+    "errorDesc": "Si è verificato un errore durante il recupero dei dati. Riprova.",
+    "toast": {
+      "deleted": "Tipo personalizzato eliminato",
+      "deleteFailed": "Impossibile eliminare: "
+    },
+    "deleteConfirm": {
+      "title": "Sei sicuro di voler eliminare questo tipo?",
+      "message": "Questa azione è irreversibile."
+    },
+    "tabs": {
+      "all": "Tutti",
+      "published": "Pubblicato",
+      "drafts": "Bozze",
+      "archived": "Archiviati"
+    },
+    "status": {
+      "published": "Pubblicato",
+      "draft": "Bozza",
+      "archived": "Archiviato"
+    },
+    "noInCategory": "Nessun tipo in questa categoria",
+    "noDescription": "Nessuna descrizione",
+    "updated": "Aggiornato",
+    "edit": "Modifica",
+    "editor": {
+      "newType": "Nuovo tipo",
+      "untitled": "Senza titolo",
+      "previewBtn": "Anteprima",
+      "saving": "Salvataggio...",
+      "create": "Crea",
+      "save": "Salva",
+      "untitledType": "Tipo senza titolo",
+      "addDescription": "Aggiungi una descrizione...",
+      "status": "Stato",
+      "category": "Categoria",
+      "properties": "Proprietà",
+      "defineDataStructure": "Definisci la struttura dei dati",
+      "addProperty": "Aggiungi proprietà",
+      "addFirstProperty": "Aggiungi la tua prima proprietà",
+      "newProperty": "Nuova proprietà",
+      "table": {
+        "key": "Chiave",
+        "label": "Etichetta",
+        "type": "Tipo",
+        "format": "Formato"
+      },
+      "toast": {
+        "created": "Tipo personalizzato creato",
+        "createFailed": "Impossibile creare: ",
+        "saved": "Modifiche salvate",
+        "saveFailed": "Impossibile salvare: ",
+        "enterName": "Inserisci un nome",
+        "uniqueKeys": "Le chiavi devono essere uniche",
+        "oneField": "Aggiungi almeno un campo"
+      },
+      "preview": {
+        "entityCard": "Scheda entità",
+        "moreFields": "+{{count}} altri campi",
+        "graphNode": "Nodo grafo",
+        "fields": "{{count}} campo",
+        "fields_plural": "{{count}} campi",
+        "jsonSchema": "Schema JSON"
+      }
+    }
+  },
+  "vault": {
+    "title": "Cassaforte",
+    "description": "Gestisci in sicurezza le tue chiavi API per servizi di terze parti.",
+    "addKeyBtn": "Aggiungi chiave API",
+    "addKeyDesc": "Aggiungi una nuova chiave API con un nome personalizzato. Le tue chiavi sono crittografate e archiviate in sicurezza.",
+    "keyName": "Nome chiave",
+    "keyNamePlaceholder": "es. OpenAI, GitHub, Shodan...",
+    "apiKey": "Chiave API",
+    "apiKeyPlaceholder": "Inserisci la chiave API",
+    "cancel": "Annulla",
+    "submitBtn": "Aggiungi chiave",
+    "noKeys": "Nessuna chiave per ora",
+    "noKeysDesc": "Aggiungi la tua prima chiave API per utilizzare servizi di terze parti nelle tue indagini.",
+    "addFirstKey": "Aggiungi la prima chiave",
+    "tableTitle": "Chiavi API",
+    "tableDesc": "Le tue chiavi API crittografate. Saranno disponibili per le tue indagini.",
+    "tableName": "Nome",
+    "tableAdded": "Aggiunta",
+    "tableActions": "Azioni",
+    "errorTitle": "Impossibile caricare le chiavi",
+    "errorDesc": "Si è verificato un errore durante il recupero dei dati. Riprova.",
+    "toast": {
+      "added": "Chiave API aggiunta con successo!",
+      "addFailed": "Impossibile aggiungere la chiave API. Riprova.",
+      "deleted": "Chiave API eliminata con successo!",
+      "deleteFailed": "Impossibile eliminare la chiave API. Riprova.",
+      "enterBoth": "Inserisci sia un nome che una chiave API"
+    },
+    "deleteConfirm": {
+      "title": "Elimina chiave API",
+      "message": "Sei sicuro di voler eliminare la chiave API \"{{name}}\"? Questa azione non può essere annullata."
+    },
+    "keysCount": "{{count}} chiave",
+    "keysCount_plural": "{{count}} chiavi"
+  },
+  "enricherTemplates": {
+    "title": "Modelli di Moduli",
+    "description": "Crea e gestisci i tuoi modelli di moduli.",
+    "errorTitle": "Impossibile caricare i modelli",
+    "errorDesc": "Si è verificato un errore durante il recupero dei dati. Riprova.",
+    "import": "Importa",
+    "newTemplate": "Nuovo modello",
+    "betaWarning": "I modelli di moduli sono attualmente in <strong>beta</strong>. Sentiti libero di <a>segnalare un problema</a> se ne incontri.",
+    "noTemplates": "Nessun modello",
+    "noTemplatesDesc": "Inizia creando il tuo primo modello di modulo tramite configurazione YAML.",
+    "createFirst": "Crea il tuo primo modello",
+    "all": "Tutti",
+    "unnamed": "(Modello senza nome)",
+    "toast": {
+      "unsupportedFile": "Sono supportati solo file YAML (.yaml, .yml)",
+      "readFileFailed": "Impossibile leggere il file"
+    }
+  },
+  "enricherEditor": {
+    "toast": {
+      "created": "Modello creato con successo",
+      "createFailed": "Impossibile creare: ",
+      "saved": "Modello salvato con successo",
+      "saveFailed": "Impossibile salvare: ",
+      "deleted": "Modello eliminato",
+      "deleteFailed": "Impossibile eliminare: ",
+      "fixBeforeSave": "Correggi gli errori di convalida prima di salvare",
+      "copied": "Copiato negli appunti",
+      "copyFailed": "Impossibile copiare",
+      "enterTestValue": "Inserisci un valore di test",
+      "fixBeforeTesting": "Correggi gli errori di convalida prima di testare",
+      "appliedToEditor": "Applicato all'editor"
+    },
+    "deleteConfirm": {
+      "title": "Eliminare il modello?",
+      "message": "Questa azione non può essere annullata. Il modello verrà eliminato definitivamente."
+    },
+    "tabs": {
+      "editor": "Editor",
+      "test": "Test"
+    },
+    "errors": "{{count}} errore",
+    "errors_plural": "{{count}} errori",
+    "valid": "Valido",
+    "modified": "Modificato",
+    "lines": "{{count}} riga",
+    "lines_plural": "{{count}} righe",
+    "header": {
+      "templates": "Modelli",
+      "newTemplate": "Nuovo modello",
+      "unsaved": "Non salvato",
+      "saved": "Salvato",
+      "draft": "Bozza",
+      "validationErrors": "Errori di convalida",
+      "validationPassed": "Convalida superata",
+      "lineError": "Riga {{line}}: {{message}}",
+      "allValid": "Tutti i campi obbligatori sono presenti e validi.",
+      "generate": "Genera",
+      "focusAi": "Focus IA",
+      "copyYaml": "Copia YAML",
+      "saveEnricher": "Salva modulo",
+      "deleteTemplate": "Elimina modello"
+    },
+    "ai": {
+      "title": "Assistente IA",
+      "assistantName": "Assistente Modelli",
+      "welcomeMessage": "Descrivi il modulo che desideri creare. Comprendo i concetti OSINT, le API HTTP e i flussi di lavoro di arricchimento dati.",
+      "suggestionBasic": "Genera un modulo di base",
+      "suggestionHttp": "Aggiungi un'origine HTTP",
+      "placeholder": "Descrivi il modulo di cui hai bisogno...",
+      "errorMessage": "Ho riscontrato un errore: {{message}}. Riprova.",
+      "clear": "Cancella",
+      "you": "Tu",
+      "assistant": "Assistente",
+      "applyToEditor": "Applica all'Editor",
+      "copied": "Copiato",
+      "copy": "Copia"
+    },
+    "test": {
+      "title": "Testa il tuo modello",
+      "description": "Inserisci un valore di test per simulare la richiesta del modulo.",
+      "inputValue": "Valore di input",
+      "valueLabel": "(valore)",
+      "inputPlaceholder": "Inserisci Nome Utente...",
+      "requestUrl": "URL della richiesta",
+      "runTestBtn": "Esegui test",
+      "noResult": "Esegui un test per vedere la risposta qui."
+    }
+  },
+  "profile": {
+    "toast": {
+      "updated": "Profilo aggiornato",
+      "updateFailed": "Impossibile aggiornare il profilo"
+    },
+    "title": "Profilo",
+    "description": "Gestisci le informazioni del tuo account.",
+    "firstName": "Nome",
+    "firstNamePlaceholder": "Mario",
+    "lastName": "Cognome",
+    "lastNamePlaceholder": "Rossi",
+    "avatarUrl": "URL Avatar",
+    "email": "Email",
+    "saving": "Salvataggio...",
+    "saveChanges": "Salva modifiche"
+  },
+  "footer": {
+    "vault": "Cassaforte",
+    "toggleTheme": "Cambia tema",
+    "themeLight": "Chiaro",
+    "themeDark": "Scuro",
+    "themeSystem": "Sistema",
+    "info": {
+      "title": "Informazioni su Flowsint",
+      "p1": "<0>Flowsint</0> è una <1>piattaforma di indagine e intelligence</1> creata per supportare complessi flussi di lavoro di ricerca che coinvolgono <2>persone, organizzazioni, infrastrutture e attività online</2>.",
+      "p2": "Sia che tu stia conducendo <0>cyber-indagini</0>, mappando <1>reti di frode</1> o raccogliendo intelligence per <2>valutazioni delle minacce</2>, Flowsint ti aiuta a raccogliere, visualizzare e comprendere punti dati frammentati in modo strutturato e interattivo.",
+      "whatItDoes": "Cosa fa Flowsint",
+      "does1": "<0>Connette dati sparsi</0> — email, domini, account social, IP, numeri di telefono, indirizzi e altro — in un unico <1>grafo investigativo</1>.",
+      "does2": "Offre <0>moduli visivi</0> per passare da un'entità a quelle correlate: trova <1>individui connessi</1>, scopri <2>infrastrutture</2>, svela <3>alias</3>.",
+      "does3": "<0>Traccia e salva gli stati dell'indagine</0> nel tempo, permettendoti di esplorare più ipotesi o rivisitare vecchie tracce senza perdere il contesto.",
+      "does4": "Supporta l'<0>arricchimento dati in tempo reale</0> da moduli personalizzati o integrati, offrendoti <1>informazioni fruibili</1> durante l'esplorazione.",
+      "whyUse": "Perché usare Flowsint?",
+      "why1": "Costruito per <0>velocità e chiarezza</0> — rendering rapido dei grafi, interfaccia utente pulita, moduli reattivi.",
+      "why2": "<0>Modello di grafo flessibile</0> che rispecchia il modo di pensare degli investigatori — non solo tabelle e tag, ma <1>relazioni</1>.",
+      "why3": "Ideale per <0>analisti indipendenti e team</0> che devono muoversi velocemente, esplorare liberamente e dare un senso a <1>dati parziali o confusi</1>.",
+      "useCases": "Casi d'uso",
+      "case1": "Mappatura dell'<0>infrastruttura digitale</0> di individui o organizzazioni",
+      "case2": "Indagine su <0>schemi di frode online</0> o <1>identità false</1>",
+      "case3": "Scoperta di <0>collegamenti tra attori</0> attraverso le piattaforme",
+      "case4": "Visualizzazione della portata di <0>dati trapelati o esposti</0>",
+      "case5": "Tracciamento del <0>comportamento degli attori minacciosi</0> sulle superfici sociali e tecniche",
+      "p3": "Flowsint è progettato per <0>professionisti</0> che necessitano del <1>pieno controllo</1> sulla propria logica investigativa, dalla strutturazione dei dati all'interpretazione delle relazioni. Non è solo uno strumento: è uno <2>spazio di lavoro flessibile</2> per costruire intelligence."
+    }
+  }
+}

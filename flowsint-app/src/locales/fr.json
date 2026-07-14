@@ -1,0 +1,494 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "settings": "Paramètres"
+  },
+  "sidebar": {
+    "dashboard": "Tableau de bord",
+    "flows": "Flux",
+    "customTypes": "Types personnalisés",
+    "vault": "Coffre-fort",
+    "enrichers": "Modules",
+    "togglePanel": "Basculer le panneau"
+  },
+  "navUser": {
+    "preferences": "Préférences",
+    "theme": "Thème",
+    "language": "Langue",
+    "profile": "Profil",
+    "logout": "Déconnexion"
+  },
+  "command": {
+    "searchFlowsint": "Rechercher Flowsint",
+    "placeholder": "Tapez une commande ou recherchez...",
+    "noResults": "Aucun résultat trouvé.",
+    "investigations": "Enquêtes",
+    "quickActions": "Actions rapides",
+    "allInvestigations": "Toutes les enquêtes",
+    "enrichers": "Modules"
+  },
+  "dashboard": {
+    "title": "Enquêtes",
+    "description": "Gérez et suivez vos enquêtes OSINT",
+    "newInvestigation": "Nouvelle enquête",
+    "searchPlaceholder": "Rechercher des enquêtes...",
+    "all": "Toutes",
+    "active": "Actives",
+    "closed": "Fermées",
+    "onHold": "En attente",
+    "noInvestigations": "Aucune enquête trouvée.",
+    "table": {
+      "name": "Nom",
+      "status": "Statut",
+      "updated": "Mis à jour"
+    },
+    "errorTitle": "Impossible de charger les enquêtes",
+    "errorDesc": "Une erreur est survenue lors de la récupération des données. Veuillez réessayer."
+  },
+  "newInvestigation": {
+    "title": "Nouvelle enquête",
+    "description": "Créer une nouvelle enquête vide.",
+    "form": {
+      "name": "Nom de l'enquête",
+      "namePlaceholder": "Soupçon de fraude",
+      "desc": "Description",
+      "descPlaceholder": "Enquête sur une campagne de hameçonnage via LinkedIn.",
+      "creating": "Création...",
+      "createBtn": "Créer l'enquête"
+    },
+    "validation": {
+      "nameRequired": "Le nom de l'enquête est requis",
+      "nameMin": "Le nom de l'enquête doit comporter au moins 3 caractères",
+      "nameMax": "Le nom de l'enquête doit comporter moins de 100 caractères",
+      "descMax": "La description doit comporter moins de 500 caractères"
+    },
+    "toast": {
+      "success": "Nouvelle enquête créée.",
+      "failed": "Échec de la création de l'enquête"
+    }
+  },
+  "investigationDetails": {
+    "breadcrumbs": {
+      "cases": "Dossiers"
+    },
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Admin",
+      "editor": "Éditeur",
+      "viewer": "Lecteur"
+    },
+    "header": {
+      "status": "Statut",
+      "priority": "Priorité",
+      "medium": "Moyenne",
+      "updated": "Mis à jour",
+      "investigatorsCount_one": "{{count}} enquêteur",
+      "investigatorsCount_other": "{{count}} enquêteurs",
+      "invite": "Inviter"
+    },
+    "sketches": {
+      "title": "Schémas",
+      "new": "Nouveau",
+      "noSketches": "Aucun schéma pour le moment.",
+      "noDescription": "Aucune description fournie."
+    },
+    "analyses": {
+      "title": "Analyses",
+      "new": "Nouveau"
+    },
+    "emptyStates": {
+      "sketches": {
+        "title": "Aucun schéma",
+        "desc": "Visualisez les relations entre les entités, l'infrastructure et les acteurs",
+        "action": "Créer un schéma"
+      },
+      "analyses": {
+        "title": "Aucune analyse",
+        "desc": "Documentez les résultats, modèles et conclusions de votre enquête",
+        "action": "Rédiger une analyse"
+      }
+    }
+  },
+  "shareDialog": {
+    "title": "Partager l'enquête",
+    "description": "Invitez des collaborateurs et gérez les accès.",
+    "searchPlaceholder": "Rechercher par nom ou email...",
+    "invite": "Inviter",
+    "noCollaborators": "Aucun collaborateur pour le moment",
+    "membersAccess_one": "{{count}} membre a accès",
+    "membersAccess_other": "{{count}} membres ont accès",
+    "toast": {
+      "added": "Collaborateur ajouté",
+      "addFailed": "Échec de l'ajout du collaborateur",
+      "roleUpdated": "Rôle mis à jour",
+      "updateFailed": "Échec de la mise à jour du rôle",
+      "removed": "Collaborateur supprimé",
+      "removeFailed": "Échec de la suppression du collaborateur"
+    }
+  },
+  "newAnalysis": {
+    "title": "Nouvelle analyse",
+    "description": "Créer une nouvelle analyse vide.",
+    "form": {
+      "name": "Nom de l'analyse",
+      "namePlaceholder": "Soupçon de fraude",
+      "saving": "Enregistrement...",
+      "saveBtn": "Enregistrer"
+    },
+    "validation": {
+      "titleRequired": "Le titre est requis"
+    },
+    "toast": {
+      "success": "Nouvelle analyse créée.",
+      "failed": "Échec de la création de l'analyse.",
+      "noInvestigation": "Une analyse doit être liée à une enquête."
+    }
+  },
+  "newSketch": {
+    "title": "Nouveau schéma",
+    "description": "Créer un nouveau schéma vide.",
+    "form": {
+      "name": "Nom du schéma",
+      "namePlaceholder": "Soupçon de fraude",
+      "desc": "Description",
+      "descPlaceholder": "Périmètre externe du domaine de hameçonnage",
+      "saving": "Enregistrement...",
+      "saveBtn": "Enregistrer"
+    },
+    "validation": {
+      "titleRequired": "Le titre est requis"
+    },
+    "toast": {
+      "success": "Nouveau schéma créé.",
+      "failed": "Échec de la création du schéma.",
+      "noInvestigation": "Un schéma doit être lié à une enquête."
+    }
+  },
+  "flows": {
+    "title": "Flux",
+    "description": "Créez et gérez vos flux.",
+    "searchPlaceholder": "Rechercher des flux...",
+    "noMatchingFlows": "Aucun flux correspondant trouvé",
+    "newFlow": "Nouveau flux",
+    "noFlows": "Aucun flux pour le moment",
+    "noFlowsDesc": "Commencez par créer votre premier flux. Vous pouvez utiliser les flux pour traiter et manipuler vos données de manière puissante.",
+    "createFirst": "Créer votre premier flux",
+    "all": "Tous",
+    "uncategorized": "Non catégorisé",
+    "unnamed": "(Flux sans nom)",
+    "noDescription": "Aucune description fournie",
+    "errorTitle": "Impossible de charger les flux",
+    "errorDesc": "Une erreur est survenue lors de la récupération des données. Veuillez réessayer.",
+    "editor": {
+      "toast": {
+        "creating": "Création du flux...",
+        "created": "Flux créé avec succès.",
+        "createFailed": "Échec de la création du flux.",
+        "createFailedReason": "Échec de la création du flux : ",
+        "saved": "Flux enregistré avec succès.",
+        "saveFailed": "Erreur lors de l'enregistrement du flux : ",
+        "deleted": "Flux supprimé avec succès.",
+        "deleteFailed": "Erreur lors de la suppression du flux : ",
+        "computeFailed": "Erreur lors du calcul du flux : ",
+        "onlyOneType": "Un seul nœud de type est autorisé",
+        "noInputType": "Assurez-vous que votre flux contient un type d'entrée.",
+        "saveToCompute": "Enregistrez d'abord le flux pour le calculer."
+      },
+      "defaultName": "Nouveau flux",
+      "defaultDesc": "Un nouvel exemple de flux.",
+      "deleteConfirm": {
+        "title": "Êtes-vous sûr de vouloir supprimer ce flux ?",
+        "message": "Tous les paramètres du flux seront perdus."
+      },
+      "controls": {
+        "pause": "Pause",
+        "compute": "Exécuter",
+        "skip": "Ignorer",
+        "reset": "Réinitialiser",
+        "speed": {
+          "placeholder": "Sélectionner la vitesse",
+          "slow": "Lent",
+          "normal": "Normal",
+          "fast": "Rapide",
+          "veryFast": "Très rapide"
+        },
+        "tooltips": {
+          "save": "Enregistrer le flux",
+          "delete": "Supprimer le flux",
+          "layout": "Disposition automatique",
+          "fitView": "Ajuster la vue",
+          "zoomIn": "Zoom avant",
+          "zoomOut": "Zoom arrière"
+        }
+      },
+      "paramsDialog": {
+        "configure": "Configurer",
+        "parameters": "Paramètres",
+        "documentation": "Documentation",
+        "saveConfig": "Enregistrer la configuration"
+      },
+      "searchModules": "Rechercher des modules...",
+      "noModulesMatching": "Aucun module trouvé pour \"{{term}}\"",
+      "flowSheet": {
+        "addConnectorTo": "Ajouter un connecteur à",
+        "chooseModule": "Choisissez un module à lancer dans la liste ci-dessous.",
+        "loading": "Chargement des modules...",
+        "loadFailed": "Échec du chargement des modules. Veuillez réessayer.",
+        "noModulesSearch": "Aucun module trouvé correspondant à votre recherche.",
+        "noModulesAvailable": "Aucun module disponible pour ce type de nœud.",
+        "takes": "Prend en entrée",
+        "returns": "Retourne",
+        "apiKeyRequired": "Clé API requise"
+      },
+      "tabs": {
+        "flows": "Flux",
+        "items": "Éléments"
+      }
+    }
+  },
+  "customTypes": {
+    "title": "Types personnalisés",
+    "description": "Créez et gérez vos types de données personnalisés.",
+    "newCustomType": "Nouveau type personnalisé",
+    "noCustomTypes": "Aucun type personnalisé",
+    "noCustomTypesDesc": "Commencez par créer votre premier type personnalisé. Les types personnalisés vous permettent de définir vos propres structures de données pour les flux et les enquêtes.",
+    "createFirst": "Créer votre premier type personnalisé",
+    "errorTitle": "Impossible de charger les types",
+    "errorDesc": "Une erreur est survenue lors de la récupération des données. Veuillez réessayer.",
+    "toast": {
+      "deleted": "Type personnalisé supprimé",
+      "deleteFailed": "Échec de la suppression : "
+    },
+    "deleteConfirm": {
+      "title": "Voulez-vous vraiment supprimer ce type ?",
+      "message": "Cette action est irréversible."
+    },
+    "tabs": {
+      "all": "Tous",
+      "published": "Publié",
+      "drafts": "Brouillons",
+      "archived": "Archivés"
+    },
+    "status": {
+      "published": "Publié",
+      "draft": "Brouillon",
+      "archived": "Archivé"
+    },
+    "noInCategory": "Aucun type dans cette catégorie",
+    "noDescription": "Aucune description",
+    "updated": "Mis à jour",
+    "edit": "Modifier",
+    "editor": {
+      "newType": "Nouveau type",
+      "untitled": "Sans titre",
+      "previewBtn": "Aperçu",
+      "saving": "Enregistrement...",
+      "create": "Créer",
+      "save": "Enregistrer",
+      "untitledType": "Type sans titre",
+      "addDescription": "Ajouter une description...",
+      "status": "Statut",
+      "category": "Catégorie",
+      "properties": "Propriétés",
+      "defineDataStructure": "Définir la structure de données pour ce type",
+      "addProperty": "Ajouter une propriété",
+      "addFirstProperty": "Ajoutez votre première propriété",
+      "newProperty": "Nouvelle propriété",
+      "table": {
+        "key": "Clé",
+        "label": "Libellé",
+        "type": "Type",
+        "format": "Format"
+      },
+      "toast": {
+        "created": "Type créé",
+        "createFailed": "Échec de la création : ",
+        "saved": "Modifications enregistrées",
+        "saveFailed": "Échec de l'enregistrement : ",
+        "enterName": "Veuillez entrer un nom",
+        "uniqueKeys": "Les clés de champ doivent être uniques",
+        "oneField": "Ajouter au moins un champ"
+      },
+      "preview": {
+        "entityCard": "Fiche d'entité",
+        "moreFields": "+{{count}} autres champs",
+        "graphNode": "Nœud de graphe",
+        "fields": "{{count}} champ",
+        "fields_plural": "{{count}} champs",
+        "jsonSchema": "Schéma JSON"
+      }
+    }
+  },
+  "vault": {
+    "title": "Coffre-fort",
+    "description": "Gérez en toute sécurité vos clés API pour les services tiers.",
+    "addKeyBtn": "Ajouter une clé API",
+    "addKeyDesc": "Ajoutez une nouvelle clé API avec un nom personnalisé. Vos clés sont cryptées et stockées de manière sécurisée.",
+    "keyName": "Nom de la clé",
+    "keyNamePlaceholder": "ex: OpenAI, GitHub, Shodan...",
+    "apiKey": "Clé API",
+    "apiKeyPlaceholder": "Entrez votre clé API",
+    "cancel": "Annuler",
+    "submitBtn": "Ajouter la clé",
+    "noKeys": "Aucune clé",
+    "noKeysDesc": "Ajoutez votre première clé API pour utiliser des services tiers dans vos enquêtes.",
+    "addFirstKey": "Ajouter la première clé",
+    "tableTitle": "Clés API",
+    "tableDesc": "Vos clés API cryptées pour les services externes.",
+    "tableName": "Nom",
+    "tableAdded": "Ajouté le",
+    "tableActions": "Actions",
+    "errorTitle": "Impossible de charger les clés",
+    "errorDesc": "Une erreur est survenue lors de la récupération des données. Veuillez réessayer.",
+    "toast": {
+      "added": "Clé API ajoutée avec succès !",
+      "addFailed": "Échec de l'ajout de la clé API. Veuillez réessayer.",
+      "deleted": "Clé API supprimée avec succès !",
+      "deleteFailed": "Échec de la suppression de la clé API. Veuillez réessayer.",
+      "enterBoth": "Veuillez entrer un nom et une clé API"
+    },
+    "deleteConfirm": {
+      "title": "Supprimer la clé API",
+      "message": "Êtes-vous sûr de vouloir supprimer la clé API \"{{name}}\" ? Cette action est irréversible."
+    },
+    "keysCount": "{{count}} clé",
+    "keysCount_plural": "{{count}} clés"
+  },
+  "enricherTemplates": {
+    "title": "Modèles de Modules",
+    "description": "Créez et gérez vos modèles de modules.",
+    "errorTitle": "Impossible de charger les modèles",
+    "errorDesc": "Une erreur est survenue lors de la récupération des données. Veuillez réessayer.",
+    "import": "Importer",
+    "newTemplate": "Nouveau modèle",
+    "betaWarning": "Les modèles sont actuellement en <strong>bêta</strong>. N'hésitez pas à <a>signaler un problème</a> si vous en rencontrez.",
+    "noTemplates": "Aucun modèle",
+    "noTemplatesDesc": "Commencez par créer votre premier modèle de module via une configuration YAML.",
+    "createFirst": "Créer votre premier modèle",
+    "all": "Tous",
+    "unnamed": "(Modèle sans nom)",
+    "toast": {
+      "unsupportedFile": "Seuls les fichiers YAML (.yaml, .yml) sont supportés",
+      "readFileFailed": "Échec de la lecture du fichier"
+    }
+  },
+  "enricherEditor": {
+    "toast": {
+      "created": "Modèle créé avec succès",
+      "createFailed": "Échec de la création : ",
+      "saved": "Modèle enregistré avec succès",
+      "saveFailed": "Échec de l'enregistrement : ",
+      "deleted": "Modèle supprimé",
+      "deleteFailed": "Échec de la suppression : ",
+      "fixBeforeSave": "Veuillez corriger les erreurs de validation avant d'enregistrer",
+      "copied": "Copié dans le presse-papiers",
+      "copyFailed": "Échec de la copie",
+      "enterTestValue": "Veuillez entrer une valeur de test",
+      "fixBeforeTesting": "Veuillez corriger les erreurs de validation avant de tester",
+      "appliedToEditor": "Appliqué à l'éditeur"
+    },
+    "deleteConfirm": {
+      "title": "Supprimer le modèle ?",
+      "message": "Cette action est irréversible. Le modèle sera supprimé définitivement."
+    },
+    "tabs": {
+      "editor": "Éditeur",
+      "test": "Test"
+    },
+    "errors": "{{count}} erreur",
+    "errors_plural": "{{count}} erreurs",
+    "valid": "Valide",
+    "modified": "Modifié",
+    "lines": "{{count}} ligne",
+    "lines_plural": "{{count}} lignes",
+    "header": {
+      "templates": "Modèles",
+      "newTemplate": "Nouveau modèle",
+      "unsaved": "Non enregistré",
+      "saved": "Enregistré",
+      "draft": "Brouillon",
+      "validationErrors": "Erreurs de validation",
+      "validationPassed": "Validation réussie",
+      "lineError": "Ligne {{line}} : {{message}}",
+      "allValid": "Tous les champs requis sont présents et valides.",
+      "generate": "Générer",
+      "focusAi": "Focus IA",
+      "copyYaml": "Copier YAML",
+      "saveEnricher": "Enregistrer le module",
+      "deleteTemplate": "Supprimer le modèle"
+    },
+    "ai": {
+      "title": "Assistant IA",
+      "assistantName": "Assistant Modèle",
+      "welcomeMessage": "Décrivez le module que vous souhaitez créer. Je comprends les concepts OSINT, les API HTTP et les flux d'enrichissement.",
+      "suggestionBasic": "Générer un module basique",
+      "suggestionHttp": "Ajouter une source HTTP",
+      "placeholder": "Décrivez le module dont vous avez besoin...",
+      "errorMessage": "J'ai rencontré une erreur : {{message}}. Veuillez réessayer.",
+      "clear": "Effacer",
+      "you": "Vous",
+      "assistant": "Assistant",
+      "applyToEditor": "Appliquer à l'éditeur",
+      "copied": "Copié",
+      "copy": "Copier"
+    },
+    "test": {
+      "title": "Tester votre modèle",
+      "description": "Entrez une valeur de test pour simuler la requête du module.",
+      "inputValue": "Valeur d'entrée",
+      "valueLabel": "(valeur)",
+      "inputPlaceholder": "Entrez l'identifiant...",
+      "requestUrl": "URL de la requête",
+      "runTestBtn": "Lancer le test",
+      "noResult": "Lancez un test pour voir la réponse ici."
+    }
+  },
+  "profile": {
+    "toast": {
+      "updated": "Profil mis à jour",
+      "updateFailed": "Échec de la mise à jour du profil"
+    },
+    "title": "Profil",
+    "description": "Gérez les informations de votre compte.",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Jean",
+    "lastName": "Nom",
+    "lastNamePlaceholder": "Dupont",
+    "avatarUrl": "URL de l'avatar",
+    "email": "Email",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer les modifications"
+  },
+  "footer": {
+    "vault": "Coffre-fort",
+    "toggleTheme": "Basculer le thème",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
+    "info": {
+      "title": "À propos de Flowsint",
+      "p1": "<0>Flowsint</0> est une <1>plateforme d'enquête et de renseignement</1> conçue pour soutenir les flux de recherche complexes impliquant des <2>personnes, organisations, infrastructures et activités en ligne</2>.",
+      "p2": "Que vous meniez des <0>cyber-enquêtes</0>, cartographiez des <1>réseaux de fraude</1> ou recueilliez des renseignements pour des <2>évaluations de menaces</2>, Flowsint vous aide à collecter, visualiser et comprendre des points de données fragmentés de manière structurée et interactive.",
+      "whatItDoes": "Ce que fait Flowsint",
+      "does1": "<0>Connecte des données dispersées</0> — e-mails, domaines, comptes sociaux, adresses IP, numéros de téléphone, adresses, etc. — en un seul <1>graphe d'enquête</1>.",
+      "does2": "Propose des <0>modules visuels</0> pour passer d'une entité à d'autres : trouvez des <1>individus liés</1>, découvrez des <2>infrastructures</2>, dévoilez des <3>alias</3>.",
+      "does3": "<0>Suit et sauvegarde les états de l'enquête</0> au fil du temps, vous permettant d'explorer plusieurs hypothèses ou de revenir sur d'anciennes pistes sans perdre le contexte.",
+      "does4": "Prend en charge <0>l'enrichissement des données en direct</0> à partir de modules personnalisés ou intégrés, vous offrant des <1>informations exploitables</1> lors de votre exploration.",
+      "whyUse": "Pourquoi utiliser Flowsint ?",
+      "why1": "Conçu pour <0>la rapidité et la clarté</0> — rendu rapide des graphes, interface épurée, modules réactifs.",
+      "why2": "<0>Modèle de graphe flexible</0> qui reflète la façon de penser des enquêteurs — pas seulement des tableaux et des étiquettes, mais des <1>relations</1>.",
+      "why3": "Idéal pour les <0>analystes indépendants et les équipes</0> qui doivent agir vite, explorer librement et donner du sens à des <1>données partielles ou désordonnées</1>.",
+      "useCases": "Cas d'utilisation",
+      "case1": "Cartographie de l'<0>infrastructure numérique</0> de personnes ou d'organisations",
+      "case2": "Enquête sur des <0>systèmes de fraude en ligne</0> ou de <1>fausses identités</1>",
+      "case3": "Découverte de <0>liens entre acteurs</0> sur différentes plateformes",
+      "case4": "Visualisation de la portée de <0>données divulguées ou exposées</0>",
+      "case5": "Suivi du <0>comportement des acteurs malveillants</0> sur les surfaces sociales et techniques",
+      "p3": "Flowsint est conçu pour les <0>professionnels</0> qui ont besoin d'un <1>contrôle total</1> sur leur logique d'enquête, de la structuration des données à l'interprétation des relations. Ce n'est pas juste un outil, c'est un <2>espace de travail flexible</2> pour construire du renseignement."
+    }
+  }
+}

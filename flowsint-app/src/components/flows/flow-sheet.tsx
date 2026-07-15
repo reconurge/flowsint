@@ -50,8 +50,8 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
         enricher.class_name.toLowerCase().includes(term) ||
         enricher.name.toLowerCase().includes(term) ||
         enricher.module.toLowerCase().includes(term) ||
-        enricher.inputs.type.toLowerCase().includes(term) ||
-        enricher.outputs.type.toLowerCase().includes(term) ||
+        (enricher.inputs?.type && enricher.inputs.type.toLowerCase().includes(term)) ||
+        (enricher.outputs?.type && enricher.outputs.type.toLowerCase().includes(term)) ||
         (enricher.documentation && enricher.documentation.toLowerCase().includes(term))
       )
     })
@@ -174,11 +174,14 @@ function areEqual(prevProps: { enricher: Enricher }, nextProps: { enricher: Enri
 const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick: () => void }) => {
   const { t } = useTranslation()
   const colors = useNodesDisplaySettings((s) => s.colors)
-  const borderInputColor = colors[enricher.inputs.type.toLowerCase()]
-  const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
+  const inputType = enricher.inputs?.type || ''
+  const outputType = enricher.outputs?.type || ''
+  
+  const borderInputColor = colors[inputType.toLowerCase()]
+  const borderOutputColor = colors[outputType.toLowerCase()]
   const Icon =
     enricher.type === 'type'
-      ? useIcon(enricher.outputs.type.toLowerCase() as string)
+      ? useIcon(outputType.toLowerCase() as string)
       : enricher.icon
         ? useIcon(enricher.icon)
         : null
@@ -223,16 +226,16 @@ const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick:
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">{t('flows.editor.flowSheet.takes')}</span>
                   <span className="font-bold truncate text-ellipsis">
-                    {t('types.' + enricher.inputs.type.toLowerCase() + '.name', { defaultValue: enricher.inputs.type })}
+                    {inputType ? t('types.' + inputType.toLowerCase() + '.name', { defaultValue: inputType }) : 'None'}
                   </span>
                 </div>
                 <span>
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </span>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">{t('flows.editor.flowSheet.returns')}</span>
                   <span className="font-bold truncate text-ellipsis">
-                    {t('types.' + enricher.outputs.type.toLowerCase() + '.name', { defaultValue: enricher.outputs.type })}
+                    {outputType ? t('types.' + outputType.toLowerCase() + '.name', { defaultValue: outputType }) : 'None'}
                   </span>
                 </div>
               </div>

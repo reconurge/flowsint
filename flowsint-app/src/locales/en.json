@@ -4008,6 +4008,28 @@
       "title": "Filters",
       "filterByEntity": "Filter by entity type",
       "noFilter": "No filter to display."
+    },
+    "nodes": {
+      "noNodes": "No nodes found",
+      "noNodesDesc": "This sketch doesn't have any nodes yet.",
+      "allTypes": "All types",
+      "title": "Entities",
+      "nodes": "nodes",
+      "searchPlaceholder": "Search nodes or types..."
+    }
+  },
+  "investigation": {
+    "error": {
+      "title": "Oops! Something went wrong",
+      "description": "We couldn't load this investigation page. This might be due to a network issue, invalid investigation ID, or the resource may not exist.",
+      "reload": "Reload Page",
+      "goHome": "Go home",
+      "tryTitle": "If the problem persists, try:",
+      "try1": "Checking your internet connection",
+      "try2": "Verifying the investigation ID is correct",
+      "try3": "Contacting support if the issue continues",
+      "typeNotSupported": "Type not supported",
+      "typeNotSupportedDesc": "The type \"{{type}}\" is not supported yet."
     }
   }
 }

@@ -3995,6 +3995,19 @@
       "analyzing": "Analyzing file...",
       "remove": "Remove",
       "errorFormat": "Only {{extensions}} files are supported. Please upload file with correct format."
+    },
+    "relationships": {
+      "noRelationships": "No relationships found",
+      "noRelationshipsDesc": "This sketch doesn't have any relationships yet."
+    },
+    "map": {
+      "noLocation": "No location to display",
+      "noLocationDesc": "This sketch doesn't have any location yet."
+    },
+    "filters": {
+      "title": "Filters",
+      "filterByEntity": "Filter by entity type",
+      "noFilter": "No filter to display."
     }
   }
 }

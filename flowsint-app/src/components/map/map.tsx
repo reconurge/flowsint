@@ -12,6 +12,7 @@ import { useGraphStore } from '@/stores/graph-store'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import type { MapRef } from 'react-map-gl/maplibre'
+import { useTranslation } from 'react-i18next'
 import type {
   StyleSpecification
 } from 'maplibre-gl'
@@ -371,8 +372,8 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
         <div className="text-center space-y-4">
           <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
-            <h3 className="text-lg font-semibold">No location to display</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any location yet.</p>
+            <h3 className="text-lg font-semibold">{t('sketches.map.noLocation', { defaultValue: 'No location to display' })}</h3>
+            <p className="text-muted-foreground">{t('sketches.map.noLocationDesc', { defaultValue: 'This sketch doesn\'t have any location yet.' })}</p>
           </div>
         </div>
       </div>

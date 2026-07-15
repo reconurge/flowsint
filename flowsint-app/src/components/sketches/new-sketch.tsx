@@ -95,7 +95,7 @@ export default function NewSketch({ children }: NewSketchProps) {
           <Label htmlFor="title">{t('newSketch.form.name')}</Label>
           <Input
             id="title"
-            {...register('title', { required: t('newSketch.validation.titleRequired') })}
+            {...register('title', { required: t('common.validation.titleRequired') })}
             placeholder={t('newSketch.form.namePlaceholder')}
             aria-invalid={errors.title ? 'true' : 'false'}
           />
@@ -128,7 +128,7 @@ export default function NewSketch({ children }: NewSketchProps) {
           {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? t('newSketch.form.saving') : t('newSketch.form.saveBtn')}
+          {isSubmitting ? t('common.saveStatus.saving') : t('common.save')}
         </Button>
       </DialogFooter>
     </form>

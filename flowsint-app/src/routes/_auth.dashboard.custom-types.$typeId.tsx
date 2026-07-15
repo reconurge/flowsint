@@ -148,7 +148,7 @@ function CustomTypeEditor() {
       navigate({ to: '/dashboard/custom-types' })
     },
     onError: (error: Error) => {
-      toast.error(t('customTypes.editor.toast.createFailed') + error.message)
+      toast.error(t('common.toast.createFailed') + error.message)
     }
   })
 
@@ -162,7 +162,7 @@ function CustomTypeEditor() {
       toast.success(t('customTypes.editor.toast.saved'))
     },
     onError: (error: Error) => {
-      toast.error(t('customTypes.editor.toast.saveFailed') + error.message)
+      toast.error(t('common.toast.saveFailed') + error.message)
     }
   })
 
@@ -261,7 +261,7 @@ function CustomTypeEditor() {
               {t('customTypes.editor.previewBtn')}
             </Button>
             <Button size="sm" className="h-8" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? t('customTypes.editor.saving') : isNew ? t('customTypes.editor.create') : t('customTypes.editor.save')}
+              {isSaving ? t('common.saveStatus.saving') : isNew ? t('customTypes.editor.create') : t('common.save')}
             </Button>
           </div>
         </div>

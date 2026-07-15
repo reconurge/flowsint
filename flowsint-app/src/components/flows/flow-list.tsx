@@ -51,7 +51,7 @@ const FlowsList = () => {
     return (
       <ErrorState
         title={t('flows.errorTitle')}
-        description={t('flows.errorDesc')}
+        description={t('common.errorDesc')}
         error={error}
         onRetry={() => refetch()}
       />

@@ -25,7 +25,7 @@ const InvestigationList = () => {
     return (
       <ErrorState
         title={t('dashboard.errorTitle')}
-        description={t('dashboard.errorDesc')}
+        description={t('common.errorDesc')}
         error={error}
         onRetry={() => refetch()}
       />

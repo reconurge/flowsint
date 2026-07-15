@@ -606,7 +606,7 @@ export default function GlobalSettings() {
             <div className="flex gap-3 pt-6">
               <SheetClose asChild>
                 <Button variant="outline" type="button" className="flex-1 shadow-none">
-                  {t('sketches.settings.actions.cancel', { defaultValue: 'Cancel' })}
+                  {t('common.cancel')}
                 </Button>
               </SheetClose>
               <Button
@@ -615,7 +615,7 @@ export default function GlobalSettings() {
                 onClick={handleSubmit}
                 className="flex-1 shadow-none"
               >
-                {updateMutation.isPending ? t('sketches.settings.actions.saving', { defaultValue: 'Saving...' }) : t('sketches.settings.actions.save', { defaultValue: 'Save changes' })}
+                {updateMutation.isPending ? t('common.saveStatus.saving') : t('common.saveChanges')}
               </Button>
             </div>
           )}

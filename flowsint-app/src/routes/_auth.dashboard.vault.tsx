@@ -117,7 +117,7 @@ function VaultPage() {
       errorComponent={
         <ErrorState
           title={t('vault.errorTitle')}
-          description={t('vault.errorDesc')}
+          description={t('common.errorDesc')}
           error={keysError}
           onRetry={() => refetch()}
         />
@@ -164,7 +164,7 @@ function VaultPage() {
                 onClick={() => setIsAddDialogOpen(false)}
                 disabled={createKeyMutation.isPending}
               >
-                {t('vault.cancel')}
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleAddKey}

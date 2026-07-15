@@ -7,6 +7,26 @@
     "delete": "Delete",
     "settings": "Settings",
     "edit": "Edit",
+    "new": "New",
+    "all": "All",
+    "name": "Name",
+    "status": "Status",
+    "updated": "Updated",
+    "description": "Description",
+    "untitled": "Untitled",
+    "draft": "Draft",
+    "active": "Active",
+    "archived": "Archived",
+    "invite": "Invite",
+    "saveChanges": "Save changes",
+    "errorDesc": "Something went wrong while fetching data. Please try again.",
+    "validation": {
+      "titleRequired": "Title is required"
+    },
+    "toast": {
+      "createFailed": "Failed to create: ",
+      "saveFailed": "Failed to save: "
+    },
     "saveStatus": {
       "allSaved": "All changes saved",
       "pending": "Pending...",
@@ -55,8 +75,7 @@
       "status": "Status",
       "updated": "Updated"
     },
-    "errorTitle": "Couldn't load investigations",
-    "errorDesc": "Something went wrong while fetching data. Please try again."
+    "errorTitle": "Couldn't load investigations"
   },
   "newInvestigation": {
     "title": "New investigation",
@@ -144,13 +163,9 @@
     "description": "Create a new blank analysis.",
     "form": {
       "name": "Analysis name",
-      "namePlaceholder": "Fraud suspicion",
-      "saving": "Saving...",
-      "saveBtn": "Save"
+      "namePlaceholder": "Fraud suspicion"
     },
-    "validation": {
-      "titleRequired": "Title is required"
-    },
+    "validation": {},
     "toast": {
       "success": "New analysis created.",
       "failed": "Failed to create analysis.",
@@ -164,13 +179,9 @@
       "name": "Sketch name",
       "namePlaceholder": "Fraud suspicion",
       "desc": "Description",
-      "descPlaceholder": "Phishing domain external scope",
-      "saving": "Saving...",
-      "saveBtn": "Save"
+      "descPlaceholder": "Phishing domain external scope"
     },
-    "validation": {
-      "titleRequired": "Title is required"
-    },
+    "validation": {},
     "toast": {
       "success": "New sketch created.",
       "failed": "Failed to create sketch.",
@@ -191,7 +202,6 @@
     "unnamed": "(Unnamed flow)",
     "noDescription": "No description provided",
     "errorTitle": "Couldn't load flows",
-    "errorDesc": "Something went wrong while fetching data. Please try again.",
     "editor": {
       "toast": {
         "creating": "Creating flow...",
@@ -276,7 +286,6 @@
     "noCustomTypesDesc": "Get started by creating your first custom type. Custom types allow you to define your own data structures for use in flows and investigations.",
     "createFirst": "Create your first custom type",
     "errorTitle": "Couldn't load custom types",
-    "errorDesc": "Something went wrong while fetching data. Please try again.",
     "toast": {
       "deleted": "Custom type deleted successfully",
       "deleteFailed": "Failed to delete custom type: "
@@ -304,9 +313,7 @@
       "newType": "New type",
       "untitled": "Untitled",
       "previewBtn": "Preview",
-      "saving": "Saving...",
       "create": "Create",
-      "save": "Save",
       "untitledType": "Untitled type",
       "addDescription": "Add a description...",
       "status": "Status",
@@ -324,9 +331,7 @@
       },
       "toast": {
         "created": "Custom type created",
-        "createFailed": "Failed to create: ",
         "saved": "Changes saved",
-        "saveFailed": "Failed to save: ",
         "enterName": "Please enter a name",
         "uniqueKeys": "Field keys must be unique",
         "oneField": "Add at least one field"
@@ -334,14 +339,13 @@
       "preview": {
         "entityCard": "Entity card",
         "moreFields": "+{{count}} more fields",
+        "moreFields_one": "+{{count}} more field",
+        "moreFields_other": "+{{count}} more fields",
         "graphNode": "Graph node",
         "fields": "{{count}} field",
-        "fields_plural": "{{count}} fields",
-        "jsonSchema": "JSON Schema",
-        "moreFields_one": "{{count}} field",
-        "moreFields_other": "{{count}} fields",
         "fields_one": "{{count}} field",
-        "fields_other": "{{count}} fields"
+        "fields_other": "{{count}} fields",
+        "jsonSchema": "JSON Schema"
       }
     }
   },
@@ -354,7 +358,6 @@
     "keyNamePlaceholder": "e.g., OpenAI, GitHub, Shodan...",
     "apiKey": "API Key",
     "apiKeyPlaceholder": "Enter your API key",
-    "cancel": "Cancel",
     "submitBtn": "Add Key",
     "noKeys": "No keys yet",
     "noKeysDesc": "Add your first API key to use third-party services in your investigations.",
@@ -365,7 +368,6 @@
     "tableAdded": "Added",
     "tableActions": "Actions",
     "errorTitle": "Couldn't load keys",
-    "errorDesc": "Something went wrong while fetching data. Please try again.",
     "toast": {
       "added": "API key added successfully!",
       "addFailed": "Failed to add API key. Please try again.",
@@ -378,7 +380,6 @@
       "message": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone."
     },
     "keysCount": "{{count}} key",
-    "keysCount_plural": "{{count}} keys",
     "keysCount_one": "{{count}} key",
     "keysCount_other": "{{count}} keys"
   },
@@ -386,7 +387,6 @@
     "title": "Enricher Templates",
     "description": "Create and manage your enricher templates.",
     "errorTitle": "Couldn't load templates",
-    "errorDesc": "Something went wrong while fetching data. Please try again.",
     "import": "Import",
     "newTemplate": "New template",
     "betaWarning": "Template enrichers are currently in <strong>beta</strong>. Feel free to <a>raise an issue</a> if you encounter any problems.",
@@ -424,11 +424,9 @@
       "test": "Test"
     },
     "errors": "{{count}} error",
-    "errors_plural": "{{count}} errors",
     "valid": "Valid",
     "modified": "Modified",
     "lines": "{{count}} line",
-    "lines_plural": "{{count}} lines",
     "header": {
       "templates": "Templates",
       "newTemplate": "New Template",
@@ -487,9 +485,7 @@
     "lastName": "Last name",
     "lastNamePlaceholder": "Doe",
     "avatarUrl": "Avatar URL",
-    "email": "Email",
-    "saving": "Saving...",
-    "saveChanges": "Save changes"
+    "email": "Email"
   },
   "footer": {
     "vault": "Vault",
@@ -522,7 +518,33 @@
   "types": {
     "location": {
       "name": "Location",
-      "description": "Represents location entity."
+      "description": "Represents location entity.",
+      "fields": {
+        "address": {
+          "label": "Street Address",
+          "description": "Street address"
+        },
+        "city": {
+          "label": "City",
+          "description": "City name"
+        },
+        "country": {
+          "label": "Country",
+          "description": "Country name"
+        },
+        "zip": {
+          "label": "ZIP/Postal Code",
+          "description": "ZIP or postal code"
+        },
+        "latitude": {
+          "label": "Latitude",
+          "description": "Latitude coordinate"
+        },
+        "longitude": {
+          "label": "Longitude",
+          "description": "Longitude coordinate"
+        }
+      }
     },
     "affiliation": {
       "name": "Affiliation",
@@ -998,15 +1020,177 @@
     },
     "cryptonft": {
       "name": "Cryptonft",
-      "description": "Represents cryptonft entity."
+      "description": "Represents cryptonft entity.",
+      "fields": {
+        "wallet": {
+          "label": "Wallet",
+          "description": "Source wallet"
+        },
+        "contract_address": {
+          "label": "Contract Address",
+          "description": "Address of the NFT smart contract"
+        },
+        "token_id": {
+          "label": "Token ID",
+          "description": "Unique token ID"
+        },
+        "collection_name": {
+          "label": "Collection Name",
+          "description": "Name of the NFT collection"
+        },
+        "metadata_url": {
+          "label": "Metadata URL",
+          "description": "URL to metadata"
+        },
+        "image_url": {
+          "label": "Image URL",
+          "description": "URL to image"
+        },
+        "name": {
+          "label": "NFT Name",
+          "description": "NFT Name"
+        },
+        "description": {
+          "label": "Description",
+          "description": "NFT description"
+        },
+        "owner_address": {
+          "label": "Owner Address",
+          "description": "Current owner address"
+        },
+        "creator_address": {
+          "label": "Creator Address",
+          "description": "Creator address"
+        },
+        "last_transfer_date": {
+          "label": "Last Transfer Date",
+          "description": "Date of last transfer"
+        },
+        "node_id": {
+          "label": "Node ID",
+          "description": "Node ID in the graph"
+        }
+      }
     },
     "cryptowallet": {
       "name": "Cryptowallet",
-      "description": "Represents cryptowallet entity."
+      "description": "Represents cryptowallet entity.",
+      "fields": {
+        "address": {
+          "label": "Wallet Address",
+          "description": "Wallet address"
+        },
+        "node_id": {
+          "label": "Node ID",
+          "description": "Node ID in the graph"
+        }
+      }
     },
     "cryptowallettransaction": {
       "name": "Cryptowallettransaction",
-      "description": "Represents cryptowallettransaction entity."
+      "description": "Represents cryptowallettransaction entity.",
+      "fields": {
+        "source": {
+          "label": "Source Wallet",
+          "description": "Source wallet"
+        },
+        "target": {
+          "label": "Target Wallet",
+          "description": "Target wallet"
+        },
+        "hash": {
+          "label": "Transaction Hash",
+          "description": "Transaction hash"
+        },
+        "value": {
+          "label": "Value",
+          "description": "Transaction value"
+        },
+        "amount": {
+          "label": "Amount",
+          "description": "Transaction amount"
+        },
+        "amount_usd": {
+          "label": "Amount USD",
+          "description": "Amount in USD"
+        },
+        "date": {
+          "label": "Date",
+          "description": "Transaction date"
+        },
+        "hop": {
+          "label": "Hop Distance",
+          "description": "Hop distance"
+        },
+        "timestamp": {
+          "label": "Timestamp",
+          "description": "Transaction timestamp"
+        },
+        "block_number": {
+          "label": "Block Number",
+          "description": "Block number"
+        },
+        "block_hash": {
+          "label": "Block Hash",
+          "description": "Block hash"
+        },
+        "nonce": {
+          "label": "Nonce",
+          "description": "Transaction nonce"
+        },
+        "transaction_index": {
+          "label": "Transaction Index",
+          "description": "Transaction index in block"
+        },
+        "gas": {
+          "label": "Gas",
+          "description": "Gas provided"
+        },
+        "gas_price": {
+          "label": "Gas Price",
+          "description": "Gas price in wei"
+        },
+        "gas_used": {
+          "label": "Gas Used",
+          "description": "Gas used"
+        },
+        "cumulative_gas_used": {
+          "label": "Cumulative Gas Used",
+          "description": "Cumulative gas used"
+        },
+        "input": {
+          "label": "Input Data",
+          "description": "Input data"
+        },
+        "contract_address": {
+          "label": "Contract Address",
+          "description": "Contract address"
+        },
+        "method_id": {
+          "label": "Method ID",
+          "description": "Method ID"
+        },
+        "function_name": {
+          "label": "Function Name",
+          "description": "Function name"
+        },
+        "confirmations": {
+          "label": "Confirmations",
+          "description": "Number of confirmations"
+        },
+        "is_error": {
+          "label": "Is Error",
+          "description": "Whether resulted in error"
+        },
+        "txreceipt_status": {
+          "label": "Transaction Receipt Status",
+          "description": "Transaction receipt status"
+        },
+        "error_message": {
+          "label": "Error Message",
+          "description": "Error message if failed"
+        }
+      }
     },
     "device": {
       "name": "Device",
@@ -1244,7 +1428,7 @@
       "fields": {
         "domain": {
           "label": "Domain name",
-          "description": "Domain name"
+          "description": "Fully qualified domain name (FQDN)"
         },
         "root": {
           "label": "Is Root Domain",
@@ -1358,7 +1542,33 @@
     },
     "geolocation": {
       "name": "Geolocation",
-      "description": "Represents geolocation entity."
+      "description": "Represents geolocation entity.",
+      "fields": {
+        "address": {
+          "label": "Street Address",
+          "description": "Street address"
+        },
+        "city": {
+          "label": "City",
+          "description": "City name"
+        },
+        "country": {
+          "label": "Country",
+          "description": "Country name"
+        },
+        "zip": {
+          "label": "ZIP/Postal Code",
+          "description": "ZIP or postal code"
+        },
+        "latitude": {
+          "label": "Latitude",
+          "description": "Latitude coordinate"
+        },
+        "longitude": {
+          "label": "Longitude",
+          "description": "Longitude coordinate"
+        }
+      }
     },
     "gravatar": {
       "name": "Gravatar",
@@ -1544,7 +1754,7 @@
         },
         "drivers_license": {
           "label": "Driver",
-          "description": "Driver"
+          "description": "Driver's license number"
         },
         "social_security_number": {
           "label": "Social Security Number",
@@ -1592,7 +1802,7 @@
         },
         "employer_address": {
           "label": "Employer Address",
-          "description": "Employer"
+          "description": "Address of the employer"
         },
         "job_title": {
           "label": "Job Title",
@@ -1962,7 +2172,7 @@
         },
         "sigle": {
           "label": "Acronym",
-          "description": "Acronym"
+          "description": "Short name or acronym of the organization"
         },
         "nombre_etablissements": {
           "label": "Number of Establishments",
@@ -3080,7 +3290,7 @@
         },
         "opt_out_url": {
           "label": "Opt-out URL",
-          "description": "Opt-out URL"
+          "description": "URL to opt out of tracking"
         },
         "first_seen": {
           "label": "First Seen",
@@ -3208,199 +3418,203 @@
   "enrichers": {
     "AsnToCidrsEnricher": {
       "name": "AsnToCidrsEnricher",
-      "description": "AsnToCidrsEnricher module."
+      "description": "[ASNMAP] Takes an ASN and returns its corresponding CIDRs."
     },
     "CidrToIpsEnricher": {
       "name": "CidrToIpsEnricher",
-      "description": "CidrToIpsEnricher module."
+      "description": "[MAPCIDR] Takes a CIDR and returns its corresponding IP addresses."
     },
     "CryptoWalletAddressToNFTs": {
       "name": "CryptoWalletAddressToNFTs",
-      "description": "CryptoWalletAddressToNFTs module."
+      "description": "[ETHERSCAN] Resolve NFTs for a wallet address (ETH)."
     },
     "CryptoWalletAddressToTransactions": {
       "name": "CryptoWalletAddressToTransactions",
-      "description": "CryptoWalletAddressToTransactions module."
+      "description": "[ETHERSCAN] Resolve transactions for a wallet address (ETH)."
     },
     "DomainToAsnEnricher": {
       "name": "DomainToAsnEnricher",
-      "description": "DomainToAsnEnricher module."
+      "description": "[ASNMAP] Takes a domain and returns its corresponding ASN."
     },
     "DomainToDehashed": {
       "name": "DomainToDehashed",
-      "description": "DomainToDehashed module."
+      "description": "[DeHashed] Get breach intelligence from a domain."
     },
     "DomainToDnsEnricher": {
       "name": "DomainToDnsEnricher",
-      "description": "DomainToDnsEnricher module."
+      "description": "[DNSX] Resolve a domain's A (IPv4) and AAAA (IPv6) records using dnsx."
     },
     "DomainToHistoryEnricher": {
       "name": "DomainToHistoryEnricher",
-      "description": "DomainToHistoryEnricher module."
+      "description": "[WHOXY] Takes a domain and returns history infos about it (history, organization, owners, emails, etc.)."
     },
     "ResolveEnricher": {
       "name": "ResolveEnricher",
-      "description": "ResolveEnricher module."
+      "description": "Resolve domain names to IP addresses."
     },
     "DomainToRootDomain": {
       "name": "DomainToRootDomain",
-      "description": "DomainToRootDomain module."
+      "description": "Subdomain to root domain."
     },
     "DomainToTLS": {
       "name": "DomainToTLS",
-      "description": "DomainToTLS module."
+      "description": "[httpX] Get TLS information from a domain."
     },
     "SubdomainEnricher": {
       "name": "SubdomainEnricher",
-      "description": "SubdomainEnricher module."
+      "description": "Enricher to find subdomains associated with a domain."
     },
     "DomainToWebsiteEnricher": {
       "name": "DomainToWebsiteEnricher",
-      "description": "DomainToWebsiteEnricher module."
+      "description": "From domain to website."
     },
     "WhoisEnricher": {
       "name": "WhoisEnricher",
-      "description": "WhoisEnricher module."
+      "description": "Scan for WHOIS information of a domain."
     },
     "DomainToWhoisHistoryEnricher": {
       "name": "DomainToWhoisHistoryEnricher",
-      "description": "DomainToWhoisHistoryEnricher module."
+      "description": "[WHOISXML] Takes a domain and returns WHOIS history records (registrants, registrars, organizations, contacts)."
     },
     "EmailToDehashed": {
       "name": "EmailToDehashed",
-      "description": "EmailToDehashed module."
+      "description": "[DeHashed] Get breach intelligence from an email address."
     },
     "EmailToDomainEnricher": {
       "name": "EmailToDomainEnricher",
-      "description": "EmailToDomainEnricher module."
+      "description": "From email to domain."
     },
     "EmailToDomainsEnricher": {
       "name": "EmailToDomainsEnricher",
-      "description": "EmailToDomainsEnricher module."
+      "description": "[WHOXY] Takes an email and returns the domains it registered."
     },
     "EmailToGravatarEnricher": {
       "name": "EmailToGravatarEnricher",
-      "description": "EmailToGravatarEnricher module."
+      "description": "From md5 hash of email to gravatar."
     },
     "HudsonRockToEmail": {
       "name": "HudsonRockToEmail",
-      "description": "HudsonRockToEmail module."
+      "description": "[HudsonRock] Looks up email/s associated with devices from Infostealer related data using HudsonRock."
     },
     "EmailToBreachesEnricher": {
       "name": "EmailToBreachesEnricher",
-      "description": "EmailToBreachesEnricher module."
+      "description": "[HIBPWNED] Get the breaches the email might be invovled in."
     },
     "EmailToUsernameEnricher": {
       "name": "EmailToUsernameEnricher",
-      "description": "EmailToUsernameEnricher module."
+      "description": "From email to username."
     },
     "IndividualToDomainsEnricher": {
       "name": "IndividualToDomainsEnricher",
-      "description": "IndividualToDomainsEnricher module."
+      "description": "[WHOXY] Takes an individual and returns the domains it registered."
     },
     "IndividualToOrgEnricher": {
       "name": "IndividualToOrgEnricher",
-      "description": "IndividualToOrgEnricher module."
+      "description": "[SIRENE] Find organization from a person with data from SIRENE (France only)."
     },
     "IpToAsnEnricher": {
       "name": "IpToAsnEnricher",
-      "description": "IpToAsnEnricher module."
+      "description": "[ASNMAP] Takes an IP address and returns its corresponding ASN."
     },
     "IpToIntelligence": {
       "name": "IpToIntelligence",
-      "description": "IpToIntelligence module."
+      "description": "[DeHashed] Get breach intelligence from an IP address."
     },
     "ReverseResolveEnricher": {
       "name": "ReverseResolveEnricher",
-      "description": "ReverseResolveEnricher module."
+      "description": "Resolve IP addresses to domain names using PTR, Certificate Transparency and optional API calls."
     },
     "IpToFraudScore": {
       "name": "IpToFraudScore",
-      "description": "IpToFraudScore module."
+      "description": "[Scamalytics] Get fraud score for an IP address."
     },
     "IpToInfosEnricher": {
       "name": "IpToInfosEnricher",
-      "description": "IpToInfosEnricher module."
+      "description": "[ip-api.com] Get information data for IP addresses."
     },
     "IpToPortsEnricher": {
       "name": "IpToPortsEnricher",
-      "description": "IpToPortsEnricher module."
+      "description": "[NAABU] Performs port scanning on IP addresses to discover open ports and services."
     },
     "N8nConnector": {
       "name": "N8nConnector",
-      "description": "N8nConnector module."
+      "description": "Connect to your custom n8n workflows to process data through webhooks."
     },
     "OrgToAsnEnricher": {
       "name": "OrgToAsnEnricher",
-      "description": "OrgToAsnEnricher module."
+      "description": "Takes an organization and returns its corresponding ASN."
     },
     "OrgToDomainsEnricher": {
       "name": "OrgToDomainsEnricher",
-      "description": "OrgToDomainsEnricher module."
+      "description": "[WHOXY] Takes an organization and returns the domains it registered."
     },
     "OrgToInfosEnricher": {
       "name": "OrgToInfosEnricher",
-      "description": "OrgToInfosEnricher module."
+      "description": "Enrich Organization with data from SIRENE (France only)."
     },
     "PhoneToCarrier": {
       "name": "PhoneToCarrier",
-      "description": "PhoneToCarrier module."
+      "description": "[veriphone] Looks up phone number/s carrier using veriphone API."
     },
     "HudsonRockToPhone": {
       "name": "HudsonRockToPhone",
-      "description": "HudsonRockToPhone module."
+      "description": "[HudsonRock] Looks up phone number/s associated with devices from Infostealer related data using HudsonRock."
     },
     "UsernameToDehashed": {
       "name": "UsernameToDehashed",
-      "description": "UsernameToDehashed module."
+      "description": "[DeHashed] Get breach intelligence from a username."
     },
     "HudsonRockToUsername": {
       "name": "HudsonRockToUsername",
-      "description": "HudsonRockToUsername module."
+      "description": "[HudsonRock] Looks up username/s associated with devices from Infostealer related data using HudsonRock."
     },
     "MaigretEnricher": {
       "name": "MaigretEnricher",
-      "description": "MaigretEnricher module."
+      "description": "[MAIGRET] Scans usernames for associated social accounts using Maigret."
     },
     "SherlockEnricher": {
       "name": "SherlockEnricher",
-      "description": "SherlockEnricher module."
+      "description": "[SHERLOCK] Scans the usernames for associated social accounts using Sherlock."
     },
     "WebsiteToCrawler": {
       "name": "WebsiteToCrawler",
-      "description": "WebsiteToCrawler module."
+      "description": "From website to crawler."
     },
     "WebsiteToDomainEnricher": {
       "name": "WebsiteToDomainEnricher",
-      "description": "WebsiteToDomainEnricher module."
+      "description": "From website to domain."
     },
     "WebsiteToLinks": {
       "name": "WebsiteToLinks",
-      "description": "WebsiteToLinks module."
+      "description": "From website to spread crawler that extracts domains and internal/external links."
     },
     "WebsiteToSubdomains": {
       "name": "WebsiteToSubdomains",
-      "description": "WebsiteToSubdomains module."
+      "description": "[c99.nl] Performs an automated scan to find subdomains of the given domain."
     },
     "TechDetectEnricher": {
       "name": "TechDetectEnricher",
-      "description": "TechDetectEnricher module."
+      "description": "[HTTPX] Detect web technologies on a website via httpx (wappalyzer)."
     },
     "WebsiteToText": {
       "name": "WebsiteToText",
-      "description": "WebsiteToText module."
+      "description": "Extracts the texts in a webpage."
     },
     "WebsiteToWebtrackersEnricher": {
       "name": "WebsiteToWebtrackersEnricher",
-      "description": "WebsiteToWebtrackersEnricher module."
+      "description": "From website to webtrackers."
     },
     "ToDummyEnricher": {
       "name": "ToDummyEnricher",
-      "description": "ToDummyEnricher module."
+      "description": "ToDummyEnricher"
     },
     "IpToDummyDomainsEnricher": {
       "name": "IpToDummyDomainsEnricher",
-      "description": "IpToDummyDomainsEnricher module."
+      "description": "TEST TRANSFORM: Generate dummy domains for testing SSE incremental updates."
+    },
+    "IgnorantEnricher": {
+      "name": "IgnorantEnricher",
+      "description": ""
     }
   },
   "sketches": {
@@ -3431,8 +3645,8 @@
       "dragAndDrop": "Drag and drop you first node in the \"items\" section.",
       "search": "Search...",
       "filters": "filters",
-      "filterCount_one": "{{count}} filter(s)",
-      "filterCount_other": "{{count}} filter(s)",
+      "filterCount_one": "{{count}} filter",
+      "filterCount_other": "{{count}} filters",
       "all": "All",
       "nodes": "nodes",
       "noResults": "No nodes match your search"
@@ -3519,9 +3733,6 @@
         }
       },
       "actions": {
-        "cancel": "Cancel",
-        "save": "Save changes",
-        "saving": "Saving...",
         "success": "Sketch updated successfully",
         "error": "Failed to update sketch: "
       },
@@ -3621,7 +3832,7 @@
           },
           "nodeSize": {
             "name": "Node Size",
-            "description": "Defines the width of the link between two nodes."
+            "description": "Defines the base size of graph nodes."
           },
           "nodeWeightMultiplierSize": {
             "name": "Node Weight Multiplier",
@@ -3759,7 +3970,19 @@
         "Crypto": "Crypto"
       },
       "searchPlaceholder": "Search type...",
-      "importEntities": "Import entities"
+      "importEntities": "Import entities",
+      "add": "Add",
+      "enter": "Enter",
+      "select": "Select",
+      "selectItemToInsert": "Select an item to insert",
+      "addRelation": "Add a relation to ",
+      "chooseRelationType": "Choose what type of relation to add to this node.",
+      "selectTypeOf": "Select a type of ",
+      "toAdd": " to add",
+      "chooseItemToInsert": "Choose an item to insert manually, or import data from a file.",
+      "options": "options",
+      "fields": "fields",
+      "soon": "Soon"
     },
     "importSheet": {
       "title": "Import entities",

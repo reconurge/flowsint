@@ -94,7 +94,7 @@ export default function NewAnalysis({ children }: NewAnalysisProps) {
           <Label htmlFor="title">{t('newAnalysis.form.name')}</Label>
           <Input
             id="title"
-            {...register('title', { required: t('newAnalysis.validation.titleRequired') })}
+            {...register('title', { required: t('common.validation.titleRequired') })}
             placeholder={t('newAnalysis.form.namePlaceholder')}
             aria-invalid={errors.title ? 'true' : 'false'}
           />
@@ -118,7 +118,7 @@ export default function NewAnalysis({ children }: NewAnalysisProps) {
           {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? t('newAnalysis.form.saving') : t('newAnalysis.form.saveBtn')}
+          {isSubmitting ? t('common.saveStatus.saving') : t('common.save')}
         </Button>
       </DialogFooter>
     </form>

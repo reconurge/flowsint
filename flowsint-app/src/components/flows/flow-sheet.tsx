@@ -183,6 +183,17 @@ const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick:
         ? useIcon(enricher.icon)
         : null
 
+  const isType = enricher.type === 'type'
+  const typeKey = enricher.outputs?.type?.toLowerCase() || ''
+  
+  const displayName = isType 
+    ? t('types.' + typeKey + '.name', { defaultValue: enricher.class_name }) 
+    : t('enrichers.' + enricher.class_name + '.name', { defaultValue: enricher.class_name })
+
+  const displayDesc = isType
+    ? t('types.' + typeKey + '.description', { defaultValue: enricher.description })
+    : t('enrichers.' + enricher.class_name + '.description', { defaultValue: enricher.description })
+
   return (
     <TooltipProvider>
       <button
@@ -202,23 +213,27 @@ const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick:
               <div className="flex items-center gap-2 truncate text-ellipsis">
                 {Icon && <Icon size={24} />}
                 <h3 className="text-sm font-medium truncate text-ellipsis">
-                  {enricher.class_name}
+                  {displayName}
                 </h3>
               </div>
               <p className="text-sm font-normal opacity-60 truncate text-ellipsis">
-                {enricher.description}
+                {displayDesc}
               </p>
               <div className="mt-2 flex items-center gap-2 text-xs">
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">{t('flows.editor.flowSheet.takes')}</span>
-                  <span className="font-bold truncate text-ellipsis">{enricher.inputs.type}</span>
+                  <span className="font-bold truncate text-ellipsis">
+                    {t('types.' + enricher.inputs.type.toLowerCase() + '.name', { defaultValue: enricher.inputs.type })}
+                  </span>
                 </div>
                 <span>
                   <ArrowRight className="h-3 w-3" />
                 </span>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">{t('flows.editor.flowSheet.returns')}</span>
-                  <span className="font-bold truncate text-ellipsis">{enricher.outputs.type}</span>
+                  <span className="font-bold truncate text-ellipsis">
+                    {t('types.' + enricher.outputs.type.toLowerCase() + '.name', { defaultValue: enricher.outputs.type })}
+                  </span>
                 </div>
               </div>
             </div>

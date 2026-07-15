@@ -102,7 +102,7 @@ function TemplatesPage() {
       errorComponent={
         <ErrorState
           title={t('enricherTemplates.errorTitle')}
-          description={t('enricherTemplates.errorDesc')}
+          description={t('common.errorDesc')}
           error={error}
           onRetry={() => refetch()}
         />

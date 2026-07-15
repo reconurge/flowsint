@@ -90,7 +90,7 @@ function CustomTypesPage() {
       errorComponent={
         <ErrorState
           title={t('customTypes.errorTitle')}
-          description={t('customTypes.errorDesc')}
+          description={t('common.errorDesc')}
           error={error}
           onRetry={() => refetch()}
         />

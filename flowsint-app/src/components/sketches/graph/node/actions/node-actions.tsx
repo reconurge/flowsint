@@ -21,6 +21,7 @@ import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { cn } from '@/lib/utils'
 import { usePermissions } from '@/hooks/use-can'
+import { useTranslation } from 'react-i18next'
 
 const flagColors = {
   red: 'text-red-400 fill-red-200',
@@ -36,6 +37,7 @@ const NodeActions = memo(
   ({ node, setMenu }: { node: GraphNode; setMenu?: (menu: any | null) => void }) => {
     const { id: sketchId } = useParams({ strict: false })
     const { canEdit } = usePermissions()
+    const { t } = useTranslation()
     const { confirm } = useConfirm()
     const setOpenMainDialog = useGraphStore((state) => state.setOpenMainDialog)
     const setRelatedNodeToAdd = useGraphStore((state) => state.setRelatedNodeToAdd)
@@ -71,8 +73,8 @@ const NodeActions = memo(
       if (!node.id || !sketchId) return
       if (
         !(await confirm({
-          title: `You are about to delete this node ?`,
-          message: 'The action is irreversible.'
+          title: t('sketches.nodes.contextMenu.deleteConfirmTitle', 'You are about to delete this node ?'),
+          message: t('sketches.nodes.contextMenu.deleteConfirmMessage', 'The action is irreversible.')
         }))
       )
         return
@@ -82,9 +84,9 @@ const NodeActions = memo(
           return sketchService.deleteNodes(sketchId, JSON.stringify({ nodeIds: [node.id] }))
         })(),
         {
-          loading: `Deleting ${node.nodeProperties.label}...`,
-          success: 'Node deleted successfully.',
-          error: 'Failed to delete node.'
+          loading: t('sketches.nodes.contextMenu.deleting', 'Deleting {{label}}...', { label: node.nodeProperties.label }),
+          success: t('sketches.nodes.contextMenu.deleteSuccess', 'Node deleted successfully.'),
+          error: t('sketches.nodes.contextMenu.deleteFailed', 'Failed to delete node.')
         }
       )
     }
@@ -120,18 +122,18 @@ const NodeActions = memo(
         <DropdownMenuContent align="end" className="min-w-[140px]">
           <DropdownMenuItem onClick={handleOpenMainDialog}>
             <Plus className="h-3.5 w-3.5 mr-2" />
-            Add relation
+            {t('sketches.nodes.contextMenu.addRelation', 'Add relation')}
           </DropdownMenuItem>
           {Boolean(settings?.general?.showFlow?.value) && (
             <DropdownMenuItem onClick={handleAskAI}>
               <Sparkles className="h-3.5 w-3.5 mr-2" />
-              Ask AI
+              {t('sketches.nodes.contextMenu.askAi', 'Ask AI')}
             </DropdownMenuItem>
           )}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Flag className={cn('h-3.5 w-3.5 mr-2', flagValue ? flagColors[flagValue] : '')} />
-              Flag
+              {t('sketches.nodes.contextMenu.flag', 'Flag')}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               <div className="flex gap-1 p-1">
@@ -159,7 +161,7 @@ const NodeActions = memo(
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="h-3.5 w-3.5 mr-2" />
-            Delete
+            {t('sketches.nodes.contextMenu.delete', 'Delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

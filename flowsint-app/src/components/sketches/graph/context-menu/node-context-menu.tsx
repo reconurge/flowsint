@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { enricherService } from '@/api/enricher-service'
 import { flowService } from '@/api/flow-service'
 import { useQuery } from '@tanstack/react-query'
@@ -57,6 +58,7 @@ export default function ContextMenu({
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
+  const { t } = useTranslation()
   const { canEdit } = usePermissions()
   const [activeTab, setActiveTab] = useState('enrichers')
   const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
@@ -142,11 +144,11 @@ export default function ContextMenu({
             <TabsList className="w-full h-9">
               <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <Zap className="h-3 w-3 mr-1" />
-                Enrichers
+                {t('sketches.nodes.contextMenu.enrichers', 'Enrichers')}
               </TabsTrigger>
               <TabsTrigger value="flows" className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <FileCode2 className="h-3 w-3 mr-1" />
-                Flows
+                {t('sketches.nodes.contextMenu.flows', 'Flows')}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -163,7 +165,7 @@ export default function ContextMenu({
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search enrichers..."
+                placeholder={t('sketches.nodes.contextMenu.searchEnrichers', 'Search enrichers...')}
                 value={enrichersSearchQuery}
                 onChange={(e) => {
                   e.stopPropagation()
@@ -207,7 +209,7 @@ export default function ContextMenu({
                             <BadgeCheck className="h-3 w-3 text-green-400" />
                           )}{' '}
                         </span>{' '}
-                        {enricher.name || '(Unnamed enricher)'}
+                        {enricher.name || t('sketches.nodes.contextMenu.unnamedEnricher', '(Unnamed enricher)')}
                       </p>
                       {enricher.description && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -225,7 +227,9 @@ export default function ContextMenu({
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {enrichersSearchQuery ? 'No enrichers found' : 'No enrichers available'}
+                  {enrichersSearchQuery
+                    ? t('sketches.nodes.contextMenu.noEnrichersFound', 'No enrichers found')
+                    : t('sketches.nodes.contextMenu.noEnrichersAvailable', 'No enrichers available')}
                 </p>
               </div>
             )}
@@ -240,7 +244,7 @@ export default function ContextMenu({
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search flows..."
+                placeholder={t('sketches.nodes.contextMenu.searchFlows', 'Search flows...')}
                 value={flowsSearchQuery}
                 onChange={(e) => {
                   e.stopPropagation()
@@ -284,7 +288,7 @@ export default function ContextMenu({
                             <BadgeCheck className="h-3 w-3 text-green-400" />
                           )}{' '}
                         </span>{' '}
-                        {flow.name || '(Unnamed flow)'}
+                        {flow.name || t('sketches.nodes.contextMenu.unnamedFlow', '(Unnamed flow)')}
                       </p>
                       {flow.description && (
                         <p className="text-xs text-muted-foreground truncate">{flow.description}</p>
@@ -300,7 +304,9 @@ export default function ContextMenu({
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {flowsSearchQuery ? 'No flows found' : 'No flows available'}
+                  {flowsSearchQuery
+                    ? t('sketches.nodes.contextMenu.noFlowsFound', 'No flows found')
+                    : t('sketches.nodes.contextMenu.noFlowsAvailable', 'No flows available')}
                 </p>
               </div>
             )}

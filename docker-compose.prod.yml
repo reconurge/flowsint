@@ -80,6 +80,10 @@ services:
       - AUTH_SECRET=${AUTH_SECRET}
       - MASTER_VAULT_KEY_V1=${MASTER_VAULT_KEY_V1}
       - REDIS_URL=redis://redis:6379/0
+      # Works around a SIGILL in cryptography's Rust/OpenSSL extension caused by
+      # mis-detected AArch64 crypto-extension CPU flags under some ARM64
+      # hypervisors (e.g. Colima/Apple Virtualization Framework). No-op elsewhere.
+      - OPENSSL_armcap=0
     depends_on:
       postgres:
         condition: service_healthy
@@ -120,6 +124,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SKIP_MIGRATIONS=true
       - AUTH_SECRET=${AUTH_SECRET}
+      - OPENSSL_armcap=0
     healthcheck:
       # Celery has no HTTP server — Dockerfile's curl-based healthcheck always fails.
       # Use celery's own ping primitive instead.

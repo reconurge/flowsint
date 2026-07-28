@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Plus, Upload } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface GraphEmptyStateProps {
   onOpenAddDialog: () => void
@@ -14,6 +15,7 @@ export const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({
   className = '',
   style
 }) => {
+  const { t } = useTranslation()
   return (
     <div
       className={`flex h-full w-full items-center justify-center ${className}`}
@@ -35,30 +37,29 @@ export const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">No data to visualize</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">{t('sketches.emptyState.title', { defaultValue: 'No data to visualize' })}</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Start your investigation by adding nodes to see them displayed in the graph view.
+          {t('sketches.emptyState.subtitle', { defaultValue: 'Start your investigation by adding nodes to see them displayed in the graph view.' })}
         </p>
         <div className="space-y-2 text-xs text-muted-foreground mb-6">
           <p>
-            <strong>Tip:</strong> Use the search bar to find entities or import data to get
-            started
+            <strong>{t('sketches.emptyState.tipTitle', { defaultValue: 'Tip:' })}</strong> {t('sketches.emptyState.tipText', { defaultValue: 'Use the search bar to find entities or import data to get started' })}
           </p>
           <p>
-            <strong>Explore:</strong> Try searching for domains, emails, or other entities
+            <strong>{t('sketches.emptyState.exploreTitle', { defaultValue: 'Explore:' })}</strong> {t('sketches.emptyState.exploreText', { defaultValue: 'Try searching for domains, emails, or other entities' })}
           </p>
           <p>
-            <strong>Labels:</strong> Zoom in (over 2x) to see all labels, icons, and edges
+            <strong>{t('sketches.emptyState.labelsTitle', { defaultValue: 'Labels:' })}</strong> {t('sketches.emptyState.labelsText', { defaultValue: 'Zoom in (over 2x) to see all labels, icons, and edges' })}
           </p>
         </div>
         <div className='flex flex-col justify-center gap-1'>
           <Button onClick={onOpenAddDialog}>
             <Plus />
-            Add your first item
+            {t('sketches.emptyState.addFirst', { defaultValue: 'Add your first item' })}
           </Button>
-          <span className='opacity-60'>or</span>
+          <span className='opacity-60'>{t('sketches.emptyState.or', { defaultValue: 'or' })}</span>
           <Button variant="secondary" onClick={onOpenImportDialog}>
-            <Upload /> Import data
+            <Upload /> {t('sketches.emptyState.importData', { defaultValue: 'Import data' })}
           </Button>
         </div>
       </div>

@@ -8,9 +8,10 @@ import { SkeletonList } from '../shared/skeleton-list'
 import { FolderOpen, Plus } from "lucide-react"
 import { queryKeys } from '@/api/query-keys'
 import ErrorState from '../shared/error-state'
-
+import { useTranslation } from 'react-i18next'
 
 const InvestigationList = () => {
+  const { t } = useTranslation()
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.investigations.list,
     queryFn: investigationService.get
@@ -23,8 +24,8 @@ const InvestigationList = () => {
   if (error)
     return (
       <ErrorState
-        title="Couldn't load investigations"
-        description="Something went wrong while fetching data. Please try again."
+        title={t('dashboard.errorTitle')}
+        description={t('common.errorDesc')}
         error={error}
         onRetry={() => refetch()}
       />
@@ -33,7 +34,7 @@ const InvestigationList = () => {
     <div className="w-full h-full bg-card flex flex-col overflow-hidden">
       <div className="px-2 my-2 flex-1 overflow-auto">
         <div className="flex items-center justify-between px-2 mb-1 group">
-          <span className="text-xs font-medium text-muted-foreground">Cases</span>
+          <span className="text-xs font-medium text-muted-foreground">{t('investigationDetails.breadcrumbs.cases')}</span>
           <NewInvestigation noDropDown>
             <button className="p-1 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100">
               <Plus className="w-3.5 h-3.5 text-muted-foreground" />

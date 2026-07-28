@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select'
 import { useActionItems } from '@/hooks/use-action-items'
 import type { ActionItem } from '@/lib/action-items'
+import { useTranslation } from 'react-i18next'
 
 interface TemplateIOBarProps {
   inputType: string | undefined
@@ -90,6 +91,7 @@ function TypeSelect({
   flat: ActionItem[]
   placeholder: string
 }) {
+  const { t } = useTranslation()
   const matched = flat.find((t) => t.type === value)
 
   return (
@@ -99,24 +101,24 @@ function TypeSelect({
         className="h-7 border-none bg-transparent shadow-none px-2 text-xs font-medium gap-1.5 hover:bg-accent/50 transition-colors focus-visible:ring-0"
       >
         <SelectValue placeholder={placeholder}>
-          {matched ? matched.label : value || placeholder}
+          {matched ? t('types.' + matched.type + '.name', { defaultValue: matched.label }) : value || placeholder}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {groups.size > 0
           ? Array.from(groups.entries()).map(([category, items]) => (
               <SelectGroup key={category}>
-                <SelectLabel>{category}</SelectLabel>
+                <SelectLabel>{t('types.' + category + '.name', { defaultValue: category })}</SelectLabel>
                 {items.map((item) => (
                   <SelectItem key={item.type} value={item.type}>
-                    {item.label}
+                    {t('types.' + item.type + '.name', { defaultValue: item.label })}
                   </SelectItem>
                 ))}
               </SelectGroup>
             ))
           : flat.map((item) => (
               <SelectItem key={item.type} value={item.type}>
-                {item.label}
+                {t('types.' + item.type + '.name', { defaultValue: item.label })}
               </SelectItem>
             ))}
       </SelectContent>

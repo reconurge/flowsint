@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useActionItems } from '@/hooks/use-action-items'
 import { findActionItemByKey } from '@/lib/action-items'
+import { useTranslation } from 'react-i18next'
 
 interface DraggableItemProps {
   label: string
@@ -26,6 +27,7 @@ export const DraggableItem = memo(function DraggableItem({
   disabled = false,
   description
 }: DraggableItemProps) {
+  const { t } = useTranslation()
   const handleOpenFormModal = useGraphStore((s) => s.handleOpenFormModal)
   const { actionItems } = useActionItems()
   const [isDragging, setIsDragging] = useState(false)
@@ -72,8 +74,8 @@ export const DraggableItem = memo(function DraggableItem({
               <IconComponent size={16} type={type} />
             </div>
             <div className="w-full p-1 text-left flex-1 min-w-0">
-              <h3 className="text-sm font-medium truncate w-full">{label}</h3>
-              <p className="text-xs opacity-60 truncate w-full">{description}</p>
+              <h3 className="text-sm font-medium truncate w-full">{t('types.' + type.toLowerCase() + '.name', { defaultValue: label })}</h3>
+              <p className="text-xs opacity-60 truncate w-full">{t('types.' + type.toLowerCase() + '.description', { defaultValue: description })}</p>
             </div>
           </button>
         </TooltipTrigger>

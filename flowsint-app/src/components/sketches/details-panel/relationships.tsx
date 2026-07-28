@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react'
 import { memo, useCallback, useRef } from 'react'
 import { GraphEdge, GraphNode } from '@/types'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useTranslation } from 'react-i18next'
 
 const ITEM_HEIGHT = 36 // 32px badge height + 4px gap
 
@@ -30,6 +31,7 @@ const getInlineRelationships = (nodes: GraphNode[], edges: GraphEdge[]): Relatio
 
 const Relationships = memo(
   ({ sketchId, nodeId, nodeLength }: { sketchId: string; nodeId: string; nodeLength: number }) => {
+    const { t } = useTranslation()
     const { data: neighborsData, isLoading } = useQuery({
       queryKey: ['neighbors', sketchId, nodeId, nodeLength],
       queryFn: () => sketchService.getNodeNeighbors(sketchId, nodeId)
@@ -48,7 +50,7 @@ const Relationships = memo(
     if (relationships.length === 0) {
       return (
         <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-          No relationships found
+          {t('sketches.relationships.noRelationships', { defaultValue: 'No relationships found' })}
         </div>
       )
     }

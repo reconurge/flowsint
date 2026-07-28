@@ -7,6 +7,7 @@ import {
 } from '@/integrations/tanstack-query/root-provider'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
+import './i18n'
 import { ThemeProvider } from '@/components/theme-provider'
 
 const router = createRouter({

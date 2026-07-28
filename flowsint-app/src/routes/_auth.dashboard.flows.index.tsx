@@ -6,8 +6,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { SkeletonList } from '@/components/shared/skeleton-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDistanceToNow } from 'date-fns'
+import { ru, enUS } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTranslation } from 'react-i18next'
 import NewFlow from '@/components/flows/new-flow'
 import { flowService } from '@/api/flow-service'
 import ErrorState from '@/components/shared/error-state'
@@ -28,6 +30,8 @@ export const Route = createFileRoute('/_auth/dashboard/flows/')({
 })
 
 function FlowPage() {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'ru' ? ru : enUS
   const navigate = useNavigate()
   const {
     data: flows,
@@ -51,12 +55,12 @@ function FlowPage() {
     }, []) || []
 
   // Add "All" and "Uncategorized" to categories
-  const allCategories = ['All', ...categories, 'Uncategorized']
+  const allCategories = [t('flows.all'), ...categories, t('flows.uncategorized')]
 
   return (
     <PageLayout
-      title="Flows"
-      description="Create and manage your flow flows."
+      title={t('flows.title')}
+      description={t('flows.description')}
       isLoading={isLoading}
       loadingComponent={
         <div className="p-2">
@@ -66,8 +70,8 @@ function FlowPage() {
       error={error}
       errorComponent={
         <ErrorState
-          title="Couldn't load flows"
-          description="Something went wrong while fetching data. Please try again."
+          title={t('flows.errorTitle')}
+          description={t('common.errorDesc')}
           error={error}
           onRetry={() => refetch()}
         />
@@ -76,7 +80,7 @@ function FlowPage() {
         <NewFlow>
           <Button size="sm" data-tour-id="create-flow">
             <PlusIcon className="w-4 h-4 mr-2" />
-            New flow
+            {t('flows.newFlow')}
           </Button>
         </NewFlow>
       }
@@ -87,20 +91,19 @@ function FlowPage() {
             <div className="rounded-full bg-muted/50 p-4 mb-4">
               <FileX className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No flow yet</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('flows.noFlows')}</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Get started by creating your first flow. You can use flows to process and manipulate
-              your data in powerful ways.
+              {t('flows.noFlowsDesc')}
             </p>
             <NewFlow>
               <Button>
                 <PlusIcon className="w-4 h-4 mr-2" />
-                Create your first flow
+                {t('flows.createFirst')}
               </Button>
             </NewFlow>
           </div>
         ) : (
-          <Tabs defaultValue="All" className="space-y-6">
+          <Tabs defaultValue={t('flows.all')} className="space-y-6">
             <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 overflow-x-auto hide-scrollbar">
               {allCategories.map((category) => (
                 <TabsTrigger
@@ -118,9 +121,9 @@ function FlowPage() {
                 <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6" data-tour-id="flow-list">
                   {flows
                     ?.filter((flow) =>
-                      category === 'All'
+                      category === t('flows.all')
                         ? true
-                        : category === 'Uncategorized'
+                        : category === t('flows.uncategorized')
                           ? !flow.category?.length
                           : flow.category?.includes(category)
                     )
@@ -133,12 +136,12 @@ function FlowPage() {
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-lg font-medium group-hover:text-primary transition-colors">
-                              {flow.name || '(Unnamed flow)'}
+                              {flow.name || t('flows.unnamed')}
                             </CardTitle>
                             <FileCode2 className="w-4 h-4 text-muted-foreground" />
                           </div>
                           <CardDescription className="line-clamp-2 mt-1">
-                            {flow.description || 'No description provided'}
+                            {flow.description || t('flows.noDescription')}
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -146,7 +149,8 @@ function FlowPage() {
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="w-4 h-4 mr-1" />
                               {formatDistanceToNow(new Date(flow.updated_at || flow.created_at), {
-                                addSuffix: true
+                                addSuffix: true,
+                                locale
                               })}
                             </div>
                             <div className="flex flex-wrap gap-2 justify-end">

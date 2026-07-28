@@ -12,6 +12,7 @@ import { memo, useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { FieldType, FormField, findActionItemByKey } from '@/lib/action-items'
 import { CopyButton } from '@/components/copy'
+import { useTranslation } from 'react-i18next'
 import {
   Rocket,
   Link2,
@@ -82,17 +83,17 @@ const NODE_SHAPES = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const formatValue = (value: unknown): string => {
+const formatValue = (value: unknown, t: any): string => {
   if (value === null || value === undefined) return '—'
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  if (typeof value === 'boolean') return value ? t('sketches.nodes.detailsPanel.yes', 'Yes') : t('sketches.nodes.detailsPanel.no', 'No')
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
 }
 
-const formatDate = (value: unknown): string => {
+const formatDate = (value: unknown, lng: string): string => {
   if (!value) return '—'
   try {
-    return new Date(value as string).toLocaleDateString('en-US', {
+    return new Date(value as string).toLocaleDateString(lng === 'ru' ? 'ru-RU' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -108,10 +109,12 @@ const formatDate = (value: unknown): string => {
 
 function TitleInput({
   value,
-  onChange
+  onChange,
+  t
 }: {
   value: string
   onChange: (val: string) => void
+  t: any
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -137,7 +140,7 @@ function TitleInput({
         className="min-w-0 flex-1 text-left"
       >
         <span className="block truncate text-2xl font-bold">
-          {value || <span className="text-muted-foreground/40">Untitled</span>}
+          {value || <span className="text-muted-foreground/40">{t('sketches.nodes.detailsPanel.untitled', 'Untitled')}</span>}
         </span>
       </button>
     )
@@ -158,7 +161,7 @@ function TitleInput({
           setEditing(false)
         }
       }}
-      placeholder="Untitled"
+      placeholder={t('sketches.nodes.detailsPanel.untitled', 'Untitled')}
     />
   )
 }
@@ -197,15 +200,17 @@ function CollapsibleSection({
 function PropertyRow({
   label,
   copyValue,
-  children
+  children,
+  t
 }: {
   label: string
   copyValue?: string
   children: React.ReactNode
+  t?: any
 }) {
   return (
     <div className="grid grid-cols-[40%_1fr] items-center gap-2 px-6 py-1.5 group hover:bg-muted/50 transition-colors">
-      <span className="text-sm text-muted-foreground truncate">{label.replace(/_/g, ' ')}</span>
+      <span className="text-sm text-muted-foreground truncate">{t ? t(`sketches.nodes.properties.${label}`, label.replace(/_/g, ' ')) : label.replace(/_/g, ' ')}</span>
       <div className="min-w-0 text-sm flex items-center gap-1.5">
         <div className="min-w-0 flex-1">{children}</div>
         {copyValue && (
@@ -222,11 +227,13 @@ function PropertyRow({
 function PropertyInput({
   value,
   placeholder,
-  onBlur
+  onBlur,
+  t
 }: {
   value: string
   placeholder?: string
   onBlur: (val: string) => void
+  t: any
 }) {
   const [draft, setDraft] = useState(value)
 
@@ -244,7 +251,7 @@ function PropertyInput({
         if (e.key === 'Enter') onBlur(draft)
       }}
       className="w-full bg-transparent outline-none placeholder:text-muted-foreground/30 focus:bg-muted/20 px-1 rounded transition-colors"
-      placeholder={placeholder ?? 'Empty'}
+      placeholder={placeholder ?? t('sketches.nodes.detailsPanel.empty', 'Empty')}
     />
   )
 }
@@ -265,6 +272,7 @@ StatusCodeBadge.displayName = 'StatusCodeBadge'
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const DetailsPanel = memo(() => {
+  const { t, i18n } = useTranslation()
   const { id: sketchId } = useParams({ strict: false })
   const { canEdit } = usePermissions()
   const nodesLength = useGraphStore((s) => s.nodesLength)
@@ -356,10 +364,10 @@ const DetailsPanel = memo(() => {
           queryClient.invalidateQueries({ queryKey: queryKeys.sketches.graph(sketchId, sketchId) })
         }
       } else {
-        toast.error('Failed to update')
+        toast.error(t('sketches.nodes.detailsPanel.failedToUpdate', 'Failed to update'))
       }
     },
-    onError: () => toast.error('Failed to save')
+    onError: () => toast.error(t('sketches.nodes.detailsPanel.failedToSave', 'Failed to save'))
   })
 
   const saveState = useCallback(
@@ -480,7 +488,7 @@ const DetailsPanel = memo(() => {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
         <MousePointer className="h-5 w-5 text-muted-foreground/40 mb-3" />
-        <p className="text-[13px] text-muted-foreground/60">Select a node</p>
+        <p className="text-[13px] text-muted-foreground/60">{t('sketches.nodes.detailsPanel.selectNode', 'Select a node')}</p>
       </div>
     )
   }
@@ -506,7 +514,7 @@ const DetailsPanel = memo(() => {
             <div className="shrink-0 mt-1.5"><IconComponent size={24} /></div>
           )}
           {canEdit ? (
-            <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} />
+            <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} t={t} />
           ) : (
             <span className="min-w-0 flex-1 text-2xl font-bold truncate">{formData.nodeLabel}</span>
           )}
@@ -525,7 +533,7 @@ const DetailsPanel = memo(() => {
           <LaunchFlow values={[node.id]} type={node.nodeType}>
             <Button className="rounded-full h-8 gap-1.5 px-4 text-sm" size="sm">
               <Rocket className="size-3.5" strokeWidth={1.7} />
-              Enrich
+              {t('sketches.nodes.detailsPanel.enrich', 'Enrich')}
             </Button>
           </LaunchFlow>
         </div>
@@ -539,26 +547,26 @@ const DetailsPanel = memo(() => {
               value="properties"
               className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
             >
-              Properties
+              {t('sketches.nodes.detailsPanel.properties', 'Properties')}
             </TabsTrigger>
             <TabsTrigger
               value="neighbors"
               className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
             >
-              Neighbors
+              {t('sketches.nodes.detailsPanel.neighbors', 'Neighbors')}
             </TabsTrigger>
             <TabsTrigger
               value="relations"
               className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
             >
-              Relations
+              {t('sketches.nodes.detailsPanel.relations', 'Relations')}
             </TabsTrigger>
             {canEdit && (
               <TabsTrigger
                 value="appearance"
                 className="flex-1 rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none text-xs h-full"
               >
-                Style
+                {t('sketches.nodes.detailsPanel.style', 'Style')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -566,13 +574,14 @@ const DetailsPanel = memo(() => {
 
         {/* Properties tab */}
         <TabsContent value="properties" className="flex-1 min-h-0 overflow-y-auto mt-0 pb-6">
-          <CollapsibleSection label="Properties" defaultOpen noBorderTop>
+          <CollapsibleSection label={t('sketches.nodes.detailsPanel.properties', 'Properties')} defaultOpen noBorderTop>
             {propertiesFields.length > 0 ? (
               propertiesFields.map(([key, value]) => (
                 <PropertyRow
                   key={key}
                   label={key}
                   copyValue={copyField(value)}
+                  t={t}
                 >
                   {typeof value === 'boolean' ? (
                     canEdit ? (
@@ -582,7 +591,7 @@ const DetailsPanel = memo(() => {
                         className="scale-75"
                       />
                     ) : (
-                      <span className="text-muted-foreground">{value ? 'Yes' : 'No'}</span>
+                      <span className="text-muted-foreground">{value ? t('common.yes', 'Yes') : t('common.no', 'No')}</span>
                     )
                   ) : typeof value === 'number' ? (
                     <StatusCodeBadge statusCode={value} />
@@ -604,33 +613,34 @@ const DetailsPanel = memo(() => {
                         value={value || []}
                         onChange={(tags) => handlePropertyBlur(key, tags)}
                         orientation='vertical'
-                        placeholder={value?.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                        placeholder={value?.length === 0 ? t('sketches.nodes.detailsPanel.empty', 'Empty') : `${t('sketches.nodes.detailsPanel.enter', 'Enter')} ${key.toLowerCase()}`}
                       />
                     ) : (
-                      <span className="text-muted-foreground truncate">{Array.isArray(value) ? value.join(', ') : formatValue(value)}</span>
+                      <span className="text-muted-foreground truncate">{Array.isArray(value) ? value.join(', ') : formatValue(value, t)}</span>
                     )
                   ) : canEdit ? (
                     <PropertyInput
                       value={String(value || '')}
                       onBlur={(val) => handlePropertyBlur(key, val)}
+                      t={t}
                     />
                   ) : (
-                    <span className="text-muted-foreground truncate">{formatValue(value)}</span>
+                    <span className="text-muted-foreground truncate">{formatValue(value, t)}</span>
                   )}
                 </PropertyRow>
               ))
             ) : (
-              <p className="px-6 py-2 text-sm text-muted-foreground/40">No properties</p>
+              <p className="px-6 py-2 text-sm text-muted-foreground/40">{t('sketches.nodes.detailsPanel.noProperties', 'No properties')}</p>
             )}
           </CollapsibleSection>
 
-          <CollapsibleSection label="Notes" defaultOpen>
+          <CollapsibleSection label={t('sketches.nodes.detailsPanel.notes', 'Notes')} defaultOpen>
             <div className="min-h-[120px]">
               <MinimalTiptapEditor
                 value={formData.notes}
                 onChange={canEdit ? handleNotesChange : undefined}
                 output="html"
-                placeholder={canEdit ? "Write something..." : ""}
+                placeholder={canEdit ? t('sketches.nodes.detailsPanel.writeSomething', 'Write something...') : ""}
                 showToolbar={false}
                 editorContentClassName="px-6 py-3 !max-w-none prose-sm"
                 immediatelyRender={false}
@@ -640,17 +650,18 @@ const DetailsPanel = memo(() => {
           </CollapsibleSection>
 
           {metadataFields.length > 0 && (
-            <CollapsibleSection label="Metadata" defaultOpen={false}>
+            <CollapsibleSection label={t('sketches.nodes.detailsPanel.metadata', 'Metadata')} defaultOpen={false}>
               {metadataFields.map(([key, value]) => (
                 <PropertyRow
                   key={key}
                   label={key}
                   copyValue={typeof value === 'string' ? value : undefined}
+                  t={t}
                 >
                   <span className="text-muted-foreground truncate">
                     {key.includes('_at') || key.includes('date')
-                      ? formatDate(value)
-                      : formatValue(value)}
+                      ? formatDate(value, i18n.language)
+                      : formatValue(value, t)}
                   </span>
                 </PropertyRow>
               ))}
@@ -680,8 +691,8 @@ const DetailsPanel = memo(() => {
 
         {/* Appearance tab */}
         <TabsContent value="appearance" className="flex-1 min-h-0 overflow-y-auto mt-0 pb-6">
-          <CollapsibleSection label="Visual" defaultOpen noBorderTop>
-            <PropertyRow label={`Size (${nodeSize})`}>
+          <CollapsibleSection label={t('sketches.nodes.detailsPanel.visual', 'Visual')} defaultOpen noBorderTop>
+            <PropertyRow label={`${t('sketches.nodes.detailsPanel.size', 'Size')} (${nodeSize})`} t={t}>
               <Slider
                 value={[nodeSize]}
                 onValueChange={([val]) => handleSizeChange(val)}
@@ -691,7 +702,7 @@ const DetailsPanel = memo(() => {
               />
             </PropertyRow>
 
-            <PropertyRow label="Color">
+            <PropertyRow label={t('sketches.nodes.detailsPanel.color', 'Color')} t={t}>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {COLORS.map((color) => (
                   <button
@@ -709,7 +720,7 @@ const DetailsPanel = memo(() => {
               </div>
             </PropertyRow>
 
-            <PropertyRow label="Shape">
+            <PropertyRow label={t('sketches.nodes.detailsPanel.shape', 'Shape')} t={t}>
               <ToggleGroup
                 onValueChange={(value) => handleChange('nodeShape', value || null)}
                 type="single"
@@ -728,19 +739,20 @@ const DetailsPanel = memo(() => {
               </ToggleGroup>
             </PropertyRow>
 
-            <PropertyRow label="Icon">
+            <PropertyRow label={t('sketches.nodes.detailsPanel.icon', 'Icon')} t={t}>
               <button
                 onClick={() => setOpenIconPicker(true)}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                {formData.nodeIcon || 'Default'}
+                {formData.nodeIcon || t('sketches.nodes.detailsPanel.default', 'Default')}
               </button>
             </PropertyRow>
 
-            <PropertyRow label="Image">
+            <PropertyRow label={t('sketches.nodes.detailsPanel.image', 'Image')} t={t}>
               <PropertyInput
                 value={formData.nodeImage || ''}
-                placeholder="URL..."
+                placeholder={t('sketches.nodes.detailsPanel.url', 'URL...')}
+                t={t}
                 onBlur={(val) => {
                   const newFd = { ...formDataRef.current, nodeImage: val || null }
                   formDataRef.current = newFd

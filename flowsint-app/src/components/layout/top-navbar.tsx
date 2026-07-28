@@ -33,8 +33,10 @@ import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import { usePermissions } from '@/hooks/use-can'
+import { useTranslation } from 'react-i18next'
 
 export const TopNavbar = memo(() => {
+  const { t } = useTranslation()
   const { investigationId, id, type } = useParams({ strict: false })
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
   const isOpenAnalysis = useLayoutStore((s) => s.isOpenAnalysis)
@@ -84,7 +86,7 @@ export const TopNavbar = memo(() => {
             <>
               <Switch checked={isOpenAnalysis} onCheckedChange={handleToggleAnalysis} id="notes" />
               <Label htmlFor="notes">
-                Toggle notes
+                {t('sketches.topNavbar.toggleNotes', { defaultValue: 'Toggle notes' })}
                 <span className="text-[.7rem] -ml-1 opacity-60">({isMac ? '⌘' : 'ctrl'}L)</span>
               </Label>
             </>
@@ -104,6 +106,7 @@ export function InvestigationMenu({
   investigationId?: string
   sketchId: string
 }) {
+  const { t } = useTranslation()
   const { canEdit } = usePermissions()
   const toggleSettingsModal = useGraphSettingsStore((s) => s.toggleSettingsModal)
   const toggleKeyboardShortcutsModal = useGraphSettingsStore((s) => s.toggleKeyboardShortcutsModal)
@@ -145,15 +148,15 @@ export function InvestigationMenu({
     e.stopPropagation()
 
     const confirmed = await confirm({
-      title: 'Delete Sketch',
-      message: `Are you sure you want to delete this sketch ? This action cannot be undone.`
+      title: t('sketches.topNavbar.deleteTitle', { defaultValue: 'Delete Sketch' }),
+      message: t('sketches.topNavbar.deleteConfirm', { defaultValue: 'Are you sure you want to delete this sketch? This action cannot be undone.' })
     })
 
     if (confirmed) {
       toast.promise(deleteSketchMutation.mutateAsync(sketchId), {
-        loading: 'Deleting sketch...',
-        success: () => `Sketch has been deleted`,
-        error: 'Failed to delete sketch'
+        loading: t('sketches.topNavbar.deleting', { defaultValue: 'Deleting sketch...' }),
+        success: () => t('sketches.topNavbar.deleted', { defaultValue: 'Sketch has been deleted' }),
+        error: t('sketches.topNavbar.deleteFailed', { defaultValue: 'Failed to delete sketch' })
       })
     }
   }
@@ -168,21 +171,21 @@ export function InvestigationMenu({
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="start">
-        <DropdownMenuLabel>Settings</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('sketches.topNavbar.settings', { defaultValue: 'Settings' })}</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={toggleSettingsModal}>
-            General
+            {t('sketches.topNavbar.general', { defaultValue: 'General' })}
             <DropdownMenuShortcut>⌘G</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={toggleKeyboardShortcutsModal}>
-            Keyboard shortcuts
+            {t('sketches.topNavbar.keyboardShortcuts', { defaultValue: 'Keyboard shortcuts' })}
             <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <a className="h-full w-full" target="_blank" href="https://github.com/reconurge/flowsint">
-            GitHub
+            {t('sketches.topNavbar.github', { defaultValue: 'GitHub' })}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem>
@@ -191,19 +194,19 @@ export function InvestigationMenu({
             target="_blank"
             href="https://github.com/reconurge/flowsint/issues"
           >
-            Support
+            {t('sketches.topNavbar.support', { defaultValue: 'Support' })}
           </a>
         </DropdownMenuItem>
-        <DropdownMenuItem disabled>API</DropdownMenuItem>
+        <DropdownMenuItem disabled>{t('sketches.topNavbar.api', { defaultValue: 'API' })}</DropdownMenuItem>
         {canEdit && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setImportModalOpen(true)}>
-              <Upload /> Import entities
+              <Upload /> {t('sketches.topNavbar.importEntities', { defaultValue: 'Import entities' })}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleDelete} variant="destructive">
-              Delete sketch
+              {t('sketches.topNavbar.deleteSketch', { defaultValue: 'Delete sketch' })}
             </DropdownMenuItem>
           </>
         )}

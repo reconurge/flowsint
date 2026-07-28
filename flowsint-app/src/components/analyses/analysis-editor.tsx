@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { queryKeys } from '@/api/query-keys'
 import { useCreateAnalysis } from '@/hooks/use-create-analysis'
+import { useTranslation } from 'react-i18next'
 import { SaveStatusBadge } from '@/components/shared/save-status-badge'
 
 interface AnalysisEditorProps {
@@ -78,6 +79,7 @@ export const AnalysisEditor = ({
   currentAnalysisId,
   showToolbar = false
 }: AnalysisEditorProps) => {
+  const { t } = useTranslation()
   const { confirm } = useConfirm()
   const { canEdit } = usePermissions()
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
@@ -157,7 +159,7 @@ export const AnalysisEditor = ({
     },
     onError: (error) => {
       toast.error(
-        'Failed to save analysis: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('sketches.analysisEditor.toasts.saveFailed', { defaultValue: 'Failed to save analysis: ' }) + (error instanceof Error ? error.message : 'Unknown error')
       )
       setSaveStatus('unsaved')
     }
@@ -172,11 +174,11 @@ export const AnalysisEditor = ({
         queryKey: queryKeys.analyses.byInvestigation(investigationId || '')
       })
       onAnalysisDelete?.(investigationId)
-      toast.success('Analysis deleted')
+      toast.success(t('sketches.analysisEditor.toasts.deleteSuccess', { defaultValue: 'Analysis deleted' }))
     },
     onError: (error) => {
       toast.error(
-        'Failed to delete analysis: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('sketches.analysisEditor.toasts.deleteFailed', { defaultValue: 'Failed to delete analysis: ' }) + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -199,11 +201,11 @@ export const AnalysisEditor = ({
         return oldData.map((item) => (item.id === data.id ? data : item))
       })
       onAnalysisUpdate?.(data)
-      toast.success('Title updated')
+      toast.success(t('sketches.analysisEditor.toasts.titleUpdated', { defaultValue: 'Title updated' }))
     },
     onError: (error) => {
       toast.error(
-        'Failed to update title: ' + (error instanceof Error ? error.message : 'Unknown error')
+        t('sketches.analysisEditor.toasts.titleUpdateFailed', { defaultValue: 'Failed to update title: ' }) + (error instanceof Error ? error.message : 'Unknown error')
       )
     }
   })
@@ -218,13 +220,13 @@ export const AnalysisEditor = ({
 
   const deleteAnalysis = async () => {
     if (!analysis?.id) {
-      toast.error('No analysis selected')
+      toast.error(t('sketches.analysisEditor.toasts.noAnalysis', { defaultValue: 'No analysis selected' }))
       return
     }
     if (
       !(await confirm({
-        title: 'Delete analysis',
-        message: 'Are you sure you want to delete this analysis?'
+        title: t('sketches.analysisEditor.deleteTitle', { defaultValue: 'Delete analysis' }),
+        message: t('sketches.analysisEditor.deleteMessage', { defaultValue: 'Are you sure you want to delete this analysis?' })
       }))
     ) {
       return
@@ -303,12 +305,12 @@ export const AnalysisEditor = ({
                         >
                           <div className="flex flex-col items-start truncate text-ellipsis">
                             <span className="font-medium truncate text-ellipsis">
-                              {analysisItem.title || 'Untitled'}
+                              {analysisItem.title || t('sketches.analysisEditor.untitled', { defaultValue: 'Untitled' })}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {analysisItem.id === currentAnalysisId
-                                ? 'Current'
-                                : 'Switch to this analysis'}
+                                ? t('sketches.analysisEditor.current', { defaultValue: 'Current' })
+                                : t('sketches.analysisEditor.switchToThis', { defaultValue: 'Switch to this analysis' })}
                             </span>
                           </div>
                         </Button>
@@ -345,7 +347,7 @@ export const AnalysisEditor = ({
                     className={`text-md font-medium truncate min-w-0 flex-1 ${canEdit ? 'cursor-pointer hover:text-primary' : ''}`}
                     onClick={canEdit ? () => setIsEditingTitle(true) : undefined}
                   >
-                    {titleValue || 'Untitled Analysis'}
+                    {titleValue || t('sketches.analysisEditor.untitledAnalysis', { defaultValue: 'Untitled Analysis' })}
                   </span>
                 )}
               </div>
@@ -375,7 +377,7 @@ export const AnalysisEditor = ({
                           }}
                         >
                           <ExternalLink className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                          Open in full page
+                          {t('sketches.analysisEditor.openInFullPage', { defaultValue: 'Open in full page' })}
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -386,7 +388,7 @@ export const AnalysisEditor = ({
                         disabled={createMutation.isPending}
                       >
                         <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                        New analysis
+                        {t('sketches.analysisEditor.newAnalysis', { defaultValue: 'New analysis' })}
                       </DropdownMenuItem>
                     )}
                     {analysis && (
@@ -398,7 +400,7 @@ export const AnalysisEditor = ({
                           variant="destructive"
                         >
                           <Trash2 className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                          Delete analysis
+                          {t('sketches.analysisEditor.deleteAnalysis', { defaultValue: 'Delete analysis' })}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -432,7 +434,7 @@ export const AnalysisEditor = ({
               className="w-full h-full"
               editorContentClassName="p-5 min-h-[300px]"
               output="json"
-              placeholder={canEdit ? 'Enter your analysis...' : ''}
+              placeholder={canEdit ? t('sketches.analysisEditor.enterAnalysis', { defaultValue: 'Enter your analysis...' }) : ''}
               autofocus={canEdit}
               showToolbar={canEdit && showToolbar}
               editorClassName="focus:outline-hidden"
@@ -442,7 +444,7 @@ export const AnalysisEditor = ({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
-            <div>No analysis selected.</div>
+            <div>{t('sketches.analysisEditor.noAnalysisSelected', { defaultValue: 'No analysis selected.' })}</div>
             {canEdit && (
               <Button
                 className="shadow-none"
@@ -451,7 +453,7 @@ export const AnalysisEditor = ({
                 disabled={createMutation.isPending}
               >
                 <PlusIcon className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                Create your first analysis
+                {t('sketches.analysisEditor.createFirstAnalysis', { defaultValue: 'Create your first analysis' })}
               </Button>
             )}
           </div>

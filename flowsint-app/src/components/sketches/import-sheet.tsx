@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { ImportPreview } from './import-preview'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import Loader from '../loader'
 
@@ -24,6 +25,7 @@ const ALLOWED_EXTENSIONS = ['.txt', '.json']
 export function ImportSheet({ sketchId }: ImportSheetProps) {
   const onOpenChange = useGraphSettingsStore((s) => s.setImportModalOpen)
   const open = useGraphSettingsStore((s) => s.importModalOpen)
+  const { t } = useTranslation()
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -49,7 +51,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
         .substring(selectedFile.name.lastIndexOf('.'))
       if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
         toast.error(
-          `Only ${ALLOWED_EXTENSIONS.join(', ')} files are supported. Please upload file with correct format.`
+          t('sketches.importSheet.errorFormat', { extensions: ALLOWED_EXTENSIONS.join(', '), defaultValue: `Only ${ALLOWED_EXTENSIONS.join(', ')} files are supported. Please upload file with correct format.` })
         )
         return
       }
@@ -118,9 +120,9 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
       >
         {/* Header stays fixed */}
         <SheetHeader className="shrink-0 border-b bg-background p-0 h-19 px-6 justify-center flex-col flex items-start">
-          <SheetTitle>Import entities</SheetTitle>
+          <SheetTitle>{t('sketches.importSheet.title', { defaultValue: 'Import entities' })}</SheetTitle>
           <SheetDescription>
-            Upload a TXT file with one value per line to import entities into your sketch
+            {t('sketches.importSheet.description', { defaultValue: 'Upload a TXT file with one value per line to import entities into your sketch' })}
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col grow overflow-hidden p-6">
@@ -139,8 +141,8 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
               <div className="flex flex-col items-center gap-4">
                 <Upload className="h-12 w-12 text-muted-foreground" />
                 <div>
-                  <p className="text-lg font-medium">Drag & drop your file here</p>
-                  <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
+                  <p className="text-lg font-medium">{t('sketches.importSheet.dragDrop', { defaultValue: 'Drag & drop your file here' })}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t('sketches.importSheet.orBrowse', { defaultValue: 'or click to browse' })}</p>
                 </div>
                 <input
                   type="file"
@@ -151,11 +153,11 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
                 />
                 <Button asChild variant="outline">
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    Browse files
+                    {t('sketches.importSheet.browseButton', { defaultValue: 'Browse files' })}
                   </label>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Supported format:{' '}
+                  {t('sketches.importSheet.supportedFormat', { defaultValue: 'Supported format:' })}{' '}
                   <span className="font-bold">{ALLOWED_EXTENSIONS.join(', ')}</span> (one value per
                   line)
                 </p>
@@ -166,7 +168,7 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
           {isAnalyzing && (
             <div className="flex flex-col items-center justify-center gap-4 py-12">
               <Loader />
-              <p className="text-sm text-muted-foreground">Analyzing file...</p>
+              <p className="text-sm text-muted-foreground">{t('sketches.importSheet.analyzing', { defaultValue: 'Analyzing file...' })}</p>
             </div>
           )}
 

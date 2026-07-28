@@ -1,4 +1,5 @@
 import { useGraphStore } from '@/stores/graph-store'
+import { useTranslation } from 'react-i18next'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef, useState, useMemo, useCallback, memo } from 'react'
 import { Input } from '@/components/ui/input'
@@ -144,6 +145,7 @@ type NodesTableProps = {
   nodes: GraphNode[]
 }
 export default function NodesTable({ nodes }: NodesTableProps) {
+  const { t } = useTranslation()
   const { canEdit } = usePermissions()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
@@ -237,8 +239,8 @@ export default function NodesTable({ nodes }: NodesTableProps) {
         <div className="text-center space-y-4">
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
-            <h3 className="text-lg font-semibold">No nodes found</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any nodes yet.</p>
+            <h3 className="text-lg font-semibold">{t('sketches.nodes.noNodes')}</h3>
+            <p className="text-muted-foreground">{t('sketches.nodes.noNodesDesc')}</p>
           </div>
         </div>
       </div>
@@ -250,14 +252,14 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       {/* Header with stats */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Entities</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t('sketches.nodes.title')}</h2>
           <p className="text-muted-foreground">
-            {filteredNodes.length} of {nodes.length} nodes
+            {filteredNodes.length} {t('common.of')} {nodes.length} {t('sketches.nodes.nodes')}
           </p>
         </div>
         <Badge variant="secondary" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
-          {nodes.length} total
+          {nodes.length} {t('common.total')}
         </Badge>
       </div>
 
@@ -266,7 +268,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search nodes, nodes, or types..."
+            placeholder={t('sketches.nodes.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -275,10 +277,10 @@ export default function NodesTable({ nodes }: NodesTableProps) {
         <Select value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger className="w-48">
             <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Filter by type" />
+            <SelectValue placeholder={t('sketches.filters.filterByEntity')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="all">{t('sketches.nodes.allTypes')}</SelectItem>
             {nodeTypes.map((type) => (
               <SelectItem key={type} value={type}>
                 <span className="capitalize">{type}</span>

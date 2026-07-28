@@ -16,6 +16,7 @@ import { useParams } from '@tanstack/react-router'
 import { useIcon } from '@/hooks/use-icon'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useActionItems } from '@/hooks/use-action-items'
+import { useTranslation } from 'react-i18next'
 import { GraphNode } from '@/types'
 import { useGraphSettingsStore } from '@/stores/graph-settings-store'
 import { useGraphControls } from '@/stores/graph-controls-store'
@@ -41,6 +42,7 @@ export default function AddItemDialog() {
 
   const { id: sketch_id } = useParams({ strict: false })
   const { actionItems, isLoading } = useActionItems()
+  const { t } = useTranslation()
 
   const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
   const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
@@ -236,10 +238,10 @@ export default function AddItemDialog() {
                 </Button>
               )}
               {relatedNodeToAdd
-                ? `Add a relation to `
+                ? t('sketches.itemsPanel.addRelation', { defaultValue: 'Add a relation to ' })
                 : currentParent
                   ? currentParent.label
-                  : 'Select an item to insert'}
+                  : t('sketches.itemsPanel.selectItemToInsert', { defaultValue: 'Select an item to insert' })}
               {relatedNodeToAdd && (
                 <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
                   {relatedNodeToAdd.nodeLabel}
@@ -254,16 +256,16 @@ export default function AddItemDialog() {
                 className="flex items-center gap-2 rounded"
               >
                 <Download className="h-4 w-4" />
-                Import entities
+                {t('sketches.itemsPanel.importEntities', { defaultValue: 'Import entities' })}
               </Button>
             </div>
           </DialogTitle>
           <DialogDescription>
             {relatedNodeToAdd
-              ? 'Choose what type of relation to add to this node.'
+              ? t('sketches.itemsPanel.chooseRelationType', { defaultValue: 'Choose what type of relation to add to this node.' })
               : currentParent
-                ? `Select a type of ${currentParent.label.toLowerCase()} to add`
-                : 'Choose an item to insert manually, or import data from a file.'}
+                ? `${t('sketches.itemsPanel.selectTypeOf', { defaultValue: 'Select a type of ' })}${currentParent.label.toLowerCase()}${t('sketches.itemsPanel.toAdd', { defaultValue: ' to add' })}`
+                : t('sketches.itemsPanel.chooseItemToInsert', { defaultValue: 'Choose an item to insert manually, or import data from a file.' })}
           </DialogDescription>
 
           <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow @container">
@@ -288,9 +290,9 @@ export default function AddItemDialog() {
       <Dialog open={openFormDialog} onOpenChange={setOpenFormDialog}>
         <DialogContent className="max-h-[95vh] flex flex-col">
           <DialogTitle>
-            {currentNodeType && <>Add {currentNodeType.label.toLowerCase()}</>}
+            {currentNodeType && <>{t('sketches.itemsPanel.add', { defaultValue: 'Add' })} {t('types.' + currentNodeType.type.toLowerCase() + '.name', { defaultValue: currentNodeType.label })}</>}
           </DialogTitle>
-          <DialogDescription>{currentNodeType?.description}</DialogDescription>
+          <DialogDescription>{currentNodeType && t('types.' + currentNodeType.type.toLowerCase() + '.description', { defaultValue: currentNodeType.description })}</DialogDescription>
           {currentNodeType && (
             <div className="grow overflow-y-auto">
               <DynamicForm
@@ -313,6 +315,7 @@ interface ActionCardProps {
 
 function ActionCard({ item, onSelect }: ActionCardProps) {
   const IconComponent = useIcon(item.icon, { nodeIcon: item.icon, nodeColor: item.color })
+  const { t } = useTranslation()
 
   return (
     <Card
@@ -331,12 +334,12 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
         {!item.children && <div className="text-sm mt-2 opacity-60">{item.description}</div>}
         {!item.children && (
           <Badge variant="outline" className="mt-2">
-            {item.fields.length} fields
+            {item.fields.length} {t('sketches.itemsPanel.fields', { defaultValue: 'fields' })}
           </Badge>
         )}
         {item.disabled && (
           <Badge variant="outline" className="mt-2 absolute top-2 left-2">
-            Soon
+            {t('sketches.itemsPanel.soon', { defaultValue: 'Soon' })}
           </Badge>
         )}
         {item.children && (
@@ -345,7 +348,7 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
           </div>
         )}
         {item.children && (
-          <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>
+          <div className="text-xs text-muted-foreground mt-1">{item.children.length} {t('sketches.itemsPanel.options', { defaultValue: 'options' })}</div>
         )}
       </CardContent>
     </Card>

@@ -10,6 +10,7 @@ import {
 import { MoreHorizontal, Star, Share, Trash2, Clock, Crown, Shield, Pencil, Eye } from 'lucide-react'
 import { Investigation, Collaborator } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
+import { ru, enUS } from 'date-fns/locale'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { AvatarGroup } from '@/components/ui/avatar'
@@ -22,21 +23,25 @@ import { Link, useRouter } from '@tanstack/react-router'
 import { usePermissions } from '@/hooks/use-can'
 import type { InvestigationRole } from '@/types'
 import { ShareDialog } from './share-dialog'
+import { useTranslation } from 'react-i18next'
 
-const ROLE_CONFIG: Record<InvestigationRole, { label: string; icon: typeof Eye; className: string }> = {
-  owner: { label: 'Owner', icon: Crown, className: 'bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400' },
-  admin: { label: 'Admin', icon: Shield, className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400' },
-  editor: { label: 'Editor', icon: Pencil, className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400' },
-  viewer: { label: 'Viewer', icon: Eye, className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400' },
-}
+const ROLE_CONFIG = (t: any): Record<InvestigationRole, { label: string; icon: typeof Eye; className: string }> => ({
+  owner: { label: t('investigationDetails.roles.owner'), icon: Crown, className: 'bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400' },
+  admin: { label: t('investigationDetails.roles.admin'), icon: Shield, className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400' },
+  editor: { label: t('investigationDetails.roles.editor'), icon: Pencil, className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400' },
+  viewer: { label: t('investigationDetails.roles.viewer'), icon: Eye, className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400' },
+})
 
 type CaseOverviewPageProps = {
   investigation: Investigation
 }
 
 export function CaseHeader({ investigation }: CaseOverviewPageProps) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'ru' ? ru : enUS
   const lastUpdated = formatDistanceToNow(new Date(investigation.last_updated_at), {
-    addSuffix: true
+    addSuffix: true,
+    locale
   })
   const router = useRouter()
   const { canDelete, canManage, role } = usePermissions()
@@ -89,7 +94,7 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to={'/dashboard'} className="hover:text-foreground cursor-pointer transition-colors">
-          Cases
+          {t('investigationDetails.breadcrumbs.cases')}
         </Link>
         <span>/</span>
         <span className="text-foreground">{investigation.name}</span>
@@ -107,7 +112,7 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
 
           {/* Role badge */}
           {role && (() => {
-            const config = ROLE_CONFIG[role]
+            const config = ROLE_CONFIG(t)[role]
             const Icon = config.icon
             return (
               <Badge className={cn('gap-1 text-xs font-medium shadow-none', config.className)}>
@@ -119,10 +124,10 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
 
           {/* Inline properties */}
           <div className="flex items-center gap-4 text-sm">
-            <PropertyPill label="Status" value={investigation.status} valueClass="text-success" />
-            <PropertyPill label="Priority" value="Medium" valueClass="text-primary" />
+            <PropertyPill label={t('investigationDetails.header.status')} value={t(`dashboard.${investigation.status}`)} valueClass="text-success" />
+            <PropertyPill label={t('investigationDetails.header.priority')} value={t('investigationDetails.header.medium')} valueClass="text-primary" />
             <PropertyPill
-              label="Updated"
+              label={t('investigationDetails.header.updated')}
               value={lastUpdated}
               icon={<Clock className="w-3 h-3" />}
             />
@@ -148,7 +153,7 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={handleDeleteInvestigation} className="text-destructive">
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
+                  {t('common.delete')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -160,12 +165,12 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
       <div className="flex items-center gap-2">
         <AvatarGroup users={collaborators.map((c) => c.user)} size="md" />
         <span className="text-sm text-muted-foreground">
-          {collaborators.length} investigator{collaborators.length !== 1 ? 's' : ''}
+          {t('investigationDetails.header.investigatorsCount', { count: collaborators.length })}
         </span>
         {canManage && (
           <ShareDialog investigationId={investigation.id}>
             <button className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1">
-              + Invite
+              + {t('investigationDetails.header.invite')}
             </button>
           </ShareDialog>
         )}

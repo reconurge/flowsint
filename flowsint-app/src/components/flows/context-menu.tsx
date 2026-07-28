@@ -1,5 +1,6 @@
 import { JSX, useCallback } from 'react'
 import { Pencil, Trash } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import BaseContextMenu from '@/components/xyflow/context-menu'
 import { FlowNode, useFlowStore } from '@/stores/flow-store'
 
@@ -28,6 +29,7 @@ export default function ContextMenu({
   setMenu,
   ...props
 }: GraphContextMenuProps): JSX.Element {
+  const { t } = useTranslation()
   const setOpenParamsDialog = useFlowStore((s) => s.setOpenParamsDialog)
   const deleteNode = useFlowStore((s) => s.deleteNode)
 
@@ -54,7 +56,11 @@ export default function ContextMenu({
       {/* Header with title and action buttons */}
       <div className="px-3 py-2 border-b gap-1 border-border flex items-center justify-between shrink-0">
         <div className="flex text-xs items-center gap-1 truncate">
-          <span className="block truncate">{node.data.name}</span>
+          <span className="block truncate">
+            {node.type === 'type'
+              ? t('types.' + (node.data.name as string).toLowerCase() + '.name', { defaultValue: node.data.name as string })
+              : t('enrichers.' + node.data.name + '.name', { defaultValue: node.data.name as string })}
+          </span>
         </div>
       </div>
       <div className="flex flex-col gap-1 p-1">
@@ -63,13 +69,13 @@ export default function ContextMenu({
           onClick={handleOpenParamsModal}
           className="w-full flex items-center gap-2 p-2 rounded-sm hover:bg-muted text-left transition-colors"
         >
-          <Pencil className="h-4 w-4 opacity-60" /> Edit
+          <Pencil className="h-4 w-4 opacity-60" /> {t('common.edit', { defaultValue: 'Edit' })}
         </button>
         <button
           onClick={handleDeleteFlow}
           className="w-full flex items-center gap-2 p-2 rounded-sm hover:bg-muted text-left transition-colors"
         >
-          <Trash className="h-4 w-4 text-red-500 opacity-60" /> Delete
+          <Trash className="h-4 w-4 text-red-500 opacity-60" /> {t('common.delete', { defaultValue: 'Delete' })}
         </button>
       </div>
     </BaseContextMenu>

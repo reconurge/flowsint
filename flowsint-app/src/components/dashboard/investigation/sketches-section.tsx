@@ -4,8 +4,10 @@ import { Plus, ArrowUpRight } from "lucide-react"
 import { EmptySketches } from "../empty-states"
 import { Sketch } from "@/types"
 import { formatDistanceToNow } from "date-fns"
+import { ru, enUS } from 'date-fns/locale'
 import { Link } from "@tanstack/react-router"
 import NewSketch from "@/components/sketches/new-sketch"
+import { useTranslation } from "react-i18next"
 
 interface SketchesSectionProps {
   sketches: Sketch[]
@@ -14,23 +16,25 @@ interface SketchesSectionProps {
 
 
 export function SketchesSection({ sketches, canCreate = true }: SketchesSectionProps) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'ru' ? ru : enUS
   const isEmpty = sketches.length === 0
   return (
     <section className="my-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-medium text-foreground">Sketches</h2>
+        <h2 className="text-sm font-medium text-foreground">{t('investigationDetails.sketches.title')}</h2>
         {!isEmpty && canCreate && (
           <NewSketch>
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
               <Plus className="w-3.5 h-3.5" />
-              New
+              {t('investigationDetails.sketches.new')}
             </Button>
           </NewSketch>
         )}
       </div>
 
       {isEmpty ? (
-        canCreate ? <EmptySketches /> : <div className="text-sm text-muted-foreground py-4">No sketches yet.</div>
+        canCreate ? <EmptySketches /> : <div className="text-sm text-muted-foreground py-4">{t('investigationDetails.sketches.noSketches')}</div>
       ) : (
         <div style={{ containerType: 'inline-size' }}>
         <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 gap-3">
@@ -67,10 +71,11 @@ export function SketchesSection({ sketches, canCreate = true }: SketchesSectionP
               </div>
 
               <h4 className="font-medium text-foreground text-sm mb-1">{sketch.title}</h4>
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{sketch.description ? sketch.description : <span className="italic">No description provided.</span>}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{sketch.description ? sketch.description : <span className="italic">{t('investigationDetails.sketches.noDescription')}</span>}</p>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{formatDistanceToNow(new Date(sketch.last_updated_at), {
-                  addSuffix: true
+                  addSuffix: true,
+                  locale
                 })}</span>
               </div>
             </Link>

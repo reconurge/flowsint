@@ -5,6 +5,7 @@ import { authService } from '@/api/auth-service'
 import { queryKeys } from '@/api/query-keys'
 import { toast } from 'sonner'
 import type { Collaborator, InvestigationRole, Profile } from '@/types'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -36,57 +37,52 @@ import { X, UserPlus, Crown, Shield, Pencil, Eye, Users, Check } from 'lucide-re
 import { getDisplayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 
-const ROLE_OPTIONS: {
-  value: InvestigationRole
-  label: string
-  icon: typeof Eye
-  className: string
-}[] = [
+const ROLE_OPTIONS = (t: any) => [
   {
-    value: 'admin',
-    label: 'Admin',
+    value: 'admin' as InvestigationRole,
+    label: t('investigationDetails.roles.admin'),
     icon: Shield,
     className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400'
   },
   {
-    value: 'editor',
-    label: 'Editor',
+    value: 'editor' as InvestigationRole,
+    label: t('investigationDetails.roles.editor'),
     icon: Pencil,
     className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400'
   },
   {
-    value: 'viewer',
-    label: 'Viewer',
+    value: 'viewer' as InvestigationRole,
+    label: t('investigationDetails.roles.viewer'),
     icon: Eye,
     className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400'
   }
 ]
 
-const ROLE_BADGE: Record<
+const ROLE_BADGE = (t: any): Record<
   InvestigationRole,
   { label: string; icon: typeof Eye; className: string }
-> = {
+> => ({
   owner: {
-    label: 'Owner',
+    label: t('investigationDetails.roles.owner'),
     icon: Crown,
     className: 'bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400'
   },
   admin: {
-    label: 'Admin',
+    label: t('investigationDetails.roles.admin'),
     icon: Shield,
     className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400'
   },
   editor: {
-    label: 'Editor',
+    label: t('investigationDetails.roles.editor'),
     icon: Pencil,
     className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400'
   },
   viewer: {
-    label: 'Viewer',
+    label: t('investigationDetails.roles.viewer'),
     icon: Eye,
     className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400'
   }
-}
+})
 
 function getRoleFromCollaborator(collab: Collaborator): InvestigationRole {
   return (collab.roles[0] ?? 'viewer') as InvestigationRole
@@ -94,10 +90,11 @@ function getRoleFromCollaborator(collab: Collaborator): InvestigationRole {
 
 const RoleBadge = ({
   role,
+  t,
   className,
   ...props
-}: { role: InvestigationRole; className?: string } & React.ComponentProps<'div'>) => {
-  const config = ROLE_BADGE[role]
+}: { role: InvestigationRole; className?: string; t: any } & React.ComponentProps<'div'>) => {
+  const config = ROLE_BADGE(t)[role]
   const Icon = config.icon
   return (
     <Badge
@@ -121,6 +118,7 @@ interface ShareDialogProps {
 }
 
 export function ShareDialog({ investigationId, children }: ShareDialogProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedEmail, setSelectedEmail] = useState('')
@@ -179,10 +177,10 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
       })
       setQuery('')
       setSelectedEmail('')
-      toast.success('Collaborator added')
+      toast.success(t('shareDialog.toast.added'))
     },
     onError: (error: any) => {
-      const message = error?.message || 'Failed to add collaborator'
+      const message = error?.message || t('shareDialog.toast.addFailed')
       toast.error(message)
     }
   })
@@ -194,9 +192,9 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.investigations.collaborators(investigationId)
       })
-      toast.success('Role updated')
+      toast.success(t('shareDialog.toast.roleUpdated'))
     },
-    onError: () => toast.error('Failed to update role')
+    onError: () => toast.error(t('shareDialog.toast.updateFailed'))
   })
 
   const removeMutation = useMutation({
@@ -206,9 +204,9 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.investigations.collaborators(investigationId)
       })
-      toast.success('Collaborator removed')
+      toast.success(t('shareDialog.toast.removed'))
     },
-    onError: () => toast.error('Failed to remove collaborator')
+    onError: () => toast.error(t('shareDialog.toast.removeFailed'))
   })
 
   const handleInvite = () => {
@@ -221,9 +219,9 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-xl gap-0 p-0 overflow-hidden">
         <DialogHeader className="px-5 pt-5 pb-4">
-          <DialogTitle className="text-base">Share investigation</DialogTitle>
+          <DialogTitle className="text-base">{t('shareDialog.title')}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Invite collaborators and manage access.
+            {t('shareDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -232,7 +230,7 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t('shareDialog.searchPlaceholder')}
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -273,7 +271,7 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ROLE_OPTIONS.map((opt) => {
+                {ROLE_OPTIONS(t).map((opt) => {
                   const Icon = opt.icon
                   return (
                     <SelectItem key={opt.value} value={opt.value}>
@@ -293,7 +291,7 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
               disabled={!selectedEmail.trim() || addMutation.isPending}
             >
               <UserPlus className="w-4 h-4 mr-1.5" />
-              Invite
+              {t('shareDialog.invite')}
             </Button>
           </div>
         </div>
@@ -318,7 +316,7 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
           ) : collaborators.length === 0 ? (
             <div className="py-10 flex flex-col items-center gap-2 text-center">
               <Users className="w-8 h-8 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground">No collaborators yet</p>
+              <p className="text-sm text-muted-foreground">{t('shareDialog.noCollaborators')}</p>
             </div>
           ) : (
             <div className="p-2">
@@ -340,16 +338,16 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
                       )}
                     </div>
                     {isOwner ? (
-                      <RoleBadge role="owner" />
+                      <RoleBadge role="owner" t={t} />
                     ) : (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button>
-                            <RoleBadge role={collabRole} className="cursor-pointer hover:opacity-80 transition-opacity" />
+                            <RoleBadge role={collabRole} t={t} className="cursor-pointer hover:opacity-80 transition-opacity" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="min-w-[140px]">
-                          {ROLE_OPTIONS.map((opt) => {
+                          {ROLE_OPTIONS(t).map((opt) => {
                             const Icon = opt.icon
                             const isActive = opt.value === collabRole
                             return (
@@ -394,7 +392,7 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
             <Separator />
             <div className="px-5 py-3">
               <p className="text-xs text-muted-foreground">
-                {collaborators.length} member{collaborators.length !== 1 ? 's' : ''} have access
+                {t('shareDialog.membersAccess', { count: collaborators.length })}
               </p>
             </div>
           </>

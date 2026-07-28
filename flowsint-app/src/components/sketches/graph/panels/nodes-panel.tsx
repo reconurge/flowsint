@@ -21,6 +21,7 @@ import {
 import { GraphNode } from '@/types'
 import { Checkbox } from '@/components/ui/checkbox'
 import { usePermissions } from '@/hooks/use-can'
+import { useTranslation } from 'react-i18next'
 
 const ITEM_HEIGHT = 40
 // Mémoiser le composant NodeRenderer
@@ -129,6 +130,7 @@ const VirtualizedItem = memo(
 )
 
 const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?: boolean }) => {
+  const { t } = useTranslation()
   const { canEdit } = usePermissions()
   const currentNodeId = useGraphStore((state) => state.currentNodeId)
   const setCurrentNodeId = useGraphStore((state) => state.setCurrentNodeId)
@@ -251,13 +253,13 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                 ? `${filteredNodes?.length} / ${nodes?.length || 0}`
                 : nodes?.length || 0}
             </span>{' '}
-            <span className="font-normal opacity-60">nodes</span>
+            <span className="font-normal opacity-60">{t('sketches.nodesPanel.nodes', { defaultValue: 'nodes' })}</span>
           </Badge>
           <div className="relative grow">
             <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search..."
+              placeholder={t('sketches.nodesPanel.search', { defaultValue: 'Search...' })}
               className="pl-8 h-7 border-border"
               value={searchQuery}
               onChange={handleSearchChange}
@@ -289,7 +291,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
               <DropdownMenuLabel>
                 {filters ? (
                   <Badge variant={'outline'} className="flex items-center gap-1 pr-1">
-                    {filters?.length} filter(s)
+                    {t('sketches.nodesPanel.filterCount', { count: filters?.length, defaultValue: '{{count}} filter(s)' })}
                     <Button
                       size={'icon'}
                       variant={'ghost'}
@@ -300,7 +302,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                     </Button>
                   </Badge>
                 ) : (
-                  'filters'
+                  t('sketches.nodesPanel.filters', { defaultValue: 'filters' })
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -308,7 +310,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                 className={cn(filters == null && 'bg-primary')}
                 onClick={() => toggleFilter(null)}
               >
-                All
+                {t('sketches.nodesPanel.all', { defaultValue: 'All' })}
               </DropdownMenuItem>
               {types.map((type: string) => (
                 <DropdownMenuItem
@@ -329,7 +331,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         {!isLoading && filteredNodes?.length === 0 && searchQuery === '' && (
           <div className="text-sm p-4 text-center">
             <p className="border rounded-md border-dashed p-4 text-center">
-              Drag and drop you first node in the "items" section.
+              {t('sketches.nodesPanel.dragAndDrop', { defaultValue: 'Drag and drop you first node in the "items" section.' })}
             </p>
           </div>
         )}
@@ -338,7 +340,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
                 )} */}
 
         {filteredNodes?.length === 0 && searchQuery && (
-          <div className="p-4 text-center text-muted-foreground">No nodes match your search</div>
+          <div className="p-4 text-center text-muted-foreground">{t('sketches.nodesPanel.noResults', { defaultValue: 'No nodes match your search' })}</div>
         )}
 
         {/* Liste virtualisée */}

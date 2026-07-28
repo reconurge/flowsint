@@ -18,6 +18,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { CopyButton } from '../copy'
+import { useTranslation } from 'react-i18next'
 import { RelationshipType } from '@/types'
 import { GraphNode, GraphEdge } from '@/types'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -343,8 +344,8 @@ export default function RelationshipsTable() {
         <div className="text-center space-y-4">
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
-            <h3 className="text-lg font-semibold">No relationships found</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any relationships yet.</p>
+            <h3 className="text-lg font-semibold">{t('sketches.relationships.noRelationships', { defaultValue: 'No relationships found' })}</h3>
+            <p className="text-muted-foreground">{t('sketches.relationships.noRelationshipsDesc', { defaultValue: 'This sketch doesn\'t have any relationships yet.' })}</p>
           </div>
         </div>
       </div>

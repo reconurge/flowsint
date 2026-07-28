@@ -1,4 +1,5 @@
 import { Play, FlaskConical, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -47,29 +48,30 @@ export function TemplateTestPanel({
   onRunTest,
   buildPreviewUrl
 }: TemplateTestPanelProps) {
+  const { t } = useTranslation()
   return (
     <ResizablePanelGroup direction="horizontal" className="h-full">
       {/* Test Input */}
       <ResizablePanel defaultSize={30} minSize={20}>
       <div className="h-full p-6 flex flex-col gap-6 overflow-y-auto">
         <div>
-          <h3 className="text-lg font-semibold mb-1">Test your template</h3>
+          <h3 className="text-lg font-semibold mb-1">{t('enricherEditor.test.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Enter a test value to simulate the enricher request.
+            {t('enricherEditor.test.description')}
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="test-input">
-              Input Value
+              {t('enricherEditor.test.inputValue')}
               {validationData?.input?.key && (
                 <span className="text-muted-foreground ml-1">({validationData.input.key})</span>
               )}
             </Label>
             <Input
               id="test-input"
-              placeholder={`Enter ${validationData?.input?.type || 'value'}...`}
+              placeholder={t('enricherEditor.test.inputPlaceholder')}
               value={testInput}
               onChange={(e) => onTestInputChange(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && onRunTest()}
@@ -123,7 +125,7 @@ export function TemplateTestPanel({
 
           {validationData?.request?.url && (
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Request URL</Label>
+              <Label className="text-muted-foreground">{t('enricherEditor.test.requestUrl')}</Label>
               <code className="block text-xs bg-muted p-2 rounded break-all">
                 {buildPreviewUrl()}
               </code>
@@ -143,7 +145,7 @@ export function TemplateTestPanel({
             ) : (
               <>
                 <Play className="h-4 w-4" />
-                Run test
+                {t('enricherEditor.test.runTestBtn')}
               </>
             )}
           </Button>
@@ -173,7 +175,7 @@ export function TemplateTestPanel({
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center text-muted-foreground">
                 <FlaskConical className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p className="text-sm">Run a test to see the response here.</p>
+                <p className="text-sm">{t('enricherEditor.test.noResult')}</p>
               </div>
             </div>
           ) : (

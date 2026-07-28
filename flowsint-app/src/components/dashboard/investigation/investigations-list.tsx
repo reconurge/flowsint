@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { Investigation } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface InvestigationsListProps {
   investigations: Investigation[]
@@ -24,6 +25,8 @@ export function InvestigationsList({
   activeCasesCount,
   search
 }: InvestigationsListProps) {
+  const { t } = useTranslation()
+
   const filteredInvestigations = investigations.filter((inv) => {
     if (filter === 'all') return inv.name.toLowerCase().includes(search.toLowerCase())
     return inv.status === filter && inv.name.toLowerCase().includes(search.toLowerCase())
@@ -31,11 +34,11 @@ export function InvestigationsList({
 
   const filters = useMemo(
     () => [
-      { label: 'All', value: 'all', count: casesCount },
-      { label: 'Active', value: 'active', count: activeCasesCount },
-      { label: 'Closed', value: 'closed', count: casesCount - activeCasesCount }
+      { label: t('dashboard.all'), value: 'all', count: casesCount },
+      { label: t('dashboard.active'), value: 'active', count: activeCasesCount },
+      { label: t('dashboard.closed'), value: 'closed', count: casesCount - activeCasesCount }
     ],
-    [casesCount, activeCasesCount]
+    [casesCount, activeCasesCount, t]
   )
 
   return (
@@ -64,13 +67,13 @@ export function InvestigationsList({
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">
-                  Name
+                  {t('dashboard.table.name')}
                 </th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-24">
-                  Status
+                  {t('dashboard.table.status')}
                 </th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 w-28">
-                  Updated
+                  {t('dashboard.table.updated')}
                 </th>
                 <th className="w-10"></th>
               </tr>
@@ -79,7 +82,7 @@ export function InvestigationsList({
               {filteredInvestigations.length === 0 && (
                 <div className="flex items-center justify-center p-4">
                   <tr className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group">
-                    No investigation found.
+                    {t('dashboard.noInvestigations')}
                   </tr>
                 </div>
               )}
@@ -128,7 +131,7 @@ export function InvestigationsList({
       ) : (
         <div style={{ containerType: 'inline-size' }}>
         <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-3">
-          {filteredInvestigations.length === 0 && <div>No investigation found.</div>}
+          {filteredInvestigations.length === 0 && <div>{t('dashboard.noInvestigations')}</div>}
           {filteredInvestigations.map((inv) => (
             <Link
               to="/dashboard/investigations/$investigationId"
@@ -176,6 +179,16 @@ export function InvestigationsList({
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
+
+  const statusLabel = status === 'active' 
+    ? t('dashboard.active') 
+    : status === 'closed' 
+      ? t('dashboard.closed') 
+      : status === 'on-hold' 
+        ? t('dashboard.onHold') 
+        : status.charAt(0).toUpperCase() + status.slice(1)
+
   return (
     <span
       className={cn(
@@ -193,7 +206,7 @@ function StatusBadge({ status }: { status: string }) {
           status === 'on-hold' && 'bg-warning'
         )}
       />
-      {status === 'on-hold' ? 'On Hold' : status.charAt(0).toUpperCase() + status.slice(1)}
+      {statusLabel}
     </span>
   )
 }

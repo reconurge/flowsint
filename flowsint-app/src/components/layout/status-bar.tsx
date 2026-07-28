@@ -10,7 +10,9 @@ import { useQuery } from '@tanstack/react-query'
 import { scanService } from '@/api/scan-service'
 import { cn } from '@/utils/cn'
 import { CONFIG } from '@/config'
+import { useTranslation } from 'react-i18next'
 export const StatusBar = memo(() => {
+  const { t } = useTranslation()
   const { id: sketch_id } = useParams({ strict: false })
   const isOpenConsole = useLayoutStore((s) => s.isOpenConsole)
   const toggleConsole = useLayoutStore((s) => s.toggleConsole)
@@ -76,7 +78,7 @@ export const StatusBar = memo(() => {
         <Link to="/dashboard/vault">
           <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">
             <Unlock strokeWidth={1.4} className="h-3 w-3 opacity-60" />
-            <span>Vault</span>
+            <span>{t('footer.vault')}</span>
           </Button>
         </Link>
         {/* <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs">

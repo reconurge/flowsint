@@ -5,8 +5,10 @@ import EnrichersList from './flow-list'
 import { useLayoutStore } from '@/stores/layout-store'
 import { useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const FlowNavigation = () => {
+  const { t } = useTranslation()
   const { flowId } = useParams({ strict: false })
   const activeEnricherTab = useLayoutStore((s) => s.activeEnricherTab)
   const setActiveEnricherTab = useLayoutStore((s) => s.setActiveEnricherTab)
@@ -25,11 +27,11 @@ const FlowNavigation = () => {
       >
         <TabsList className="w-full p-0 rounded-none my-0 border-b shrink-0">
           <TabsTrigger value="flows">
-            <Users className="h-3 w-3 opacity-60" /> Flows
+            <Users className="h-3 w-3 opacity-60" /> {t('flows.editor.tabs.flows')}
           </TabsTrigger>
           {flowId && (
             <TabsTrigger value="items">
-              <UserPlus className="h-3 w-3 opacity-60" /> Items
+              <UserPlus className="h-3 w-3 opacity-60" /> {t('flows.editor.tabs.items')}
             </TabsTrigger>
           )}
         </TabsList>

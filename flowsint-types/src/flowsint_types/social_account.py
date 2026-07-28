@@ -92,11 +92,17 @@ class SocialAccount(FlowsintType):
             self.id = f"{self.username.value}@{self.platform}"
         elif self.username:
             self.id = self.username.value
+        else:
+            self.id = self.display_name or "unknown"
         self.nodeLabel = self.id
 
         # Use display name if available, otherwise username
-        if self.display_name:
+        if self.display_name and self.username:
             self.nodeLabel = f"{self.display_name} (@{self.username.value})"
+        elif self.display_name:
+            self.nodeLabel = f"{self.display_name}"
+        elif self.username:
+            self.nodeLabel = f"@{self.username.value}"
         else:
             self.nodeLabel = self.id
         return self

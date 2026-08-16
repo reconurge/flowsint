@@ -95,14 +95,24 @@ class MaigretEnricher(Enricher):
             except ValueError:
                 followers = following = posts = None
 
+            display_name = ids.get("fullname") or ids.get("nickname")
+            if display_name:
+                nodeLabel = f"{display_name} ({platform})"
+            else:
+                nodeLabel = None
+
             try:
                 results.append(
                     SocialAccount(
+                        nodeLabel=nodeLabel,
                         username=username_obj,
+                        display_name=display_name,
                         profile_url=profile_url,
-                        platform=platform,
                         profile_picture_url=ids.get("image"),
-                        bio=None,
+                        bio=ids.get("bio"),
+                        location=ids.get("location"),
+                        platform=platform,
+                        created_at=ids.get("created_at"),
                         followers_count=followers,
                         following_count=following,
                         posts_count=posts,

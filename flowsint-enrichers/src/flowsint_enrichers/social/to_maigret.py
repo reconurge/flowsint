@@ -133,12 +133,22 @@ class MaigretEnricher(Enricher):
 
                 cmd.append("--cloudflare-bypass")
 
-            subprocess.run(
+            process = subprocess.Popen(
                 cmd,
                 cwd=temp_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
-                timeout=900 if all_sites else 300,
+                bufsize=1
             )
+            
+            for line in process.stdout:
+                line = line.strip()
+            
+                # only line successful account searches (starts with [+] and contains a URL and the username)
+                if line and line.startswith("[+]") and "https://" in line and username in line:
+                    self.log_graph_message(line)
+        
         except Exception as e:
             Logger.error(
                 self.sketch_id,
@@ -257,15 +267,15 @@ class MaigretEnricher(Enricher):
                 self.create_node(profile)
                 # Create relationship
                 self.create_relationship(profile.username, profile, "HAS_SOCIAL_ACCOUNT")
-                self.log_graph_message(
-                    f"{profile.username.value} -> account found on {profile.platform}"
-                )
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
                     {"message": f"Failed to create graph nodes for {profile.username.value} on {profile.platform}: {e}"},
                 )
                 continue
+            
+        self.log_graph_message(f"Processed {len(results)} social accounts")
+            
         return results
 
 

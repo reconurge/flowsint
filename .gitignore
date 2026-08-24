@@ -180,3 +180,5 @@ cython_debug/
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/flowsint-enricher-builder/
+AGENTS.md
+opencode.json

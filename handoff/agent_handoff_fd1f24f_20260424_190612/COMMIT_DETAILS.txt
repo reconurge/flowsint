@@ -1,0 +1,33 @@
+commit fd1f24f091460097719cc3fd80a18c27405579b3
+Author: Abkdarrk <122768967+Abdullakala@users.noreply.github.com>
+Date:   Fri Apr 24 07:00:51 2026 +0000
+
+    chore: add setup/install/deploy/start automation and update app/core changes
+
+ COMMANDS.makefile                                  | 262 +++++++++++++
+ FILES_INDEX.md                                     | 427 +++++++++++++++++++++
+ QUICK_REFERENCE.sh                                 | 385 +++++++++++++++++++
+ SETUP_DEPLOYMENT_GUIDE.md                          | 368 ++++++++++++++++++
+ deploy.sh                                          | 337 ++++++++++++++++
+ flowsint-app/src/api/api.ts                        |   2 +-
+ flowsint-app/src/api/auth-service.ts               |  12 +-
+ flowsint-app/src/api/chat-transport.ts             |   2 +-
+ flowsint-app/src/hooks/use-auth.ts                 |   6 +-
+ flowsint-app/src/hooks/use-events.ts               |   2 +-
+ flowsint-app/src/hooks/use-graph-refresh.ts        |   2 +-
+ flowsint-app/src/routes/login.tsx                  |   8 +-
+ flowsint-app/src/routes/register.tsx               |   6 -
+ flowsint-app/vite.config.ts                        |   9 +-
+ .../flowsint_core/core/services/chat_service.py    |  17 +-
+ install.sh                                         | 254 ++++++++++++
+ setup.sh                                           | 336 ++++++++++++++++
+ start.sh                                           | 245 ++++++++++++
+ 18 files changed, 2653 insertions(+), 27 deletions(-)
+ create mode 100644 COMMANDS.makefile
+ create mode 100644 FILES_INDEX.md
+ create mode 100755 QUICK_REFERENCE.sh
+ create mode 100644 SETUP_DEPLOYMENT_GUIDE.md
+ create mode 100755 deploy.sh
+ create mode 100755 install.sh
+ create mode 100755 setup.sh
+ create mode 100755 start.sh

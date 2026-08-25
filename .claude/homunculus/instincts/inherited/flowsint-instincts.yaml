@@ -1,0 +1,319 @@
+# Instincts generated from https://github.com/Abdullakala/flowsint
+# Generated: 2026-04-27T01:13:36.025Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: flowsint-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix, feat
+
+## Evidence
+
+- 4 commits analyzed
+- Detected conventional commit pattern
+- Examples: fix: resolve AUTH_SECRET loading order and improve config defaults, feat: add API reverse proxy to nginx and fix prod compose
+
+---
+id: flowsint-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Commit Length
+
+## Action
+
+Write moderate-length commit messages (~59 characters)
+
+## Evidence
+
+- Average commit message length: 59 chars
+- Based on 4 commits
+
+---
+id: flowsint-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: flowsint-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: flowsint-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: flowsint-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/Abdullakala/flowsint
+---
+
+# Flowsint Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: flowsint-instinct-naming-files
+trigger: "When creating or renaming a file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Naming Files
+
+## Action
+
+Use camelCase for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: flowsint-instinct-naming-functions
+trigger: "When defining a function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Naming Functions
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: flowsint-instinct-naming-classes
+trigger: "When defining a class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Naming Classes
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: flowsint-instinct-naming-constants
+trigger: "When defining a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Naming Constants
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: flowsint-instinct-import-style
+trigger: "When importing modules within the project"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: flowsint-instinct-export-style
+trigger: "When exporting functions or classes"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: flowsint-instinct-git-commit-prefix
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Git Commit Prefix
+
+## Action
+
+Start the message with a conventional prefix such as 'fix' or 'feat'
+
+## Evidence
+
+- Seen in commit: fix: resolve AUTH_SECRET loading order and improve config defaults
+- Seen in commit: feat: add API reverse proxy to nginx and fix prod compose
+
+---
+id: flowsint-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Git Commit Length
+
+## Action
+
+Keep the commit message concise, around 59 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: flowsint-instinct-git-commit-format
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Git Commit Format
+
+## Action
+
+Follow the format: <type>: <short description>
+
+## Evidence
+
+- Seen in commit: fix: resolve AUTH_SECRET loading order and improve config defaults
+- Seen in commit: feat: add docker-compose.deploy.yml for GHCR-based deployment
+
+---
+id: flowsint-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: Abdullakala/flowsint
+---
+
+# Flowsint Instinct Test Location
+
+## Action
+
+Place tests in a separate folder from source code
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+

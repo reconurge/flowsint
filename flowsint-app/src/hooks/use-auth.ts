@@ -8,13 +8,11 @@ export const SESSION_QUERY_KEY = ['session']
 
 export const useRegister = () => {
   const navigate = useNavigate()
-  const setAuth = useAuthStore((state) => state.setAuth)
 
   return useMutation({
     mutationFn: authService.register,
-    onSuccess: (data) => {
-      setAuth(data.access_token, data.user)
-      navigate({ to: '/' })
+    onSuccess: () => {
+      navigate({ to: '/login' })
     },
     onError: (error) => {
       console.error('Erreur lors de l’inscription :', error)

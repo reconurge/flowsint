@@ -46,8 +46,17 @@ class EnricherService(BaseService):
         self, category: Optional[str], user_id: UUID, enricher_registry
     ) -> list:
         base_enrichers = self.get_enrichers(category, user_id, enricher_registry)
+
+        template_category = category
+        if category and category.lower() != "undefined":
+            custom_type = self._custom_type_repo.get_published_by_name_and_owner(
+                category, user_id
+            )
+            if custom_type:
+                template_category = None
+
         template_enrichers = self._enricher_template_repo.get_by_owner(
-            user_id, category
+            user_id, template_category
         )
         return [*base_enrichers, *template_enrichers]
 

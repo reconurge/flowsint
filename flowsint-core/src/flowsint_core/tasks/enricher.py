@@ -136,6 +136,8 @@ def run_template_enricher(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             vault=vault,
+            owner_id=owner_id,
+            db=session,
         )
 
         results = asyncio.run(enricher.execute(values=serialized_objects))

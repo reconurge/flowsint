@@ -44,13 +44,17 @@ Example template:
 """
 
 import asyncio
+import uuid
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Type, cast
 
 import httpx
+from sqlalchemy.orm import Session
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.repositories import CustomTypeRepository
+from flowsint_core.core.services import TypeRegistryService
 from flowsint_core.core.vault import VaultProtocol
 from flowsint_core.templates.loader.yaml_loader import (
     SSRFError,
@@ -91,6 +95,9 @@ class TemplateEnricher(Enricher):
         scan_id: Optional[str] = None,
         vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
+        owner_id: Optional[str | uuid.UUID] = None,
+        db: Optional[Session] = None,
+        custom_type_repo: Optional[CustomTypeRepository] = None,
     ) -> None:
         # Build params schema from template secrets
         params_schema = self._build_params_schema_from_template(template)
@@ -102,6 +109,21 @@ class TemplateEnricher(Enricher):
             params=params,
             params_schema=params_schema,
         )
+        self.owner_id = (
+            uuid.UUID(owner_id) if isinstance(owner_id, str) else owner_id
+        )
+        if db is not None:
+            type_repo = custom_type_repo or CustomTypeRepository(db)
+            self._type_registry_service = TypeRegistryService(
+                db=db, custom_type_repo=type_repo
+            )
+        elif custom_type_repo is not None:
+            self._type_registry_service = TypeRegistryService(
+                db=custom_type_repo._db, custom_type_repo=custom_type_repo
+            )
+        else:
+            self._type_registry_service = None
+
         self.template = template
         self.InputType = self._detect_type(self.template.input.type)
         self.OutputType = self._detect_type(self.template.output.type)
@@ -126,10 +148,16 @@ class TemplateEnricher(Enricher):
 
     def _detect_type(self, input_type: str) -> type[FlowsintType]:
         """Resolve a type name to its FlowsintType class."""
-        # flowsint_types isn't py.typed, so get_type() resolves to Any here
-        # regardless of its own (correct) declared return type — cast to
-        # what it actually returns rather than losing the check entirely.
-        DetectedType = cast(Optional[Type[FlowsintType]], get_type(input_type))
+        DetectedType: Optional[Type[FlowsintType]] = None
+        if self._type_registry_service and self.owner_id:
+            DetectedType = self._type_registry_service.resolve_type(
+                input_type, self.owner_id
+            )
+        if not DetectedType:
+            DetectedType = cast(Optional[Type[FlowsintType]], get_type(input_type))
+        if not DetectedType:
+            raise TypeError(f"Type '{input_type}' is not present in registry.")
+        return DetectedType
         if not DetectedType:
             raise TypeError(f"Type '{input_type}' is not present in registry.")
         return DetectedType

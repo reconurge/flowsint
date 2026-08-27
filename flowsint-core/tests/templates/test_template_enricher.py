@@ -5,7 +5,10 @@ from typing import Optional
 
 import httpx
 import pytest
+from flowsint_types import FlowsintType
 
+import uuid
+from flowsint_core.core.models import CustomType, Profile
 from flowsint_core.core.template_enricher import (
     TemplateEnricher,
 )
@@ -104,6 +107,119 @@ class TestTemplateEnricherInit:
         assert len(enricher.params_schema) == 1
         assert enricher.params_schema[0]["name"] == "API_KEY"
         assert enricher.params_schema[0]["type"] == "vaultSecret"
+
+    def test_init_builtin_type_with_db_and_owner(self, db_session):
+        """Built-in type should resolve correctly with db and owner_id provided."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user1@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        template = create_test_template(input_type="Username", output_type="Domain")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Username"
+        assert enricher.OutputType.__name__ == "Domain"
+
+    def test_init_published_custom_type_as_input(self, db_session):
+        """Published custom type as input.type should resolve instead of raising TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user2@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="Vehicle",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {"vin": {"type": "string"}},
+                "required": ["vin"],
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="Vehicle", input_key="vin", output_type="Ip")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=str(user.id),
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Vehicle"
+        assert issubclass(enricher.InputType, FlowsintType)
+        assert enricher.OutputType.__name__ == "Ip"
+
+    def test_init_published_custom_type_as_output(self, db_session):
+        """Published custom type as output.type should resolve instead of raising TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user3@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {"model": {"type": "string"}},
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="Ip", output_type="VehicleReport")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Ip"
+        assert enricher.OutputType.__name__ == "VehicleReport"
+        assert issubclass(enricher.OutputType, FlowsintType)
+
+    def test_init_unpublished_custom_type_raises(self, db_session):
+        """Unpublished (draft) custom type should raise TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user4@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="DraftType",
+            owner_id=user.id,
+            status="draft",
+            schema={"type": "object", "properties": {}},
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="DraftType")
+        with pytest.raises(TypeError) as exc_info:
+            TemplateEnricher(
+                template=template,
+                sketch_id="test",
+                owner_id=user.id,
+                db=db_session,
+            )
+        assert "not present in registry" in str(exc_info.value)
 
 
 class TestTemplateEnricherSSRF:

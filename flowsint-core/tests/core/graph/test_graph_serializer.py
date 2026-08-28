@@ -70,6 +70,9 @@ def test_deserializer():
         },
     }
 
+    domain_entity = Domain(domain="domain.com", root=True)
+    domain_entity.nodeLabel = "nodeLabel"
+
     graph_node = GraphNode(
         id="id",
         nodeLabel="nodeLabel",
@@ -80,7 +83,7 @@ def test_deserializer():
         nodeIcon="nodeIcon",
         x=100,
         y=100,
-        nodeProperties=Domain(domain="domain.com", nodeLabel="domain.com", root=True),
+        nodeProperties=domain_entity,
         nodeMetadata=NodeMetadata(created_at=created_at),
     )
     output = GraphSerializer.neo4j_dict_to_graph_node(node)
@@ -291,7 +294,25 @@ class TestDeserializeNodes:
         assert len(result) == 2
         assert all(isinstance(node, GraphNode) for node in result)
         assert result[0].nodeLabel == "example.com"
+        assert result[0].nodeProperties.nodeLabel == "example.com"
         assert result[1].nodeLabel == "1.1.1.1"
+        assert result[1].nodeProperties.nodeLabel == "1.1.1.1"
+
+    def test_neo4j_dict_to_graph_node_sets_entity_nodelabel(self):
+        """Verify entity.nodeLabel is set to the node's nodeLabel upon deserialization."""
+        node_dict = {
+            "id": "node-1",
+            "data": {
+                "nodeLabel": "custom-label",
+                "nodeType": "ip",
+                "nodeProperties.address": "10.0.0.1",
+            },
+        }
+
+        graph_node = GraphSerializer.neo4j_dict_to_graph_node(node_dict)
+        assert graph_node.nodeLabel == "custom-label"
+        assert graph_node.nodeProperties.nodeLabel == "custom-label"
+        assert graph_node.nodeProperties.address == "10.0.0.1"
 
     def test_empty_list(self):
         result = GraphSerializer.deserialize_nodes([])

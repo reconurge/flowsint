@@ -222,6 +222,83 @@ class TestTemplateEnricherInit:
         assert "not present in registry" in str(exc_info.value)
 
 
+class TestTemplateEnricherBuildTemplateValues:
+    """Tests for _build_template_values."""
+
+    def test_multi_field_input_exposes_all_fields(self, db_session):
+        """All fields of a multi-field input object should be available in values dict."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="vehicle_owner@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="Vehicle",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "plate": {"type": "string"},
+                    "make": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+                "required": ["plate"],
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Vehicle",
+            input_key="plate",
+            output_type="Ip",
+            url="https://api.example.com/lookup?plate={{plate}}&make={{make}}&model={{model}}",
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=str(user.id),
+            db=db_session,
+        )
+
+        VehicleType = enricher.InputType
+        vehicle_obj = VehicleType(plate="ABC-123", make="Toyota", model="Corolla")
+
+        values = enricher._build_template_values(vehicle_obj)
+
+        assert values.get("plate") == "ABC-123"
+        assert values.get("make") == "Toyota"
+        assert values.get("model") == "Corolla"
+
+    def test_builtin_multi_field_input_exposes_all_fields(self):
+        """Builtin type with multiple fields exposes all set fields."""
+        from flowsint_types import Individual
+
+        template = create_test_template(
+            input_type="Individual",
+            input_key="full_name",
+            output_type="Individual",
+        )
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+
+        indiv = Individual(
+            first_name="Jane",
+            last_name="Doe",
+            full_name="Jane Doe",
+            occupation="Engineer",
+        )
+
+        values = enricher._build_template_values(indiv)
+
+        assert values.get("full_name") == "Jane Doe"
+        assert values.get("first_name") == "Jane"
+        assert values.get("last_name") == "Doe"
+        assert values.get("occupation") == "Engineer"
+
+
 class TestTemplateEnricherSSRF:
     """Tests for SSRF protection in TemplateEnricher."""
 

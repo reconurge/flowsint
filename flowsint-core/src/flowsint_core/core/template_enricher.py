@@ -201,10 +201,26 @@ class TemplateEnricher(Enricher):
         """
         values: Dict[str, str] = {}
 
+        # Expose all fields from the input object
+        if hasattr(input_obj, "model_dump") and callable(input_obj.model_dump):
+            input_dict = input_obj.model_dump()
+        elif isinstance(input_obj, dict):
+            input_dict = input_obj
+        elif hasattr(input_obj, "__dict__"):
+            input_dict = input_obj.__dict__
+        else:
+            input_dict = {}
+
+        for k, v in input_dict.items():
+            if v is not None:
+                values[k] = str(v)
+
         # Add input key value
         key = self.template.input.key
-        if hasattr(input_obj, key):
-            values[key] = str(getattr(input_obj, key))
+        if key and hasattr(input_obj, key):
+            val = getattr(input_obj, key)
+            if val is not None:
+                values[key] = str(val)
 
         # Add resolved secrets
         values.update(self._resolved_secrets)

@@ -25,6 +25,14 @@ def local_type_resolver(type_name: str) -> Type[FlowsintType] | None:
     return TYPE_REGISTRY.get_lowercase(type_name)
 
 
+JSON_SCHEMA_TYPE_MAP: Dict[str, Type] = {
+    "string": str,
+    "number": float,
+    "integer": int,
+    "boolean": bool,
+}
+
+
 def _build_pydantic_model_from_schema(name: str, schema: dict) -> Type[FlowsintType]:
     """Build a dynamic Pydantic model from a custom type JSON schema."""
     properties = schema.get("properties", {})
@@ -32,7 +40,9 @@ def _build_pydantic_model_from_schema(name: str, schema: dict) -> Type[FlowsintT
 
     fields: Dict[str, Any] = {}
     for prop, info in properties.items():
-        annotation = Optional[str] if prop not in required else str
+        json_type = info.get("type") if isinstance(info, dict) else None
+        py_type = JSON_SCHEMA_TYPE_MAP.get(json_type, str)
+        annotation = Optional[py_type] if prop not in required else py_type
         default = ... if prop in required else None
         fields[prop] = (annotation, default)
 

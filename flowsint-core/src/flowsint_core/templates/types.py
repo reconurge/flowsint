@@ -15,6 +15,10 @@ class TemplateOutput(BaseModel):
     type: str = Field(
         ..., description="Flowsint Type that the template should return as an output."
     )
+    key: Optional[str] = Field(
+        default=None,
+        description="Key attribute from output type to set as nodeLabel",
+    )
     # If response is an array, this allows mapping each item to an output
     is_array: bool = Field(
         default=False,

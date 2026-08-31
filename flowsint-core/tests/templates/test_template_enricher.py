@@ -31,6 +31,7 @@ def create_test_template(
     input_type: str = "Ip",
     input_key: str = "address",
     output_type: str = "Ip",
+    output_key: Optional[str] = None,
     url: str = "https://api.example.com/{{address}}",
     method: str = "GET",
     headers: Optional[dict] = None,
@@ -51,7 +52,7 @@ def create_test_template(
         version=1.0,
         input=TemplateInput(type=input_type, key=input_key),
         output=TemplateOutput(
-            type=output_type, is_array=is_array, array_path=array_path
+            type=output_type, key=output_key, is_array=is_array, array_path=array_path
         ),
         request=TemplateHttpRequest(
             method=method,
@@ -833,3 +834,88 @@ class TestTemplateEnricherFromYaml:
         enricher = TemplateEnricher(template=template, sketch_id="test")
         assert enricher.template.output.is_array is True
         assert enricher.template.output.array_path == "data.results"
+
+
+class TestTemplateEnricherOutputKey:
+    """Tests for TemplateOutput key setting nodeLabel."""
+
+    def test_output_with_key_sets_nodelabel(self, db_session):
+        """An output with key set gets the correct nodeLabel."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="output_key_user@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "vin": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Ip",
+            output_type="VehicleReport",
+            output_key="model",
+            response_map={"model": "data.model", "vin": "data.vin"},
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+
+        res = enricher._build_mapped_result({"data": {"model": "Mustang", "vin": "12345"}})
+        assert res.nodeLabel == "Mustang"
+
+    def test_output_without_key_does_not_set_nodelabel(self, db_session):
+        """An output without key set maintains its default nodeLabel behavior."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="no_output_key_user@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport2",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "vin": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Ip",
+            output_type="VehicleReport2",
+            output_key=None,
+            response_map={"model": "data.model", "vin": "data.vin"},
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+
+        res = enricher._build_mapped_result({"data": {"model": "Mustang", "vin": "12345"}})
+        assert res.nodeLabel is None
+

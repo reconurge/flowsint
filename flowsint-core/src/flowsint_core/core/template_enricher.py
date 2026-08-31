@@ -251,7 +251,12 @@ class TemplateEnricher(Enricher):
                 value = YamlLoader.extract_nested_value(result, response_path)
             output_dict[output_field] = value
 
-        return self.OutputType(**output_dict)
+        output_entity = self.OutputType(**output_dict)
+        if self.template.output.key and self.template.output.key in output_dict:
+            val = output_dict[self.template.output.key]
+            if val is not None:
+                output_entity.nodeLabel = str(val)
+        return output_entity
 
     def _extract_xml_value(self, element: ET.Element, path: str) -> Optional[str]:
         """

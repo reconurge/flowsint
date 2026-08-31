@@ -593,7 +593,12 @@ class TemplateEnricher(Enricher):
         for input, output in zip(input_data, results):
             self.create_node(input)
             self.create_node(output)
-            self.create_relationship(input, output, "HAS_SOCIAL_ACCOUNT")
+            rel = (
+                self.template.relationship
+                if self.template.relationship
+                else f"HAS_{self.template.output.type.upper()}"
+            )
+            self.create_relationship(input, output, rel)
             self.log_graph_message(
                 f"[{self.template.name.upper()}] {input.nodeLabel} -> {output.nodeLabel}"
             )

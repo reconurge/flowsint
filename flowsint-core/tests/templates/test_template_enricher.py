@@ -44,12 +44,14 @@ def create_test_template(
     is_array: bool = False,
     array_path: Optional[str] = None,
     timeout: float = 30.0,
+    relationship: Optional[str] = None,
 ) -> Template:
     """Helper to create test templates."""
     return Template(
         name=name,
         category="Test",
         version=1.0,
+        relationship=relationship,
         input=TemplateInput(type=input_type, key=input_key),
         output=TemplateOutput(
             type=output_type, key=output_key, is_array=is_array, array_path=array_path
@@ -918,4 +920,70 @@ class TestTemplateEnricherOutputKey:
 
         res = enricher._build_mapped_result({"data": {"model": "Mustang", "vin": "12345"}})
         assert res.nodeLabel is None
+
+
+class TestTemplateEnricherRelationship:
+    """Tests for postprocess relationship handling."""
+
+    def test_template_with_relationship_set_uses_it_exactly(self):
+        """Confirm a template with relationship set uses it exactly."""
+        template = create_test_template(
+            output_type="Domain",
+            relationship="OWNS_DOMAIN",
+        )
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Domain, Ip
+
+        inp = Ip(address="1.1.1.1")
+        out = Domain(domain="example.com")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "OWNS_DOMAIN")
+
+    def test_template_without_relationship_auto_derives_label(self):
+        """Confirm a template without relationship gets HAS_<OUTPUT_TYPE> label."""
+        template = create_test_template(
+            output_type="Domain",
+            relationship=None,
+        )
+        assert template.relationship is None
+
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Domain, Ip
+
+        inp = Ip(address="1.1.1.1")
+        out = Domain(domain="example.com")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "HAS_DOMAIN")
+
+    def test_existing_template_yaml_no_relationship_loads_and_runs(self):
+        """Confirm an existing template (no relationship in YAML) loads and runs without error."""
+        template = YamlLoader.get_template_from_file(str(TEST_DIR / "example.yaml"))
+        assert template.relationship is None
+
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Ip
+
+        inp = Ip(address="8.8.8.8")
+        out = Ip(address="8.8.8.8")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "HAS_IP")
+
 

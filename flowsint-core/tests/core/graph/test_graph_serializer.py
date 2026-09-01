@@ -267,6 +267,19 @@ class TestGraphEdgeToGraphDict:
             "rel_label": "HOSTS",
         }
 
+    def test_with_none_nodelabel(self):
+        from_obj = Domain(domain="source.com")
+        from_obj.nodeLabel = None
+        to_obj = Domain(domain="target.com")
+        result = GraphSerializer.graph_edge_to_neo4j_dict(from_obj, to_obj, "LINKS_TO")
+        assert result == {
+            "from_type": "domain",
+            "from_label": "",
+            "to_type": "domain",
+            "to_label": "target.com",
+            "rel_label": "LINKS_TO",
+        }
+
 
 class TestDeserializeNodes:
     def test_deserializes_multiple_nodes(self):

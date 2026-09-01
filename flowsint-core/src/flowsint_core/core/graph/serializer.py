@@ -202,9 +202,9 @@ class GraphSerializer:
         )
         return {
             "from_type": from_type,
-            "from_label": from_obj.nodeLabel,
+            "from_label": from_obj.nodeLabel or "",
             "to_type": to_type,
-            "to_label": to_obj.nodeLabel,
+            "to_label": to_obj.nodeLabel or "",
             "rel_label": label,
         }
 

@@ -73,6 +73,22 @@ class TestCreateNode:
 
         assert result is None
 
+    def test_create_node_with_hyphenated_type(self):
+        mock_connection = MagicMock()
+        mock_connection.query.return_value = [{"id": "element-123"}]
+        repo = Neo4jGraphRepository(neo4j_connection=mock_connection)
+
+        node_obj = {
+            "nodeLabel": "test-label",
+            "nodeType": "Test-org",
+        }
+
+        result = repo.create_node(node_obj, sketch_id="sketch-1")
+
+        assert result == "element-123"
+        query, _ = mock_connection.query.call_args[0]
+        assert "MERGE (n:`Test-org`" in query
+
 
 class TestCreateRelationship:
     def test_create_relationship_success(self):
@@ -105,6 +121,26 @@ class TestCreateRelationship:
         # Should not raise, just return early
         repo.create_relationship(rel_obj, sketch_id="sketch-1")
 
+    def test_create_relationship_with_hyphenated_types_and_rel_label(self):
+        mock_connection = MagicMock()
+        repo = Neo4jGraphRepository(neo4j_connection=mock_connection)
+
+        rel_obj = {
+            "from_type": "Test-org",
+            "from_label": "source.org",
+            "to_type": "Custom Type",
+            "to_label": "target.org",
+            "rel_label": "RELATED-TO",
+        }
+
+        repo.create_relationship(rel_obj, sketch_id="sketch-1")
+
+        mock_connection.execute_write.assert_called_once()
+        query, _ = mock_connection.execute_write.call_args[0]
+        assert "MATCH (from:`Test-org`" in query
+        assert "MATCH (to:`Custom Type`" in query
+        assert "MERGE (from)-[r:`RELATED-TO`" in query
+
 
 class TestBuildNodeQuery:
     def test_build_node_query_structure(self):
@@ -124,6 +160,20 @@ class TestBuildNodeQuery:
         assert params["sketch_id"] == "sketch-1"
         assert params["props"] == node_obj
         assert "created_at" in params
+
+    def test_build_node_query_with_hyphen_and_space(self):
+        mock_connection = MagicMock()
+        repo = Neo4jGraphRepository(neo4j_connection=mock_connection)
+
+        node_obj = {
+            "nodeLabel": "my-org",
+            "nodeType": "Test-org",
+        }
+
+        query, params = repo._build_node_query(node_obj, sketch_id="sketch-1")
+
+        assert "MERGE (n:`Test-org`" in query
+        assert params["node_label"] == "my-org"
 
 
 class TestBuildRelationshipQuery:
@@ -149,6 +199,26 @@ class TestBuildRelationshipQuery:
         assert params["from_label"] == "source.com"
         assert params["to_label"] == "1.1.1.1"
         assert params["sketch_id"] == "sketch-1"
+
+    def test_build_relationship_query_with_hyphen_and_space(self):
+        mock_connection = MagicMock()
+        repo = Neo4jGraphRepository(neo4j_connection=mock_connection)
+
+        rel_obj = {
+            "from_type": "Test-org",
+            "from_label": "source-org",
+            "to_type": "Custom Type",
+            "to_label": "target-type",
+            "rel_label": "BELONGS-TO",
+        }
+
+        query, params = repo._build_relationship_query(rel_obj, sketch_id="sketch-1")
+
+        assert "MATCH (from:`Test-org`" in query
+        assert "MATCH (to:`Custom Type`" in query
+        assert "MERGE (from)-[r:`BELONGS-TO`" in query
+        assert params["from_label"] == "source-org"
+        assert params["to_label"] == "target-type"
 
 
 class TestBatchOperations:

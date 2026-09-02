@@ -184,6 +184,7 @@ class TestTemplateGeneratorService:
         assert "output" in system_prompt
         assert "secrets" in system_prompt
         assert "relationship" in system_prompt
+        assert "output.key" in system_prompt
         # Verify examples are present
         assert "ip-api-lookup" in system_prompt
         assert "api-with-secrets" in system_prompt

@@ -53,6 +53,7 @@ A template has the following fields:
 ### Optional fields:
 - `description` (str): Human-readable description of what the template does
 - `relationship` (str, optional): Neo4j relationship type connecting input to output (e.g. "OWNS_DOMAIN", "RESOLVES_TO"). If omitted, auto-generated as HAS_<OUTPUT_TYPE>.
+- `output.key` (str, optional): Designates which mapped output field becomes the node's display label. Set this whenever the response mapping includes an obviously identifying field (a name, title, or similar) — do not skip it by default.
 - `secrets`: List of secrets the template requires (fetched from user's vault)
   - `name` (str): Secret name, used as {{secrets.NAME}} in the template
   - `required` (bool, default true): Whether the secret is required

@@ -117,6 +117,7 @@ class GraphSerializer:
         entity = GraphSerializer.parse_flowsint_type(
             node_properties, node_type, type_resolver=type_resolver
         )
+        entity.nodeLabel = nodeLabel
         return GraphNode(
             id=node_id,
             nodeLabel=nodeLabel,
@@ -201,9 +202,9 @@ class GraphSerializer:
         )
         return {
             "from_type": from_type,
-            "from_label": from_obj.nodeLabel,
+            "from_label": from_obj.nodeLabel or "",
             "to_type": to_type,
-            "to_label": to_obj.nodeLabel,
+            "to_label": to_obj.nodeLabel or "",
             "rel_label": label,
         }
 

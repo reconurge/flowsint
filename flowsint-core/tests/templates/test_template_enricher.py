@@ -5,7 +5,10 @@ from typing import Optional
 
 import httpx
 import pytest
+from flowsint_types import FlowsintType
 
+import uuid
+from flowsint_core.core.models import CustomType, Profile
 from flowsint_core.core.template_enricher import (
     TemplateEnricher,
 )
@@ -28,6 +31,7 @@ def create_test_template(
     input_type: str = "Ip",
     input_key: str = "address",
     output_type: str = "Ip",
+    output_key: Optional[str] = None,
     url: str = "https://api.example.com/{{address}}",
     method: str = "GET",
     headers: Optional[dict] = None,
@@ -40,15 +44,17 @@ def create_test_template(
     is_array: bool = False,
     array_path: Optional[str] = None,
     timeout: float = 30.0,
+    relationship: Optional[str] = None,
 ) -> Template:
     """Helper to create test templates."""
     return Template(
         name=name,
         category="Test",
         version=1.0,
+        relationship=relationship,
         input=TemplateInput(type=input_type, key=input_key),
         output=TemplateOutput(
-            type=output_type, is_array=is_array, array_path=array_path
+            type=output_type, key=output_key, is_array=is_array, array_path=array_path
         ),
         request=TemplateHttpRequest(
             method=method,
@@ -104,6 +110,196 @@ class TestTemplateEnricherInit:
         assert len(enricher.params_schema) == 1
         assert enricher.params_schema[0]["name"] == "API_KEY"
         assert enricher.params_schema[0]["type"] == "vaultSecret"
+
+    def test_init_builtin_type_with_db_and_owner(self, db_session):
+        """Built-in type should resolve correctly with db and owner_id provided."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user1@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        template = create_test_template(input_type="Username", output_type="Domain")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Username"
+        assert enricher.OutputType.__name__ == "Domain"
+
+    def test_init_published_custom_type_as_input(self, db_session):
+        """Published custom type as input.type should resolve instead of raising TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user2@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="Vehicle",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {"vin": {"type": "string"}},
+                "required": ["vin"],
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="Vehicle", input_key="vin", output_type="Ip")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=str(user.id),
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Vehicle"
+        assert issubclass(enricher.InputType, FlowsintType)
+        assert enricher.OutputType.__name__ == "Ip"
+
+    def test_init_published_custom_type_as_output(self, db_session):
+        """Published custom type as output.type should resolve instead of raising TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user3@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {"model": {"type": "string"}},
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="Ip", output_type="VehicleReport")
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+        assert enricher.InputType.__name__ == "Ip"
+        assert enricher.OutputType.__name__ == "VehicleReport"
+        assert issubclass(enricher.OutputType, FlowsintType)
+
+    def test_init_unpublished_custom_type_raises(self, db_session):
+        """Unpublished (draft) custom type should raise TypeError."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="user4@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="DraftType",
+            owner_id=user.id,
+            status="draft",
+            schema={"type": "object", "properties": {}},
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(input_type="DraftType")
+        with pytest.raises(TypeError) as exc_info:
+            TemplateEnricher(
+                template=template,
+                sketch_id="test",
+                owner_id=user.id,
+                db=db_session,
+            )
+        assert "not present in registry" in str(exc_info.value)
+
+
+class TestTemplateEnricherBuildTemplateValues:
+    """Tests for _build_template_values."""
+
+    def test_multi_field_input_exposes_all_fields(self, db_session):
+        """All fields of a multi-field input object should be available in values dict."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="vehicle_owner@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="Vehicle",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "plate": {"type": "string"},
+                    "make": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+                "required": ["plate"],
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Vehicle",
+            input_key="plate",
+            output_type="Ip",
+            url="https://api.example.com/lookup?plate={{plate}}&make={{make}}&model={{model}}",
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=str(user.id),
+            db=db_session,
+        )
+
+        VehicleType = enricher.InputType
+        vehicle_obj = VehicleType(plate="ABC-123", make="Toyota", model="Corolla")
+
+        values = enricher._build_template_values(vehicle_obj)
+
+        assert values.get("plate") == "ABC-123"
+        assert values.get("make") == "Toyota"
+        assert values.get("model") == "Corolla"
+
+    def test_builtin_multi_field_input_exposes_all_fields(self):
+        """Builtin type with multiple fields exposes all set fields."""
+        from flowsint_types import Individual
+
+        template = create_test_template(
+            input_type="Individual",
+            input_key="full_name",
+            output_type="Individual",
+        )
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+
+        indiv = Individual(
+            first_name="Jane",
+            last_name="Doe",
+            full_name="Jane Doe",
+            occupation="Engineer",
+        )
+
+        values = enricher._build_template_values(indiv)
+
+        assert values.get("full_name") == "Jane Doe"
+        assert values.get("first_name") == "Jane"
+        assert values.get("last_name") == "Doe"
+        assert values.get("occupation") == "Engineer"
 
 
 class TestTemplateEnricherSSRF:
@@ -640,3 +836,154 @@ class TestTemplateEnricherFromYaml:
         enricher = TemplateEnricher(template=template, sketch_id="test")
         assert enricher.template.output.is_array is True
         assert enricher.template.output.array_path == "data.results"
+
+
+class TestTemplateEnricherOutputKey:
+    """Tests for TemplateOutput key setting nodeLabel."""
+
+    def test_output_with_key_sets_nodelabel(self, db_session):
+        """An output with key set gets the correct nodeLabel."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="output_key_user@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "vin": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Ip",
+            output_type="VehicleReport",
+            output_key="model",
+            response_map={"model": "data.model", "vin": "data.vin"},
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+
+        res = enricher._build_mapped_result({"data": {"model": "Mustang", "vin": "12345"}})
+        assert res.nodeLabel == "Mustang"
+
+    def test_output_without_key_does_not_set_nodelabel(self, db_session):
+        """An output without key set maintains its default nodeLabel behavior."""
+        user = Profile(
+            id=uuid.uuid4(),
+            email="no_output_key_user@example.com",
+            hashed_password="hash",
+        )
+        db_session.add(user)
+        custom_type = CustomType(
+            id=uuid.uuid4(),
+            name="VehicleReport2",
+            owner_id=user.id,
+            status="published",
+            schema={
+                "type": "object",
+                "properties": {
+                    "vin": {"type": "string"},
+                    "model": {"type": "string"},
+                },
+            },
+        )
+        db_session.add(custom_type)
+        db_session.commit()
+
+        template = create_test_template(
+            input_type="Ip",
+            output_type="VehicleReport2",
+            output_key=None,
+            response_map={"model": "data.model", "vin": "data.vin"},
+        )
+        enricher = TemplateEnricher(
+            template=template,
+            sketch_id="test",
+            owner_id=user.id,
+            db=db_session,
+        )
+
+        res = enricher._build_mapped_result({"data": {"model": "Mustang", "vin": "12345"}})
+        assert res.nodeLabel is None
+
+
+class TestTemplateEnricherRelationship:
+    """Tests for postprocess relationship handling."""
+
+    def test_template_with_relationship_set_uses_it_exactly(self):
+        """Confirm a template with relationship set uses it exactly."""
+        template = create_test_template(
+            output_type="Domain",
+            relationship="OWNS_DOMAIN",
+        )
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Domain, Ip
+
+        inp = Ip(address="1.1.1.1")
+        out = Domain(domain="example.com")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "OWNS_DOMAIN")
+
+    def test_template_without_relationship_auto_derives_label(self):
+        """Confirm a template without relationship gets HAS_<OUTPUT_TYPE> label."""
+        template = create_test_template(
+            output_type="Domain",
+            relationship=None,
+        )
+        assert template.relationship is None
+
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Domain, Ip
+
+        inp = Ip(address="1.1.1.1")
+        out = Domain(domain="example.com")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "HAS_DOMAIN")
+
+    def test_existing_template_yaml_no_relationship_loads_and_runs(self):
+        """Confirm an existing template (no relationship in YAML) loads and runs without error."""
+        template = YamlLoader.get_template_from_file(str(TEST_DIR / "example.yaml"))
+        assert template.relationship is None
+
+        enricher = TemplateEnricher(template=template, sketch_id="test")
+        enricher.create_node = MagicMock()
+        enricher.create_relationship = MagicMock()
+        enricher.log_graph_message = MagicMock()
+
+        from flowsint_types import Ip
+
+        inp = Ip(address="8.8.8.8")
+        out = Ip(address="8.8.8.8")
+
+        enricher.postprocess([out], [inp])
+
+        enricher.create_relationship.assert_called_once_with(inp, out, "HAS_IP")
+
+

@@ -15,6 +15,10 @@ class TemplateOutput(BaseModel):
     type: str = Field(
         ..., description="Flowsint Type that the template should return as an output."
     )
+    key: Optional[str] = Field(
+        default=None,
+        description="Key attribute from output type to set as nodeLabel",
+    )
     # If response is an array, this allows mapping each item to an output
     is_array: bool = Field(
         default=False,
@@ -155,6 +159,10 @@ class Template(BaseModel):
         description="Output type of the template.",
     )
     # Optional configurations
+    relationship: Optional[str] = Field(
+        default=None,
+        description="Neo4j relationship type connecting input to output, e.g. HAS_ORGANIZATION. If unset, one is auto-generated from the output type.",
+    )
     secrets: List[TemplateSecret] = Field(
         default_factory=list,
         description="List of secrets required by this template (fetched from vault)",

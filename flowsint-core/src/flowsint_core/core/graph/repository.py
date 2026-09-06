@@ -117,7 +117,7 @@ class Neo4jGraphRepository:
         }
 
         query = f"""
-        MERGE (n:{node_type} {{ nodeLabel: $node_label, sketch_id: $sketch_id }})
+        MERGE (n:`{node_type}` {{ nodeLabel: $node_label, sketch_id: $sketch_id }})
         ON CREATE SET n.created_at = $created_at
         SET n += $props
         SET n.deleted_at = null
@@ -145,11 +145,11 @@ class Neo4jGraphRepository:
         }
 
         query = f"""
-        MATCH (from:{from_type} {{nodeLabel: $from_label, sketch_id: $sketch_id}})
+        MATCH (from:`{from_type}` {{nodeLabel: $from_label, sketch_id: $sketch_id}})
         WHERE from.deleted_at IS NULL
-        MATCH (to:{to_type} {{nodeLabel: $to_label, sketch_id: $sketch_id}})
+        MATCH (to:`{to_type}` {{nodeLabel: $to_label, sketch_id: $sketch_id}})
         WHERE to.deleted_at IS NULL
-        MERGE (from)-[r:{rel_label} {{sketch_id: $sketch_id}}]->(to)
+        MERGE (from)-[r:`{rel_label}` {{sketch_id: $sketch_id}}]->(to)
         SET r += $props
         SET r.deleted_at = null
         """

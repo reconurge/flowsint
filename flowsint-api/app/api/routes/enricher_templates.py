@@ -143,7 +143,8 @@ async def test_template(
         template = Template(**content)
         vault = Vault(db=db, owner_id=current_user.id)
         enricher = TemplateEnricher(
-            sketch_id="123", scan_id="123", template=template, vault=vault
+            sketch_id="123", scan_id="123", template=template, vault=vault,
+            owner_id=current_user.id, db=db,
         )
         await enricher.async_init()
         pre = enricher.preprocess([test_request.input_value])

@@ -52,6 +52,8 @@ A template has the following fields:
 
 ### Optional fields:
 - `description` (str): Human-readable description of what the template does
+- `relationship` (str, optional): Neo4j relationship type connecting input to output (e.g. "OWNS_DOMAIN", "RESOLVES_TO"). If omitted, auto-generated as HAS_<OUTPUT_TYPE>.
+- `output.key` (str, optional): Designates which mapped output field becomes the node's display label. Set this whenever the response mapping includes an obviously identifying field (a name, title, or similar) — do not skip it by default.
 - `secrets`: List of secrets the template requires (fetched from user's vault)
   - `name` (str): Secret name, used as {{secrets.NAME}} in the template
   - `required` (bool, default true): Whether the secret is required
@@ -126,6 +128,7 @@ response:
 
 - Output ONLY the YAML template. No explanations, no markdown fences, no extra text.
 - Infer the appropriate category, input type, and output type from the user's description.
+- Include a `relationship` field in the YAML when there is a semantically meaningful choice (e.g. `OWNS_DOMAIN`, `RESOLVES_TO`) — do not just default to the generic `HAS_<TYPE>` pattern when something more descriptive is obviously better.
 - Use realistic field mappings based on common API response structures.
 - If the API likely requires authentication, include a `secrets` section.
 - Keep the template simple and focused on what the user asked for.

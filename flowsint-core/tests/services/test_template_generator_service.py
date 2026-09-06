@@ -31,6 +31,26 @@ output:
   type: Ip
 """
 
+VALID_YAML_WITH_RELATIONSHIP = """\
+name: domain-owner-lookup
+category: Domain
+version: 1.0
+relationship: OWNS_DOMAIN
+input:
+  type: Domain
+  key: domain
+request:
+  method: GET
+  url: http://api.example.com/whois/{{domain}}
+  timeout: 30
+response:
+  expect: json
+  map:
+    domain: name
+output:
+  type: Domain
+"""
+
 VALID_YAML_WITH_FENCES = f"""\
 Here is the template:
 
@@ -163,6 +183,19 @@ class TestTemplateGeneratorService:
         assert "response" in system_prompt
         assert "output" in system_prompt
         assert "secrets" in system_prompt
+        assert "relationship" in system_prompt
+        assert "output.key" in system_prompt
         # Verify examples are present
         assert "ip-api-lookup" in system_prompt
         assert "api-with-secrets" in system_prompt
+
+    @pytest.mark.asyncio
+    async def test_generate_valid_yaml_with_relationship(self):
+        service = _make_service()
+        mock_provider = MagicMock()
+        mock_provider.complete = AsyncMock(return_value=VALID_YAML_WITH_RELATIONSHIP)
+
+        with patch.object(service, "_get_llm_provider", return_value=mock_provider):
+            result = await service.generate("lookup domain owner", uuid4())
+
+        assert "relationship: OWNS_DOMAIN" in result

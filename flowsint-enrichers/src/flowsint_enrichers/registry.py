@@ -227,5 +227,40 @@ def load_all_enrichers() -> None:
                 # Log but don't fail - some modules might have optional dependencies
                 print(f"Warning: Failed to import {module_name}: {e}", file=sys.stderr)
 
+    # Discover third-party enricher packs declared via the "flowsint.enrichers"
+    # entry-point group. Any installed distribution can ship additional enrichers
+    # in its own top-level package without living inside flowsint_enrichers/.
+    # The imported module (or package __init__) is expected to import its
+    # submodules so the @flowsint_enricher decorators fire.
+    _load_enricher_plugins()
+
     # Mark as loaded
     _enrichers_loaded = True
+
+
+def _load_enricher_plugins() -> None:
+    """Import every package registered under the ``flowsint.enrichers`` entry-point group.
+
+    External packages register themselves in their pyproject.toml::
+
+        [project.entry-points."flowsint.enrichers"]
+        my_pack = "my_pack.enrichers"
+
+    Importing the referenced module triggers the @flowsint_enricher decorators,
+    registering the plugin's enrichers in the global ENRICHER_REGISTRY.
+    """
+    try:
+        from importlib.metadata import entry_points
+    except ImportError:  # pragma: no cover - importlib.metadata is stdlib on 3.12
+        return
+
+    for ep in entry_points(group="flowsint.enrichers"):
+        if ep.value in sys.modules:
+            continue
+        try:
+            importlib.import_module(ep.value)
+        except Exception as e:
+            print(
+                f"Warning: Failed to load enricher plugin '{ep.name}' ({ep.value}): {e}",
+                file=sys.stderr,
+            )

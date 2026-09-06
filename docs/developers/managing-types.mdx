@@ -497,6 +497,8 @@ poetry install
 
 This updates the package in your development environment so enrichers and the API can import your new type.
 
+You can also define types **outside** the Flowsint repository and have them auto-discovered through an entry point — useful for private or domain-specific packs versioned on their own. See [External packs (plugins)](/docs/developers/external-packs).
+
 ## Integrating with the API
 
 The final step is making your type available through the API so frontends can discover it and create instances.

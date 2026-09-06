@@ -19,7 +19,7 @@ interface ImportSheetProps {
   sketchId: string
 }
 
-const ALLOWED_EXTENSIONS = ['.txt', '.json']
+const ALLOWED_EXTENSIONS = ['.txt', '.json', '.xml']
 
 export function ImportSheet({ sketchId }: ImportSheetProps) {
   const onOpenChange = useGraphSettingsStore((s) => s.setImportModalOpen)
@@ -120,7 +120,8 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
         <SheetHeader className="shrink-0 border-b bg-background p-0 h-19 px-6 justify-center flex-col flex items-start">
           <SheetTitle>Import entities</SheetTitle>
           <SheetDescription>
-            Upload a TXT file with one value per line to import entities into your sketch
+            Upload a TXT file with one value per line, a JSON graph, or an nmap XML report to
+            import entities into your sketch
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col grow overflow-hidden p-6">
@@ -155,9 +156,9 @@ export function ImportSheet({ sketchId }: ImportSheetProps) {
                   </label>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Supported format:{' '}
-                  <span className="font-bold">{ALLOWED_EXTENSIONS.join(', ')}</span> (one value per
-                  line)
+                  Supported formats:{' '}
+                  <span className="font-bold">{ALLOWED_EXTENSIONS.join(', ')}</span> (.xml must be
+                  an nmap report)
                 </p>
               </div>
             </div>

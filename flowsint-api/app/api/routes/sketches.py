@@ -421,7 +421,7 @@ async def analyze_import_file(
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
 ):
-    """Analyze an uploaded TXT or JSON file for import."""
+    """Analyze an uploaded TXT, JSON or nmap XML file for import."""
     service = create_sketch_service(db)
     try:
         service.get_by_id(UUID(sketch_id), current_user.id)
@@ -430,10 +430,12 @@ async def analyze_import_file(
     except PermissionDeniedError:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if not file.filename or not file.filename.lower().endswith((".txt", ".json")):
+    if not file.filename or not file.filename.lower().endswith(
+        (".txt", ".json", ".xml")
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Only .txt and .json files are supported. Please upload a correct format.",
+            detail="Only .txt, .json and .xml files are supported. Please upload a correct format.",
         )
 
     try:

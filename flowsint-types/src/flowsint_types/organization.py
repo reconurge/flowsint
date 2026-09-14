@@ -29,6 +29,9 @@ class Organization(FlowsintType):
         return data
 
     siren: Optional[Any] = Field(None, description="SIREN number", title="SIREN Number")
+    cnpj: Optional[Any] = Field(
+        None, description="CNPJ number (Brazil)", title="CNPJ Number"
+    )
     nom_complet: Optional[Any] = Field(
         None, description="Complete name", title="Complete Name"
     )
@@ -393,7 +396,7 @@ class Organization(FlowsintType):
         return self
 
     @classmethod
-    def from_string(cls, line: str):
+    def from_string(cls, line: str) -> "Organization":
         """Parse an organization from a raw string."""
         return cls(name=line.strip())
 

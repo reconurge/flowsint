@@ -13,9 +13,11 @@ from sqlalchemy.orm import Session
 from ..llm import ChatMessage as LLMChatMessage
 from ..llm import LLMProvider, MessageRole, create_llm_provider
 from ..models import Chat, ChatMessage
+from ..orcarouter.service import resolve_provider_api_key
 from ..repositories import ChatRepository
 from .base import BaseService
 from .exceptions import NotFoundError
+from .vault_service import VaultService
 
 DEFAULT_SYSTEM_PROMPT = (
     "You are a CTI/OSINT investigator and you are trying to investigate on a "
@@ -31,7 +33,13 @@ class ChatService(BaseService):
     Service for chat CRUD operations and AI message streaming.
     """
 
-    def __init__(self, db: Session, chat_repo: ChatRepository, vault_service, **kwargs):
+    def __init__(
+        self,
+        db: Session,
+        chat_repo: ChatRepository,
+        vault_service: VaultService,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(db, **kwargs)
         self._chat_repo = chat_repo
         self._vault_service = vault_service
@@ -194,8 +202,9 @@ class ChatService(BaseService):
 
     def get_llm_provider(self, owner_id: UUID) -> LLMProvider:
         provider_name = os.environ.get("LLM_PROVIDER", "mistral")
-        vault_key = f"{provider_name.upper()}_API_KEY"
-        api_key = self._vault_service.get_secret(owner_id, vault_key)
+        api_key = resolve_provider_api_key(
+            self._db, self._vault_service, owner_id, provider_name
+        )
         return create_llm_provider(provider=provider_name, api_key=api_key)
 
     async def stream_response(
@@ -226,8 +235,6 @@ class ChatService(BaseService):
 
 
 def create_chat_service(db: Session) -> ChatService:
-    from .vault_service import VaultService
-
     return ChatService(
         db=db,
         chat_repo=ChatRepository(db),

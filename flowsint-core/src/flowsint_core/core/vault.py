@@ -19,6 +19,7 @@ load_dotenv()
 class VaultProtocol(Protocol):
     def get_secret(self, vault_ref: str) -> Optional[str]: ...
     def set_secret(self, vault_ref: str, plain_key: str) -> Key: ...
+    def delete_secret(self, vault_ref: str) -> int: ...
 
 
 class Vault(VaultProtocol):
@@ -58,7 +59,7 @@ class Vault(VaultProtocol):
         master_key = self._get_master_key()
         return hkdf.derive(master_key)
 
-    def _encrypt_key(self, plaintext: str):
+    def _encrypt_key(self, plaintext: str) -> dict:
         """
         Encrypts a secret with AES-256-GCM + HKDF.
         Returns iv, salt, ciphertext+tag, key version.
@@ -87,12 +88,24 @@ class Vault(VaultProtocol):
         Decrypts a secret stored in db.
         """
         master = self._get_master_key()
-        data_key = self._derive_user_data_key(master, row.get("salt"))
+        # These columns are non-nullable in the schema; narrow them explicitly so
+        # a malformed row fails loudly here rather than inside the cipher.
+        salt = row["salt"]
+        iv = row["iv"]
+        ciphertext = row["ciphertext"]
+        if (
+            not isinstance(salt, bytes)
+            or not isinstance(iv, bytes)
+            or not isinstance(ciphertext, bytes)
+        ):
+            raise ValueError("Stored key row has malformed ciphertext/iv/salt")
+
+        data_key = self._derive_user_data_key(master, salt)
 
         aesgcm = AESGCM(data_key)
         plaintext = aesgcm.decrypt(
-            row.get("iv"),
-            row.get("ciphertext"),
+            iv,
+            ciphertext,
             str(self.owner_id).encode("utf-8"),
         )
         return plaintext.decode("utf-8")
@@ -153,3 +166,24 @@ class Vault(VaultProtocol):
             return decrypted_key
         else:
             return None
+
+    def delete_secret(self, vault_ref: str) -> int:
+        """Delete every secret stored under a name, for this owner.
+
+        Returns the number of rows removed. ``set_secret`` appends rather than
+        upserts, and ``get_secret`` reads the first match — so replacing a value
+        means deleting the old row first, otherwise the stale row silently
+        shadows the new one.
+        """
+        stmt = (
+            select(Key)
+            .where(Key.name == vault_ref)
+            .where(Key.owner_id == self.owner_id)
+        )
+        rows = self.db.execute(stmt).scalars().all()
+
+        for row in rows:
+            self.db.delete(row)
+        if rows:
+            self.db.commit()
+        return len(rows)

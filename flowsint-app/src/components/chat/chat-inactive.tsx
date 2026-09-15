@@ -18,8 +18,8 @@ export default function ChatInactive({ onClose }: { onClose: any }) {
       </div>
       <h3 className="text-sm font-medium text-foreground mb-1">API key required</h3>
       <p className="text-sm text-muted-foreground text-center max-w-[260px] mb-5">
-        Add a <code className="text-xs bg-muted px-1.5! py-0.5! rounded">MISTRAL_API_KEY</code> in
-        your vault to start using the chat assistant
+        Add an <code className="text-xs bg-muted px-1.5! py-0.5! rounded">ORCAROUTER_API_KEY</code>{' '}
+        in your vault, or connect an OrcaRouter account, to start using the chat assistant
       </p>
       <Link to="/dashboard/vault">
         <Button size="sm" className="h-8 text-xs gap-1.5">

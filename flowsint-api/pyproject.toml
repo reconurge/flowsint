@@ -51,6 +51,18 @@ flowsint-core = { workspace = true }
 flowsint-types = { workspace = true }
 flowsint-enrichers = { workspace = true }
 
+# See the matching note in flowsint-core/pyproject.toml: this keeps a bare
+# `python3 -m pytest flowsint-api/tests/...` from the repository root working
+# without an environment variable. `tests/conftest.py` imports `app`, so the
+# package root is on the path too.
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "../flowsint-core/src",
+    "../flowsint-types/src",
+    "../flowsint-enrichers/src",
+]
+
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true

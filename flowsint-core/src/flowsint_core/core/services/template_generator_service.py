@@ -15,7 +15,8 @@ from sqlalchemy.orm import Session
 
 from flowsint_core.templates.types import Template
 
-from ..llm import ChatMessage, MessageRole, create_llm_provider
+from ..llm import ChatMessage, LLMProvider, MessageRole, create_llm_provider
+from ..orcarouter.service import resolve_provider_api_key
 from .base import BaseService
 from .exceptions import ValidationError
 from .vault_service import VaultService
@@ -159,10 +160,11 @@ class TemplateGeneratorService(BaseService):
         super().__init__(db=db)
         self._vault_service = vault_service
 
-    def _get_llm_provider(self, owner_id: UUID):
+    def _get_llm_provider(self, owner_id: UUID) -> LLMProvider:
         provider_name = os.environ.get("LLM_PROVIDER", "mistral")
-        vault_key = f"{provider_name.upper()}_API_KEY"
-        api_key = self._vault_service.get_secret(owner_id, vault_key)
+        api_key = resolve_provider_api_key(
+            self._db, self._vault_service, owner_id, provider_name
+        )
         return create_llm_provider(provider=provider_name, api_key=api_key)
 
     def _build_type_context(

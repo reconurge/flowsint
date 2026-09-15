@@ -5,6 +5,7 @@ import os
 
 # Env required at import time by flowsint-core modules. Set before importing app.
 os.environ.setdefault("AUTH_SECRET", "test-secret-please-ignore")
+os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
 os.environ.setdefault(
     "MASTER_VAULT_KEY_V1", "base64:qnHTmwYb+uoygIw9MsRMY22vS5YPchY+QOi/E79GAvM="
 )

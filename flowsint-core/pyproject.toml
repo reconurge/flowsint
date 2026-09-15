@@ -50,6 +50,14 @@ packages = ["src/flowsint_core"]
 [tool.uv.sources]
 flowsint-enrichers = { workspace = true }
 
+# `uv run pytest` from inside this directory already resolves the workspace
+# packages, but a bare `python3 -m pytest flowsint-core/tests/...` from the
+# repository root — the way CI-adjacent tooling and reviewers tend to invoke a
+# single package's tests — does not put the sources on sys.path. Declaring them
+# here keeps that invocation working without an environment variable.
+[tool.pytest.ini_options]
+pythonpath = ["src", "../flowsint-types/src", "../flowsint-enrichers/src"]
+
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true

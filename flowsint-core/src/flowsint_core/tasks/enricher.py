@@ -30,6 +30,7 @@ def run_enricher(
     serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
+    params: Optional[dict] = None,
 ):
     session = SessionLocal()
 
@@ -62,6 +63,7 @@ def run_enricher(
             sketch_id=sketch_id,
             scan_id=scan_id,
             vault=vault,
+            params=params or {},
         )
 
         # Deserialize objects back into Pydantic models
@@ -99,6 +101,7 @@ def run_template_enricher(
     serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: str,
+    params: Optional[dict] = None,
 ):
     """Run an enricher defined by a YAML template stored in the database."""
     session = SessionLocal()
@@ -136,6 +139,7 @@ def run_template_enricher(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             vault=vault,
+            params=params or {},
         )
 
         results = asyncio.run(enricher.execute(values=serialized_objects))

@@ -18,6 +18,11 @@ import { useLinkCreation } from '../hooks/use-link-creation'
 import { useQuickAdd } from '../hooks/use-quick-add'
 import { QuickAddOverlay } from './quick-add-overlay'
 import { usePermissions } from '@/hooks/use-can'
+import { useLaunchEnricher } from '@/hooks/use-launch-enricher'
+import {
+  EnricherParamsSheet,
+  type PendingEnricherLaunch
+} from '@/components/sketches/enricher-params-sheet'
 
 type BaseContextMenuProps = {
   rawTop: number
@@ -63,6 +68,10 @@ const GraphMain = () => {
   const [nodeMenu, setNodeMenu] = React.useState<NodeContextMenuProps | null>(null)
   const [edgeMenu, setEdgeMenu] = React.useState<EdgeContextMenuProps | null>(null)
   const [background, setBackgroundMenu] = React.useState<BackgroundContextMenuProps | null>(null)
+  // Owned here rather than in the menus: a menu dismisses itself on any outside
+  // mousedown, which would tear down a Sheet it rendered as soon as it is used.
+  const [pendingLaunch, setPendingLaunch] = React.useState<PendingEnricherLaunch | null>(null)
+  const { launchEnricher } = useLaunchEnricher(false)
 
   const {
     linkCreation,
@@ -279,6 +288,15 @@ const GraphMain = () => {
     graphRef.current = ref
   }, [])
 
+  const handleSubmitParams = useCallback(
+    (params: Record<string, string>) => {
+      if (!pendingLaunch) return
+      launchEnricher(pendingLaunch.nodeIds, pendingLaunch.enricherName, sketchId, params)
+      setPendingLaunch(null)
+    },
+    [pendingLaunch, launchEnricher, sketchId]
+  )
+
   return (
     <div ref={containerRef} className="relative h-full w-full bg-background">
       <GraphViewer
@@ -308,11 +326,18 @@ const GraphMain = () => {
         onCancel={closeQuickAdd}
       />
       <PathPanel />
-      {nodeMenu && selectedNodes.length === 0 && <NodeContextMenu {...nodeMenu} />}
+      {nodeMenu && selectedNodes.length === 0 && (
+        <NodeContextMenu {...nodeMenu} onRequestParams={setPendingLaunch} />
+      )}
       {edgeMenu && <EdgeContextMenu {...edgeMenu} />}
       {(background || (nodeMenu && selectedNodes.length > 0)) && (
-        <BackgroundContextMenu {...background} />
+        <BackgroundContextMenu {...background} onRequestParams={setPendingLaunch} />
       )}
+      <EnricherParamsSheet
+        pending={pendingLaunch}
+        onOpenChange={(open) => !open && setPendingLaunch(null)}
+        onSubmit={handleSubmitParams}
+      />
     </div>
   )
 }

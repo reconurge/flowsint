@@ -24,6 +24,10 @@ import { capitalizeFirstLetter } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Search, FileCode2, Zap, PlusIcon, GitBranch, FileX, Sparkles } from 'lucide-react'
 import { Enricher, Flow } from '@/types'
+import {
+  EnricherParamsSheet,
+  type PendingEnricherLaunch
+} from '@/components/sketches/enricher-params-sheet'
 
 const LaunchEnricherOrFlowPanel = memo(
   ({
@@ -45,6 +49,7 @@ const LaunchEnricherOrFlowPanel = memo(
     const [activeTab, setActiveTab] = useState('enrichers')
     const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
     const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
+    const [pendingLaunch, setPendingLaunch] = useState<PendingEnricherLaunch | null>(null)
 
     const { data: enrichers, isLoading: isLoadingEnrichers } = useQuery({
       queryKey: ['enrichers', type],
@@ -86,8 +91,18 @@ const LaunchEnricherOrFlowPanel = memo(
       if (selectedEnricher) {
         // Check if it's an Enricher or Flow based on the active tab
         if (activeTab === 'enrichers') {
-          // For enrichers, use name
-          launchEnricher(values, (selectedEnricher as Enricher).name, sketch_id)
+          const enricher = selectedEnricher as Enricher
+          if (enricher.params_schema?.length) {
+            // Hand over to the params sheet; it launches on submit.
+            setPendingLaunch({
+              enricherName: enricher.name,
+              paramsSchema: enricher.params_schema,
+              nodeIds: values
+            })
+          } else {
+            // For enrichers, use name
+            launchEnricher(values, enricher.name, sketch_id)
+          }
         } else {
           // For flows, use id
           launchFlow(values, (selectedEnricher as Flow).id, sketch_id)
@@ -103,6 +118,15 @@ const LaunchEnricherOrFlowPanel = memo(
       sketch_id,
       handleCloseModal
     ])
+
+    const handleSubmitParams = useCallback(
+      (params: Record<string, string>) => {
+        if (!pendingLaunch) return
+        launchEnricher(pendingLaunch.nodeIds, pendingLaunch.enricherName, sketch_id, params)
+        setPendingLaunch(null)
+      },
+      [pendingLaunch, launchEnricher, sketch_id]
+    )
 
     if (disabled) return <>{children}</>
     return (
@@ -395,6 +419,11 @@ const LaunchEnricherOrFlowPanel = memo(
             </SheetFooter>
           </SheetContent>
         </Sheet>
+        <EnricherParamsSheet
+          pending={pendingLaunch}
+          onOpenChange={(open) => !open && setPendingLaunch(null)}
+          onSubmit={handleSubmitParams}
+        />
       </div>
     )
   }

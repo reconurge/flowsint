@@ -79,7 +79,11 @@ class EnricherService(BaseService):
         self, category: Optional[str], user_id: UUID, enricher_registry: Any
     ) -> list:
         base_enrichers = self.get_enrichers(category, user_id, enricher_registry)
-        template_enrichers = self._enricher_template_repo.get_by_owner(
+        # Owner-or-public, matching what the launch path resolves a template
+        # name against. Listing only owned templates left another user's public
+        # template launchable but invisible, so its params_schema never reached
+        # the UI and the launch failed on a missing required param.
+        template_enrichers = self._enricher_template_repo.get_by_owner_or_public(
             user_id, category
         )
         for template in template_enrichers:

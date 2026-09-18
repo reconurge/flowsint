@@ -213,7 +213,7 @@ export default function ContextMenu({
                 <div className="p-1">
                   {filteredEnrichers.map((enricher: Enricher) => (
                     <button
-                      key={enricher.id}
+                      key={enricher.name}
                       className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
                       onClick={(e) => handleEnricherClick(e, enricher)}
                     >

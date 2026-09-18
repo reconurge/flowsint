@@ -31,7 +31,6 @@ export interface Enricher {
   required_params: boolean
   params: Record<string, string>
   params_schema: EnricherParamSchemaItem[]
-  settings?: Record<string, string>
   icon: string | null
   wobblyType?: boolean
 }

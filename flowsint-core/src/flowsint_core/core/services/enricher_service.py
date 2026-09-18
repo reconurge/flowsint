@@ -17,7 +17,7 @@ from ..repositories import (
     SketchRepository,
 )
 from .base import BaseService
-from .exceptions import NotFoundError
+from .sketch_access import resolve_sketch_for_launch
 
 
 def template_params_schema(content: Any) -> List[Dict[str, Any]]:
@@ -61,22 +61,11 @@ class EnricherService(BaseService):
 
     def get_sketch_for_launch(self, sketch_id: str, user_id: UUID) -> Sketch:
         """Resolve the target sketch, denying anyone without update rights on
-        its investigation. Mirrors FlowService.get_sketch_for_launch: launching
-        an enricher writes nodes into the sketch, so it is an update."""
-        try:
-            # The payload carries sketch_id as a free string. SketchRepository
-            # binds it as a UUID, so parse here: a value that is not a UUID
-            # names no sketch and has to be denied, not surfaced as a 500.
-            parsed_id = UUID(sketch_id)
-        except ValueError:
-            raise NotFoundError("Sketch not found")
-
-        sketch = self._sketch_repo.get_by_id(parsed_id)
-        if not sketch:
-            raise NotFoundError("Sketch not found")
-
-        self._check_permission(user_id, sketch.investigation_id, ["update"])
-        return sketch
+        its investigation. Launching an enricher writes nodes into the
+        sketch, so it is an update."""
+        return resolve_sketch_for_launch(
+            self._sketch_repo, self._check_permission, sketch_id, user_id
+        )
 
     # enricher_registry is flowsint_enrichers' EnricherRegistry. That package
     # ships no py.typed marker, so naming the class would resolve to Any

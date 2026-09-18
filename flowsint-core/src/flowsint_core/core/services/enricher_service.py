@@ -42,17 +42,26 @@ class EnricherService(BaseService):
         db: Session,
         custom_type_repo: CustomTypeRepository,
         enricher_template_repo: EnricherTemplateRepository,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(db, **kwargs)
         self._custom_type_repo = custom_type_repo
         self._enricher_template_repo = enricher_template_repo
 
+    # enricher_registry is flowsint_enrichers' EnricherRegistry. That package
+    # ships no py.typed marker, so naming the class would resolve to Any
+    # anyway; saying Any avoids the cross-package import for no loss.
     def get_enrichers(
-        self, category: Optional[str], user_id: UUID, enricher_registry
+        self,
+        category: Optional[str],
+        user_id: UUID,
+        enricher_registry: Any,
     ) -> List[Dict[str, Any]]:
         if not category or category.lower() == "undefined":
-            return enricher_registry.list(exclude=["n8n_connector"])
+            all_enrichers: List[Dict[str, Any]] = enricher_registry.list(
+                exclude=["n8n_connector"]
+            )
+            return all_enrichers
 
         custom_type = self._custom_type_repo.get_published_by_name_and_owner(
             category, user_id
@@ -62,10 +71,13 @@ class EnricherService(BaseService):
             return []
             return enricher_registry.list(exclude=["n8n_connector"], wobbly_type=True)
 
-        return enricher_registry.list_by_input_type(category, exclude=["n8n_connector"])
+        by_input_type: List[Dict[str, Any]] = enricher_registry.list_by_input_type(
+            category, exclude=["n8n_connector"]
+        )
+        return by_input_type
 
     def get_all_enrichers(
-        self, category: Optional[str], user_id: UUID, enricher_registry
+        self, category: Optional[str], user_id: UUID, enricher_registry: Any
     ) -> list:
         base_enrichers = self.get_enrichers(category, user_id, enricher_registry)
         template_enrichers = self._enricher_template_repo.get_by_owner(

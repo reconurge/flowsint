@@ -34,17 +34,22 @@ class launchEnricherPayload(BaseModel):
 router = APIRouter()
 
 
-@router.get("")
+# response_model=None is load-bearing: this endpoint mixes registry dicts with
+# EnricherTemplate ORM rows, and a return annotation alone would make FastAPI
+# adopt it as a response model, which pydantic cannot serialize the rows
+# through. The annotation exists for mypy, not for the wire format.
+@router.get("", response_model=None)
 def get_enrichers(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> list:
     """Get all enrichers, optionally filtered by category."""
     enricher_service = create_enricher_service(db)
-    return enricher_service.get_all_enrichers(
+    enrichers: list = enricher_service.get_all_enrichers(
         category, current_user.id, ENRICHER_REGISTRY
     )
+    return enrichers
 
 
 @router.post("/{enricher_name}/launch")
@@ -53,7 +58,7 @@ async def launch_enricher(
     payload: launchEnricherPayload,
     current_user: Profile = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
+) -> Dict[str, str]:
     try:
         # Retrieve nodes from Neo4J by their element IDs
         type_registry = create_type_registry_service(db)

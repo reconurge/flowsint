@@ -14,6 +14,7 @@ import {
   Zap,
   BadgeCheck,
   BadgeAlert,
+  Settings,
   Plus,
   Download,
   FileJson,
@@ -285,6 +286,11 @@ export default function BackgroundContextMenu({
                               )}{' '}
                             </span>{' '}
                             {enricher.name || '(Unnamed enricher)'}
+                            {enricher.params_schema?.length ? (
+                              <span title="Requires configuration">
+                                <Settings className="h-3 w-3 text-muted-foreground shrink-0" />
+                              </span>
+                            ) : null}
                           </p>
                           {enricher.description && (
                             <p className="text-xs text-muted-foreground truncate">

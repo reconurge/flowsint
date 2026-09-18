@@ -22,7 +22,16 @@ import { flowService } from '@/api/flow-service'
 import { Link, useParams } from '@tanstack/react-router'
 import { capitalizeFirstLetter } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, FileCode2, Zap, PlusIcon, GitBranch, FileX, Sparkles } from 'lucide-react'
+import {
+  Search,
+  FileCode2,
+  Zap,
+  PlusIcon,
+  GitBranch,
+  FileX,
+  Sparkles,
+  Settings
+} from 'lucide-react'
 import { Enricher, Flow } from '@/types'
 import {
   EnricherParamsSheet,
@@ -232,7 +241,14 @@ const LaunchEnricherOrFlowPanel = memo(
                             <div className="flex flex-col space-y-4">
                               <div className="flex items-center gap-3">
                                 <RadioGroupItem value={enricher.name} id={enricher.name} />
-                                <CardTitle className="text-base">{enricher.name}</CardTitle>
+                                <CardTitle className="text-base flex items-center gap-1.5">
+                                  {enricher.name}
+                                  {enricher.params_schema?.length ? (
+                                    <span title="Requires configuration">
+                                      <Settings className="h-3 w-3 text-muted-foreground shrink-0" />
+                                    </span>
+                                  ) : null}
+                                </CardTitle>
                               </div>
 
                               {enricher.description && (

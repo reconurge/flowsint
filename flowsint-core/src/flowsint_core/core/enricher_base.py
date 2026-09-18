@@ -339,9 +339,6 @@ class Enricher(ABC):
     async def scan(self, values: List[str]) -> List[Dict[str, Any]]:
         pass
 
-    def set_params(self, params: Dict[str, Any]) -> None:
-        self.params = params
-
     def get_params(self) -> Dict[str, Any]:
         return self.params
 

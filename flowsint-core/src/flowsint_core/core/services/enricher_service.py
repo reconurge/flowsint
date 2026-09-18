@@ -69,7 +69,6 @@ class EnricherService(BaseService):
 
         if custom_type:
             return []
-            return enricher_registry.list(exclude=["n8n_connector"], wobbly_type=True)
 
         by_input_type: List[Dict[str, Any]] = enricher_registry.list_by_input_type(
             category, exclude=["n8n_connector"]

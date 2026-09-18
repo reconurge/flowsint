@@ -12,8 +12,9 @@ export interface EnricherParamSchemaItem {
   name: string
   type: string
   description: string
-  default: string
+  default?: string
   required: boolean
+  options?: { label: string; value: string }[]
 }
 
 export interface Enricher {

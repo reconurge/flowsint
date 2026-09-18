@@ -10,6 +10,8 @@ from flowsint_core.core.graph import create_graph_service
 from flowsint_core.core.models import Profile
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
+    NotFoundError,
+    PermissionDeniedError,
     create_enricher_service,
     create_enricher_template_service,
 )
@@ -59,7 +61,12 @@ async def launch_enricher(
     current_user: Profile = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Dict[str, str]:
+    enricher_service = create_enricher_service(db)
     try:
+        # Before anything reads the graph: an enricher writes its findings into
+        # this sketch, so the caller needs update rights on its investigation.
+        enricher_service.get_sketch_for_launch(payload.sketch_id, current_user.id)
+
         # Retrieve nodes from Neo4J by their element IDs
         type_registry = create_type_registry_service(db)
         resolver = type_registry.build_type_resolver(current_user.id)
@@ -109,6 +116,10 @@ async def launch_enricher(
 
     except HTTPException:
         raise
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
     except Exception as e:
         print(e)
         raise HTTPException(

@@ -7,7 +7,14 @@ import pytest
 
 from app.api.routes import enrichers as enrichers_route
 from flowsint_core.core.auth import create_access_token
-from flowsint_core.core.models import EnricherTemplate, Profile
+from flowsint_core.core.models import (
+    EnricherTemplate,
+    Investigation,
+    InvestigationUserRole,
+    Profile,
+    Sketch,
+)
+from flowsint_core.core.types import Role
 
 
 def _seed_template_owner(db_session, secrets):
@@ -97,26 +104,43 @@ def sent_task(monkeypatch):
     return captured
 
 
-def _launch(client, db_session, body):
-    user = Profile(id=uuid.uuid4(), email="launcher@example.com", hashed_password="x")
-    db_session.add(user)
+def _seed_user(db_session, roles):
+    """A user, their own investigation and sketch, and the role row that decides
+    what they may do there. `roles=()` seeds no role row at all, which is how a
+    stranger stands towards someone else's investigation."""
+    user = Profile(
+        id=uuid.uuid4(), email=f"{uuid.uuid4()}@example.com", hashed_password="x"
+    )
+    investigation = Investigation(id=uuid.uuid4(), name="Case", owner_id=user.id)
+    sketch = Sketch(
+        id=uuid.uuid4(),
+        title="Board",
+        owner_id=user.id,
+        investigation_id=investigation.id,
+    )
+    db_session.add_all([user, investigation, sketch])
+    if roles:
+        db_session.add(
+            InvestigationUserRole(
+                user_id=user.id, investigation_id=investigation.id, roles=list(roles)
+            )
+        )
     db_session.commit()
     headers = {"Authorization": f"Bearer {create_access_token({'sub': user.email})}"}
-    return client.post(
-        "/api/enrichers/some_enricher/launch", json=body, headers=headers
-    )
+    return headers, str(sketch.id)
+
+
+def _launch(client, db_session, params=None, roles=(Role.OWNER,), sketch_id=None):
+    headers, own_sketch_id = _seed_user(db_session, roles)
+    body = {"node_ids": ["4:abc:1"], "sketch_id": sketch_id or own_sketch_id}
+    if params is not None:
+        body["params"] = params
+    res = client.post("/api/enrichers/some_enricher/launch", json=body, headers=headers)
+    return res, body["sketch_id"]
 
 
 def test_launch_forwards_params_as_task_kwargs(client, db_session, sent_task):
-    res = _launch(
-        client,
-        db_session,
-        {
-            "node_ids": ["4:abc:1"],
-            "sketch_id": str(uuid.uuid4()),
-            "params": {"api_key": "abc123"},
-        },
-    )
+    res, _ = _launch(client, db_session, params={"api_key": "abc123"})
 
     assert res.status_code == 200
     assert res.json() == {"id": "task-123"}
@@ -125,27 +149,66 @@ def test_launch_forwards_params_as_task_kwargs(client, db_session, sent_task):
 
 
 def test_launch_without_params_sends_an_empty_dict(client, db_session, sent_task):
-    res = _launch(
-        client,
-        db_session,
-        {"node_ids": ["4:abc:1"], "sketch_id": str(uuid.uuid4())},
-    )
+    res, _ = _launch(client, db_session)
 
     assert res.status_code == 200
     assert sent_task["kwargs"] == {"params": {}}
 
 
 def test_launch_keeps_the_positional_args_unchanged(client, db_session, sent_task):
-    sketch_id = str(uuid.uuid4())
-
-    _launch(
-        client,
-        db_session,
-        {"node_ids": ["4:abc:1"], "sketch_id": sketch_id, "params": {"k": "v"}},
-    )
+    _, sketch_id = _launch(client, db_session, params={"k": "v"})
 
     enricher_name, entities, sent_sketch_id, owner_id = sent_task["args"]
     assert enricher_name == "some_enricher"
     assert entities == [{"address": "8.8.8.8"}]
     assert sent_sketch_id == sketch_id
     assert uuid.UUID(owner_id)
+
+
+def test_launch_succeeds_for_an_editor(client, db_session, sent_task):
+    res, _ = _launch(client, db_session, roles=(Role.EDITOR,))
+
+    assert res.status_code == 200
+
+
+def test_launch_is_forbidden_without_a_role_on_the_investigation(
+    client, db_session, sent_task
+):
+    res, _ = _launch(client, db_session, roles=())
+
+    assert res.status_code == 403
+    assert res.json()["detail"] == "Forbidden"
+    assert sent_task == {}
+
+
+def test_launch_is_forbidden_for_a_viewer(client, db_session, sent_task):
+    res, _ = _launch(client, db_session, roles=(Role.VIEWER,))
+
+    assert res.status_code == 403
+    assert sent_task == {}
+
+
+def test_launch_is_forbidden_against_another_users_sketch(
+    client, db_session, sent_task
+):
+    _, victim_sketch_id = _seed_user(db_session, (Role.OWNER,))
+
+    res, _ = _launch(client, db_session, sketch_id=victim_sketch_id)
+
+    assert res.status_code == 403
+    assert sent_task == {}
+
+
+def test_launch_is_rejected_for_an_unknown_sketch(client, db_session, sent_task):
+    res, _ = _launch(client, db_session, sketch_id=str(uuid.uuid4()))
+
+    assert res.status_code == 404
+    assert res.json()["detail"] == "Sketch not found"
+    assert sent_task == {}
+
+
+def test_launch_is_rejected_for_a_malformed_sketch_id(client, db_session, sent_task):
+    res, _ = _launch(client, db_session, sketch_id="not-a-uuid")
+
+    assert res.status_code == 404
+    assert sent_task == {}

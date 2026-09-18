@@ -5,9 +5,21 @@ from unittest.mock import MagicMock
 from flowsint_core.core.repositories import (
     CustomTypeRepository,
     EnricherTemplateRepository,
+    InvestigationRepository,
+    SketchRepository,
 )
 from flowsint_core.core.services.enricher_service import EnricherService
 from tests.factories import EnricherTemplateFactory, ProfileFactory
+
+
+def _service(db_session):
+    return EnricherService(
+        db=db_session,
+        custom_type_repo=CustomTypeRepository(db_session),
+        enricher_template_repo=EnricherTemplateRepository(db_session),
+        sketch_repo=SketchRepository(db_session),
+        investigation_repo=InvestigationRepository(db_session),
+    )
 
 
 def _content(secrets):
@@ -28,17 +40,10 @@ class TestGetAllEnrichers:
         ProfileFactory._meta.sqlalchemy_session = db_session
         EnricherTemplateFactory._meta.sqlalchemy_session = db_session
 
-    def _make_service(self, db_session):
-        return EnricherService(
-            db=db_session,
-            custom_type_repo=CustomTypeRepository(db_session),
-            enricher_template_repo=EnricherTemplateRepository(db_session),
-        )
-
     def _list(self, db_session, user):
         registry = MagicMock()
         registry.list.return_value = []
-        return self._make_service(db_session).get_all_enrichers(None, user.id, registry)
+        return _service(db_session).get_all_enrichers(None, user.id, registry)
 
     def test_template_secrets_become_params_schema(self, db_session):
         self._setup(db_session)
@@ -134,12 +139,7 @@ class TestTemplateVisibility:
         registry = MagicMock()
         registry.list.return_value = []
         registry.list_by_input_type.return_value = []
-        service = EnricherService(
-            db=db_session,
-            custom_type_repo=CustomTypeRepository(db_session),
-            enricher_template_repo=EnricherTemplateRepository(db_session),
-        )
-        return service.get_all_enrichers(category, user.id, registry)
+        return _service(db_session).get_all_enrichers(category, user.id, registry)
 
     def test_another_owners_public_template_is_listed(self, db_session):
         self._setup(db_session)

@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Any, Dict, Iterable, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -77,6 +77,26 @@ class TemplateSecret(BaseModel):
     description: Optional[str] = Field(
         default=None, description="Description of what this secret is used for"
     )
+
+
+def params_schema_from_secrets(
+    secrets: Iterable[TemplateSecret],
+) -> List[Dict[str, Any]]:
+    """Map a template's vault secrets to the enricher params_schema shape.
+
+    Single definition on purpose: the running TemplateEnricher validates
+    launch params against this, and the enricher listing advertises it to the
+    UI. If the two drifted, the UI would collect params the enricher rejects.
+    """
+    return [
+        {
+            "name": secret.name,
+            "type": "vaultSecret",
+            "required": secret.required,
+            "description": secret.description,
+        }
+        for secret in secrets
+    ]
 
 
 class TemplateHttpRequest(BaseModel):

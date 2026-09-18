@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -24,6 +24,11 @@ load_all_enrichers()
 class launchEnricherPayload(BaseModel):
     node_ids: List[str]
     sketch_id: str
+    # Left loose on purpose: the enricher's own ParamsModel (built from its
+    # params_schema) is what actually validates these, and it differs per
+    # enricher, so constraining the shape here would only reject values the
+    # enricher would have accepted.
+    params: Optional[Dict[str, Any]] = None
 
 
 router = APIRouter()
@@ -88,6 +93,12 @@ async def launch_enricher(
                 payload.sketch_id,
                 str(current_user.id),
             ],
+            # Keyword rather than a 5th positional arg so the positional
+            # signature stays byte-identical to what older API instances queue:
+            # a message already in flight still binds cleanly against the new
+            # task. (Workers still have to roll out before the API either way —
+            # a worker predating `params` rejects the keyword.)
+            kwargs={"params": payload.params or {}},
         )
         return {"id": task.id}
 

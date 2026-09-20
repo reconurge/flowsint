@@ -205,11 +205,18 @@ class DomainToIndexedPagesEnricher(Enricher):
         if not self._graph_service:
             return results
 
+        # Every row carries the same Domain, so create it once per domain
+        # instead of once per indexed page.
+        created_domains: set[str] = set()
+
         for website in results:
             if website.domain is None:
                 continue
 
-            self.create_node(website.domain)
+            if website.domain.domain not in created_domains:
+                self.create_node(website.domain)
+                created_domains.add(website.domain.domain)
+
             self.create_node(website)
 
             # Same edge domain_to_website uses, so an indexed page lands in the

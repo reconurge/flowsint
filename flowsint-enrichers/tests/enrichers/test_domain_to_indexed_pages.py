@@ -192,3 +192,26 @@ def test_postprocess_relates_each_page_back_to_the_domain():
     assert enricher.postprocess([page]) == [page]
     assert graph.nodes == [domain, page]
     assert graph.relationships == [(domain, page, "HAS_WEBSITE")]
+
+
+def test_postprocess_creates_each_domain_node_once():
+    graph = _FakeGraphService()
+    enricher = DomainToIndexedPagesEnricher(
+        sketch_id="s", scan_id="t", graph_service=graph
+    )
+    domain = Domain(domain="flowsint.io")
+    other = Domain(domain="example.com")
+    pages = [
+        Website(url="https://www.flowsint.io/docs/overview", domain=domain),
+        Website(url="https://www.flowsint.io/docs/enrichers", domain=domain),
+        Website(url="https://example.com/about", domain=other),
+    ]
+
+    assert enricher.postprocess(pages) == pages
+    # One node per distinct domain, still one node per page.
+    assert graph.nodes == [domain, pages[0], pages[1], other, pages[2]]
+    assert graph.relationships == [
+        (domain, pages[0], "HAS_WEBSITE"),
+        (domain, pages[1], "HAS_WEBSITE"),
+        (other, pages[2], "HAS_WEBSITE"),
+    ]

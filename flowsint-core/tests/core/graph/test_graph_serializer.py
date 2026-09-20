@@ -8,7 +8,7 @@ from flowsint_core.core.graph import (
     GraphSerializer,
     NodeMetadata,
 )
-from flowsint_types import Domain, Ip
+from flowsint_types import Domain, Ip, Website
 
 
 def test_serializer():
@@ -110,6 +110,47 @@ def test_serialize_from_flowsint_type():
     # Timestamp is generated internally, just verify it exists and is ISO format
     assert "nodeMetadata.created_at" in neo4j_dict
     assert "T" in neo4j_dict["nodeMetadata.created_at"]
+
+
+class TestNodePropertiesExcludeUnset:
+    def test_thin_website_only_sends_fields_it_set(self):
+        website = Website(url="https://example.com/")
+        node = GraphNode(
+            id="id",
+            nodeLabel="https://example.com/",
+            nodeType="website",
+            nodeProperties=website,
+            nodeMetadata=NodeMetadata(),
+        )
+        neo4j_dict = GraphSerializer.graph_node_to_neo4j_dict(node)
+
+        assert neo4j_dict["nodeProperties.url"] == "https://example.com/"
+        for unset_field in (
+            "active",
+            "status_code",
+            "headers",
+            "title",
+            "description",
+            "content",
+            "technologies",
+            "redirects",
+            "domain",
+        ):
+            assert f"nodeProperties.{unset_field}" not in neo4j_dict
+
+    def test_richer_website_keeps_explicitly_set_fields(self):
+        website = Website(url="https://example.com/", active=False, status_code=404)
+        node = GraphNode(
+            id="id",
+            nodeLabel="https://example.com/",
+            nodeType="website",
+            nodeProperties=website,
+            nodeMetadata=NodeMetadata(),
+        )
+        neo4j_dict = GraphSerializer.graph_node_to_neo4j_dict(node)
+
+        assert neo4j_dict["nodeProperties.active"] is False
+        assert neo4j_dict["nodeProperties.status_code"] == 404
 
 
 class TestCleanEmptyValues:

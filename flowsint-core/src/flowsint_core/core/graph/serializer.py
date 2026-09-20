@@ -7,7 +7,7 @@ into Neo4j-compatible primitive types, following the Single Responsibility Princ
 
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from flowsint_core.utils import flatten, unflatten
 from flowsint_types import FlowsintType
@@ -160,8 +160,20 @@ class GraphSerializer:
 
         Serializes the model to JSON-compatible types and flattens nested
         structures into dot-notation keys for Neo4j property storage.
+
+        nodeProperties uses exclude_unset: repository._build_node_query does
+        `SET n += $props`, so a full dump of a partial FlowsintType would
+        null out fields a prior enricher already set on the same node.
         """
-        neo4j_dict = node.model_dump(mode="json", serialize_as_any=True)
+        neo4j_dict = node.model_dump(
+            mode="json", serialize_as_any=True, exclude={"nodeProperties"}
+        )
+        node_properties = node.nodeProperties
+        neo4j_dict["nodeProperties"] = (
+            node_properties.model_dump(mode="json", exclude_unset=True)
+            if isinstance(node_properties, BaseModel)
+            else node_properties
+        )
         neo4j_dict_flatten = flatten(neo4j_dict, remove_empty=False)
         neo4j_dict_flatten.pop(
             "nodeProperties.nodeLabel", None

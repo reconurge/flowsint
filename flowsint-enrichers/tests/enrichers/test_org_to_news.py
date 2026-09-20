@@ -38,6 +38,10 @@ def test_api_key_is_declared_as_a_required_vault_secret():
     ]
 
 
+def test_enricher_declares_that_it_requires_params():
+    assert OrgToNewsEnricher.required_params() is True
+
+
 # ---------------------------------------------------------------------------
 # scan() - HTTP layer mocked, no API key and no network needed
 # ---------------------------------------------------------------------------

@@ -99,8 +99,8 @@ export const sketchService = {
       method: 'GET'
     })
   },
-  types: async (): Promise<ActionItem[]> => {
-    return fetchWithAuth(`/api/types`, {
+  types: async (flat = false): Promise<ActionItem[]> => {
+    return fetchWithAuth(`/api/types${flat ? '?flat=true' : ''}`, {
       method: 'GET'
     })
   },

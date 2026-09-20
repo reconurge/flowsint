@@ -1,12 +1,13 @@
-import { useState, useCallback } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Download } from 'lucide-react'
+import { Download, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, flattenObj } from '@/lib/utils'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { type ActionItem, type FormField, findActionItemByKey } from '@/lib/action-items'
 import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { AnimatePresence, motion } from 'framer-motion'
 import { DynamicForm } from '@/components/sketches/dynamic-form'
 import { Badge } from '@/components/ui/badge'
@@ -40,10 +41,18 @@ export default function AddItemDialog() {
   const getViewportCenter = useGraphControls((s) => s.getViewportCenter)
 
   const { id: sketch_id } = useParams({ strict: false })
-  const { actionItems, isLoading } = useActionItems()
+  const { actionItems, isLoading } = useActionItems(true)
 
-  const [currentParent, setCurrentParent] = useState<ActionItem | null>(null)
-  const [navigationHistory, setNavigationHistory] = useState<ActionItem[]>([])
+  const [search, setSearch] = useState('')
+
+  const filteredItems = useMemo(() => {
+    if (!actionItems) return actionItems
+    const query = search.trim().toLowerCase()
+    if (!query) return actionItems
+    return actionItems.filter(
+      (item) => item.label.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)
+    )
+  }, [actionItems, search])
 
   const generateTempId = () => {
     // Generate a temporary ID in the format: temp:uuid:0
@@ -56,6 +65,7 @@ export default function AddItemDialog() {
       setOpenMainDialog(open)
       if (!open) {
         setRelatedNodeToAdd(null)
+        setSearch('')
       }
     },
     [setOpenMainDialog, setRelatedNodeToAdd]
@@ -173,26 +183,16 @@ export default function AddItemDialog() {
     // }
   }
 
-  const navigateToSubItems = (item: ActionItem) => {
-    setNavigationHistory([...navigationHistory, item])
-    setCurrentParent(item)
-  }
-
-  const navigateBack = () => {
-    const newHistory = [...navigationHistory]
-    newHistory.pop()
-    setNavigationHistory(newHistory)
-    setCurrentParent(newHistory.length > 0 ? newHistory[newHistory.length - 1] : null)
-  }
-
   const renderActionCards = () => {
-    const items = currentParent ? currentParent.children || [] : actionItems
+    const items = filteredItems
 
     if (!items || items.length === 0) {
       return (
         <div className="flex items-center justify-center h-32">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">No action items available</p>
+            <p className="text-sm text-muted-foreground">
+              {search ? `No types match "${search}"` : 'No action items available'}
+            </p>
           </div>
         </div>
       )
@@ -201,7 +201,7 @@ export default function AddItemDialog() {
     return (
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentParent?.id || 'root'}
+          key={search}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
@@ -212,11 +212,7 @@ export default function AddItemDialog() {
             <ActionCard
               key={item.id}
               item={item}
-              onSelect={
-                item.children
-                  ? () => navigateToSubItems(item)
-                  : () => handleOpenFormModal(findActionItemByKey(item.key, actionItems))
-              }
+              onSelect={() => handleOpenFormModal(findActionItemByKey(item.key, actionItems))}
             />
           ))}
         </motion.div>
@@ -230,16 +226,7 @@ export default function AddItemDialog() {
         <DialogContent className="sm:max-w-[800px] h-[80vh] overflow-hidden flex flex-col">
           <DialogTitle className="flex items justify-between">
             <div className="flex items-center">
-              {currentParent && (
-                <Button variant="ghost" size="icon" className="mr-2" onClick={navigateBack}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              )}
-              {relatedNodeToAdd
-                ? `Add a relation to `
-                : currentParent
-                  ? currentParent.label
-                  : 'Select an item to insert'}
+              {relatedNodeToAdd ? `Add a relation to ` : 'Select an item to insert'}
               {relatedNodeToAdd && (
                 <span className="text-primary truncate max-w-[50%] text-ellipsis font-semibold ml-1">
                   {relatedNodeToAdd.nodeLabel}
@@ -261,10 +248,19 @@ export default function AddItemDialog() {
           <DialogDescription>
             {relatedNodeToAdd
               ? 'Choose what type of relation to add to this node.'
-              : currentParent
-                ? `Select a type of ${currentParent.label.toLowerCase()} to add`
-                : 'Choose an item to insert manually, or import data from a file.'}
+              : 'Choose an item to insert manually, or import data from a file.'}
           </DialogDescription>
+
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search types..."
+              className="pl-8"
+            />
+          </div>
 
           <div className="overflow-y-auto overflow-x-hidden pr-1 -mr-1 flex-grow @container">
             {isLoading ? (
@@ -328,24 +324,14 @@ function ActionCard({ item, onSelect }: ActionCardProps) {
           {IconComponent({})}
         </div>
         <div className="font-medium text-sm">{item.label}</div>
-        {!item.children && <div className="text-sm mt-2 opacity-60">{item.description}</div>}
-        {!item.children && (
-          <Badge variant="outline" className="mt-2">
-            {item.fields.length} fields
-          </Badge>
-        )}
+        <div className="text-sm mt-2 opacity-60">{item.description}</div>
+        <Badge variant="outline" className="mt-2">
+          {item.fields.length} fields
+        </Badge>
         {item.disabled && (
           <Badge variant="outline" className="mt-2 absolute top-2 left-2">
             Soon
           </Badge>
-        )}
-        {item.children && (
-          <div className="absolute top-3 right-4 text-xs text-muted-foreground mt-1">
-            <ArrowRight className="h-4 w-4" />
-          </div>
-        )}
-        {item.children && (
-          <div className="text-xs text-muted-foreground mt-1">{item.children.length} options</div>
         )}
       </CardContent>
     </Card>

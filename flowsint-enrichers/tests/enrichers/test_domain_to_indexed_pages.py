@@ -30,6 +30,10 @@ def test_api_key_is_declared_as_a_required_vault_secret():
     assert schema["SERPLY_API_KEY"]["required"] is True
 
 
+def test_enricher_declares_that_it_requires_params():
+    assert DomainToIndexedPagesEnricher.required_params() is True
+
+
 # ---------------------------------------------------------------------------
 # scan() - HTTP layer mocked, no API key and no network needed
 # ---------------------------------------------------------------------------

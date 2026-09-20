@@ -59,6 +59,10 @@ class DomainToIndexedPagesEnricher(Enricher):
         return "domain"
 
     @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
     def get_params_schema(cls) -> List[Dict[str, Any]]:
         """Declare required parameters for this enricher"""
         return [

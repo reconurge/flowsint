@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { EnricherParamSchemaItem } from '@/types'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import KeySelector from '../keys/key-select'
 import { type Key } from '@/types/key'
 import { useQuery } from '@tanstack/react-query'
@@ -19,23 +20,14 @@ const ParamsDialog = () => {
   const selectedNode = useFlowStore((s) => s.selectedNode)
   const updateNode = useFlowStore((s) => s.updateNode)
   const [params, setParams] = useState<Record<string, string>>({})
-  const [settings, setSettings] = useState<Record<string, string>>({
-    duration: '30',
-    retry: '3',
-    timeout: '60',
-    priority: 'medium'
-  })
 
-  // Initialize params and settings when selectedNode changes — adjusted
-  // during render rather than in an effect.
+  // Initialize params when selectedNode changes — adjusted during render
+  // rather than in an effect.
   const [prevSelectedNode, setPrevSelectedNode] = useState(selectedNode)
   if (selectedNode !== prevSelectedNode) {
     setPrevSelectedNode(selectedNode)
     if (selectedNode?.data.params) {
       setParams(selectedNode.data.params)
-    }
-    if (selectedNode?.data.settings) {
-      setSettings((prev) => ({ ...prev, ...selectedNode.data.settings }))
     }
   }
 
@@ -51,13 +43,53 @@ const ParamsDialog = () => {
       ...selectedNode,
       data: {
         ...selectedNode.data,
-        params,
-        settings
+        params
       }
     }
     updateNode(updatedNode)
     setOpenParamsDialog(false)
-  }, [selectedNode, updateNode, params, settings, setOpenParamsDialog])
+  }, [selectedNode, updateNode, params, setOpenParamsDialog])
+
+  const renderField = (param: EnricherParamSchemaItem) => {
+    if (param.type === 'vaultSecret') {
+      return (
+        <KeySelector
+          onChange={(key) => setParams({ ...params, [param.name]: key.id })}
+          value={keys.find((key) => key.id === params[param.name])}
+        />
+      )
+    }
+
+    if (param.type === 'select' && param.options?.length) {
+      return (
+        <Select
+          value={params[param.name] || ''}
+          onValueChange={(value) => setParams({ ...params, [param.name]: value })}
+        >
+          <SelectTrigger id={param.name} className="w-full">
+            <SelectValue placeholder={`Select ${param.name}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {param.options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )
+    }
+
+    return (
+      <Input
+        id={param.name}
+        type={param.type}
+        placeholder={param.default ?? param.name}
+        value={params[param.name] || ''}
+        onChange={(e) => setParams({ ...params, [param.name]: e.target.value })}
+      />
+    )
+  }
 
   if (!selectedNode) return
 
@@ -90,20 +122,7 @@ const ParamsDialog = () => {
                     </Label>
                     <p className="text-sm opacity-60">{param.description}</p>
                   </div>
-                  {param.type === 'vaultSecret' ? (
-                    <KeySelector
-                      onChange={(key) => setParams({ ...params, [param.name]: key.id })}
-                      value={keys.find((key) => key.id === params[param.name])}
-                    />
-                  ) : (
-                    <Input
-                      id={param.name}
-                      type={param.type}
-                      placeholder={param.default ?? param.name}
-                      value={params[param.name] || ''}
-                      onChange={(e) => setParams({ ...params, [param.name]: e.target.value })}
-                    />
-                  )}
+                  {renderField(param)}
                 </div>
               ))}
             </div>

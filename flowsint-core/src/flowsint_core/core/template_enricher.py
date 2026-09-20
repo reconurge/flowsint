@@ -58,7 +58,11 @@ from flowsint_core.templates.loader.yaml_loader import (
     YamlLoader,
     validate_url_safe,
 )
-from flowsint_core.templates.types import Template, TemplateRetryConfig
+from flowsint_core.templates.types import (
+    Template,
+    TemplateRetryConfig,
+    params_schema_from_secrets,
+)
 from flowsint_types import FlowsintType, get_type
 
 
@@ -92,15 +96,12 @@ class TemplateEnricher(Enricher):
         vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
     ) -> None:
-        # Build params schema from template secrets
-        params_schema = self._build_params_schema_from_template(template)
-
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
             vault=vault,
             params=params,
-            params_schema=params_schema,
+            params_schema=params_schema_from_secrets(template.secrets),
         )
         self.template = template
         self.InputType = self._detect_type(self.template.input.type)
@@ -108,21 +109,6 @@ class TemplateEnricher(Enricher):
         self.request = self.template.request
         self._resolved_secrets: Dict[str, str] = {}
         self.raw_response: Dict[str, Any] | None = None
-
-    @staticmethod
-    def _build_params_schema_from_template(template: Template) -> List[Dict[str, Any]]:
-        """Convert template secrets to enricher params schema format."""
-        schema = []
-        for secret in template.secrets:
-            schema.append(
-                {
-                    "name": secret.name,
-                    "type": "vaultSecret",
-                    "required": secret.required,
-                    "description": secret.description or f"Secret: {secret.name}",
-                }
-            )
-        return schema
 
     def _detect_type(self, input_type: str) -> type[FlowsintType]:
         """Resolve a type name to its FlowsintType class."""

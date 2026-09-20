@@ -13,7 +13,8 @@ export function useLaunchEnricher(askUser: boolean = false) {
   const launchEnricher = async (
     node_ids: string[],
     enricherName: string,
-    sketch_id: string | null | undefined
+    sketch_id: string | null | undefined,
+    params?: Record<string, string>
   ) => {
     if (!sketch_id) return toast.error('Could not find the graph.')
     if (askUser) {
@@ -23,7 +24,9 @@ export function useLaunchEnricher(askUser: boolean = false) {
       })
       if (!confirmed) return
     }
-    const body = JSON.stringify({ node_ids, sketch_id })
+    // Omitted rather than sent as null when the enricher declares no params,
+    // so callers that never had params keep sending the exact same payload.
+    const body = JSON.stringify(params ? { node_ids, sketch_id, params } : { node_ids, sketch_id })
     const count = node_ids.length
     toast.promise(enricherService.launch(enricherName, body), {
       loading: 'Loading...',

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -10,6 +10,8 @@ from flowsint_core.core.graph import create_graph_service
 from flowsint_core.core.models import Profile
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
+    NotFoundError,
+    PermissionDeniedError,
     create_enricher_service,
     create_enricher_template_service,
 )
@@ -24,22 +26,32 @@ load_all_enrichers()
 class launchEnricherPayload(BaseModel):
     node_ids: List[str]
     sketch_id: str
+    # Left loose on purpose: the enricher's own ParamsModel (built from its
+    # params_schema) is what actually validates these, and it differs per
+    # enricher, so constraining the shape here would only reject values the
+    # enricher would have accepted.
+    params: Optional[Dict[str, Any]] = None
 
 
 router = APIRouter()
 
 
-@router.get("")
+# response_model=None is load-bearing: this endpoint mixes registry dicts with
+# EnricherTemplate ORM rows, and a return annotation alone would make FastAPI
+# adopt it as a response model, which pydantic cannot serialize the rows
+# through. The annotation exists for mypy, not for the wire format.
+@router.get("", response_model=None)
 def get_enrichers(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> list:
     """Get all enrichers, optionally filtered by category."""
     enricher_service = create_enricher_service(db)
-    return enricher_service.get_all_enrichers(
+    enrichers: list = enricher_service.get_all_enrichers(
         category, current_user.id, ENRICHER_REGISTRY
     )
+    return enrichers
 
 
 @router.post("/{enricher_name}/launch")
@@ -48,8 +60,13 @@ async def launch_enricher(
     payload: launchEnricherPayload,
     current_user: Profile = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
+) -> Dict[str, str]:
+    enricher_service = create_enricher_service(db)
     try:
+        # Before anything reads the graph: an enricher writes its findings into
+        # this sketch, so the caller needs update rights on its investigation.
+        enricher_service.get_sketch_for_launch(payload.sketch_id, current_user.id)
+
         # Retrieve nodes from Neo4J by their element IDs
         type_registry = create_type_registry_service(db)
         resolver = type_registry.build_type_resolver(current_user.id)
@@ -88,11 +105,21 @@ async def launch_enricher(
                 payload.sketch_id,
                 str(current_user.id),
             ],
+            # Keyword rather than a 5th positional arg so the positional
+            # signature stays byte-identical to what older API instances queue:
+            # a message already in flight still binds cleanly against the new
+            # task. (Workers still have to roll out before the API either way —
+            # a worker predating `params` rejects the keyword.)
+            kwargs={"params": payload.params or {}},
         )
         return {"id": task.id}
 
     except HTTPException:
         raise
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
     except Exception as e:
         print(e)
         raise HTTPException(

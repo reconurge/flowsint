@@ -17,6 +17,7 @@ from ..repositories import (
 )
 from .base import BaseService
 from .exceptions import NotFoundError, PermissionDeniedError
+from .sketch_access import resolve_sketch_for_launch
 
 
 class FlowService(BaseService):
@@ -31,7 +32,7 @@ class FlowService(BaseService):
         custom_type_repo: CustomTypeRepository,
         sketch_repo: SketchRepository,
         investigation_repo: InvestigationRepository,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(db, **kwargs)
         self._flow_repo = flow_repo
@@ -39,9 +40,7 @@ class FlowService(BaseService):
         self._sketch_repo = sketch_repo
         self._investigation_repo = investigation_repo
 
-    def get_all_flows(
-        self, category: Optional[str], user_id: UUID
-    ) -> List[Dict[str, Any]]:
+    def get_all_flows(self, category: Optional[str], user_id: UUID) -> List[Flow]:
         if not category or category.lower() == "undefined":
             return self._flow_repo.get_all_with_optional_category(None, user_id)
 
@@ -51,15 +50,7 @@ class FlowService(BaseService):
         )
 
         if custom_type:
-            flows = self._flow_repo.get_all_with_optional_category(None, user_id)
             return []
-            return [
-                {
-                    **(flow.to_dict() if hasattr(flow, "to_dict") else flow.__dict__),
-                    "wobblyType": True,
-                }
-                for flow in flows
-            ]
 
         return self._flow_repo.get_all_with_optional_category(category, user_id)
 
@@ -123,12 +114,9 @@ class FlowService(BaseService):
         self._commit()
 
     def get_sketch_for_launch(self, sketch_id: str, user_id: UUID) -> Sketch:
-        sketch = self._sketch_repo.get_by_id(sketch_id)
-        if not sketch:
-            raise NotFoundError("Sketch not found")
-
-        self._check_permission(user_id, sketch.investigation_id, ["update"])
-        return sketch
+        return resolve_sketch_for_launch(
+            self._sketch_repo, self._check_permission, sketch_id, user_id
+        )
 
 
 def create_flow_service(db: Session) -> FlowService:

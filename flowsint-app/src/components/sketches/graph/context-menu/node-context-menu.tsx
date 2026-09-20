@@ -14,6 +14,7 @@ import {
   Zap,
   BadgeCheck,
   BadgeAlert,
+  Settings,
   SquareArrowOutUpRight
 } from 'lucide-react'
 import { Enricher, Flow, GraphNode } from '@/types'
@@ -26,6 +27,7 @@ import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
 import { CopyButton } from '@/components/copy'
 import { usePermissions } from '@/hooks/use-can'
+import type { PendingEnricherLaunch } from '@/components/sketches/enricher-params-sheet'
 
 interface GraphContextMenuProps {
   node: GraphNode
@@ -40,6 +42,9 @@ interface GraphContextMenuProps {
   onEdit?: () => void
   onDelete?: () => void
   setMenu: (menu: any | null) => void
+  // The params sheet is owned by the parent: this menu dismisses itself on any
+  // outside mousedown, and a Sheet portals outside its DOM subtree.
+  onRequestParams?: (pending: PendingEnricherLaunch) => void
   [key: string]: any
 }
 
@@ -56,6 +61,7 @@ export default function ContextMenu({
   onEdit: _onEdit,
   onDelete: _onDelete,
   setMenu,
+  onRequestParams,
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
@@ -101,9 +107,17 @@ export default function ContextMenu({
     setMenu(null)
   }
 
-  const handleEnricherClick = (e: React.MouseEvent, enricherName: string) => {
+  const handleEnricherClick = (e: React.MouseEvent, enricher: Enricher) => {
     e.stopPropagation()
-    launchEnricher([node.id], enricherName, sketchId)
+    if (enricher.params_schema?.length) {
+      onRequestParams?.({
+        enricherName: enricher.name,
+        paramsSchema: enricher.params_schema,
+        nodeIds: [node.id]
+      })
+    } else {
+      launchEnricher([node.id], enricher.name, sketchId)
+    }
     setMenu(null)
   }
 
@@ -200,9 +214,9 @@ export default function ContextMenu({
                 <div className="p-1">
                   {filteredEnrichers.map((enricher: Enricher) => (
                     <button
-                      key={enricher.id}
+                      key={enricher.name}
                       className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
-                      onClick={(e) => handleEnricherClick(e, enricher.name)}
+                      onClick={(e) => handleEnricherClick(e, enricher)}
                     >
                       <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -215,6 +229,11 @@ export default function ContextMenu({
                             )}{' '}
                           </span>{' '}
                           {enricher.name || '(Unnamed enricher)'}
+                          {enricher.params_schema?.length ? (
+                            <span title="Requires configuration">
+                              <Settings className="h-3 w-3 text-muted-foreground shrink-0" />
+                            </span>
+                          ) : null}
                         </p>
                         {enricher.description && (
                           <p className="text-xs text-muted-foreground truncate">

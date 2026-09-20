@@ -1,8 +1,8 @@
 import asyncio
 import uuid
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from celery import states
+from celery import Task, states
 from sqlalchemy.orm import Session
 
 from flowsint_core.utils import to_json_serializable
@@ -25,12 +25,13 @@ db: Session = next(get_db())
 
 @celery.task(name="run_enricher", bind=True)
 def run_enricher(
-    self,
+    self: Task,
     enricher_name: str,
     serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: Optional[str] = None,
-):
+    params: Optional[dict] = None,
+) -> Dict[str, Any]:
     session = SessionLocal()
 
     try:
@@ -50,8 +51,11 @@ def run_enricher(
             try:
                 vault = create_vault_service(session).for_user(uuid.UUID(owner_id))
             except Exception as e:
+                # Logger.error's signature omits None even though the column
+                # it writes is nullable and a sketch-less scan is legal here.
                 Logger.error(
-                    sketch_id, {"message": f"Failed to create vault: {str(e)}"}
+                    sketch_id,  # type: ignore[arg-type]
+                    {"message": f"Failed to create vault: {str(e)}"},
                 )
 
         if not ENRICHER_REGISTRY.enricher_exists(enricher_name):
@@ -62,6 +66,7 @@ def run_enricher(
             sketch_id=sketch_id,
             scan_id=scan_id,
             vault=vault,
+            params=params or {},
         )
 
         # Deserialize objects back into Pydantic models
@@ -79,10 +84,14 @@ def run_enricher(
         error_logs = f"An error occurred: {str(ex)}"
         print(f"Error in task: {error_logs}")
 
-        scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
-        if scan:
-            scan.status = EventLevel.FAILED
-            scan.error = error_logs
+        failed_scan = (
+            session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        )
+        if failed_scan:
+            failed_scan.status = EventLevel.FAILED
+            # Scan.error is a legacy Column(), not Mapped[], so the stubs read
+            # it as Column[str] rather than str.
+            failed_scan.error = error_logs  # type: ignore[assignment]
             session.commit()
 
         self.update_state(state=states.FAILURE)
@@ -94,12 +103,13 @@ def run_enricher(
 
 @celery.task(name="run_template_enricher", bind=True)
 def run_template_enricher(
-    self,
+    self: Task,
     template_name: str,
     serialized_objects: List[dict],
     sketch_id: str | None,
     owner_id: str,
-):
+    params: Optional[dict] = None,
+) -> Dict[str, Any]:
     """Run an enricher defined by a YAML template stored in the database."""
     session = SessionLocal()
 
@@ -119,7 +129,10 @@ def run_template_enricher(
         try:
             vault = create_vault_service(session).for_user(uuid.UUID(owner_id))
         except Exception as e:
-            Logger.error(sketch_id, {"message": f"Failed to create vault: {str(e)}"})
+            Logger.error(
+                sketch_id,  # type: ignore[arg-type]
+                {"message": f"Failed to create vault: {str(e)}"},
+            )
 
         # Load template from database
         template_service = create_enricher_template_service(session)
@@ -136,6 +149,7 @@ def run_template_enricher(
             sketch_id=sketch_id,
             scan_id=str(scan_id),
             vault=vault,
+            params=params or {},
         )
 
         results = asyncio.run(enricher.execute(values=serialized_objects))
@@ -151,10 +165,12 @@ def run_template_enricher(
         error_logs = f"An error occurred: {str(ex)}"
         print(f"Error in template task: {error_logs}")
 
-        scan = session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
-        if scan:
-            scan.status = EventLevel.FAILED
-            scan.error = error_logs
+        failed_scan = (
+            session.query(Scan).filter(Scan.id == uuid.UUID(self.request.id)).first()
+        )
+        if failed_scan:
+            failed_scan.status = EventLevel.FAILED
+            failed_scan.error = error_logs  # type: ignore[assignment]
             session.commit()
 
         self.update_state(state=states.FAILURE)

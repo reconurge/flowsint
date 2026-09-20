@@ -31,6 +31,10 @@ def test_api_key_is_declared_as_a_required_vault_secret():
     assert schema["additional_terms"]["required"] is False
 
 
+def test_enricher_declares_that_it_requires_params():
+    assert IndividualToMentionsEnricher.required_params() is True
+
+
 # ---------------------------------------------------------------------------
 # scan() - HTTP layer mocked, no API key and no network needed
 # ---------------------------------------------------------------------------

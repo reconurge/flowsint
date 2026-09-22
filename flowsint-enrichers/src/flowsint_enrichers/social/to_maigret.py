@@ -27,7 +27,7 @@ class MaigretEnricher(Enricher):
         scan_id: Optional[str] = None,
         vault=None,
         params: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(
             sketch_id=sketch_id,
@@ -156,17 +156,18 @@ class MaigretEnricher(Enricher):
                 bufsize=1,
             )
 
-            for line in process.stdout:
-                line = line.strip()
+            if process.stdout is not None:
+                for line in process.stdout:
+                    line = line.strip()
 
-                # only line successful account searches (starts with [+] and contains a URL and the username)
-                if (
-                    line
-                    and line.startswith("[+]")
-                    and "https://" in line
-                    and username in line
-                ):
-                    self.log_graph_message(line)
+                    # only line successful account searches (starts with [+] and contains a URL and the username)
+                    if (
+                        line
+                        and line.startswith("[+]")
+                        and "https://" in line
+                        and username in line
+                    ):
+                        self.log_graph_message(line)
 
         except Exception as e:
             Logger.error(

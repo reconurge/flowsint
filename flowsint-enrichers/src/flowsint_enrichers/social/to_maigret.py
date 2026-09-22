@@ -98,7 +98,7 @@ class MaigretEnricher(Enricher):
         all_sites = self.params.get("SCAN_ALL_SITES", "false") == "true"
         max_connections = self.params.get("MAX_CONNECTIONS", "25")
         cloudflare_bypass = self.params.get("CLOUDFALRE_BYPASS", "true") == "true"
-        cloudfare_bypass_url = self.params.get("CLOUDFALRE_BYPASS_URL", None)
+        cloudflare_bypass_url = self.params.get("CLOUDFALRE_BYPASS_URL", None)
 
         try:
             cmd = [
@@ -111,7 +111,8 @@ class MaigretEnricher(Enricher):
             if all_sites:
                 cmd.append("-a")
 
-            if cloudflare_bypass and cloudfare_bypass_url:
+            # ensure CF bypass is enabled and Flaresolverr URL is valid
+            if cloudflare_bypass and cloudflare_bypass_url and "://" in cloudflare_bypass_url and "v1" in cloudflare_bypass_url.lower():                
                 settings_data = {
                     "cloudflare_bypass": {
                         "enabled": True,
@@ -121,7 +122,7 @@ class MaigretEnricher(Enricher):
                             {
                                 "name": "flaresolverr",
                                 "method": "json_api",
-                                "url": cloudfare_bypass_url,
+                                "url": cloudflare_bypass_url,
                                 "max_timeout_ms": 60000
                             }
                         ]

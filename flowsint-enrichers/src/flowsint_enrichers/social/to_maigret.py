@@ -25,7 +25,7 @@ class MaigretEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        vault=None,
+        vault: Any = None,
         params: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ):

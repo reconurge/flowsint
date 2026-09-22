@@ -1,5 +1,6 @@
+from typing import List, Literal, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Literal, Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -9,7 +10,12 @@ from .registry import flowsint_type
 class Weapon(FlowsintType):
     """Represents a weapon with detailed specifications and forensic information."""
 
-    name: str = Field(..., description="Weapon name or identifier", title="Name", json_schema_extra={"primary": True})
+    name: str = Field(
+        ...,
+        description="Weapon name or identifier",
+        title="Name",
+        json_schema_extra={"primary": True},
+    )
     type: Optional[
         Literal[
             "firearm",
@@ -117,7 +123,7 @@ class Weapon(FlowsintType):
         None, description="Additional notes or observations", title="Notes"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         parts = [self.name]
         if self.type:

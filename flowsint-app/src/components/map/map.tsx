@@ -12,9 +12,7 @@ import { useGraphStore } from '@/stores/graph-store'
 import { Switch } from '../ui/switch'
 import { Label } from '../ui/label'
 import type { MapRef } from 'react-map-gl/maplibre'
-import type {
-  StyleSpecification
-} from 'maplibre-gl'
+import type { StyleSpecification } from 'maplibre-gl'
 
 export type LocationPoint = {
   nodeId?: string
@@ -80,23 +78,30 @@ function resolveMapStyle(
   return VECTOR_STYLES[variant][theme]
 }
 
+const resolveSystemTheme = () =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+
 function useResolvedTheme() {
   const { theme } = useTheme()
-  const [resolved, setResolved] = useState<'dark' | 'light'>(() => {
-    if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return theme
-  })
+  const [resolved, setResolved] = useState<'dark' | 'light'>(() =>
+    theme === 'system' ? resolveSystemTheme() : theme
+  )
 
+  // Recompute synchronously whenever theme changes — adjusted during render
+  // rather than in an effect (both branches are plain sync computations, no
+  // need to wait a frame for either).
+  const [prevTheme, setPrevTheme] = useState(theme)
+  if (theme !== prevTheme) {
+    setPrevTheme(theme)
+    setResolved(theme === 'system' ? resolveSystemTheme() : theme)
+  }
+
+  // The only thing that actually needs an effect: subscribing to OS-level
+  // preference changes while theme === 'system'.
   useEffect(() => {
-    if (theme !== 'system') {
-      setResolved(theme)
-      return
-    }
+    if (theme !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = (e: MediaQueryListEvent) => setResolved(e.matches ? 'dark' : 'light')
-    setResolved(mq.matches ? 'dark' : 'light')
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [theme])
@@ -121,7 +126,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   } | null>(null)
   const [isGlobe, setIsGlobe] = useState(true)
   const isGlobeRef = useRef(true)
-  const [styleVariant, setStyleVariant] = useState<MapStyleVariant>('standard')
+  const [styleVariant, _setStyleVariant] = useState<MapStyleVariant>('standard')
   const [zoomLevel, setZoomLevel] = useState(2)
   const isDarkStyle = resolvedTheme === 'dark' || styleVariant === 'satellite'
   const showDetails = zoomLevel >= 6
@@ -158,54 +163,58 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   })
 
   // Combine all locations with their coordinates
-  const processedLocations = locations.map((location) => {
-    if (location.lat !== undefined && location.lon !== undefined) {
-      return {
-        ...location,
-        coordinates: { lat: location.lat, lon: location.lon },
-        isLoading: false,
-        isError: false
-      }
-    }
-    const geocodeIndex = locationsToGeocode.findIndex((loc) => loc.address === location.address)
-    if (geocodeIndex !== -1 && geocodeQuery.data) {
-      const geocoded = geocodeQuery.data[geocodeIndex]
-      return {
-        ...location,
-        coordinates: geocoded,
-        isLoading: geocodeQuery.isLoading,
-        isError: geocodeQuery.isError
-      }
-    }
-    return {
-      ...location,
-      coordinates: null,
-      isLoading: geocodeQuery.isLoading,
-      isError: geocodeQuery.isError
-    }
-  })
+  const processedLocations = useMemo(
+    () =>
+      locations.map((location) => {
+        if (location.lat !== undefined && location.lon !== undefined) {
+          return {
+            ...location,
+            coordinates: { lat: location.lat, lon: location.lon },
+            isLoading: false,
+            isError: false
+          }
+        }
+        const geocodeIndex = locationsToGeocode.findIndex((loc) => loc.address === location.address)
+        if (geocodeIndex !== -1 && geocodeQuery.data) {
+          const geocoded = geocodeQuery.data[geocodeIndex]
+          return {
+            ...location,
+            coordinates: geocoded,
+            isLoading: geocodeQuery.isLoading,
+            isError: geocodeQuery.isError
+          }
+        }
+        return {
+          ...location,
+          coordinates: null,
+          isLoading: geocodeQuery.isLoading,
+          isError: geocodeQuery.isError
+        }
+      }),
+    [locations, locationsToGeocode, geocodeQuery.data, geocodeQuery.isLoading, geocodeQuery.isError]
+  )
 
   const validLocations = useMemo(
     () => processedLocations.filter((l) => l.coordinates),
-    [JSON.stringify(processedLocations)]
+    [processedLocations]
   )
 
   const DEFAULT_MARKER_COLOR = '#6366f1'
 
   // Preload icons for all unique node types
-  const [iconsReady, setIconsReady] = useState(false)
+  const [_iconsReady, setIconsReady] = useState(false)
   useEffect(() => {
     const uniqueTypes = new Set<string>()
     validLocations.forEach((loc) => {
       if (loc.nodeType) uniqueTypes.add(loc.nodeType)
     })
-    if (uniqueTypes.size === 0) {
-      setIconsReady(true)
-      return
-    }
-    Promise.all(
-      Array.from(uniqueTypes).map((t) => preloadImage(t, '#ffffff'))
-    ).then(() => setIconsReady(true)).catch(() => setIconsReady(true))
+    // Nothing to preload — no re-render needed, so no setState here (this
+    // flag has no readers besides forcing icon-cache re-checks after preload
+    // actually resolves something).
+    if (uniqueTypes.size === 0) return
+    Promise.all(Array.from(uniqueTypes).map((t) => preloadImage(t, '#ffffff')))
+      .then(() => setIconsReady(true))
+      .catch(() => setIconsReady(true))
   }, [validLocations])
 
   // Fly to markers on data load
@@ -241,7 +250,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
   const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
 
   const onMarkerClick = useCallback(
-    (loc: typeof validLocations[number]) => {
+    (loc: (typeof validLocations)[number]) => {
       const lat = Number(loc.coordinates!.lat)
       const lon = Number(loc.coordinates!.lon)
       if (loc.nodeId) setCurrentNodeId(loc.nodeId)
@@ -372,7 +381,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
           <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
             <h3 className="text-lg font-semibold">No location to display</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any location yet.</p>
+            <p className="text-muted-foreground">This sketch doesn&apos;t have any location yet.</p>
           </div>
         </div>
       </div>
@@ -432,9 +441,9 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
           const lat = Number(loc.coordinates!.lat)
           const lon = Number(loc.coordinates!.lon)
           const color = loc.color || DEFAULT_MARKER_COLOR
-          const cachedImg = showDetails && loc.nodeType ? getCachedImage(loc.nodeType, '#ffffff') : undefined
+          const cachedImg =
+            showDetails && loc.nodeType ? getCachedImage(loc.nodeType, '#ffffff') : undefined
           const dotSize = showDetails ? 24 : 10
-          const glowSize = showDetails ? 36 : 16
           return (
             <Marker
               key={loc.nodeId || `${lat}-${lon}-${i}`}
@@ -463,9 +472,7 @@ export const MapFromAddress: React.FC<MapFromAddressProps> = ({
                   transition: 'width 0.2s, height 0.2s, box-shadow 0.2s'
                 }}
               >
-                {cachedImg && (
-                  <img src={cachedImg.src} width={14} height={14} alt="" />
-                )}
+                {cachedImg && <img src={cachedImg.src} width={14} height={14} alt="" />}
               </div>
             </Marker>
           )

@@ -1,0 +1,62 @@
+name: Release
+
+# Bump all package/pyproject versions, update CHANGELOG.md, commit, tag and
+# push to main. The tag push then triggers images.yml (build + push Docker
+# images) exactly like a manual `git push --follow-tags` would.
+#
+# Requires a PAT stored as the GH_PAT secret: pushes made with the default
+# GITHUB_TOKEN don't trigger other workflows (GitHub anti-loop policy), so
+# a plain checkout token here would silently skip the images.yml build.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options: [patch, minor, major, custom]
+        default: patch
+      custom_version:
+        description: "Custom version (e.g. 2.1.0) - only used when bump=custom"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Bump version, tag and push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version, update changelog, commit and tag
+        run: |
+          if [ "${{ inputs.bump }}" = "custom" ]; then
+            RELEASE_AS="${{ inputs.custom_version }}"
+          else
+            RELEASE_AS="${{ inputs.bump }}"
+          fi
+          yarn release -- --release-as "$RELEASE_AS"
+
+      - name: Push commit and tag
+        run: git push origin main --follow-tags

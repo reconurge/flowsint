@@ -63,7 +63,6 @@ const AnalysisList = () => {
     queryFn: () => analysisService.getByInvestigationId(investigationId || ''),
     enabled: !!investigationId
   })
-  
 
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -85,15 +84,20 @@ const AnalysisList = () => {
       return analysisService.create(JSON.stringify(newAnalysis))
     },
     onSuccess: async (data) => {
+      if (!('id' in data)) {
+        toast.error(data.error || 'Failed to create analysis')
+        return
+      }
       queryClient.invalidateQueries({
         queryKey: queryKeys.analyses.byInvestigation(investigationId || '')
       })
       toast.success('Analysis created successfully')
-      investigationId &&
+      if (investigationId) {
         navigate({
           to: '/dashboard/investigations/$investigationId/$type/$id',
           params: { investigationId, type: 'analysis', id: data.id }
         })
+      }
     },
     onError: (error) => {
       toast.error(

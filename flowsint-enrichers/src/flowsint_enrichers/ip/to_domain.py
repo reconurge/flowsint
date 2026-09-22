@@ -1,8 +1,10 @@
 import socket
-import requests
 from typing import List
-from flowsint_core.core.logger import Logger
+
+import requests
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
@@ -64,7 +66,9 @@ class ReverseResolveEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         for ip_obj in original_input:
             self.create_node(ip_obj)
             for domain_obj in results:

@@ -1,11 +1,10 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from ..base import Tool
 
 
 class ReconCrawlTool(Tool):
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @classmethod
@@ -24,19 +23,22 @@ class ReconCrawlTool(Tool):
         pass
 
     def version(self) -> str:
-        pass
+        # No callers — the reconcrawl package doesn't expose a version
+        # string to report here, unlike the Docker-backed tools.
+        raise NotImplementedError("ReconCrawlTool does not report a version")
 
     def is_installed(self) -> bool:
         try:
-            import reconcrawl
+            pass
 
             return True
         except ImportError:
             return False
 
-    def launch(self, url: str, args: Dict[str, Any] = None) -> Any:
+    def launch(self, url: str, args: Optional[Dict[str, Any]] = None) -> Any:
         from reconcrawl import Crawler
 
+        args = args or {}
         crawler = Crawler(
             url=str(url),
             max_pages=args.get("max_pages", 500),

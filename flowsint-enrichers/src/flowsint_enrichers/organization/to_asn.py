@@ -1,11 +1,13 @@
 import os
-from typing import List, Dict, Any, Union, Optional
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.organization import Organization
-from flowsint_types.asn import ASN
-from flowsint_core.core.logger import Logger
+from typing import Any, Dict, List, Optional
+
 from tools.network.asnmap import AsnmapTool
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.asn import ASN
+from flowsint_types.organization import Organization
 
 
 @flowsint_enricher
@@ -105,7 +107,9 @@ class OrgToAsnEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Create Neo4j relationships between organizations and their corresponding ASNs
         for input_org, result_asn in zip(original_input, results):
             # Skip if no valid ASN was found

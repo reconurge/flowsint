@@ -1,7 +1,9 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel
-from typing import Optional, Any
 from datetime import datetime
+from typing import Any, Optional
+
+from pydantic import UUID4, BaseModel
+
+from .base import ORMBase
 
 
 class AnalysisCreate(BaseModel):

@@ -3,16 +3,17 @@ import re
 from typing import Any, Dict, List, Optional, Set
 
 from dotenv import load_dotenv
+from tools.network.whoxy import WhoxyTool
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.vault import VaultProtocol
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.address import Location
 from flowsint_types.domain import Domain
 from flowsint_types.email import Email
 from flowsint_types.individual import Individual
 from flowsint_types.phone import Phone
-
-from flowsint_enrichers.registry import flowsint_enricher
-from tools.network.whoxy import WhoxyTool
 
 load_dotenv()
 
@@ -31,7 +32,7 @@ class EmailToDomainsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        vault=None,
+        vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
@@ -231,7 +232,7 @@ class EmailToDomainsEnricher(Enricher):
         for extracted_info in self._extracted_data:
             email = extracted_info["email"]
             domain = extracted_info["domain"]
-            domain_data = extracted_info["domain_data"]
+            extracted_info["domain_data"]
             contacts = extracted_info["contacts"]
 
             domain_name = domain.domain
@@ -280,7 +281,7 @@ class EmailToDomainsEnricher(Enricher):
         processed_emails: Set[str],
         processed_phones: Set[str],
         processed_addresses: Set[str],
-    ):
+    ) -> None:
         """Process a contact and create all related entities and relationships."""
 
         # Extract individual

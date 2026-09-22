@@ -7,6 +7,8 @@ import { useGraphStore } from '@/stores/graph-store'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
 import { useTheme } from '@/components/theme-provider'
 import { useSaveNodePositions } from '@/hooks/use-save-node-positions'
+import type { LinkObject } from 'react-force-graph-2d'
+import type { GraphViewerRef, GraphNode, GraphEdge } from '@/types'
 import { CONSTANTS } from './utils/constants'
 import { GraphViewerProps } from './utils/types'
 import {
@@ -62,7 +64,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   linkCreation: linkCreationProp
 }) => {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
-  const graphRef = useRef<any>(null)
+  const graphRef = useRef<GraphViewerRef>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Notify parent when graphRef becomes available
@@ -82,18 +84,24 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const customIcons = useNodesDisplaySettings((s) => s.customIcons)
   const setActions = useGraphControls((s) => s.setActions)
   const setCurrentLayoutType = useGraphControls((s) => s.setCurrentLayoutType)
+  // getSettingValue returns number | boolean | undefined (generic getter
+  // over any category/key pair) — this setting is always boolean-valued.
   const autoColorLinksByNodeType = useGraphSettingsStore((s) =>
-    s.getSettingValue('general', 'autoColorLinksByNodeType')
+    Boolean(s.getSettingValue('general', 'autoColorLinksByNodeType'))
   )
+  // getSettingValue returns number | boolean | undefined (it's a generic
+  // getter over any category/key pair) — this specific setting is always
+  // boolean-valued, so coerce rather than widen the prop types below to
+  // match the getter.
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
-    s.getSettingValue('general', 'autoZoomOnCurrentNode')
+    Boolean(s.getSettingValue('general', 'autoZoomOnCurrentNode'))
   )
   const showBackgroundSetting = useGraphSettingsStore((s) =>
-    s.getSettingValue('general', 'showBackground')
+    Boolean(s.getSettingValue('general', 'showBackground'))
   )
 
   const showMinimapSetting = useGraphSettingsStore((s) =>
-    s.getSettingValue('general', 'showMinimap')
+    Boolean(s.getSettingValue('general', 'showMinimap'))
   )
   const forceSettings = useGraphSettingsStore((s) => s.forceSettings)
   const setImportModalOpen = useGraphSettingsStore((s) => s.setImportModalOpen)
@@ -137,7 +145,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   const isSelected = useCallback((nodeId: string) => selectedNodeIds.has(nodeId), [selectedNodeIds])
 
-  const graph2ScreenCoords = useCallback((node: any) => {
+  const graph2ScreenCoords = useCallback((node: GraphNode) => {
     if (!graphRef.current) return { x: 0, y: 0 }
     return graphRef.current.graph2ScreenCoords(node.x, node.y)
   }, [])
@@ -257,8 +265,14 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
     nodeSet.add(currentNodeId)
     edges.forEach((edge) => {
-      const sourceId = typeof edge.source === 'object' ? (edge.source as any).id : edge.source
-      const targetId = typeof edge.target === 'object' ? (edge.target as any).id : edge.target
+      // GraphEdge.source/target are typed as plain id strings, but at
+      // runtime this array can be the same reference react-force-graph
+      // mutates source/target into node objects on (same duality as
+      // GraphNode.links — see types/graph.ts).
+      const sourceId =
+        typeof edge.source === 'object' ? (edge.source as { id: string }).id : edge.source
+      const targetId =
+        typeof edge.target === 'object' ? (edge.target as { id: string }).id : edge.target
       if (sourceId === currentNodeId) {
         nodeSet.add(targetId)
         linkSet.add(`${sourceId}-${targetId}`)
@@ -292,7 +306,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   const { tooltip, showTooltip, hideTooltip } = useTooltip(graphRef)
 
   const handleNodeHoverWithTooltip = useCallback(
-    (node: any) => {
+    (node: GraphNode | null) => {
       if (node) {
         showTooltip(node)
       } else {
@@ -330,7 +344,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   })
 
   const wrappedHandleNodeDragEnd = useCallback(
-    (node: any) => {
+    (node: GraphNode) => {
       handleNodeDragEnd(node, graphData)
     },
     [handleNodeDragEnd, graphData]
@@ -346,7 +360,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         graphRef.current.zoomToFit(400)
       }
     }
-  }, [sketchId])
+  }, [])
 
   // reset hasPerformedInitialZoom on sketch change
   useEffect(() => {
@@ -354,9 +368,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   }, [sketchId])
 
   const handleZoomToFitLocal = useCallback(() => {
-    if (typeof graphRef.current.zoomToFit === 'function') {
-      graphRef.current.zoomToFit(400)
-    }
+    graphRef.current?.zoomToFit(400)
   }, [])
 
   useGraphInitialization({
@@ -383,18 +395,33 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
 
   // Render context: created once per frame, shared across all node/link render calls.
   // Invalidated when dependencies change or when the canvas transform changes between frames.
-  const rcRef = useRef<{ rc: RenderContext | null; depsVersion: number; frameKey: string }>({
+  const rcRef = useRef<{ rc: RenderContext | null; frameKey: string }>({
     rc: null,
-    depsVersion: 0,
     frameKey: ''
   })
 
-  // Increment version whenever render context deps change to force recreation
-  const rcDepsVersion = useMemo(() => {
-    rcRef.current.depsVersion++
-    return rcRef.current.depsVersion
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightNodes, highlightLinks, selectedEdges, theme])
+  // Bumped whenever render context deps change, to force cache invalidation in
+  // getOrCreateRC below even when globalScale alone doesn't. This used to be a
+  // ref mutated straight in a useMemo body — invalid (refs can't be written
+  // during render). Adjusted during render instead of via an effect: compare
+  // against the previous deps tuple and bump synchronously when they differ,
+  // same "one value per deps change" behavior, no extra render pass.
+  const [rcDepsVersion, setRcDepsVersion] = useState(0)
+  const [prevRcDeps, setPrevRcDeps] = useState([
+    highlightNodes,
+    highlightLinks,
+    selectedEdges,
+    theme
+  ])
+  if (
+    highlightNodes !== prevRcDeps[0] ||
+    highlightLinks !== prevRcDeps[1] ||
+    selectedEdges !== prevRcDeps[2] ||
+    theme !== prevRcDeps[3]
+  ) {
+    setPrevRcDeps([highlightNodes, highlightLinks, selectedEdges, theme])
+    setRcDepsVersion((v) => v + 1)
+  }
 
   const getOrCreateRC = useCallback(
     (globalScale: number): RenderContext => {
@@ -415,7 +442,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   )
 
   const renderNodeCallback = useCallback(
-    (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const rc = getOrCreateRC(globalScale)
       renderNode({
         node,
@@ -448,32 +475,29 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
   )
 
   const renderLinkCallback = useCallback(
-    (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    (
+      // See link-renderer.ts's LinkRenderParams for why source/target are
+      // omitted from the GraphEdge generic param here.
+      link: LinkObject<GraphNode, Omit<GraphEdge, 'source' | 'target'>>,
+      ctx: CanvasRenderingContext2D,
+      globalScale: number
+    ) => {
       const rc = getOrCreateRC(globalScale)
+      // theme/highlightNodes/selectedEdges aren't passed here: renderLink
+      // doesn't read them — theme and selection are already baked into `rc`
+      // (rc.themeEdgeLabelBg, rc.selectedEdgeIds) by getOrCreateRC above.
       renderLink({
         link,
         ctx,
         globalScale,
         forceSettings,
-        theme,
         highlightLinks,
-        highlightNodes,
-        selectedEdges,
         currentEdge,
         autoColorLinksByNodeType,
         rc
       })
     },
-    [
-      forceSettings,
-      theme,
-      highlightLinks,
-      highlightNodes,
-      selectedEdges,
-      currentEdge,
-      autoColorLinksByNodeType,
-      getOrCreateRC
-    ]
+    [forceSettings, highlightLinks, currentEdge, autoColorLinksByNodeType, getOrCreateRC]
   )
 
   if (!nodes.length) {
@@ -518,7 +542,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
           canvasHeight={containerSize.height}
         />
       )}
-      <ForceGraph2D
+      <ForceGraph2D<GraphNode, GraphEdge>
         ref={graphRef}
         width={containerSize.width}
         height={containerSize.height}
@@ -542,7 +566,6 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         d3AlphaDecay={forceSettings.d3AlphaDecay.value}
         d3AlphaMin={forceSettings.d3AlphaMin.value}
         d3VelocityDecay={forceSettings.d3VelocityDecay.value}
-        warmupTicks={forceSettings?.warmupTicks?.value ?? 0}
         dagLevelDistance={forceSettings.dagLevelDistance.value}
         backgroundColor={backgroundColor}
         linkCanvasObject={renderLinkCallback}

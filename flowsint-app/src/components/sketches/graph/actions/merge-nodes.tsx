@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,15 +25,14 @@ export function MergeDialog() {
   const openMergeDialog = useGraphStore((state) => state.openMergeDialog)
   const setOpenMergeDialog = useGraphStore((state) => state.setOpenMergeDialog)
   const [priorityIndex, setPriorityIndex] = useState(0)
-  const [preview, setPreview] = useState<GraphNode | null>(null)
-  const [old, setOld] = useState<GraphNode | null>(null)
 
-  useEffect(() => {
-    if (selectedNodes.length === 0) return
-    const priorityEntity = selectedNodes[priorityIndex]
-    if (!priorityEntity) return
+  // old/preview are pure functions of selectedNodes + priorityIndex — no
+  // need for state synced via an effect, useMemo computes them directly.
+  const priorityEntity = selectedNodes[priorityIndex]
+  const old = useMemo<GraphNode | null>(() => {
+    if (selectedNodes.length === 0 || !priorityEntity) return null
     const otherEntitiesToMerge = selectedNodes.filter((node) => node?.id != priorityEntity?.id)
-    const old = {
+    return {
       ...otherEntitiesToMerge.reduce(
         (acc, entity) => ({
           ...acc,
@@ -42,13 +41,11 @@ export function MergeDialog() {
         {} as GraphNode
       )
     }
-    const merge = {
-      ...old,
-      ...priorityEntity
-    }
-    setOld(old)
-    setPreview(merge)
-  }, [selectedNodes, priorityIndex, setPreview])
+  }, [selectedNodes, priorityEntity])
+  const preview = useMemo<GraphNode | null>(() => {
+    if (!old || !priorityEntity) return null
+    return { ...old, ...priorityEntity }
+  }, [old, priorityEntity])
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()

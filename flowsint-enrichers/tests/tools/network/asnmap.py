@@ -1,5 +1,6 @@
 import re
 from typing import Dict
+
 from tools.network.asnmap import AsnmapTool
 
 tool = AsnmapTool()
@@ -23,7 +24,7 @@ def test_image():
 
 def test_install():
     tool.install()
-    assert tool.is_installed() == True
+    assert tool.is_installed() is True
 
 
 def test_version():

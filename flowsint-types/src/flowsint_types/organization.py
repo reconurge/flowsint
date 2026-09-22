@@ -1,8 +1,10 @@
+from typing import Any, List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Any, Optional, List, Self
-from .individual import Individual
+
 from .address import Location
 from .flowsint_base import FlowsintType
+from .individual import Individual
 from .registry import flowsint_type
 
 
@@ -11,15 +13,21 @@ class Organization(FlowsintType):
     """Represents an organization with detailed business and administrative information."""
 
     # Basic information
-    name: Any = Field(..., description="Organization name", title="Organization Name", json_schema_extra={"primary": True})
+    name: Any = Field(
+        ...,
+        description="Organization name",
+        title="Organization Name",
+        json_schema_extra={"primary": True},
+    )
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def convert_string_to_dict(cls, data: Any) -> Any:
         """Allow creating Organization from a string directly."""
         if isinstance(data, str):
-            return {'name': data}
+            return {"name": data}
         return data
+
     siren: Optional[Any] = Field(None, description="SIREN number", title="SIREN Number")
     nom_complet: Optional[Any] = Field(
         None, description="Complete name", title="Complete Name"
@@ -373,7 +381,7 @@ class Organization(FlowsintType):
         None, description="Complements SIAE type", title="SIAE Type"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Use the full name if available, otherwise use name
         if self.nom_complet:

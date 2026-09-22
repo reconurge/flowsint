@@ -1,4 +1,5 @@
 import pytest
+
 from flowsint_types.ip import Ip
 
 

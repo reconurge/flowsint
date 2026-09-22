@@ -312,9 +312,10 @@ uv run pytest
 ## Contributing
 
 1. Follow the modular structure
-2. Use Poetry for dependency management
+2. Use [uv](https://docs.astral.sh/uv/) for dependency management
 3. Write tests for new functionality
 4. Update documentation as needed
+5. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the checks to run before committing
 
 
 ---

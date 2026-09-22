@@ -1,6 +1,8 @@
-from pydantic import Field, EmailStr, model_validator
-from typing import Any, Self
 import re
+from typing import Self
+
+from pydantic import EmailStr, Field, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -9,9 +11,14 @@ from .registry import flowsint_type
 class Email(FlowsintType):
     """Represents an email address."""
 
-    email: EmailStr = Field(..., description="Email address", title="Email Address", json_schema_extra={"primary": True})
+    email: EmailStr = Field(
+        ...,
+        description="Email address",
+        title="Email Address",
+        json_schema_extra={"primary": True},
+    )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.email
         return self
@@ -29,5 +36,5 @@ class Email(FlowsintType):
             return False
 
         # Email regex pattern (RFC 5322 simplified)
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return bool(re.match(email_pattern, line))

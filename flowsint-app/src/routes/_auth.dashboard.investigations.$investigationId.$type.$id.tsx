@@ -32,7 +32,7 @@ const GraphPageContent = () => {
     refetch
   } = useQuery({
     queryKey: ['investigations', investigationId, type, id, 'data'],
-    // @ts-ignore
+    // @ts-expect-error services is keyed by a literal union, type is a plain string
     queryFn: () => services[type](id),
     enabled: ['graph', 'analysis'].includes(type),
     // refetchInterval: 5000,
@@ -71,7 +71,7 @@ const GraphPageContent = () => {
     <div className="h-full w-full flex items-center justify-center">
       <div className="text-center">
         <h2 className="text-lg font-semibold mb-2">Type not supported</h2>
-        <p className="text-muted-foreground">The type "{type}" is not supported yet.</p>
+        <p className="text-muted-foreground">The type &quot;{type}&quot; is not supported yet.</p>
       </div>
     </div>
   )
@@ -79,7 +79,7 @@ const GraphPageContent = () => {
 
 export const Route = createFileRoute('/_auth/dashboard/investigations/$investigationId/$type/$id')({
   loader: async ({ params: { id, type, investigationId } }) => {
-    // @ts-ignore
+    // @ts-expect-error services is keyed by a literal union, type is a plain string
     const sketch = await services[type](id)
     return { params: { id, type, investigationId }, sketch }
   },
@@ -117,8 +117,8 @@ export const Route = createFileRoute('/_auth/dashboard/investigations/$investiga
         <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
 
         <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
-          We couldn't load this investigation page. This might be due to a network issue, invalid
-          investigation ID, or the resource may not exist.
+          We couldn&apos;t load this investigation page. This might be due to a network issue,
+          invalid investigation ID, or the resource may not exist.
         </p>
 
         <div className="space-y-3">

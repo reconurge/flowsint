@@ -1,4 +1,4 @@
-import { FolderOpen, MoreHorizontal, FileText, Network } from 'lucide-react'
+import { FolderOpen, FileText, Network } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { Investigation } from '@/types'
@@ -127,35 +127,36 @@ export function InvestigationsList({
         </div>
       ) : (
         <div style={{ containerType: 'inline-size' }}>
-        <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-3">
-          {filteredInvestigations.length === 0 && <div>No investigation found.</div>}
-          {filteredInvestigations.map((inv) => (
-            <Link
-              to="/dashboard/investigations/$investigationId"
-              params={{ investigationId: inv.id }}
-              className="block p-4 border border-border rounded-lg hover:border-muted-foreground/30 transition-colors group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-muted-foreground" />
-                  <StatusBadge status={inv.status} />
-                </div>
-                {/*<button className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-3">
+            {filteredInvestigations.length === 0 && <div>No investigation found.</div>}
+            {filteredInvestigations.map((inv) => (
+              <Link
+                key={inv.id}
+                to="/dashboard/investigations/$investigationId"
+                params={{ investigationId: inv.id }}
+                className="block p-4 border border-border rounded-lg hover:border-muted-foreground/30 transition-colors group"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                    <StatusBadge status={inv.status} />
+                  </div>
+                  {/*<button className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
                   <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                 </button>*/}
-              </div>
-              <h3 className="text-sm font-medium text-foreground mb-1 truncate">{inv.name}</h3>
-              <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{inv.description}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Network className="w-3 h-3" /> {inv.sketches.length}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" /> {inv.analyses.length}
-                  </span>
                 </div>
-                {/* <div className="flex -space-x-1">
+                <h3 className="text-sm font-medium text-foreground mb-1 truncate">{inv.name}</h3>
+                <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{inv.description}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Network className="w-3 h-3" /> {inv.sketches.length}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FileText className="w-3 h-3" /> {inv.analyses.length}
+                    </span>
+                  </div>
+                  {/* <div className="flex -space-x-1">
                   {inv.investigators.map((initials, i) => (
                     <div
                       key={i}
@@ -165,10 +166,10 @@ export function InvestigationsList({
                     </div>
                   ))}
                 </div> */}
-              </div>
-            </Link>
-          ))}
-        </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

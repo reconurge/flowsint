@@ -1,4 +1,5 @@
 import re
+
 from tools.network.subfinder import SubfinderTool
 
 tool = SubfinderTool()
@@ -22,7 +23,7 @@ def test_image():
 
 def test_install():
     tool.install()
-    assert tool.is_installed() == True
+    assert tool.is_installed() is True
 
 
 def test_version():

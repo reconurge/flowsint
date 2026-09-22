@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class BankAccount(FlowsintType):
     """Represents a bank account with financial and security information."""
 
     account_number: str = Field(
-        ..., description="Bank account number", title="Account Number", json_schema_extra={"primary": True}
+        ...,
+        description="Bank account number",
+        title="Account Number",
+        json_schema_extra={"primary": True},
     )
     bank_name: Optional[str] = Field(None, description="Bank name", title="Bank Name")
     account_type: Optional[str] = Field(
@@ -66,12 +70,16 @@ class BankAccount(FlowsintType):
         None, description="Source of breach if compromised", title="Breach Source"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         parts = []
         if self.bank_name:
             parts.append(self.bank_name)
-        parts.append(f"****{self.account_number[-4:]}" if len(self.account_number) > 4 else self.account_number)
+        parts.append(
+            f"****{self.account_number[-4:]}"
+            if len(self.account_number) > 4
+            else self.account_number
+        )
         self.nodeLabel = " - ".join(parts)
         return self
 

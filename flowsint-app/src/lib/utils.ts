@@ -125,9 +125,9 @@ export const getForceLayoutedElements = (
 
   // Create simulation links
   const simLinks = edges.map((edge) => ({
-    // @ts-ignore
+    // @ts-expect-error edge.source is typed as string only, but can be an object with .id at runtime
     source: typeof edge.source === 'object' ? edge.source.id : edge.source,
-    // @ts-ignore
+    // @ts-expect-error edge.target is typed as string only, but can be an object with .id at runtime
     target: typeof edge.target === 'object' ? edge.target.id : edge.target
   }))
 
@@ -243,7 +243,7 @@ export function getAvatarColor(name: string): string {
 }
 
 export const flattenObj = (ob: Record<string, any>) => {
-  let result: Record<string, any> = {}
+  const result: Record<string, any> = {}
   for (const i in ob) {
     if (ob[i] && typeof ob[i] === 'object' && !Array.isArray(ob[i])) {
       const temp = flattenObj(ob[i])
@@ -319,7 +319,8 @@ export function deepObjectDiff(obj1: Dictionary, obj2: Dictionary): Dictionary {
   // We map over the obj2 key:value duos to retrieve new keys that obj2 might have
   Object.entries(obj2).forEach(([key, value]) => {
     // We check for additional keys
-    if (!obj1.hasOwnProperty(key)) diffObject = { ...diffObject, [key]: { value, new: true } }
+    if (!Object.prototype.hasOwnProperty.call(obj1, key))
+      diffObject = { ...diffObject, [key]: { value, new: true } }
     else {
       diffObject = {
         ...diffObject,
@@ -336,7 +337,8 @@ export function deepObjectDiff(obj1: Dictionary, obj2: Dictionary): Dictionary {
   // We map over the obj1 key:value duos to retrieve keys that might have disapeared
   Object.entries(obj1).forEach(([key, value]) => {
     // We check for additional keys
-    if (!obj2.hasOwnProperty(key)) diffObject = { ...diffObject, [key]: { value, removed: true } }
+    if (!Object.prototype.hasOwnProperty.call(obj2, key))
+      diffObject = { ...diffObject, [key]: { value, removed: true } }
   })
   return diffObject
 }

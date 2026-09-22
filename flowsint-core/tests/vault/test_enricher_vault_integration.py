@@ -1,8 +1,11 @@
 """Tests for Enricher base class vault integration."""
-import pytest
+
 import uuid
-from typing import List, Dict, Any
-from unittest.mock import Mock, MagicMock, patch
+from typing import Any, Dict, List
+from unittest.mock import Mock
+
+import pytest
+
 from flowsint_core.core.enricher_base import Enricher
 
 
@@ -123,7 +126,9 @@ class TestResolveParams:
         await enricher.async_init()
 
         # Should have called get_secret with the vault ID
-        assert any(call[0][0] == vault_id for call in mock_vault.get_secret.call_args_list)
+        assert any(
+            call[0][0] == vault_id for call in mock_vault.get_secret.call_args_list
+        )
         assert "TEST_API_KEY" in enricher.params
         assert enricher.params["TEST_API_KEY"] == secret_value
 
@@ -176,7 +181,9 @@ class TestResolveParams:
         assert "Vault settings" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_resolve_vault_secret_optional_with_default(self, enricher, mock_vault):
+    async def test_resolve_vault_secret_optional_with_default(
+        self, enricher, mock_vault
+    ):
         """Test that optional vault secret uses default if not found."""
         # Only return secret for TEST_API_KEY, not OPTIONAL_KEY
         mock_vault.get_secret.side_effect = lambda key: (
@@ -367,7 +374,7 @@ class TestEnricherExecuteWithVault:
         mock_vault.get_secret.return_value = secret_value
 
         # Execute the enricher
-        result = await enricher.execute(["test"])
+        await enricher.execute(["test"])
 
         # Vault secret should be resolved
         assert mock_vault.get_secret.called

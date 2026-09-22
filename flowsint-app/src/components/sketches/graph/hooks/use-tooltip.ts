@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
+import type { GraphNode, GraphViewerRef } from '@/types'
 import { TooltipState } from '../utils/types'
 
-export const useTooltip = (graphRef: React.RefObject<any>) => {
+export const useTooltip = (graphRef: React.RefObject<GraphViewerRef>) => {
   const [tooltip, setTooltip] = useState<TooltipState>({
     x: 0,
     y: 0,
@@ -10,14 +11,14 @@ export const useTooltip = (graphRef: React.RefObject<any>) => {
   })
 
   const showTooltip = useCallback(
-    (node: any) => {
+    (node: GraphNode | null) => {
       if (!node || !graphRef.current) {
         setTooltip((prev) => ({ ...prev, visible: false }))
         return
       }
 
       const weight = node.neighbors?.length || 0
-      const label = node.nodeLabel || node.label || node.id
+      const label = node.nodeLabel || node.id
 
       try {
         const screenCoords = graphRef.current.graph2ScreenCoords(node.x, node.y)
@@ -47,7 +48,7 @@ export const useTooltip = (graphRef: React.RefObject<any>) => {
           },
           visible: true
         })
-      } catch (error) {
+      } catch {
         setTooltip((prev) => ({ ...prev, visible: false }))
       }
     },

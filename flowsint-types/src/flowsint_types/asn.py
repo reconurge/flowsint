@@ -1,6 +1,8 @@
-from typing import List, Optional, Union, Self
-from pydantic import Field, field_validator, model_validator
 import re
+from typing import List, Optional, Self
+
+from pydantic import Field, field_validator, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -83,7 +85,7 @@ class ASN(FlowsintType):
         return self
 
     @classmethod
-    def from_string(cls, line: str):
+    def from_string(cls, line: str) -> "ASN":
         """Parse an ASN from a raw string."""
         return cls(asn_str=line.strip())
 
@@ -100,6 +102,6 @@ class ASN(FlowsintType):
 
 
 # Import CIDR here to avoid circular import
-from .cidr import CIDR
+from .cidr import CIDR  # noqa: E402
 
 ASN.model_rebuild()

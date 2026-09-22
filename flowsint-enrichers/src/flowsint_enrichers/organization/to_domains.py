@@ -1,17 +1,18 @@
 import os
 import re
-from typing import Any, List, Dict, Set, Optional
+from typing import Any, Dict, List, Optional, Set
+
+from dotenv import load_dotenv
+from tools.network.whoxy import WhoxyTool
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types import Email, Phone
-from flowsint_types.domain import Domain
-from flowsint_types.organization import Organization
-from flowsint_types.individual import Individual
 from flowsint_types.address import Location
-from flowsint_core.core.logger import Logger
-from tools.network.whoxy import WhoxyTool
-from flowsint_core.utils import is_valid_domain, is_root_domain
-from dotenv import load_dotenv
+from flowsint_types.domain import Domain
+from flowsint_types.individual import Individual
+from flowsint_types.organization import Organization
 
 load_dotenv()
 
@@ -95,15 +96,17 @@ class OrgToDomainsEnricher(Enricher):
 
                             # Store extracted data for postprocess
                             extracted_info = {
-                                'org': org,
-                                'domain': domain,
-                                'domain_data': result,
-                                'contacts': {
-                                    'registrant': result.get("registrant_contact", {}),
-                                    'administrative': result.get("administrative_contact", {}),
-                                    'technical': result.get("technical_contact", {}),
-                                    'billing': result.get("billing_contact", {})
-                                }
+                                "org": org,
+                                "domain": domain,
+                                "domain_data": result,
+                                "contacts": {
+                                    "registrant": result.get("registrant_contact", {}),
+                                    "administrative": result.get(
+                                        "administrative_contact", {}
+                                    ),
+                                    "technical": result.get("technical_contact", {}),
+                                    "billing": result.get("billing_contact", {}),
+                                },
                             }
                             self._extracted_data.append(extracted_info)
 
@@ -183,7 +186,9 @@ class OrgToDomainsEnricher(Enricher):
                     )
 
                 # Extract other non-redacted information (country, email, etc.)
-                self.__extract_additional_info_from_contact(contact, contact_type, domain_name, org_name)
+                self.__extract_additional_info_from_contact(
+                    contact, contact_type, domain_name, org_name
+                )
             else:
                 Logger.info(
                     self.sketch_id,
@@ -234,7 +239,9 @@ class OrgToDomainsEnricher(Enricher):
         if self.__is_redacted(full_name) or not full_name:
             Logger.info(
                 self.sketch_id,
-                {"message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"},
+                {
+                    "message": f"[WHOXY] Skipping contact with redacted/empty name: {full_name}"
+                },
             )
             return None
 
@@ -318,9 +325,7 @@ class OrgToDomainsEnricher(Enricher):
         if not all([address, city, zip_code, country]):
             return None
 
-        return Location(
-            address=address, city=city, zip=zip_code, country=country
-        )
+        return Location(address=address, city=city, zip=zip_code, country=country)
 
     def __extract_organization_from_contact(
         self, contact: Dict[str, Any], contact_type: str
@@ -345,7 +350,11 @@ class OrgToDomainsEnricher(Enricher):
         return organization
 
     def __extract_additional_info_from_contact(
-        self, contact: Dict[str, Any], contact_type: str, domain_name: str, org_name: str
+        self,
+        contact: Dict[str, Any],
+        contact_type: str,
+        domain_name: str,
+        org_name: str,
     ):
         """Extract additional non-redacted information from contact data."""
         # Extract country information
@@ -385,7 +394,9 @@ class OrgToDomainsEnricher(Enricher):
                     },
                 )
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Create Neo4j nodes and relationships from extracted data."""
         if not self._graph_service:
             Logger.info(
@@ -449,7 +460,9 @@ class OrgToDomainsEnricher(Enricher):
                 # Create relationship between organization and domain
                 org_obj_domain = Organization(name=org_name)
                 domain_obj_org = Domain(domain=domain_name)
-                self.create_relationship(org_obj_domain, domain_obj_org, "HAS_REGISTERED_DOMAIN")
+                self.create_relationship(
+                    org_obj_domain, domain_obj_org, "HAS_REGISTERED_DOMAIN"
+                )
 
             # Create individual node if not already processed
             individual_id = (
@@ -467,7 +480,9 @@ class OrgToDomainsEnricher(Enricher):
 
                 # Create relationship between individual and domain
                 domain_obj_ind = Domain(domain=domain_name)
-                self.create_relationship(individual, domain_obj_ind, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    individual, domain_obj_ind, f"IS_{contact_type.upper()}_CONTACT"
+                )
 
                 # Create relationship between individual and organization
                 org_obj_ind = Organization(name=org_name)
@@ -560,7 +575,9 @@ class OrgToDomainsEnricher(Enricher):
                 # Create relationship between input organization and domain
                 org_obj_domain2 = Organization(name=org_name)
                 domain_obj_org2 = Domain(domain=domain_name)
-                self.create_relationship(org_obj_domain2, domain_obj_org2, "HAS_REGISTERED_DOMAIN")
+                self.create_relationship(
+                    org_obj_domain2, domain_obj_org2, "HAS_REGISTERED_DOMAIN"
+                )
 
             # Create extracted organization node if not already processed
             if organization.name not in processed_organizations:
@@ -575,7 +592,11 @@ class OrgToDomainsEnricher(Enricher):
 
                 # Create relationship between extracted organization and domain
                 domain_obj_extracted = Domain(domain=domain_name)
-                self.create_relationship(organization, domain_obj_extracted, f"IS_{contact_type.upper()}_CONTACT")
+                self.create_relationship(
+                    organization,
+                    domain_obj_extracted,
+                    f"IS_{contact_type.upper()}_CONTACT",
+                )
 
             self.log_graph_message(
                 f"Processed organization {organization.name} ({contact_type}) for domain {domain_name}"

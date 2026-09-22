@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 
 export type ClipboardPayload =
   | { type: 'text'; text: string }
@@ -49,7 +49,9 @@ export function usePasteListener(handlers: PasteHandlers, options: UsePasteListe
   const { global = false, preventDefault = false } = options
 
   const handlersRef = useRef(handlers)
-  handlersRef.current = handlers
+  useLayoutEffect(() => {
+    handlersRef.current = handlers
+  })
 
   const listener = useCallback(
     (event: ClipboardEvent | React.ClipboardEvent) => {

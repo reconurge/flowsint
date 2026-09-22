@@ -6,8 +6,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from flowsint_core.core.template_enricher import TemplateEnricher
 from flowsint_core.templates.loader.yaml_loader import YamlLoader
 from flowsint_core.templates.types import Template

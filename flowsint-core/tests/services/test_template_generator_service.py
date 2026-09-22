@@ -11,7 +11,6 @@ from flowsint_core.core.services.template_generator_service import (
     _extract_yaml,
 )
 
-
 VALID_YAML = """\
 name: ip-api-lookup
 category: Ip

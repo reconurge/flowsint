@@ -1,10 +1,8 @@
 """Pytest configuration for flowsint-core tests."""
 
-import os
 from unittest.mock import MagicMock
 
 import pytest
-
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 

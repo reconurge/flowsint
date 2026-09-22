@@ -5,21 +5,22 @@ import NewInvestigation from './new-investigation'
 import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { SkeletonList } from '../shared/skeleton-list'
-import { FolderOpen, Plus } from "lucide-react"
+import { FolderOpen, Plus } from 'lucide-react'
 import { queryKeys } from '@/api/query-keys'
 import ErrorState from '../shared/error-state'
 
-
 const InvestigationList = () => {
-  const { data, isLoading, error, refetch } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
     queryKey: queryKeys.investigations.list,
     queryFn: investigationService.get
   })
 
-  if (isLoading)
-    return (
-      <SkeletonList rowCount={6} />
-    )
+  if (isLoading) return <SkeletonList rowCount={6} />
   if (error)
     return (
       <ErrorState
@@ -44,6 +45,7 @@ const InvestigationList = () => {
         <div className="space-y-0.5">
           {data.map((caseItem: Investigation) => (
             <Link
+              key={caseItem.id}
               to="/dashboard/investigations/$investigationId"
               params={{
                 investigationId: caseItem.id
@@ -51,18 +53,18 @@ const InvestigationList = () => {
             >
               <button
                 className={cn(
-                  "w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left group",
-                  "text-muted-foreground hover:bg-muted hover:text-sidebar-foreground"
+                  'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left group',
+                  'text-muted-foreground hover:bg-muted hover:text-sidebar-foreground'
                 )}
               >
                 <FolderOpen className="w-4 h-4 shrink-0 opacity-60" />
                 <span className="truncate flex-1">{caseItem.name}</span>
                 <span
                   className={cn(
-                    "w-1.5 h-1.5 rounded-full shrink-0",
-                    caseItem.status === "active" && "bg-success",
-                    caseItem.status === "closed" && "bg-muted-foreground/50",
-                    caseItem.status === "on-hold" && "bg-warning",
+                    'w-1.5 h-1.5 rounded-full shrink-0',
+                    caseItem.status === 'active' && 'bg-success',
+                    caseItem.status === 'closed' && 'bg-muted-foreground/50',
+                    caseItem.status === 'on-hold' && 'bg-warning'
                   )}
                 />
               </button>
@@ -70,7 +72,7 @@ const InvestigationList = () => {
           ))}
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 

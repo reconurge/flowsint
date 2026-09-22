@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -9,7 +10,12 @@ from .registry import flowsint_type
 class Credential(FlowsintType):
     """Represents user credentials with compromise and usage information."""
 
-    username: str = Field(..., description="Username or identifier", title="Username", json_schema_extra={"primary": True})
+    username: str = Field(
+        ...,
+        description="Username or identifier",
+        title="Username",
+        json_schema_extra={"primary": True},
+    )
     service: Optional[str] = Field(
         None,
         description="Service or platform where credential is used",
@@ -67,7 +73,7 @@ class Credential(FlowsintType):
         None, description="Source of credential information", title="Source"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         if self.service:
             self.nodeLabel = f"{self.username}@{self.service}"

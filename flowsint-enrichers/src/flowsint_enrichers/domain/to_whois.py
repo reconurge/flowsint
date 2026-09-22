@@ -1,12 +1,14 @@
 from typing import List
+
 import whois
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
-from flowsint_types.whois import Whois
 from flowsint_types.email import Email
 from flowsint_types.organization import Organization
-from flowsint_core.core.logger import Logger
+from flowsint_types.whois import Whois
 
 
 @flowsint_enricher
@@ -29,8 +31,9 @@ class WhoisEnricher(Enricher):
     def key(cls) -> str:
         return "domain"
 
-    async def scan(self, data: List[InputType]) -> List[OutputType]:
-        results: List[OutputType] = []
+    # noqa false positive below: OutputType is a class attr, resolves fine at def-time
+    async def scan(self, data: List[InputType]) -> List[OutputType]:  # noqa: F821
+        results: List[OutputType] = []  # noqa: F821
         for domain in data:
             try:
                 whois_info = whois.whois(domain.domain)
@@ -109,7 +112,9 @@ class WhoisEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         for whois_obj in results:
             if not self._graph_service:
                 continue
@@ -122,7 +127,9 @@ class WhoisEnricher(Enricher):
             # Create organization node if available
             if whois_obj.organization:
                 self.create_node(whois_obj.organization)
-                self.create_relationship(whois_obj.organization, whois_obj.domain, "HAS_DOMAIN")
+                self.create_relationship(
+                    whois_obj.organization, whois_obj.domain, "HAS_DOMAIN"
+                )
             # Create email node if available
             if whois_obj.email:
                 self.create_node(whois_obj.email)

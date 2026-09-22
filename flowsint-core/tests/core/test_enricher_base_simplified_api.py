@@ -2,12 +2,9 @@
 
 from typing import List
 
-import pytest
-from flowsint_types.domain import Domain
-from flowsint_types.email import Email
-from flowsint_types.individual import Individual
-
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_types.domain import Domain
+from flowsint_types.individual import Individual
 
 
 class MockEnricher(Enricher):

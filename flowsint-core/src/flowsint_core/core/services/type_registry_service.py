@@ -5,9 +5,10 @@ Type registry service for managing flowsint types.
 from typing import Any, Dict, List, Optional, Type
 from uuid import UUID, uuid4
 
-from flowsint_types import FlowsintType
 from pydantic import BaseModel, TypeAdapter, create_model
 from sqlalchemy.orm import Session
+
+from flowsint_types import FlowsintType
 
 from ..graph.serializer import TypeResolver
 from ..repositories import CustomTypeRepository

@@ -1,7 +1,8 @@
-from typing import List, Optional, Any
-from .base import ORMBase
+from typing import Any, List, Optional
+
 from pydantic import UUID4, BaseModel
-from typing import Optional
+
+from .base import ORMBase
 
 
 class ScanCreate(BaseModel):

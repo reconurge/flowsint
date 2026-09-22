@@ -11,30 +11,30 @@ from fastapi import (
     UploadFile,
     status,
 )
-from flowsint_core.core.graph import GraphNode
-from flowsint_core.core.models import Profile
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.services import (
-    create_sketch_service,
-    NotFoundError,
-    PermissionDeniedError,
-    ValidationError,
-    DatabaseError,
-)
-from flowsint_core.core.services.type_registry_service import create_type_registry_service
-from flowsint_core.imports import (
-    EntityMapping,
-    ImportService,
-    create_import_service,
-    FileParseResult,
-)
-from flowsint_core.core.graph import create_graph_service
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.schemas.sketch import SketchCreate, SketchRead, SketchUpdate
 from app.api.sketch_utils import update_sketch_timestamp
+from flowsint_core.core.graph import GraphNode, create_graph_service
+from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.services import (
+    DatabaseError,
+    NotFoundError,
+    PermissionDeniedError,
+    ValidationError,
+    create_sketch_service,
+)
+from flowsint_core.core.services.type_registry_service import (
+    create_type_registry_service,
+)
+from flowsint_core.imports import (
+    EntityMapping,
+    FileParseResult,
+    create_import_service,
+)
 
 router = APIRouter()
 
@@ -93,6 +93,7 @@ class UpdatePositionsInput(BaseModel):
 
 class EntityMappingInput(BaseModel):
     """Pydantic model for parsing entity mapping input from frontend."""
+
     id: str
     entity_type: str
     include: bool = True
@@ -103,6 +104,7 @@ class EntityMappingInput(BaseModel):
 
 class ImportExecuteResponse(BaseModel):
     """Response model for import execution."""
+
     status: str
     nodes_created: int
     nodes_skipped: int
@@ -162,7 +164,9 @@ def update_sketch(
 ):
     service = create_sketch_service(db)
     try:
-        return service.update(id, current_user.id, payload.model_dump(exclude_unset=True))
+        return service.update(
+            id, current_user.id, payload.model_dump(exclude_unset=True)
+        )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Sketch not found")
     except PermissionDeniedError:
@@ -237,7 +241,11 @@ def add_edge(
     service = create_sketch_service(db)
     try:
         return service.add_relationship(
-            UUID(sketch_id), current_user.id, relation.source, relation.target, relation.label
+            UUID(sketch_id),
+            current_user.id,
+            relation.source,
+            relation.target,
+            relation.label,
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Sketch not found")
@@ -284,7 +292,9 @@ def update_node_positions(
     service = create_sketch_service(db)
     try:
         positions = [pos.model_dump() for pos in data.positions]
-        return service.update_node_positions(UUID(sketch_id), current_user.id, positions)
+        return service.update_node_positions(
+            UUID(sketch_id), current_user.id, positions
+        )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Sketch not found")
     except PermissionDeniedError:
@@ -434,7 +444,9 @@ async def analyze_import_file(
     try:
         type_registry = create_type_registry_service(db)
         resolver = type_registry.build_type_resolver(current_user.id)
-        graph_service = create_graph_service(sketch_id=sketch_id, enable_batching=False, type_resolver=resolver)
+        graph_service = create_graph_service(
+            sketch_id=sketch_id, enable_batching=False, type_resolver=resolver
+        )
         import_service = create_import_service(graph_service)
         result = import_service.analyze_file(
             file_content=content,
@@ -494,7 +506,9 @@ async def execute_import(
 
     type_registry = create_type_registry_service(db)
     resolver = type_registry.build_type_resolver(current_user.id)
-    graph_service = create_graph_service(sketch_id=sketch_id, enable_batching=False, type_resolver=resolver)
+    graph_service = create_graph_service(
+        sketch_id=sketch_id, enable_batching=False, type_resolver=resolver
+    )
     import_service = create_import_service(graph_service)
 
     try:

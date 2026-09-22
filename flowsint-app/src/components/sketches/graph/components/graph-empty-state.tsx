@@ -15,10 +15,7 @@ export const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({
   style
 }) => {
   return (
-    <div
-      className={`flex h-full w-full items-center justify-center ${className}`}
-      style={style}
-    >
+    <div className={`flex h-full w-full items-center justify-center ${className}`} style={style}>
       <div className="text-center text-muted-foreground max-w-md mx-auto p-6">
         <div className="mb-4">
           <svg
@@ -41,8 +38,7 @@ export const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({
         </p>
         <div className="space-y-2 text-xs text-muted-foreground mb-6">
           <p>
-            <strong>Tip:</strong> Use the search bar to find entities or import data to get
-            started
+            <strong>Tip:</strong> Use the search bar to find entities or import data to get started
           </p>
           <p>
             <strong>Explore:</strong> Try searching for domains, emails, or other entities
@@ -51,17 +47,17 @@ export const GraphEmptyState: React.FC<GraphEmptyStateProps> = ({
             <strong>Labels:</strong> Zoom in (over 2x) to see all labels, icons, and edges
           </p>
         </div>
-        <div className='flex flex-col justify-center gap-1'>
+        <div className="flex flex-col justify-center gap-1">
           <Button onClick={onOpenAddDialog}>
             <Plus />
             Add your first item
           </Button>
-          <span className='opacity-60'>or</span>
+          <span className="opacity-60">or</span>
           <Button variant="secondary" onClick={onOpenImportDialog}>
             <Upload /> Import data
           </Button>
         </div>
       </div>
-    </div >
+    </div>
   )
 }

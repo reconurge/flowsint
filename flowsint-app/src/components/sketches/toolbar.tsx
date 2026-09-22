@@ -134,7 +134,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
   const handleRefresh = useCallback(() => {
     try {
       refetchGraph()
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh graph data')
     }
   }, [refetchGraph])
@@ -217,7 +217,7 @@ export const Toolbar = memo(function Toolbar({ isLoading }: { isLoading: boolean
         )
       }
     },
-    [sketchId, exportToPNG]
+    [sketchId]
   )
 
   const areExactlyTwoSelected = selectedNodes.length === 2

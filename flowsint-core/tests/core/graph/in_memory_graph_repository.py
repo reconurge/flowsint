@@ -84,8 +84,14 @@ class InMemoryGraphRepository:
 
                     # Also soft delete related edges
                     for edge in self._edges.values():
-                        if edge.get("source") == node_id or edge.get("target") == node_id:
-                            if edge.get("sketch_id") == sketch_id and edge.get("deleted_at") is None:
+                        if (
+                            edge.get("source") == node_id
+                            or edge.get("target") == node_id
+                        ):
+                            if (
+                                edge.get("sketch_id") == sketch_id
+                                and edge.get("deleted_at") is None
+                            ):
                                 edge["deleted_at"] = deleted_at
 
                     self._nodes[node_id]["deleted_at"] = deleted_at
@@ -116,7 +122,10 @@ class InMemoryGraphRepository:
         for node_id in node_ids:
             if node_id in self._nodes:
                 node = self._nodes[node_id]
-                if node.get("sketch_id") == sketch_id and node.get("deleted_at") is None:
+                if (
+                    node.get("sketch_id") == sketch_id
+                    and node.get("deleted_at") is None
+                ):
                     result.append({"data": node})
         return result
 
@@ -142,9 +151,9 @@ class InMemoryGraphRepository:
 
     def create_relationship(self, rel_obj: Dict[str, Any], sketch_id: str) -> None:
         """Create a relationship between two nodes."""
-        from_type = rel_obj.get("from_type")
+        rel_obj.get("from_type")
         from_label = rel_obj.get("from_label")
-        to_type = rel_obj.get("to_type")
+        rel_obj.get("to_type")
         to_label = rel_obj.get("to_label")
         rel_label = rel_obj.get("rel_label", "RELATED_TO")
 

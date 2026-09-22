@@ -5,17 +5,21 @@ export function usePathfinder() {
   const workerRef = useRef<Worker | null>(null)
 
   useEffect(() => {
-    workerRef.current = new Worker(
-      new URL('../workers/pathfinder.worker.ts', import.meta.url),
-      { type: 'module' }
-    )
+    workerRef.current = new Worker(new URL('../workers/pathfinder.worker.ts', import.meta.url), {
+      type: 'module'
+    })
     return () => {
       workerRef.current?.terminate()
     }
   }, [])
 
   const findPath = useCallback(
-    (nodes: GraphNode[], edges: GraphEdge[], sourceId: string, targetId: string): Promise<Path | null> => {
+    (
+      nodes: GraphNode[],
+      edges: GraphEdge[],
+      sourceId: string,
+      targetId: string
+    ): Promise<Path | null> => {
       if (!workerRef.current) {
         return Promise.reject(new Error('Pathfinder worker not initialized'))
       }
@@ -45,9 +49,15 @@ export function usePathfinder() {
 
         worker.postMessage({
           nodes: nodes.map((n) => ({ id: n.id, nodeLabel: n.nodeLabel, nodeType: n.nodeType })),
-          edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, label: e.label, caption: e.caption })),
+          edges: edges.map((e) => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            label: e.label,
+            caption: e.caption
+          })),
           sourceId,
-          targetId,
+          targetId
         })
       })
     },

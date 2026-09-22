@@ -67,9 +67,7 @@ class EnricherTemplateService(BaseService):
             raise NotFoundError("Template not found")
         return template
 
-    def get_owned_template(
-        self, template_id: UUID, owner_id: UUID
-    ) -> EnricherTemplate:
+    def get_owned_template(self, template_id: UUID, owner_id: UUID) -> EnricherTemplate:
         template = self._repo.get_by_id_and_owner(template_id, owner_id)
         if not template:
             raise NotFoundError("Template not found")

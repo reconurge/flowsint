@@ -1,8 +1,10 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
+
+from pydantic import UUID4, BaseModel
+
+from .base import ORMBase
 
 
 class SketchCreate(BaseModel):

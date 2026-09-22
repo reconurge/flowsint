@@ -1,4 +1,5 @@
 """Repository for CustomType model."""
+
 from typing import List, Optional
 from uuid import UUID
 
@@ -31,9 +32,7 @@ class CustomTypeRepository(BaseRepository[CustomType]):
             .first()
         )
 
-    def get_by_name_and_owner(
-        self, name: str, owner_id: UUID
-    ) -> Optional[CustomType]:
+    def get_by_name_and_owner(self, name: str, owner_id: UUID) -> Optional[CustomType]:
         return (
             self._db.query(CustomType)
             .filter(CustomType.owner_id == owner_id, CustomType.name == name)

@@ -127,13 +127,14 @@ export function InvestigationMenu({
   const deleteSketchMutation = useMutation({
     mutationFn: sketchService.delete,
     onSuccess: () => {
-      investigationId &&
+      if (investigationId) {
         navigate({
           to: '/dashboard/investigations/$investigationId',
           params: {
             investigationId: investigationId as string
           }
         })
+      }
     },
     onError: (error) => {
       console.error('Error deleting sketch:', error)

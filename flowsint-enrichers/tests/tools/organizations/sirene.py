@@ -1,4 +1,5 @@
 from typing import Dict
+
 from tools.organizations.sirene import SireneTool
 
 tool = SireneTool()

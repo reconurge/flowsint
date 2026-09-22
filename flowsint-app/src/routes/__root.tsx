@@ -9,14 +9,16 @@ export interface MyRouterContext {
   queryClient: QueryClient
 }
 
+function RootComponent() {
+  const { theme } = useTheme()
+  return (
+    <TutorialProvider>
+      <Toaster offset={{ top: '90px' }} theme={theme} position="top-center" />
+      <Outlet />
+    </TutorialProvider>
+  )
+}
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  component: () => {
-    const { theme } = useTheme()
-    return (
-      <TutorialProvider>
-        <Toaster offset={{ top: '90px' }} theme={theme} position="top-center" />
-        <Outlet />
-      </TutorialProvider>
-    )
-  }
+  component: RootComponent
 })

@@ -66,7 +66,7 @@ export const XTermTerminal = forwardRef<TerminalHandle, XTermTerminalProps>(
         brightBlue: '#3b82f6',
         brightMagenta: '#a855f7',
         brightCyan: '#06b6d4',
-        brightWhite: '#171717',
+        brightWhite: '#171717'
       }
 
       // Dark theme colors
@@ -92,11 +92,12 @@ export const XTermTerminal = forwardRef<TerminalHandle, XTermTerminalProps>(
         brightBlue: '#60a5fa',
         brightMagenta: '#c084fc',
         brightCyan: '#22d3ee',
-        brightWhite: '#fafafa',
+        brightWhite: '#fafafa'
       }
 
       const terminal = new Terminal({
-        fontFamily: '"Fira Code", "JetBrains Mono", "Cascadia Code", Menlo, Monaco, "Courier New", monospace',
+        fontFamily:
+          '"Fira Code", "JetBrains Mono", "Cascadia Code", Menlo, Monaco, "Courier New", monospace',
         fontSize: 13,
         lineHeight: 1.4,
         cursorBlink: false,
@@ -106,7 +107,7 @@ export const XTermTerminal = forwardRef<TerminalHandle, XTermTerminalProps>(
         scrollback: 10000,
         convertEol: true,
         disableStdin: true,
-        allowTransparency: false,
+        allowTransparency: false
       })
 
       // Setup addons

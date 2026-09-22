@@ -8,10 +8,9 @@ handling file parsing, entity conversion, and batch creation.
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from flowsint_types import FlowsintType
-
 from flowsint_core.core.graph import GraphSerializer, GraphService
 from flowsint_core.core.graph.serializer import TypeResolver
+from flowsint_types import FlowsintType
 
 
 @dataclass

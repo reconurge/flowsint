@@ -1,5 +1,6 @@
 import json
 from typing import Any, Literal
+
 from ..dockertool import DockerTool
 
 
@@ -51,7 +52,10 @@ class AsnmapTool(DockerTool):
         return super().is_installed()
 
     def launch(
-        self, item: str, type: Literal["domain", "organization", "ip", "asn"] = "domain", api_key: str = None
+        self,
+        item: str,
+        type: Literal["domain", "organization", "ip", "asn"] = "domain",
+        api_key: str = None,
     ) -> Any:
         flags = {"domain": "-d", "org": "-org", "ip": "-i", "asn": "-a"}
         if type not in flags:
@@ -70,7 +74,7 @@ class AsnmapTool(DockerTool):
             result = super().launch(f"{flag} {item} -silent -json", environment=env)
             if result and result != "":
                 # asnmap returns newline-delimited JSON (one JSON object per line)
-                lines = result.strip().split('\n')
+                lines = result.strip().split("\n")
 
                 if len(lines) == 1:
                     # Single JSON object
@@ -93,14 +97,21 @@ class AsnmapTool(DockerTool):
                                 combined_data["as_range"].extend(data["as_range"])
                             if data.get("as_name") and not combined_data["as_name"]:
                                 combined_data["as_name"] = data["as_name"]
-                            if data.get("as_country") and not combined_data["as_country"]:
+                            if (
+                                data.get("as_country")
+                                and not combined_data["as_country"]
+                            ):
                                 combined_data["as_country"] = data["as_country"]
                             if data.get("as_number") and not combined_data["as_number"]:
                                 combined_data["as_number"] = data["as_number"]
                         except json.JSONDecodeError:
                             continue
 
-                    return combined_data if combined_data["as_range"] or combined_data["as_number"] else {}
+                    return (
+                        combined_data
+                        if combined_data["as_range"] or combined_data["as_number"]
+                        else {}
+                    )
             else:
                 return {}
         except json.JSONDecodeError as e:

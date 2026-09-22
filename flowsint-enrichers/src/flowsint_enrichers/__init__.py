@@ -12,4 +12,4 @@ __all__ = [
     "ENRICHER_REGISTRY",
     "flowsint_enricher",
     "load_all_enrichers",
-] 
+]

@@ -22,7 +22,6 @@ export interface MinimalTiptapProps extends Omit<UseMinimalTiptapEditorProps, 'o
   onEditorReady?: (editor: Editor) => void
   showToolbar?: boolean
 }
-//@ts-ignore
 const Toolbar = ({ editor }: { editor: Editor }) => (
   <div className="shrink-0 h-11 overflow-x-auto border-b border-border px-2 flex items-center">
     <div className="flex w-max items-center gap-px">

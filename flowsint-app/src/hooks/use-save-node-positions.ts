@@ -16,8 +16,10 @@ export type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
  * Handles debouncing and batch updates for all nodes
  */
 export function useSaveNodePositions(sketchId?: string) {
-  const [changedNodePositions, setChangedNodePositions] = useState<Map<string, NodePosition>>(new Map())
-  const setNodes = useGraphStore(s => s.setNodes)
+  const [changedNodePositions, setChangedNodePositions] = useState<Map<string, NodePosition>>(
+    new Map()
+  )
+  const setNodes = useGraphStore((s) => s.setNodes)
   const isStabilizingRef = useRef(false) // Start as false, mark as true only during layout regeneration
   const setSaveStatus = useGraphSaveStatus((state) => state.setSaveStatus)
 
@@ -48,32 +50,35 @@ export function useSaveNodePositions(sketchId?: string) {
    * @param nodes - Array of nodes or graphData.nodes
    * @param force - Force save even if stabilizing (for layout regeneration)
    */
-  const saveAllNodePositions = useCallback((nodes: any[], force = false) => {
-    if (!sketchId) {
-      return
-    }
-
-    if (!force && isStabilizingRef.current) {
-      return
-    }
-
-    const newMap = new Map<string, NodePosition>()
-
-    nodes.forEach((node: any) => {
-      if (node.x !== undefined && node.y !== undefined) {
-        // Fix node position to prevent force simulation from moving it
-        node.fx = node.x
-        node.fy = node.y
-        newMap.set(node.id, { x: node.x, y: node.y })
+  const saveAllNodePositions = useCallback(
+    (nodes: any[], force = false) => {
+      if (!sketchId) {
+        return
       }
-    })
 
-    if (newMap.size > 0) {
-      setChangedNodePositions(newMap)
-      setNodes(nodes)
-      setSaveStatus('pending')
-    }
-  }, [sketchId])
+      if (!force && isStabilizingRef.current) {
+        return
+      }
+
+      const newMap = new Map<string, NodePosition>()
+
+      nodes.forEach((node: any) => {
+        if (node.x !== undefined && node.y !== undefined) {
+          // Fix node position to prevent force simulation from moving it
+          node.fx = node.x
+          node.fy = node.y
+          newMap.set(node.id, { x: node.x, y: node.y })
+        }
+      })
+
+      if (newMap.size > 0) {
+        setChangedNodePositions(newMap)
+        setNodes(nodes)
+        setSaveStatus('pending')
+      }
+    },
+    [sketchId, setNodes, setSaveStatus]
+  )
 
   /**
    * Clear pending changes (useful when switching sketches)
@@ -96,7 +101,8 @@ export function useSaveNodePositions(sketchId?: string) {
 
     setSaveStatus('saving')
 
-    sketchService.updateNodePositions(sketchId, positions)
+    sketchService
+      .updateNodePositions(sketchId, positions)
       .then(() => {
         setChangedNodePositions(new Map())
         setSaveStatus('saved')

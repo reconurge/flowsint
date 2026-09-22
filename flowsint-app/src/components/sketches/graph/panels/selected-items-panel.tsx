@@ -86,7 +86,6 @@ const ActionBar = () => {
   const clearSelectedNodes = useGraphStore((s) => s.clearSelectedNodes)
   const settings = useGraphSettingsStore((s) => s.settings)
 
-
   // Ask AI dialog
   const handleAskAI = useCallback(
     (e: React.MouseEvent) => {
@@ -132,7 +131,7 @@ const ActionBar = () => {
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider>
-        {canEdit && Boolean(settings?.general?.showFlow?.value) &&
+        {canEdit && Boolean(settings?.general?.showFlow?.value) && (
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
@@ -149,7 +148,8 @@ const ActionBar = () => {
             <TooltipContent>
               <p>Ask AI</p>
             </TooltipContent>
-          </Tooltip>}
+          </Tooltip>
+        )}
         {canEdit && (
           <Tooltip>
             <TooltipTrigger asChild>

@@ -1,4 +1,5 @@
 """Base repository providing common database operations."""
+
 from typing import Generic, List, Optional, Set, Type, TypeVar
 from uuid import UUID
 

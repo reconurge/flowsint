@@ -14,7 +14,8 @@ export const ButtonHandle = ({
   label = '',
   children,
   connectionCount = 5,
-  color,
+  // no caller passes this yet; handle color is hardcoded below
+  color: _color,
   ...props
 }: HandleProps & {
   showButton?: boolean

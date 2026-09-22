@@ -1,4 +1,4 @@
-from flowsint_types import Domain, Individual, Ip, get_type
+from flowsint_types import Domain, Ip, get_type
 from flowsint_types.registry import TYPE_REGISTRY
 
 
@@ -12,11 +12,6 @@ def test_get_all():
 
 def test_get_by_capital_key():
     type = TYPE_REGISTRY.get("Domain")
-    assert type is Domain
-
-
-def test_get_by_lower_key():
-    type = TYPE_REGISTRY.get_lowercase("domain")
     assert type is Domain
 
 

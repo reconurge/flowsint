@@ -35,13 +35,7 @@ export const PersistentLogPanel = () => {
       {isOpenConsole ? (
         <>
           <ResizableHandle />
-          <ResizablePanel
-            id="console"
-            order={5}
-            defaultSize={30}
-            minSize={10}
-            maxSize={50}
-          >
+          <ResizablePanel id="console" order={5} defaultSize={30} minSize={10} maxSize={50}>
             <div className="h-full overflow-hidden flex flex-col">
               <div className="h-8 shrink-0">
                 <StatusBar />

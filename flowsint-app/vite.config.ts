@@ -10,25 +10,25 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-    tailwindcss(),
-    {
-      ...tanstackRouter({
-        target: 'react',
-        routesDirectory: 'src/routes',
-        generatedRouteTree: 'src/routeTree.gen.ts',
-        // routeFileIgnorePrefix: '_',
-        autoCodeSplitting: true,
-        verboseFileRoutes: false,
-        quoteStyle: 'double',
-        semicolons: true
-      }),
-      enforce: 'pre'
-    },
-    react({
-      babel: {
-        plugins: ["babel-plugin-react-compiler"]
-      }
-    })
+      tailwindcss(),
+      {
+        ...tanstackRouter({
+          target: 'react',
+          routesDirectory: 'src/routes',
+          generatedRouteTree: 'src/routeTree.gen.ts',
+          // routeFileIgnorePrefix: '_',
+          autoCodeSplitting: true,
+          verboseFileRoutes: false,
+          quoteStyle: 'double',
+          semicolons: true
+        }),
+        enforce: 'pre'
+      },
+      react({
+        babel: {
+          plugins: ['babel-plugin-react-compiler']
+        }
+      })
     ],
     resolve: {
       alias: {
@@ -58,14 +58,10 @@ export default defineConfig(({ mode }) => {
             'vendor-xyflow': ['@xyflow/react', '@xyflow/system'],
             'vendor-pixi': ['pixi.js'],
             'vendor-monaco': ['@monaco-editor/react'],
-            'vendor-tiptap': [
-              '@tiptap/react',
-              '@tiptap/starter-kit',
-              '@tiptap/core',
-            ],
+            'vendor-tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/core'],
             'vendor-map': ['maplibre-gl'],
             'vendor-charts': ['recharts', 'd3', 'd3-force'],
-            'vendor-motion': ['framer-motion'],
+            'vendor-motion': ['framer-motion']
           }
         }
       }

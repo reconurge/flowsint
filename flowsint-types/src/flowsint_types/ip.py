@@ -1,6 +1,8 @@
-from pydantic import Field, field_validator, model_validator
-from typing import Optional, Any, Self
 import ipaddress
+from typing import Optional, Self
+
+from pydantic import Field, field_validator, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 

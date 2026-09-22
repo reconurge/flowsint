@@ -5,9 +5,11 @@ This directory contains the refactored analysis components that provide reusable
 ## Components
 
 ### `AnalysisEditor` (Core Component)
+
 The main reusable component that contains all analysis editing logic.
 
 **Props:**
+
 - `analysis: Analysis | null` - The current analysis to edit
 - `investigationId: string` - The investigation ID
 - `onAnalysisUpdate?: (analysis: Analysis) => void` - Callback when analysis is updated
@@ -25,6 +27,7 @@ The main reusable component that contains all analysis editing logic.
 - `currentAnalysisId?: string | null` - Current analysis ID for selector
 
 **Features:**
+
 - Rich text editing with TipTap
 - AI prompt integration with context
 - Save/delete/create operations
@@ -36,18 +39,22 @@ The main reusable component that contains all analysis editing logic.
 - Context-aware AI prompts
 
 ### `AnalysisPanel` (Panel Component)
+
 A panel component that uses `AnalysisEditor` with analysis selection functionality.
 
 **Features:**
+
 - Analysis selector dropdown
 - Integration with analysis panel store
 - Navigation to full-page view
 - All original action buttons (Save, AI Chat, New analysis, Delete, Open in Page)
 
 ### `AnalysisPage` (Full Page Component)
+
 A full-page component that uses `AnalysisEditor` for dedicated analysis editing.
 
 **Features:**
+
 - Full-page layout
 - Navigation controls
 - All editing functionality
@@ -95,19 +102,19 @@ import { AnalysisEditor } from "@/components/analyses/analysis-editor"
 ### Using AnalysisPanel in a layout:
 
 ```tsx
-import AnalysisPanel from "@/components/analyses/notes-panel"
+import AnalysisPanel from '@/components/analyses/notes-panel'
 
 // In a layout component
-<AnalysisPanel />
+;<AnalysisPanel />
 ```
 
 ### Using AnalysisPage in a route:
 
 ```tsx
-import { AnalysisPage } from "@/components/analyses/analysis-page"
+import { AnalysisPage } from '@/components/analyses/analysis-page'
 
 // In a route component
-<AnalysisPage />
+;<AnalysisPage />
 ```
 
 ## Action Buttons
@@ -132,10 +139,11 @@ The `AnalysisEditor` includes all the original action buttons:
 ## Migration Notes
 
 The existing `AnalysisPanel` has been refactored to use the new `AnalysisEditor` component. All original functionality including:
+
 - Analysis selector dropdown
 - All action buttons (Save, AI Chat, New analysis, Delete, Open in Page)
 - Navigation controls
 - AI prompt integration
 - Keyboard shortcuts
 
-Everything works exactly as before, but the code is now more modular and reusable. 
+Everything works exactly as before, but the code is now more modular and reusable.

@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class Message(FlowsintType):
     """Represents a message with content, metadata, and security analysis."""
 
     message_id: str = Field(
-        ..., description="Unique message identifier", title="Message ID", json_schema_extra={"primary": True}
+        ...,
+        description="Unique message identifier",
+        title="Message ID",
+        json_schema_extra={"primary": True},
     )
     content: str = Field(..., description="Message content", title="Content")
     sender: Optional[str] = Field(None, description="Message sender", title="Sender")
@@ -65,13 +69,15 @@ class Message(FlowsintType):
         None, description="Threat level assessment", title="Threat Level"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         if self.subject:
             self.nodeLabel = self.subject
         else:
             # Truncate content to first 50 characters
-            content_preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
+            content_preview = (
+                self.content[:50] + "..." if len(self.content) > 50 else self.content
+            )
             self.nodeLabel = content_preview
         return self
 

@@ -1,97 +1,122 @@
 import { fetchWithAuth } from './api'
+import type {
+  Sketch,
+  SketchGraphData,
+  DetectionResult,
+  EntityMapping,
+  PreviewEdge,
+  ImportAnalysisResult,
+  ImportExecutionResult,
+  RelationshipType
+} from '@/types'
+import type { GraphNode } from '@/types/graph'
+import type { ActionItem } from '@/lib/action-items'
+
+// `inline=true` asks the backend for the relationships-already-joined
+// shape (used by the flat table view) instead of the default {nds, rls}
+// graph slice — the response shape genuinely depends on that flag, hence
+// the overload rather than a single loosely-typed union return.
+async function getGraphDataById(sketchId: string, inline: true): Promise<RelationshipType[]>
+async function getGraphDataById(sketchId: string, inline?: false): Promise<SketchGraphData>
+async function getGraphDataById(
+  sketchId: string,
+  inline: boolean = false
+): Promise<SketchGraphData | RelationshipType[]> {
+  return fetchWithAuth(`/api/sketches/${sketchId}/graph?format=${inline ? 'inline' : ''}`, {
+    method: 'GET'
+  })
+}
 
 export const sketchService = {
-  get: async (): Promise<any> => {
+  get: async (): Promise<Sketch[]> => {
     return fetchWithAuth('/api/sketches', {
       method: 'GET'
     })
   },
-  getById: async (sketchId: string): Promise<any> => {
+  getById: async (sketchId: string): Promise<Sketch> => {
     return fetchWithAuth(`/api/sketches/${sketchId}`, {
       method: 'GET'
     })
   },
-  getGraphDataById: async (sketchId: string, inline: boolean = false): Promise<any> => {
-    return fetchWithAuth(`/api/sketches/${sketchId}/graph?format=${inline ? 'inline' : ''}`, {
-      method: 'GET'
-    })
-  },
-  create: async (body: BodyInit): Promise<any> => {
+  getGraphDataById,
+  // Backend returns the created sketch on success, or an { error } payload
+  // instead of a 4xx/5xx status on failure — callers branch on `id`.
+  create: async (body: BodyInit): Promise<Sketch | { error: string }> => {
     return fetchWithAuth(`/api/sketches/create`, {
       method: 'POST',
       body: body
     })
   },
-  delete: async (sketchId: string): Promise<any> => {
+  delete: async (sketchId: string): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}`, {
       method: 'DELETE'
     })
   },
-  addNode: async (sketchId: string, body: BodyInit): Promise<any> => {
+  addNode: async (sketchId: string, body: BodyInit): Promise<{ node: GraphNode }> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/add`, {
       method: 'POST',
       body: body
     })
   },
-  addEdge: async (sketchId: string, body: BodyInit): Promise<any> => {
+  addEdge: async (sketchId: string, body: BodyInit): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/relations/add`, {
       method: 'POST',
       body: body
     })
   },
-  mergeNodes: async (sketchId: string, body: BodyInit): Promise<any> => {
+  mergeNodes: async (sketchId: string, body: BodyInit): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/merge`, {
       method: 'POST',
       body: body
     })
   },
-  deleteNodes: async (sketchId: string, body: BodyInit): Promise<any> => {
+  deleteNodes: async (sketchId: string, body: BodyInit): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes`, {
       method: 'DELETE',
       body: body
     })
   },
-  deleteEdges: async (sketchId: string, body: BodyInit): Promise<any> => {
+  deleteEdges: async (sketchId: string, body: BodyInit): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/relationships`, {
       method: 'DELETE',
       body: body
     })
   },
-  updateNode: async (sketchId: string, body: BodyInit): Promise<any> => {
+  updateNode: async (sketchId: string, body: BodyInit): Promise<{ status: string }> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/edit`, {
       method: 'PUT',
       body: body
     })
   },
-  updateEdge: async (sketchId: string, body: BodyInit): Promise<any> => {
+  updateEdge: async (sketchId: string, body: BodyInit): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/relationships/edit`, {
       method: 'PUT',
       body: body
     })
   },
-  getNodeNeighbors: async (sketchId: string, nodeId: string): Promise<any> => {
+  getNodeNeighbors: async (sketchId: string, nodeId: string): Promise<SketchGraphData> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/${nodeId}`, {
       method: 'GET'
     })
   },
-  types: async (): Promise<any> => {
-    return fetchWithAuth(`/api/types`, {
+  types: async (flat = false): Promise<ActionItem[]> => {
+    return fetchWithAuth(`/api/types${flat ? '?flat=true' : ''}`, {
       method: 'GET'
     })
   },
-  detectType: async (text: string): Promise<any> => {
+  detectType: async (text: string): Promise<DetectionResult> => {
     return fetchWithAuth(`/api/types/detect`, {
       method: 'POST',
       body: JSON.stringify({ text })
     })
   },
-  update: async (sketchId: string, body: BodyInit): Promise<any> => {
+  update: async (sketchId: string, body: BodyInit): Promise<Sketch> => {
     return fetchWithAuth(`/api/sketches/${sketchId}`, {
       method: 'PUT',
       body: body
     })
   },
-  analyzeImportFile: async (sketchId: string, file: File): Promise<any> => {
+  analyzeImportFile: async (sketchId: string, file: File): Promise<ImportAnalysisResult> => {
     const formData = new FormData()
     formData.append('file', file)
 
@@ -102,16 +127,9 @@ export const sketchService = {
   },
   executeImport: async (
     sketchId: string,
-    entityMappings: Array<{
-      id: string
-      entity_type: string
-      include: boolean
-      nodeLabel: string
-      node_id?: string
-      data: Record<string, any>
-    }>,
-    edges: any
-  ): Promise<any> => {
+    entityMappings: EntityMapping[],
+    edges: PreviewEdge[]
+  ): Promise<ImportExecutionResult> => {
     const formData = new FormData()
     formData.append('entity_mappings_json', JSON.stringify({ nodes: entityMappings, edges: edges }))
 
@@ -123,13 +141,13 @@ export const sketchService = {
   updateNodePositions: async (
     sketchId: string,
     positions: Array<{ nodeId: string; x: number; y: number }>
-  ): Promise<any> => {
+  ): Promise<unknown> => {
     return fetchWithAuth(`/api/sketches/${sketchId}/nodes/positions`, {
       method: 'PUT',
       body: JSON.stringify({ positions })
     })
   },
-  exportSketch: async (sketchId: string, format: 'json' = 'json'): Promise<any> => {
+  exportSketch: async (sketchId: string, format: 'json' = 'json'): Promise<unknown> => {
     const response = await fetchWithAuth(`/api/sketches/${sketchId}/export?format=${format}`, {
       method: 'GET'
     })

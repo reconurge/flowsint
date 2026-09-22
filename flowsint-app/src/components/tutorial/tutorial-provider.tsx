@@ -1,101 +1,113 @@
-import React, { createContext, useCallback, useEffect, useState } from 'react';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
-import { useLocation } from '@tanstack/react-router';
-import { getStepsForRoute } from './tutorial-steps';
+import React, { createContext, useCallback, useEffect, useState } from 'react'
+import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride'
+import { useLocation } from '@tanstack/react-router'
+import { getStepsForRoute } from './tutorial-steps'
 
 interface TutorialContextValue {
-  startTutorial: () => void;
-  stopTutorial: () => void;
-  resetTutorial: () => void;
-  isRunning: boolean;
+  startTutorial: () => void
+  stopTutorial: () => void
+  resetTutorial: () => void
+  isRunning: boolean
 }
 
-export const TutorialContext = createContext<TutorialContextValue | null>(null);
+export const TutorialContext = createContext<TutorialContextValue | null>(null)
 
-const STORAGE_KEY = 'flowsint-tutorial-completed';
+const STORAGE_KEY = 'flowsint-tutorial-completed'
 
 interface TutorialProviderProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
-  const location = useLocation();
-  const [run, setRun] = useState(false);
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [stepIndex, setStepIndex] = useState(0);
+  const location = useLocation()
+  const [run, setRun] = useState(false)
+  const [steps, setSteps] = useState<Step[]>([])
+  const [stepIndex, setStepIndex] = useState(0)
 
   const getCompletedRoutes = useCallback((): Set<string> => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? new Set(JSON.parse(stored)) : new Set();
+      const stored = localStorage.getItem(STORAGE_KEY)
+      return stored ? new Set(JSON.parse(stored)) : new Set()
     } catch {
-      return new Set();
+      return new Set()
     }
-  }, []);
+  }, [])
 
-  const markRouteAsCompleted = useCallback((route: string) => {
-    const completed = getCompletedRoutes();
-    completed.add(route);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
-  }, [getCompletedRoutes]);
+  const markRouteAsCompleted = useCallback(
+    (route: string) => {
+      const completed = getCompletedRoutes()
+      completed.add(route)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]))
+    },
+    [getCompletedRoutes]
+  )
 
   const startTutorial = useCallback(() => {
-    const currentPath = location.pathname;
-    const routeSteps = getStepsForRoute(currentPath);
+    const currentPath = location.pathname
+    const routeSteps = getStepsForRoute(currentPath)
 
     if (routeSteps.length > 0) {
-      setSteps(routeSteps);
-      setStepIndex(0);
-      setRun(true);
+      setSteps(routeSteps)
+      setStepIndex(0)
+      setRun(true)
     }
-  }, [location.pathname]);
+  }, [location.pathname])
 
   const stopTutorial = useCallback(() => {
-    setRun(false);
-  }, []);
+    setRun(false)
+  }, [])
 
   const resetTutorial = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setRun(false);
-    setSteps([]);
-    setStepIndex(0);
-  }, []);
+    localStorage.removeItem(STORAGE_KEY)
+    setRun(false)
+    setSteps([])
+    setStepIndex(0)
+  }, [])
 
+  // Not restructured like the rest of this pass: <Joyride> is never actually
+  // rendered below (see the no-unused-vars fix elsewhere in this file), so
+  // this whole effect is dead in practice. Not worth the risk of subtly
+  // changing timing on a feature nobody can currently see run.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const currentPath = location.pathname;
-    const routeSteps = getStepsForRoute(currentPath);
+    const currentPath = location.pathname
+    const routeSteps = getStepsForRoute(currentPath)
 
     if (routeSteps.length > 0) {
-      const completed = getCompletedRoutes();
+      const completed = getCompletedRoutes()
 
       if (!completed.has(currentPath)) {
-        setSteps(routeSteps);
-        setStepIndex(0);
+        setSteps(routeSteps)
+        setStepIndex(0)
         setTimeout(() => {
-          setRun(true);
-        }, 500);
+          setRun(true)
+        }, 500)
       }
     } else {
-      setRun(false);
+      setRun(false)
     }
-  }, [location.pathname, getCompletedRoutes]);
+  }, [location.pathname, getCompletedRoutes])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { status } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+  const handleJoyrideCallback = useCallback(
+    (data: CallBackProps) => {
+      const { status } = data
+      const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
 
-    if (finishedStatuses.includes(status)) {
-      setRun(false);
-      markRouteAsCompleted(location.pathname);
-    }
-  }, [location.pathname, markRouteAsCompleted]);
+      if (finishedStatuses.includes(status)) {
+        setRun(false)
+        markRouteAsCompleted(location.pathname)
+      }
+    },
+    [location.pathname, markRouteAsCompleted]
+  )
 
   const contextValue: TutorialContextValue = {
     startTutorial,
     stopTutorial,
     resetTutorial,
-    isRunning: run,
-  };
+    isRunning: run
+  }
 
   return (
     <TutorialContext.Provider value={contextValue}>
@@ -123,5 +135,5 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       /> */}
       {children}
     </TutorialContext.Provider>
-  );
+  )
 }

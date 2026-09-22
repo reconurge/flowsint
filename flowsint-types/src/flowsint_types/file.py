@@ -1,7 +1,7 @@
 import re
+from typing import Optional, Self
 
 from pydantic import Field, model_validator
-from typing import Optional, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -27,7 +27,12 @@ def _hash_field_for(value: str) -> Optional[str]:
 class File(FlowsintType):
     """Represents a file with metadata, type information, and security assessment."""
 
-    filename: str = Field(..., description="File name", title="Filename", json_schema_extra={"primary": True})
+    filename: str = Field(
+        ...,
+        description="File name",
+        title="Filename",
+        json_schema_extra={"primary": True},
+    )
     file_type: Optional[str] = Field(
         None, description="File type or extension", title="File Type"
     )
@@ -84,7 +89,7 @@ class File(FlowsintType):
         None, description="Threat level assessment", title="Threat Level"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.filename
         return self

@@ -43,7 +43,7 @@ function Register() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      const { confirmPassword, ...registerData } = data
+      const { confirmPassword: _confirmPassword, ...registerData } = data
       await registerMutation.mutateAsync(registerData)
     } catch (error) {
       console.error("Erreur d'inscription:", error)

@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button"
-import { Analysis } from "@/types"
-import { formatDistanceToNow } from "date-fns"
-import { Plus, FileText, ChevronRight } from "lucide-react"
-import { EmptyAnalyses } from "../empty-states"
-import NewAnalysis from "@/components/analyses/new-analysis"
-import { Link } from "@tanstack/react-router"
+import { Button } from '@/components/ui/button'
+import { Analysis } from '@/types'
+import { formatDistanceToNow } from 'date-fns'
+import { Plus, FileText, ChevronRight } from 'lucide-react'
+import { EmptyAnalyses } from '../empty-states'
+import NewAnalysis from '@/components/analyses/new-analysis'
+import { Link } from '@tanstack/react-router'
 
 interface AnalysesSectionProps {
   analyses: Analysis[]
@@ -18,7 +18,11 @@ export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionP
         <h2 className="text-sm font-medium text-foreground">Analyses</h2>
         {canCreate && (
           <NewAnalysis>
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
+            >
               <Plus className="w-3.5 h-3.5" />
               New
             </Button>
@@ -26,17 +30,18 @@ export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionP
         )}
       </div>
 
-      {analyses.length === 0 ?
+      {analyses.length === 0 ? (
         <div className="border border-dashed rounded-md">
           <EmptyAnalyses canCreate={canCreate} />
-        </div> :
+        </div>
+      ) : (
         <div className="space-y-1">
           {analyses.map((analysis) => (
             <Link
               to="/dashboard/investigations/$investigationId/$type/$id"
               params={{
                 investigationId: analysis.investigation_id as string,
-                type: "analysis",
+                type: 'analysis',
                 id: analysis.id
               }}
               key={analysis.id}
@@ -51,15 +56,18 @@ export function AnalysesSection({ analyses, canCreate = true }: AnalysesSectionP
                 <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground/70">
                   <span>{analysis.owner_id}</span>
                   <span>·</span>
-                  <span>{formatDistanceToNow(new Date(analysis.last_updated_at), {
-                    addSuffix: true
-                  })}</span>
+                  <span>
+                    {formatDistanceToNow(new Date(analysis.last_updated_at), {
+                      addSuffix: true
+                    })}
+                  </span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
             </Link>
           ))}
-        </div>}
+        </div>
+      )}
     </section>
   )
 }

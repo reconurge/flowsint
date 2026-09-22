@@ -1,8 +1,8 @@
 """Tests for Neo4jGraphRepository."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
-from datetime import datetime, timezone
 
 from flowsint_core.core.graph import Neo4jGraphRepository
 
@@ -56,7 +56,9 @@ class TestCreateNode:
     def test_create_node_no_connection(self):
         repo = repo_without_connection()
 
-        result = repo.create_node({"nodeLabel": "test", "nodeType": "domain"}, "sketch-1")
+        result = repo.create_node(
+            {"nodeLabel": "test", "nodeType": "domain"}, "sketch-1"
+        )
 
         assert result is None
 

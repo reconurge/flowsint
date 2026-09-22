@@ -15,7 +15,7 @@ from ..llm import LLMProvider, MessageRole, create_llm_provider
 from ..models import Chat, ChatMessage
 from ..repositories import ChatRepository
 from .base import BaseService
-from .exceptions import DatabaseError, NotFoundError, PermissionDeniedError
+from .exceptions import NotFoundError
 
 DEFAULT_SYSTEM_PROMPT = (
     "You are a CTI/OSINT investigator and you are trying to investigate on a "
@@ -24,7 +24,6 @@ DEFAULT_SYSTEM_PROMPT = (
     "need to reference some items (an IP, a domain or something particular) "
     "please use the code brackets, like : `12.23.34.54` to reference it."
 )
-
 
 
 class ChatService(BaseService):

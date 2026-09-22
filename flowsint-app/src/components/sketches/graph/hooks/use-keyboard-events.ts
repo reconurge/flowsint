@@ -3,7 +3,7 @@ import { useGraphStore } from '@/stores/graph-store'
 // import { useCreateOnPaste } from './use-create-on-paste'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 
-export const useKeyboardEvents = (sketchId: string) => {
+export const useKeyboardEvents = (_sketchId: string) => {
   const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
   const filteredNodes = useGraphStore((s) => s.filteredNodes)
 

@@ -18,7 +18,7 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   // Keep components mounted but hidden during transitions
-  // @ts-ignore
+  // @ts-expect-error children-only wrapper doesn't match RouteComponent's expected prop signature
   defaultPendingComponent: ({ children }: { children: React.ReactNode }) => children,
   defaultPendingMs: 0
 })

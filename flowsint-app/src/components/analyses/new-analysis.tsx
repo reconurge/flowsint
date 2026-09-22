@@ -43,7 +43,7 @@ export default function NewAnalysis({ children }: NewAnalysisProps) {
   const createAnalysisMutation = useMutation({
     mutationFn: analysisService.create,
     onSuccess: (result) => {
-      if (result.id) {
+      if ('id' in result && result.id) {
         toast.success('New analysis created.')
         router.navigate({
           to: `/dashboard/investigations/${investigationId}/analysis/${result.id}`
@@ -60,7 +60,7 @@ export default function NewAnalysis({ children }: NewAnalysisProps) {
         }
         if (sketchId) setOpen(false)
       } else {
-        toast.error(result.error || 'Failed to create analysis.')
+        toast.error(('error' in result && result.error) || 'Failed to create analysis.')
       }
     },
     onError: (error) => {

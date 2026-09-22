@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { XTermTerminal, TerminalHandle } from './xterm-terminal'
 import { formatLogEntry, formatWelcomeMessage } from './log-formatter'
 import { Button } from '../ui/button'
-import { RotateCcw, Trash2, Maximize2 } from 'lucide-react'
+import { RotateCcw, Trash2 } from 'lucide-react'
 import { EventLevel } from '@/types'
 
 interface LogEntry {

@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class Script(FlowsintType):
     """Represents a script or code file with analysis and security information."""
 
     script_id: str = Field(
-        ..., description="Unique script identifier", title="Script ID", json_schema_extra={"primary": True}
+        ...,
+        description="Unique script identifier",
+        title="Script ID",
+        json_schema_extra={"primary": True},
     )
     name: Optional[str] = Field(None, description="Script name", title="Name")
     language: Optional[str] = Field(
@@ -68,7 +72,7 @@ class Script(FlowsintType):
         None, description="Whether script is minified", title="Minified"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         if self.name:
             self.nodeLabel = self.name

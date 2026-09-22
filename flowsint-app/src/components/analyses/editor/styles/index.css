@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "./partials/code.css";
-@import "./partials/placeholder.css";
-@import "./partials/lists.css";
-@import "./partials/typography.css";
-@import "./partials/zoom.css";
+@import './partials/code.css';
+@import './partials/placeholder.css';
+@import './partials/lists.css';
+@import './partials/typography.css';
+@import './partials/zoom.css';
 
 :root {
   --mt-overlay: rgba(251, 251, 251, 0.75);

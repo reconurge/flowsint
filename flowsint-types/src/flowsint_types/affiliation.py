@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class Affiliation(FlowsintType):
     """Represents an organizational affiliation or employment relationship."""
 
     organization: str = Field(
-        ..., description="Organization or group name", title="Organization", json_schema_extra={"primary": True}
+        ...,
+        description="Organization or group name",
+        title="Organization",
+        json_schema_extra={"primary": True},
     )
     role: Optional[str] = Field(
         None, description="Role or position within organization", title="Role"
@@ -58,7 +62,7 @@ class Affiliation(FlowsintType):
         title="Hierarchy Level",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         if self.role:
             self.nodeLabel = f"{self.role} at {self.organization}"

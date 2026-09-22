@@ -2,8 +2,6 @@
 
 import importlib
 
-import pytest
-
 from flowsint_core.core.auth import create_access_token
 from flowsint_core.core.models import Profile
 

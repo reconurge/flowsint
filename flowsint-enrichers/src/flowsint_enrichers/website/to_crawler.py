@@ -1,13 +1,15 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 from urllib.parse import urlparse
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.website import Website
-from flowsint_types.phone import Phone
-from flowsint_types.email import Email
-from flowsint_core.core.logger import Logger
-from tools.network.reconcrawl import ReconCrawlTool
+
 from pydantic import BaseModel
+from tools.network.reconcrawl import ReconCrawlTool
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.email import Email
+from flowsint_types.phone import Phone
+from flowsint_types.website import Website
 
 
 class ReturnType(BaseModel):
@@ -89,7 +91,9 @@ class WebsiteToCrawler(Enricher):
                         except Exception as e:
                             Logger.warn(
                                 self.sketch_id,
-                                {"message": f"Skipping invalid email '{item.value}': {e}"},
+                                {
+                                    "message": f"Skipping invalid email '{item.value}': {e}"
+                                },
                             )
                     if item.type == "phone":
                         try:
@@ -97,7 +101,9 @@ class WebsiteToCrawler(Enricher):
                         except Exception as e:
                             Logger.warn(
                                 self.sketch_id,
-                                {"message": f"Skipping invalid phone '{item.value}': {e}"},
+                                {
+                                    "message": f"Skipping invalid phone '{item.value}': {e}"
+                                },
                             )
 
                 # Log results
@@ -148,7 +154,9 @@ class WebsiteToCrawler(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding emails and phones
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)

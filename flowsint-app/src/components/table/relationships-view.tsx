@@ -59,10 +59,10 @@ function RelationshipItem({
 
   const handleNodeClickSource = useCallback(() => {
     onNodeClick(relationship.source)
-  }, [])
+  }, [onNodeClick, relationship.source])
   const handleNodeClickTarget = useCallback(() => {
     onNodeClick(relationship.target)
-  }, [])
+  }, [onNodeClick, relationship.target])
 
   const handleCheckboxChange = useCallback(
     (checked: boolean) => {
@@ -85,7 +85,7 @@ function RelationshipItem({
           {/* Source Node */}
           <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[35%]">
             <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted shrink-0">
-              <SourceIcon size={16} />
+              {SourceIcon({ size: 16 })}
             </div>
             <button
               onClick={handleNodeClickSource}
@@ -125,7 +125,7 @@ function RelationshipItem({
               </span>
             </button>
             <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted shrink-0">
-              <TargetIcon size={16} />
+              {TargetIcon({ size: 16 })}
             </div>
           </div>
         </CardContent>
@@ -278,6 +278,11 @@ export default function RelationshipsTable() {
     )
   }, [selectedEdges, sketchId, confirm, removeEdges, clearSelectedEdges, refetch])
 
+  // TanStack Virtual's useVirtualizer() is a documented React Compiler
+  // incompatibility (it returns functions that can't be safely memoized) —
+  // there's no code change here that fixes it, the compiler correctly skips
+  // optimizing this component.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: filteredRelationships.length,
     getScrollElement: () => parentRef.current,
@@ -344,7 +349,9 @@ export default function RelationshipsTable() {
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
             <h3 className="text-lg font-semibold">No relationships found</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any relationships yet.</p>
+            <p className="text-muted-foreground">
+              This sketch doesn&apos;t have any relationships yet.
+            </p>
           </div>
         </div>
       </div>
@@ -402,7 +409,8 @@ export default function RelationshipsTable() {
               checked={isAllSelected}
               ref={(el) => {
                 if (el && 'indeterminate' in el) {
-                  ;(el as HTMLInputElement).indeterminate = isIndeterminate
+                  const input = el as HTMLInputElement
+                  input.indeterminate = isIndeterminate
                 }
               }}
               onCheckedChange={handleSelectAll}

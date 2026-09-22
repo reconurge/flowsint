@@ -21,7 +21,7 @@ def emit_event_task(log_id: str, sketch_id: str, log_type: EventLevel, content: 
         ).model_dump_json()
         redis_client = redis.from_url(os.environ["REDIS_URL"])
         redis_client.publish(sketch_id, event)
-    except Exception as e:
+    except Exception:
         raise
 
 
@@ -37,5 +37,5 @@ def emit_status_event_task(
         redis_client = redis.from_url(os.environ["REDIS_URL"])
         # Publish to status channel
         redis_client.publish(f"{sketch_id}_status", event)
-    except Exception as e:
+    except Exception:
         raise

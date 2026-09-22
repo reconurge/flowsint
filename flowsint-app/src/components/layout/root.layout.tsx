@@ -22,7 +22,6 @@ export default function RootLayout({ children }: LayoutProps) {
   const toggleConsole = useLayoutStore((s) => s.toggleConsole)
   const isOpenPanel = useLayoutStore((s) => s.isOpenPanel)
   const isOpenAnalysis = useLayoutStore((s) => s.isOpenAnalysis)
-  const isOpenDetails = useLayoutStore((s) => s.isOpenDetails)
   const toggleAnalysis = useLayoutStore((s) => s.toggleAnalysis)
   const togglePanel = useLayoutStore((s) => s.togglePanel)
   const closePanel = useLayoutStore((s) => s.closePanel)
@@ -65,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps) {
             minSize={16}
             maxSize={40}
             onCollapse={closeDetails}
-            onExpand={() => { }} // No auto-open here
+            onExpand={() => {}} // No auto-open here
             collapsible={true}
             collapsedSize={2}
           >
@@ -90,7 +89,7 @@ export default function RootLayout({ children }: LayoutProps) {
             minSize={16}
             maxSize={40}
             onCollapse={closeDetails}
-            onExpand={() => { }} // No auto-open here
+            onExpand={() => {}} // No auto-open here
             collapsible={true}
             collapsedSize={2}
           >
@@ -119,7 +118,7 @@ export default function RootLayout({ children }: LayoutProps) {
 
     // No panel should be shown
     return null
-  }, [id, currentNode?.id, currentNode?.data, currentEdge?.id, isOpenAnalysis, closeDetails])
+  }, [id, type, currentNode, currentEdge, isOpenAnalysis, closeDetails])
 
   // Memoize the entire layout content to prevent unnecessary re-renders
   const layoutContent = useMemo(
@@ -185,18 +184,7 @@ export default function RootLayout({ children }: LayoutProps) {
         </div>
       </div>
     ),
-    [
-      isOpenConsole,
-      isOpenPanel,
-      isOpenAnalysis,
-      isOpenDetails,
-      id,
-      children,
-      detailsPanelSection,
-      closePanel,
-      openPanel,
-      closeDetails
-    ]
+    [isOpenConsole, isOpenPanel, children, detailsPanelSection, closePanel, openPanel]
   )
 
   return <ConfirmContextProvider>{layoutContent}</ConfirmContextProvider>

@@ -7,13 +7,13 @@ Auto-discovery is performed by calling load_all_enrichers() which imports all mo
 in the flowsint_enrichers package, triggering the @flowsint_enricher decorators.
 """
 
-import inspect
 import importlib
+import inspect
 import os
 import sys
-from typing import Dict, Optional, Type, List, Any, TypeVar
-from flowsint_core.core.enricher_base import Enricher
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
+from flowsint_core.core.enricher_base import Enricher
 
 E = TypeVar("E", bound=Enricher)
 

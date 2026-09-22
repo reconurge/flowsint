@@ -1,4 +1,7 @@
 """Tests for ScanRepository."""
+
+from flowsint_core.core.repositories import ScanRepository
+from flowsint_core.core.types import Role
 from tests.factories import (
     InvestigationFactory,
     InvestigationUserRoleFactory,
@@ -6,8 +9,6 @@ from tests.factories import (
     ScanFactory,
     SketchFactory,
 )
-from flowsint_core.core.repositories import ScanRepository
-from flowsint_core.core.types import Role
 
 
 class TestScanRepository:
@@ -31,9 +32,7 @@ class TestScanRepository:
         self._setup(db_session)
         user = ProfileFactory()
         inv = InvestigationFactory(owner=user)
-        InvestigationUserRoleFactory(
-            user=user, investigation=inv, roles=[Role.OWNER]
-        )
+        InvestigationUserRoleFactory(user=user, investigation=inv, roles=[Role.OWNER])
         sketch = SketchFactory(investigation=inv, owner_id=user.id)
         ScanFactory(sketch=sketch)
 

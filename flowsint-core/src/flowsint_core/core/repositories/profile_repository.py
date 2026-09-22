@@ -1,4 +1,5 @@
 """Repository for Profile model."""
+
 from typing import Optional
 
 from ..models import Profile

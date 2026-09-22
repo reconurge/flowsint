@@ -12,8 +12,9 @@ export interface EnricherParamSchemaItem {
   name: string
   type: string
   description: string
-  default: string
+  default?: string
   required: boolean
+  options?: { label: string; value: string }[]
 }
 
 export interface Enricher {
@@ -30,7 +31,6 @@ export interface Enricher {
   required_params: boolean
   params: Record<string, string>
   params_schema: EnricherParamSchemaItem[]
-  settings?: Record<string, string>
   icon: string | null
   wobblyType?: boolean
 }
@@ -49,33 +49,6 @@ export interface EnricherNodeData extends Enricher, Record<string, unknown> {
 // DATA STRUCTURES
 // ================================
 
-export interface ScansData {
-  [category: string]: Enricher[]
-}
-
-export interface EnricherData {
-  items: ScansData
-}
-
-// ================================
-// COMPONENT PROPS INTERFACES
-// ================================
-
-export interface EnricherItemProps {
-  enricher: Enricher
-  category: string
-}
-
-export interface EnricherNodeProps {
-  data: EnricherNodeData
-  isConnectable?: boolean
-  selected?: boolean
-}
-
-// ================================
-// ENRICHER DATA STRUCTURES
-// ================================
-
 export interface EnrichersData {
   [category: string]: Enricher[]
 }
@@ -91,4 +64,10 @@ export interface EnricherData {
 export interface EnricherItemProps {
   enricher: Enricher
   category: string
+}
+
+export interface EnricherNodeProps {
+  data: EnricherNodeData
+  isConnectable?: boolean
+  selected?: boolean
 }

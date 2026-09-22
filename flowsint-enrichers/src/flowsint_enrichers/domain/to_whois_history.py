@@ -3,17 +3,18 @@ import re
 from typing import Any, Dict, List, Optional, Set
 
 from dotenv import load_dotenv
+from tools.network.whoisxml import WhoisXmlTool
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.vault import VaultProtocol
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.address import Location
 from flowsint_types.domain import Domain
 from flowsint_types.email import Email
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
 from flowsint_types.whois import Whois
-
-from flowsint_enrichers.registry import flowsint_enricher
-from tools.network.whoisxml import WhoisXmlTool
 
 load_dotenv()
 
@@ -29,7 +30,7 @@ class DomainToWhoisHistoryEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        vault=None,
+        vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
@@ -80,14 +81,18 @@ class DomainToWhoisHistoryEnricher(Enricher):
                 if not api_data or "records" not in api_data:
                     Logger.info(
                         self.sketch_id,
-                        {"message": f"[WHOISXML] No WHOIS history found for {domain.domain}."},
+                        {
+                            "message": f"[WHOISXML] No WHOIS history found for {domain.domain}."
+                        },
                     )
                     continue
 
                 records = api_data["records"]
                 Logger.info(
                     self.sketch_id,
-                    {"message": f"[WHOISXML] Found {len(records)} WHOIS history records for {domain.domain}"},
+                    {
+                        "message": f"[WHOISXML] Found {len(records)} WHOIS history records for {domain.domain}"
+                    },
                 )
 
                 for record in records:
@@ -106,7 +111,11 @@ class DomainToWhoisHistoryEnricher(Enricher):
 
                     # Extract registrant email
                     email_str = registrant.get("email")
-                    email = Email(email=email_str) if email_str and self.__is_valid_email(email_str) else None
+                    email = (
+                        Email(email=email_str)
+                        if email_str and self.__is_valid_email(email_str)
+                        else None
+                    )
 
                     domain_obj = Domain(domain=domain_name)
 
@@ -123,22 +132,27 @@ class DomainToWhoisHistoryEnricher(Enricher):
                     results.append(whois_obj)
 
                     # Store extracted data for postprocess
-                    self._extracted_data.append({
-                        "whois": whois_obj,
-                        "original_domain": domain,
-                        "record": record,
-                        "contacts": {
-                            "registrant": registrant,
-                            "administrative": record.get("administrativeContact") or {},
-                            "technical": record.get("technicalContact") or {},
-                            "billing": record.get("billingContact") or {},
-                        },
-                    })
+                    self._extracted_data.append(
+                        {
+                            "whois": whois_obj,
+                            "original_domain": domain,
+                            "record": record,
+                            "contacts": {
+                                "registrant": registrant,
+                                "administrative": record.get("administrativeContact")
+                                or {},
+                                "technical": record.get("technicalContact") or {},
+                                "billing": record.get("billingContact") or {},
+                            },
+                        }
+                    )
 
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"[WHOISXML] Error fetching WHOIS history for {domain.domain}: {e}"},
+                    {
+                        "message": f"[WHOISXML] Error fetching WHOIS history for {domain.domain}: {e}"
+                    },
                 )
                 continue
 
@@ -148,10 +162,12 @@ class DomainToWhoisHistoryEnricher(Enricher):
         """Fetch WHOIS history from WhoisXML API."""
         tool = WhoisXmlTool()
         try:
-            return tool.launch(params={
-                "apiKey": api_key,
-                "domainName": domain,
-            })
+            return tool.launch(
+                params={
+                    "apiKey": api_key,
+                    "domainName": domain,
+                }
+            )
         except Exception as e:
             Logger.error(
                 self.sketch_id,
@@ -207,7 +223,7 @@ class DomainToWhoisHistoryEnricher(Enricher):
         """Extract a Location from a contact block."""
         street = contact.get("street", "")
         city = contact.get("city")
-        state = contact.get("state", "")
+        contact.get("state", "")
         postal_code = contact.get("postalCode", "")
         country = contact.get("country", "")
 
@@ -257,7 +273,10 @@ class DomainToWhoisHistoryEnricher(Enricher):
             self.create_relationship(whois_obj.domain, whois_obj, "HAS_WHOIS")
 
             # Create organization node if available
-            if whois_obj.organization and whois_obj.organization.name not in processed_organizations:
+            if (
+                whois_obj.organization
+                and whois_obj.organization.name not in processed_organizations
+            ):
                 processed_organizations.add(whois_obj.organization.name)
                 self.create_node(whois_obj.organization)
                 self.create_relationship(
@@ -283,16 +302,23 @@ class DomainToWhoisHistoryEnricher(Enricher):
                         processed_individuals.add(ind_id)
                         self.create_node(individual)
                         self.create_relationship(
-                            individual, whois_obj.domain, f"IS_{contact_type.upper()}_CONTACT"
+                            individual,
+                            whois_obj.domain,
+                            f"IS_{contact_type.upper()}_CONTACT",
                         )
 
                     # Individual emails
                     if individual.email_addresses:
                         for email_obj in individual.email_addresses:
-                            if email_obj.email and email_obj.email not in processed_emails:
+                            if (
+                                email_obj.email
+                                and email_obj.email not in processed_emails
+                            ):
                                 processed_emails.add(email_obj.email)
                                 self.create_node(email_obj)
-                                self.create_relationship(individual, email_obj, "HAS_EMAIL")
+                                self.create_relationship(
+                                    individual, email_obj, "HAS_EMAIL"
+                                )
 
                 # Extract location
                 location = self.__extract_location(contact)
@@ -301,7 +327,9 @@ class DomainToWhoisHistoryEnricher(Enricher):
                     if loc_id not in processed_locations:
                         processed_locations.add(loc_id)
                         self.create_node(location)
-                        self.create_relationship(whois_obj.domain, location, "REGISTERED_IN")
+                        self.create_relationship(
+                            whois_obj.domain, location, "REGISTERED_IN"
+                        )
 
             self.log_graph_message(
                 f"WHOIS history for {domain_name} -> registrar: {whois_obj.registrar} "

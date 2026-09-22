@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class SSLCertificate(FlowsintType):
     """Represents an SSL/TLS certificate with validation and security details."""
 
     subject: str = Field(
-        ..., description="Certificate subject (domain name)", title="Subject", json_schema_extra={"primary": True}
+        ...,
+        description="Certificate subject (domain name)",
+        title="Subject",
+        json_schema_extra={"primary": True},
     )
     issuer: Optional[str] = Field(
         None,
@@ -74,7 +78,7 @@ class SSLCertificate(FlowsintType):
         None, description="SHA256 fingerprint", title="SHA256 Fingerprint"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.subject
         return self

@@ -1,15 +1,19 @@
-from typing import List, Dict, Any
-from datetime import datetime
-import time
-from pydantic import ValidationError
-from .enricher_base import Enricher
-from flowsint_enrichers import ENRICHER_REGISTRY
-from .types import FlowBranch, FlowStep
-from .logger import Logger
-from ..utils import to_json_serializable
 import asyncio
 import json
 import os
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import ValidationError
+
+from flowsint_enrichers import ENRICHER_REGISTRY
+
+from ..utils import to_json_serializable
+from .enricher_base import Enricher
+from .logger import Logger
+from .types import FlowBranch, FlowStep
+from .vault import VaultProtocol
 
 
 class FlowOrchestrator(Enricher):
@@ -22,12 +26,12 @@ class FlowOrchestrator(Enricher):
         sketch_id: str,
         scan_id: str,
         enricher_branches: List[FlowBranch],
-        vault=None,
+        vault: Optional[VaultProtocol] = None,
     ):
         super().__init__(sketch_id, scan_id, vault=vault)
         self.enricher_branches = enricher_branches
-        self.enrichers = {}  # Map of nodeId -> enricher instance
-        self.execution_log_file = None  # Path to the execution log file
+        self.enrichers: Dict[str, Enricher] = {}  # Map of nodeId -> enricher instance
+        self.execution_log_file: Optional[str] = None  # Path to the execution log file
         self._create_execution_log()
         self._load_enrichers()
 
@@ -42,7 +46,8 @@ class FlowOrchestrator(Enricher):
 
             # Create filename with sketch_id and scan_id
             filename = f"enricher_execution_{self.sketch_id}_{self.scan_id}.json"
-            self.execution_log_file = os.path.join(enricher_dir, filename)
+            log_file = os.path.join(enricher_dir, filename)
+            self.execution_log_file = log_file
 
             # Serialize the enricher branches
             serialized_branches = to_json_serializable(self.enricher_branches)
@@ -74,7 +79,7 @@ class FlowOrchestrator(Enricher):
             initial_log["summary"]["total_steps"] = total_steps
 
             # Save initial log file
-            with open(self.execution_log_file, "w", encoding="utf-8") as f:
+            with open(log_file, "w", encoding="utf-8") as f:
                 json.dump(initial_log, f, indent=2, ensure_ascii=False)
 
             Logger.info(
@@ -91,7 +96,7 @@ class FlowOrchestrator(Enricher):
             self.execution_log_file = None
 
     def _update_execution_log(
-        self, step_entry: Dict[str, Any], status: str = None
+        self, step_entry: Optional[Dict[str, Any]] = None, status: Optional[str] = None
     ) -> None:
         """
         Update the execution log file with a new step entry or status update.
@@ -256,9 +261,14 @@ class FlowOrchestrator(Enricher):
             return results_mapping[ref_value]
         return None
 
+    # No callers anywhere in the codebase — dead code. Its two return
+    # statements disagree (a dict in the no-inputs-resolved branch, a single
+    # resolved value via the last loop-iteration's input_key otherwise),
+    # which List[Any] never matched; typed Any here rather than guessing at
+    # the intended behavior of code nothing exercises.
     def prepare_enricher_inputs(
         self, step: FlowStep, results_mapping: Dict[str, Any], initial_values: List[str]
-    ) -> List[Any]:
+    ) -> Any:
         """
         Prepare the inputs for an enricher based on the references and previous results.
         Handles single references, lists, and direct values.
@@ -298,7 +308,12 @@ class FlowOrchestrator(Enricher):
 
     def update_results_mapping(
         self,
-        outputs: Dict[str, Any],
+        # Callers only ever pass enricher.execute()'s result through, which
+        # is validated as dict-or-list upstream — the body below only makes
+        # sense for the dict case (list membership/indexing by a string key
+        # would raise), a pre-existing gap not fixed here since it changes
+        # runtime behavior for enrichers whose outputs are list-shaped.
+        outputs: Union[Dict[str, Any], List[Any]],
         step_outputs: Dict[str, str],
         results_mapping: Dict[str, Any],
     ) -> None:
@@ -307,7 +322,7 @@ class FlowOrchestrator(Enricher):
         """
         for output_key, output_ref in step_outputs.items():
             if output_key in outputs:
-                results_mapping[output_ref] = outputs[output_key]
+                results_mapping[output_ref] = outputs[output_key]  # type: ignore[index,call-overload]
 
     @classmethod
     def name(cls) -> str:
@@ -329,7 +344,13 @@ class FlowOrchestrator(Enricher):
     def output_schema(cls) -> Dict[str, str]:
         return {"branches": "array", "results": "dict"}
 
-    def scan(self, values: List[str]) -> Dict[str, Any]:
+    # Deliberately not Liskov-compatible with Enricher.scan (async, returns
+    # List[Dict[str, Any]]): the orchestrator returns one aggregate result
+    # for the whole flow run, not a per-item list, and this sync entry point
+    # exists for callers outside the async enricher-execution path. Not
+    # changing the signature here — that's a behavioral call about how
+    # FlowOrchestrator is actually invoked, not a typing fix.
+    def scan(self, values: List[str]) -> Dict[str, Any]:  # type: ignore[override]
         """
         Synchronous implementation of scan that runs the async version in an event loop
         """
@@ -348,22 +369,30 @@ class FlowOrchestrator(Enricher):
         # Update execution log to indicate scan has started
         self._update_execution_log(None, "running")
 
-        results = {"initial_values": values, "branches": [], "results": {}}
+        results: Dict[str, Any] = {
+            "initial_values": values,
+            "branches": [],
+            "results": {},
+        }
         Logger.pending(self.sketch_id, {"message": "Starting enricher..."})
 
         # Global mapping of output references to actual values
-        results_mapping = {}
+        results_mapping: Dict[str, Any] = {}
         # Cache for enricher results to avoid recomputation
-        enricher_results_cache = {}
+        enricher_results_cache: Dict[str, Any] = {}
 
-        total_steps = sum(len(branch.steps) for branch in self.enricher_branches)
+        sum(len(branch.steps) for branch in self.enricher_branches)
         completed_steps = 0
 
         # Process each branch
         for branch in self.enricher_branches:
             branch_id = branch.id
             branch_name = branch.name
-            branch_results = {"id": branch_id, "name": branch_name, "steps": []}
+            branch_results: Dict[str, Any] = {
+                "id": branch_id,
+                "name": branch_name,
+                "steps": [],
+            }
 
             # Process each step in the branch
             enricher_inputs = values
@@ -384,14 +413,14 @@ class FlowOrchestrator(Enricher):
                 enricher_name = enricher.name()
                 step_start_time = time.time()
 
-                step_result = {
+                step_result: Dict[str, Any] = {
                     "nodeId": node_id,
                     "enricher": enricher_name,
                     "status": "error",  # Default to error, will update on success
                 }
 
                 # Create execution log entry
-                log_entry = {
+                log_entry: Dict[str, Any] = {
                     "step_id": f"{branch_id}_{node_id}",
                     "branch_id": branch_id,
                     "branch_name": branch_name,

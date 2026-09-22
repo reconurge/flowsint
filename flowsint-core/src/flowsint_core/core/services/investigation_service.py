@@ -2,27 +2,27 @@
 Investigation service for managing investigations and user roles.
 """
 
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from ..models import Investigation, InvestigationUserRole, Sketch, Analysis
-from ..types import Role
 from ..graph import create_graph_service
+from ..models import Investigation, InvestigationUserRole, Sketch
 from ..repositories import (
-    InvestigationRepository,
-    SketchRepository,
     AnalysisRepository,
+    InvestigationRepository,
     ProfileRepository,
+    SketchRepository,
 )
+from ..types import Role
 from .base import BaseService
 from .exceptions import (
-    NotFoundError,
-    PermissionDeniedError,
     ConflictError,
     DatabaseError,
+    NotFoundError,
+    PermissionDeniedError,
 )
 
 

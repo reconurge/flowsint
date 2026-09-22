@@ -345,7 +345,10 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button>
-                            <RoleBadge role={collabRole} className="cursor-pointer hover:opacity-80 transition-opacity" />
+                            <RoleBadge
+                              role={collabRole}
+                              className="cursor-pointer hover:opacity-80 transition-opacity"
+                            />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="min-w-[140px]">
@@ -355,7 +358,9 @@ export function ShareDialog({ investigationId, children }: ShareDialogProps) {
                             return (
                               <DropdownMenuItem
                                 key={opt.value}
-                                onClick={() => updateMutation.mutate({ userId: collab.user_id, role: opt.value })}
+                                onClick={() =>
+                                  updateMutation.mutate({ userId: collab.user_id, role: opt.value })
+                                }
                                 className="flex items-center gap-2"
                               >
                                 <Icon className="w-3.5 h-3.5 opacity-60" />

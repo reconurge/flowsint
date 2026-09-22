@@ -1,5 +1,7 @@
+from typing import Optional, Self
+
 from pydantic import Field, HttpUrl, model_validator
-from typing import Optional, List, Self
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -9,7 +11,12 @@ class Gravatar(FlowsintType):
     """Represents a Gravatar profile with image and user information."""
 
     src: HttpUrl = Field(..., description="Gravatar image URL", title="Image URL")
-    hash: str = Field(..., description="Gravatar hash", title="Hash", json_schema_extra={"primary": True})
+    hash: str = Field(
+        ...,
+        description="Gravatar hash",
+        title="Hash",
+        json_schema_extra={"primary": True},
+    )
     size: Optional[int] = Field(
         None, description="Image size in pixels", title="Image Size"
     )
@@ -46,7 +53,7 @@ class Gravatar(FlowsintType):
         None, description="Larger version of the image", title="Large Image URL"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Use display name if available, otherwise hash
         if self.display_name:

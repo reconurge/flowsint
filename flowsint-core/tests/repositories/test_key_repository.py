@@ -1,8 +1,7 @@
 """Tests for KeyRepository."""
-from uuid import uuid4
 
-from tests.factories import KeyFactory, ProfileFactory
 from flowsint_core.core.repositories import KeyRepository
+from tests.factories import KeyFactory, ProfileFactory
 
 
 class TestKeyRepository:

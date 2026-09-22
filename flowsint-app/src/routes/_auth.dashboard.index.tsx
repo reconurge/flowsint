@@ -8,7 +8,5 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 })
 
 function Page() {
-  return (
-    <DashboardPage />
-  )
+  return <DashboardPage />
 }

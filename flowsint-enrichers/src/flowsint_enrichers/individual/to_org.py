@@ -1,11 +1,12 @@
-import requests
-from typing import List, Dict, Union, Set
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.organization import Organization
-from flowsint_types.individual import Individual
-from flowsint_core.core.logger import Logger
+from typing import Dict, List, Set, Union
+
 from tools.organizations.sirene import SireneTool
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.individual import Individual
+from flowsint_types.organization import Organization
 
 
 @flowsint_enricher
@@ -28,7 +29,9 @@ class IndividualToOrgEnricher(Enricher):
     def key(cls) -> str:
         return "fullname"
 
-    def preprocess(self, data: Union[List[str], List[dict], List[InputType]]) -> List[InputType]:
+    def preprocess(
+        self, data: Union[List[str], List[dict], List[InputType]]
+    ) -> List[InputType]:
         if not isinstance(data, list):
             raise ValueError(f"Expected list input, got {type(data).__name__}")
         cleaned: List[InputType] = []
@@ -280,7 +283,9 @@ class IndividualToOrgEnricher(Enricher):
             )
             return None
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         if not self._graph_service:
             return results
 
@@ -312,7 +317,7 @@ class IndividualToOrgEnricher(Enricher):
             individual_id = individual.full_name
             for org in results:
                 org_key = f"{org.name}_FR"
-                
+
                 # Create relationship between individual and organization
                 self.create_relationship(individual, org, "WORKS_FOR")
 

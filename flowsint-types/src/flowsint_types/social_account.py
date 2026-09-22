@@ -94,7 +94,7 @@ class SocialAccount(FlowsintType):
             self.id = self.username.value
         else:
             self.id = self.display_name or "unknown"
-        
+
         # Only modify nodeLabel if it isn't set
         if not self.nodeLabel:
             self.nodeLabel = self.id

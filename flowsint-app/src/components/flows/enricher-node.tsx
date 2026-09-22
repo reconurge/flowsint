@@ -51,12 +51,13 @@ const EnricherNode = memo(({ data, isConnectable }: EnricherNodeProps) => {
   const outputColor = colors[data.outputs.type.toLowerCase()]
   const opacity = data.computationState === 'pending' ? 0.5 : 1
   const setOpenFlowSheet = useFlowStore((state) => state.setOpenFlowSheet)
-  const Icon =
-    data.type === 'type'
-      ? useIcon(data.outputs.type.toLowerCase() as string)
-      : data.icon
-        ? useIcon(data.icon)
-        : null
+  // useIcon must be called unconditionally (Rules of Hooks) — resolve the icon
+  // key first, then decide whether to use the result.
+  const wantsIcon = data.type === 'type' || Boolean(data.icon)
+  const iconType =
+    data.type === 'type' ? (data.outputs.type.toLowerCase() as string) : data.icon || ''
+  const iconRenderer = useIcon(iconType)
+  const Icon = wantsIcon ? iconRenderer : null
 
   const handleAddConnector = useCallback(() => {
     setOpenFlowSheet(true, data as unknown as FlowNode)

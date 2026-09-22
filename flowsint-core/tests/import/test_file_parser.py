@@ -1,12 +1,9 @@
-from unittest.mock import patch
-
-from flowsint_types import Domain, Ip, Username
-
 from flowsint_core.imports import (
     EntityPreview,
     FileParseResult,
     parse_import_file,
 )
+from flowsint_types import Domain, Ip, Username
 
 
 def test_parse_import_file_txt_basic_with_mocked_detect_type():

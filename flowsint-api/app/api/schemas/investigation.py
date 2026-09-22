@@ -1,10 +1,12 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel
-from typing import Optional
 from datetime import datetime
-from .sketch import SketchRead
+from typing import Optional
+
+from pydantic import UUID4, BaseModel
+
 from .analysis import AnalysisRead
+from .base import ORMBase
 from .profile import ProfileRead
+from .sketch import SketchRead
 
 
 class InvestigationCreate(BaseModel):

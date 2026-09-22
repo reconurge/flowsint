@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class Device(FlowsintType):
     """Represents a device with hardware, software, and network information."""
 
     device_id: str = Field(
-        ..., description="Unique device identifier", title="Device ID", json_schema_extra={"primary": True}
+        ...,
+        description="Unique device identifier",
+        title="Device ID",
+        json_schema_extra={"primary": True},
     )
     type: Optional[str] = Field(
         None,
@@ -68,7 +72,7 @@ class Device(FlowsintType):
         None, description="Source of device information", title="Source"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         parts = []
         if self.manufacturer:

@@ -1,4 +1,5 @@
 """FactoryBoy factories for all models."""
+
 from datetime import datetime, timezone
 from uuid import uuid4
 

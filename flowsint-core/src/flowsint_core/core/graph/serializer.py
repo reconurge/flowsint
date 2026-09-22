@@ -5,12 +5,12 @@ This module provides utilities for serializing complex Python objects
 into Neo4j-compatible primitive types, following the Single Responsibility Principle.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from flowsint_types import FlowsintType
 from pydantic import BaseModel, ValidationError
 
 from flowsint_core.utils import flatten, unflatten
+from flowsint_types import FlowsintType
 
 from .types import GraphEdge, GraphNode, NodeMetadata
 
@@ -27,9 +27,9 @@ class GraphSerializer:
     """
 
     @staticmethod
-    def _clean_empty_values(data: Dict[str, Any]) -> dict:
+    def _clean_empty_values(data: Dict[str, Any]) -> Dict[str, Any]:
         """Remove empty string values from dict to avoid Pydantic validation errors."""
-        cleaned = {}
+        cleaned: Dict[str, Any] = {}
         for key, value in data.items():
             if value == "" or value is None:
                 continue
@@ -39,9 +39,11 @@ class GraphSerializer:
                     cleaned[key] = cleaned_nested
             elif isinstance(value, list):
                 cleaned_list = [
-                    GraphSerializer._clean_empty_values(item)
-                    if isinstance(item, dict)
-                    else item
+                    (
+                        GraphSerializer._clean_empty_values(item)
+                        if isinstance(item, dict)
+                        else item
+                    )
                     for item in value
                     if item != "" and item is not None
                 ]
@@ -52,7 +54,7 @@ class GraphSerializer:
         return cleaned
 
     @staticmethod
-    def flatten(dict: Dict[str, Any]):
+    def flatten(dict: Dict[str, Any]) -> Dict[str, Any]:
         return flatten(dict, remove_empty=False)
 
     @staticmethod
@@ -158,8 +160,20 @@ class GraphSerializer:
 
         Serializes the model to JSON-compatible types and flattens nested
         structures into dot-notation keys for Neo4j property storage.
+
+        nodeProperties uses exclude_unset: repository._build_node_query does
+        `SET n += $props`, so a full dump of a partial FlowsintType would
+        null out fields a prior enricher already set on the same node.
         """
-        neo4j_dict = node.model_dump(mode="json", serialize_as_any=True)
+        neo4j_dict = node.model_dump(
+            mode="json", serialize_as_any=True, exclude={"nodeProperties"}
+        )
+        node_properties = node.nodeProperties
+        neo4j_dict["nodeProperties"] = (
+            node_properties.model_dump(mode="json", exclude_unset=True)
+            if isinstance(node_properties, BaseModel)
+            else node_properties
+        )
         neo4j_dict_flatten = flatten(neo4j_dict, remove_empty=False)
         neo4j_dict_flatten.pop(
             "nodeProperties.nodeLabel", None
@@ -178,7 +192,9 @@ class GraphSerializer:
 
     @staticmethod
     def graph_edge_to_neo4j_dict(
-        from_obj: BaseModel, to_obj: BaseModel, label: str
+        from_obj: Union[FlowsintType, GraphNode],
+        to_obj: Union[FlowsintType, GraphNode],
+        label: str,
     ) -> Dict[str, Any]:
         """Build a Neo4j relationship dict for matching nodes by type and label.
 

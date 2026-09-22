@@ -52,7 +52,7 @@ export function useGraphRefresh(sketch_id: string | undefined) {
         } catch (error) {
           console.error('[useGraphRefresh] Failed to parse status payload:', error, raw.data)
         }
-      },
+      }
     })
 
     return dispose

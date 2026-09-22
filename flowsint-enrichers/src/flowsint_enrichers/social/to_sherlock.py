@@ -4,9 +4,8 @@ from typing import List
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
-from flowsint_types import SocialAccount, Username
-
 from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types import SocialAccount, Username
 
 
 @flowsint_enricher

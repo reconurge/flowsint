@@ -22,11 +22,34 @@ import { flowService } from '@/api/flow-service'
 import { Link, useParams } from '@tanstack/react-router'
 import { capitalizeFirstLetter } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, FileCode2, Zap, PlusIcon, GitBranch, FileX, Sparkles } from 'lucide-react'
+import {
+  Search,
+  FileCode2,
+  Zap,
+  PlusIcon,
+  GitBranch,
+  FileX,
+  Sparkles,
+  Settings
+} from 'lucide-react'
 import { Enricher, Flow } from '@/types'
+import {
+  EnricherParamsSheet,
+  type PendingEnricherLaunch
+} from '@/components/sketches/enricher-params-sheet'
 
 const LaunchEnricherOrFlowPanel = memo(
-  ({ values, type, children, disabled }: { values: string[]; type: string; children?: React.ReactNode, disabled?: boolean }) => {
+  ({
+    values,
+    type,
+    children,
+    disabled
+  }: {
+    values: string[]
+    type: string
+    children?: React.ReactNode
+    disabled?: boolean
+  }) => {
     const { launchEnricher } = useLaunchEnricher()
     const { launchFlow } = useLaunchFlow()
     const { id: sketch_id } = useParams({ strict: false })
@@ -35,6 +58,7 @@ const LaunchEnricherOrFlowPanel = memo(
     const [activeTab, setActiveTab] = useState('enrichers')
     const [enrichersSearchQuery, setEnrichersSearchQuery] = useState('')
     const [flowsSearchQuery, setFlowsSearchQuery] = useState('')
+    const [pendingLaunch, setPendingLaunch] = useState<PendingEnricherLaunch | null>(null)
 
     const { data: enrichers, isLoading: isLoadingEnrichers } = useQuery({
       queryKey: ['enrichers', type],
@@ -76,19 +100,44 @@ const LaunchEnricherOrFlowPanel = memo(
       if (selectedEnricher) {
         // Check if it's an Enricher or Flow based on the active tab
         if (activeTab === 'enrichers') {
-          // For enrichers, use name
-          launchEnricher(values, (selectedEnricher as Enricher).name, sketch_id)
+          const enricher = selectedEnricher as Enricher
+          if (enricher.params_schema?.length) {
+            // Hand over to the params sheet; it launches on submit.
+            setPendingLaunch({
+              enricherName: enricher.name,
+              paramsSchema: enricher.params_schema,
+              nodeIds: values
+            })
+          } else {
+            // For enrichers, use name
+            launchEnricher(values, enricher.name, sketch_id)
+          }
         } else {
           // For flows, use id
           launchFlow(values, (selectedEnricher as Flow).id, sketch_id)
         }
         handleCloseModal()
       }
-    }, [selectedEnricher, activeTab, launchEnricher, launchFlow, values, sketch_id])
+    }, [
+      selectedEnricher,
+      activeTab,
+      launchEnricher,
+      launchFlow,
+      values,
+      sketch_id,
+      handleCloseModal
+    ])
 
-    if (disabled) return (
-      <>{children}</>
+    const handleSubmitParams = useCallback(
+      (params: Record<string, string>) => {
+        if (!pendingLaunch) return
+        launchEnricher(pendingLaunch.nodeIds, pendingLaunch.enricherName, sketch_id, params)
+        setPendingLaunch(null)
+      },
+      [pendingLaunch, launchEnricher, sketch_id]
     )
+
+    if (disabled) return <>{children}</>
     return (
       <div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -179,19 +228,27 @@ const LaunchEnricherOrFlowPanel = memo(
                       filteredEnrichers.map((enricher: Enricher) => (
                         <Card
                           key={enricher.name}
-                          className={`cursor-pointer border py-1 transition-all ${selectedEnricher &&
+                          className={`cursor-pointer border py-1 transition-all ${
+                            selectedEnricher &&
                             'name' in selectedEnricher &&
                             selectedEnricher.name === enricher.name
-                            ? 'border-primary bg-primary/5'
-                            : 'hover:border-primary/50'
-                            }`}
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-primary/50'
+                          }`}
                           onClick={() => handleSelectEnricher(enricher)}
                         >
                           <CardHeader className="p-4">
                             <div className="flex flex-col space-y-4">
                               <div className="flex items-center gap-3">
                                 <RadioGroupItem value={enricher.name} id={enricher.name} />
-                                <CardTitle className="text-base">{enricher.name}</CardTitle>
+                                <CardTitle className="text-base flex items-center gap-1.5">
+                                  {enricher.name}
+                                  {enricher.params_schema?.length ? (
+                                    <span title="Requires configuration">
+                                      <Settings className="h-3 w-3 text-muted-foreground shrink-0" />
+                                    </span>
+                                  ) : null}
+                                </CardTitle>
                               </div>
 
                               {enricher.description && (
@@ -216,9 +273,7 @@ const LaunchEnricherOrFlowPanel = memo(
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-lg font-semibold">
-                            {enrichersSearchQuery
-                              ? 'No enrichers found'
-                              : 'No enrichers available'}
+                            {enrichersSearchQuery ? 'No enrichers found' : 'No enrichers available'}
                           </h3>
                           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                             {enrichersSearchQuery
@@ -258,9 +313,7 @@ const LaunchEnricherOrFlowPanel = memo(
                 <div className="p-4 grow overflow-auto">
                   <RadioGroup
                     value={
-                      selectedEnricher && 'id' in selectedEnricher
-                        ? selectedEnricher.id
-                        : undefined
+                      selectedEnricher && 'id' in selectedEnricher ? selectedEnricher.id : undefined
                     }
                     className="space-y-3"
                   >
@@ -290,12 +343,13 @@ const LaunchEnricherOrFlowPanel = memo(
                       filteredFlows.map((flow: Flow) => (
                         <Card
                           key={flow.id}
-                          className={`cursor-pointer border py-1 transition-all ${selectedEnricher &&
+                          className={`cursor-pointer border py-1 transition-all ${
+                            selectedEnricher &&
                             'id' in selectedEnricher &&
                             selectedEnricher.id === flow.id
-                            ? 'border-primary bg-primary/5'
-                            : 'hover:border-primary/50'
-                            }`}
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-primary/50'
+                          }`}
                           onClick={() => handleSelectEnricher(flow)}
                         >
                           <CardHeader className="p-4">
@@ -381,6 +435,11 @@ const LaunchEnricherOrFlowPanel = memo(
             </SheetFooter>
           </SheetContent>
         </Sheet>
+        <EnricherParamsSheet
+          pending={pendingLaunch}
+          onOpenChange={(open) => !open && setPendingLaunch(null)}
+          onSubmit={handleSubmitParams}
+        />
       </div>
     )
   }

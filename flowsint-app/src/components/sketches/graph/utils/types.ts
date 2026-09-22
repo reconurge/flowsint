@@ -1,4 +1,4 @@
-import { GraphNode, GraphEdge } from '@/types'
+import { GraphNode, GraphEdge, type GraphViewerRef } from '@/types'
 
 export interface GraphViewerProps {
   nodes: GraphNode[]
@@ -13,7 +13,7 @@ export interface GraphViewerProps {
   backgroundColor?: string
   className?: string
   style?: React.CSSProperties
-  onGraphRef?: (ref: any) => void
+  onGraphRef?: (ref: GraphViewerRef) => void
   instanceId?: string
   allowLasso?: boolean
   sketchId?: string
@@ -50,10 +50,10 @@ export interface TransformedNode extends GraphNode {
   nodeSize: number
   nodeType: string
   val: number
-  neighbors: any[]
-  links: any[]
-  fx?: number
-  fy?: number
+  // Required here (vs optional on GraphNode): transformGraphData always
+  // populates both before a node becomes a TransformedNode.
+  neighbors: NonNullable<GraphNode['neighbors']>
+  links: NonNullable<GraphNode['links']>
 }
 
 export interface TransformedEdge extends GraphEdge {

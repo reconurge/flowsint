@@ -2,12 +2,10 @@ import { useGraphStore } from '@/stores/graph-store'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components//ui/separator'
 import TypeFilters from './type-filters'
-import RuleFilters from './rule-filters'
 
 const Filters = ({ children }: { children: React.ReactNode }) => {
   const filters = useGraphStore((s) => s.filters)
   const toggleTypeFilter = useGraphStore((s) => s.toggleTypeFilter)
-  const setFilters = useGraphStore((s) => s.setFilters)
 
   return (
     <Popover>

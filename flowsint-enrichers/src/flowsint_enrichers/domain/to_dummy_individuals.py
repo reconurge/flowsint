@@ -1,6 +1,5 @@
-import socket
 from typing import Dict, List
-from flowsint_core.core.logger import Logger
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
@@ -56,7 +55,7 @@ class ToDummyEnricher(Enricher):
                     item,
                     "IS_RELATED_T0",
                 )
-        self.log_graph_message(f"Dummy enricher finished.")
+        self.log_graph_message("Dummy enricher finished.")
         return results
 
 

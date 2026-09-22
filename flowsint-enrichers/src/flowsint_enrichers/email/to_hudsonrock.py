@@ -1,11 +1,11 @@
-import requests
 from typing import List
+
+import requests
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
-from flowsint_types import Email, Device
-
 from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types import Device, Email
 
 
 @flowsint_enricher
@@ -34,7 +34,10 @@ class HudsonRockToEmail(Enricher):
         for email_obj in data:
             email_value = email_obj.email
             try:
-                api_request = requests.get(f'https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={email_value}', timeout=30)
+                api_request = requests.get(
+                    f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={email_value}",
+                    timeout=30,
+                )
 
                 if api_request.status_code != 200:
                     Logger.error(
@@ -47,10 +50,15 @@ class HudsonRockToEmail(Enricher):
 
                 try:
                     response_json = api_request.json()
-                except Exception as e:
-                    Logger.error(None, {"message": f"(HudsonRockToEmail) Failed to parse JSON for {email_value}: {api_request.text}"})
+                except Exception:
+                    Logger.error(
+                        None,
+                        {
+                            "message": f"(HudsonRockToEmail) Failed to parse JSON for {email_value}: {api_request.text}"
+                        },
+                    )
                     continue
-                
+
                 if response_json["total_user_services"] == 0:
                     Logger.error(
                         self.sketch_id,
@@ -83,12 +91,22 @@ class HudsonRockToEmail(Enricher):
 
                         results.append(
                             Device(
-                                device_id=device_id, type=device_type, os=os, last_seen=last_seen, is_desktop=is_desktop,
-                                ip_addresses=ip_addresses, source=source
+                                device_id=device_id,
+                                type=device_type,
+                                os=os,
+                                last_seen=last_seen,
+                                is_desktop=is_desktop,
+                                ip_addresses=ip_addresses,
+                                source=source,
                             )
                         )
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"(HudsonRockToEmail) Exception while querying {email_value}: {e}"})
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"(HudsonRockToEmail) Exception while querying {email_value}: {e}"
+                    },
+                )
 
         return results
 
@@ -102,12 +120,15 @@ class HudsonRockToEmail(Enricher):
         for device in results:
             try:
                 self.create_node(device)
-                
+
                 for email_obj in original_input:
                     self.create_relationship(
-                            email_obj, device, "ASSOCIATED_WITH_DEVICE")
-                    self.log_graph_message(f"(HudsonRockToEmail) {email_obj.email} -> found device '{device.device_id}'")
-            
+                        email_obj, device, "ASSOCIATED_WITH_DEVICE"
+                    )
+                    self.log_graph_message(
+                        f"(HudsonRockToEmail) {email_obj.email} -> found device '{device.device_id}'"
+                    )
+
             except Exception as e:
                 Logger.error(
                     self.sketch_id,

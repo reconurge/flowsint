@@ -1,5 +1,7 @@
-from typing import List, Optional, Dict, Self
+from typing import Dict, List, Optional, Self
+
 from pydantic import Field, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -9,7 +11,10 @@ class Breach(FlowsintType):
     """Represents a data breach incident with affected accounts and details."""
 
     name: str = Field(
-        ..., description="The name of the breach or service", title="Breach Name", json_schema_extra={"primary": True}
+        ...,
+        description="The name of the breach or service",
+        title="Breach Name",
+        json_schema_extra={"primary": True},
     )
     title: Optional[str] = Field(
         None, description="Title of the breach", title="Breach Title"
@@ -70,7 +75,7 @@ class Breach(FlowsintType):
         title="Full Breach Data",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Use title if available, otherwise name
         if self.title:

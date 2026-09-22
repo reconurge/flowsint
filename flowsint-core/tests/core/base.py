@@ -1,4 +1,5 @@
 from typing import List
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_types import Phone
 from flowsint_types.domain import Domain
@@ -46,15 +47,15 @@ def test_correct_preprocess():
     assert len(preprocessed) == 3  # 3 valid domains
     assert preprocessed[0].domain == "mydomain.com"
     assert preprocessed[0].label == "mydomain.com"
-    assert preprocessed[0].root == True
+    assert preprocessed[0].root is True
 
     assert preprocessed[1].domain == "blog.mydomain2.com"
     assert preprocessed[1].label == "blog.mydomain2.com"
-    assert preprocessed[1].root == False
+    assert preprocessed[1].root is False
 
     assert preprocessed[2].domain == "mydomain3.com"
     assert preprocessed[2].label == "mydomain3.com"
-    assert preprocessed[2].root == True
+    assert preprocessed[2].root is True
 
 
 def test_incorrect_preprocess():
@@ -67,5 +68,5 @@ def test_incorrect_preprocess():
     preprocessed = enricher.preprocess(inputs)
     assert len(preprocessed) == 1  # 1 valid domain
     assert preprocessed[0].domain == "mydomain.com"
-    assert preprocessed[0].root == True
+    assert preprocessed[0].root is True
     assert preprocessed[0].label == "mydomain.com"

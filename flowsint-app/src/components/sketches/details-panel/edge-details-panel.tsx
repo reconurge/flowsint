@@ -64,7 +64,7 @@ const EdgeDetailsPanel = memo(() => {
           })
         )
         toast.success('Relationship updated successfully.')
-      } catch (error) {
+      } catch {
         // Rollback on error
         updateEdge(edge.id, { label: previousLabel })
         toast.error('Failed to update relationship.')

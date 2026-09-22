@@ -1,9 +1,11 @@
 import json
+from typing import Any, Dict, List, Optional
+
 import aiohttp
-from typing import List, Dict, Any, Optional
+
 from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
 
 
 @flowsint_enricher
@@ -344,7 +346,9 @@ Check Flowsint logs for detailed debugging information.
             # Re-raise the exception so the caller knows something went wrong
             raise
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         Logger.success(
             self.sketch_id, {"message": f"n8n connector results: {json.dumps(results)}"}
         )

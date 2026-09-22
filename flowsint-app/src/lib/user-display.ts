@@ -1,7 +1,7 @@
 import type { Profile } from '@/types'
 import type { User } from '@/stores/auth-store'
 
-type UserLike = Partial<Profile> & Partial<User> | null | undefined
+type UserLike = (Partial<Profile> & Partial<User>) | null | undefined
 
 /**
  * Returns the best display name available:

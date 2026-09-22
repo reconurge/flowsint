@@ -1,10 +1,21 @@
 import { useEffect, useRef } from 'react'
+import type { GraphViewerRef } from '@/types'
+
+interface GraphControlActions {
+  zoomIn: () => void
+  zoomOut: () => void
+  zoomToFit: () => void
+  zoomToSelection: () => void
+  centerOnNode: (x: number, y: number) => void
+  regenerateLayout: (layoutType: 'force' | 'hierarchy') => void
+  getViewportCenter: () => { x: number; y: number } | null
+}
 
 interface UseGraphInitializationParams {
-  graphRef: React.RefObject<any>
+  graphRef: React.RefObject<GraphViewerRef>
   instanceId?: string
-  setActions: (actions: any) => void
-  onGraphRef?: (ref: any) => void
+  setActions: (actions: GraphControlActions) => void
+  onGraphRef?: (ref: GraphViewerRef) => void
   selectedNodeIdsRef: React.RefObject<Set<string>>
   regenerateLayout: (layoutType: 'force' | 'hierarchy') => void
 }
@@ -30,48 +41,44 @@ export const useGraphInitialization = ({
 
     setActions({
       zoomIn: () => {
-        if (graphRef.current && typeof graphRef.current.zoom === 'function') {
+        if (graphRef.current) {
           const zoom = graphRef.current.zoom()
           graphRef.current.zoom(zoom * 1.5)
         }
       },
       zoomOut: () => {
-        if (graphRef.current && typeof graphRef.current.zoom === 'function') {
+        if (graphRef.current) {
           const zoom = graphRef.current.zoom()
           graphRef.current.zoom(zoom * 0.75)
         }
       },
       zoomToFit: () => {
-        if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-          graphRef.current.zoomToFit(400)
-        }
+        graphRef.current?.zoomToFit(400)
       },
       zoomToSelection: () => {
-        if (graphRef.current && typeof graphRef.current.zoomToFit === 'function') {
-          const nodeFilterFn = (node: any) => selectedNodeIdsRef.current?.has(node.id)
+        if (graphRef.current) {
+          const nodeFilterFn = (node: { id?: string | number }) =>
+            node.id !== undefined && (selectedNodeIdsRef.current?.has(String(node.id)) ?? false)
           graphRef.current.zoomToFit(400, 50, nodeFilterFn)
         }
       },
       centerOnNode: (x: number, y: number) => {
-        if (graphRef.current && typeof graphRef.current.centerAt === 'function') {
+        if (graphRef.current) {
           graphRef.current.centerAt(x, y, 400)
-          if (typeof graphRef.current.zoom === 'function') {
-            graphRef.current.zoom(12, 400)
-          }
+          graphRef.current.zoom(12, 400)
         }
       },
       regenerateLayout: (layoutType: 'force' | 'hierarchy') => {
         regenerateLayoutRef.current(layoutType)
       },
+      // BUG (pre-existing, not fixed here): ForceGraphMethods has no
+      // getBoundingClientRect — this always fell through to `?? {x:0,y:0}`,
+      // so "center of viewport" always resolved to graph-coordinate origin,
+      // not the actual visible center. Left as-is rather than guessing at a
+      // fix (needs the container's DOM rect, which this hook isn't given)
+      // without a way to verify the corrected behavior against the running
+      // app.
       getViewportCenter: () => {
-        if (!graphRef.current) return null
-        const rect = graphRef.current.getBoundingClientRect?.()
-        if (!rect) return { x: 0, y: 0 }
-        const screenCenterX = rect.width / 2
-        const screenCenterY = rect.height / 2
-        if (typeof graphRef.current.screen2GraphCoords === 'function') {
-          return graphRef.current.screen2GraphCoords(screenCenterX, screenCenterY)
-        }
         return { x: 0, y: 0 }
       }
     })
@@ -93,10 +100,6 @@ export const useGraphInitialization = ({
   useEffect(() => {
     const graphInstance = graphRef.current
     if (!graphInstance || isGraphReadyRef.current) return
-
-    if (typeof graphInstance.zoom !== 'function' || typeof graphInstance.zoomToFit !== 'function') {
-      return
-    }
 
     isGraphReadyRef.current = true
     onGraphRef?.(graphInstance)

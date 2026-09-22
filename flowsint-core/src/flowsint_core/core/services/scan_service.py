@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..models import Scan
 from ..repositories import InvestigationRepository, ScanRepository, SketchRepository
 from .base import BaseService
-from .exceptions import NotFoundError, PermissionDeniedError
+from .exceptions import NotFoundError
 
 
 class ScanService(BaseService):

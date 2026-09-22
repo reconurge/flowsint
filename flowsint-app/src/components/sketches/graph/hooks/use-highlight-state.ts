@@ -1,4 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import type { LinkObject } from 'react-force-graph-2d'
+import type { GraphNode } from '@/types'
+
+// LinkObject's own source/target type — `string | number | NodeObject` — is
+// the library's real duality: a plain edge's source/target starts as an id
+// and gets mutated into the actual node object once it's resolved the
+// graph, and callers see whichever form depending on timing. Same duality
+// already reflected on GraphNode.links in types/graph.ts.
+type LinkEndpoint = LinkObject['source']
+
+// App ids are always strings (GraphNode.id: string) — coerce the library's
+// string|number id here rather than leaking a number through to callers
+// that only ever deal in string ids.
+const linkEndpointId = (endpoint: LinkEndpoint): string | undefined => {
+  const id = typeof endpoint === 'object' ? endpoint?.id : endpoint
+  return id === undefined ? undefined : String(id)
+}
 
 export const useHighlightState = () => {
   const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set())
@@ -6,7 +23,7 @@ export const useHighlightState = () => {
   const [hoverNode, setHoverNode] = useState<string | null>(null)
   const hoverFrameRef = useRef<number | null>(null)
 
-  const handleNodeHover = useCallback((node: any) => {
+  const handleNodeHover = useCallback((node: GraphNode | null) => {
     if (hoverFrameRef.current) {
       cancelAnimationFrame(hoverFrameRef.current)
     }
@@ -18,13 +35,13 @@ export const useHighlightState = () => {
       if (node) {
         newHighlightNodes.add(node.id)
         if (node.neighbors) {
-          node.neighbors.forEach((neighbor: any) => {
+          node.neighbors.forEach((neighbor) => {
             newHighlightNodes.add(neighbor.id)
           })
         }
         if (node.links) {
-          node.links.forEach((link: any) => {
-            newHighlightLinks.add(`${link.source.id}-${link.target.id}`)
+          node.links.forEach((link) => {
+            newHighlightLinks.add(`${linkEndpointId(link.source)}-${linkEndpointId(link.target)}`)
           })
         }
         setHoverNode(node.id)
@@ -38,7 +55,7 @@ export const useHighlightState = () => {
     })
   }, [])
 
-  const handleLinkHover = useCallback((link: any) => {
+  const handleLinkHover = useCallback((link: LinkObject | null) => {
     if (hoverFrameRef.current) {
       cancelAnimationFrame(hoverFrameRef.current)
     }
@@ -48,11 +65,11 @@ export const useHighlightState = () => {
       const newHighlightLinks = new Set<string>()
 
       if (link) {
-        const sourceId = typeof link.source === 'object' ? link.source.id : link.source
-        const targetId = typeof link.target === 'object' ? link.target.id : link.target
+        const sourceId = linkEndpointId(link.source)
+        const targetId = linkEndpointId(link.target)
         newHighlightLinks.add(`${sourceId}-${targetId}`)
-        newHighlightNodes.add(sourceId)
-        newHighlightNodes.add(targetId)
+        if (sourceId !== undefined) newHighlightNodes.add(sourceId)
+        if (targetId !== undefined) newHighlightNodes.add(targetId)
       }
 
       setHoverNode(null)

@@ -1,15 +1,15 @@
-import json
-import os
-import requests
 import datetime
+import os
+from typing import Any, Dict, List, Optional
 
-from typing import Any, Dict, List, Optional, Union
+import requests
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.ip import Ip
 from flowsint_types.risk_profile import RiskProfile
-from flowsint_core.utils import is_valid_ip
-from flowsint_core.core.logger import Logger
+
 
 @flowsint_enricher
 class IpToFraudScore(Enricher):
@@ -73,7 +73,9 @@ class IpToFraudScore(Enricher):
         results: List[OutputType] = []
         self.ip_risk_mapping = []
 
-        api_username = self.get_secret("SCAMLYTICS_USERNAME", os.getenv("SCAMLYTICS_USERNAME")) 
+        api_username = self.get_secret(
+            "SCAMLYTICS_USERNAME", os.getenv("SCAMLYTICS_USERNAME")
+        )
         api_key = self.get_secret("SCAMLYTICS_API_KEY", os.getenv("SCAMLYTICS_API_KEY"))
         # Scamalytics assigns each account a numbered API node (api11, api12,
         # ...); a hardcoded host 404s for every account that is not on it.
@@ -83,8 +85,11 @@ class IpToFraudScore(Enricher):
 
         for ip in data:
             try:
-                api_request = requests.get(f'https://{api_host}.scamalytics.com/v3/{api_username}/?key={api_key}&ip={ip.address}', timeout=30)
-                
+                api_request = requests.get(
+                    f"https://{api_host}.scamalytics.com/v3/{api_username}/?key={api_key}&ip={ip.address}",
+                    timeout=30,
+                )
+
                 if api_request.status_code != 200:
                     Logger.error(
                         self.sketch_id,
@@ -96,8 +101,13 @@ class IpToFraudScore(Enricher):
 
                 try:
                     response_json = api_request.json()
-                except Exception as e:
-                    Logger.error(None, {"message": f"(IpToFraudScore) Failed to parse JSON for {ip.address}: {api_request.text}"})
+                except Exception:
+                    Logger.error(
+                        None,
+                        {
+                            "message": f"(IpToFraudScore) Failed to parse JSON for {ip.address}: {api_request.text}"
+                        },
+                    )
                     continue
 
                 scamalytics_info = response_json.get("scamalytics", {})
@@ -119,7 +129,7 @@ class IpToFraudScore(Enricher):
                     "is_vpn": "VPN",
                     "is_apple_icloud_private_relay": "iCloud Private Relay",
                     "is_amazon_aws": "Amazon AWS",
-                    "is_google": "Google"
+                    "is_google": "Google",
                 }
 
                 proxy_info = scamalytics_info.get("scamalytics_proxy", {})
@@ -133,7 +143,9 @@ class IpToFraudScore(Enricher):
                     entity_type="IP address",
                     overall_risk_score=fraud_score,
                     risk_level=fraud_risk,
-                    last_updated=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    last_updated=datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).isoformat(),
                     risk_factors=proxy_flags,
                     source="Scamalytics",
                 )
@@ -141,8 +153,13 @@ class IpToFraudScore(Enricher):
                 self.ip_risk_mapping.append((ip, risk_profile))
 
             except Exception as e:
-                Logger.error(self.sketch_id, {"message": f"(IpToFraudScore) Exception while querying {ip.address}: {e}"})
-        
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"(IpToFraudScore) Exception while querying {ip.address}: {e}"
+                    },
+                )
+
         return results
 
     def postprocess(

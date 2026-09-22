@@ -1,6 +1,8 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel, ConfigDict, EmailStr
 from typing import Optional
+
+from pydantic import UUID4, BaseModel, ConfigDict, EmailStr
+
+from .base import ORMBase
 
 
 class ProfileCreate(BaseModel):

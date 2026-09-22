@@ -1,16 +1,17 @@
 """Repository layer for database operations."""
-from .base import BaseRepository
-from .profile_repository import ProfileRepository
-from .investigation_repository import InvestigationRepository
-from .sketch_repository import SketchRepository
+
 from .analysis_repository import AnalysisRepository
+from .base import BaseRepository
 from .chat_repository import ChatRepository
-from .scan_repository import ScanRepository
-from .log_repository import LogRepository
-from .key_repository import KeyRepository
-from .flow_repository import FlowRepository
 from .custom_type_repository import CustomTypeRepository
 from .enricher_template_repository import EnricherTemplateRepository
+from .flow_repository import FlowRepository
+from .investigation_repository import InvestigationRepository
+from .key_repository import KeyRepository
+from .log_repository import LogRepository
+from .profile_repository import ProfileRepository
+from .scan_repository import ScanRepository
+from .sketch_repository import SketchRepository
 
 __all__ = [
     "BaseRepository",

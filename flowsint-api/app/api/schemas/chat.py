@@ -1,7 +1,9 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel
-from typing import List, Optional, Any
 from datetime import datetime
+from typing import Any, List, Optional
+
+from pydantic import UUID4, BaseModel
+
+from .base import ORMBase
 
 
 class ChatMessageRead(BaseModel):

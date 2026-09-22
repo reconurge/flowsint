@@ -148,7 +148,13 @@ function BackgroundComponent({
         cancelAnimationFrame(rafRef.current)
       }
     }
-  }, [graphRef, canvasWidth, canvasHeight, isVisible])
+    // gapXY/offsetXY are new array literals every render — depending on
+    // them directly would restart the rAF loop every render regardless of
+    // whether the pattern actually changed. Depend on the primitives they're
+    // derived from instead; the closure still picks up fresh gapXY/offsetXY
+    // whenever the effect re-runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphRef, canvasWidth, canvasHeight, isVisible, gap, offset, patternSize, isCross, isDots])
 
   return (
     <svg

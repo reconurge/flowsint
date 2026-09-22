@@ -3,7 +3,6 @@ from typing import Optional
 
 from .protocol import LLMProvider
 
-
 _SUPPORTED_PROVIDERS = ("mistral", "openai")
 
 _DEFAULT_API_KEY_ENV = {

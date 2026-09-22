@@ -4,15 +4,14 @@ Revision ID: 6dfa83113ad7
 Revises: ba3d00e11612
 Create Date: 2025-06-18 17:42:28.391884
 """
+
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '6dfa83113ad7'
-down_revision: Union[str, None] = 'ba3d00e11612'
+revision: str = "6dfa83113ad7"
+down_revision: Union[str, None] = "ba3d00e11612"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -60,7 +59,6 @@ def upgrade() -> None:
         ALTER COLUMN status TYPE eventlevel
         USING status::text::eventlevel
     """)
-
 
 
 def downgrade() -> None:

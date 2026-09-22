@@ -33,110 +33,104 @@ import { Route as AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport } 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRouteImport
 } as any)
 const MiddlewareRoute = MiddlewareRouteImport.update({
   id: '/middleware',
   path: '/middleware',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRouteImport
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRouteImport
 } as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRouteImport
 } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRouteImport
 } as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => AuthRoute
 } as any)
 const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthDashboardRoute,
+  getParentRoute: () => AuthDashboardRoute
 } as any)
 const AuthDashboardVaultRoute = AuthDashboardVaultRouteImport.update({
   id: '/vault',
   path: '/vault',
-  getParentRoute: () => AuthDashboardRoute,
+  getParentRoute: () => AuthDashboardRoute
 } as any)
 const AuthDashboardToolsRoute = AuthDashboardToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
-  getParentRoute: () => AuthDashboardRoute,
+  getParentRoute: () => AuthDashboardRoute
 } as any)
 const AuthDashboardProfileRoute = AuthDashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AuthDashboardRoute,
+  getParentRoute: () => AuthDashboardRoute
 } as any)
 const AuthDashboardFlowsIndexRoute = AuthDashboardFlowsIndexRouteImport.update({
   id: '/flows/',
   path: '/flows/',
-  getParentRoute: () => AuthDashboardRoute,
+  getParentRoute: () => AuthDashboardRoute
 } as any)
-const AuthDashboardEnrichersIndexRoute =
-  AuthDashboardEnrichersIndexRouteImport.update({
-    id: '/enrichers/',
-    path: '/enrichers/',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
-const AuthDashboardCustomTypesIndexRoute =
-  AuthDashboardCustomTypesIndexRouteImport.update({
-    id: '/custom-types/',
-    path: '/custom-types/',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
+const AuthDashboardEnrichersIndexRoute = AuthDashboardEnrichersIndexRouteImport.update({
+  id: '/enrichers/',
+  path: '/enrichers/',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
+const AuthDashboardCustomTypesIndexRoute = AuthDashboardCustomTypesIndexRouteImport.update({
+  id: '/custom-types/',
+  path: '/custom-types/',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
 const AuthDashboardInvestigationsInvestigationIdRoute =
   AuthDashboardInvestigationsInvestigationIdRouteImport.update({
     id: '/investigations/$investigationId',
     path: '/investigations/$investigationId',
-    getParentRoute: () => AuthDashboardRoute,
+    getParentRoute: () => AuthDashboardRoute
   } as any)
-const AuthDashboardFlowsFlowIdRoute =
-  AuthDashboardFlowsFlowIdRouteImport.update({
-    id: '/flows/$flowId',
-    path: '/flows/$flowId',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
-const AuthDashboardEnrichersNewRoute =
-  AuthDashboardEnrichersNewRouteImport.update({
-    id: '/enrichers/new',
-    path: '/enrichers/new',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
-const AuthDashboardEnrichersEnricherIdRoute =
-  AuthDashboardEnrichersEnricherIdRouteImport.update({
-    id: '/enrichers/$enricherId',
-    path: '/enrichers/$enricherId',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
-const AuthDashboardCustomTypesTypeIdRoute =
-  AuthDashboardCustomTypesTypeIdRouteImport.update({
-    id: '/custom-types/$typeId',
-    path: '/custom-types/$typeId',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
+const AuthDashboardFlowsFlowIdRoute = AuthDashboardFlowsFlowIdRouteImport.update({
+  id: '/flows/$flowId',
+  path: '/flows/$flowId',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
+const AuthDashboardEnrichersNewRoute = AuthDashboardEnrichersNewRouteImport.update({
+  id: '/enrichers/new',
+  path: '/enrichers/new',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
+const AuthDashboardEnrichersEnricherIdRoute = AuthDashboardEnrichersEnricherIdRouteImport.update({
+  id: '/enrichers/$enricherId',
+  path: '/enrichers/$enricherId',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
+const AuthDashboardCustomTypesTypeIdRoute = AuthDashboardCustomTypesTypeIdRouteImport.update({
+  id: '/custom-types/$typeId',
+  path: '/custom-types/$typeId',
+  getParentRoute: () => AuthDashboardRoute
+} as any)
 const AuthDashboardInvestigationsInvestigationIdIndexRoute =
   AuthDashboardInvestigationsInvestigationIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthDashboardInvestigationsInvestigationIdRoute,
+    getParentRoute: () => AuthDashboardInvestigationsInvestigationIdRoute
   } as any)
 const AuthDashboardInvestigationsInvestigationIdTypeIdRoute =
   AuthDashboardInvestigationsInvestigationIdTypeIdRouteImport.update({
     id: '/$type/$id',
     path: '/$type/$id',
-    getParentRoute: () => AuthDashboardInvestigationsInvestigationIdRoute,
+    getParentRoute: () => AuthDashboardInvestigationsInvestigationIdRoute
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -430,12 +424,12 @@ const AuthDashboardInvestigationsInvestigationIdRouteChildren: AuthDashboardInve
     AuthDashboardInvestigationsInvestigationIdIndexRoute:
       AuthDashboardInvestigationsInvestigationIdIndexRoute,
     AuthDashboardInvestigationsInvestigationIdTypeIdRoute:
-      AuthDashboardInvestigationsInvestigationIdTypeIdRoute,
+      AuthDashboardInvestigationsInvestigationIdTypeIdRoute
   }
 
 const AuthDashboardInvestigationsInvestigationIdRouteWithChildren =
   AuthDashboardInvestigationsInvestigationIdRoute._addFileChildren(
-    AuthDashboardInvestigationsInvestigationIdRouteChildren,
+    AuthDashboardInvestigationsInvestigationIdRouteChildren
   )
 
 interface AuthDashboardRouteChildren {
@@ -466,11 +460,11 @@ const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
     AuthDashboardInvestigationsInvestigationIdRouteWithChildren,
   AuthDashboardCustomTypesIndexRoute: AuthDashboardCustomTypesIndexRoute,
   AuthDashboardEnrichersIndexRoute: AuthDashboardEnrichersIndexRoute,
-  AuthDashboardFlowsIndexRoute: AuthDashboardFlowsIndexRoute,
+  AuthDashboardFlowsIndexRoute: AuthDashboardFlowsIndexRoute
 }
 
 const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
-  AuthDashboardRouteChildren,
+  AuthDashboardRouteChildren
 )
 
 interface AuthRouteChildren {
@@ -478,7 +472,7 @@ interface AuthRouteChildren {
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthDashboardRoute: AuthDashboardRouteWithChildren,
+  AuthDashboardRoute: AuthDashboardRouteWithChildren
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
@@ -488,7 +482,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
   MiddlewareRoute: MiddlewareRoute,
-  RegisterRoute: RegisterRoute,
+  RegisterRoute: RegisterRoute
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

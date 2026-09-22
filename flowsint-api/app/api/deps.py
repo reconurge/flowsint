@@ -2,9 +2,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+
 from flowsint_core.core.auth import ALGORITHM, AUTH_SECRET
-from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

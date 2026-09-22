@@ -1,22 +1,24 @@
 import { chatCRUDService } from '@/api/chat-service'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, type UseMutationResult } from '@tanstack/react-query'
 import { SkeletonList } from '../shared/skeleton-list'
 import { Button } from '../ui/button'
 import { ArrowLeft, Trash, Sparkles } from 'lucide-react'
 import { Chat } from '@/types'
-import { useCallback } from 'react'
+import { useCallback, type Dispatch, type SetStateAction } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { useConfirm } from '../use-confirm-dialog'
+import { useConfirm, type ConfirmProps } from '../use-confirm-dialog'
 import { useChatState } from '@/stores/use-chat-store'
+
+type DeleteChatMutation = UseMutationResult<unknown, Error, string>
 
 const ChatHistory = ({
   setView,
   deleteChatMutation,
   handleCreateNewChat
 }: {
-  setView: any
-  deleteChatMutation: any
-  handleCreateNewChat: any
+  setView: Dispatch<SetStateAction<'chat' | 'history'>>
+  deleteChatMutation: DeleteChatMutation
+  handleCreateNewChat: () => void
 }) => {
   const { confirm } = useConfirm()
   const setCurrentChatId = useChatState((s) => s.setCurrentChatId)
@@ -35,13 +37,7 @@ const ChatHistory = ({
       <div className="flex items-center justify-between p-3 border-b w-full">
         <div className="flex w-full items-center justify-between gap-1">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              //@ts-ignore
-              onClick={() => setView('chat')}
-            >
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setView('chat')}>
               <ArrowLeft className="h-3 w-3" />
             </Button>
             <span className="opacity-60">Chat history</span>
@@ -104,21 +100,24 @@ const ChatItem = ({
   switchToChat
 }: {
   chat: Chat
-  confirm: any
-  deleteChatMutation: any
-  switchToChat: any
+  confirm: (props: ConfirmProps) => Promise<boolean>
+  deleteChatMutation: DeleteChatMutation
+  switchToChat: (chatId: string) => void
 }) => {
-  const handleDeleteChat = useCallback(async (e: { stopPropagation: () => void }) => {
-    e.stopPropagation()
-    if (
-      await confirm({
-        title: 'Are you sure you want to delete this chat?',
-        message: 'This action is irreversible.'
-      })
-    ) {
-      await deleteChatMutation.mutateAsync(chat.id)
-    }
-  }, [])
+  const handleDeleteChat = useCallback(
+    async (e: { stopPropagation: () => void }) => {
+      e.stopPropagation()
+      if (
+        await confirm({
+          title: 'Are you sure you want to delete this chat?',
+          message: 'This action is irreversible.'
+        })
+      ) {
+        await deleteChatMutation.mutateAsync(chat.id)
+      }
+    },
+    [chat.id, confirm, deleteChatMutation]
+  )
   return (
     <button
       onClick={() => switchToChat(chat.id)}

@@ -1,4 +1,5 @@
 """Repository for Investigation and InvestigationUserRole models."""
+
 from typing import List, Optional
 from uuid import UUID
 
@@ -31,9 +32,7 @@ class InvestigationRepository(BaseRepository[Investigation]):
             .all()
         )
 
-    def get_with_relations(
-        self, investigation_id: UUID
-    ) -> Optional[Investigation]:
+    def get_with_relations(self, investigation_id: UUID) -> Optional[Investigation]:
         return (
             self._db.query(Investigation)
             .options(
@@ -70,9 +69,7 @@ class InvestigationRepository(BaseRepository[Investigation]):
         self._db.add(role_entry)
         return role_entry
 
-    def get_collaborators(
-        self, investigation_id: UUID
-    ) -> List[InvestigationUserRole]:
+    def get_collaborators(self, investigation_id: UUID) -> List[InvestigationUserRole]:
         return (
             self._db.query(InvestigationUserRole)
             .options(selectinload(InvestigationUserRole.user))
@@ -88,9 +85,7 @@ class InvestigationRepository(BaseRepository[Investigation]):
             entry.roles = roles
         return entry
 
-    def remove_user_role(
-        self, user_id: UUID, investigation_id: UUID
-    ) -> bool:
+    def remove_user_role(self, user_id: UUID, investigation_id: UUID) -> bool:
         entry = self.get_user_role(user_id, investigation_id)
         if entry:
             self._db.delete(entry)

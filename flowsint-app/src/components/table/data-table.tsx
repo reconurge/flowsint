@@ -90,6 +90,7 @@ const VirtualCell = React.memo<{
   columnSizeVars: Record<string, number>
   noStickyCol?: boolean
 }>(({ cell, index, isFirst, isLast, isBeforeLast, columnSizeVars, noStickyCol }) => {
+  const colSizeVar = columnSizeVars[`--col-${cell.column.id}-size`]
   const cellStyle = React.useMemo(
     () => ({
       width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
@@ -99,7 +100,7 @@ const VirtualCell = React.memo<{
       verticalAlign: 'middle',
       textAlign: 'center'
     }),
-    [cell.column.id, columnSizeVars[`--col-${cell.column.id}-size`]]
+    [cell.column.id, colSizeVar]
   )
 
   const cellClassName = React.useMemo(
@@ -117,7 +118,7 @@ const VirtualCell = React.memo<{
   return (
     <td
       className={cellClassName}
-      //@ts-ignore
+      //@ts-expect-error cellStyle carries CSS custom properties, not in the Properties type
       style={cellStyle}
     >
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -234,13 +235,14 @@ const HeaderCell = React.memo<{
   columnSizeVars: Record<string, number>
   noStickyCol?: boolean
 }>(({ header, index, isFirst, isLast, isBeforeLast, columnSizeVars, noStickyCol }) => {
+  const headerSizeVar = columnSizeVars[`--header-${header.id}-size`]
   const headerStyle = React.useMemo(
     () => ({
       width: `calc(var(--header-${header.id}-size) * 1px)`,
       minWidth: `calc(var(--header-${header.id}-size) * 1px)`,
       maxWidth: `calc(var(--header-${header.id}-size) * 1px)`
     }),
-    [header.id, columnSizeVars[`--header-${header.id}-size`]]
+    [header.id, headerSizeVar]
   )
 
   const headerClassName = React.useMemo(

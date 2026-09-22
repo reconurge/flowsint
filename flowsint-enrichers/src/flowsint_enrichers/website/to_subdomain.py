@@ -1,10 +1,13 @@
-from typing import List, Union, Optional, Dict, Any
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_core.core.logger import Logger
-from flowsint_types.website import Website
-import requests
 import os
+from typing import Any, Dict, List, Optional
+
+import requests
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.website import Website
+
 
 @flowsint_enricher
 class WebsiteToSubdomains(Enricher):
@@ -58,7 +61,10 @@ class WebsiteToSubdomains(Enricher):
 
         for website in data:
             try:
-                api_request = requests.get(f'https://api.c99.nl/subdomainfinder?key={api_key}&domain={website.url}', timeout=30)
+                api_request = requests.get(
+                    f"https://api.c99.nl/subdomainfinder?key={api_key}&domain={website.url}",
+                    timeout=30,
+                )
 
                 if api_request.status_code != 200:
                     Logger.error(
@@ -73,7 +79,12 @@ class WebsiteToSubdomains(Enricher):
 
                 for subdomain in response_json.get("subdomains", []):
                     url = subdomain.get("subdomain")
-                    if website.url not in [f'http://{url}', f'https://{url}', f'http://www.{url}', f'https://www.{url}']:
+                    if website.url not in [
+                        f"http://{url}",
+                        f"https://{url}",
+                        f"http://www.{url}",
+                        f"https://www.{url}",
+                    ]:
                         ip = subdomain.get("ip")
 
                         cloudflare = []
@@ -84,7 +95,9 @@ class WebsiteToSubdomains(Enricher):
 
                         results.append(
                             Website(
-                                url=f"http://{url}", description=f"IP address: {ip}", technologies=cloudflare
+                                url=f"http://{url}",
+                                description=f"IP address: {ip}",
+                                technologies=cloudflare,
                             )
                         )
 
@@ -98,7 +111,9 @@ class WebsiteToSubdomains(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         if not self._graph_service:
             return results
 
@@ -116,12 +131,11 @@ class WebsiteToSubdomains(Enricher):
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
-                    {
-                        "message": f"(WebsiteToSubdomains) relationship error: {e}"
-                    },
+                    {"message": f"(WebsiteToSubdomains) relationship error: {e}"},
                 )
 
         return results
+
 
 InputType = WebsiteToSubdomains.InputType
 OutputType = WebsiteToSubdomains.OutputType

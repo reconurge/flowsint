@@ -14,6 +14,7 @@ import {
   Zap,
   BadgeCheck,
   BadgeAlert,
+  Settings,
   SquareArrowOutUpRight
 } from 'lucide-react'
 import { Enricher, Flow, GraphNode } from '@/types'
@@ -26,6 +27,7 @@ import BaseContextMenu from '@/components/xyflow/context-menu'
 import { useGraphStore } from '@/stores/graph-store'
 import { CopyButton } from '@/components/copy'
 import { usePermissions } from '@/hooks/use-can'
+import type { PendingEnricherLaunch } from '@/components/sketches/enricher-params-sheet'
 
 interface GraphContextMenuProps {
   node: GraphNode
@@ -40,6 +42,9 @@ interface GraphContextMenuProps {
   onEdit?: () => void
   onDelete?: () => void
   setMenu: (menu: any | null) => void
+  // The params sheet is owned by the parent: this menu dismisses itself on any
+  // outside mousedown, and a Sheet portals outside its DOM subtree.
+  onRequestParams?: (pending: PendingEnricherLaunch) => void
   [key: string]: any
 }
 
@@ -51,9 +56,12 @@ export default function ContextMenu({
   bottom,
   wrapperWidth,
   wrapperHeight,
-  onEdit,
-  onDelete,
+  // onEdit/onDelete: accepted for interface compatibility with callers, but
+  // this menu implements its own delete flow internally — not wired up here.
+  onEdit: _onEdit,
+  onDelete: _onDelete,
   setMenu,
+  onRequestParams,
   ...props
 }: GraphContextMenuProps) {
   const { id: sketchId } = useParams({ strict: false })
@@ -99,9 +107,17 @@ export default function ContextMenu({
     setMenu(null)
   }
 
-  const handleEnricherClick = (e: React.MouseEvent, enricherName: string) => {
+  const handleEnricherClick = (e: React.MouseEvent, enricher: Enricher) => {
     e.stopPropagation()
-    launchEnricher([node.id], enricherName, sketchId)
+    if (enricher.params_schema?.length) {
+      onRequestParams?.({
+        enricherName: enricher.name,
+        paramsSchema: enricher.params_schema,
+        nodeIds: [node.id]
+      })
+    } else {
+      launchEnricher([node.id], enricher.name, sketchId)
+    }
     setMenu(null)
   }
 
@@ -140,7 +156,11 @@ export default function ContextMenu({
         <div className="px-3 py-2 border-b border-border shrink-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full h-9">
-              <TabsTrigger value="enrichers" className="flex-1" onClick={(e) => e.stopPropagation()}>
+              <TabsTrigger
+                value="enrichers"
+                className="flex-1"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Zap className="h-3 w-3 mr-1" />
                 Enrichers
               </TabsTrigger>
@@ -154,159 +174,168 @@ export default function ContextMenu({
       )}
 
       {/* Tab Content */}
-      {canEdit && <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
-        {/* Enrichers Tab */}
-        <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
-          {/* Enrichers Search */}
-          <div className="px-3 py-2 border-b border-border shrink-0">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search enrichers..."
-                value={enrichersSearchQuery}
-                onChange={(e) => {
-                  e.stopPropagation()
-                  setEnrichersSearchQuery(e.target.value)
-                }}
-                onClick={(e) => e.stopPropagation()}
-                className="h-7 pl-7 text-xs"
-              />
-            </div>
-          </div>
-
-          {/* Enrichers List */}
-          <div className="flex-1 grow overflow-auto min-h-0">
-            {isLoadingEnrichers ? (
-              <div className="p-2 space-y-2">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-2 p-2 rounded-md">
-                    <Skeleton className="h-4 w-4" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3 w-3/4" />
-                      <Skeleton className="h-2 w-1/2" />
-                    </div>
-                  </div>
-                ))}
+      {canEdit && (
+        <Tabs value={activeTab} className="flex-1 flex flex-col min-h-0">
+          {/* Enrichers Tab */}
+          <TabsContent value="enrichers" className="flex-1 flex flex-col min-h-0 mt-0">
+            {/* Enrichers Search */}
+            <div className="px-3 py-2 border-b border-border shrink-0">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search enrichers..."
+                  value={enrichersSearchQuery}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setEnrichersSearchQuery(e.target.value)
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 pl-7 text-xs"
+                />
               </div>
-            ) : filteredEnrichers.length > 0 ? (
-              <div className="p-1">
-                {filteredEnrichers.map((enricher: Enricher) => (
-                  <button
-                    key={enricher.id}
-                    className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
-                    onClick={(e) => handleEnricherClick(e, enricher.name)}
-                  >
-                    <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium flex gap-1 items-center truncate">
-                        <span>
-                          {enricher.wobblyType ? (
-                            <BadgeAlert className="h-3 w-3 text-orange-400" />
-                          ) : (
-                            <BadgeCheck className="h-3 w-3 text-green-400" />
-                          )}{' '}
-                        </span>{' '}
-                        {enricher.name || '(Unnamed enricher)'}
-                      </p>
-                      {enricher.description && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {enricher.description}
+            </div>
+
+            {/* Enrichers List */}
+            <div className="flex-1 grow overflow-auto min-h-0">
+              {isLoadingEnrichers ? (
+                <div className="p-2 space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-md">
+                      <Skeleton className="h-4 w-4" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="h-2 w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredEnrichers.length > 0 ? (
+                <div className="p-1">
+                  {filteredEnrichers.map((enricher: Enricher) => (
+                    <button
+                      key={enricher.name}
+                      className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
+                      onClick={(e) => handleEnricherClick(e, enricher)}
+                    >
+                      <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium flex gap-1 items-center truncate">
+                          <span>
+                            {enricher.wobblyType ? (
+                              <BadgeAlert className="h-3 w-3 text-orange-400" />
+                            ) : (
+                              <BadgeCheck className="h-3 w-3 text-green-400" />
+                            )}{' '}
+                          </span>{' '}
+                          {enricher.name || '(Unnamed enricher)'}
+                          {enricher.params_schema?.length ? (
+                            <span title="Requires configuration">
+                              <Settings className="h-3 w-3 text-muted-foreground shrink-0" />
+                            </span>
+                          ) : null}
                         </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {/* <FavoriteButton isFavorite={false} /> */}
-                      <InfoButton description={enricher.description ?? ''} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {enrichersSearchQuery ? 'No enrichers found' : 'No enrichers available'}
-                </p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Flows Tab */}
-        <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
-          {/* Flows Search */}
-          <div className="px-3 py-2 border-b border-border shrink-0">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search flows..."
-                value={flowsSearchQuery}
-                onChange={(e) => {
-                  e.stopPropagation()
-                  setFlowsSearchQuery(e.target.value)
-                }}
-                onClick={(e) => e.stopPropagation()}
-                className="h-7 pl-7 text-xs"
-              />
+                        {enricher.description && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {enricher.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {/* <FavoriteButton isFavorite={false} /> */}
+                        <InfoButton description={enricher.description ?? ''} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {enrichersSearchQuery ? 'No enrichers found' : 'No enrichers available'}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Flows List */}
-          <div className="flex-1 grow overflow-auto min-h-0">
-            {isLoadingFlows ? (
-              <div className="p-2 space-y-2">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-2 p-2 rounded-md">
-                    <Skeleton className="h-4 w-4" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3 w-3/4" />
-                      <Skeleton className="h-2 w-1/2" />
-                    </div>
-                  </div>
-                ))}
+          {/* Flows Tab */}
+          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 mt-0">
+            {/* Flows Search */}
+            <div className="px-3 py-2 border-b border-border shrink-0">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search flows..."
+                  value={flowsSearchQuery}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setFlowsSearchQuery(e.target.value)
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 pl-7 text-xs"
+                />
               </div>
-            ) : filteredFlows.length > 0 ? (
-              <div className="p-1">
-                {filteredFlows.map((flow: Flow) => (
-                  <button
-                    key={flow.id}
-                    className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
-                    onClick={(e) => handleFlowClick(e, flow.id)}
-                  >
-                    <FileCode2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="flex items-center gap-1 text-sm font-medium truncate">
-                        <span>
-                          {flow.wobblyType ? (
-                            <BadgeAlert className="h-3 w-3 text-orange-400" />
-                          ) : (
-                            <BadgeCheck className="h-3 w-3 text-green-400" />
-                          )}{' '}
-                        </span>{' '}
-                        {flow.name || '(Unnamed flow)'}
-                      </p>
-                      {flow.description && (
-                        <p className="text-xs text-muted-foreground truncate">{flow.description}</p>
-                      )}
+            </div>
+
+            {/* Flows List */}
+            <div className="flex-1 grow overflow-auto min-h-0">
+              {isLoadingFlows ? (
+                <div className="p-2 space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-md">
+                      <Skeleton className="h-4 w-4" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="h-2 w-1/2" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {/* <FavoriteButton isFavorite={false} /> */}
-                      <InfoButton description={flow.description} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {flowsSearchQuery ? 'No flows found' : 'No flows available'}
-                </p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>}
+                  ))}
+                </div>
+              ) : filteredFlows.length > 0 ? (
+                <div className="p-1">
+                  {filteredFlows.map((flow: Flow) => (
+                    <button
+                      key={flow.id}
+                      className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left transition-colors"
+                      onClick={(e) => handleFlowClick(e, flow.id)}
+                    >
+                      <FileCode2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="flex items-center gap-1 text-sm font-medium truncate">
+                          <span>
+                            {flow.wobblyType ? (
+                              <BadgeAlert className="h-3 w-3 text-orange-400" />
+                            ) : (
+                              <BadgeCheck className="h-3 w-3 text-green-400" />
+                            )}{' '}
+                          </span>{' '}
+                          {flow.name || '(Unnamed flow)'}
+                        </p>
+                        {flow.description && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {flow.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {/* <FavoriteButton isFavorite={false} /> */}
+                        <InfoButton description={flow.description} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {flowsSearchQuery ? 'No flows found' : 'No flows available'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
     </BaseContextMenu>
   )
 }

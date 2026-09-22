@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,19 +22,29 @@ interface SaveModalProps {
   initialDescription?: string
 }
 
-export function SaveModal({ open, onOpenChange, onSave, isLoading, initialName, initialDescription }: SaveModalProps) {
+export function SaveModal({
+  open,
+  onOpenChange,
+  onSave,
+  isLoading,
+  initialName,
+  initialDescription
+}: SaveModalProps) {
   const [name, setName] = useState(initialName || 'My Enricher')
   const [description, setDescription] = useState(initialDescription || '')
   const [nameError, setNameError] = useState('')
 
-  // Update state when modal opens with new initial values
-  useEffect(() => {
+  // Update state when modal opens with new initial values — adjusted during
+  // render rather than in an effect.
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (open !== prevOpen) {
+    setPrevOpen(open)
     if (open) {
       setName(initialName || 'My Enricher')
       setDescription(initialDescription || '')
       setNameError('')
     }
-  }, [open, initialName, initialDescription])
+  }
 
   useKeyboardShortcut({
     key: 's',

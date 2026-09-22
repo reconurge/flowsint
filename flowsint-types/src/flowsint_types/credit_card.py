@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -9,7 +10,12 @@ from .registry import flowsint_type
 class CreditCard(FlowsintType):
     """Represents a credit card with financial details and security status."""
 
-    card_number: str = Field(..., description="Credit card number", title="Card Number", json_schema_extra={"primary": True})
+    card_number: str = Field(
+        ...,
+        description="Credit card number",
+        title="Card Number",
+        json_schema_extra={"primary": True},
+    )
     card_type: Optional[str] = Field(
         None, description="Type of card (Visa, Mastercard, etc.)", title="Card Type"
     )
@@ -61,18 +67,23 @@ class CreditCard(FlowsintType):
         None, description="Last time card was used", title="Last Used"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         parts = []
         if self.card_type:
             parts.append(self.card_type)
-        parts.append(f"****{self.card_number[-4:]}" if len(self.card_number) > 4 else self.card_number)
+        parts.append(
+            f"****{self.card_number[-4:]}"
+            if len(self.card_number) > 4
+            else self.card_number
+        )
         self.nodeLabel = " ".join(parts)
         return self
 
     @classmethod
     def _luhn_check(cls, card_number: str) -> bool:
         """Validate a credit card number using the Luhn algorithm."""
+
         def digits_of(n):
             return [int(d) for d in str(n)]
 
@@ -92,7 +103,7 @@ class CreditCard(FlowsintType):
     @classmethod
     def detect(cls, line: str) -> bool:
         """Detect if a line of text contains a credit card number."""
-        line = line.strip().replace(' ', '').replace('-', '')
+        line = line.strip().replace(" ", "").replace("-", "")
         if not line or not line.isdigit():
             return False
 

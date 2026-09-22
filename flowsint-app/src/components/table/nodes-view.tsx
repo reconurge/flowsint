@@ -70,7 +70,7 @@ const NodeItem = memo(function NodeItem({
   const formatNodeData = useCallback((data: any) => {
     if (!data) return ''
     const entries = Object.entries(data)
-      .map(([key, value]) => `${key}:${Boolean(value) ? value : 'N/A'}`)
+      .map(([key, value]) => `${key}:${value ? value : 'N/A'}`)
       .join(', ')
     return entries
   }, [])
@@ -80,7 +80,9 @@ const NodeItem = memo(function NodeItem({
       <div
         className="grid items-center h-14 gap-3 text-sm border-b last:border-b-0"
         style={{
-          gridTemplateColumns: canEdit ? '24px 32px auto 1fr 140px 160px 32px' : '32px auto 1fr 140px 160px 32px'
+          gridTemplateColumns: canEdit
+            ? '24px 32px auto 1fr 140px 160px 32px'
+            : '32px auto 1fr 140px 160px 32px'
         }}
       >
         {/* Checkbox */}
@@ -93,7 +95,7 @@ const NodeItem = memo(function NodeItem({
         {/* Icon */}
         <div className="flex items-center justify-center">
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted">
-            <SourceIcon size={16} />
+            {SourceIcon({ size: 16 })}
           </div>
         </div>
 
@@ -126,7 +128,7 @@ const NodeItem = memo(function NodeItem({
           <Calendar className="h-3 w-3" />
           <span className="truncate">
             {node.nodeMetadata?.created_at
-              ? formatCreatedAt(node.nodeMetadata?.created_at)
+              ? formatCreatedAt(node.nodeMetadata.created_at as string)
               : 'Unknown'}
           </span>
         </div>
@@ -224,6 +226,11 @@ export default function NodesTable({ nodes }: NodesTableProps) {
     return Array.from(types).sort()
   }, [nodes])
 
+  // TanStack Virtual's useVirtualizer() is a documented React Compiler
+  // incompatibility (it returns functions that can't be safely memoized) —
+  // there's no code change here that fixes it, the compiler correctly skips
+  // optimizing this component.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: filteredNodes.length,
     getScrollElement: () => parentRef.current,
@@ -238,7 +245,7 @@ export default function NodesTable({ nodes }: NodesTableProps) {
           <Link className="mx-auto h-12 w-12 text-muted-foreground" />
           <div>
             <h3 className="text-lg font-semibold">No nodes found</h3>
-            <p className="text-muted-foreground">This sketch doesn't have any nodes yet.</p>
+            <p className="text-muted-foreground">This sketch doesn&apos;t have any nodes yet.</p>
           </div>
         </div>
       </div>
@@ -290,7 +297,11 @@ export default function NodesTable({ nodes }: NodesTableProps) {
       {/* Table Header */}
       <div
         className="grid items-center h-11 px-4 bg-muted/50 p-2 rounded-t-md border text-sm font-medium text-muted-foreground"
-        style={{ gridTemplateColumns: canEdit ? '24px 32px auto 1fr 140px 160px 32px' : '32px auto 1fr 140px 160px 32px' }}
+        style={{
+          gridTemplateColumns: canEdit
+            ? '24px 32px auto 1fr 140px 160px 32px'
+            : '32px auto 1fr 140px 160px 32px'
+        }}
       >
         {canEdit && (
           <div className="flex items-center">
@@ -298,7 +309,8 @@ export default function NodesTable({ nodes }: NodesTableProps) {
               checked={isAllSelected}
               ref={(el) => {
                 if (el && 'indeterminate' in el) {
-                  ;(el as HTMLInputElement).indeterminate = isIndeterminate
+                  const input = el as HTMLInputElement
+                  input.indeterminate = isIndeterminate
                 }
               }}
               onCheckedChange={handleSelectAll}

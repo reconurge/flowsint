@@ -5,11 +5,11 @@ Revises: 8173aba964e7
 Create Date: 2026-02-07 00:00:00.000000
 
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "a1b2c3d4e5f6"
@@ -20,7 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. logs.content: JSONB -> JSON
-    op.execute("ALTER TABLE logs ALTER COLUMN content TYPE JSON USING content::text::json")
+    op.execute(
+        "ALTER TABLE logs ALTER COLUMN content TYPE JSON USING content::text::json"
+    )
 
     # 2. custom_types.schema: JSONB -> JSON
     op.execute(
@@ -77,9 +79,7 @@ def downgrade() -> None:
     )
     op.execute("ALTER TABLE investigation_user_roles DROP COLUMN roles")
     op.execute("ALTER TABLE investigation_user_roles RENAME COLUMN roles_tmp TO roles")
-    op.alter_column(
-        "investigation_user_roles", "roles", server_default=sa.text("'{}'")
-    )
+    op.alter_column("investigation_user_roles", "roles", server_default=sa.text("'{}'"))
 
     # 3. flows.category: JSON -> ARRAY(Text)
     # Use a temp column to avoid subquery restriction in USING

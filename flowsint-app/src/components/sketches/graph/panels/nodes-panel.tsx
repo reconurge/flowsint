@@ -135,8 +135,10 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
   const setSelectedNodes = useGraphStore((state) => state.setSelectedNodes)
   const selectedNodes = useGraphStore((state) => state.selectedNodes || [])
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
+  // getSettingValue returns number | boolean | undefined (generic getter
+  // over any category/key pair) — this setting is always boolean-valued.
   const autoZoomOnCurrentNode = useGraphSettingsStore((s) =>
-    s.getSettingValue('general', 'autoZoomOnCurrentNode')
+    Boolean(s.getSettingValue('general', 'autoZoomOnCurrentNode'))
   )
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [filters, setFilters] = useState<string[] | null>(null)
@@ -221,7 +223,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         setSelectedNodes(filteredNodes)
       } else setSelectedNodes(nodes)
     },
-    [nodes, filteredNodes, filters, searchQuery, selectedNodes, setSelectedNodes]
+    [nodes, filteredNodes, filters, searchQuery, setSelectedNodes]
   )
 
   const handleCheckboxChange = useCallback(
@@ -329,7 +331,7 @@ const NodesPanel = memo(({ nodes, isLoading }: { nodes: GraphNode[]; isLoading?:
         {!isLoading && filteredNodes?.length === 0 && searchQuery === '' && (
           <div className="text-sm p-4 text-center">
             <p className="border rounded-md border-dashed p-4 text-center">
-              Drag and drop you first node in the "items" section.
+              Drag and drop you first node in the &quot;items&quot; section.
             </p>
           </div>
         )}

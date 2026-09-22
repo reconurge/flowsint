@@ -30,8 +30,10 @@ const SketchList = () => {
     if (!searchQuery.trim()) return investigation.sketches
 
     const query = searchQuery.toLowerCase().trim()
-    return investigation.sketches.filter((sketch: Sketch) => sketch.title.toLowerCase().includes(query))
-  }, [investigation?.sketches, searchQuery])
+    return investigation.sketches.filter((sketch: Sketch) =>
+      sketch.title.toLowerCase().includes(query)
+    )
+  }, [investigation, searchQuery])
 
   if (error)
     return (
@@ -68,27 +70,28 @@ const SketchList = () => {
           <ul className="p-2">
             {filteredSketches.map((sketch: Sketch) => (
               <Link
+                key={sketch.id}
                 to="/dashboard/investigations/$investigationId/$type/$id"
                 params={{
                   investigationId: sketch.investigation_id,
-                  type: "graph",
+                  type: 'graph',
                   id: sketch.id
                 }}
               >
                 <button
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left group",
-                    "text-muted-foreground hover:bg-muted hover:text-sidebar-foreground"
+                    'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left group',
+                    'text-muted-foreground hover:bg-muted hover:text-sidebar-foreground'
                   )}
                 >
                   <FolderOpen className="w-4 h-4 shrink-0 opacity-60" />
                   <span className="truncate flex-1">{sketch.title}</span>
                   <span
                     className={cn(
-                      "w-1.5 h-1.5 rounded-full shrink-0",
-                      sketch.status === "active" && "bg-success",
-                      sketch.status === "closed" && "bg-muted-foreground/50",
-                      sketch.status === "on-hold" && "bg-warning",
+                      'w-1.5 h-1.5 rounded-full shrink-0',
+                      sketch.status === 'active' && 'bg-success',
+                      sketch.status === 'closed' && 'bg-muted-foreground/50',
+                      sketch.status === 'on-hold' && 'bg-warning'
                     )}
                   />
                 </button>

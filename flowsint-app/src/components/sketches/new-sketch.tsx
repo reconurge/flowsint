@@ -44,7 +44,7 @@ export default function NewSketch({ children }: NewSketchProps) {
   const createSketchMutation = useMutation({
     mutationFn: sketchService.create,
     onSuccess: (result) => {
-      if (result.id) {
+      if ('id' in result && result.id) {
         toast.success('New sketch created.')
         router.navigate({
           to: `/dashboard/investigations/${investigationId}/graph/${result.id}`
@@ -61,7 +61,7 @@ export default function NewSketch({ children }: NewSketchProps) {
         }
         if (sketchId) setOpen(false)
       } else {
-        toast.error(result.error || 'Failed to create sketch.')
+        toast.error(('error' in result && result.error) || 'Failed to create sketch.')
       }
     },
     onError: (error) => {

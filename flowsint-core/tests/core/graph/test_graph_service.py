@@ -1,16 +1,17 @@
 """Tests for GraphService using dependency injection."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from flowsint_types import Domain, Ip
+import pytest
+
 from flowsint_core.core.graph import (
-    GraphService,
-    create_graph_service,
-    GraphNode,
     GraphData,
+    GraphNode,
+    GraphService,
     NodeMetadata,
+    create_graph_service,
 )
+from flowsint_types import Domain, Ip
 
 from .in_memory_graph_repository import InMemoryGraphRepository
 
@@ -148,7 +149,8 @@ class TestCreateNodeFromFlowsintType:
         )
 
         with pytest.raises(
-            Exception, match="create_node_from_flowsint_type method takes a FlowsintType"
+            Exception,
+            match="create_node_from_flowsint_type method takes a FlowsintType",
         ):
             service.create_node_from_flowsint_type(node)
 
@@ -252,9 +254,7 @@ class TestCreateRelationship:
             sketch_id="sketch-1", repository=mock_repo, enable_batching=True
         )
 
-        service.create_relationship(
-            Domain(domain="a.com"), Domain(domain="b.com")
-        )
+        service.create_relationship(Domain(domain="a.com"), Domain(domain="b.com"))
 
         mock_repo.add_to_batch.assert_called_once()
         mock_repo.create_relationship.assert_not_called()
@@ -551,7 +551,8 @@ class TestCreateGraphServiceFactory:
         mock_repo = MagicMock()
 
         with patch(
-            "flowsint_core.core.graph.service.Neo4jGraphRepository", return_value=mock_repo
+            "flowsint_core.core.graph.service.Neo4jGraphRepository",
+            return_value=mock_repo,
         ) as MockRepoClass:
             with patch("flowsint_core.core.logger.Logger") as MockLogger:
                 service = create_graph_service(
@@ -570,7 +571,8 @@ class TestCreateGraphServiceFactory:
         mock_repo = MagicMock()
 
         with patch(
-            "flowsint_core.core.graph.service.Neo4jGraphRepository", return_value=mock_repo
+            "flowsint_core.core.graph.service.Neo4jGraphRepository",
+            return_value=mock_repo,
         ):
             with patch("flowsint_core.core.logger.Logger"):
                 service = create_graph_service(sketch_id="sketch-1")

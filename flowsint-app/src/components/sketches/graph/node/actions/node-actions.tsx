@@ -55,7 +55,7 @@ const NodeActions = memo(
       setRelatedNodeToAdd(node)
       setOpenMainDialog(true)
       setMenu?.(null)
-    }, [setOpenMainDialog, setMenu, node])
+    }, [setOpenMainDialog, setMenu, node, setRelatedNodeToAdd])
 
     const handleAskAI = useCallback(
       (e: React.MouseEvent) => {
@@ -92,7 +92,6 @@ const NodeActions = memo(
     const handleUpdateFlag = useCallback(
       async (value: FlagColor) => {
         const val = value === flagValue ? null : value
-        node.nodeFlag = flagValue
         setFlagValue(val)
         try {
           updateNode(node.id, { nodeFlag: val })
@@ -105,7 +104,7 @@ const NodeActions = memo(
           console.log(e)
         }
       },
-      [node.id, flagValue, updateNode, sketchId]
+      [node, flagValue, updateNode, sketchId]
     )
 
     if (!canEdit) return null

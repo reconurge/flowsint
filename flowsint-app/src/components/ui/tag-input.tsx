@@ -30,8 +30,7 @@ export function TagInput({
 
   const filteredOptions = options?.filter(
     (opt) =>
-      !value.includes(opt.value) &&
-      opt.label.toLowerCase().includes(inputValue.toLowerCase())
+      !value.includes(opt.value) && opt.label.toLowerCase().includes(inputValue.toLowerCase())
   )
 
   const showDropdown = isOpen && filteredOptions && filteredOptions.length > 0
@@ -81,14 +80,10 @@ export function TagInput({
     if (showDropdown) {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setActiveIndex((prev) =>
-          prev < filteredOptions!.length - 1 ? prev + 1 : 0
-        )
+        setActiveIndex((prev) => (prev < filteredOptions!.length - 1 ? prev + 1 : 0))
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setActiveIndex((prev) =>
-          prev > 0 ? prev - 1 : filteredOptions!.length - 1
-        )
+        setActiveIndex((prev) => (prev > 0 ? prev - 1 : filteredOptions!.length - 1))
       } else if (e.key === 'Escape') {
         setIsOpen(false)
         setActiveIndex(-1)

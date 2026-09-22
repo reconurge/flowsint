@@ -1,14 +1,9 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 import { toast } from 'sonner'
-import {
-  FileCode2,
-  FlaskConical,
-  CheckCircle2,
-  XCircle
-} from 'lucide-react'
+import { FileCode2, FlaskConical, CheckCircle2, XCircle } from 'lucide-react'
 import type { editor } from 'monaco-editor'
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -115,11 +110,16 @@ export function TemplateEditor({ templateId, initialContent, importedYaml }: Tem
   const hasChanges = content !== savedContent
   const hasErrors = !validationResult.valid || editorErrors.some((e) => e.severity >= 8)
   const templateName = validationResult.data?.name || 'Untitled'
-  const templateParams = validationResult.data?.request?.params || {}
+  const templateParams = useMemo(
+    () => validationResult.data?.request?.params || {},
+    [validationResult.data]
+  )
   const paramKeys = Object.keys(templateParams)
 
   const stateRef = useRef({ hasErrors, hasChanges, data: validationResult.data, content })
-  stateRef.current = { hasErrors, hasChanges, data: validationResult.data, content }
+  useLayoutEffect(() => {
+    stateRef.current = { hasErrors, hasChanges, data: validationResult.data, content }
+  })
 
   const createMutation = useMutation({
     mutationFn: (data: TemplateData) =>

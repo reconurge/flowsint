@@ -2,10 +2,11 @@
 Protocols and interfaces for the Logger system.
 Following SOLID principles with Dependency Inversion.
 """
-from typing import Protocol, Any, Dict
-from uuid import UUID
-from .models import Log
+
+from typing import Any, Dict, Protocol
+
 from .enums import EventLevel
+from .models import Log
 
 
 class DatabaseSession(Protocol):
@@ -35,7 +36,9 @@ class DatabaseSession(Protocol):
 class EventEmitter(Protocol):
     """Protocol for event emission (Redis pub/sub)."""
 
-    def emit(self, log_id: str, sketch_id: str, level: EventLevel, content: Dict) -> None:
+    def emit(
+        self, log_id: str, sketch_id: str, level: EventLevel, content: Dict
+    ) -> None:
         """Emit a log event to Redis for real-time display."""
         ...
 
@@ -47,6 +50,8 @@ class LogStorage(Protocol):
         """Store a single log entry."""
         ...
 
-    def store_logs_batch(self, logs_data: list[tuple[str, EventLevel, Dict]]) -> list[Log]:
+    def store_logs_batch(
+        self, logs_data: list[tuple[str, EventLevel, Dict]]
+    ) -> list[Log]:
         """Store multiple log entries in a batch."""
         ...

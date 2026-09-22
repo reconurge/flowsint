@@ -2,15 +2,16 @@
 Authentication service for user login and registration.
 """
 
-from typing import Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from typing import Any, Dict
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from ..auth import create_access_token, get_password_hash, verify_password
 from ..models import Profile
-from ..auth import verify_password, create_access_token, get_password_hash
 from ..repositories import ProfileRepository
 from .base import BaseService
-from .exceptions import AuthenticationError, ConflictError, DatabaseError
+from .exceptions import AuthenticationError, ConflictError
 
 
 class AuthService(BaseService):

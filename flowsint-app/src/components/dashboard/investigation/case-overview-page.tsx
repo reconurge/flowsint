@@ -1,9 +1,8 @@
-
-import { CaseHeader } from "./case-header"
-import { SketchesSection } from "./sketches-section"
-import { AnalysesSection } from "./analyses-section"
-import { Investigation } from "@/types"
-import { usePermissions } from "@/hooks/use-can"
+import { CaseHeader } from './case-header'
+import { SketchesSection } from './sketches-section'
+import { AnalysesSection } from './analyses-section'
+import { Investigation } from '@/types'
+import { usePermissions } from '@/hooks/use-can'
 
 type CaseOverviewPageProps = {
   investigation: Investigation

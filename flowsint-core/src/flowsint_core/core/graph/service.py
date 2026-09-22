@@ -7,8 +7,9 @@ integrating repository and logging functionality.
 
 from typing import Any, Dict, List, Optional, Protocol
 
-from flowsint_types import FlowsintType
 from pydantic import BaseModel
+
+from flowsint_types import FlowsintType
 
 from .repository import Neo4jGraphRepository
 from .repository_protocol import GraphRepositoryProtocol

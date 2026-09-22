@@ -30,7 +30,7 @@ export const DraggableItem = memo(function DraggableItem({
   const { actionItems } = useActionItems()
   const [isDragging, setIsDragging] = useState(false)
   const colors = useNodesDisplaySettings((s) => s.colors)
-  // @ts-ignore
+  // @ts-expect-error colors is keyed by ItemType, icon is a plain string
   const colorStr = colors[icon as string] || color
   const IconComponent = useIcon(icon, { nodeIcon: icon, nodeColor: color })
 

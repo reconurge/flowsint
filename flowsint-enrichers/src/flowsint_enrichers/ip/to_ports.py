@@ -1,11 +1,13 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
+
+from tools.network.naabu import NaabuTool
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_core.core.vault import VaultProtocol
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.ip import Ip
 from flowsint_types.port import Port
-from flowsint_core.utils import is_valid_ip
-from flowsint_core.core.logger import Logger
-from tools.network.naabu import NaabuTool
 
 
 @flowsint_enricher
@@ -20,7 +22,7 @@ class IpToPortsEnricher(Enricher):
         self,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        vault=None,
+        vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
@@ -133,9 +135,7 @@ class IpToPortsEnricher(Enricher):
             try:
                 Logger.info(
                     self.sketch_id,
-                    {
-                        "message": f"[NAABU] Scanning {ip.address} in {mode} mode..."
-                    },
+                    {"message": f"[NAABU] Scanning {ip.address} in {mode} mode..."},
                 )
 
                 # Launch naabu scan
@@ -188,7 +188,7 @@ class IpToPortsEnricher(Enricher):
         return results
 
     def postprocess(
-        self, results: List[OutputType], input_data: List[InputType] = None
+        self, results: List[OutputType], input_data: Optional[List[InputType]] = None
     ) -> List[OutputType]:
         """Create Neo4j nodes for ports and relationships with IP addresses"""
         if self._graph_service and results:
@@ -197,8 +197,7 @@ class IpToPortsEnricher(Enricher):
                 ip_address = getattr(port, "_ip_address", None)
                 if not ip_address:
                     continue
-                
-                port_id = f"{ip_address}:{port.number}"
+
                 self.create_node(port)
 
                 # Create relationship from IP to Port

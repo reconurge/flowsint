@@ -1,4 +1,4 @@
-from typing import Literal, Union, Any
+from typing import Any, Literal, Union
 from uuid import UUID
 
 EventLevel = Literal["info", "warn", "error", "success", "debug"]

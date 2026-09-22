@@ -39,7 +39,7 @@ export function PathFinder() {
       } else {
         toast.info('No path found between these nodes')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to find path')
     } finally {
       setIsLoading(false)

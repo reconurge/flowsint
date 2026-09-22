@@ -14,14 +14,14 @@ export const useChatState = create<ChatState>()(
       setCurrentChatId: (chatId) => set({ currentChatId: chatId }),
       deleteChat: (chatId) =>
         set((state) => ({
-          currentChatId: state.currentChatId === chatId ? null : state.currentChatId,
-        })),
+          currentChatId: state.currentChatId === chatId ? null : state.currentChatId
+        }))
     }),
     {
       name: 'chat-state-storage',
       partialize: (state) => ({
-        currentChatId: state.currentChatId,
-      }),
+        currentChatId: state.currentChatId
+      })
     }
   )
 )

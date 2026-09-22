@@ -1,13 +1,13 @@
-import json
 import os
-from typing import List, Dict, Any, Union, Optional
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.cidr import CIDR
-from flowsint_types.asn import ASN
-from flowsint_core.utils import is_valid_asn, parse_asn
-from flowsint_core.core.logger import Logger
+from typing import Any, Dict, List, Optional
+
 from tools.network.asnmap import AsnmapTool
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.asn import ASN
+from flowsint_types.cidr import CIDR
 
 
 @flowsint_enricher
@@ -75,7 +75,9 @@ class AsnToCidrsEnricher(Enricher):
                 asn_cidrs = []
                 # Use asnmap tool to get CIDR info, passing the API key
                 # asnmap expects ASN with "AS" prefix
-                cidr_data = asnmap.launch(f"AS{asn.number}", type="asn", api_key=api_key)
+                cidr_data = asnmap.launch(
+                    f"AS{asn.number}", type="asn", api_key=api_key
+                )
 
                 if cidr_data and "as_range" in cidr_data and cidr_data["as_range"]:
                     # Add all CIDRs for this ASN
@@ -87,7 +89,9 @@ class AsnToCidrsEnricher(Enricher):
                         except Exception as e:
                             Logger.error(
                                 self.sketch_id,
-                                {"message": f"Failed to parse CIDR {cidr_str}: {str(e)}"},
+                                {
+                                    "message": f"Failed to parse CIDR {cidr_str}: {str(e)}"
+                                },
                             )
 
                     Logger.info(
@@ -114,7 +118,9 @@ class AsnToCidrsEnricher(Enricher):
 
         return cidrs
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Create Neo4j relationships between ASNs and their corresponding CIDRs
         # Use the mapping from scan if available, else fallback to zip
         asn_to_cidrs = getattr(self, "_asn_to_cidrs_map", None)

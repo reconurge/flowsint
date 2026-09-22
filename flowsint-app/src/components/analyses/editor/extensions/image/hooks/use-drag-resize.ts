@@ -122,7 +122,6 @@ export function useDragResize({
     [maxWidth, widthConstraint, dimensions.width, dimensions.height, minWidth, minHeight]
   )
 
-  //@ts-ignore
   useEffect(() => {
     if (resizeDirection) {
       document.addEventListener('keydown', handleKeydown)

@@ -1,12 +1,13 @@
 """Tests for EnricherTemplateService."""
+
 import pytest
 
-from tests.factories import EnricherTemplateFactory, ProfileFactory
 from flowsint_core.core.repositories import EnricherTemplateRepository
 from flowsint_core.core.services.enricher_template_service import (
     EnricherTemplateService,
 )
 from flowsint_core.core.services.exceptions import ConflictError, NotFoundError
+from tests.factories import EnricherTemplateFactory, ProfileFactory
 
 
 class TestEnricherTemplateService:
@@ -173,7 +174,12 @@ class TestEnricherTemplateService:
         t = EnricherTemplateFactory(owner=user, name="T1", version=1.0)
         service = self._make_service(db_session)
 
-        new_content = {"name": "T2", "category": "domain", "version": 2.0, "description": "new desc"}
+        new_content = {
+            "name": "T2",
+            "category": "domain",
+            "version": 2.0,
+            "description": "new desc",
+        }
         updated = service.update_template(t.id, user.id, {"content": new_content})
 
         assert updated.name == "T2"

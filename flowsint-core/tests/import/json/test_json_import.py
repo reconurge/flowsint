@@ -91,14 +91,15 @@ def test_json_import_preserves_apostrophes_in_string_values():
 
     assert "Individual" in results.entities
     labels = {
-        str(preview.obj.nodeLabel)
-        for preview in results.entities["Individual"].results
+        str(preview.obj.nodeLabel) for preview in results.entities["Individual"].results
     }
     assert "Sarah O'Brien" in labels
 
 
 def test_json_import_still_accepts_single_quoted_payload():
     """Python-dict-style payloads (single-quoted) remain supported as fallback."""
-    single_quoted = b"{'nodes': [{'id': '1', 'label': 'Alice', 'type': 'individual'}], 'edges': []}"
+    single_quoted = (
+        b"{'nodes': [{'id': '1', 'label': 'Alice', 'type': 'individual'}], 'edges': []}"
+    )
     results = parse_json(single_quoted, max_preview_rows=100)
     assert "Individual" in results.entities

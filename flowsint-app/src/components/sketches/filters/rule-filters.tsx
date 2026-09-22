@@ -1,10 +1,16 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Plus, XIcon } from "lucide-react"
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { memo, useState } from "react"
-import { v4 as uuidv4 } from "uuid"
-import type { RuleFilter, Filters, RuleKey, RuleOperator } from "@/types/filter"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Plus, XIcon } from 'lucide-react'
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import { memo, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+import type { RuleFilter, Filters, RuleKey, RuleOperator } from '@/types/filter'
 
 type RuleFiltersProps = {
   filters: Filters
@@ -17,7 +23,7 @@ function RuleFilters({ filters, setFilters }: RuleFiltersProps) {
   const { rules } = draft
 
   const setDraftRules = (newRules: RuleFilter[]) => {
-    setDraft(prev => ({ ...prev, rules: newRules }))
+    setDraft((prev) => ({ ...prev, rules: newRules }))
   }
 
   const addRule = () => {
@@ -25,21 +31,19 @@ function RuleFilters({ filters, setFilters }: RuleFiltersProps) {
       ...rules,
       {
         id: uuidv4(),
-        key: "label",
-        operator: "is",
-        matcher: ""
+        key: 'label',
+        operator: 'is',
+        matcher: ''
       }
     ])
   }
 
   const removeRule = (id: string) => {
-    setDraftRules(rules.filter(r => r.id !== id))
+    setDraftRules(rules.filter((r) => r.id !== id))
   }
 
-  const updateRule = (id: string, patch: Partial<Omit<RuleFilter, "id">>) => {
-    setDraftRules(
-      rules.map(r => (r.id === id ? { ...r, ...patch } : r))
-    )
+  const updateRule = (id: string, patch: Partial<Omit<RuleFilter, 'id'>>) => {
+    setDraftRules(rules.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   }
 
   const applyChanges = () => {
@@ -74,16 +78,14 @@ function RuleFilters({ filters, setFilters }: RuleFiltersProps) {
       </div>
 
       {rules.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          Start by adding a filter rule.
-        </p>
+        <p className="text-xs text-muted-foreground">Start by adding a filter rule.</p>
       ) : (
         <ul className="space-y-2">
-          {rules.map(rule => (
+          {rules.map((rule) => (
             <RuleItem
               key={rule.id}
               rule={rule}
-              onChange={patch => updateRule(rule.id, patch)}
+              onChange={(patch) => updateRule(rule.id, patch)}
               onRemove={() => removeRule(rule.id)}
             />
           ))}
@@ -93,10 +95,9 @@ function RuleFilters({ filters, setFilters }: RuleFiltersProps) {
   )
 }
 
-
 type RuleItemProps = {
   rule: RuleFilter
-  onChange: (patch: Partial<Omit<RuleFilter, "id">>) => void
+  onChange: (patch: Partial<Omit<RuleFilter, 'id'>>) => void
   onRemove: () => void
 }
 
@@ -109,7 +110,7 @@ const RuleItem = memo(({ rule, onChange, onRemove }: RuleItemProps) => (
 
       <Input
         value={rule.matcher}
-        onChange={e => onChange({ matcher: e.target.value })}
+        onChange={(e) => onChange({ matcher: e.target.value })}
         className="h-7 grow w-1/3"
         placeholder="matcher"
       />
@@ -126,30 +127,41 @@ const RuleItem = memo(({ rule, onChange, onRemove }: RuleItemProps) => (
   </li>
 ))
 
+const KEYS: RuleKey[] = ['label', 'domain', 'ip']
+const OPERATORS: RuleOperator[] = ['is', 'not', 'like', 'startsWith', 'endsWith']
 
-const KEYS: RuleKey[] = ["label", "domain", "ip"]
-const OPERATORS: RuleOperator[] = ["is", "not", "like", "startsWith", "endsWith"]
+const KeyDropDown = memo(
+  ({ value, onChange }: { value: RuleKey; onChange: (v: RuleKey) => void }) => (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="!h-7 w-1/3">
+        <SelectValue placeholder="property" />
+      </SelectTrigger>
+      <SelectContent>
+        {KEYS.map((k) => (
+          <SelectItem key={k} value={k}>
+            {k}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+)
 
-const KeyDropDown = memo(({ value, onChange }: { value: RuleKey, onChange: (v: RuleKey) => void }) => (
-  <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="!h-7 w-1/3">
-      <SelectValue placeholder="property" />
-    </SelectTrigger>
-    <SelectContent>
-      {KEYS.map(k => <SelectItem key={k} value={k}>{k}</SelectItem>)}
-    </SelectContent>
-  </Select>
-))
-
-const OperatorDropDown = memo(({ value, onChange }: { value: RuleOperator, onChange: (v: RuleOperator) => void }) => (
-  <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="!h-7 grow w-1/3">
-      <SelectValue />
-    </SelectTrigger>
-    <SelectContent>
-      {OPERATORS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-    </SelectContent>
-  </Select>
-))
+const OperatorDropDown = memo(
+  ({ value, onChange }: { value: RuleOperator; onChange: (v: RuleOperator) => void }) => (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="!h-7 grow w-1/3">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {OPERATORS.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+)
 
 export default RuleFilters

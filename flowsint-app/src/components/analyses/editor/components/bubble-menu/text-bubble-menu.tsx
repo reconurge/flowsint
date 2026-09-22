@@ -30,7 +30,7 @@ const BubbleButton = ({
   active,
   onClick,
   disabled,
-  children,
+  children
 }: {
   active?: boolean
   onClick: () => void

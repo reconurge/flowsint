@@ -1,11 +1,13 @@
 """Utilities for handling custom types: validation and dynamic model creation."""
+
 import hashlib
 import json
 from typing import Any, Dict, Type
-from pydantic import BaseModel, create_model, EmailStr, Field, field_validator
-from jsonschema import Draft7Validator, ValidationError as JSONSchemaValidationError
-from fastapi import HTTPException
 
+from fastapi import HTTPException
+from jsonschema import Draft7Validator
+from jsonschema import ValidationError as JSONSchemaValidationError
+from pydantic import BaseModel, EmailStr, Field, create_model
 
 # Mapping of JSON Schema types to Python types
 TYPE_MAP = {
@@ -44,10 +46,7 @@ def validate_json_schema(schema: Dict[str, Any]) -> None:
     try:
         Draft7Validator.check_schema(schema)
     except JSONSchemaValidationError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid JSON Schema: {e.message}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid JSON Schema: {e.message}")
 
     # Additional security checks
     _check_schema_security(schema)
@@ -68,7 +67,7 @@ def _check_schema_security(schema: Dict[str, Any]) -> None:
     if schema_type and schema_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Type '{schema_type}' is not allowed. Allowed types: {ALLOWED_TYPES}"
+            detail=f"Type '{schema_type}' is not allowed. Allowed types: {ALLOWED_TYPES}",
         )
 
     # Check properties recursively
@@ -79,11 +78,13 @@ def _check_schema_security(schema: Dict[str, Any]) -> None:
             if prop_type and prop_type not in ALLOWED_TYPES:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Type '{prop_type}' in property '{prop_name}' is not allowed"
+                    detail=f"Type '{prop_type}' in property '{prop_name}' is not allowed",
                 )
 
 
-def validate_payload_against_schema(payload: Dict[str, Any], schema: Dict[str, Any]) -> tuple[bool, list[str]]:
+def validate_payload_against_schema(
+    payload: Dict[str, Any], schema: Dict[str, Any]
+) -> tuple[bool, list[str]]:
     """
     Validate a payload against a JSON Schema.
 
@@ -121,7 +122,9 @@ def calculate_schema_checksum(schema: Dict[str, Any]) -> str:
     return hashlib.sha256(schema_str.encode()).hexdigest()
 
 
-def jsonschema_to_pydantic(schema: Dict[str, Any], model_name: str = "DynamicModel") -> Type[BaseModel]:
+def jsonschema_to_pydantic(
+    schema: Dict[str, Any], model_name: str = "DynamicModel"
+) -> Type[BaseModel]:
     """
     Convert a JSON Schema to a Pydantic model.
 
@@ -174,7 +177,7 @@ def jsonschema_to_pydantic(schema: Dict[str, Any], model_name: str = "DynamicMod
     except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail=f"Failed to convert JSON Schema to Pydantic model: {str(e)}"
+            detail=f"Failed to convert JSON Schema to Pydantic model: {str(e)}",
         )
 
 

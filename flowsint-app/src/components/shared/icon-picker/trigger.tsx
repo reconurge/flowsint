@@ -14,7 +14,7 @@ export const NodeIconTrigger = ({ type, onClick }: NodeIconTriggerProps) => {
       variant={'ghost'}
       size={'icon'}
     >
-      <Icon size={24} />
+      {Icon({ size: 24 })}
     </Button>
   )
 }

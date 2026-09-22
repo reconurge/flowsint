@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
 import { sketchService } from '@/api/sketch-service'
 import { toast } from 'sonner'
@@ -20,7 +20,9 @@ const INITIAL_STATE: LinkCreationState = {
 export const useLinkCreation = (sketchId?: string) => {
   const [state, setState] = useState<LinkCreationState>(INITIAL_STATE)
   const stateRef = useRef(state)
-  stateRef.current = state
+  useLayoutEffect(() => {
+    stateRef.current = state
+  })
 
   const [shiftHeld, setShiftHeld] = useState(false)
 

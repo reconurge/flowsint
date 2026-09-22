@@ -36,6 +36,11 @@ export interface Chat {
   last_updated_at: string
 }
 
+// getById returns the chat's messages inline, unlike the list endpoints.
+export interface ChatDetail extends Chat {
+  messages: ChatMessage[]
+}
+
 export function toUIMessage(msg: ChatMessage): UIMessage {
   return {
     id: msg.id,

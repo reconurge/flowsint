@@ -25,7 +25,7 @@ const Legend = () => {
               {entries.map(([key, value]) => (
                 <li key={key}>
                   <div className="flex items-center gap-2">
-                    {/* @ts-ignore */}
+                    {/* @ts-expect-error getIcon expects ItemType, key is a plain string */}
                     <span>{getIcon(key)}</span>
                     <span className="capitalize">{key.split('_').join(' ')}</span>
                     <span

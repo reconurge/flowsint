@@ -1,9 +1,7 @@
 import inspect
 import ipaddress
 import re
-import socket
-import ssl
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import phonenumbers
@@ -128,7 +126,7 @@ def is_valid_asn(asn: str) -> bool:
     return 0 <= asn_num <= 4294967295
 
 
-def resolve_type(details: dict, schema_context: dict = None) -> str:
+def resolve_type(details: dict, schema_context: Optional[dict] = None) -> str:
     if "anyOf" in details:
         types = []
         for option in details["anyOf"]:
@@ -147,11 +145,11 @@ def resolve_type(details: dict, schema_context: dict = None) -> str:
         if details["type"] == "array":
             item_type = resolve_type(details.get("items", {}), schema_context)
             return f"{item_type}[]"
-        return details["type"]
+        return str(details["type"])
 
     # Handle $ref in array items or other contexts
     if "$ref" in details and schema_context:
-        ref_path = details["$ref"]
+        ref_path = str(details["$ref"])
         if ref_path.startswith("#/$defs/"):
             ref_name = ref_path.split("/")[-1]
             return ref_name
@@ -183,26 +181,6 @@ def extract_input_schema_flow(model: Type[BaseModel]) -> Dict[str, Any]:
         "type": "type",
         "category": model.__name__,
     }
-
-
-def get_domain_from_ssl(ip: str, port: int = 443) -> str | None:
-    try:
-        context = ssl.create_default_context()
-        with socket.create_connection((ip, port), timeout=3) as sock:
-            with context.wrap_socket(sock, server_hostname=ip) as ssock:
-                cert = ssock.getpeercert()
-                subject = cert.get("subject", [])
-                for entry in subject:
-                    if entry[0][0] == "commonName":
-                        return entry[0][1]
-                # Alternative: check subjectAltName
-                san = cert.get("subjectAltName", [])
-                for typ, val in san:
-                    if typ == "DNS":
-                        return val
-    except Exception as e:
-        print(f"SSL extraction failed for {ip}: {e}")
-    return None
 
 
 def extract_enricher(enricher: Dict[str, Any]) -> Dict[str, Any]:
@@ -311,11 +289,11 @@ def unflatten(data: Dict[str, Any], *, separator: str = ".") -> Dict[str, Any]:
 
 def get_inline_relationships(
     nodes: List[GraphNode], edges: List[GraphEdge]
-) -> List[str]:
+) -> List[Dict[str, Any]]:
     """
     Get the inline relationships for a list of nodes and edges.
     """
-    relationships = []
+    relationships: List[Dict[str, Any]] = []
     for edge in edges:
         source = next((node for node in nodes if node.id == edge.source), None)
         target = next((node for node in nodes if node.id == edge.target), None)
@@ -324,7 +302,7 @@ def get_inline_relationships(
     return relationships
 
 
-def to_json_serializable(obj):
+def to_json_serializable(obj: Any) -> Any:
     """Convert any object to a JSON-serializable format."""
     import json
 

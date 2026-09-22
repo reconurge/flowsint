@@ -1,14 +1,15 @@
 """Tests for InvestigationRepository."""
+
 from uuid import uuid4
 
+from flowsint_core.core.models import InvestigationUserRole
+from flowsint_core.core.repositories import InvestigationRepository
+from flowsint_core.core.types import Role
 from tests.factories import (
     InvestigationFactory,
     InvestigationUserRoleFactory,
     ProfileFactory,
 )
-from flowsint_core.core.models import InvestigationUserRole
-from flowsint_core.core.repositories import InvestigationRepository
-from flowsint_core.core.types import Role
 
 
 class TestInvestigationRepository:
@@ -31,9 +32,7 @@ class TestInvestigationRepository:
         self._setup(db_session)
         user = ProfileFactory()
         inv = InvestigationFactory(owner=user)
-        InvestigationUserRoleFactory(
-            user=user, investigation=inv, roles=[Role.OWNER]
-        )
+        InvestigationUserRoleFactory(user=user, investigation=inv, roles=[Role.OWNER])
 
         # Another user's investigation (should not appear)
         other_user = ProfileFactory()
@@ -52,9 +51,7 @@ class TestInvestigationRepository:
         self._setup(db_session)
         user = ProfileFactory()
         inv = InvestigationFactory()
-        InvestigationUserRoleFactory(
-            user=user, investigation=inv, roles=[Role.VIEWER]
-        )
+        InvestigationUserRoleFactory(user=user, investigation=inv, roles=[Role.VIEWER])
 
         repo = InvestigationRepository(db_session)
 
@@ -99,9 +96,7 @@ class TestInvestigationRepository:
         self._setup(db_session)
         user = ProfileFactory()
         inv = InvestigationFactory()
-        role_entry = InvestigationUserRoleFactory(
-            user=user, investigation=inv, roles=[Role.EDITOR]
-        )
+        InvestigationUserRoleFactory(user=user, investigation=inv, roles=[Role.EDITOR])
 
         repo = InvestigationRepository(db_session)
         result = repo.get_user_role(user.id, inv.id)

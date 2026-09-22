@@ -1,4 +1,4 @@
-import { GraphNode, GraphEdge } from "./graph"
+import { GraphNode, GraphEdge } from './graph'
 
 export type Row = {
   id: string

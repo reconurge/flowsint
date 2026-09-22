@@ -13,7 +13,7 @@ const SIZES = {
   sm: { root: 'size-6', text: 'text-[10px]' },
   md: { root: 'size-7', text: 'text-xs' },
   lg: { root: 'size-8', text: 'text-sm' },
-  xl: { root: 'size-10', text: 'text-base' },
+  xl: { root: 'size-10', text: 'text-base' }
 } as const
 
 type AvatarSize = keyof typeof SIZES
@@ -89,11 +89,7 @@ function AvatarGroup({ users, size = 'sm', max, className }: AvatarGroupProps) {
         <Tooltip key={user?.id ?? i}>
           <TooltipTrigger asChild>
             <div>
-              <UserAvatar
-                user={user}
-                size={size}
-                className="border border-background"
-              />
+              <UserAvatar user={user} size={size} className="border border-background" />
             </div>
           </TooltipTrigger>
           <TooltipContent>{getDisplayName(user)}</TooltipContent>

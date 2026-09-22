@@ -14,6 +14,7 @@ import React, {
   type ReactNode,
   useCallback,
   useContext,
+  useLayoutEffect,
   useRef,
   useState
 } from 'react'
@@ -22,7 +23,7 @@ import React, {
 const defaultFunction = (): Promise<boolean> => Promise.resolve(true)
 
 // Define the props that the ConfirmDialog will use
-interface ConfirmProps {
+export interface ConfirmProps {
   title: string
   message: string
 }
@@ -62,12 +63,18 @@ function ConfirmDialogWithContext() {
 
   const { confirmRef } = useContext(ConfirmContext)
 
-  confirmRef.current = (dialogProps: ConfirmProps) =>
-    new Promise<boolean>((resolve) => {
-      setProps(dialogProps)
-      setOpen(true)
-      resolveRef.current = resolve
-    })
+  const confirm = useCallback(
+    (dialogProps: ConfirmProps) =>
+      new Promise<boolean>((resolve) => {
+        setProps(dialogProps)
+        setOpen(true)
+        resolveRef.current = resolve
+      }),
+    []
+  )
+  useLayoutEffect(() => {
+    confirmRef.current = confirm
+  }, [confirmRef, confirm])
 
   const onConfirm = () => {
     resolveRef.current(true)

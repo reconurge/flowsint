@@ -17,19 +17,11 @@ const views = [
 
 export function ViewToggle({ view, setView }: ViewToggleProps) {
   return (
-    <ToggleGroup
-      type="single"
-      value={view}
-      onValueChange={(v) => v && setView(v as typeof view)}
-    >
+    <ToggleGroup type="single" value={view} onValueChange={(v) => v && setView(v as typeof view)}>
       {views.map(({ value, icon: Icon, label }) => (
         <Tooltip key={value}>
           <TooltipTrigger asChild>
-            <ToggleGroupItem
-              value={value}
-              aria-label={label}
-              className="h-7 w-7 p-0"
-            >
+            <ToggleGroupItem value={value} aria-label={label} className="h-7 w-7 p-0">
               <Icon className="h-4 w-4" />
             </ToggleGroupItem>
           </TooltipTrigger>

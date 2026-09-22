@@ -1,6 +1,8 @@
-from typing import Dict, List, Optional, Self
-from pydantic import Field, HttpUrl, model_validator
 import re
+from typing import Dict, List, Optional, Self
+
+from pydantic import Field, HttpUrl, model_validator
+
 from .domain import Domain
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -35,7 +37,11 @@ class Website(FlowsintType):
         None, description="Text content of the page", title="Content"
     )
     status_code: Optional[int] = Field(
-        None, description="HTTP status code", title="Status Code", ge=100, le=599 # Enforce status code
+        None,
+        description="HTTP status code",
+        title="Status Code",
+        ge=100,
+        le=599,  # Enforce status code
     )
     headers: Optional[Dict[str, str]] = Field(
         None, description="Relevant HTTP headers", title="Headers"

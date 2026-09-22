@@ -115,7 +115,6 @@ function FloatingChat() {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            //@ts-ignore
                             onClick={handleCreateNewChat}
                             title="Create new chat"
                           >
@@ -130,7 +129,6 @@ function FloatingChat() {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            //@ts-ignore
                             onClick={() => setView('history')}
                             title="Create new chat"
                           >
@@ -209,17 +207,22 @@ function FloatingChat() {
                                 <div className="text-xs space-y-1">
                                   <p className="font-medium text-left">Analysis & Insights</p>
                                   <ul className="space-y-1 text-left opacity-60">
-                                    <li>• "Analyze the connections between these entities"</li>
-                                    <li>• "What patterns do you see in this data?"</li>
-                                    <li>• "Summarize the key findings from this investigation"</li>
+                                    <li>
+                                      • &quot;Analyze the connections between these entities&quot;
+                                    </li>
+                                    <li>• &quot;What patterns do you see in this data?&quot;</li>
+                                    <li>
+                                      • &quot;Summarize the key findings from this
+                                      investigation&quot;
+                                    </li>
                                   </ul>
                                 </div>
                                 <div className="text-xs space-y-1">
                                   <p className="font-medium text-left">Investigation Help</p>
                                   <ul className="space-y-1 text-left opacity-60">
-                                    <li>• "Suggest next steps for this investigation"</li>
-                                    <li>• "What should I look for next?"</li>
-                                    <li>• "Help me organize this investigation"</li>
+                                    <li>• &quot;Suggest next steps for this investigation&quot;</li>
+                                    <li>• &quot;What should I look for next?&quot;</li>
+                                    <li>• &quot;Help me organize this investigation&quot;</li>
                                   </ul>
                                 </div>
                               </div>

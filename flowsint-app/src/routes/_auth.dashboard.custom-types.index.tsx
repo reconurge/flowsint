@@ -24,11 +24,7 @@ const getStatusBadge = (status: string) => {
     published: 'default',
     archived: 'secondary'
   }
-  return (
-    <Badge variant={variants[status] || 'default'}>
-      {status}
-    </Badge>
-  )
+  return <Badge variant={variants[status] || 'default'}>{status}</Badge>
 }
 
 function CustomTypesPage() {
@@ -59,14 +55,16 @@ function CustomTypesPage() {
 
   const confirmDelete = (customType: CustomType) => {
     deleteMutation.mutate(customType.id)
-
   }
   const handleDelete = async (customType: CustomType) => {
-    if (await confirm({ title: "Are you sure you want to delete this custom type ?", message: "this action is irreversible." }))
+    if (
+      await confirm({
+        title: 'Are you sure you want to delete this custom type ?',
+        message: 'this action is irreversible.'
+      })
+    )
       confirmDelete(customType)
   }
-
-
 
   // Group by status
   const draftTypes = customTypes?.filter((t) => t.status === 'draft') || []
@@ -95,7 +93,7 @@ function CustomTypesPage() {
       actions={
         <Button
           size="sm"
-          // @ts-ignore
+          // @ts-expect-error 'new' is a $typeId param value handled by that route, not a route path itself
           onClick={() => navigate({ to: '/dashboard/custom-types/new' })}
         >
           <PlusIcon className="w-4 h-4 mr-2" />
@@ -104,49 +102,53 @@ function CustomTypesPage() {
       }
     >
       {!customTypes?.length ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted/50 p-4 mb-4">
-              <FileX className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No custom types yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Get started by creating your first custom type. Custom types allow you to define
-              your own data structures for use in flows and investigations.
-            </p>
-            <Button onClick={() => navigate({
-              // @ts-ignore
-              to: '/dashboard/custom-types/new'
-            })}>
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Create your first custom type
-            </Button>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="rounded-full bg-muted/50 p-4 mb-4">
+            <FileX className="w-8 h-8 text-muted-foreground" />
           </div>
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList>
-              <TabsTrigger value="all">All ({customTypes.length})</TabsTrigger>
-              <TabsTrigger value="published">Published ({publishedTypes.length})</TabsTrigger>
-              <TabsTrigger value="draft">Drafts ({draftTypes.length})</TabsTrigger>
-              <TabsTrigger value="archived">Archived ({archivedTypes.length})</TabsTrigger>
-            </TabsList>
+          <h3 className="text-xl font-semibold mb-2">No custom types yet</h3>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Get started by creating your first custom type. Custom types allow you to define your
+            own data structures for use in flows and investigations.
+          </p>
+          <Button
+            onClick={() =>
+              navigate({
+                // @ts-expect-error 'new' is a $typeId param value handled by that route, not a route path itself
+                to: '/dashboard/custom-types/new'
+              })
+            }
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Create your first custom type
+          </Button>
+        </div>
+      ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList>
+            <TabsTrigger value="all">All ({customTypes.length})</TabsTrigger>
+            <TabsTrigger value="published">Published ({publishedTypes.length})</TabsTrigger>
+            <TabsTrigger value="draft">Drafts ({draftTypes.length})</TabsTrigger>
+            <TabsTrigger value="archived">Archived ({archivedTypes.length})</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="all" className="mt-6">
-              <CustomTypesList types={customTypes} onDelete={handleDelete} navigate={navigate} />
-            </TabsContent>
+          <TabsContent value="all" className="mt-6">
+            <CustomTypesList types={customTypes} onDelete={handleDelete} navigate={navigate} />
+          </TabsContent>
 
-            <TabsContent value="published" className="mt-6">
-              <CustomTypesList types={publishedTypes} onDelete={handleDelete} navigate={navigate} />
-            </TabsContent>
+          <TabsContent value="published" className="mt-6">
+            <CustomTypesList types={publishedTypes} onDelete={handleDelete} navigate={navigate} />
+          </TabsContent>
 
-            <TabsContent value="draft" className="mt-6">
-              <CustomTypesList types={draftTypes} onDelete={handleDelete} navigate={navigate} />
-            </TabsContent>
+          <TabsContent value="draft" className="mt-6">
+            <CustomTypesList types={draftTypes} onDelete={handleDelete} navigate={navigate} />
+          </TabsContent>
 
-            <TabsContent value="archived" className="mt-6">
-              <CustomTypesList types={archivedTypes} onDelete={handleDelete} navigate={navigate} />
-            </TabsContent>
-          </Tabs>
-        )}
+          <TabsContent value="archived" className="mt-6">
+            <CustomTypesList types={archivedTypes} onDelete={handleDelete} navigate={navigate} />
+          </TabsContent>
+        </Tabs>
+      )}
     </PageLayout>
   )
 }
@@ -169,49 +171,46 @@ function CustomTypesList({ types, onDelete, navigate }: CustomTypesListProps) {
 
   return (
     <div style={{ containerType: 'inline-size' }}>
-    <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-4">
-      {types.map((customType) => (
-        <Card key={customType.id} className="hover:border-primary/50 transition-colors">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-1 flex-1">
-                <CardTitle className="text-lg">{customType.name}</CardTitle>
-                <CardDescription className="line-clamp-2">
-                  {customType.description || 'No description'}
-                </CardDescription>
+      <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 gap-4">
+        {types.map((customType) => (
+          <Card key={customType.id} className="hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1 flex-1">
+                  <CardTitle className="text-lg">{customType.name}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {customType.description || 'No description'}
+                  </CardDescription>
+                </div>
+                {getStatusBadge(customType.status)}
               </div>
-              {getStatusBadge(customType.status)}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Clock className="w-4 h-4" />
-              <span>
-                Updated {formatDistanceToNow(new Date(customType.updated_at), { addSuffix: true })}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => navigate({ to: `/dashboard/custom-types/${customType.id}` })}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onDelete(customType)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                <Clock className="w-4 h-4" />
+                <span>
+                  Updated{' '}
+                  {formatDistanceToNow(new Date(customType.updated_at), { addSuffix: true })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => navigate({ to: `/dashboard/custom-types/${customType.id}` })}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onDelete(customType)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

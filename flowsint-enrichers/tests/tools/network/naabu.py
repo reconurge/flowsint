@@ -1,5 +1,5 @@
 import re
-from typing import List
+
 from tools.network.naabu import NaabuTool
 
 tool = NaabuTool()
@@ -26,7 +26,7 @@ def test_image():
 
 def test_install():
     tool.install()
-    assert tool.is_installed() == True
+    assert tool.is_installed() is True
 
 
 def test_version():

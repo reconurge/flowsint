@@ -1,4 +1,5 @@
 """Repository for EnricherTemplate model."""
+
 from typing import List, Optional
 from uuid import UUID
 

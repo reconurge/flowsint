@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ..models import Analysis
 from ..repositories import AnalysisRepository, InvestigationRepository
 from .base import BaseService
-from .exceptions import NotFoundError, PermissionDeniedError
+from .exceptions import NotFoundError
 
 
 class AnalysisService(BaseService):

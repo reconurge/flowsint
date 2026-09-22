@@ -133,20 +133,18 @@ interface SectionThreeProps extends VariantProps<typeof toggleVariants> {
 }
 
 export const SectionThree: React.FC<SectionThreeProps> = ({ editor, size, variant }) => {
-  const color = editor.getAttributes('textStyle')?.color || 'hsl(var(--foreground))'
-  const [selectedColor, setSelectedColor] = React.useState(color)
+  // color is derived straight from the editor's current attributes — no need
+  // for a separate "selectedColor" state kept in sync via an effect. Setting
+  // it via editor.chain()...run() already triggers the re-render that
+  // recomputes this on its own.
+  const selectedColor = editor.getAttributes('textStyle')?.color || 'hsl(var(--foreground))'
 
   const handleColorChange = React.useCallback(
     (value: string) => {
-      setSelectedColor(value)
       editor.chain().setColor(value).run()
     },
     [editor]
   )
-
-  React.useEffect(() => {
-    setSelectedColor(color)
-  }, [color])
 
   return (
     <Popover>

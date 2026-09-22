@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { customTypeService, CustomType } from '@/api/custom-type-service'
 import { toast } from 'sonner'
@@ -37,18 +37,27 @@ function CustomTypeEditor() {
   const queryClient = useQueryClient()
   const isNew = id === 'new'
 
-  // Form state
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<'draft' | 'published'>('draft')
-  const [category, setCategory] = useState<string>('custom_types_category')
-  const [icon, setIcon] = useState(DEFAULT_ICON)
-  const [color, setColor] = useState(DEFAULT_COLOR)
-  const [fields, setFields] = useState<SchemaField[]>([])
-  const [showPreview, setShowPreview] = useState(true)
+  const parseSchemaToFields = (schema: any): SchemaField[] => {
+    const properties = schema.properties || {}
+    const required = schema.required || []
+    return Object.entries(properties).map(([key, value]: [string, any]) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      key,
+      title: value.title || key,
+      type: value.type || 'string',
+      format: value.format,
+      description: value.description,
+      required: required.includes(key)
+    }))
+  }
 
-  // Hooks
-  const { actionItems, isLoading: actionLoading } = useActionItems()
+  const emptyField = (): SchemaField => ({
+    id: Math.random().toString(36).substr(2, 9),
+    key: '',
+    title: '',
+    type: 'string',
+    required: false
+  })
 
   // Load existing type if editing
   const { data: existingType, isLoading } = useQuery<CustomType>({
@@ -57,39 +66,52 @@ function CustomTypeEditor() {
     enabled: !isNew
   })
 
-  useEffect(() => {
+  // Form state. Lazy initializers derive from `existingType` directly — it
+  // can already be populated on mount (query cache), and the render-time
+  // sync below only fires on later *changes*. For a brand new type
+  // (existingType always undefined, query disabled) this also fixes
+  // `fields` starting genuinely empty instead of relying on the sync
+  // block's addField() call, which — same reasoning — would never fire.
+  const [name, setName] = useState(() => existingType?.name.replaceAll(' ', '') ?? '')
+  const [description, setDescription] = useState(() => existingType?.description ?? '')
+  const [status, setStatus] = useState<'draft' | 'published'>(() =>
+    existingType?.status === 'archived' ? 'draft' : (existingType?.status ?? 'draft')
+  )
+  const [category, setCategory] = useState<string>(
+    () => existingType?.category ?? 'custom_types_category'
+  )
+  const [icon, setIcon] = useState(() => existingType?.icon ?? DEFAULT_ICON)
+  const [color, setColor] = useState(() => existingType?.color ?? DEFAULT_COLOR)
+  const [fields, setFields] = useState<SchemaField[]>(() =>
+    existingType ? parseSchemaToFields(existingType.schema) : isNew ? [emptyField()] : []
+  )
+  const [showPreview, setShowPreview] = useState(true)
+
+  // Hooks
+  const { actionItems, isLoading: actionLoading } = useActionItems()
+
+  // Stable (functional state update, no closure over `fields`) so it's
+  // safe to depend on below without re-running this effect after every
+  // field it adds.
+  const addField = useCallback(() => {
+    setFields((prev) => [...prev, emptyField()])
+  }, [])
+
+  // Adjusted during render rather than in an effect.
+  const [prevExistingType, setPrevExistingType] = useState(existingType)
+  if (existingType !== prevExistingType) {
+    setPrevExistingType(existingType)
     if (existingType) {
-      setName(existingType.name)
+      setName(existingType.name.replaceAll(' ', ''))
       setDescription(existingType.description || '')
       setStatus(existingType.status === 'archived' ? 'draft' : existingType.status)
       setCategory(existingType.category || 'custom_types_category')
       setIcon(existingType.icon || DEFAULT_ICON)
       setColor(existingType.color || DEFAULT_COLOR)
-      parseSchemaToFields(existingType.schema)
+      setFields(parseSchemaToFields(existingType.schema))
     } else if (isNew) {
       addField()
     }
-  }, [existingType, isNew])
-
-  useEffect(() => {
-    setName(name.replaceAll(' ', ''))
-  }, [name])
-
-  const parseSchemaToFields = (schema: any) => {
-    const properties = schema.properties || {}
-    const required = schema.required || []
-    const parsedFields: SchemaField[] = Object.entries(properties).map(
-      ([key, value]: [string, any]) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        key,
-        title: value.title || key,
-        type: value.type || 'string',
-        format: value.format,
-        description: value.description,
-        required: required.includes(key)
-      })
-    )
-    setFields(parsedFields)
   }
 
   const fieldsToSchema = () => {
@@ -104,19 +126,6 @@ function CustomTypeEditor() {
       if (field.required) required.push(field.key)
     })
     return { title: name || 'MyCustomType', type: 'object', properties, required }
-  }
-
-  const addField = () => {
-    setFields([
-      ...fields,
-      {
-        id: Math.random().toString(36).substr(2, 9),
-        key: '',
-        title: '',
-        type: 'string',
-        required: false
-      }
-    ])
   }
 
   const updateField = (id: string, updates: Partial<SchemaField>) => {
@@ -276,7 +285,7 @@ function CustomTypeEditor() {
                 <div className="flex-1 space-y-2 min-w-0">
                   <input
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value.replaceAll(' ', ''))}
                     placeholder="Untitled type"
                     className="w-full text-3xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/30 text-foreground tracking-tight"
                   />
@@ -326,7 +335,7 @@ function CustomTypeEditor() {
                     <SelectContent>
                       {!actionLoading &&
                         actionItems.map((item) => (
-                          <SelectItem value={item.type}>
+                          <SelectItem key={item.type} value={item.type}>
                             <div className="flex items-center gap-2">{item.label}</div>
                           </SelectItem>
                         ))}

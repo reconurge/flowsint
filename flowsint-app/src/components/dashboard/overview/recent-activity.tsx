@@ -1,36 +1,36 @@
-import { FileText, Network, Upload, UserPlus, CheckCircle } from "lucide-react"
+import { FileText, Network, Upload, UserPlus, CheckCircle } from 'lucide-react'
 
 const activities = [
   {
     icon: FileText,
-    text: "New analysis added to APT-29 Campaign",
-    time: "2 hours ago",
+    text: 'New analysis added to APT-29 Campaign',
+    time: '2 hours ago'
   },
   {
     icon: Network,
-    text: "Sketch updated in Ransomware Incident",
-    time: "5 hours ago",
+    text: 'Sketch updated in Ransomware Incident',
+    time: '5 hours ago'
   },
   {
     icon: Upload,
-    text: "Evidence uploaded to Data Breach case",
-    time: "Yesterday",
+    text: 'Evidence uploaded to Data Breach case',
+    time: 'Yesterday'
   },
   {
     icon: UserPlus,
-    text: "Sarah Kim joined Phishing Investigation",
-    time: "2 days ago",
+    text: 'Sarah Kim joined Phishing Investigation',
+    time: '2 days ago'
   },
   {
     icon: CheckCircle,
-    text: "Phishing Investigation Q4 closed",
-    time: "3 days ago",
+    text: 'Phishing Investigation Q4 closed',
+    time: '3 days ago'
   },
   {
     icon: FileText,
-    text: "Draft analysis saved in Insider Threat",
-    time: "4 days ago",
-  },
+    text: 'Draft analysis saved in Insider Threat',
+    time: '4 days ago'
+  }
 ]
 
 export function RecentActivity() {

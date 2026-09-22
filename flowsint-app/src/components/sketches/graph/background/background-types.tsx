@@ -1,4 +1,5 @@
 import { CSSProperties } from 'react'
+import type { GraphViewerRef } from '@/types'
 
 export enum BackgroundVariant {
   Dots = 'dots',
@@ -30,7 +31,7 @@ export interface BackgroundProps {
   /** Custom class name for the pattern */
   patternClassName?: string
   /** Reference to the graph for viewport tracking */
-  graphRef: React.RefObject<any>
+  graphRef: React.RefObject<GraphViewerRef>
   /** Canvas width */
   canvasWidth: number
   /** Canvas height */

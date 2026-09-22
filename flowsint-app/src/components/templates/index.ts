@@ -7,4 +7,10 @@ export type { TestResult } from './template-test-panel'
 export { AIChatPanel } from './ai-chat-panel'
 export type { AIChatPanelHandle } from './ai-chat-panel'
 export { templateSchema, defaultTemplate } from './template-schema'
-export type { TemplateData, TemplateInput, TemplateHttpRequest, TemplateHttpResponse, TemplateOutput } from './template-schema'
+export type {
+  TemplateData,
+  TemplateInput,
+  TemplateHttpRequest,
+  TemplateHttpResponse,
+  TemplateOutput
+} from './template-schema'

@@ -67,6 +67,7 @@ def test_flow_service_create_uses_timezone_aware_timestamps():
         description=None,
         category=["Domain"],
         flow_schema={"nodes": [], "edges": []},
+        owner_id=uuid4(),
     )
 
     _assert_utc(flow.created_at)

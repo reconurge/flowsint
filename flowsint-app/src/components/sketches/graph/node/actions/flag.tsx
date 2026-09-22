@@ -1,6 +1,5 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,16 +28,19 @@ export function NodeFlag({ sketchId, node }: { sketchId: string; node: GraphNode
   const nodeId = node.id
   const [flagValue, setFlagValue] = useState<flagColor | null>(node.nodeFlag)
 
-  // Synchronize local state when props change (new node selected)
-  useEffect(() => {
+  // Synchronize local state when props change (new node selected) —
+  // adjusted during render rather than in an effect.
+  const [prevKey, setPrevKey] = useState(`${nodeId}:${node.nodeFlag}`)
+  const syncKey = `${nodeId}:${node.nodeFlag}`
+  if (syncKey !== prevKey) {
+    setPrevKey(syncKey)
     setFlagValue(node.nodeFlag)
-  }, [nodeId, node.nodeFlag])
+  }
 
   const handleUpdateFlag = useCallback(
     async (value: string) => {
       // Click the same color and it removes it
       const val = value === flagValue ? null : (value as flagColor)
-      node.nodeFlag = flagValue
       setFlagValue(val)
       try {
         updateNode(nodeId, { nodeFlag: val })
@@ -52,7 +54,7 @@ export function NodeFlag({ sketchId, node }: { sketchId: string; node: GraphNode
         // toast.error(e.message)
       }
     },
-    [nodeId, flagValue, updateNode]
+    [nodeId, flagValue, updateNode, node, sketchId]
   )
 
   return (
@@ -79,6 +81,7 @@ export function NodeFlag({ sketchId, node }: { sketchId: string; node: GraphNode
         >
           {(Object.keys(flagColors) as flagColor[]).map((key) => (
             <DropdownMenuRadioItem
+              key={key}
               onClick={(e) => e.stopPropagation()}
               className="w-7 flex items-center justify-center gap-1"
               value={key}

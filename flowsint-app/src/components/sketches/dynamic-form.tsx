@@ -265,14 +265,16 @@ export function DynamicForm({
             <Controller
               control={control}
               name={field.name}
-              defaultValue={Array.isArray(initialData?.[field.name]) ? initialData?.[field.name] : []}
-              render={({ field: { onChange, value, ref } }) => (
+              defaultValue={
+                Array.isArray(initialData?.[field.name]) ? initialData?.[field.name] : []
+              }
+              render={({ field: { onChange, value } }) => (
                 <TagsInput
                   value={Array.isArray(value) ? value : []}
                   onChange={(tags) => onChange(tags)}
                   placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
                   orientation="vertical"
-                  variant='full'
+                  variant="full"
                 />
               )}
             />

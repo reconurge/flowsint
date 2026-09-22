@@ -2,18 +2,22 @@
 Log service for managing event logs.
 """
 
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from ..models import Scan
+from ..repositories import (
+    InvestigationRepository,
+    LogRepository,
+    ScanRepository,
+    SketchRepository,
+)
 from ..types import Event
-from ..enums import EventLevel
-from ..repositories import LogRepository, SketchRepository, ScanRepository, InvestigationRepository
 from .base import BaseService
-from .exceptions import NotFoundError, PermissionDeniedError, DatabaseError
+from .exceptions import DatabaseError, NotFoundError
 
 
 class LogService(BaseService):

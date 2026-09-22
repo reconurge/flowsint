@@ -9,14 +9,16 @@ Tests cover:
 - Queue management
 - Shutdown behavior
 """
-import pytest
+
 import threading
 import time
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
-from flowsint_core.core.logger import LoggerSingleton
+import pytest
+
 from flowsint_core.core.enums import EventLevel
+from flowsint_core.core.logger import LoggerSingleton
 
 
 @pytest.fixture
@@ -35,17 +37,18 @@ def mock_db_session():
 @pytest.fixture
 def mock_get_db(mock_db_session):
     """Mock the get_db generator."""
+
     def mock_generator():
         yield mock_db_session
 
-    with patch('flowsint_core.core.logger.get_db', mock_generator):
+    with patch("flowsint_core.core.logger.get_db", mock_generator):
         yield mock_generator
 
 
 @pytest.fixture
 def mock_emit_event():
     """Mock the emit_event_task."""
-    with patch('flowsint_core.core.logger.emit_event_task') as mock:
+    with patch("flowsint_core.core.logger.emit_event_task") as mock:
         mock.apply = Mock()
         yield mock
 
@@ -58,7 +61,7 @@ def logger_instance(mock_get_db, mock_emit_event):
     logger = LoggerSingleton(
         batch_size=5,
         flush_interval=0.5,
-        auto_start=False  # Don't start worker for most tests
+        auto_start=False,  # Don't start worker for most tests
     )
     yield logger
     # Cleanup
@@ -113,7 +116,7 @@ class TestLoggingMethods:
 
         # Event should be emitted immediately
         mock_emit_event.apply.assert_called_once()
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[1] == sketch_id
         assert call_args[2] == EventLevel.INFO
         assert call_args[3] == message
@@ -128,7 +131,7 @@ class TestLoggingMethods:
 
         logger_instance.error(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.FAILED
 
     def test_warn_logs_correctly(self, logger_instance, mock_emit_event):
@@ -138,7 +141,7 @@ class TestLoggingMethods:
 
         logger_instance.warn(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.WARNING
 
     def test_debug_logs_correctly(self, logger_instance, mock_emit_event):
@@ -148,7 +151,7 @@ class TestLoggingMethods:
 
         logger_instance.debug(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.DEBUG
 
     def test_success_logs_correctly(self, logger_instance, mock_emit_event):
@@ -158,7 +161,7 @@ class TestLoggingMethods:
 
         logger_instance.success(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.SUCCESS
 
     def test_completed_logs_correctly(self, logger_instance, mock_emit_event):
@@ -168,7 +171,7 @@ class TestLoggingMethods:
 
         logger_instance.completed(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.COMPLETED
 
     def test_pending_logs_correctly(self, logger_instance, mock_emit_event):
@@ -178,7 +181,7 @@ class TestLoggingMethods:
 
         logger_instance.pending(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.PENDING
 
     def test_graph_append_logs_correctly(self, logger_instance, mock_emit_event):
@@ -188,7 +191,7 @@ class TestLoggingMethods:
 
         logger_instance.graph_append(sketch_id, message)
 
-        call_args = mock_emit_event.apply.call_args[1]['args']
+        call_args = mock_emit_event.apply.call_args[1]["args"]
         assert call_args[2] == EventLevel.GRAPH_APPEND
 
 
@@ -239,13 +242,15 @@ class TestBatchInsertion:
         mock_db_session.add_all.assert_called_once()
         mock_db_session.commit.assert_called_once()
 
-    def test_batch_worker_flushes_periodically(self, mock_get_db, mock_emit_event, mock_db_session):
+    def test_batch_worker_flushes_periodically(
+        self, mock_get_db, mock_emit_event, mock_db_session
+    ):
         """Test that batch worker flushes logs periodically."""
         LoggerSingleton._instance = None
         logger = LoggerSingleton(
             batch_size=100,  # High batch size
             flush_interval=0.3,  # Short interval for testing
-            auto_start=True  # Start worker
+            auto_start=True,  # Start worker
         )
 
         sketch_id = str(uuid4())
@@ -324,7 +329,9 @@ class TestThreadSafety:
 class TestShutdown:
     """Test shutdown behavior."""
 
-    def test_shutdown_flushes_pending_logs(self, mock_get_db, mock_emit_event, mock_db_session):
+    def test_shutdown_flushes_pending_logs(
+        self, mock_get_db, mock_emit_event, mock_db_session
+    ):
         """Test that shutdown flushes all pending logs."""
         LoggerSingleton._instance = None
         logger = LoggerSingleton(batch_size=100, auto_start=False)
@@ -378,7 +385,9 @@ class TestErrorHandling:
         # Logger should still be operational
         logger_instance.info(sketch_id, {"message": "After error"})
 
-    def test_event_emission_error_does_not_crash(self, logger_instance, mock_emit_event):
+    def test_event_emission_error_does_not_crash(
+        self, logger_instance, mock_emit_event
+    ):
         """Test that event emission errors don't crash the logger."""
         mock_emit_event.apply.side_effect = Exception("Event emission error")
 

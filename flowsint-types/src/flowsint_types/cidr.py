@@ -1,6 +1,8 @@
-from pydantic import IPvAnyNetwork, Field, model_validator
-from typing import Self
 import ipaddress
+from typing import Self
+
+from pydantic import Field, IPvAnyNetwork, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -10,10 +12,13 @@ class CIDR(FlowsintType):
     """Represents a CIDR (Classless Inter-Domain Routing) network block."""
 
     network: IPvAnyNetwork = Field(
-        ..., description="CIDR block (e.g., 8.8.8.0/24)", title="Network Block", json_schema_extra={"primary": True}
+        ...,
+        description="CIDR block (e.g., 8.8.8.0/24)",
+        title="Network Block",
+        json_schema_extra={"primary": True},
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = str(self.network)
         return self
@@ -27,7 +32,7 @@ class CIDR(FlowsintType):
     def detect(cls, line: str) -> bool:
         """Detect if a line of text contains a CIDR block."""
         line = line.strip()
-        if not line or '/' not in line:
+        if not line or "/" not in line:
             return False
 
         try:

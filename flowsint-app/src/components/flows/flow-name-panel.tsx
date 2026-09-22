@@ -44,12 +44,16 @@ export const FlowNamePanel = ({ flow, onUpdate, disabled = false }: FlowNamePane
     }
   })
 
-  useEffect(() => {
+  // Adjusted during render (React's documented pattern for resetting state
+  // when a prop changes) rather than in an effect.
+  const [prevFlow, setPrevFlow] = useState(flow)
+  if (flow !== prevFlow) {
+    setPrevFlow(flow)
     if (flow) {
       setName(flow.name || 'My flow')
       setDescription(flow.description || '')
     }
-  }, [flow])
+  }
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -73,7 +77,8 @@ export const FlowNamePanel = ({ flow, onUpdate, disabled = false }: FlowNamePane
       (field === 'name' && trimmedValue === flow.name) ||
       (field === 'description' && trimmedValue === flow.description)
     ) {
-      field === 'name' ? setIsEditingName(false) : setIsEditingDesc(false)
+      if (field === 'name') setIsEditingName(false)
+      else setIsEditingDesc(false)
       return
     }
 
@@ -84,7 +89,7 @@ export const FlowNamePanel = ({ flow, onUpdate, disabled = false }: FlowNamePane
         flowId: flow.id,
         body: JSON.stringify(updates)
       })
-    } catch (error) {
+    } catch {
       // Revert local state on error
       if (field === 'name') {
         setName(flow.name)
@@ -93,7 +98,8 @@ export const FlowNamePanel = ({ flow, onUpdate, disabled = false }: FlowNamePane
       }
     } finally {
       setIsSaving(false)
-      field === 'name' ? setIsEditingName(false) : setIsEditingDesc(false)
+      if (field === 'name') setIsEditingName(false)
+      else setIsEditingDesc(false)
     }
   }
 

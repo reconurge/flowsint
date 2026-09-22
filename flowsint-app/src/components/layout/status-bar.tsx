@@ -21,7 +21,7 @@ export const StatusBar = memo(() => {
     enabled: !!sketch_id,
     refetchInterval: 2500
     // refetchInterval: (data) => {
-    //   // @ts-ignore
+    //   // @ts-expect-error
     //   const hasPending = Array.isArray(data) && data?.some((scan) => scan.status === 'PENDING')
     //   return hasPending ? 2000 : false
     // }

@@ -35,3 +35,16 @@ jobs:
           # connections (redis.from_url, create_engine) are lazy.
           AUTH_SECRET: ci-only-dummy-secret
           REDIS_URL: redis://127.0.0.1:6379/0
+
+  frontend-test:
+    name: Frontend tests (vitest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: yarn install --frozen-lockfile
+      - run: yarn workspace flowsint-app test

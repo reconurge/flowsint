@@ -1,4 +1,5 @@
 import pytest
+
 from flowsint_enrichers import ENRICHER_REGISTRY
 
 

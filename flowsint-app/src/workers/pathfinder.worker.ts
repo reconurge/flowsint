@@ -78,7 +78,13 @@ self.onmessage = (event: MessageEvent<PathfinderMessage>) => {
     })
 
     // Collect path edges (edges between consecutive path nodes)
-    const pathEdges: { id: string; source: string; target: string; label: string; caption?: string }[] = []
+    const pathEdges: {
+      id: string
+      source: string
+      target: string
+      label: string
+      caption?: string
+    }[] = []
 
     for (let i = 0; i < pathIds.length - 1; i++) {
       const a = pathIds[i]
@@ -93,7 +99,7 @@ self.onmessage = (event: MessageEvent<PathfinderMessage>) => {
           source: edge.source,
           target: edge.target,
           label: edge.label,
-          caption: edge.caption,
+          caption: edge.caption
         })
       }
     }
@@ -103,13 +109,13 @@ self.onmessage = (event: MessageEvent<PathfinderMessage>) => {
       result: {
         ids: pathIds,
         nodes: pathNodes,
-        edges: pathEdges,
-      },
+        edges: pathEdges
+      }
     })
   } catch (error) {
     self.postMessage({
       type: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }

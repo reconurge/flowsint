@@ -2,6 +2,10 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_user
+from app.api.schemas.key import KeyCreate, KeyExists, KeyRead
 from flowsint_core.core.models import Profile
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
@@ -9,10 +13,6 @@ from flowsint_core.core.services import (
     NotFoundError,
     create_key_service,
 )
-from sqlalchemy.orm import Session
-
-from app.api.deps import get_current_user
-from app.api.schemas.key import KeyCreate, KeyExists, KeyRead
 
 router = APIRouter()
 

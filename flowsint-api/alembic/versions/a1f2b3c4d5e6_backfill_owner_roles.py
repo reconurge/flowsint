@@ -5,12 +5,13 @@ Revises: bac5764d4496
 Create Date: 2026-04-11 00:00:00.000000
 
 """
+
+import json
 from typing import Sequence, Union
 from uuid import uuid4
 
-from alembic import op
 import sqlalchemy as sa
-import json
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "a1f2b3c4d5e6"

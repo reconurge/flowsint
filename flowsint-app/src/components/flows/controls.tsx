@@ -3,6 +3,7 @@ import { Panel } from '@xyflow/react'
 import { Save, Trash2, ZoomIn, ZoomOut, Maximize, LayoutGrid } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { FlowNamePanel } from './flow-name-panel'
+import type { Flow } from '@/types/flow'
 
 interface FlowControlsProps {
   loading: boolean
@@ -13,7 +14,7 @@ interface FlowControlsProps {
   zoomIn: () => void
   zoomOut: () => void
   isSaved: boolean
-  flow?: any
+  flow?: Flow
 }
 
 export function FlowControls({

@@ -1,4 +1,5 @@
 import { GraphNode, NodeShape } from '@/types'
+import type { GraphForceSettings } from '@/stores/graph-settings-store'
 import { CONSTANTS, GRAPH_COLORS } from '../utils/constants'
 import {
   getCachedImage,
@@ -133,11 +134,7 @@ const getNodeVisual = (node: GraphNode, iconColor: string): NodeVisual => {
 
 // --- Flag drawing (single shared helper) ---
 
-const drawFlag = (
-  ctx: CanvasRenderingContext2D,
-  node: GraphNode,
-  size: number
-) => {
+const drawFlag = (ctx: CanvasRenderingContext2D, node: GraphNode, size: number) => {
   const flagColor = FLAG_COLORS[node.nodeFlag!]
   if (!flagColor) return
 
@@ -224,7 +221,7 @@ const drawNodeLabel = (
   node: GraphNode,
   size: number,
   isHighlighted: boolean,
-  forceSettings: any,
+  forceSettings: GraphForceSettings,
   rc: RenderContext
 ) => {
   const label = truncateText(node.nodeLabel || node.id, 58)
@@ -292,7 +289,7 @@ export interface NodeRenderParams {
   node: GraphNode
   ctx: CanvasRenderingContext2D
   globalScale: number
-  forceSettings: any
+  forceSettings: GraphForceSettings
   showLabels: boolean
   showIcons: boolean
   isCurrent: (nodeId: string) => boolean
@@ -317,12 +314,16 @@ const CARD_BASE = {
   accentWidth: 1.5
 } as const
 
-const getCardScale = (node: GraphNode, forceSettings: any) => {
+const getCardScale = (node: GraphNode, forceSettings: GraphForceSettings) => {
   const size = calculateNodeSize(node, forceSettings, true, 1)
   return Math.max(0.5, size / 5)
 }
 
-const getCardDimensions = (node: GraphNode, ctx: CanvasRenderingContext2D, forceSettings: any) => {
+const getCardDimensions = (
+  node: GraphNode,
+  ctx: CanvasRenderingContext2D,
+  forceSettings: GraphForceSettings
+) => {
   const s = getCardScale(node, forceSettings)
   const label = truncateText(node.nodeLabel || node.id, 40)
   const typeText = node.nodeType || ''
@@ -366,13 +367,7 @@ const drawCardFlag = (
   const fSize = 6 * s
   const prevAlpha = ctx.globalAlpha
   ctx.globalAlpha = 1
-  ctx.drawImage(
-    cachedFlag,
-    cardX + cardWidth - fSize * 0.6,
-    cardY - fSize * 0.4,
-    fSize,
-    fSize
-  )
+  ctx.drawImage(cachedFlag, cardX + cardWidth - fSize * 0.6, cardY - fSize * 0.4, fSize, fSize)
   ctx.globalAlpha = prevAlpha
 }
 
@@ -582,8 +577,16 @@ const renderDotNode = (params: NodeRenderParams) => {
   // Icons
   if (showIcons) {
     drawNodeIcon(
-      ctx, node, node.x, node.y, size, shape,
-      isOutlined, isHighlighted, rc.hasAnyHighlight, theme
+      ctx,
+      node,
+      node.x,
+      node.y,
+      size,
+      shape,
+      isOutlined,
+      isHighlighted,
+      rc.hasAnyHighlight,
+      theme
     )
   }
 
@@ -622,7 +625,7 @@ const squareEdgeDistance = (angle: number, size: number): number => {
 
 const hexEdgeDistance = (angle: number, size: number): number => {
   const apothem = (size * SQRT3) / 2
-  let a = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)
+  const a = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)
   const sectorCenter = Math.round(a / (Math.PI / 3)) * (Math.PI / 3)
   const offset = a - sectorCenter
   return apothem / Math.cos(offset)
@@ -673,9 +676,9 @@ const shapeEdgeDistance = (angle: number, size: number, shape: NodeShape): numbe
 }
 
 export const getNodeEdgeDistance = (
-  node: any,
+  node: GraphNode,
   angle: number,
-  forceSettings: any,
+  forceSettings: GraphForceSettings,
   ctx: CanvasRenderingContext2D,
   shouldRenderDetails: boolean
 ): number => {
@@ -702,7 +705,7 @@ export const paintNodePointerArea = (
   node: GraphNode,
   color: string,
   ctx: CanvasRenderingContext2D,
-  forceSettings: any
+  forceSettings: GraphForceSettings
 ) => {
   const isDotStyle = forceSettings?.dotStyle?.value ?? true
 

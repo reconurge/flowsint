@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -9,7 +10,12 @@ from .registry import flowsint_type
 class Alias(FlowsintType):
     """Represents an alias or alternative name used by an entity."""
 
-    alias: str = Field(..., description="Alias or alternative name", title="Alias", json_schema_extra={"primary": True})
+    alias: str = Field(
+        ...,
+        description="Alias or alternative name",
+        title="Alias",
+        json_schema_extra={"primary": True},
+    )
     type: Optional[str] = Field(
         None,
         description="Type of alias (nickname, code name, etc.)",
@@ -48,7 +54,7 @@ class Alias(FlowsintType):
         None, description="Geographic region where alias is used", title="Region"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.alias
         return self

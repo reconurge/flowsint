@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { GraphNode } from '@/types'
+import { GraphNode, type GraphViewerRef } from '@/types'
 
 interface MinimapCanvasProps {
   nodes: GraphNode[]
   width?: number
   height?: number
-  graphRef: React.RefObject<any>
+  graphRef: React.RefObject<GraphViewerRef>
   canvasWidth: number
   canvasHeight: number
 }
@@ -31,7 +31,10 @@ const MinimapCanvas = ({
       const validNodes = nodes.filter((n) => typeof n.x === 'number' && typeof n.y === 'number')
       if (validNodes.length === 0) return null
 
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity
 
       for (const node of validNodes) {
         if (node.x && node.x < minX) minX = node.x
@@ -53,8 +56,10 @@ const MinimapCanvas = ({
 
       try {
         // Check if required methods exist
-        if (typeof graphRef.current.graph2ScreenCoords !== 'function' ||
-          typeof graphRef.current.zoom !== 'function') {
+        if (
+          typeof graphRef.current.graph2ScreenCoords !== 'function' ||
+          typeof graphRef.current.zoom !== 'function'
+        ) {
           return
         }
 
@@ -109,7 +114,7 @@ const MinimapCanvas = ({
         ctx.clearRect(0, 0, width, height)
 
         // Draw nodes
-        const nodeRadius = .75
+        const nodeRadius = 0.75
         for (const node of nodes) {
           if (typeof node.x !== 'number' || typeof node.y !== 'number') continue
 
@@ -137,8 +142,7 @@ const MinimapCanvas = ({
         ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 2)
         ctx.fill()
         ctx.stroke()
-
-      } catch (error) {
+      } catch {
         // Silent fail if graph not ready
         return
       }
@@ -164,12 +168,7 @@ const MinimapCanvas = ({
       style={{ width, height }}
       className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm overflow-hidden border border-border rounded-lg"
     >
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="bg-transparent"
-      />
+      <canvas ref={canvasRef} width={width} height={height} className="bg-transparent" />
     </div>
   )
 }

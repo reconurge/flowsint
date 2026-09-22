@@ -1,8 +1,9 @@
-from .base import ORMBase
-from pydantic import UUID4, BaseModel
-from typing import Optional
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+from pydantic import UUID4, BaseModel
+
+from .base import ORMBase
 
 
 class FlowCreate(BaseModel):
@@ -18,6 +19,7 @@ class FlowRead(ORMBase):
     description: Optional[str]
     category: Optional[List[str]]
     flow_schema: Optional[Dict[str, Any]]
+    owner_id: Optional[UUID4]
     created_at: datetime
     last_updated_at: datetime
 

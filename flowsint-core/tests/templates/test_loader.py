@@ -1,12 +1,10 @@
 """Tests for YamlLoader and related utilities."""
 
-import json
 from pathlib import Path
 
 import pytest
 
 from flowsint_core.templates.loader.yaml_loader import (
-    BLOCKED_HOSTNAMES,
     SSRFError,
     TemplateRenderError,
     YamlLoader,
@@ -28,7 +26,9 @@ class TestYamlLoader:
         assert isinstance(file, Template)
         assert file.name == "ip-api-lookup"
         assert file.category == "Ip"
-        assert file.request.params == {"fields": "query,status,country,city,lat,lon,isp"}
+        assert file.request.params == {
+            "fields": "query,status,country,city,lat,lon,isp"
+        }
         assert file.request.method == "GET"
 
     def test_yaml_loader_invalid_method(self):

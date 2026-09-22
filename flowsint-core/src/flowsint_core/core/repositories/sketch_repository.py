@@ -1,4 +1,5 @@
 """Repository for Sketch model."""
+
 from typing import List
 from uuid import UUID
 

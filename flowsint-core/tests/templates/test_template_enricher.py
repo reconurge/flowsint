@@ -1,18 +1,15 @@
 """Tests for TemplateEnricher."""
 
-import json
 from pathlib import Path
 from typing import Optional
-from unittest.mock import MagicMock
 
 import httpx
 import pytest
 
 from flowsint_core.core.template_enricher import (
     TemplateEnricher,
-    TemplateEnricherError,
 )
-from flowsint_core.templates.loader.yaml_loader import SSRFError, YamlLoader
+from flowsint_core.templates.loader.yaml_loader import YamlLoader
 from flowsint_core.templates.types import (
     Template,
     TemplateHttpRequest,
@@ -33,12 +30,12 @@ def create_test_template(
     output_type: str = "Ip",
     url: str = "https://api.example.com/{{address}}",
     method: str = "GET",
-    headers: dict = None,
-    params: dict = None,
+    headers: Optional[dict] = None,
+    params: Optional[dict] = None,
     body: Optional[str] = None,
-    response_map: dict = None,
+    response_map: Optional[dict] = None,
     response_expect: str = "json",
-    secrets: list = None,
+    secrets: Optional[list] = None,
     retry: Optional[TemplateRetryConfig] = None,
     is_array: bool = False,
     array_path: Optional[str] = None,
@@ -50,7 +47,9 @@ def create_test_template(
         category="Test",
         version=1.0,
         input=TemplateInput(type=input_type, key=input_key),
-        output=TemplateOutput(type=output_type, is_array=is_array, array_path=array_path),
+        output=TemplateOutput(
+            type=output_type, is_array=is_array, array_path=array_path
+        ),
         request=TemplateHttpRequest(
             method=method,
             url=url,
@@ -71,7 +70,7 @@ def create_test_template(
 class MockVault:
     """Mock vault for testing secret resolution."""
 
-    def __init__(self, secrets: dict = None):
+    def __init__(self, secrets: Optional[dict] = None):
         self._secrets = secrets or {}
 
     def get_secret(self, name: str) -> Optional[str]:
@@ -350,7 +349,7 @@ class TestTemplateEnricherResponseParsing:
 
         inputs = [Ip(address="8.8.8.8")]
         # Text response won't map well, but shouldn't crash
-        results = await enricher.scan(inputs)
+        await enricher.scan(inputs)
         # May return empty due to mapping failure, that's OK
 
 
@@ -611,7 +610,9 @@ class TestTemplateEnricherFromYaml:
 
     def test_load_post_template(self):
         """Should load POST template from YAML."""
-        template = YamlLoader.get_template_from_file(str(TEST_DIR / "example-post.yaml"))
+        template = YamlLoader.get_template_from_file(
+            str(TEST_DIR / "example-post.yaml")
+        )
         enricher = TemplateEnricher(template=template, sketch_id="test")
         assert enricher.request.method == "POST"
 

@@ -7,7 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Star, Share, Trash2, Clock, Crown, Shield, Pencil, Eye } from 'lucide-react'
+import {
+  MoreHorizontal,
+  Star,
+  Share,
+  Trash2,
+  Clock,
+  Crown,
+  Shield,
+  Pencil,
+  Eye
+} from 'lucide-react'
 import { Investigation, Collaborator } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { useState } from 'react'
@@ -23,11 +33,30 @@ import { usePermissions } from '@/hooks/use-can'
 import type { InvestigationRole } from '@/types'
 import { ShareDialog } from './share-dialog'
 
-const ROLE_CONFIG: Record<InvestigationRole, { label: string; icon: typeof Eye; className: string }> = {
-  owner: { label: 'Owner', icon: Crown, className: 'bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400' },
-  admin: { label: 'Admin', icon: Shield, className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400' },
-  editor: { label: 'Editor', icon: Pencil, className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400' },
-  viewer: { label: 'Viewer', icon: Eye, className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400' },
+const ROLE_CONFIG: Record<
+  InvestigationRole,
+  { label: string; icon: typeof Eye; className: string }
+> = {
+  owner: {
+    label: 'Owner',
+    icon: Crown,
+    className: 'bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-400'
+  },
+  admin: {
+    label: 'Admin',
+    icon: Shield,
+    className: 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-400'
+  },
+  editor: {
+    label: 'Editor',
+    icon: Pencil,
+    className: 'bg-blue-500/15 text-blue-700 border-blue-500/30 dark:text-blue-400'
+  },
+  viewer: {
+    label: 'Viewer',
+    icon: Eye,
+    className: 'bg-zinc-500/15 text-zinc-700 border-zinc-500/30 dark:text-zinc-400'
+  }
 }
 
 type CaseOverviewPageProps = {
@@ -106,16 +135,17 @@ export function CaseHeader({ investigation }: CaseOverviewPageProps) {
           </div>
 
           {/* Role badge */}
-          {role && (() => {
-            const config = ROLE_CONFIG[role]
-            const Icon = config.icon
-            return (
-              <Badge className={cn('gap-1 text-xs font-medium shadow-none', config.className)}>
-                <Icon className="w-3 h-3" />
-                {config.label}
-              </Badge>
-            )
-          })()}
+          {role &&
+            (() => {
+              const config = ROLE_CONFIG[role]
+              const Icon = config.icon
+              return (
+                <Badge className={cn('gap-1 text-xs font-medium shadow-none', config.className)}>
+                  <Icon className="w-3 h-3" />
+                  {config.label}
+                </Badge>
+              )
+            })()}
 
           {/* Inline properties */}
           <div className="flex items-center gap-4 text-sm">

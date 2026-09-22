@@ -13,6 +13,14 @@ import { Link } from '@tanstack/react-router'
 import { FileCode2, Calendar } from 'lucide-react'
 import { memo, useMemo } from 'react'
 
+function CategoryBadge({ category }: { category: string }) {
+  const color = useNodesDisplaySettings(
+    (state) => state.colors[category as keyof typeof state.colors] || '#000000'
+  )
+  const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
+  return <Badge style={{ backgroundColor: bgColor }}>{category}</Badge>
+}
+
 export const EnricherItem = memo(({ enricher }: { enricher: any }) => {
   const formattedDate = enricher.created_at
     ? new Date(enricher.created_at).toLocaleDateString('en-US', {
@@ -56,17 +64,9 @@ export const EnricherItem = memo(({ enricher }: { enricher: any }) => {
               </div>
             )}
             <div className="flex gap-2 items-center flex-wrap">
-              {enricher.category.map((category: string) => {
-                const color = useNodesDisplaySettings(
-                  (state) => state.colors[category as keyof typeof state.colors] || '#000000'
-                )
-                const bgColor = useMemo(() => hexToRgba(color, 0.3), [color])
-                return (
-                  <Badge key={category} style={{ backgroundColor: bgColor }}>
-                    {category}
-                  </Badge>
-                )
-              })}
+              {enricher.category.map((category: string) => (
+                <CategoryBadge key={category} category={category} />
+              ))}
             </div>
           </div>
         </CardFooter>

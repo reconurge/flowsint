@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -10,7 +11,10 @@ class Session(FlowsintType):
     """Represents a user session with device and activity information."""
 
     session_id: str = Field(
-        ..., description="Unique session identifier", title="Session ID", json_schema_extra={"primary": True}
+        ...,
+        description="Unique session identifier",
+        title="Session ID",
+        json_schema_extra={"primary": True},
     )
     user_id: Optional[str] = Field(None, description="User identifier", title="User ID")
     service: Optional[str] = Field(
@@ -54,7 +58,7 @@ class Session(FlowsintType):
         None, description="Source of session information", title="Source"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         parts = []
         if self.user_id:

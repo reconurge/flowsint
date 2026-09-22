@@ -1,5 +1,7 @@
-from pydantic import Field, model_validator
 from typing import Optional, Self
+
+from pydantic import Field, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -8,7 +10,12 @@ from .registry import flowsint_type
 class Location(FlowsintType):
     """Represents a physical address with geographical coordinates."""
 
-    address: str = Field(..., description="Street address", title="Street Address", json_schema_extra={"primary": True})
+    address: str = Field(
+        ...,
+        description="Street address",
+        title="Street Address",
+        json_schema_extra={"primary": True},
+    )
     city: str = Field(..., description="City name", title="City")
     country: str = Field(..., description="Country name", title="Country")
     zip: str = Field(..., description="ZIP or postal code", title="ZIP/Postal Code")

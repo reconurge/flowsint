@@ -28,6 +28,7 @@ import { useConfirm } from '@/components/use-confirm-dialog'
 import { useParams, useRouter } from '@tanstack/react-router'
 import { flowService } from '@/api/flow-service'
 import { useFlowStore, type FlowNode, type FlowEdge } from '@/stores/flow-store'
+import type { Flow, FlowBranch } from '@/types/flow'
 import type { CSSProperties } from 'react'
 import {
   Select,
@@ -53,7 +54,7 @@ interface FlowEditorProps {
   theme?: ColorMode
   initialEdges: FlowEdge[]
   initialNodes: FlowNode[]
-  flow?: any
+  flow?: Flow
 }
 
 const defaultEdgeStyle: CSSProperties = { stroke: '#64748b' }
@@ -80,7 +81,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   const [isSimulating, setIsSimulating] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [simulationSpeed, setSimulationSpeed] = useState(1000) // ms per step
-  const [flowBranches, setFlowBranches] = useState<any[]>([])
+  const [flowBranches, setFlowBranches] = useState<FlowBranch[]>([])
 
   // #### Enricher Store State ####
   const nodes = useFlowStore((state) => state.nodes)
@@ -230,7 +231,6 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
   }, [])
 
   const onDrop = useCallback(
-    //@ts-ignore
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault()
       if (!reactFlowWrapper.current || !reactFlowInstance) return
@@ -260,7 +260,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
           class_name: enricherData.class_name,
           module: enricherData.module || '',
           key: enricherData.name,
-          // @ts-ignore
+          // @ts-expect-error colors is keyed by ItemType, category is a plain string
           color: colors[enricherData.category.toLowerCase()] || '#94a3b8',
           name: enricherData.name,
           category: enricherData.category,
@@ -284,7 +284,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
         zoom: 1.5
       })
     },
-    [reactFlowInstance, nodes, setNodes, setCenter]
+    [reactFlowInstance, nodes, setNodes, setCenter, colors]
   )
 
   // #### Node Interaction Handlers ####
@@ -299,7 +299,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
       //     zoom: 1.5,
       // })
     },
-    [setCenter, setSelectedNode]
+    [setSelectedNode]
   )
 
   const onPaneClick = useCallback(() => {
@@ -409,7 +409,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     } finally {
       setLoading(false)
     }
-  }, [flowId, nodes, edges, computeFlowMutation, setLoading])
+  }, [flowId, nodes, edges, computeFlowMutation, setLoading, handleSaveFlow])
 
   // #### Simulation State Management ####
   // Update the updateNodeState function with proper types
@@ -437,6 +437,35 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     },
     [setCenter]
   )
+
+  const resetSimulation = useCallback(() => {
+    setIsSimulating(false)
+    setCurrentStepIndex(0)
+
+    // Reset all nodes
+    setNodes((nds: FlowNode[]) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          computationState: undefined
+        }
+      }))
+    )
+
+    // Reset all edges
+    setEdges((eds: FlowEdge[]) =>
+      eds.map((edge) => ({
+        ...edge,
+        style: {
+          ...edge.style,
+          stroke: '#64748b',
+          strokeWidth: 1
+        },
+        animated: false
+      }))
+    )
+  }, [setIsSimulating, setCurrentStepIndex, setNodes, setEdges])
 
   // #### Simulation Effect ####
   useEffect(() => {
@@ -494,8 +523,13 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
         }, simulationSpeed)
       }
     } else {
-      // End of simulation
+      // End of simulation. This effect is a timer-driven step sequencer —
+      // resetSimulation's setState calls are the sequencer reaching its end
+      // state, not derived-state-from-props. Not worth restructuring a live
+      // step animation around this rule; the risk of subtly changing
+      // playback timing outweighs it.
       fitView({ duration: 500 })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       resetSimulation()
     }
 
@@ -507,7 +541,11 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
     loading,
     flowBranches,
     updateNodeState,
-    setCurrentStepIndex
+    setCurrentStepIndex,
+    setNodes,
+    setEdges,
+    fitView,
+    resetSimulation
   ])
 
   // #### Simulation Control Functions ####
@@ -573,35 +611,6 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
 
     const totalSteps = flowBranches.reduce((sum, branch) => sum + branch.steps.length, 0)
     setCurrentStepIndex(totalSteps)
-  }
-
-  const resetSimulation = () => {
-    setIsSimulating(false)
-    setCurrentStepIndex(0)
-
-    // Reset all nodes
-    setNodes((nds: FlowNode[]) =>
-      nds.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          computationState: undefined
-        }
-      }))
-    )
-
-    // Reset all edges
-    setEdges((eds: FlowEdge[]) =>
-      eds.map((edge) => ({
-        ...edge,
-        style: {
-          ...edge.style,
-          stroke: '#64748b',
-          strokeWidth: 1
-        },
-        animated: false
-      }))
-    )
   }
 
   // #### Render ####
@@ -689,7 +698,7 @@ const FlowEditor = memo(({ initialEdges, initialNodes, theme, flow }: FlowEditor
           <MiniMap className="bg-background" position="bottom-left" pannable zoomable />
         </ReactFlow>
       </div>
-      <FlowSheet onLayout={onLayout} />
+      <FlowSheet />
       <SaveModal
         open={showModal}
         onOpenChange={setShowModal}

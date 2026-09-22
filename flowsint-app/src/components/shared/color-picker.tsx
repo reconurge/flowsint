@@ -1,6 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Check } from 'lucide-react'
 
@@ -58,9 +58,12 @@ export function ColorPicker({
   const [open, setOpen] = useState(false)
   const [customColor, setCustomColor] = useState(value)
 
-  useEffect(() => {
+  // Adjusted during render rather than in an effect.
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setCustomColor(value)
-  }, [value])
+  }
 
   const handleCustomColorChange = (hex: string) => {
     setCustomColor(hex)

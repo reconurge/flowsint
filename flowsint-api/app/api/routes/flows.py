@@ -2,6 +2,11 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_user
+from app.api.schemas.flow import FlowCreate, FlowRead, FlowUpdate
 from flowsint_core.core.celery import celery
 from flowsint_core.core.graph import create_graph_service
 from flowsint_core.core.models import Profile
@@ -36,11 +41,6 @@ from flowsint_types import (
     Username,
     Website,
 )
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from app.api.deps import get_current_user
-from app.api.schemas.flow import FlowCreate, FlowRead, FlowUpdate
 
 load_all_enrichers()
 
@@ -148,6 +148,7 @@ def create_flow(
         description=payload.description,
         category=payload.category,
         flow_schema=payload.flow_schema,
+        owner_id=current_user.id,
     )
 
 
@@ -159,9 +160,11 @@ def get_flow_by_id(
 ):
     service = create_flow_service(db)
     try:
-        return service.get_by_id(flow_id)
+        return service.get_by_id(flow_id, current_user.id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Flow not found")
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 @router.put("/{flow_id}", response_model=FlowRead)
@@ -173,9 +176,13 @@ def update_flow(
 ):
     service = create_flow_service(db)
     try:
-        return service.update(flow_id, payload.model_dump(exclude_unset=True))
+        return service.update(
+            flow_id, current_user.id, payload.model_dump(exclude_unset=True)
+        )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Flow not found")
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 @router.delete("/{flow_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -186,10 +193,12 @@ def delete_flow(
 ):
     service = create_flow_service(db)
     try:
-        service.delete(flow_id)
+        service.delete(flow_id, current_user.id)
         return None
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Flow not found")
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 @router.post("/{flow_id}/launch")
@@ -201,7 +210,7 @@ async def launch_flow(
 ):
     service = create_flow_service(db)
     try:
-        flow = service.get_by_id(UUID(flow_id))
+        flow = service.get_by_id(UUID(flow_id), current_user.id)
         service.get_sketch_for_launch(payload.sketch_id, current_user.id)
 
         # Retrieve entities from Neo4J by their element IDs

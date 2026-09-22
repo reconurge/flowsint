@@ -45,26 +45,29 @@ Example template:
 
 import asyncio
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type, cast
 
 import httpx
-from flowsint_types import FlowsintType, get_type
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
+from flowsint_core.core.vault import VaultProtocol
 from flowsint_core.templates.loader.yaml_loader import (
     SSRFError,
     TemplateRenderError,
     YamlLoader,
     validate_url_safe,
 )
-from flowsint_core.templates.types import Template, TemplateRetryConfig
+from flowsint_core.templates.types import (
+    Template,
+    TemplateRetryConfig,
+    params_schema_from_secrets,
+)
+from flowsint_types import FlowsintType, get_type
 
 
 class TemplateEnricherError(Exception):
     """Base exception for template enricher errors."""
-
-    pass
 
 
 class TemplateEnricher(Enricher):
@@ -90,18 +93,15 @@ class TemplateEnricher(Enricher):
         template: Template,
         sketch_id: Optional[str] = None,
         scan_id: Optional[str] = None,
-        vault=None,
+        vault: Optional[VaultProtocol] = None,
         params: Optional[Dict[str, Any]] = None,
-    ):
-        # Build params schema from template secrets
-        params_schema = self._build_params_schema_from_template(template)
-
+    ) -> None:
         super().__init__(
             sketch_id=sketch_id,
             scan_id=scan_id,
             vault=vault,
             params=params,
-            params_schema=params_schema,
+            params_schema=params_schema_from_secrets(template.secrets),
         )
         self.template = template
         self.InputType = self._detect_type(self.template.input.type)
@@ -110,24 +110,12 @@ class TemplateEnricher(Enricher):
         self._resolved_secrets: Dict[str, str] = {}
         self.raw_response: Dict[str, Any] | None = None
 
-    @staticmethod
-    def _build_params_schema_from_template(template: Template) -> List[Dict[str, Any]]:
-        """Convert template secrets to enricher params schema format."""
-        schema = []
-        for secret in template.secrets:
-            schema.append(
-                {
-                    "name": secret.name,
-                    "type": "vaultSecret",
-                    "required": secret.required,
-                    "description": secret.description or f"Secret: {secret.name}",
-                }
-            )
-        return schema
-
     def _detect_type(self, input_type: str) -> type[FlowsintType]:
         """Resolve a type name to its FlowsintType class."""
-        DetectedType = get_type(input_type)
+        # flowsint_types isn't py.typed, so get_type() resolves to Any here
+        # regardless of its own (correct) declared return type — cast to
+        # what it actually returns rather than losing the check entirely.
+        DetectedType = cast(Optional[Type[FlowsintType]], get_type(input_type))
         if not DetectedType:
             raise TypeError(f"Type '{input_type}' is not present in registry.")
         return DetectedType
@@ -146,7 +134,7 @@ class TemplateEnricher(Enricher):
         """Return formatted markdown documentation for template enrichers."""
         return "Template-based enricher. See template definition for details."
 
-    async def async_init(self):
+    async def async_init(self) -> None:
         """Initialize the enricher, resolving vault secrets."""
         await super().async_init()
         # Store resolved secrets for template rendering
@@ -534,8 +522,11 @@ class TemplateEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[Any], input_data: List[Any] = []) -> List[Any]:
+    def postprocess(
+        self, results: List[Any], input_data: Optional[List[Any]] = None
+    ) -> List[Any]:
         """Log results and return them."""
+        input_data = input_data or []
         for input, output in zip(input_data, results):
             self.create_node(input)
             self.create_node(output)

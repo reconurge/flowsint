@@ -5,11 +5,11 @@ Base service class providing common functionality for all services.
 from typing import List
 from uuid import UUID
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
-from .exceptions import DatabaseError, PermissionDeniedError
 from ..types import Role
+from .exceptions import DatabaseError, PermissionDeniedError
 
 
 class BaseService:
@@ -54,7 +54,12 @@ class BaseService:
             for action in actions:
                 if role == Role.OWNER:
                     return True
-                if role == Role.ADMIN and action in ["read", "create", "update", "manage"]:
+                if role == Role.ADMIN and action in [
+                    "read",
+                    "create",
+                    "update",
+                    "manage",
+                ]:
                     return True
                 if role == Role.EDITOR and action in ["read", "create", "update"]:
                     return True

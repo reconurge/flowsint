@@ -1,17 +1,29 @@
+import type { LinkObject } from 'react-force-graph-2d'
+import type { GraphNode, GraphEdge } from '@/types'
+import type { GraphForceSettings } from '@/stores/graph-settings-store'
 import { CONSTANTS, GRAPH_COLORS, tempPos, tempDimensions } from '../utils/constants'
 import { getNodeEdgeDistance } from '../node/node-renderer'
 import { RenderContext, isEdgeInViewport } from '../utils/render-context'
 
 interface LinkRenderParams {
-  link: any
+  // LinkObject<GraphNode, GraphEdge> is what <ForceGraph2D<GraphNode,
+  // GraphEdge>> actually hands its linkCanvasObject callback — source/target
+  // already carry the string-vs-node-object duality (the library mutates
+  // graphData.links in place once it lays out), and `.curvature`
+  // (added by transformGraphData, not on GraphEdge) reads fine through the
+  // type's own index signature.
+  //
+  // GraphEdge's own source/target (plain required strings) must be omitted
+  // here: LinkObject intersects its LinkType param with its own optional
+  // `source?: string | number | NodeObject<NodeType>` field, and a same-name
+  // required-string-vs-optional-union collision collapses the intersection
+  // to `never` once narrowed — verified empirically, not a hunch.
+  link: LinkObject<GraphNode, Omit<GraphEdge, 'source' | 'target'>>
   ctx: CanvasRenderingContext2D
   globalScale: number
-  forceSettings: any
-  theme: string
+  forceSettings: GraphForceSettings
   highlightLinks: Set<string>
-  highlightNodes: Set<string>
-  selectedEdges: any[]
-  currentEdge: any
+  currentEdge: GraphEdge | null | undefined
   autoColorLinksByNodeType?: boolean
   rc: RenderContext
 }
@@ -57,7 +69,7 @@ export const renderLink = ({
   const isHighlighted = highlightLinks.has(linkKey)
   const isSelected = rc.selectedEdgeIds.has(link.id)
   const isCurrent = currentEdge?.id === link.id
-  let linkWidthBase = forceSettings?.linkWidth?.value ?? 2
+  const linkWidthBase = forceSettings?.linkWidth?.value ?? 2
 
   const linkWidth = rc.shouldRenderDetails
     ? linkWidthBase
@@ -159,9 +171,12 @@ export const renderLink = ({
   // Arrow
   if (arrowLength && arrowLength > 0) {
     const endTan = bezierTangentAt1(
-      adjustedStartX, adjustedStartY,
-      ctrlX, ctrlY,
-      adjustedEndX, adjustedEndY,
+      adjustedStartX,
+      adjustedStartY,
+      ctrlX,
+      ctrlY,
+      adjustedEndX,
+      adjustedEndY,
       isCurved
     )
     const angle = Math.atan2(endTan.y, endTan.x)

@@ -1,2 +1,2 @@
 /// <reference types="vite/client" />
-declare module '@tanstack/react-table';
+declare module '@tanstack/react-table'

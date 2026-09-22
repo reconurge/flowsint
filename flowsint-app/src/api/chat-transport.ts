@@ -13,15 +13,16 @@ export function createChatTransport(chatId: string) {
     },
     prepareSendMessagesRequest: ({ messages, body }) => {
       const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')
-      const prompt = lastUserMessage?.parts
-        ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-        .map((p) => p.text)
-        .join('') ?? ''
+      const prompt =
+        lastUserMessage?.parts
+          ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+          .map((p) => p.text)
+          .join('') ?? ''
 
       const context = (body as Record<string, unknown> | undefined)?.context
       return {
-        body: { prompt, ...(context ? { context } : {}) },
+        body: { prompt, ...(context ? { context } : {}) }
       }
-    },
+    }
   })
 }

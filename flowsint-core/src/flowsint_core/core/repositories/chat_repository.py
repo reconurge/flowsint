@@ -1,4 +1,5 @@
 """Repository for Chat and ChatMessage models."""
+
 from typing import List, Optional
 from uuid import UUID
 
@@ -25,9 +26,7 @@ class ChatRepository(BaseRepository[Chat]):
             .all()
         )
 
-    def get_by_id_and_owner(
-        self, chat_id: UUID, owner_id: UUID
-    ) -> Optional[Chat]:
+    def get_by_id_and_owner(self, chat_id: UUID, owner_id: UUID) -> Optional[Chat]:
         return (
             self._db.query(Chat)
             .filter(Chat.id == chat_id, Chat.owner_id == owner_id)

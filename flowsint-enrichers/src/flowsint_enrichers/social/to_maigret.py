@@ -1,14 +1,14 @@
 import json
 import subprocess
 import tempfile
-
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types import Username
 from flowsint_types.social_account import SocialAccount
-from flowsint_core.core.logger import Logger
 
 false_positives = ["LeagueOfLegends"]
 
@@ -91,7 +91,7 @@ class MaigretEnricher(Enricher):
             },
         ]
 
-    def run_maigret(self, username: str, temp_dir: str) -> Path:        
+    def run_maigret(self, username: str, temp_dir: str) -> Path:
         output_file = Path(f"{temp_dir}/report_{username}_simple.json")
         settings_path = Path(f"{temp_dir}/settings.json")
 
@@ -102,30 +102,43 @@ class MaigretEnricher(Enricher):
 
         try:
             cmd = [
-                "maigret", username, 
-                "-J", "simple", 
-                "-fo", temp_dir, 
-                "-n", max_connections
+                "maigret",
+                username,
+                "-J",
+                "simple",
+                "-fo",
+                temp_dir,
+                "-n",
+                max_connections,
             ]
 
             if all_sites:
                 cmd.append("-a")
 
             # ensure CF bypass is enabled and Flaresolverr URL is valid
-            if cloudflare_bypass and cloudflare_bypass_url and "://" in cloudflare_bypass_url and "v1" in cloudflare_bypass_url.lower():                
+            if (
+                cloudflare_bypass
+                and cloudflare_bypass_url
+                and "://" in cloudflare_bypass_url
+                and "v1" in cloudflare_bypass_url.lower()
+            ):
                 settings_data = {
                     "cloudflare_bypass": {
                         "enabled": True,
                         "session_prefix": "maigret",
-                        "trigger_protection": ["cf_js_challenge", "cf_firewall", "webgate"],
+                        "trigger_protection": [
+                            "cf_js_challenge",
+                            "cf_firewall",
+                            "webgate",
+                        ],
                         "modules": [
                             {
                                 "name": "flaresolverr",
                                 "method": "json_api",
                                 "url": cloudflare_bypass_url,
-                                "max_timeout_ms": 60000
+                                "max_timeout_ms": 60000,
                             }
-                        ]
+                        ],
                     }
                 }
 
@@ -140,16 +153,21 @@ class MaigretEnricher(Enricher):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                bufsize=1
+                bufsize=1,
             )
-            
+
             for line in process.stdout:
                 line = line.strip()
-            
+
                 # only line successful account searches (starts with [+] and contains a URL and the username)
-                if line and line.startswith("[+]") and "https://" in line and username in line:
+                if (
+                    line
+                    and line.startswith("[+]")
+                    and "https://" in line
+                    and username in line
+                ):
                     self.log_graph_message(line)
-        
+
         except Exception as e:
             Logger.error(
                 self.sketch_id,
@@ -157,7 +175,9 @@ class MaigretEnricher(Enricher):
             )
         return output_file
 
-    def parse_maigret_output(self, username_obj: Username, output_file: Path) -> List[SocialAccount]:
+    def parse_maigret_output(
+        self, username_obj: Username, output_file: Path
+    ) -> List[SocialAccount]:
         results: List[SocialAccount] = []
         if not output_file.exists():
             return results
@@ -168,7 +188,9 @@ class MaigretEnricher(Enricher):
         except Exception as e:
             Logger.error(
                 self.sketch_id,
-                {"message": f"Failed to load output file for {username_obj.value}: {e}"},
+                {
+                    "message": f"Failed to load output file for {username_obj.value}: {e}"
+                },
             )
             return results
 
@@ -231,7 +253,9 @@ class MaigretEnricher(Enricher):
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Failed to create SocialAccount for {username_obj.value} on {platform}: {e}"},
+                    {
+                        "message": f"Failed to create SocialAccount for {username_obj.value} on {platform}: {e}"
+                    },
                 )
                 continue
 
@@ -256,7 +280,9 @@ class MaigretEnricher(Enricher):
                 continue
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         if not self._graph_service:
             return results
 
@@ -267,16 +293,20 @@ class MaigretEnricher(Enricher):
                 # Create social profile node
                 self.create_node(profile)
                 # Create relationship
-                self.create_relationship(profile.username, profile, "HAS_SOCIAL_ACCOUNT")
+                self.create_relationship(
+                    profile.username, profile, "HAS_SOCIAL_ACCOUNT"
+                )
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
-                    {"message": f"Failed to create graph nodes for {profile.username.value} on {profile.platform}: {e}"},
+                    {
+                        "message": f"Failed to create graph nodes for {profile.username.value} on {profile.platform}: {e}"
+                    },
                 )
                 continue
-            
+
         self.log_graph_message(f"Processed {len(results)} social accounts")
-            
+
         return results
 
 

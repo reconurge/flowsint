@@ -36,7 +36,7 @@ export function useCreateOnPaste(sketchId: string) {
         toast.error(e.message)
       }
     },
-    [sketchId]
+    [sketchId, addNode, replaceNode]
   )
 
   const onImage = useCallback(
@@ -66,7 +66,7 @@ export function useCreateOnPaste(sketchId: string) {
         toast.error(e.message)
       }
     },
-    [sketchId]
+    [sketchId, addNode, replaceNode]
   )
   return usePasteListener(
     {
@@ -91,7 +91,7 @@ const createNode = async (
     if (newNode) {
       replaceNode(node.id, newNode.id, newNode.nodeProperties)
     }
-  } catch (e) {
+  } catch {
     toast.error('Could not create node.')
   }
 }

@@ -1,8 +1,9 @@
 """Tests for ProfileRepository."""
+
 from uuid import uuid4
 
-from tests.factories import ProfileFactory
 from flowsint_core.core.repositories import ProfileRepository
+from tests.factories import ProfileFactory
 
 
 class TestProfileRepository:
@@ -41,9 +42,7 @@ class TestProfileRepository:
         from flowsint_core.core.models import Profile
 
         repo = ProfileRepository(db_session)
-        profile = Profile(
-            id=uuid4(), email="new@test.com", hashed_password="pw"
-        )
+        profile = Profile(id=uuid4(), email="new@test.com", hashed_password="pw")
         repo.add(profile)
         db_session.commit()
 

@@ -1,4 +1,5 @@
-from typing import List, Dict, Optional, Self
+from typing import Dict, List, Optional, Self
+
 from pydantic import Field, model_validator
 
 from .flowsint_base import FlowsintType
@@ -10,13 +11,16 @@ class Leak(FlowsintType):
     """Represents a data leak or breach with associated data."""
 
     name: str = Field(
-        ..., description="The name of the leak or service brea", title="Leak Name", json_schema_extra={"primary": True}
+        ...,
+        description="The name of the leak or service brea",
+        title="Leak Name",
+        json_schema_extra={"primary": True},
     )
     leak: Optional[List[Dict]] = Field(
         None, description="List of data leaks found", title="Leak Data"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.name
         return self

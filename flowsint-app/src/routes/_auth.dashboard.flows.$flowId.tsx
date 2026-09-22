@@ -34,8 +34,8 @@ function FlowPage() {
     <Editor
       key={flow.id}
       flow={flow}
-      initialNodes={flow?.flow_schema?.nodes}
-      initialEdges={flow?.flow_schema?.edges}
+      initialNodes={flow?.flow_schema?.nodes ?? []}
+      initialEdges={flow?.flow_schema?.edges ?? []}
     />
   )
 }

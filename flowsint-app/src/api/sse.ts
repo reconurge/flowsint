@@ -27,9 +27,7 @@ export function connectSSE(opts: {
   let retry = 0
 
   const token = useAuthStore.getState().token
-  const headers: Record<string, string> = token
-    ? { Authorization: `Bearer ${token}` }
-    : {}
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
 
   fetchEventSource(opts.url, {
     signal: controller.signal,
@@ -63,7 +61,7 @@ export function connectSSE(opts: {
       // transient failure: retry silently with exponential backoff (onError is not called)
       retry += 1
       return Math.min(1000 * 2 ** retry, MAX_BACKOFF_MS)
-    },
+    }
   }).catch((err) => {
     if (!(err instanceof FatalSSEError)) opts.onError?.(err)
   })

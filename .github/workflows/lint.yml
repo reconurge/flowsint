@@ -1,0 +1,85 @@
+name: Lint & Typecheck
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-lint:
+    name: Lint (ruff, prettier, eslint)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: yarn install --frozen-lockfile
+        working-directory: flowsint-app
+      - name: ruff format + check, prettier + eslint — clean today, any regression is new debt
+        run: make lint
+
+  python-typecheck:
+    name: Python typecheck (mypy, changed files only)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: mypy on files this branch touches
+        # ~2200 pre-existing mypy errors across the workspace — not fixed blindly.
+        # Ratchet: gate only what changed, so the backlog shrinks over time
+        # instead of blocking every unrelated PR on day one.
+        run: make typecheck
+        env:
+          BASE_REF: origin/${{ github.base_ref || 'main' }}
+
+  frontend-typecheck:
+    name: Frontend typecheck & lint (changed files only)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: yarn install --frozen-lockfile
+      - name: tsc --noEmit (full project — TS can't type-check a single file in isolation)
+        # 110 pre-existing errors today. Reported so drift is visible, not blocking
+        # yet — flip to blocking once the backlog's paid down (see eslint-diff
+        # below for the actual per-PR gate on changed files).
+        working-directory: flowsint-app
+        run: yarn typecheck
+        continue-on-error: true
+      - name: eslint on files this branch touches
+        # ~300 pre-existing errors workspace-wide (mostly react-hooks rules and
+        # unescaped entities) — not fixed blindly. Ratchet: gate only changed
+        # files, same policy as Python's mypy job.
+        working-directory: flowsint-app
+        run: |
+          base="origin/${{ github.base_ref || 'main' }}"
+          changed=$(git diff --name-only --diff-filter=ACMR "$base...HEAD" -- '*.ts' '*.tsx' | sed 's|^flowsint-app/||')
+          if [ -z "$changed" ]; then
+            echo "No changed frontend files vs $base — skipping eslint."
+            exit 0
+          fi
+          echo "$changed"
+          echo "$changed" | xargs yarn eslint

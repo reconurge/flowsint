@@ -1,3 +1,6 @@
+import type { GraphNode } from '@/types'
+import type { GraphForceSettings } from '@/stores/graph-settings-store'
+
 export function truncateText(text: string, limit: number = 16): string {
   if (text.length <= limit) return text
   return text.substring(0, limit) + '...'
@@ -14,8 +17,8 @@ export function truncateText(text: string, limit: number = 16): string {
  * @returns The calculated node radius
  */
 export function calculateNodeSize(
-  node: any,
-  forceSettings: any,
+  node: GraphNode,
+  forceSettings: GraphForceSettings,
   shouldRenderDetails: boolean,
   zoomedOutMultiplier: number = 0.6
 ): number {

@@ -20,4 +20,4 @@ def test_category():
 
 def test_install():
     tool.install()
-    assert tool.is_installed() == True
+    assert tool.is_installed() is True

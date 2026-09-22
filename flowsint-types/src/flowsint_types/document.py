@@ -1,5 +1,6 @@
+from typing import List, Optional, Self
+
 from pydantic import Field, model_validator
-from typing import Optional, List, Self
 
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
@@ -9,7 +10,12 @@ from .registry import flowsint_type
 class Document(FlowsintType):
     """Represents a document with metadata, security, and content information."""
 
-    title: str = Field(..., description="Document title", title="Title", json_schema_extra={"primary": True})
+    title: str = Field(
+        ...,
+        description="Document title",
+        title="Title",
+        json_schema_extra={"primary": True},
+    )
     doc_type: Optional[str] = Field(
         None, description="Type of document (PDF, DOC, etc.)", title="Document Type"
     )
@@ -61,7 +67,7 @@ class Document(FlowsintType):
         None, description="Source of document information", title="Source"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         self.nodeLabel = self.title
         return self

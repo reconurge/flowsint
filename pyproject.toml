@@ -1,6 +1,6 @@
 [project]
 name = "flowsint"
-version = "1.2.8"
+version = "1.2.11"
 description = "Flowsint multi-module project"
 authors = [{ name = "dextmorgn", email = "contact@flowsint.io" }]
 requires-python = ">=3.12,<4.0"
@@ -27,3 +27,65 @@ flowsint-core = { workspace = true }
 flowsint-types = { workspace = true }
 flowsint-enrichers = { workspace = true }
 flowsint-api = { workspace = true }
+
+# `make lint`/`lint-fix` run `uv run ruff` from the repo root (not per-package
+# like typecheck does), so ruff has to be resolvable from the root project's
+# own environment too, not just each workspace member's dev group.
+[dependency-groups]
+dev = ["ruff>=0.16,<1.0"]
+
+# Single config for the whole workspace: ruff walks up from any file being
+# linted until it finds a pyproject.toml with a [tool.ruff] table, so this
+# root section applies to all four packages — no need to duplicate it the
+# way black/isort/flake8 were duplicated per-package before this migration.
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = [
+    "migrations",
+    "neo4j-migrations",
+]
+
+[tool.ruff.lint]
+# E = pycodestyle errors, F = pyflakes, W = pycodestyle warnings, I = isort
+# (replaces the standalone isort tool). Matches the old flake8 setup's rule
+# surface exactly — this migration swaps the tool, not the rule set. ruff
+# has other rule groups (UP/pyupgrade, B/bugbear, etc.) that would find
+# real things, but turning those on is a separate decision with its own
+# diff to review, not a side effect of a tool swap.
+select = ["E", "F", "W", "I"]
+# E203/W503 aren't in the default select set to begin with (ruff doesn't
+# enable them), but the old flake8 config's real intent — "don't fight the
+# formatter's own choices" — carries over automatically: ruff's formatter
+# and linter are designed to agree, unlike black+flake8 which needed the
+# explicit truce.
+# E501 (line-too-long): the formatter is the sole authority on code line
+# length. What's left after `ruff format` runs is long comments/docstrings/
+# string literals (URLs, mostly) — style noise, not a correctness signal.
+# Same exclusion the old flake8 config carried, same reasoning.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+# Same list the old isort config carried per-package (see git history) —
+# "app" is flowsint-api's own importable module name (FastAPI convention),
+# distinct from its pip/build name "flowsint-api".
+known-first-party = ["flowsint_core", "flowsint_types", "flowsint_enrichers", "flowsint_api", "app"]
+
+[tool.ruff.lint.per-file-ignores]
+# Known debt, not a green-light: package re-exports its entire public API via
+# wildcard imports from 11 submodules, no explicit __all__. Works today, but
+# nothing stops two submodules from silently shadowing each other's names.
+# Tracked for a real fix (explicit imports + __all__); not blind-fixed here
+# because it risks breaking every downstream `from flowsint_core import X`.
+"flowsint-core/src/flowsint_core/__init__.py" = ["F401", "F403"]
+# Standard Alembic env.py pattern: star-imports all models so their metadata
+# gets picked up for autogenerate. F405 fires on the later `Base.metadata`
+# usage, not just the import line, so a line-scoped noqa can't cover it.
+# E402: the import has to come after sys.path.append(..) above it, which
+# is itself required so the package is importable at all in this context.
+"flowsint-api/alembic/env.py" = ["F403", "F405", "E402"]
+
+[tool.ruff.format]
+# Matches black's defaults, which this replaces.
+quote-style = "double"
+indent-style = "space"

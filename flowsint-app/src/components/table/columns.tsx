@@ -19,7 +19,7 @@ import { GraphNode } from '@/types'
 // Memoized icon component to prevent unnecessary re-renders
 const MemoizedIcon = memo(({ type, size = 16 }: { type: string; size?: number }) => {
   const IconComponent = useIcon(type)
-  return <IconComponent size={size} />
+  return IconComponent({ size })
 })
 MemoizedIcon.displayName = 'MemoizedIcon'
 
@@ -94,6 +94,78 @@ const getConfidenceColor = (confidence: number) => {
   return 'text-red-600 dark:text-red-400'
 }
 
+// `header`/`cell` are plain functions invoked by flexRender, not React
+// components — calling hooks directly inside them violates Rules of Hooks
+// (no stable per-cell Fiber to track hook order against). Extracted as real
+// components below so the hooks they need get a proper component instance.
+
+function SelectAllHeaderCell() {
+  const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
+  const nodes = useGraphStore((s) => s.nodes)
+  const handleToggleCheckAll = useCallback(
+    (checked: boolean) => {
+      if (!checked) {
+        setSelectedNodes([])
+        return
+      } else setSelectedNodes(nodes)
+    },
+    [nodes, setSelectedNodes]
+  )
+  return (
+    <div className="flex items-center h-full">
+      <Checkbox onCheckedChange={handleToggleCheckAll} />
+    </div>
+  )
+}
+
+function SelectRowCell({ row }: { row: { original: GraphNode } }) {
+  const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
+  const selectedNodes = useGraphStore((s) => s.selectedNodes)
+  const toggleNode = useCallback(
+    () => toggleNodeSelection(row.original, true),
+    [row.original, toggleNodeSelection]
+  )
+  const isNodeChecked = useCallback(
+    (nodeId: string) => {
+      return selectedNodes.some((node) => node.id === nodeId)
+    },
+    [selectedNodes]
+  )
+  return (
+    <div className="flex items-center">
+      <Checkbox checked={isNodeChecked(row.original.id)} onCheckedChange={toggleNode} />
+    </div>
+  )
+}
+
+// `data.label` here doesn't match the `GraphNode` type (which declares
+// `nodeLabel`) — pre-existing mismatch, invisible before because `row` was
+// implicitly `any`. This file has no consumers in the app (dead code, see
+// data-table.tsx), so left as-is rather than guessing the intended fix.
+function NodeLabelCell({ row }: { row: { original: any } }) {
+  const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
+  const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
+  const openEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setCurrentNodeId(row.original.id)
+      setOpenNodeEditorModal(true)
+    },
+    [row.original, setCurrentNodeId, setOpenNodeEditorModal]
+  )
+
+  return (
+    <button
+      onClick={openEdit}
+      className="text-left font-medium flex items-center gap-2 h-full truncate text-ellipsis w-full rounded-md p-2 transition-colors duration-500"
+    >
+      <span className="hover:text-primary truncate text-[.9rem] block font-medium transition-colors duration-500">
+        {row.original.data.label}
+      </span>
+    </button>
+  )
+}
+
 export const columns: ColumnDef<GraphNode>[] = [
   {
     size: 50,
@@ -101,40 +173,8 @@ export const columns: ColumnDef<GraphNode>[] = [
     maxSize: 50,
     enableResizing: false,
     accessorKey: 'icon',
-    header: () => {
-      const setSelectedNodes = useGraphStore((s) => s.setSelectedNodes)
-      const nodes = useGraphStore((s) => s.nodes)
-      const handleToggleCheckAll = useCallback(
-        (checked: boolean) => {
-          if (!checked) {
-            setSelectedNodes([])
-            return
-          } else setSelectedNodes(nodes)
-        },
-        [nodes, setSelectedNodes]
-      )
-      return (
-        <div className="flex items-center h-full">
-          <Checkbox onCheckedChange={handleToggleCheckAll} />
-        </div>
-      )
-    },
-    cell: ({ row }) => {
-      const toggleNodeSelection = useGraphStore((s) => s.toggleNodeSelection)
-      const selectedNodes = useGraphStore((s) => s.selectedNodes)
-      const toggleNode = useCallback(() => toggleNodeSelection(row.original, true), [])
-      const isNodeChecked = useCallback(
-        (nodeId: string) => {
-          return selectedNodes.some((node) => node.id === nodeId)
-        },
-        [selectedNodes]
-      )
-      return (
-        <div className="flex items-center">
-          <Checkbox checked={isNodeChecked(row.original.id)} onCheckedChange={toggleNode} />
-        </div>
-      )
-    }
+    header: () => <SelectAllHeaderCell />,
+    cell: ({ row }) => <SelectRowCell row={row} />
   },
   {
     enableResizing: true,
@@ -154,33 +194,7 @@ export const columns: ColumnDef<GraphNode>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => {
-      const setCurrentNodeId = useGraphStore((s) => s.setCurrentNodeId)
-      // const IconComponent = useIcon(row.original.nodeType)
-      const setOpenNodeEditorModal = useGraphStore((s) => s.setOpenNodeEditorModal)
-      const openEdit = useCallback(
-        (e: React.MouseEvent) => {
-          e.stopPropagation()
-          setCurrentNodeId(row.original.id)
-          setOpenNodeEditorModal(true)
-        },
-        [row.original, setCurrentNodeId, setOpenNodeEditorModal]
-      )
-
-      return (
-        <button
-          onClick={openEdit}
-          className="text-left font-medium flex items-center gap-2 h-full truncate text-ellipsis w-full rounded-md p-2 transition-colors duration-500"
-        >
-          {/* <div className="shrink-0">
-                        <IconComponent size={16} />
-                    </div> */}
-          <span className="hover:text-primary truncate text-[.9rem] block font-medium transition-colors duration-500">
-            {row.original.data.label}
-          </span>
-        </button>
-      )
-    }
+    cell: ({ row }) => <NodeLabelCell row={row} />
   },
   {
     enableResizing: true,

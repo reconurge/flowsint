@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import MonacoEditor from '@monaco-editor/react'
 import { useTheme } from '@/components/theme-provider'
 
@@ -10,18 +9,11 @@ interface JsonViewerProps {
 
 function useResolvedTheme() {
   const { theme } = useTheme()
-  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
-
-  useEffect(() => {
-    if (theme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setResolvedTheme(isDark ? 'dark' : 'light')
-    } else {
-      setResolvedTheme(theme as 'dark' | 'light')
-    }
-  }, [theme])
-
-  return resolvedTheme
+  // Pure derived value — no state/effect needed, just recompute each render.
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return theme as 'dark' | 'light'
 }
 
 export function JsonViewer({ data, height = '100%', className }: JsonViewerProps) {

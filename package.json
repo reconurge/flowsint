@@ -22,16 +22,27 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "lint-staged": {
+    "**/*.py": [
+      "uv run ruff format",
+      "uv run ruff check --fix"
+    ],
+    "flowsint-app/**/*.{ts,tsx,js,jsx}": [
+      "prettier --write"
+    ]
+  },
   "dependencies": {
     "dotenv": "^16.4.7",
     "neo4j-driver": "^5.27.0"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0"
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "standard-version": "^9.5.0"
   },
   "workspaces": [
     "flowsint-app"

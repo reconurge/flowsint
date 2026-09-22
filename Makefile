@@ -13,7 +13,8 @@ COMPOSE_PROD   := docker compose -f docker-compose.prod.yml
 	api frontend celery \
 	test install clean check-env open-browser-dev open-browser-prod \
 	logs-dev logs-prod status \
-	regenerate-router
+	regenerate-router \
+	lint lint-fix typecheck
 
 ENV_DIRS := . flowsint-api flowsint-core flowsint-app
 
@@ -141,6 +142,72 @@ test:
 	cd flowsint-core && uv run pytest
 	cd flowsint-enrichers && uv run pytest
 	cd flowsint-api && uv run pytest
+
+PY_SRC := flowsint-core/src flowsint-core/tests \
+	flowsint-api/app flowsint-api/tests flowsint-api/alembic \
+	flowsint-enrichers/src flowsint-enrichers/tests \
+	flowsint-types/src flowsint-types/tests
+
+# Full-repo, blocking: formatting and lint are 100% clean today, so any
+# regression here is new debt — no reason to let it in. ruff replaces
+# black+isort+flake8 (one tool, one config — see [tool.ruff] in the root
+# pyproject.toml, which every package's ruff invocation inherits by walking
+# up the directory tree to find it). Frontend prettier/eslint are just as
+# clean today (0 errors — eslint's ~130 remaining findings are all
+# warnings, e.g. no-explicit-any, not failures), so they're blocking here
+# too rather than living only in flowsint-app's own yarn scripts.
+lint:
+	uv run ruff format --check $(PY_SRC)
+	uv run ruff check $(PY_SRC)
+	cd flowsint-app && yarn format:check && yarn lint:check
+
+lint-fix:
+	uv run ruff format $(PY_SRC)
+	uv run ruff check --fix $(PY_SRC)
+	cd flowsint-app && yarn format && yarn lint
+
+# mypy has ~2200 pre-existing errors across the workspace (real, not fixed
+# blindly in one pass — see CI notes). Gating full-repo would be a
+# lie from day one. Ratchet instead: block only on files this branch touches,
+# so new code is held to the strict config and the backlog shrinks as files
+# get touched, without a red CI on every unrelated PR.
+#
+# "Touches" means semantically, not cosmetically: a repo-wide `ruff format`
+# adoption (or any future bulk reformat) diffs every file against BASE_REF
+# without changing what any of them mean — if that gets counted as "changed",
+# the ratchet degrades into gating the whole backlog on whichever PR happens
+# to run the formatter first. A file only counts if re-running ruff on the
+# BASE_REF version doesn't reproduce today's content byte-for-byte. Resolve
+# the ruff binary once up front and call it directly in the loop below —
+# invoking `uv run ruff` per file (up to ~2x per changed file) was flaky,
+# occasionally producing a spurious empty result that made a purely
+# reformatted file look "meaningful".
+BASE_REF ?= origin/main
+typecheck:
+	@ruff_bin=$$(uv run which ruff); \
+	changed=$$(git diff --name-only --diff-filter=ACMR $(BASE_REF)...HEAD -- '*.py' 2>/dev/null); \
+	meaningful=""; \
+	for f in $$changed; do \
+		if git cat-file -e $(BASE_REF):$$f 2>/dev/null; then \
+			old_reformatted=$$(git show $(BASE_REF):$$f | "$$ruff_bin" format --stdin-filename "$$f" - 2>/dev/null | "$$ruff_bin" check --fix --stdin-filename "$$f" - 2>/dev/null); \
+			if [ "$$old_reformatted" = "$$(cat "$$f")" ]; then continue; fi; \
+		fi; \
+		meaningful="$$meaningful $$f"; \
+	done; \
+	changed=$$(printf '%s\n' $$meaningful); \
+	if [ -z "$$changed" ]; then \
+		echo "No semantically changed Python files vs $(BASE_REF) — skipping mypy."; \
+		exit 0; \
+	fi; \
+	echo "$$changed"; \
+	mypy_status=0; \
+	for pkg in flowsint-core flowsint-api flowsint-enrichers flowsint-types; do \
+		files=$$(echo "$$changed" | grep "^$$pkg/" | sed "s|^$$pkg/||"); \
+		[ -z "$$files" ] && continue; \
+		echo "== mypy: $$pkg =="; \
+		(cd $$pkg && echo "$$files" | xargs -r uv run mypy) || mypy_status=1; \
+	done; \
+	exit $$mypy_status
 
 install:
 	$(MAKE) infra-dev

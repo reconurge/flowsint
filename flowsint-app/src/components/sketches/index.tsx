@@ -49,7 +49,6 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
   const view = useGraphControls((s) => s.view)
   const updateGraphData = useGraphStore((s) => s.updateGraphData)
   const setFilters = useGraphStore((s) => s.setFilters)
-  const filters = useGraphStore((s) => s.filters)
   const { actionItems, isLoading: isLoadingActionItems } = useActionItems()
 
   const { params, sketch } = useLoaderData({
@@ -64,15 +63,17 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
     if (graphData?.nds && graphData?.rls) {
       updateGraphData(graphData.nds, graphData.rls)
       const types = new Set(graphData.nds.map((n) => n.nodeType))
+      // Read current filters via getState() rather than subscribing — this
+      // effect shouldn't re-run just because filters changed.
       setFilters({
-        ...filters,
+        ...useGraphStore.getState().filters,
         types: Array.from(types).map((t) => ({
           type: t,
           checked: true
         }))
       })
     }
-  }, [graphData?.nds, graphData?.rls, setFilters])
+  }, [graphData?.nds, graphData?.rls, setFilters, updateGraphData])
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -100,7 +101,7 @@ const GraphPanel = ({ graphData, isLoading }: GraphPanelProps) => {
       try {
         const parsedData = JSON.parse(data)
         handleOpenFormModal(findActionItemByKey(parsedData.itemKey, actionItems))
-      } catch (error) {
+      } catch {
         return
       }
     }

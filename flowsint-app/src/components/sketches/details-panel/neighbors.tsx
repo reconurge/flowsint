@@ -29,25 +29,33 @@ const NeighborsGraph = memo(
       queryFn: () => sketchService.getNodeNeighbors(sketchId, currentNode.id)
     })
 
-    // omit x and y positions to let the GraphViewer manange the forces
-    const nodes = useMemo(
+    // omit x and y positions to let the GraphViewer manage the forces —
+    // the rest of GraphNode's fields aren't used by this mini preview
+    // graph, so they're filled with the same defaults new nodes get.
+    const nodes = useMemo<GraphNode[] | undefined>(
       () =>
         neighborsData?.nds.map(
-          ({ id, nodeType, nodeColor, nodeIcon, nodeLabel, nodeImage, nodeShape }: GraphNode) => ({
+          ({ id, nodeType, nodeColor, nodeIcon, nodeLabel, nodeImage, nodeShape }) => ({
             id,
             nodeType,
             nodeColor,
             nodeIcon,
             nodeLabel,
             nodeImage,
-            nodeShape
+            nodeShape,
+            nodeProperties: {},
+            nodeMetadata: {},
+            nodeSize: 4,
+            nodeFlag: null,
+            x: 0,
+            y: 0
           })
         ),
       [neighborsData?.nds]
     )
     const handleRefetch = useCallback(() => {
       refetch()
-    }, [])
+    }, [refetch])
 
     if (error)
       return (
@@ -57,7 +65,7 @@ const NeighborsGraph = memo(
       )
     return (
       <div ref={containerRef} className="overflow-hidden bg-background relative h-full w-full">
-        {isLoading ? (
+        {isLoading || !neighborsData || !nodes ? (
           <div className="flex items-center justify-center grow h-full">
             <Loader />
           </div>

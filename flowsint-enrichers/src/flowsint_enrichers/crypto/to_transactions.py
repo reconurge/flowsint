@@ -1,13 +1,15 @@
 import os
-from typing import List, Dict, Any, Optional, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import requests
 import requests.exceptions
-from datetime import datetime
 from dotenv import load_dotenv
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.wallet import CryptoWallet, CryptoWalletTransaction
-from flowsint_core.core.logger import Logger
 
 load_dotenv()
 
@@ -81,7 +83,9 @@ class CryptoWalletAddressToTransactions(Enricher):
     async def scan(self, data: List[InputType]) -> List[OutputType]:
         results: List[OutputType] = []
         api_key = self.get_secret("ETHERSCAN_API_KEY", os.getenv("ETHERSCAN_API_KEY"))
-        api_url = self.get_params().get("ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api")
+        api_url = self.get_params().get(
+            "ETHERSCAN_API_URL", "https://api.etherscan.io/v2/api"
+        )
         for d in data:
             try:
                 transactions = await self._get_transactions(d.address, api_key, api_url)
@@ -172,7 +176,9 @@ class CryptoWalletAddressToTransactions(Enricher):
             )
         return transactions
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         if not self._graph_service:
             return results
 

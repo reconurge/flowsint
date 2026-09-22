@@ -1,9 +1,11 @@
-from typing import Optional, Union, Self
+from typing import Optional, Self, Union
+
 from pydantic import Field, field_validator, model_validator
-from .email import Email
+
 from .domain import Domain
-from .organization import Organization
+from .email import Email
 from .flowsint_base import FlowsintType
+from .organization import Organization
 from .registry import flowsint_type
 
 
@@ -11,9 +13,16 @@ from .registry import flowsint_type
 class Whois(FlowsintType):
     """Represents WHOIS domain registration information."""
 
-    domain: Domain = Field(..., description="Domain information", title="Domain", json_schema_extra={"primary": True})
+    domain: Domain = Field(
+        ...,
+        description="Domain information",
+        title="Domain",
+        json_schema_extra={"primary": True},
+    )
     registry_domain_id: Optional[str] = Field(
-        None, description="Registry Domain ID (unique identifier)", title="Registry Domain ID"
+        None,
+        description="Registry Domain ID (unique identifier)",
+        title="Registry Domain ID",
     )
     registrar: Optional[str] = Field(
         None, description="Domain registrar name", title="Registrar"
@@ -39,7 +48,7 @@ class Whois(FlowsintType):
         None, description="Date when the domain expires", title="Expiration Date"
     )
 
-    @field_validator('domain', mode='before')
+    @field_validator("domain", mode="before")
     @classmethod
     def convert_domain(cls, v: Union[str, dict, Domain]) -> Domain:
         """Convert string or dict to Domain object if needed."""
@@ -51,9 +60,11 @@ class Whois(FlowsintType):
             return Domain(**v)
         return v
 
-    @field_validator('organization', mode='before')
+    @field_validator("organization", mode="before")
     @classmethod
-    def convert_organization(cls, v: Union[str, dict, Organization, None]) -> Optional[Organization]:
+    def convert_organization(
+        cls, v: Union[str, dict, Organization, None]
+    ) -> Optional[Organization]:
         """Convert string or dict to Organization object if needed."""
         if v is None:
             return None
@@ -65,7 +76,7 @@ class Whois(FlowsintType):
             return Organization(**v)
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Use domain and organization if available
         if self.organization:

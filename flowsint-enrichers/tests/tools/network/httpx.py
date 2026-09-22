@@ -1,5 +1,6 @@
 import re
 from typing import List
+
 from tools.network.httpx import HttpxTool
 
 tool = HttpxTool()
@@ -26,7 +27,7 @@ def test_image():
 
 def test_install():
     tool.install()
-    assert tool.is_installed() == True
+    assert tool.is_installed() is True
 
 
 def test_version():

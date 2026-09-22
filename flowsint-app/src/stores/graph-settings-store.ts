@@ -1,6 +1,20 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// Shape shared by every entry under a settings category (general/graph).
+// `value` is number|boolean because that's every value that exists today —
+// widen this union if a string- or array-valued setting is ever added.
+export interface SettingItem {
+  name: string
+  type: string
+  value: number | boolean
+  min?: number
+  max?: number
+  step?: number
+  options?: { value: string; label: string }[]
+  description?: string
+}
+
 // Centralized default settings organized by categories
 const DEFAULT_SETTINGS = {
   information: {},
@@ -367,19 +381,23 @@ const FORCE_PRESETS = {
   }
 }
 
+// This is exactly `DEFAULT_SETTINGS.graph`'s type — the store assigns it
+// directly as the initial value below.
+export type GraphForceSettings = typeof DEFAULT_SETTINGS.graph
+
 type GraphGeneralSettingsStore = {
   // Settings state
   settings: typeof DEFAULT_SETTINGS
-  forceSettings: any
-  updateSetting: (category: string, key: string, value: any) => void
+  forceSettings: GraphForceSettings
+  updateSetting: (category: string, key: string, value: number | boolean) => void
   resetSettings: () => void
-  getSettings: () => Record<string, any>
-  getCategorySettings: (category: string) => Record<string, any>
+  getSettings: () => Record<string, number | boolean>
+  getCategorySettings: (category: string) => Record<string, number | boolean>
 
   // Force Presets
   currentPreset: string | null
   applyPreset: (presetName: string) => void
-  getPresets: () => Record<string, any>
+  getPresets: () => typeof FORCE_PRESETS
 
   // UI State
   settingsModalOpen: boolean
@@ -392,7 +410,7 @@ type GraphGeneralSettingsStore = {
   setImportModalOpen: (open: boolean) => void
 
   // Helper methods
-  getSettingValue: (category: string, key: string) => any
+  getSettingValue: (category: string, key: string) => number | boolean | undefined
   getSettingType: (category: string, key: string) => string | undefined
   getSettingName: (category: string, key: string) => string | undefined
   getSettingOptions: (
@@ -423,7 +441,9 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
       // Core methods
       updateSetting: (category, key, value) =>
         set((state) => {
-          const categorySettings = state.settings[category as keyof typeof state.settings] as any
+          const categorySettings = state.settings[
+            category as keyof typeof state.settings
+          ] as Record<string, SettingItem>
           const newSettings = {
             ...state.settings,
             [category]: {
@@ -437,13 +457,14 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
           // Also update forceSettings if we're updating a graph setting
           let newForceSettings = state.forceSettings
           if (category === 'graph') {
+            const forceSettings = state.forceSettings as Record<string, SettingItem>
             newForceSettings = {
-              ...state.forceSettings,
+              ...forceSettings,
               [key]: {
-                ...(state.forceSettings[key] || {}),
+                ...(forceSettings[key] || {}),
                 value: value
               }
-            }
+            } as GraphForceSettings
           }
           return {
             settings: newSettings,
@@ -460,22 +481,24 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
         }),
 
       getSettings: () => {
-        const flatSettings: Record<string, any> = {}
+        const flatSettings: Record<string, number | boolean> = {}
         Object.entries(get().settings).forEach(([category, categorySettings]) => {
-          Object.entries(categorySettings as Record<string, any>).forEach(([key, setting]) => {
-            flatSettings[`${category}.${key}`] = (setting as any).value
-          })
+          Object.entries(categorySettings as Record<string, SettingItem>).forEach(
+            ([key, setting]) => {
+              flatSettings[`${category}.${key}`] = setting.value
+            }
+          )
         })
         return flatSettings
       },
 
       getCategorySettings: (category: string) => {
-        const categorySettings: Record<string, any> = {}
-        // @ts-ignore
+        const categorySettings: Record<string, number | boolean> = {}
+        // @ts-expect-error indexing the settings schema with a runtime string key
         const settings = get().settings[category]
         if (settings) {
-          Object.entries(settings as Record<string, any>).forEach(([key, setting]) => {
-            categorySettings[key] = (setting as any).value
+          Object.entries(settings as Record<string, SettingItem>).forEach(([key, setting]) => {
+            categorySettings[key] = setting.value
           })
         }
         return categorySettings
@@ -490,8 +513,8 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
 
         set((state) => {
           // Create completely new objects with new references
-          const newGraphSettings = { ...state.settings.graph } as any
-          const newForceSettings = { ...state.forceSettings } as any
+          const newGraphSettings = { ...state.settings.graph } as Record<string, SettingItem>
+          const newForceSettings = { ...state.forceSettings } as Record<string, SettingItem>
 
           // Update each preset value, creating new objects for each setting
           Object.entries(preset).forEach(([key, value]) => {
@@ -509,15 +532,19 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
             }
           })
 
-          // Create new settings object with new graph reference
+          // Create new settings object with new graph reference. Cast back to
+          // the specific literal shape: newGraphSettings/newForceSettings were
+          // widened to Record<string, SettingItem> above to allow mutating by
+          // a dynamic preset key, but every key from DEFAULT_SETTINGS.graph is
+          // still present — same keys, generically typed during the update.
           const newSettings = {
             ...state.settings,
-            graph: newGraphSettings
+            graph: newGraphSettings as unknown as typeof state.settings.graph
           }
 
           return {
             settings: newSettings,
-            forceSettings: newForceSettings,
+            forceSettings: newForceSettings as unknown as GraphForceSettings,
             currentPreset: presetName
           }
         })
@@ -533,27 +560,39 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
 
       // Helper methods
       getSettingValue: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         return categorySettings?.[key]?.value
       },
       getSettingType: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         return categorySettings?.[key]?.type
       },
       getSettingName: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         return categorySettings?.[key]?.name
       },
       getSettingOptions: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         return categorySettings?.[key]?.options
       },
       getSettingDescription: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         return categorySettings?.[key]?.description
       },
       getSettingConstraints: (category: string, key: string) => {
-        const categorySettings = get().settings[category as keyof typeof DEFAULT_SETTINGS] as any
+        const categorySettings = get().settings[
+          category as keyof typeof DEFAULT_SETTINGS
+        ] as Record<string, SettingItem>
         const setting = categorySettings?.[key]
         if (setting && 'min' in setting) {
           return {
@@ -573,12 +612,20 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
         forceSettings: state.forceSettings,
         currentPreset: state.currentPreset
       }),
-      migrate: (persistedState: any, version: number) => {
+      // persistedState is genuinely unknown here — it's whatever a previous
+      // app version wrote to localStorage, which could be any older schema.
+      // zustand's own persist types declare this as `unknown` too.
+      migrate: (persistedState: unknown, version: number) => {
         // If the stored version is older than current, merge with new defaults
         if (version < STORAGE_VERSION) {
           console.log(`[Migration] Upgrading storage from v${version} to v${STORAGE_VERSION}`)
 
-          // Deep merge function to preserve user values while adding new defaults
+          // Deep merge function to preserve user values while adding new
+          // defaults. Deliberately `any`-typed: it recurses over
+          // arbitrarily-shaped old persisted data merged against the current
+          // defaults, which have a different shape every time DEFAULT_SETTINGS
+          // changes — there's no fixed schema to type this against.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const deepMerge = (target: any, source: any): any => {
             const result = { ...target }
 
@@ -594,10 +641,14 @@ export const useGraphSettingsStore = create<GraphGeneralSettingsStore>()(
             return result
           }
 
+          const oldState = persistedState as {
+            settings?: Record<string, unknown>
+            forceSettings?: Record<string, unknown>
+          }
           return {
-            ...persistedState,
-            settings: deepMerge(persistedState.settings || {}, DEFAULT_SETTINGS),
-            forceSettings: deepMerge(persistedState.forceSettings || {}, DEFAULT_SETTINGS.graph)
+            ...oldState,
+            settings: deepMerge(oldState.settings || {}, DEFAULT_SETTINGS),
+            forceSettings: deepMerge(oldState.forceSettings || {}, DEFAULT_SETTINGS.graph)
           }
         }
 

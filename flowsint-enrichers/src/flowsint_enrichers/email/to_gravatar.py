@@ -1,9 +1,11 @@
 import hashlib
-from typing import List, Union
+from typing import List
+
 import requests
+
 from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.email import Email
 from flowsint_types.gravatar import Gravatar
 
@@ -90,7 +92,9 @@ class EmailToGravatarEnricher(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         for email_obj, gravatar_obj in self.email_gravatar_mapping:
             if not self._graph_service:
                 continue

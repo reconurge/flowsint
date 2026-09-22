@@ -2,12 +2,7 @@ import { useMemo } from 'react'
 import { useLoaderData } from '@tanstack/react-router'
 import type { InvestigationRole } from '@/types'
 
-type Action =
-  | 'read'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'manage'
+type Action = 'read' | 'create' | 'update' | 'delete' | 'manage'
 
 export type Permissions = {
   can: (action: Action) => boolean
@@ -71,7 +66,7 @@ export function usePermissions(): Permissions {
   const role = useLoaderData({
     from: '/_auth/dashboard/investigations/$investigationId',
     select: (d: any) => d?.investigation?.current_user_role ?? null,
-    strict: false,
+    strict: false
   }) as InvestigationRole | null | undefined
   return useCan(role)
 }

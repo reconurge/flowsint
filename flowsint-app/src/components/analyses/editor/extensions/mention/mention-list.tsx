@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useImperativeHandle, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ItemType } from '@/stores/node-display-settings'
 import { useIcon } from '@/hooks/use-icon'
@@ -43,7 +43,14 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>((props, ref) =>
     selectItem(selectedIndex)
   }
 
-  useEffect(() => setSelectedIndex(0), [props.items])
+  // Adjusted during render rather than in an effect — same "reset on items
+  // change" behavior (items gets a new reference each time the parent
+  // recomputes it), one fewer render pass.
+  const [prevItems, setPrevItems] = useState(props.items)
+  if (props.items !== prevItems) {
+    setPrevItems(props.items)
+    setSelectedIndex(0)
+  }
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }: { event: KeyboardEvent }) => {
@@ -72,6 +79,7 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>((props, ref) =>
         <div className="overflow-y-auto max-h-[300px]">
           {props.items.map((item, index) => (
             <MentionListItem
+              key={item.nodeId}
               item={item}
               index={index}
               selectedIndex={selectedIndex}
@@ -94,7 +102,6 @@ type MentionItemProps = {
 }
 const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItemProps) => {
   const SourceIcon = useIcon(item.nodeType, {
-    // @ts-ignore
     nodeIcon: item.nodeIcon,
     nodeImage: item.nodeImage
   })
@@ -110,7 +117,7 @@ const MentionListItem = ({ item, index, selectedIndex, selectItem }: MentionItem
       onClick={() => selectItem(index)}
       type="button"
     >
-      {SourceIcon && <SourceIcon size={14} />}
+      {SourceIcon && SourceIcon({ size: 14 })}
       <span className="flex-1 text-left truncate text-ellipsis">{item.nodeLabel}</span>
     </button>
   )

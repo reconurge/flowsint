@@ -4,17 +4,17 @@ import time
 from typing import Any, Dict, List, Optional, Set
 
 from dotenv import load_dotenv
+from tools.network.whoxy import WhoxyTool
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.address import Location
 from flowsint_types.domain import Domain
 from flowsint_types.email import Email
 from flowsint_types.individual import Individual
 from flowsint_types.organization import Organization
 from flowsint_types.phone import Phone
-
-from flowsint_enrichers.registry import flowsint_enricher
-from tools.network.whoxy import WhoxyTool
 
 load_dotenv()
 
@@ -147,7 +147,6 @@ class DomainToHistoryEnricher(Enricher):
                         "contact_data": contact,
                     }
                     self._extracted_organizations.append(organization_info)
-
 
     def __get_infos_from_whoxy(self, domain: str, api_key: str) -> Dict[str, Any]:
         """Get WHOIS history information from Whoxy API or test data."""

@@ -215,9 +215,12 @@ function NodeColorsSection() {
   const debounceTimers = useRef<Map<ItemType, NodeJS.Timeout>>(new Map())
 
   // Sync local state with store when store changes externally (e.g., reset)
-  useEffect(() => {
+  // — adjusted during render rather than in an effect.
+  const [prevStoreColors, setPrevStoreColors] = useState(storeColors)
+  if (storeColors !== prevStoreColors) {
+    setPrevStoreColors(storeColors)
     setLocalColors(storeColors)
-  }, [storeColors])
+  }
 
   // Debounced color update function
   const handleColorChange = useCallback(
@@ -247,10 +250,10 @@ function NodeColorsSection() {
 
   const handleRandomizeColors = useCallback(() => {
     randomizeColors()
-  }, [])
+  }, [randomizeColors])
 
   const handleIconSelect = (iconType: string, iconName: string) => {
-    // @ts-ignore
+    // @ts-expect-error iconName is a plain string, not narrowed to the Lucide icon-name union
     setIcon(iconType, iconName)
     clearIconTypeCache(iconType)
   }
@@ -265,9 +268,10 @@ function NodeColorsSection() {
 
   // Cleanup timers on unmount
   useEffect(() => {
+    const timers = debounceTimers.current
     return () => {
-      debounceTimers.current.forEach((timer) => clearTimeout(timer))
-      debounceTimers.current.clear()
+      timers.forEach((timer) => clearTimeout(timer))
+      timers.clear()
     }
   }, [])
 
@@ -317,7 +321,7 @@ function NodeColorsSection() {
         </div>
       </div>
       <IconPicker
-        // @ts-ignore
+        // @ts-expect-error handleIconSelect takes a plain string, IconPicker expects a Lucide icon name
         onIconChange={handleIconSelect}
         open={openIconPicker}
         setOpen={setOpenIconPicker}
@@ -443,15 +447,21 @@ export default function GlobalSettings() {
     enabled: Boolean(id)
   })
 
-  // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    status: 'active'
-  })
+  // Form state. Lazy initializer derives from `sketch` directly (it can
+  // already be populated on mount, e.g. from the query cache) — the sync
+  // below only fires on later *changes*, so a hardcoded empty default
+  // here would never get overwritten if the cache already had data.
+  const [formData, setFormData] = useState(() => ({
+    title: sketch?.title || '',
+    description: sketch?.description || '',
+    status: sketch?.status || 'active'
+  }))
 
-  // Update form data when sketch data changes
-  useEffect(() => {
+  // Update form data when sketch data changes — adjusted during render
+  // rather than in an effect.
+  const [prevSketch, setPrevSketch] = useState(sketch)
+  if (sketch !== prevSketch) {
+    setPrevSketch(sketch)
     if (sketch) {
       setFormData({
         title: sketch.title || '',
@@ -459,7 +469,7 @@ export default function GlobalSettings() {
         status: sketch.status || 'active'
       })
     }
-  }, [sketch])
+  }
 
   const updateMutation = useMutation({
     mutationFn: async (updated: Partial<Sketch>) => {
@@ -577,7 +587,9 @@ export default function GlobalSettings() {
               label="Description"
               description="A brief description of what this sketch represents"
               value={formData.description}
-              onValueChange={canEdit ? (value) => handleInputChange('description', value) : () => {}}
+              onValueChange={
+                canEdit ? (value) => handleInputChange('description', value) : () => {}
+              }
               placeholder="Enter sketch description"
               rows={4}
             />
@@ -622,7 +634,7 @@ export default function GlobalSettings() {
     }
 
     // For all other sections, use the dynamic renderer
-    // @ts-ignore
+    // @ts-expect-error indexing the settings schema with a runtime string key
     const category = settings[sectionId]
     if (category) {
       return (

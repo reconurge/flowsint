@@ -1,10 +1,12 @@
-from typing import List, Union
+from typing import List
+
+import requests
+from bs4 import BeautifulSoup
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.phrase import Phrase
 from flowsint_types.website import Website
-import requests
-from bs4 import BeautifulSoup
 
 
 @flowsint_enricher
@@ -49,7 +51,9 @@ class WebsiteToText(Enricher):
             print(f"An error occurred: {e}")
             return None
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Create Neo4j relationships between websites and their corresponding phrases
         for input_website, result in zip(original_input, results):
             website_url = str(input_website.url)

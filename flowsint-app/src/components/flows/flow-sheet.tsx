@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from '../ui/alert'
 import { useIcon } from '@/hooks/use-icon'
 import { flowService } from '@/api/flow-service'
 
-const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
+const FlowSheet = () => {
   const openFlowSheet = useFlowStore((state) => state.openFlowSheet)
   const setOpenFlowSheet = useFlowStore((state) => state.setOpenFlowSheet)
   const selectedNode = useFlowStore((state) => state.selectedNode)
@@ -95,7 +95,7 @@ const FlowSheet = ({ onLayout }: { onLayout: () => void }) => {
       // onLayout && onLayout()
       setOpenFlowSheet(false)
     },
-    [selectedNode, setNodes, setEdges, onLayout, setOpenFlowSheet]
+    [selectedNode, setNodes, setEdges, setOpenFlowSheet, colors]
   )
 
   return (
@@ -173,12 +173,13 @@ const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick:
   const colors = useNodesDisplaySettings((s) => s.colors)
   const borderInputColor = colors[enricher.inputs.type.toLowerCase()]
   const borderOutputColor = colors[enricher.outputs.type.toLowerCase()]
-  const Icon =
-    enricher.type === 'type'
-      ? useIcon(enricher.outputs.type.toLowerCase() as string)
-      : enricher.icon
-        ? useIcon(enricher.icon)
-        : null
+  // useIcon must be called unconditionally (Rules of Hooks) — resolve the icon
+  // key first, then decide whether to use the result.
+  const wantsIcon = enricher.type === 'type' || Boolean(enricher.icon)
+  const iconType =
+    enricher.type === 'type' ? (enricher.outputs.type.toLowerCase() as string) : enricher.icon || ''
+  const iconRenderer = useIcon(iconType)
+  const Icon = wantsIcon ? iconRenderer : null
 
   return (
     <TooltipProvider>
@@ -197,7 +198,7 @@ const EnricherItem = memo(({ enricher, onClick }: { enricher: Enricher; onClick:
           <div className="flex items-start gap-2 grow truncate text-ellipsis">
             <div className="space-y-1 truncate text-left">
               <div className="flex items-center gap-2 truncate text-ellipsis">
-                {Icon && <Icon size={24} />}
+                {Icon && Icon({ size: 24 })}
                 <h3 className="text-sm font-medium truncate text-ellipsis">
                   {enricher.class_name}
                 </h3>

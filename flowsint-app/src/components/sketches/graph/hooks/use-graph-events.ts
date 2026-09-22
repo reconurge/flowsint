@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
-import { GraphNode, GraphEdge } from '@/types'
+import { GraphNode, GraphEdge, type GraphViewerRef } from '@/types'
+import type { GraphData } from '../utils/types'
 
 interface UseGraphEventsParams {
   onNodeClick?: (node: GraphNode, event: MouseEvent) => void
@@ -9,12 +10,12 @@ interface UseGraphEventsParams {
   onBackgroundRightClick?: (event: MouseEvent) => void
   autoZoomOnCurrentNode: boolean
   autoZoomOnNode: boolean
-  graphRef: React.RefObject<any>
+  graphRef: React.RefObject<GraphViewerRef>
   edgeMap: Map<string, GraphEdge>
   toggleEdgeSelection: (edge: GraphEdge, multi: boolean) => void
   setCurrentEdgeId: (edgeId: string | null) => void
   clearSelectedEdges: () => void
-  saveAllNodePositions: (nodes: any[]) => void
+  saveAllNodePositions: (nodes: GraphNode[]) => void
 }
 
 export const useGraphEvents = ({
@@ -33,21 +34,15 @@ export const useGraphEvents = ({
   saveAllNodePositions
 }: UseGraphEventsParams) => {
   const handleNodeClick = useCallback(
-    (node: any, event: MouseEvent) => {
+    (node: GraphNode, event: MouseEvent) => {
       onNodeClick?.(node, event)
 
       const isMultiSelect = event.ctrlKey || event.shiftKey
       if (autoZoomOnCurrentNode && !isMultiSelect && node?.x && node?.y && graphRef.current) {
         setTimeout(() => {
-          if (
-            graphRef.current &&
-            autoZoomOnNode &&
-            typeof graphRef.current.centerAt === 'function'
-          ) {
+          if (graphRef.current && autoZoomOnNode) {
             graphRef.current.centerAt(node.x, node.y, 400)
-            if (typeof graphRef.current.zoom === 'function') {
-              graphRef.current.zoom(6, 400)
-            }
+            graphRef.current.zoom(6, 400)
           }
         }, 100)
       }
@@ -56,21 +51,21 @@ export const useGraphEvents = ({
   )
 
   const handleNodeRightClick = useCallback(
-    (node: any, event: MouseEvent) => {
+    (node: GraphNode, event: MouseEvent) => {
       onNodeRightClick?.(node, event)
     },
     [onNodeRightClick]
   )
 
   const handleEdgeRightClick = useCallback(
-    (edge: any, event: MouseEvent) => {
+    (edge: GraphEdge, event: MouseEvent) => {
       onEdgeRightClick?.(edge, event)
     },
     [onEdgeRightClick]
   )
 
   const handleEdgeClick = useCallback(
-    (edge: any, event: MouseEvent) => {
+    (edge: GraphEdge, event: MouseEvent) => {
       event.stopPropagation()
       const isMultiSelect = event.ctrlKey || event.shiftKey
       const fullEdge = edgeMap.get(edge.id)
@@ -102,7 +97,7 @@ export const useGraphEvents = ({
   )
 
   const handleNodeDragEnd = useCallback(
-    (node: any, graphData: any) => {
+    (node: GraphNode, graphData: GraphData) => {
       node.fx = node.x
       node.fy = node.y
 

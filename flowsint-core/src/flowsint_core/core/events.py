@@ -1,11 +1,12 @@
-from typing import Dict, Set
-import uuid
-from fastapi import FastAPI
-import json
 import asyncio
-from uuid import UUID
-import redis.asyncio as redis
+import json
 import os
+import uuid
+from typing import Dict
+from uuid import UUID
+
+import redis.asyncio as redis
+from fastapi import FastAPI
 
 
 class EventEmitter:

@@ -17,18 +17,19 @@ const MemoizedMarkdownBlock = memo(
     return (
       <ReactMarkdown
         components={{
-          code({ node, className, children, ...props }) {
+          code({ node: _node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '')
             return match ? (
               <div className="relative">
                 <SyntaxHighlighter
-                  children={String(children).replace(/\n$/, '')}
                   style={dracula}
                   language={match[1]}
                   PreTag="div"
                   className="rounded border border-border bg-muted px-1 py-0.5 m-0! text-sm w-auto not-prose"
                   {...props}
-                />
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
                 <div className="absolute top-2 right-2">
                   <CopyButton content={String(children).replace(/\n$/, '')} />
                 </div>

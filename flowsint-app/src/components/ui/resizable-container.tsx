@@ -16,7 +16,9 @@ function loadPersistedSize(
         return parsed
       }
     }
-  } catch {}
+  } catch {
+    // invalid or missing stored value — fall back to defaults below
+  }
   return { width: defaultWidth, height: defaultHeight }
 }
 
@@ -99,7 +101,17 @@ export const ResizableContainer: React.FC<ResizableContainerProps> = ({
       setSize({ width: newWidth, height: newHeight })
       onResize?.(newWidth, newHeight)
     },
-    [isResizing, resizeDirection, startPos, startDimensions, minWidth, minHeight, maxWidth, maxHeight, onResize]
+    [
+      isResizing,
+      resizeDirection,
+      startPos,
+      startDimensions,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+      onResize
+    ]
   )
 
   const handleMouseUp = useCallback(() => {

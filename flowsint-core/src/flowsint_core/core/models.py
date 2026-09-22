@@ -1,6 +1,7 @@
 import json
 import uuid
 from datetime import datetime, timezone
+from typing import Any, List, Optional
 
 from sqlalchemy import (
     JSON,
@@ -17,9 +18,8 @@ from sqlalchemy import (
     Uuid,
     func,
 )
-from sqlalchemy import (
-    Enum as SQLEnum,
-)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
 
@@ -33,12 +33,14 @@ class RoleListType(TypeDecorator):
     impl = Text
     cache_ok = True
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value: Optional[List[Any]], dialect: Dialect) -> str:
         if value is not None:
             return json.dumps([r.value if isinstance(r, Role) else r for r in value])
         return "[]"
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(
+        self, value: Optional[str], dialect: Dialect
+    ) -> List[Role]:
         if value is not None:
             return [Role(r.lower()) for r in json.loads(value)]
         return []
@@ -103,7 +105,10 @@ class Log(Base):
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
-    type = Column(SQLEnum(EventLevel), default=EventLevel.INFO)
+    # Legacy Column() declarative style (not mapped_column/Mapped[...] like
+    # the rest of this class) — no sqlalchemy mypy plugin configured to
+    # infer its Python-side type, so mypy sees Column[Never] here.
+    type: Any = Column(SQLEnum(EventLevel), default=EventLevel.INFO)
 
 
 class Profile(Base):
@@ -128,7 +133,8 @@ class Scan(Base):
         ForeignKey("sketches.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
     )
-    status = Column(SQLEnum(EventLevel), default=EventLevel.PENDING)
+    # Same legacy Column() style as Log.type above.
+    status: Any = Column(SQLEnum(EventLevel), default=EventLevel.PENDING)
     started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
     error = Column(Text, nullable=True)
@@ -137,7 +143,7 @@ class Scan(Base):
     # Relationships
     sketch = relationship("Sketch", back_populates="scans")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Scan(id={self.id}, status={self.status})>"
 
 
@@ -205,6 +211,11 @@ class Flow(Base):
     flow_schema = mapped_column(JSON, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_updated_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    owner_id = mapped_column(
+        Uuid,
+        ForeignKey("profiles.id", onupdate="CASCADE", ondelete="SET NULL"),
+        nullable=True,
+    )
 
 
 class Analysis(Base):

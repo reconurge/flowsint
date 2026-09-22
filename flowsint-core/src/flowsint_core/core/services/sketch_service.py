@@ -4,20 +4,18 @@ Sketch service for managing sketches and graph operations.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from ..graph import GraphNode, create_graph_service
-from ..graph.types import GraphData
 from ..models import Sketch
 from ..repositories import InvestigationRepository, SketchRepository
 from .base import BaseService
 from .exceptions import (
     DatabaseError,
     NotFoundError,
-    PermissionDeniedError,
     ValidationError,
 )
 
@@ -36,8 +34,8 @@ class SketchService(BaseService):
         sketch_repo: SketchRepository,
         investigation_repo: InvestigationRepository,
         type_registry_service: Optional[TypeRegistryService] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         super().__init__(db, **kwargs)
         self._sketch_repo = sketch_repo
         self._investigation_repo = investigation_repo
@@ -112,10 +110,13 @@ class SketchService(BaseService):
 
     # --- Graph operations ---
 
+    # format="inline" returns a flat list of {source, edge, target} dicts
+    # instead of the default {nds, rls}-shaped graph — same distinction the
+    # frontend's sketchService.getGraphDataById overload encodes.
     def get_graph(
         self, sketch_id: UUID, user_id: UUID, format: Optional[str] = None
-    ) -> Dict[str, Any]:
-        sketch = self._get_sketch_with_permission(sketch_id, user_id, ["read"])
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+        self._get_sketch_with_permission(sketch_id, user_id, ["read"])
 
         resolver = (
             self._type_registry.build_type_resolver(user_id)

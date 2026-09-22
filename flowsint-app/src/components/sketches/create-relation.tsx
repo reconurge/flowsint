@@ -196,7 +196,7 @@ export function NodeDisplayCard({
     return (
       <div className="flex min-w-[170px] items-center gap-2 min-w-0">
         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted">
-          <NodeIcon size={20} />
+          {NodeIcon({ size: 20 })}
         </div>
         <span className="text-xs text-muted-foreground max-w-[200px] truncate">
           {node.nodeLabel}
@@ -214,7 +214,7 @@ export function NodeDisplayCard({
         <RadioGroupItem id={id} value={radioValue || ''} className="mt-0.5" />
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
-            <NodeIcon size={16} />
+            {NodeIcon({ size: 16 })}
           </div>
           <span className="text-sm max-w-[200px] truncate">{node.nodeLabel}</span>
         </div>
@@ -225,7 +225,7 @@ export function NodeDisplayCard({
   return (
     <div className="flex min-w-[170px] items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors min-w-0">
       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted">
-        <NodeIcon size={16} />
+        {NodeIcon({ size: 16 })}
       </div>
       <span className="text-sm max-w-[200px] truncate">{node.nodeLabel}</span>
     </div>

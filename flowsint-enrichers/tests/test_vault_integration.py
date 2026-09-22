@@ -1,13 +1,16 @@
 """Integration tests for enrichers using vault secrets."""
-import pytest
+
 import uuid
 from unittest.mock import Mock
-from flowsint_enrichers.domain.to_history import DomainToHistoryEnricher
-from flowsint_enrichers.individual.to_domains import IndividualToDomainsEnricher
-from flowsint_enrichers.email.to_domains import EmailToDomainsEnricher
+
+import pytest
+
 from flowsint_enrichers.crypto.to_nfts import CryptoWalletAddressToNFTs
 from flowsint_enrichers.crypto.to_transactions import CryptoWalletAddressToTransactions
+from flowsint_enrichers.domain.to_history import DomainToHistoryEnricher
+from flowsint_enrichers.email.to_domains import EmailToDomainsEnricher
 from flowsint_enrichers.email.to_leaks import EmailToBreachesEnricher
+from flowsint_enrichers.individual.to_domains import IndividualToDomainsEnricher
 
 
 @pytest.fixture
@@ -227,7 +230,9 @@ class TestMissingRequiredVaultSecret:
     """Tests for error handling when required vault secrets are missing."""
 
     @pytest.mark.asyncio
-    async def test_missing_required_secret_raises_exception(self, mock_vault, sketch_id):
+    async def test_missing_required_secret_raises_exception(
+        self, mock_vault, sketch_id
+    ):
         """Test that missing required secret raises an exception."""
         # Vault returns None (secret not found)
         mock_vault.get_secret.return_value = None

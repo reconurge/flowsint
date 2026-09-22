@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -45,66 +45,24 @@ const investigationSchema = z.object({
 
 type InvestigationFormData = z.infer<typeof investigationSchema>
 
-interface NewInvestigationProps {
-  children: ReactNode
-  noDropDown?: boolean
-}
-
-export default function NewInvestigation({ children, noDropDown = false }: NewInvestigationProps) {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
-  const queryClient = useQueryClient()
-
-  const form = useForm<InvestigationFormData>({
-    resolver: zodResolver(investigationSchema),
-    defaultValues: {
-      name: '',
-      description: ''
-    }
-  })
-
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-    reset
-  } = form
-
-  // Create investigation mutation
-  const createInvestigationMutation = useMutation({
-    mutationFn: investigationService.create,
-    onSuccess: (result) => {
-      if (result.id) {
-        toast.success('New investigation created.')
-        router.navigate({ to: `/dashboard/investigations/${result.id}` })
-        // Invalidate investigations list
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.investigations.list
-        })
-      } else {
-        toast.error(result.error || 'Failed to create investigation')
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message)
-    }
-  })
-
-  const onSubmit = async (data: InvestigationFormData) => {
-    try {
-      await createInvestigationMutation.mutateAsync(JSON.stringify(data))
-    } catch (error) {
-      console.error('Error creating investigation:', error)
-    }
-  }
-
-  const handleClose = () => {
-    setOpen(false)
-    reset() // Reset du formulaire avec React Hook Form
-  }
-
-  const InvestigationForm = () => (
+// Hoisted to module scope — defining this inside NewInvestigation's render
+// made it a new component type every render, which unmounts/remounts the
+// whole form (losing focus, resetting any in-progress typing) any time the
+// parent re-renders while the dialog is open.
+function InvestigationForm({
+  form,
+  isSubmitting,
+  onSubmit,
+  onCancel
+}: {
+  form: UseFormReturn<InvestigationFormData>
+  isSubmitting: boolean
+  onSubmit: (data: InvestigationFormData) => void
+  onCancel: () => void
+}) {
+  return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid gap-4 py-4">
           <FormField
             control={form.control}
@@ -145,7 +103,7 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
@@ -155,6 +113,63 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
       </form>
     </Form>
   )
+}
+
+interface NewInvestigationProps {
+  children: ReactNode
+  noDropDown?: boolean
+}
+
+export default function NewInvestigation({ children, noDropDown = false }: NewInvestigationProps) {
+  const [open, setOpen] = useState(false)
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const form = useForm<InvestigationFormData>({
+    resolver: zodResolver(investigationSchema),
+    defaultValues: {
+      name: '',
+      description: ''
+    }
+  })
+
+  const {
+    formState: { isSubmitting },
+    reset
+  } = form
+
+  // Create investigation mutation
+  const createInvestigationMutation = useMutation({
+    mutationFn: investigationService.create,
+    onSuccess: (result) => {
+      if ('id' in result && result.id) {
+        toast.success('New investigation created.')
+        router.navigate({ to: `/dashboard/investigations/${result.id}` })
+        // Invalidate investigations list
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.investigations.list
+        })
+      } else {
+        toast.error(('error' in result && result.error) || 'Failed to create investigation')
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
+
+  const onSubmit = async (data: InvestigationFormData) => {
+    try {
+      await createInvestigationMutation.mutateAsync(JSON.stringify(data))
+    } catch (error) {
+      console.error('Error creating investigation:', error)
+    }
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+    reset() // Reset du formulaire avec React Hook Form
+  }
 
   if (noDropDown) {
     return (
@@ -167,7 +182,12 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
             <DialogTitle>New investigation</DialogTitle>
             <DialogDescription>Create a new blank investigation.</DialogDescription>
           </DialogHeader>
-          <InvestigationForm />
+          <InvestigationForm
+            form={form}
+            isSubmitting={isSubmitting}
+            onSubmit={onSubmit}
+            onCancel={handleClose}
+          />
         </DialogContent>
       </Dialog>
     )
@@ -190,7 +210,12 @@ export default function NewInvestigation({ children, noDropDown = false }: NewIn
             <DialogTitle>New investigation</DialogTitle>
             <DialogDescription>Create a new blank investigation.</DialogDescription>
           </DialogHeader>
-          <InvestigationForm />
+          <InvestigationForm
+            form={form}
+            isSubmitting={isSubmitting}
+            onSubmit={onSubmit}
+            onCancel={handleClose}
+          />
         </DialogContent>
       </Dialog>
     </>

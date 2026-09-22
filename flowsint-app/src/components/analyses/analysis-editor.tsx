@@ -88,48 +88,15 @@ export const AnalysisEditor = ({
   const queryClient = useQueryClient()
   // State/refs for editor
   const editorContentRef = useRef<any>('')
-  const [titleValue, setTitleValue] = useState('')
+  // Lazy initializer: analysis can already be loaded on mount, and the
+  // render-time sync below only fires on later id *changes*.
+  const [titleValue, setTitleValue] = useState(() => analysis?.title || '')
   const [editor, setEditor] = useState<Editor | undefined>(undefined)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   // Debounced save function
 
   const createMutation = useCreateAnalysis(routeInvestigationId, onAnalysisCreate)
-
-  const debouncedSave = useCallback(
-    debounce(() => {
-      if (analysis) {
-        setSaveStatus('saving')
-        saveMutation.mutate({})
-      }
-    }, 1000), // 1 second delay
-    [analysis?.id]
-  )
-
-  // Handle editor content changes
-  const handleEditorChange = useCallback(
-    (value: any) => {
-      editorContentRef.current = value
-      if (analysis) {
-        setSaveStatus('unsaved')
-        debouncedSave()
-      }
-    },
-    [analysis?.id, debouncedSave]
-  )
-
-  // Debounce function
-  function debounce(func: Function, wait: number) {
-    let timeout: NodeJS.Timeout
-    return function executedFunction(...args: any[]) {
-      const later = () => {
-        clearTimeout(timeout)
-        func(...args)
-      }
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
-    }
-  }
 
   const saveMutation = useMutation({
     mutationFn: async (updated: Partial<Analysis>) => {
@@ -144,6 +111,7 @@ export const AnalysisEditor = ({
       )
     },
     onSuccess: async (data) => {
+      if (!data) return
       // Use more specific query invalidation with query key factory
       queryClient.setQueryData(
         queryKeys.analyses.byInvestigation(investigationId || ''),
@@ -162,6 +130,33 @@ export const AnalysisEditor = ({
       setSaveStatus('unsaved')
     }
   })
+
+  // Debounced save — ref-based timer so useCallback gets a plain inline
+  // function (react-hooks requires it; a wrapped debounce() call defeated
+  // its own dependency tracking).
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const debouncedSave = useCallback(() => {
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current)
+    saveDebounceRef.current = setTimeout(() => {
+      if (analysis) {
+        setSaveStatus('saving')
+        saveMutation.mutate({})
+      }
+    }, 1000)
+  }, [analysis, saveMutation])
+
+  // Handle editor content changes
+  const handleEditorChange = useCallback(
+    (value: any) => {
+      editorContentRef.current = value
+      if (analysis) {
+        setSaveStatus('unsaved')
+        debouncedSave()
+      }
+    },
+    [analysis, debouncedSave]
+  )
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -193,6 +188,7 @@ export const AnalysisEditor = ({
       )
     },
     onSuccess: async (data) => {
+      if (!data) return
       // Use more specific query invalidation
       queryClient.setQueryData(['analyses', investigationId], (oldData: Analysis[] | undefined) => {
         if (!oldData) return oldData
@@ -239,19 +235,24 @@ export const AnalysisEditor = ({
     }
   }
 
-  // Update non-editor UI when analysis changes (avoid resetting content on same doc)
+  // Update non-editor UI when analysis changes (avoid resetting content on same doc).
+  // Adjusted during render (React's documented pattern for "reset state when a
+  // prop changes") rather than in an effect — this used to setState directly
+  // in an effect body, causing an extra render pass every time.
+  const [prevAnalysisId, setPrevAnalysisId] = useState(analysis?.id ?? null)
+  if ((analysis?.id ?? null) !== prevAnalysisId) {
+    setPrevAnalysisId(analysis?.id ?? null)
+    setTitleValue(analysis?.title || '')
+    setSaveStatus('saved')
+  }
+
+  // Clearing the editor's content is an external-system update (TipTap), not
+  // React state — an effect is the right place for it.
   useEffect(() => {
-    if (analysis) {
-      setTitleValue(analysis.title || '')
-      setSaveStatus('saved')
-    } else {
-      setTitleValue('')
-      setSaveStatus('saved')
-      if (editor) {
-        editor.commands.setContent('')
-      }
+    if (!analysis && editor) {
+      editor.commands.setContent('')
     }
-  }, [analysis?.id, analysis?.title, editor])
+  }, [analysis, editor])
 
   useKeyboardShortcut({
     key: 's',

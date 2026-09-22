@@ -13,8 +13,8 @@ import atexit
 import threading
 import time
 from datetime import datetime, timezone
-from queue import Queue
-from typing import Dict, Optional, Union
+from queue import Empty, Queue
+from typing import Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
 from ..tasks.event import emit_event_task
@@ -36,10 +36,11 @@ class LoggerSingleton:
 
     _instance: Optional["LoggerSingleton"] = None
     _lock = threading.Lock()
+    _initialized: bool
 
     def __new__(
         cls, batch_size: int = 50, flush_interval: float = 2.0, auto_start: bool = True
-    ):
+    ) -> "LoggerSingleton":
         """Thread-safe singleton implementation using double-checked locking."""
         if cls._instance is None:
             with cls._lock:
@@ -51,7 +52,7 @@ class LoggerSingleton:
 
     def __init__(
         self, batch_size: int = 50, flush_interval: float = 2.0, auto_start: bool = True
-    ):
+    ) -> None:
         """
         Initialize the Logger singleton.
 
@@ -69,7 +70,7 @@ class LoggerSingleton:
         self._flush_interval = flush_interval
 
         # Queue for batch insertion (contains: sequence, timestamp, sketch_id, level, content)
-        self._log_queue: Queue = Queue()
+        self._log_queue: "Queue[Tuple[int, datetime, str, EventLevel, Dict]]" = Queue()
 
         # Monotonic sequence counter for ordering (thread-safe with lock)
         self._sequence_counter = 0
@@ -124,7 +125,7 @@ class LoggerSingleton:
         if self._log_queue.empty():
             return
 
-        logs_to_insert = []
+        logs_to_insert: List[Tuple[int, datetime, str, EventLevel, Dict]] = []
 
         # Collect logs from queue
         while not self._log_queue.empty() and (
@@ -132,7 +133,7 @@ class LoggerSingleton:
         ):
             try:
                 logs_to_insert.append(self._log_queue.get_nowait())
-            except:
+            except Empty:
                 break
 
         if not logs_to_insert:

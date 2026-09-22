@@ -1,14 +1,13 @@
 """Tests for AnalysisRepository."""
-from uuid import uuid4
 
+from flowsint_core.core.repositories import AnalysisRepository
+from flowsint_core.core.types import Role
 from tests.factories import (
     AnalysisFactory,
     InvestigationFactory,
     InvestigationUserRoleFactory,
     ProfileFactory,
 )
-from flowsint_core.core.repositories import AnalysisRepository
-from flowsint_core.core.types import Role
 
 
 class TestAnalysisRepository:
@@ -32,9 +31,7 @@ class TestAnalysisRepository:
         self._setup(db_session)
         user = ProfileFactory()
         inv = InvestigationFactory(owner=user)
-        InvestigationUserRoleFactory(
-            user=user, investigation=inv, roles=[Role.OWNER]
-        )
+        InvestigationUserRoleFactory(user=user, investigation=inv, roles=[Role.OWNER])
         AnalysisFactory(investigation=inv, owner_id=user.id)
 
         # Another user's investigation — should not be accessible

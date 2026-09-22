@@ -8,7 +8,7 @@ import {
   PopoverTitle,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { memo, useState, useEffect, useCallback, useRef } from 'react'
+import { memo, useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { FieldType, FormField, findActionItemByKey } from '@/lib/action-items'
 import { CopyButton } from '@/components/copy'
@@ -104,22 +104,59 @@ const formatDate = (value: unknown): string => {
   }
 }
 
+const EMPTY_FORM_DATA: FormData = {
+  nodeLabel: '',
+  nodeColor: null,
+  nodeIcon: null,
+  nodeImage: null,
+  nodeFlag: null,
+  nodeShape: null,
+  nodeSize: 0,
+  nodeProperties: {},
+  nodeMetadata: {},
+  notes: ''
+}
+
+const buildFormData = (node: GraphNode | null | undefined): FormData => {
+  if (!node) return EMPTY_FORM_DATA
+  const {
+    nodeLabel,
+    nodeImage,
+    nodeIcon,
+    nodeFlag,
+    nodeColor,
+    nodeShape,
+    nodeMetadata,
+    nodeProperties,
+    nodeSize
+  } = node
+  return {
+    nodeLabel: nodeLabel || '',
+    nodeProperties: nodeProperties || {},
+    nodeMetadata: nodeMetadata || {},
+    nodeColor,
+    nodeIcon,
+    nodeImage,
+    nodeFlag,
+    nodeShape,
+    nodeSize,
+    notes: (nodeMetadata?.notes as string) || ''
+  }
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function TitleInput({
-  value,
-  onChange
-}: {
-  value: string
-  onChange: (val: string) => void
-}) {
+function TitleInput({ value, onChange }: { value: string; onChange: (val: string) => void }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
+  // Adjusted during render rather than in an effect.
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setDraft(value)
-  }, [value])
+  }
 
   useEffect(() => {
     if (editing) inputRef.current?.focus()
@@ -132,10 +169,7 @@ function TitleInput({
 
   if (!editing) {
     return (
-      <button
-        onClick={() => setEditing(true)}
-        className="min-w-0 flex-1 text-left"
-      >
+      <button onClick={() => setEditing(true)} className="min-w-0 flex-1 text-left">
         <span className="block truncate text-2xl font-bold">
           {value || <span className="text-muted-foreground/40">Untitled</span>}
         </span>
@@ -182,11 +216,7 @@ function CollapsibleSection({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-2 px-6 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
       >
-        {open ? (
-          <ChevronDown className="size-3.5" />
-        ) : (
-          <ChevronRightIcon className="size-3.5" />
-        )}
+        {open ? <ChevronDown className="size-3.5" /> : <ChevronRightIcon className="size-3.5" />}
         {label}
       </button>
       {open && children}
@@ -230,9 +260,12 @@ function PropertyInput({
 }) {
   const [draft, setDraft] = useState(value)
 
-  useEffect(() => {
+  // Adjusted during render rather than in an effect.
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setDraft(value)
-  }, [value])
+  }
 
   return (
     <input
@@ -276,28 +309,29 @@ const DetailsPanel = memo(() => {
   const currentNodeType = findActionItemByKey(node!.nodeType, actionItems)
 
   const getNodePropertyType = (propertyName: string): FieldType | undefined => {
-    const field = currentNodeType?.fields.find((f: FormField) => f.name === propertyName);
+    const field = currentNodeType?.fields.find((f: FormField) => f.name === propertyName)
 
-    return field?.type;
+    return field?.type
   }
 
-  const [formData, setFormData] = useState<FormData>({
-    nodeLabel: '',
-    nodeColor: null,
-    nodeIcon: null,
-    nodeImage: null,
-    nodeFlag: null,
-    nodeShape: null,
-    nodeSize: 0,
-    nodeProperties: {},
-    nodeMetadata: {},
-    notes: ''
-  })
-  const [nodeSize, setNodeSize] = useState<number>(0)
+  // Lazy initializers derive from `node` directly so the panel is
+  // populated on mount too, not just on later node switches (see the
+  // render-time sync below, which only fires on a node *change*).
+  const [formData, setFormData] = useState<FormData>(() => buildFormData(node))
+  const [nodeSize, setNodeSize] = useState<number>(() => node?.nodeSize ?? 0)
 
-  // Refs to always read latest values without stale closures
+  // Refs to always read latest values without stale closures. Handlers below
+  // also write these synchronously so a value is available immediately
+  // within the same call (before the next render); this effect is the
+  // general-purpose fallback that keeps them in sync for every path that
+  // updates the state, including the node-sync block below, which cannot
+  // write refs directly since it runs during render.
   const formDataRef = useRef(formData)
   const nodeSizeRef = useRef(nodeSize)
+  useLayoutEffect(() => {
+    formDataRef.current = formData
+    nodeSizeRef.current = nodeSize
+  })
 
   const IconComponent = useIcon(node?.nodeType as string, {
     nodeColor: node?.nodeColor,
@@ -305,38 +339,16 @@ const DetailsPanel = memo(() => {
     nodeImage: node?.nodeImage
   })
 
-  // Sync form when selected node changes
-  useEffect(() => {
+  // Sync form when selected node changes — adjusted during render rather
+  // than in an effect.
+  const [prevNode, setPrevNode] = useState(node)
+  if (node !== prevNode) {
+    setPrevNode(node)
     if (node) {
-      const {
-        nodeLabel,
-        nodeImage,
-        nodeIcon,
-        nodeFlag,
-        nodeColor,
-        nodeShape,
-        nodeMetadata,
-        nodeProperties,
-        nodeSize: ns
-      } = node
-      const fd: FormData = {
-        nodeLabel: nodeLabel || '',
-        nodeProperties: nodeProperties || {},
-        nodeMetadata: nodeMetadata || {},
-        nodeColor,
-        nodeIcon,
-        nodeImage,
-        nodeFlag,
-        nodeShape,
-        nodeSize: ns,
-        notes: (nodeMetadata?.notes as string) || ''
-      }
-      formDataRef.current = fd
-      setFormData(fd)
-      nodeSizeRef.current = ns ?? 0
-      setNodeSize(ns ?? 0)
+      setFormData(buildFormData(node))
+      setNodeSize(node.nodeSize ?? 0)
     }
-  }, [node])
+  }
 
   const queryClient = useQueryClient()
 
@@ -409,7 +421,7 @@ const DetailsPanel = memo(() => {
       setFormData(newFd)
       saveState(newFd, nodeSizeRef.current)
     },
-    [saveState]
+    [saveState, setFormData]
   )
 
   const handleChange = useCallback(
@@ -419,7 +431,7 @@ const DetailsPanel = memo(() => {
       setFormData(newFd)
       saveState(newFd, nodeSizeRef.current)
     },
-    [saveState]
+    [saveState, setFormData]
   )
 
   const handlePropertyBlur = useCallback(
@@ -452,7 +464,7 @@ const DetailsPanel = memo(() => {
       setFormData(newFd)
       scheduleSave(newFd, nodeSizeRef.current)
     },
-    [scheduleSave]
+    [scheduleSave, setFormData]
   )
 
   const handleIconSelect = useCallback(
@@ -462,16 +474,13 @@ const DetailsPanel = memo(() => {
       setFormData(newFd)
       saveState(newFd, nodeSizeRef.current)
     },
-    [saveState]
+    [saveState, setFormData]
   )
 
   const copyField = (value: any): string | undefined => {
-    if (typeof value === 'string') 
-      return value
-    else if (Array.isArray(value) && value.length > 0)
-      return value.join(',')
-    else 
-      return undefined
+    if (typeof value === 'string') return value
+    else if (Array.isArray(value) && value.length > 0) return value.join(',')
+    else return undefined
   }
 
   // ── Empty state ─────────────────────────────────────────────────────────────
@@ -500,10 +509,10 @@ const DetailsPanel = memo(() => {
               onClick={() => setOpenIconPicker(true)}
               className="shrink-0 mt-1.5 hover:opacity-70 transition-opacity"
             >
-              <IconComponent size={24} />
+              {IconComponent({ size: 24 })}
             </button>
           ) : (
-            <div className="shrink-0 mt-1.5"><IconComponent size={24} /></div>
+            <div className="shrink-0 mt-1.5">{IconComponent({ size: 24 })}</div>
           )}
           {canEdit ? (
             <TitleInput value={formData.nodeLabel} onChange={handleLabelCommit} />
@@ -532,7 +541,10 @@ const DetailsPanel = memo(() => {
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="properties" className="flex-1 min-h-0 flex flex-col overflow-hidden gap-0">
+      <Tabs
+        defaultValue="properties"
+        className="flex-1 min-h-0 flex flex-col overflow-hidden gap-0"
+      >
         <div className="px-3 pb-0 shrink-0 border-b">
           <TabsList className="w-full h-9 bg-transparent rounded-none p-0 gap-0">
             <TabsTrigger
@@ -569,15 +581,15 @@ const DetailsPanel = memo(() => {
           <CollapsibleSection label="Properties" defaultOpen noBorderTop>
             {propertiesFields.length > 0 ? (
               propertiesFields.map(([key, value]) => (
-                <PropertyRow
-                  key={key}
-                  label={key}
-                  copyValue={copyField(value)}
-                >
+                <PropertyRow key={key} label={key} copyValue={copyField(value)}>
                   {typeof value === 'boolean' ? (
                     canEdit ? (
                       <Switch
                         checked={value}
+                        // handlePropertyBlur reads formDataRef.current, but only ever runs
+                        // from this onCheckedChange callback (a real event handler) — never
+                        // during render. The lint rule can't see that from here.
+                        // eslint-disable-next-line react-hooks/refs
                         onCheckedChange={(checked) => handlePropertyBlur(key, checked)}
                         className="scale-75"
                       />
@@ -601,13 +613,19 @@ const DetailsPanel = memo(() => {
                   ) : getNodePropertyType(key) === 'list' ? (
                     canEdit ? (
                       <TagsInput
-                        value={value || []}
+                        value={(value as string[] | undefined) || []}
                         onChange={(tags) => handlePropertyBlur(key, tags)}
-                        orientation='vertical'
-                        placeholder={value?.length === 0 ? "Empty" : `Enter ${key.toLowerCase()}`}
+                        orientation="vertical"
+                        placeholder={
+                          (value as string[] | undefined)?.length === 0
+                            ? 'Empty'
+                            : `Enter ${key.toLowerCase()}`
+                        }
                       />
                     ) : (
-                      <span className="text-muted-foreground truncate">{Array.isArray(value) ? value.join(', ') : formatValue(value)}</span>
+                      <span className="text-muted-foreground truncate">
+                        {Array.isArray(value) ? value.join(', ') : formatValue(value)}
+                      </span>
                     )
                   ) : canEdit ? (
                     <PropertyInput
@@ -630,7 +648,7 @@ const DetailsPanel = memo(() => {
                 value={formData.notes}
                 onChange={canEdit ? handleNotesChange : undefined}
                 output="html"
-                placeholder={canEdit ? "Write something..." : ""}
+                placeholder={canEdit ? 'Write something...' : ''}
                 showToolbar={false}
                 editorContentClassName="px-6 py-3 !max-w-none prose-sm"
                 immediatelyRender={false}
@@ -754,7 +772,7 @@ const DetailsPanel = memo(() => {
       </Tabs>
 
       <IconPicker
-        // @ts-ignore
+        // @ts-expect-error handleIconSelect takes a plain string, IconPicker expects a Lucide icon name
         onIconChange={handleIconSelect}
         open={openIconPicker}
         setOpen={setOpenIconPicker}

@@ -9,7 +9,6 @@ import {
   ArrowDownToLine,
   Trash2,
   Globe,
-  Zap,
   Wand2
 } from 'lucide-react'
 import { toast } from 'sonner'

@@ -1,5 +1,6 @@
 import json
-from typing import Any, List, Optional, Literal
+from typing import List, Literal, Optional
+
 from ..dockertool import DockerTool
 
 
@@ -16,7 +17,9 @@ class NaabuTool(DockerTool):
 
     @classmethod
     def description(cls) -> str:
-        return "Fast port scanner written in Go with focus on reliability and simplicity."
+        return (
+            "Fast port scanner written in Go with focus on reliability and simplicity."
+        )
 
     @classmethod
     def category(cls) -> str:

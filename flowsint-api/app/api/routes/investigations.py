@@ -1,28 +1,29 @@
-from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from flowsint_core.core.types import Role
-from flowsint_core.core.postgre_db import get_db
-from flowsint_core.core.models import Profile
-from flowsint_core.core.services import (
-    create_investigation_service,
-    NotFoundError,
-    PermissionDeniedError,
-    ConflictError,
-    DatabaseError,
-)
 from app.api.deps import get_current_user
 from app.api.schemas.investigation import (
-    InvestigationRead,
-    InvestigationCreate,
-    InvestigationUpdate,
     CollaboratorAdd,
-    CollaboratorUpdate,
     CollaboratorRead,
+    CollaboratorUpdate,
+    InvestigationCreate,
+    InvestigationRead,
+    InvestigationUpdate,
 )
 from app.api.schemas.sketch import SketchRead
+from flowsint_core.core.models import Profile
+from flowsint_core.core.postgre_db import get_db
+from flowsint_core.core.services import (
+    ConflictError,
+    DatabaseError,
+    NotFoundError,
+    PermissionDeniedError,
+    create_investigation_service,
+)
+from flowsint_core.core.types import Role
 
 router = APIRouter()
 
@@ -147,9 +148,7 @@ def delete_investigation(
 # ── Collaborator endpoints ───────────────────────────────────────────
 
 
-@router.get(
-    "/{investigation_id}/collaborators", response_model=List[CollaboratorRead]
-)
+@router.get("/{investigation_id}/collaborators", response_model=List[CollaboratorRead])
 def get_collaborators(
     investigation_id: UUID,
     db: Session = Depends(get_db),

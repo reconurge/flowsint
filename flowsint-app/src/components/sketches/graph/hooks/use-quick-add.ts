@@ -2,22 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useGraphStore } from '@/stores/graph-store'
 import { sketchService } from '@/api/sketch-service'
 import { type GraphNode, type NodeProperties } from '@/types/graph'
+import { type DetectionResult } from '@/types/sketch'
 import { useDebounce } from '@/hooks/use-debounce'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
-
-interface DetectionResult {
-  type: string
-  key: string
-  fields: Array<{
-    name: string
-    label: string
-    description: string
-    required: boolean
-    primary: boolean
-    value: string | null
-  }>
-}
 
 interface QuickAddState {
   active: boolean
@@ -44,14 +32,27 @@ export const useQuickAdd = (sketchId?: string) => {
   const addNode = useGraphStore((s) => s.addNode)
   const replaceNode = useGraphStore((s) => s.replaceNode)
 
+  // Reset detection immediately when there's no text or quick-add isn't
+  // active — adjusted during render rather than in an effect.
+  const shouldDetect = Boolean(debouncedText.trim()) && state.active
+  const [prevShouldDetect, setPrevShouldDetect] = useState(shouldDetect)
+  if (shouldDetect !== prevShouldDetect) {
+    setPrevShouldDetect(shouldDetect)
+    if (!shouldDetect) {
+      setState((prev) => ({ ...prev, detection: null, loading: false }))
+    }
+  }
+
   // Detect type when debounced text changes
   useEffect(() => {
-    if (!debouncedText.trim() || !state.active) {
-      setState((prev) => ({ ...prev, detection: null, loading: false }))
-      return
-    }
+    if (!shouldDetect) return
 
     let cancelled = false
+    // Kicking off a loading flag synchronously at the start of a fetch
+    // effect is the standard pattern (see react.dev's own data-fetching
+    // examples) — not the "derived state from a prop" case this rule
+    // mainly targets.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState((prev) => ({ ...prev, loading: true }))
 
     sketchService
@@ -70,7 +71,7 @@ export const useQuickAdd = (sketchId?: string) => {
     return () => {
       cancelled = true
     }
-  }, [debouncedText, state.active])
+  }, [debouncedText, shouldDetect])
 
   const open = useCallback((screenX: number, screenY: number, graphX: number, graphY: number) => {
     setState({

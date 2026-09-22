@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react'
+import { useRef, useCallback } from 'react'
 import MonacoEditor, { OnMount, OnChange } from '@monaco-editor/react'
 import type { editor, Uri } from 'monaco-editor'
 import { useTheme } from '@/components/theme-provider'
@@ -12,18 +12,11 @@ interface YamlEditorProps {
 
 function useResolvedTheme() {
   const { theme } = useTheme()
-  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
-
-  useEffect(() => {
-    if (theme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setResolvedTheme(isDark ? 'dark' : 'light')
-    } else {
-      setResolvedTheme(theme as 'dark' | 'light')
-    }
-  }, [theme])
-
-  return resolvedTheme
+  // Pure derived value — no state/effect needed, just recompute each render.
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return theme as 'dark' | 'light'
 }
 
 export function YamlEditor({ value, onChange, onValidate, readOnly = false }: YamlEditorProps) {

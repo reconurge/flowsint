@@ -4,7 +4,7 @@
  * Version Synchronization Script
  *
  * Keeps versions synchronized across:
- * - pyproject.toml (root)
+ * - pyproject.toml (root + every uv workspace member)
  * - flowsint-app/package.json
  *
  * Usage: node scripts/sync-versions.js <new-version>
@@ -18,8 +18,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT_DIR = join(__dirname, '..');
 
-function updatePyprojectVersion(version) {
-  const pyprojectPath = join(ROOT_DIR, 'pyproject.toml');
+// Root pyproject.toml + every [tool.uv.workspace] member (kept in lockstep
+// with the root version since they're path deps of one shipped project, not
+// independently published packages).
+const PYPROJECT_DIRS = [
+  '.',
+  'flowsint-api',
+  'flowsint-core',
+  'flowsint-enrichers',
+  'flowsint-types',
+];
+
+function updatePyprojectVersion(dir, version) {
+  const pyprojectPath = join(ROOT_DIR, dir, 'pyproject.toml');
   let content = readFileSync(pyprojectPath, 'utf8');
 
   // Update version in [project] section
@@ -29,7 +40,7 @@ function updatePyprojectVersion(version) {
   );
 
   writeFileSync(pyprojectPath, content, 'utf8');
-  console.log(`✓ Updated pyproject.toml to ${version}`);
+  console.log(`✓ Updated ${dir}/pyproject.toml to ${version}`);
 }
 
 function updatePackageJsonVersion(version) {
@@ -65,7 +76,9 @@ if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(newVersion)) {
 }
 
 try {
-  updatePyprojectVersion(newVersion);
+  for (const dir of PYPROJECT_DIRS) {
+    updatePyprojectVersion(dir, newVersion);
+  }
   updatePackageJsonVersion(newVersion);
   console.log(`\n✓ All versions synchronized to ${newVersion}`);
 } catch (error) {

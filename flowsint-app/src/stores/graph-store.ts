@@ -162,7 +162,10 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         const edgesMapping = new Map(edges.map((edge) => [edge.id, edge]))
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          edgesMapping
+        )
         set({ edges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
       },
 
@@ -196,7 +199,10 @@ export const useGraphStore = create<GraphState>()(
         edgesMapping.set(edgeWithId.id, edgeWithId)
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          edgesMapping
+        )
         set({ edges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
         return edgeWithId
       },
@@ -222,8 +228,17 @@ export const useGraphStore = create<GraphState>()(
         const filteredNodes = computeFilteredNodes(nodes, filters)
         const filteredEdges = computeFilteredEdges(newEdges, filteredNodes)
         deleteKeys(edgesMapping, edgeIdsSet)
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
-        set({ edges: newEdges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          edgesMapping
+        )
+        set({
+          edges: newEdges,
+          filteredNodes,
+          filteredEdges,
+          edgesMapping,
+          selectedNodesWithEdgesAsList
+        })
       },
 
       updateGraphData: (nodes, edges) => {
@@ -232,8 +247,19 @@ export const useGraphStore = create<GraphState>()(
         const filteredEdges = computeFilteredEdges(edges, filteredNodes)
         const nodesMapping = new Map(nodes.map((node) => [node.id, node]))
         const edgesMapping = new Map(edges.map((edge) => [edge.id, edge]))
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
-        set({ nodes, edges, filteredNodes, filteredEdges, nodesMapping, edgesMapping, selectedNodesWithEdgesAsList })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          edgesMapping
+        )
+        set({
+          nodes,
+          edges,
+          filteredNodes,
+          filteredEdges,
+          nodesMapping,
+          edgesMapping,
+          selectedNodesWithEdgesAsList
+        })
       },
 
       updateNode: (nodeId: string, updates: Partial<GraphNode>) => {
@@ -273,8 +299,17 @@ export const useGraphStore = create<GraphState>()(
         const filteredEdges = computeFilteredEdges(updatedEdges, filteredNodes)
         const edge = edgesMapping.get(edgeId)
         if (edge) edgesMapping.set(edgeId, { ...edge, ...updates } as GraphEdge)
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, edgesMapping)
-        set({ edges: updatedEdges, filteredNodes, filteredEdges, edgesMapping, selectedNodesWithEdgesAsList })
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          edgesMapping
+        )
+        set({
+          edges: updatedEdges,
+          filteredNodes,
+          filteredEdges,
+          edgesMapping,
+          selectedNodesWithEdgesAsList
+        })
       },
 
       replaceNode: (oldId, newId, nodeProperties) => {
@@ -302,7 +337,10 @@ export const useGraphStore = create<GraphState>()(
         // Update edgesMapping
         const newEdgesMapping = new Map(updatedEdges.map((edge) => [edge.id, edge]))
         setCurrentNodeId(newId)
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(get().selectedNodes, newEdgesMapping)
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          get().selectedNodes,
+          newEdgesMapping
+        )
         set({
           nodes: updatedNodes,
           edges: updatedEdges,
@@ -346,7 +384,10 @@ export const useGraphStore = create<GraphState>()(
         return null
       },
       setSelectedNodes: (nodes) => {
-        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(nodes, get().edgesMapping)
+        const selectedNodesWithEdgesAsList = computeSelectedNodesWithEdgesAsList(
+          nodes,
+          get().edgesMapping
+        )
         set({ selectedNodes: nodes, selectedNodesWithEdgesAsList })
       },
       setSelectedEdges: (edges) => set({ selectedEdges: edges }),
@@ -381,7 +422,10 @@ export const useGraphStore = create<GraphState>()(
             selectedNodes: newSelected,
             currentNodeId: newCurrentNodeId,
             ...(hasSelectionChanges && {
-              selectedNodesWithEdgesAsList: computeSelectedNodesWithEdgesAsList(newSelected, get().edgesMapping)
+              selectedNodesWithEdgesAsList: computeSelectedNodesWithEdgesAsList(
+                newSelected,
+                get().edgesMapping
+              )
             })
           })
         }

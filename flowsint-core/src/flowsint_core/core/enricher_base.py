@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
 
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError, create_model
 from pydantic.config import ConfigDict
+
+from flowsint_types import FlowsintType
 
 from ..utils import resolve_type
 from .graph import GraphService, create_graph_service
@@ -14,7 +16,7 @@ class InvalidEnricherParams(Exception):
     pass
 
 
-def build_params_model(params_schema: list) -> BaseModel:
+def build_params_model(params_schema: list) -> Type[BaseModel]:
     """
     Build a strict Pydantic model from a params_schema.
     Unknown fields will raise a validation error.
@@ -42,7 +44,9 @@ def build_params_model(params_schema: list) -> BaseModel:
             Field(default=default, description=param.get("description", "")),
         )
 
-    model = create_model("ParamsModel", __config__=ConfigDict(extra="forbid"), **fields)
+    model: Type[BaseModel] = create_model(
+        "ParamsModel", __config__=ConfigDict(extra="forbid"), **fields
+    )
 
     return model
 
@@ -137,7 +141,7 @@ class Enricher(ABC):
         # vaultSecret references, not the key directly. The idea is that the real key values are resolved after calling
         # async_init(), right before the execution.
 
-    async def async_init(self):
+    async def async_init(self) -> None:
         self.ParamsModel = build_params_model(self.params_schema)
 
         # Always resolve parameters, even if self.params is empty
@@ -212,7 +216,6 @@ class Enricher(ABC):
     @abstractmethod
     def key(cls) -> str:
         """Primary key on which the enricher operates (e.g. domain, IP, etc.)"""
-        pass
 
     @classmethod
     def documentation(cls) -> str:
@@ -336,9 +339,6 @@ class Enricher(ABC):
     async def scan(self, values: List[str]) -> List[Dict[str, Any]]:
         pass
 
-    def set_params(self, params: Dict[str, Any]) -> None:
-        self.params = params
-
     def get_params(self) -> Dict[str, Any]:
         return self.params
 
@@ -411,8 +411,12 @@ class Enricher(ABC):
             return values
         return cleaned
 
+    # input_data's real element type is whatever the subclass's InputType
+    # is (same as results/InputType/OutputType elsewhere in this class) —
+    # Any here for the same reason, not a str-typed default that happened
+    # to be wrong.
     def postprocess(
-        self, results: List[Dict[str, Any]], input_data: List[str] = None
+        self, results: List[Dict[str, Any]], input_data: Optional[List[Any]] = None
     ) -> List[Dict[str, Any]]:
         return results
 
@@ -443,7 +447,7 @@ class Enricher(ABC):
                 )
             return []
 
-    def create_node(self, node_obj) -> None:
+    def create_node(self, node_obj: FlowsintType) -> None:
         """
         Create a single Neo4j node.
 
@@ -466,9 +470,9 @@ class Enricher(ABC):
 
     def create_relationship(
         self,
-        from_obj,
-        to_obj,
-        rel_label="IS_RELATED_TO",
+        from_obj: BaseModel,
+        to_obj: BaseModel,
+        rel_label: str = "IS_RELATED_TO",
     ) -> None:
         """
         Create a relationship between two nodes.

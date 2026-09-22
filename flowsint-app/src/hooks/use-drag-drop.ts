@@ -26,7 +26,7 @@ export const useDragAndDrop = () => {
   }, [])
 
   const handleDragLeave = useCallback(() => {
-    //@ts-ignore
+    //@ts-expect-error browser setTimeout returns number, this ref is typed for it, but TS resolves the Node types here
     dragLeaveTimeoutRef.current = setTimeout(() => {
       setIsDraggingOver(false)
     }, 100)

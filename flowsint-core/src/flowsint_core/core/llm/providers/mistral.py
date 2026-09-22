@@ -2,7 +2,6 @@ from typing import AsyncIterator, List
 
 from ..types import ChatMessage, MessageRole
 
-
 _ROLE_MAP = {
     MessageRole.SYSTEM: "SystemMessage",
     MessageRole.USER: "UserMessage",
@@ -18,7 +17,7 @@ class MistralProvider:
         self._model = model
 
     def _build_messages(self, messages: List[ChatMessage]):
-        from mistralai.models import UserMessage, AssistantMessage, SystemMessage
+        from mistralai.models import AssistantMessage, SystemMessage, UserMessage
 
         type_map = {
             MessageRole.SYSTEM: SystemMessage,

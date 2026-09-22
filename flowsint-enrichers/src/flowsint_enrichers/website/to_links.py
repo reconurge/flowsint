@@ -1,11 +1,13 @@
-from typing import List, Union
+from typing import List
 from urllib.parse import urlparse
-from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.website import Website
-from flowsint_types.domain import Domain
-from flowsint_core.core.logger import Logger
+
 from reconspread import Crawler
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.domain import Domain
+from flowsint_types.website import Website
 
 
 @flowsint_enricher
@@ -56,7 +58,9 @@ class WebsiteToLinks(Enricher):
                     if main_domain:
                         domain_obj = Domain(domain=main_domain)
                         self.create_node(domain_obj)
-                        self.create_relationship(website, domain_obj, "BELONGS_TO_DOMAIN")
+                        self.create_relationship(
+                            website, domain_obj, "BELONGS_TO_DOMAIN"
+                        )
                         self.log_graph_message(
                             f"Website {str(website.url)} belongs to domain {main_domain}"
                         )
@@ -86,9 +90,13 @@ class WebsiteToLinks(Enricher):
                                 if domain != main_domain:
                                     domain_obj_ext = Domain(domain=domain)
                                     self.create_node(domain_obj_ext)
-                                    self.create_relationship(url_obj, domain_obj_ext, "BELONGS_TO_DOMAIN")
+                                    self.create_relationship(
+                                        url_obj, domain_obj_ext, "BELONGS_TO_DOMAIN"
+                                    )
                                     domain_obj_main = Domain(domain=main_domain)
-                                    self.create_relationship(domain_obj_main, domain_obj_ext, "LINKS_TO")
+                                    self.create_relationship(
+                                        domain_obj_main, domain_obj_ext, "LINKS_TO"
+                                    )
                                     self.log_graph_message(
                                         f"External website {url} belongs to domain {domain}"
                                     )
@@ -107,7 +115,9 @@ class WebsiteToLinks(Enricher):
                         ):  # Don't create duplicate of main website
                             internal_website = Website(url=url)
                             self.create_node(internal_website)
-                            self.create_relationship(website, internal_website, "LINKS_TO")
+                            self.create_relationship(
+                                website, internal_website, "LINKS_TO"
+                            )
                             self.log_graph_message(
                                 f"Website {str(website.url)} links to internal website {url}"
                             )
@@ -115,7 +125,11 @@ class WebsiteToLinks(Enricher):
                             # Also link internal websites to main domain
                             if main_domain:
                                 domain_obj_int = Domain(domain=main_domain)
-                                self.create_relationship(internal_website, domain_obj_int, "BELONGS_TO_DOMAIN")
+                                self.create_relationship(
+                                    internal_website,
+                                    domain_obj_int,
+                                    "BELONGS_TO_DOMAIN",
+                                )
                         Logger.info(
                             self.sketch_id, {"message": f"[INTERNAL] Found: {url}"}
                         )
@@ -185,7 +199,9 @@ class WebsiteToLinks(Enricher):
                     if main_domain:
                         domain_obj_err = Domain(domain=main_domain)
                         self.create_node(domain_obj_err)
-                        self.create_relationship(website, domain_obj_err, "BELONGS_TO_DOMAIN")
+                        self.create_relationship(
+                            website, domain_obj_err, "BELONGS_TO_DOMAIN"
+                        )
                         self.log_graph_message(
                             f"Website {str(website.url)} belongs to domain {main_domain}"
                         )
@@ -204,7 +220,9 @@ class WebsiteToLinks(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Neo4j nodes and relationships are created in real-time during the callback
         # No additional processing needed here
         return results

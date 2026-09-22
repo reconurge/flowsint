@@ -15,7 +15,7 @@ export function DashboardPage() {
   const [search, setSearch] = useState<string>('')
 
   const {
-    data: investigations,
+    data: investigations = [],
     isLoading
     // error,
     // refetch
@@ -28,9 +28,8 @@ export function DashboardPage() {
     return <InvestigationSkeleton />
   }
 
-  const casesCount = investigations.length ?? (0 as number)
-  const activeCasesCount =
-    investigations.filter((i: Investigation) => i.status === 'active').length ?? (0 as number)
+  const casesCount = investigations.length
+  const activeCasesCount = investigations.filter((i: Investigation) => i.status === 'active').length
 
   return (
     <main className="flex-1 h-full overflow-auto">

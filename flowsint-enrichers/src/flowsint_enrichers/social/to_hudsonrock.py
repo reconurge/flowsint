@@ -1,15 +1,11 @@
-import subprocess
-from pathlib import Path
 from typing import List
 
 import requests
-import json
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
-from flowsint_types import Device, Username
-
 from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types import Device, Username
 
 
 @flowsint_enricher
@@ -37,7 +33,10 @@ class HudsonRockToUsername(Enricher):
 
         for username in data:
             try:
-                api_request = requests.get(f'https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={username.value}', timeout=30)
+                api_request = requests.get(
+                    f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={username.value}",
+                    timeout=30,
+                )
 
                 if api_request.status_code != 200:
                     Logger.error(
@@ -81,8 +80,13 @@ class HudsonRockToUsername(Enricher):
 
                         results.append(
                             Device(
-                                device_id=device_id, type=device_type, os=os, last_seen=last_seen, is_desktop=is_desktop,
-                                ip_addresses=ip_addresses, source=source
+                                device_id=device_id,
+                                type=device_type,
+                                os=os,
+                                last_seen=last_seen,
+                                is_desktop=is_desktop,
+                                ip_addresses=ip_addresses,
+                                source=source,
                             )
                         )
             except Exception as e:
@@ -105,11 +109,9 @@ class HudsonRockToUsername(Enricher):
         for device in results:
             try:
                 self.create_node(device)
-                
+
                 for username in original_input:
-                    self.create_relationship(
-                        username, device, "ASSOCIATED_WITH_DEVICE"
-                    )
+                    self.create_relationship(username, device, "ASSOCIATED_WITH_DEVICE")
                     self.log_graph_message(
                         f"{username.value} -> found device '{device.device_id}'"
                     )

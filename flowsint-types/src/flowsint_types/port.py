@@ -1,5 +1,7 @@
-from pydantic import Field, field_validator, model_validator
 from typing import Optional, Self
+
+from pydantic import Field, field_validator, model_validator
+
 from .flowsint_base import FlowsintType
 from .registry import flowsint_type
 
@@ -8,7 +10,12 @@ from .registry import flowsint_type
 class Port(FlowsintType):
     """Represents an open network port related to an IP address."""
 
-    number: int = Field(..., description="Port number", title="Port Number", json_schema_extra={"primary": True})
+    number: int = Field(
+        ...,
+        description="Port number",
+        title="Port Number",
+        json_schema_extra={"primary": True},
+    )
     protocol: Optional[str] = Field(
         None, description="Protocol (TCP, UDP, etc.)", title="Protocol"
     )
@@ -22,7 +29,7 @@ class Port(FlowsintType):
         None, description="Service banner information", title="Banner"
     )
 
-    @field_validator('number')
+    @field_validator("number")
     @classmethod
     def validate_port_number(cls, v: int) -> int:
         """Validate that port number is in valid range (0-65535)."""
@@ -30,7 +37,7 @@ class Port(FlowsintType):
             raise ValueError(f"Port number must be between 0 and 65535, got {v}")
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def compute_label(self) -> Self:
         # Include service and protocol if available
         parts = [str(self.number)]

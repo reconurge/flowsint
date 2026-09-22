@@ -5,6 +5,7 @@ This project now uses the [@lukemorales/query-key-factory](https://tanstack.com/
 ## Overview
 
 Query Key Factory provides:
+
 - **Type-safe query keys** with auto-completion
 - **Centralized key management** - all keys in one place
 - **Easy invalidation** - no more hardcoded key strings
@@ -31,13 +32,13 @@ import { investigationService } from '@/api/investigation-service'
 // Before (hardcoded keys)
 const { data } = useQuery({
   queryKey: ['investigations', 'list'],
-  queryFn: investigationService.get,
+  queryFn: investigationService.get
 })
 
 // After (using query key factory)
 const { data } = useQuery({
   queryKey: queryKeys.investigations.list,
-  queryFn: investigationService.get,
+  queryFn: investigationService.get
 })
 ```
 
@@ -47,13 +48,13 @@ const { data } = useQuery({
 // Before
 const { data } = useQuery({
   queryKey: ['investigations', investigationId],
-  queryFn: () => investigationService.getById(investigationId),
+  queryFn: () => investigationService.getById(investigationId)
 })
 
 // After
 const { data } = useQuery({
   queryKey: queryKeys.investigations.detail(investigationId),
-  queryFn: () => investigationService.getById(investigationId),
+  queryFn: () => investigationService.getById(investigationId)
 })
 ```
 
@@ -66,17 +67,17 @@ const createAnalysisMutation = useMutation({
   mutationFn: analysisService.create,
   onSuccess: (data, variables) => {
     const queryClient = useQueryClient()
-    
+
     // Invalidate specific queries
     queryClient.invalidateQueries({
       queryKey: queryKeys.investigations.analyses(variables.investigation_id)
     })
-    
+
     // Invalidate general lists
     queryClient.invalidateQueries({
       queryKey: queryKeys.analyses.list
     })
-  },
+  }
 })
 ```
 
@@ -87,28 +88,27 @@ const updateAnalysisMutation = useMutation({
   mutationFn: analysisService.update,
   onSuccess: (data, variables) => {
     const queryClient = useQueryClient()
-    
+
     // Update cache directly for better UX
-    queryClient.setQueryData(
-      queryKeys.analyses.detail(variables.analysisId),
-      data
-    )
-    
+    queryClient.setQueryData(queryKeys.analyses.detail(variables.analysisId), data)
+
     // Invalidate related queries
     queryClient.invalidateQueries({
       queryKey: queryKeys.analyses.byInvestigation(data.investigation_id)
     })
-  },
+  }
 })
 ```
 
 ## Available Query Keys
 
 ### Auth
+
 - `queryKeys.auth.session`
 - `queryKeys.auth.currentUser`
 
 ### Investigations
+
 - `queryKeys.investigations.list`
 - `queryKeys.investigations.detail(investigationId)`
 - `queryKeys.investigations.sketches(investigationId)`
@@ -116,6 +116,7 @@ const updateAnalysisMutation = useMutation({
 - `queryKeys.investigations.flows(investigationId)`
 
 ### Sketches/Graphs
+
 - `queryKeys.sketches.list`
 - `queryKeys.sketches.detail(sketchId)`
 - `queryKeys.sketches.byInvestigation(investigationId)`
@@ -123,36 +124,44 @@ const updateAnalysisMutation = useMutation({
 - `queryKeys.sketches.types`
 
 ### Analyses
+
 - `queryKeys.analyses.list`
 - `queryKeys.analyses.detail(analysisId)`
 - `queryKeys.analyses.byInvestigation(investigationId)`
 
 ### Flows
+
 - `queryKeys.flows.list`
 - `queryKeys.flows.detail(flowId)`
 - `queryKeys.flows.byInvestigation(investigationId)`
 
 ### Chats
+
 - `queryKeys.chats.list`
 - `queryKeys.chats.detail(chatId)`
 - `queryKeys.chats.byInvestigation(investigationId)`
 - `queryKeys.chats.messages(chatId)`
 
 ### API Keys
+
 - `queryKeys.keys.list`
 - `queryKeys.keys.detail(keyId)`
 
 ### Logs/Events
+
 - `queryKeys.logs.bySketch(sketchId)`
 
 ### Action Items
+
 - `queryKeys.actionItems`
 
 ### Scans
+
 - `queryKeys.scans.list`
 - `queryKeys.scans.detail(scanId)`
 
 ### Enrichers
+
 - `queryKeys.enrichers.list`
 - `queryKeys.enrichers.detail(enricherId)`
 
@@ -227,6 +236,7 @@ queryClient.setQueryData(queryKeys.analyses.detail(analysisId), data)
 ## Examples
 
 See `query-keys-examples.ts` for comprehensive usage examples including:
+
 - Basic queries
 - Mutations with invalidation
 - Cache updates

@@ -1,5 +1,7 @@
+from typing import Any, Dict, List
+
 import requests
-from typing import List, Dict, Any
+
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.ip import Ip
@@ -25,8 +27,9 @@ class IpToInfosEnricher(Enricher):
     def key(cls) -> str:
         return "address"
 
-    async def scan(self, data: List[InputType]) -> List[OutputType]:
-        results: List[OutputType] = []
+    # noqa false positive below: OutputType is a class attr, resolves fine at def-time
+    async def scan(self, data: List[InputType]) -> List[OutputType]:  # noqa: F821
+        results: List[OutputType] = []  # noqa: F821
         for ip in data:
             try:
                 geo_data = self.get_location_data(ip.address)
@@ -41,7 +44,9 @@ class IpToInfosEnricher(Enricher):
                 print(f"Error geolocating {ip.address}: {e}")
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         """Update IP nodes in Neo4j with geolocation information."""
         if self._graph_service:
             for ip in results:

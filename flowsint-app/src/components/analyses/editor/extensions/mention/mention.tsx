@@ -11,11 +11,9 @@ import type { MentionListRef, MentionItem } from './mention-list'
 import { memo, useCallback } from 'react'
 import { useIcon } from '@/hooks/use-icon'
 import { useNodesDisplaySettings } from '@/stores/node-display-settings'
-import { Button } from '@/components/ui/button'
 import { GRAPH_COLORS } from '@/components/sketches/graph'
 import { useGraphStore } from '@/stores/graph-store'
 import { useGraphControls } from '@/stores/graph-controls-store'
-import { GraphNode } from '@/types'
 
 function hexWithOpacity(hex: string, opacity: number) {
   hex = hex.replace('#', '')
@@ -79,7 +77,7 @@ const MentionComponent = memo((props: any) => {
   })
   const colors = useNodesDisplaySettings((s) => s.colors)
   const color = nodeType
-    ? // @ts-ignore
+    ? // @ts-expect-error colors is keyed by ItemType, nodeType is a plain string
       (colors[nodeType] ?? GRAPH_COLORS.NODE_DEFAULT)
     : GRAPH_COLORS.NODE_DEFAULT
   const centerOnNode = useGraphControls((state) => state.centerOnNode)
@@ -105,7 +103,6 @@ const MentionComponent = memo((props: any) => {
         className="px-.5 gap-1 pr-1 py-.5 flex items-center cursor-pointer text-xs rounded-full text-foreground"
         style={{
           backgroundColor: hexWithOpacity(color, 0.2),
-          //@ts-ignore
           border: `solid 1px ${hexWithOpacity(color, 0.5)}`
         }}
       >

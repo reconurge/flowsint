@@ -1,9 +1,10 @@
-from typing import List, Union
-from flowsint_enrichers.utils import is_valid_domain, get_root_domain
+from typing import List
+
 from flowsint_core.core.enricher_base import Enricher
-from flowsint_enrichers.registry import flowsint_enricher
-from flowsint_types.domain import Domain
 from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_enrichers.utils import get_root_domain
+from flowsint_types.domain import Domain
 
 
 @flowsint_enricher
@@ -53,7 +54,9 @@ class DomainToRootDomain(Enricher):
 
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         # Use the mapping we created during scan to create relationships
         for original_domain, root_domain in self.domain_root_mapping:
             if not self._graph_service:

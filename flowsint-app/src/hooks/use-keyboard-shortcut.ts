@@ -29,6 +29,6 @@ export function useKeyboardShortcut(options: ShortcutOptions) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [options, isMac])
+  }, [options])
   return { isMac }
 }

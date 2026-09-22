@@ -1,5 +1,4 @@
 import * as LucideIcons from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import type { SchemaField } from './field-row'
 
 interface TypePreviewProps {
@@ -40,7 +39,15 @@ export function TypePreview({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h4 className="font-semibold text-sm truncate">{name || 'Untitled type'}</h4>
+                {status === 'draft' && (
+                  <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground border border-border/60 rounded px-1.5 py-0.5">
+                    Draft
+                  </span>
+                )}
               </div>
+              {category && (
+                <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">{category}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                 {description || 'No description'}
               </p>

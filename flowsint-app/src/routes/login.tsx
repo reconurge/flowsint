@@ -140,7 +140,7 @@ function Login() {
         {/* Link to registration */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="font-medium text-primary">
               Create an account
             </Link>

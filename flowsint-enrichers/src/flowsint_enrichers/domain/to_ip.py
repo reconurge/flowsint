@@ -1,7 +1,8 @@
 import socket
 from typing import List
-from flowsint_core.core.logger import Logger
+
 from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types.domain import Domain
 from flowsint_types.ip import Ip
@@ -52,7 +53,9 @@ class ResolveEnricher(Enricher):
                 continue
         return results
 
-    def postprocess(self, results: List[OutputType], original_input: List[InputType]) -> List[OutputType]:
+    def postprocess(
+        self, results: List[OutputType], original_input: List[InputType]
+    ) -> List[OutputType]:
         for domain_obj, ip_obj in self.domain_ip_mapping:
             if not self._graph_service:
                 continue

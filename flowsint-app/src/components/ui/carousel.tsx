@@ -89,9 +89,16 @@ function Carousel({
     setApi(api)
   }, [api, setApi])
 
+  // Initial scroll-state sync, adjusted during render rather than in the
+  // effect below (which now only subscribes to future changes).
+  const [prevApi, setPrevApi] = React.useState(api)
+  if (api !== prevApi) {
+    setPrevApi(api)
+    if (api) onSelect(api)
+  }
+
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
     api.on('reInit', onSelect)
     api.on('select', onSelect)
 

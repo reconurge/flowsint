@@ -9,14 +9,14 @@ os.environ.setdefault(
     "MASTER_VAULT_KEY_V1", "base64:qnHTmwYb+uoygIw9MsRMY22vS5YPchY+QOi/E79GAvM="
 )
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-from flowsint_core.core.models import Base
-from flowsint_core.core.postgre_db import get_db
-from app.main import app
+from app.main import app  # noqa: E402
+from flowsint_core.core.models import Base  # noqa: E402
+from flowsint_core.core.postgre_db import get_db  # noqa: E402
 
 
 @pytest.fixture

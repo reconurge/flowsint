@@ -1,9 +1,9 @@
 import pytest
+from tools.network.dnsx import DnsxTool
 
 from flowsint_enrichers import ENRICHER_REGISTRY
 from flowsint_enrichers.domain.to_dns import DomainToDnsEnricher
 from flowsint_types.ip import Ip
-from tools.network.dnsx import DnsxTool
 
 
 # ---------------------------------------------------------------------------
@@ -81,10 +81,10 @@ class _FakeDnsx:
 
 @pytest.mark.asyncio
 async def test_scan_returns_ip_objects_tagged_with_source_domain(monkeypatch):
-    fake = _FakeDnsx({"example.com": ["93.184.216.34", "2606:2800:220:1:248:1893:25c8:1946"]})
-    monkeypatch.setattr(
-        "flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake
+    fake = _FakeDnsx(
+        {"example.com": ["93.184.216.34", "2606:2800:220:1:248:1893:25c8:1946"]}
     )
+    monkeypatch.setattr("flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake)
 
     enricher = DomainToDnsEnricher(sketch_id="s", scan_id="t", graph_service=None)
     from flowsint_types.domain import Domain
@@ -102,9 +102,7 @@ async def test_scan_returns_ip_objects_tagged_with_source_domain(monkeypatch):
 @pytest.mark.asyncio
 async def test_scan_ipv6_param_disables_aaaa(monkeypatch):
     fake = _FakeDnsx({"example.com": ["93.184.216.34"]})
-    monkeypatch.setattr(
-        "flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake
-    )
+    monkeypatch.setattr("flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake)
 
     enricher = DomainToDnsEnricher(
         sketch_id="s", scan_id="t", graph_service=None, params={"ipv6": "false"}
@@ -120,9 +118,7 @@ async def test_scan_ipv6_param_disables_aaaa(monkeypatch):
 @pytest.mark.asyncio
 async def test_scan_skips_unresolvable_domain(monkeypatch):
     fake = _FakeDnsx({})  # no records for anything
-    monkeypatch.setattr(
-        "flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake
-    )
+    monkeypatch.setattr("flowsint_enrichers.domain.to_dns.DnsxTool", lambda: fake)
 
     enricher = DomainToDnsEnricher(sketch_id="s", scan_id="t", graph_service=None)
     from flowsint_types.domain import Domain

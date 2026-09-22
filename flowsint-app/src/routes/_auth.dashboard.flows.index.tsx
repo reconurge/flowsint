@@ -12,16 +12,11 @@ import NewFlow from '@/components/flows/new-flow'
 import { flowService } from '@/api/flow-service'
 import ErrorState from '@/components/shared/error-state'
 import { PageLayout } from '@/components/layout/page-layout'
+import type { Flow } from '@/types/flow'
 
-interface Flow {
-  id: string
-  name: string
-  description?: string
-  category?: string[]
-  created_at: string
-  updated_at?: string
-  flow_schema?: any
-}
+// category comes back as either a string or a string[] — normalize once.
+const categoriesOf = (flow: Flow): string[] =>
+  Array.isArray(flow.category) ? flow.category : flow.category ? [flow.category] : []
 
 export const Route = createFileRoute('/_auth/dashboard/flows/')({
   component: FlowPage
@@ -42,11 +37,9 @@ function FlowPage() {
   // Get all unique categories
   const categories =
     flows?.reduce((acc: string[], flow) => {
-      if (flow.category) {
-        flow.category.forEach((cat) => {
-          if (!acc.includes(cat)) acc.push(cat)
-        })
-      }
+      categoriesOf(flow).forEach((cat) => {
+        if (!acc.includes(cat)) acc.push(cat)
+      })
       return acc
     }, []) || []
 
@@ -115,14 +108,17 @@ function FlowPage() {
 
             {allCategories.map((category) => (
               <TabsContent key={category} value={category} className="mt-0">
-                <div className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6" data-tour-id="flow-list">
+                <div
+                  className="grid grid-cols-1 cq-sm:grid-cols-2 cq-md:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-5 gap-6"
+                  data-tour-id="flow-list"
+                >
                   {flows
                     ?.filter((flow) =>
                       category === 'All'
                         ? true
                         : category === 'Uncategorized'
-                          ? !flow.category?.length
-                          : flow.category?.includes(category)
+                          ? categoriesOf(flow).length === 0
+                          : categoriesOf(flow).includes(category)
                     )
                     .map((flow) => (
                       <Card
@@ -145,12 +141,15 @@ function FlowPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="w-4 h-4 mr-1" />
-                              {formatDistanceToNow(new Date(flow.updated_at || flow.created_at), {
-                                addSuffix: true
-                              })}
+                              {formatDistanceToNow(
+                                new Date(flow.last_updated_at || flow.created_at),
+                                {
+                                  addSuffix: true
+                                }
+                              )}
                             </div>
                             <div className="flex flex-wrap gap-2 justify-end">
-                              {flow.category?.map((cat) => (
+                              {categoriesOf(flow).map((cat) => (
                                 <Badge key={cat} variant="secondary">
                                   {cat}
                                 </Badge>

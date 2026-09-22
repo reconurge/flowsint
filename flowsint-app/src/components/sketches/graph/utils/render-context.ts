@@ -48,25 +48,13 @@ export const createRenderContext = (
     selectedEdgeIds: new Set(selectedEdges.map((e) => e.id)),
 
     themeBgFill: isLight ? '#FFFFFF' : '#1a1a1a',
-    themeSubtleBorder: isLight
-      ? 'rgba(44, 44, 44, 0.19)'
-      : 'rgba(222, 222, 222, 0.13)',
-    themeMockLabelFill: isLight
-      ? 'rgba(0, 0, 0, 0.15)'
-      : 'rgba(255, 255, 255, 0.15)',
-    themeLabelBg: isLight
-      ? 'rgba(255, 255, 255, 0.75)'
-      : 'rgba(32, 32, 32, 0.75)',
-    themeLabelBgHighlighted: isLight
-      ? 'rgba(255, 255, 255, 0.95)'
-      : 'rgba(32, 32, 32, 0.95)',
-    themeLabelBorder: isLight
-      ? 'rgba(0, 0, 0, 0.1)'
-      : 'rgba(255, 255, 255, 0.1)',
+    themeSubtleBorder: isLight ? 'rgba(44, 44, 44, 0.19)' : 'rgba(222, 222, 222, 0.13)',
+    themeMockLabelFill: isLight ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)',
+    themeLabelBg: isLight ? 'rgba(255, 255, 255, 0.75)' : 'rgba(32, 32, 32, 0.75)',
+    themeLabelBgHighlighted: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(32, 32, 32, 0.95)',
+    themeLabelBorder: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
     themeTextColor: isLight ? GRAPH_COLORS.TEXT_LIGHT : GRAPH_COLORS.TEXT_DARK,
-    themeEdgeLabelBg: isLight
-      ? 'rgba(255, 255, 255, 0.95)'
-      : 'rgba(32, 32, 32, 0.95)',
+    themeEdgeLabelBg: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(32, 32, 32, 0.95)',
 
     dimmedColorCache: new Map()
   }
@@ -121,7 +109,8 @@ export const isEdgeInViewport = (
     screenStartX <= canvasWidth + margin &&
     screenStartY >= -margin &&
     screenStartY <= canvasHeight + margin
-  ) return true
+  )
+    return true
 
   const screenEndX = endX * transform.a + transform.e
   const screenEndY = endY * transform.d + transform.f
@@ -131,7 +120,8 @@ export const isEdgeInViewport = (
     screenEndX <= canvasWidth + margin &&
     screenEndY >= -margin &&
     screenEndY <= canvasHeight + margin
-  ) return true
+  )
+    return true
 
   // AABB intersection (edge might cross viewport even if both endpoints are outside)
   const minX = Math.min(screenStartX, screenEndX)

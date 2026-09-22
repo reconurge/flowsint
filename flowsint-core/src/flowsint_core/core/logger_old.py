@@ -1,10 +1,11 @@
-from uuid import UUID
-from typing import Any, Dict, Union
-from .models import Log
-from ..tasks.event import emit_event_task
-from .postgre_db import get_db
-from .enums import EventLevel
 import logging
+from typing import Dict, Union
+from uuid import UUID
+
+from ..tasks.event import emit_event_task
+from .enums import EventLevel
+from .models import Log
+from .postgre_db import get_db
 
 logger = logging.getLogger(__name__)
 

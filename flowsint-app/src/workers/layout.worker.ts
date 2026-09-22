@@ -1,12 +1,5 @@
 import Dagre from '@dagrejs/dagre'
-import {
-  forceSimulation,
-  forceLink,
-  forceManyBody,
-  forceCenter,
-  forceCollide,
-  forceRadial
-} from 'd3-force'
+import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force'
 
 export interface GraphNode {
   id: string
@@ -63,12 +56,15 @@ function computeDagreLayout(
 ) {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
 
-  // Configure dagre with proper spacing
+  // Configure dagre with proper spacing. dagLevelDistance mirrors the
+  // main-thread layout in lib/utils.ts's getDagreLayoutedElements — this
+  // worker used to ignore it and hardcode the spacing instead.
+  const levelDistance = options.dagLevelDistance ?? 5
   g.setGraph({
     rankdir: 'TB',
     ranker: 'tight-tree',
-    nodesep: 5,
-    ranksep: 5
+    nodesep: levelDistance,
+    ranksep: levelDistance
   })
 
   const nodeWidth = 15

@@ -1,6 +1,5 @@
-from flowsint_types import Domain, File, Ip, Phone
-
 from flowsint_core.imports import detect_type
+from flowsint_types import Domain, File, Ip, Phone
 
 
 def test_detection_domains():
@@ -15,13 +14,13 @@ def test_detection_domains():
             results.append(py_obj)
     # domain 1
     assert results[0].domain == "mydomain.com"
-    assert results[0].root == True
+    assert results[0].root is True
     # domain 2
     assert results[1].domain == "myseconddomain.com"
-    assert results[1].root == True
+    assert results[1].root is True
     # domain 3
     assert results[2].domain == "blog.subdomain.uk"
-    assert results[2].root == False
+    assert results[2].root is False
 
 
 def test_detection_ips():
@@ -69,7 +68,7 @@ def test_detection_mixed():
     # domain
     assert isinstance(results[1], Domain)
     assert results[1].domain == "my.domain.io"
-    assert results[1].root == False
+    assert results[1].root is False
     # phone
     assert isinstance(results[2], Phone)
     assert results[2].number == "+33632233223"

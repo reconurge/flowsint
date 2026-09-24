@@ -1,7 +1,8 @@
 import json
 import subprocess
+import tempfile
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from flowsint_core.core.enricher_base import Enricher
 from flowsint_core.core.logger import Logger
@@ -20,6 +21,23 @@ class MaigretEnricher(Enricher):
     InputType = Username
     OutputType = SocialAccount
 
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        vault: Any = None,
+        params: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+            **kwargs,
+        )
+
     @classmethod
     def name(cls) -> str:
         return "username_to_socials_maigret"
@@ -32,20 +50,149 @@ class MaigretEnricher(Enricher):
     def key(cls) -> str:
         return "username"
 
-    def run_maigret(self, username: str) -> Path:
-        output_file = Path(f"/tmp/report_{username}_simple.json")
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare parameters for this enricher."""
+        return [
+            {
+                "name": "MAX_CONNECTIONS",
+                "type": "number",
+                "description": "Number of concurrent connections to use for the scan",
+                "required": False,
+                "default": "25",
+            },
+            {
+                "name": "SCAN_ALL_SITES",
+                "type": "select",
+                "description": "Perform a scan of the username across all sites instead of the top 500 (takes longer)",
+                "required": False,
+                "default": "false",
+                "options": [
+                    {"label": "Enabled", "value": "true"},
+                    {"label": "Disabled", "value": "false"},
+                ],
+            },
+            {
+                "name": "CLOUDFLARE_BYPASS",
+                "type": "select",
+                "description": "Bypass Cloudflare protection using Flaresolverr or Trawl",
+                "required": False,
+                "default": "true",
+                "options": [
+                    {"label": "Enabled", "value": "true"},
+                    {"label": "Disabled", "value": "false"},
+                ],
+            },
+            {
+                "name": "CLOUDFLARE_BYPASS_URL",
+                "type": "url",
+                "description": "Flaresolverr or Trawl URL",
+                "required": False,
+            },
+        ]
+
+    def run_maigret(self, username: str, temp_dir: str) -> Path:
+        output_file = Path(f"{temp_dir}/report_{username}_simple.json")
+        settings_path = Path(f"{temp_dir}/settings.json")
+
+        all_sites = self.params.get("SCAN_ALL_SITES", "false") == "true"
+        max_connections = self.params.get("MAX_CONNECTIONS", "25")
+        cloudflare_bypass = self.params.get("CLOUDFLARE_BYPASS", "true") == "true"
+        cloudflare_bypass_url = self.params.get("CLOUDFLARE_BYPASS_URL", None)
+
+        # cast to int and default to 25 if invalid
         try:
-            subprocess.run(
-                ["maigret", username, "-J", "simple", "-fo", "/tmp"],
-                capture_output=True,
+            max_connections = int(max_connections)
+        except (TypeError, ValueError):
+            max_connections = 25
+
+        try:
+            cmd = [
+                "maigret",
+                username,
+                "-J",
+                "simple",
+                "-fo",
+                temp_dir,
+                "-n",
+                str(max_connections),
+            ]
+
+            if all_sites:
+                cmd.append("-a")
+
+            # ensure CF bypass is enabled and Flaresolverr URL is valid
+            if (
+                cloudflare_bypass
+                and cloudflare_bypass_url
+                and "://" in cloudflare_bypass_url
+            ):
+                settings_data = {
+                    "cloudflare_bypass": {
+                        "enabled": True,
+                        "session_prefix": "maigret",
+                        "trigger_protection": [
+                            "cf_js_challenge",
+                            "cf_firewall",
+                            "webgate",
+                        ],
+                        "modules": [
+                            {
+                                "name": "flaresolverr",
+                                "method": "json_api",
+                                "url": cloudflare_bypass_url,
+                                "max_timeout_ms": 60000,
+                            }
+                        ],
+                    }
+                }
+
+                with open(settings_path, "w") as f:
+                    json.dump(settings_data, f)
+
+                cmd.append("--cloudflare-bypass")
+
+            process = subprocess.Popen(
+                cmd,
+                cwd=temp_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
-                timeout=100,
+                bufsize=1,
             )
+
+            if process.stdout is not None:
+                for line in process.stdout:
+                    line = line.strip()
+
+                    # only line successful account searches (starts with [+] and contains a URL and the username)
+                    if (
+                        line
+                        and line.startswith("[+]")
+                        and "https://" in line
+                        and username in line
+                    ):
+                        self.log_graph_message(line)
+
+            return_code = process.wait()
+            if return_code != 0:
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Maigret exited with return code {return_code} for {username}"
+                    },
+                )
+
         except Exception as e:
             Logger.error(
                 self.sketch_id,
                 {"message": f"Maigret execution failed for {username}: {e}"},
             )
+
+        finally:
+            if process.poll() is None:
+                process.terminate()
+
         return output_file
 
     def parse_maigret_output(
@@ -140,9 +287,11 @@ class MaigretEnricher(Enricher):
             if not profile.value:
                 continue
             try:
-                output_file = self.run_maigret(profile.value)
-                parsed = self.parse_maigret_output(profile, output_file)
-                results.extend(parsed)
+                # new temp directory for each maigret scan to avoid conflicts
+                with tempfile.TemporaryDirectory(prefix="maigret-") as temp_dir:
+                    output_file = self.run_maigret(profile.value, temp_dir)
+                    parsed = self.parse_maigret_output(profile, output_file)
+                    results.extend(parsed)
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
@@ -167,9 +316,6 @@ class MaigretEnricher(Enricher):
                 self.create_relationship(
                     profile.username, profile, "HAS_SOCIAL_ACCOUNT"
                 )
-                self.log_graph_message(
-                    f"{profile.username.value} -> account found on {profile.platform}"
-                )
             except Exception as e:
                 Logger.error(
                     self.sketch_id,
@@ -178,6 +324,9 @@ class MaigretEnricher(Enricher):
                     },
                 )
                 continue
+
+        self.log_graph_message(f"Processed {len(results)} social accounts")
+
         return results
 
 

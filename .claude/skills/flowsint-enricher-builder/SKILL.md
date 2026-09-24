@@ -52,26 +52,31 @@ from flowsint_core.core.logger import Logger
 from flowsint_enrichers.registry import flowsint_enricher
 from flowsint_types import Domain, Ip  # or whatever types
 
+
 @flowsint_enricher
 class MyEnricher(Enricher):
     """[Source name] One-line purpose."""
 
-    InputType = Domain      # base type, not List[Domain]
+    InputType = Domain  # base type, not List[Domain]
     OutputType = Ip
 
     @classmethod
-    def name(cls) -> str: return "domain_to_ip"     # snake_case, unique
-    @classmethod
-    def category(cls) -> str: return "Domain"        # see note on casing below
-    @classmethod
-    def key(cls) -> str: return "domain"             # primary field of InputType
+    def name(cls) -> str:
+        return "domain_to_ip"  # snake_case, unique
 
     @classmethod
-    def get_params_schema(cls):                       # optional, only if params needed
+    def category(cls) -> str:
+        return "Domain"  # see note on casing below
+
+    @classmethod
+    def key(cls) -> str:
+        return "domain"  # primary field of InputType
+
+    @classmethod
+    def get_params_schema(cls):  # optional, only if params needed
         return [...]
 
-    async def scan(self, data: List[InputType]) -> List[OutputType]:
-        ...
+    async def scan(self, data: List[InputType]) -> List[OutputType]: ...
 
     def postprocess(self, results, input_data):
         for src, dst in zip(input_data, results):
@@ -79,6 +84,7 @@ class MyEnricher(Enricher):
             self.create_node(dst)
             self.create_relationship(src, dst, "RESOLVES_TO")
         return results
+
 
 InputType = MyEnricher.InputType
 OutputType = MyEnricher.OutputType
@@ -105,7 +111,7 @@ Read params inside `scan()`:
 
 ```python
 mode = self.params.get("mode", "passive")
-api_key = self.get_secret("MY_API_KEY")   # vault-resolved during async_init
+api_key = self.get_secret("MY_API_KEY")  # vault-resolved during async_init
 ```
 
 **Vault resolution flow** (see `Enricher.resolve_params` in `enricher_base.py`):

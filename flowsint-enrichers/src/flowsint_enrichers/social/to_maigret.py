@@ -100,6 +100,12 @@ class MaigretEnricher(Enricher):
         cloudflare_bypass = self.params.get("CLOUDFLARE_BYPASS", "true") == "true"
         cloudflare_bypass_url = self.params.get("CLOUDFLARE_BYPASS_URL", None)
 
+        # cast to int and default to 25 if invalid
+        try:
+            max_connections = int(max_connections)
+        except (TypeError, ValueError):
+            max_connections = 25
+
         try:
             cmd = [
                 "maigret",
@@ -109,7 +115,7 @@ class MaigretEnricher(Enricher):
                 "-fo",
                 temp_dir,
                 "-n",
-                max_connections,
+                str(max_connections),
             ]
 
             if all_sites:
@@ -168,11 +174,25 @@ class MaigretEnricher(Enricher):
                     ):
                         self.log_graph_message(line)
 
+            return_code = process.wait()
+            if return_code != 0:
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"Maigret exited with return code {return_code} for {username}"
+                    },
+                )
+
         except Exception as e:
             Logger.error(
                 self.sketch_id,
                 {"message": f"Maigret execution failed for {username}: {e}"},
             )
+
+        finally:
+            if process.poll() is None:
+                process.terminate()
+
         return output_file
 
     def parse_maigret_output(

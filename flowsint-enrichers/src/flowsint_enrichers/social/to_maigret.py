@@ -120,7 +120,6 @@ class MaigretEnricher(Enricher):
                 cloudflare_bypass
                 and cloudflare_bypass_url
                 and "://" in cloudflare_bypass_url
-                and "v1" in cloudflare_bypass_url.lower()
             ):
                 settings_data = {
                     "cloudflare_bypass": {

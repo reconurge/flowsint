@@ -1,0 +1,308 @@
+import os
+from typing import Any, Dict, List, Optional
+
+import requests
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_core.core.vault import VaultProtocol
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.organization import Organization
+from flowsint_types.website import Website
+
+SEARCH_ENDPOINT = "https://api.serply.io/v1/search/"
+# `num` is an approximate cap of about ten rows per call, not an exact count, so
+# the window size is fixed and surplus rows are trimmed against max_results.
+PAGE_SIZE = 10
+DEFAULT_MAX_RESULTS = 20
+# The news vertical is selected with Google's own `tbm`, off the same endpoint.
+NEWS_VERTICAL = "nws"
+# Recency maps onto Google's `tbs=qdr:<unit>`.
+RECENCY = {"d": "qdr:d", "w": "qdr:w", "m": "qdr:m", "y": "qdr:y"}
+DEFAULT_LANGUAGE = "en"
+DEFAULT_REGION = "us"
+
+
+@flowsint_enricher
+class OrgToNewsEnricher(Enricher):
+    """[Serply] Find news coverage of an organization.
+
+    Runs the organization name as an exact-phrase query against the news
+    vertical and emits one Website per article.
+    Expects a `SERPLY_API_KEY` vault secret.
+    """
+
+    # Define types as class attributes - base class handles schema generation automatically
+    InputType = Organization
+    OutputType = Website
+
+    def __init__(
+        self,
+        sketch_id: Optional[str] = None,
+        scan_id: Optional[str] = None,
+        vault: Optional[VaultProtocol] = None,
+        params: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            sketch_id=sketch_id,
+            scan_id=scan_id,
+            params_schema=self.get_params_schema(),
+            vault=vault,
+            params=params,
+            **kwargs,
+        )
+
+    @classmethod
+    def name(cls) -> str:
+        return "org_to_news"
+
+    @classmethod
+    def category(cls) -> str:
+        return "Organization"
+
+    @classmethod
+    def key(cls) -> str:
+        return "name"
+
+    @classmethod
+    def required_params(cls) -> bool:
+        return True
+
+    @classmethod
+    def get_params_schema(cls) -> List[Dict[str, Any]]:
+        """Declare required parameters for this enricher"""
+        return [
+            {
+                "name": "SERPLY_API_KEY",
+                "type": "vaultSecret",
+                "description": "Your Serply API key, from serply.io.",
+                "required": True,
+            },
+            {
+                "name": "time_range",
+                "type": "select",
+                "description": "Only keep coverage published within this window.",
+                "required": False,
+                "default": "any",
+                "options": [
+                    {"label": "Any time", "value": "any"},
+                    {"label": "Past 24 hours", "value": "d"},
+                    {"label": "Past week", "value": "w"},
+                    {"label": "Past month", "value": "m"},
+                    {"label": "Past year", "value": "y"},
+                ],
+            },
+            {
+                "name": "language",
+                "type": "string",
+                "description": f"Language of the coverage, as a two-letter code. Default: {DEFAULT_LANGUAGE}",
+                "required": False,
+                "default": DEFAULT_LANGUAGE,
+            },
+            {
+                "name": "region",
+                "type": "string",
+                "description": f"Market the coverage is ranked for, as a two-letter country code. Default: {DEFAULT_REGION}",
+                "required": False,
+                "default": DEFAULT_REGION,
+            },
+            {
+                "name": "max_results",
+                "type": "number",
+                "description": f"Maximum articles per organization. Default: {DEFAULT_MAX_RESULTS}",
+                "required": False,
+            },
+        ]
+
+    def _max_results(self) -> int:
+        limit = self.params.get("max_results")
+        if limit is None:
+            return DEFAULT_MAX_RESULTS
+        try:
+            return max(1, int(limit))
+        except (TypeError, ValueError):
+            Logger.warn(
+                self.sketch_id,
+                {
+                    "message": f"(OrgToNews) Invalid max_results '{limit}', falling back to {DEFAULT_MAX_RESULTS}."
+                },
+            )
+            return DEFAULT_MAX_RESULTS
+
+    def _base_query_params(self, query: str) -> Dict[str, str | int]:
+        """Build the parameters shared by every window of one scan.
+
+        Language and market are pinned on purpose. Left unset, the index infers
+        them from where the call originates, which for a server means the
+        vertical answers an English query with articles in whatever language
+        that host looks like it wants.
+        """
+        query_params: Dict[str, str | int] = {
+            "q": query,
+            "num": PAGE_SIZE,
+            "tbm": NEWS_VERTICAL,
+            "hl": (self.params.get("language") or DEFAULT_LANGUAGE).strip(),
+            "gl": (self.params.get("region") or DEFAULT_REGION).strip(),
+        }
+
+        time_range = (self.params.get("time_range") or "").strip()
+        if time_range in RECENCY:
+            query_params["tbs"] = RECENCY[time_range]
+        elif time_range and time_range != "any":
+            Logger.warn(
+                self.sketch_id,
+                {
+                    "message": f"(OrgToNews) Unknown time_range '{time_range}', searching all of time instead."
+                },
+            )
+
+        return query_params
+
+    def _fetch_window(
+        self, query: str, start: int, api_key: str
+    ) -> List[Dict[str, Any]]:
+        """Fetch one result window. `start` is the only offset the API honours."""
+        query_params = self._base_query_params(query)
+        query_params["start"] = start
+
+        api_request = requests.get(
+            SEARCH_ENDPOINT,
+            params=query_params,
+            headers={
+                "X-Api-Key": api_key,
+                "Accept": "application/json",
+                "User-Agent": "FlowsInt-Enricher",
+            },
+            timeout=30,
+        )
+
+        if api_request.status_code != 200:
+            Logger.error(
+                self.sketch_id,
+                {
+                    "message": f"(OrgToNews) Search failed for '{query}' (HTTP {api_request.status_code}): {api_request.text}"
+                },
+            )
+            return []
+
+        return api_request.json().get("results") or []
+
+    async def scan(self, data: List[InputType]) -> List[OutputType]:
+        results: List[OutputType] = []
+
+        api_key = self.get_secret("SERPLY_API_KEY", os.getenv("SERPLY_API_KEY"))
+        max_results = self._max_results()
+
+        for org in data:
+            org_name = str(org.name).strip() if org.name else ""
+            if not org_name:
+                Logger.warn(
+                    self.sketch_id,
+                    {
+                        "message": "(OrgToNews) Skipping an organization with no name to search on."
+                    },
+                )
+                continue
+
+            try:
+                # Quoting keeps a multi-word name together, so a two-word
+                # company does not match every article carrying both words.
+                query = f'"{org_name}"'
+                articles: List[Website] = []
+                seen_links: set[str] = set()
+                start = 0
+
+                while len(articles) < max_results:
+                    rows = self._fetch_window(query, start, api_key)
+                    if not rows:
+                        break
+
+                    before = len(articles)
+                    for row in rows:
+                        link = row.get("link")
+                        if not link or link in seen_links:
+                            continue
+                        seen_links.add(link)
+
+                        try:
+                            article = Website(
+                                url=link,
+                                title=row.get("title"),
+                                description=row.get("description"),
+                            )
+                        except Exception as e:
+                            # The vertical occasionally returns links that are
+                            # not addressable as an HTTP URL; skip those rows.
+                            Logger.warn(
+                                self.sketch_id,
+                                {
+                                    "message": f"(OrgToNews) Skipping unusable result '{link}': {e}"
+                                },
+                            )
+                            continue
+
+                        # Carry the source name through to postprocess for graph
+                        # wiring, the way domain_to_dns threads its source domain.
+                        setattr(article, "_source_org_name", org_name)
+                        articles.append(article)
+
+                        if len(articles) >= max_results:
+                            break
+
+                    # A window that adds nothing new means the result set is
+                    # exhausted (or the offset stopped moving), so stop paging
+                    # rather than spend a credit per duplicate window.
+                    if len(articles) == before:
+                        break
+                    start += PAGE_SIZE
+
+                if not articles:
+                    Logger.info(
+                        self.sketch_id,
+                        {"message": f"(OrgToNews) No coverage found for '{org_name}'."},
+                    )
+
+                results.extend(articles)
+
+            except Exception as e:
+                Logger.error(
+                    self.sketch_id,
+                    {
+                        "message": f"(OrgToNews) Exception while querying {org_name}: {e}"
+                    },
+                )
+
+        return results
+
+    def postprocess(
+        self, results: List[OutputType], input_data: Optional[List[InputType]] = None
+    ) -> List[OutputType]:
+        if not self._graph_service:
+            return results
+
+        for article in results:
+            source_org_name = getattr(article, "_source_org_name", None)
+            if not source_org_name:
+                continue
+
+            org = Organization(name=source_org_name)
+            self.create_node(org)
+            self.create_node(article)
+
+            # An article covering an organization mentions it; it is not a site
+            # the organization owns, so this is not the HAS_WEBSITE edge.
+            self.create_relationship(org, article, "MENTIONED_IN")
+            self.log_graph_message(
+                f"(OrgToNews) {source_org_name} -> {str(article.url)}"
+            )
+
+            # Clean up the temporary attribute used to thread context.
+            delattr(article, "_source_org_name")
+
+        return results
+
+
+# Make types available at module level for easy access
+InputType = OrgToNewsEnricher.InputType
+OutputType = OrgToNewsEnricher.OutputType

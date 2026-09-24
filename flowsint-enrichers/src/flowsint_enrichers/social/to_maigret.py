@@ -73,7 +73,7 @@ class MaigretEnricher(Enricher):
                 ],
             },
             {
-                "name": "CLOUDFALRE_BYPASS",
+                "name": "CLOUDFLARE_BYPASS",
                 "type": "select",
                 "description": "Bypass Cloudflare protection using Flaresolverr or Trawl",
                 "required": False,
@@ -84,7 +84,7 @@ class MaigretEnricher(Enricher):
                 ],
             },
             {
-                "name": "CLOUDFALRE_BYPASS_URL",
+                "name": "CLOUDFLARE_BYPASS_URL",
                 "type": "url",
                 "description": "Flaresolverr or Trawl URL",
                 "required": False,
@@ -97,8 +97,8 @@ class MaigretEnricher(Enricher):
 
         all_sites = self.params.get("SCAN_ALL_SITES", "false") == "true"
         max_connections = self.params.get("MAX_CONNECTIONS", "25")
-        cloudflare_bypass = self.params.get("CLOUDFALRE_BYPASS", "true") == "true"
-        cloudflare_bypass_url = self.params.get("CLOUDFALRE_BYPASS_URL", None)
+        cloudflare_bypass = self.params.get("CLOUDFLARE_BYPASS", "true") == "true"
+        cloudflare_bypass_url = self.params.get("CLOUDFLARE_BYPASS_URL", None)
 
         try:
             cmd = [

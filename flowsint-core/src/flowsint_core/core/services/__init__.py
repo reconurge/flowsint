@@ -5,6 +5,11 @@ This module provides business logic services that encapsulate database operation
 and domain logic, enabling cleaner route handlers and better testability.
 """
 
+from ..orcarouter.service import (
+    OrcaRouterService,
+    create_orcarouter_service,
+    resolve_provider_api_key,
+)
 from .analysis_service import AnalysisService, create_analysis_service
 from .auth_service import AuthService, create_auth_service
 from .base import BaseService
@@ -85,6 +90,10 @@ __all__ = [
     "create_enricher_template_service",
     "TemplateGeneratorService",
     "create_template_generator_service",
+    # OrcaRouter provider
+    "OrcaRouterService",
+    "create_orcarouter_service",
+    "resolve_provider_api_key",
     # Vault
     "VaultService",
     "create_vault_service",

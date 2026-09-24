@@ -8,7 +8,12 @@ from sqlalchemy import exists
 from ..models import Key
 from .base import BaseRepository
 
-CHAT_KEY_NAMES = ["MISTRAL_API_KEY"]
+#: Vault refs that make the AI assistant usable. The active provider is chosen
+#: by ``LLM_PROVIDER``; this probe is deliberately permissive across providers so
+#: switching provider does not leave the chat panel hidden. OrcaRouter's ref is
+#: the same one both of its authentication entries write to, so a pasted key and
+#: an account login are equally sufficient here.
+CHAT_KEY_NAMES = ["MISTRAL_API_KEY", "OPENAI_API_KEY", "ORCAROUTER_API_KEY"]
 
 
 class KeyRepository(BaseRepository[Key]):
@@ -33,6 +38,8 @@ class KeyRepository(BaseRepository[Key]):
         )
 
     def chat_key_exist(self, owner_id: UUID) -> bool:
-        return self._db.query(
-            exists().where(Key.owner_id == owner_id, Key.name.in_(CHAT_KEY_NAMES))
-        ).scalar()
+        return bool(
+            self._db.query(
+                exists().where(Key.owner_id == owner_id, Key.name.in_(CHAT_KEY_NAMES))
+            ).scalar()
+        )

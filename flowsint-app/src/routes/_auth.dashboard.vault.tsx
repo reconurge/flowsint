@@ -31,6 +31,7 @@ import { type Key as KeyType } from '@/types/key'
 import { queryKeys } from '@/api/query-keys'
 import ErrorState from '@/components/shared/error-state'
 import { PageLayout } from '@/components/layout/page-layout'
+import { OrcaRouterCredentialPanel } from '@/components/orcarouter/credential-panel'
 export const Route = createFileRoute('/_auth/dashboard/vault')({
   component: VaultPage
 })
@@ -172,7 +173,12 @@ function VaultPage() {
         </Dialog>
       }
     >
-      <div className="w-full">
+      <div className="w-full flex flex-col gap-6">
+        {/* OrcaRouter is a first-class provider with two authentication
+            entries; its configuration lives here alongside the other keys
+            because that is where this project keeps provider credentials. */}
+        <OrcaRouterCredentialPanel entryPoint="chat" />
+
         {keys.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-5">
             <KeyRound className="w-12 h-12 text-muted-foreground/40" strokeWidth={1.5} />

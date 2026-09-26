@@ -1,0 +1,40 @@
+[project]
+name = "flowsint"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flowsint-core",
+    "flowsint-enrichers-next",
+    "flowsint-types-next",
+    "flowsint-agent[anthropic]",
+    "flowsint-example-plugin",
+]
+
+# [TODO]: add flowsint-agent as extra agent
+
+[tool.uv.sources]
+flowsint-core = { path = "../flowsint-core", editable = true }
+flowsint-enrichers-next = { workspace = true }
+flowsint-types-next = { workspace = true }
+flowsint-agent = { workspace = true }
+flowsint-example-plugin = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "packages/*",
+]
+exclude = [
+  "packages/flowsint",
+  "packages/flowsint-client-asyncio",
+]
+
+[build-system]
+requires = ["uv_build >= 0.10.7, <0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "flowsint"
+module-root = "packages/flowsint/src"
+namespace = true

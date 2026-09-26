@@ -1,0 +1,391 @@
+---
+title: "External packs (plugins)"
+description: "Ship enrichers and data types from your own Python package, outside the Flowsint repository. Use the flowsint.enrichers and flowsint.types entry-point groups to keep private, domain-specific, or independently-versioned packs separate from the core tree while still being auto-discovered at runtime."
+category: "Developers"
+order: 12
+author: "Flowsint Team"
+tags: ["tutorial", "developers", "plugins", "external-enrichers", "external-types", "entry-points"]
+version: "1.2.8"
+last_updated_at: "2026-06-03"
+---
+
+## Why external packs
+
+The [Managing enrichers](/docs/developers/managing-enrichers) and [Managing types](/docs/developers/managing-types) guides show how to add enrichers and types *inside* the Flowsint repository. That is the right place for anything you intend to contribute upstream. But sometimes you want to keep your work **outside** the main tree:
+
+- **Private sources.** Enrichers that hit a paid, regional, or otherwise non-public data source you don't want to publish.
+- **Domain or country packs.** A coherent set of types and enrichers for a specific domain — for example Brazilian `CPF`/`CNPJ` types with their lookups — versioned and released on its own cadence.
+- **Clean upstream tracking.** Keeping your additions in a separate distribution means your Flowsint checkout stays pristine and upstream updates merge without conflicts.
+
+Flowsint supports this through **entry-point discovery**. Your package declares itself under one of two entry-point groups, and Flowsint imports it at startup — firing the same `@flowsint_enricher` and `@flowsint_type` decorators you'd use in-tree. No edits to the Flowsint source are required.
+
+## How discovery works
+
+Flowsint discovers built-in enrichers and types by walking the `flowsint_enrichers` and `flowsint_types` package directories. On top of that, `load_all_enrichers()` and `load_all_types()` consult two [entry-point](https://packaging.python.org/en/latest/specifications/entry-points/) groups:
+
+| Group | Discovered by | Registers into |
+|---|---|---|
+| `flowsint.enrichers` | `load_all_enrichers()` (`flowsint-enrichers/src/flowsint_enrichers/registry.py`) | `ENRICHER_REGISTRY` |
+| `flowsint.types` | `load_all_types()` (`flowsint-types/src/flowsint_types/registry.py`) | `TYPE_REGISTRY` |
+
+For each entry point in a group, Flowsint imports the module it points at. Importing that module runs your decorated classes, which register themselves in the global registry — exactly as if they lived inside the core tree. The API and the Celery worker both call `load_all_*()` at startup, so a discovered pack is available everywhere.
+
+Discovery is **idempotent** (guarded by the existing `_enrichers_loaded` / `_types_loaded` flags) and **fault-tolerant**: if importing a pack raises, the error is logged to stderr and skipped, so one broken pack can never prevent the rest of Flowsint from loading.
+
+## Building a pack
+
+We'll build a small pack called `my_pack` that adds one type and one enricher. The layout:
+
+```
+my-pack/
+├── pyproject.toml
+└── src/
+    └── my_pack/
+        ├── __init__.py
+        ├── types/
+        │   ├── __init__.py
+        │   └── my_type.py
+        └── enrichers/
+            ├── __init__.py
+            └── my_enricher.py
+```
+
+### Declaring the entry points
+
+The pack registers itself in `pyproject.toml`. Each entry point names a module that, when imported, pulls in everything you want registered:
+
+```toml
+[project]
+name = "my-pack"
+version = "0.1.0"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "flowsint-core",
+    "flowsint-types",
+    # plus whatever your enrichers need, e.g. "httpx>=0.28,<0.29"
+]
+
+[project.entry-points."flowsint.types"]
+my_pack = "my_pack.types"
+
+[project.entry-points."flowsint.enrichers"]
+my_pack = "my_pack.enrichers"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/my_pack"]
+```
+
+The entry-point **name** (`my_pack`) is just a label; the **value** (`my_pack.types`) is the import path Flowsint loads. `flowsint-core` and `flowsint-types` are not published on PyPI, so during local development resolve them from your Flowsint checkout, for example with a sibling path source:
+
+```toml
+[tool.uv.sources]
+flowsint-core = { path = "../flowsint/flowsint-core", editable = true }
+flowsint-types = { path = "../flowsint/flowsint-types", editable = true }
+```
+
+### Writing a type
+
+Types are defined exactly as in [Managing types](/docs/developers/managing-types) — inherit from `FlowsintType`, decorate with `@flowsint_type`. The decorator registers into the same global `TYPE_REGISTRY`, regardless of which package the class lives in.
+
+```python
+# src/my_pack/types/my_type.py
+from typing import Self
+
+from flowsint_types.flowsint_base import FlowsintType
+from flowsint_types.registry import flowsint_type
+from pydantic import Field, model_validator
+
+
+@flowsint_type
+class MyType(FlowsintType):
+    """An example external type."""
+
+    value: str = Field(
+        ...,
+        description="Primary identifier",
+        json_schema_extra={"primary": True},
+    )
+
+    @model_validator(mode="after")
+    def compute_label(self) -> Self:
+        self.nodeLabel = self.value
+        return self
+```
+
+### Writing an enricher
+
+Same contract as [Managing enrichers](/docs/developers/managing-enrichers): inherit from `Enricher`, decorate with `@flowsint_enricher`, implement `scan()` and `postprocess()`. You can import and pivot between your own types and the built-in ones (`Organization`, `Individual`, ...).
+
+```python
+# src/my_pack/enrichers/my_enricher.py
+from typing import Any, Dict, List
+
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_core.core.logger import Logger
+from flowsint_enrichers.registry import flowsint_enricher
+
+from my_pack.types.my_type import MyType
+
+
+@flowsint_enricher
+class MyEnricher(Enricher):
+    """[My source] Enrich MyType values."""
+
+    InputType = MyType
+    OutputType = Dict[str, Any]
+
+    @classmethod
+    def name(cls) -> str:
+        return "mytype_to_infos"
+
+    @classmethod
+    def category(cls) -> str:
+        return "My pack"
+
+    @classmethod
+    def key(cls) -> str:
+        return "value"
+
+    async def scan(self, data: List["MyType"]) -> List[Dict[str, Any]]:
+        results: List[Dict[str, Any]] = []
+        for item in data:
+            try:
+                # ... call your source ...
+                results.append({"value": item.value, "info": "..."})
+            except Exception as e:
+                results.append({"value": item.value, "error": str(e)})
+                Logger.error(self.sketch_id, {"message": f"mytype_to_infos failed: {e}"})
+        return results
+
+    def postprocess(self, results, input_data=None):
+        for result in results:
+            if "error" in result:
+                continue
+            self.create_node(MyType(value=result["value"]))
+        return results
+
+
+InputType = MyEnricher.InputType
+OutputType = MyEnricher.OutputType
+```
+
+### Wiring the subpackages
+
+The entry points point at `my_pack.types` and `my_pack.enrichers`, so each subpackage's `__init__.py` must import the modules that define your decorated classes. This is what fires the decorators when Flowsint loads the entry point:
+
+```python
+# src/my_pack/types/__init__.py
+from .my_type import MyType  # noqa: F401
+
+__all__ = ["MyType"]
+```
+
+```python
+# src/my_pack/enrichers/__init__.py
+from . import my_enricher  # noqa: F401
+
+__all__ = ["my_enricher"]
+```
+
+<Warning>
+Keep the **top-level** `my_pack/__init__.py` free of side effects — do **not** import the `enrichers` subpackage from it. The enricher stack imports `flowsint_core`, so eagerly importing it would force the (heavier) core dependencies whenever someone merely loads your **types** via the `flowsint.types` entry point. Let each subpackage register itself independently.
+
+```python
+# src/my_pack/__init__.py  (intentionally side-effect free)
+__version__ = "0.1.0"
+```
+</Warning>
+
+## Installing a pack
+
+Install the pack into the **same environment** as Flowsint, then restart the API and Celery worker so `load_all_*()` runs again.
+
+**Local development** (editable install):
+
+```bash
+# from the Flowsint environment
+uv pip install -e ../my-pack
+```
+
+**Docker / production** — add the pack to the API and worker images, for example over SSH for a private repo:
+
+```dockerfile
+RUN --mount=type=ssh uv pip install "git+ssh://git@github.com/<you>/my-pack.git"
+```
+
+## Verifying discovery
+
+After installing and restarting, your types and enrichers appear through the API just like built-in ones. To confirm registration without the UI:
+
+```python
+from flowsint_enrichers import ENRICHER_REGISTRY, load_all_enrichers
+from flowsint_types.registry import TYPE_REGISTRY, load_all_types
+
+load_all_types()
+load_all_enrichers()
+
+assert TYPE_REGISTRY.get("MyType") is not None
+assert ENRICHER_REGISTRY.enricher_exists("mytype_to_infos")
+```
+
+## Troubleshooting
+
+If your pack doesn't show up, check that:
+
+- the distribution is installed in the **same** Python environment as the Flowsint API/worker, and they were **restarted** after installing;
+- `pyproject.toml` declares the entry points under `flowsint.types` / `flowsint.enrichers`, and the **value** is the correct import path;
+- each subpackage's `__init__.py` actually imports the modules that hold the decorated classes — an empty `__init__.py` registers nothing;
+- importing the pack works on its own: run `python -c "import my_pack.enrichers"` in the Flowsint environment and read the traceback. Flowsint logs import failures to stderr (`Failed to load enricher plugin '<name>' ...`) and skips them, so a silent absence usually means an import error you can reproduce directly.
+
+## Worked example: a Brazilian pack
+
+To make this concrete, here is the shape of a real pack — `flowsint-enrichers-br` — that adds Brazilian `CPF`/`CNPJ` types and a CNPJ → Organization lookup. It follows the in-tree conventions: a `flowsint_<name>` package using the `src/` layout, `PascalCase` types with a single `primary` field, and `<input>_to_<output>` enrichers organised under an input-type directory.
+
+```
+flowsint-enrichers-br/
+├── pyproject.toml
+└── src/
+    └── flowsint_enrichers_br/
+        ├── __init__.py                 # side-effect free
+        ├── types/
+        │   ├── __init__.py             # imports cpf, cnpj
+        │   ├── cpf.py                  # @flowsint_type class Cpf
+        │   └── cnpj.py                 # @flowsint_type class Cnpj
+        └── enrichers/
+            ├── __init__.py             # imports cnpj.to_organization
+            └── cnpj/
+                └── to_organization.py  # @flowsint_enricher class CnpjToOrganizationEnricher
+```
+
+The entry points target the two subpackages:
+
+```toml
+[project.entry-points."flowsint.types"]
+br = "flowsint_enrichers_br.types"
+
+[project.entry-points."flowsint.enrichers"]
+br = "flowsint_enrichers_br.enrichers"
+```
+
+The `Cnpj` type stores the document normalised (digits only), validates it, and exposes a formatted graph label:
+
+```python
+# src/flowsint_enrichers_br/types/cnpj.py
+from typing import Self
+
+from flowsint_types.flowsint_base import FlowsintType
+from flowsint_types.registry import flowsint_type
+from pydantic import Field, field_validator, model_validator
+
+
+@flowsint_type
+class Cnpj(FlowsintType):
+    """Brazilian company taxpayer registry (CNPJ)."""
+
+    cnpj: str = Field(
+        ...,
+        description="CNPJ (14 digits, stored without formatting)",
+        json_schema_extra={"primary": True},
+    )
+
+    @field_validator("cnpj", mode="before")
+    @classmethod
+    def normalize(cls, v: str) -> str:
+        digits = "".join(c for c in str(v) if c.isdigit())
+        if len(digits) != 14:  # the real pack also validates the check digits
+            raise ValueError(f"Invalid CNPJ: {v!r}")
+        return digits
+
+    @model_validator(mode="after")
+    def compute_label(self) -> Self:
+        c = self.cnpj
+        self.nodeLabel = f"{c[0:2]}.{c[2:5]}.{c[5:8]}/{c[8:12]}-{c[12:14]}"
+        return self
+```
+
+The enricher pivots a `Cnpj` to a built-in `Organization` (and its partners) using the public BrasilAPI — Receita Federal open data, no key required. Error handling is trimmed here for brevity; see [Managing enrichers](/docs/developers/managing-enrichers) for the full pattern:
+
+```python
+# src/flowsint_enrichers_br/enrichers/cnpj/to_organization.py
+from typing import Any, Dict, List
+
+import httpx
+from flowsint_core.core.enricher_base import Enricher
+from flowsint_enrichers.registry import flowsint_enricher
+from flowsint_types.organization import Organization
+
+from flowsint_enrichers_br.types.cnpj import Cnpj
+
+
+@flowsint_enricher
+class CnpjToOrganizationEnricher(Enricher):
+    """[BrasilAPI] Resolve a CNPJ to its registered company and partners."""
+
+    InputType = Cnpj
+    OutputType = Dict[str, Any]
+
+    @classmethod
+    def name(cls) -> str:
+        return "cnpj_to_organization"
+
+    @classmethod
+    def category(cls) -> str:
+        return "Brazil"
+
+    @classmethod
+    def key(cls) -> str:
+        return "cnpj"
+
+    async def scan(self, data: List["Cnpj"]) -> List[Dict[str, Any]]:
+        results: List[Dict[str, Any]] = []
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            for obj in data:
+                resp = await client.get(
+                    f"https://brasilapi.com.br/api/cnpj/v1/{obj.cnpj}"
+                )
+                resp.raise_for_status()
+                payload = resp.json()
+                payload["cnpj"] = obj.cnpj
+                results.append(payload)
+        return results
+
+    def postprocess(self, results, input_data=None):
+        for r in results:
+            cnpj = Cnpj(cnpj=r["cnpj"])
+            org = Organization(name=r.get("razao_social"))
+            self.create_node(cnpj)
+            self.create_node(org)
+            self.create_relationship(cnpj, org, "IS_REGISTERED_AS")
+        return results
+
+
+InputType = CnpjToOrganizationEnricher.InputType
+OutputType = CnpjToOrganizationEnricher.OutputType
+```
+
+Because CNPJ records are public, this enricher can ship a working data source. A `cpf_to_infos` enricher in the same pack would instead leave its source as a configurable `vaultSecret` parameter — CPF holder data is protected and must only be queried against a provider you are authorized to use.
+
+Finally, the subpackages wire their modules so the entry points register everything on import:
+
+```python
+# src/flowsint_enrichers_br/types/__init__.py
+from .cnpj import Cnpj  # noqa: F401
+from .cpf import Cpf    # noqa: F401
+
+__all__ = ["Cpf", "Cnpj"]
+```
+
+```python
+# src/flowsint_enrichers_br/enrichers/__init__.py
+from .cnpj import to_organization  # noqa: F401
+```
+
+Install it alongside Flowsint and restart the API and worker. `Cpf` and `Cnpj` then appear as node types, and `cnpj_to_organization` shows up in the enricher list under the **Brazil** category.
+
+## Next steps
+
+External packs are the recommended way to maintain private or specialized intelligence sources alongside Flowsint without forking it. If a pack turns out to be broadly useful and uses only public data, consider contributing it upstream so the whole community benefits.

@@ -589,6 +589,8 @@ class MyEnricher(Enricher):
 ...
 ```
 
+If you'd rather keep an enricher **outside** the Flowsint repository — for a private source, or a domain/country-specific pack you version independently — you can ship it from your own Python package and have it auto-discovered through an entry point. See [External packs (plugins)](/docs/developers/external-packs).
+
 ## Testing your enricher
 
 Creating tests helps ensure your enricher works correctly and makes debugging easier. Create a test file in `flowsint-enrichers/tests/`:

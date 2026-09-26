@@ -1,0 +1,105 @@
+# flowsint MCP wrapper -- allowlist.yaml sample
+#
+# Governance is DATA, not code. Copy this file to `allowlist.yaml` in the
+# SAME folder and edit the entries to match your deployment's ethics /
+# legal posture (LFPDPPP, GDPR, in-house policy, ...). Any enricher name
+# not declared below is rejected structurally (default-deny). Auto-reload
+# picks up edits within ~60 s (mtime-stat TTL).
+#
+# Each `allowlist` entry supports:
+#   name              (required) enricher name registered in flowsint
+#   source            "upstream" | "template" | "custom"
+#   input_type        (required) must appear in `allowed_infra_types`
+#   output_type       label for humans (not enforced by the classifier)
+#   external_api      "none" or the third-party service name
+#   pii_touched       true forces DENY (requires explicit re-authorization)
+#   authorized_by     free text (compliance trail)
+#   authorized_date   ISO date (compliance trail)
+#   reviewed_by       free text (governance trail)
+#   ttl_seconds       optional hint for callers that cache by seed
+#   notes             optional free text
+#
+# `forbidden` is decorative -- default-deny already rejects any name not
+# in `allowlist`. It exists only to produce clearer error messages when a
+# known-bad enricher is called.
+---
+version: 1
+schema_notes:
+  ttl_seconds_default: 300
+  ttl_seconds_dns: 86400        # DNS/WHOIS are deterministic ~24 h
+  reviewed_at: "2026-08-20"
+
+allowlist:
+  # -------- upstream reconurge/flowsint enrichers (safe infra-only set) --------
+  - {name: domain_to_asn,            source: upstream, input_type: Domain,       output_type: Asn,          external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_dns,            source: upstream, input_type: Domain,       output_type: DomainRecord, external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_history,        source: upstream, input_type: Domain,       output_type: History,      external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 300}
+  - {name: domain_to_ip,             source: upstream, input_type: Domain,       output_type: Ip,           external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_root_domain,    source: upstream, input_type: Domain,       output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_subdomains,     source: upstream, input_type: Domain,       output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_tls,            source: upstream, input_type: Domain,       output_type: Tls,          external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_website,        source: upstream, input_type: Domain,       output_type: Website,      external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_whois,          source: upstream, input_type: Domain,       output_type: Whois,        external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: domain_to_whois_history,  source: upstream, input_type: Domain,       output_type: Whois,        external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: asn_to_cidrs,             source: upstream, input_type: Asn,          output_type: Cidr,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: cidr_to_ips,              source: upstream, input_type: Cidr,         output_type: Ip,           external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: ip_to_asn,                source: upstream, input_type: Ip,           output_type: Asn,          external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: ip_to_domain,             source: upstream, input_type: Ip,           output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: ip_to_infos,              source: upstream, input_type: Ip,           output_type: Info,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: ip_to_ports,              source: upstream, input_type: Ip,           output_type: Port,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 300}
+  - {name: org_to_asn,               source: upstream, input_type: Organization, output_type: Asn,          external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: org_to_domains,           source: upstream, input_type: Organization, output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: org_to_infos,             source: upstream, input_type: Organization, output_type: Info,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: website_to_crawler,       source: upstream, input_type: Website,      output_type: CrawlResult,  external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  - {name: website_to_domain,        source: upstream, input_type: Website,      output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  - {name: website_to_links,         source: upstream, input_type: Website,      output_type: Link,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  - {name: website_to_subdomains,    source: upstream, input_type: Website,      output_type: Domain,       external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 86400}
+  - {name: website_to_text,          source: upstream, input_type: Website,      output_type: Text,         external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  - {name: website_to_webtrackers,   source: upstream, input_type: Website,      output_type: Tracker,      external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  - {name: tech_detect,              source: upstream, input_type: Website,      output_type: Technology,   external_api: none, pii_touched: false, authorized_by: reviewer, authorized_date: "2026-08-20", reviewed_by: reviewer, ttl_seconds: 3600}
+  # -------- your local YAML templates go here --------
+  # - name: my-custom-enricher
+  #   source: template
+  #   template_path: ./templates/my-custom-enricher.yaml
+  #   input_type: Domain
+  #   output_type: Phrase
+  #   external_api: some-public-service
+  #   pii_touched: false
+  #   authorized_by: your-name
+  #   authorized_date: "2026-08-20"
+  #   reviewed_by: your-reviewer
+  #   ttl_seconds: 86400
+
+# Denylist for clearer error messages. The default-deny above is the real gate.
+forbidden:
+  - {name: individual_to_domains,          reason: "person recon is out of scope for this deployment"}
+  - {name: individual_to_organization,     reason: "person recon is out of scope for this deployment"}
+  - {name: email_to_breaches,              reason: "breach data is out of scope"}
+  - {name: email_to_device_hudsonrock,     reason: "infostealer data is out of scope"}
+  - {name: email_to_domain,                reason: "email as seed is out of scope"}
+  - {name: email_to_domains,               reason: "email as seed is out of scope"}
+  - {name: email_to_gravatar,              reason: "gravatar PII is out of scope"}
+  - {name: email_to_intelligence,          reason: "third-party email intelligence is out of scope"}
+  - {name: email_to_username,              reason: "email->username pivot is out of scope"}
+  - {name: phone_to_carrier,               reason: "phone as seed is out of scope"}
+  - {name: phone_to_device_hudsonrock,     reason: "infostealer data is out of scope"}
+  - {name: phone_to_infos,                 reason: "phone as seed is out of scope"}
+  - {name: username_to_dehashed,           reason: "dehashed is out of scope"}
+  - {name: username_to_device_hudsonrock,  reason: "infostealer data is out of scope"}
+  - {name: username_to_socials_maigret,    reason: "username social recon is out of scope"}
+  - {name: username_to_socials_sherlock,   reason: "username social recon is out of scope"}
+  - {name: domain_to_dehashed,             reason: "dehashed is out of scope"}
+  - {name: domain_to_dummy,                reason: "test enricher; not useful in production"}
+  - {name: ip_to_dummy_domains,            reason: "test enricher; not useful in production"}
+  - {name: ip_to_fraudscore,               reason: "third-party fraudscore is out of scope"}
+  - {name: ip_to_intelligence,             reason: "third-party ip intelligence is out of scope"}
+  - {name: cryptowallet_to_nfts,           reason: "crypto tracing is out of scope"}
+  - {name: cryptowallet_to_transactions,   reason: "crypto tracing is out of scope"}
+
+allowed_infra_types:
+  - Domain
+  - Ip
+  - Asn
+  - Cidr
+  - Organization
+  - Website

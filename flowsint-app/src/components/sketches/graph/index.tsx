@@ -17,7 +17,7 @@ import {
   preloadExternalImage,
   preloadFlagImage
 } from './utils/image-cache'
-import { renderNode } from './node/node-renderer'
+import { paintNodePointerArea, renderNode } from './node/node-renderer'
 import { useKeyboardEvents } from './hooks/use-keyboard-events'
 import { renderLink } from './edge/link-renderer'
 import { createRenderContext, RenderContext } from './utils/render-context'
@@ -441,6 +441,13 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
     [highlightNodes, highlightLinks, selectedEdges, theme, rcDepsVersion]
   )
 
+  const paintNodePointerAreaCallback = useCallback(
+    (node: GraphNode, color: string, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      paintNodePointerArea(node, color, ctx, forceSettings, globalScale)
+    },
+    [forceSettings]
+  )
+
   const renderNodeCallback = useCallback(
     (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const rc = getOrCreateRC(globalScale)
@@ -559,6 +566,7 @@ const GraphViewer: React.FC<GraphViewerProps> = ({
         onLinkRightClick={handleEdgeRightClick}
         linkCurvature={(link) => link.curvature || 0}
         nodeCanvasObject={renderNodeCallback}
+        nodePointerAreaPaint={paintNodePointerAreaCallback}
         onNodeDragEnd={wrappedHandleNodeDragEnd}
         onEngineStop={handleEngineStop}
         cooldownTicks={allowForces ? forceSettings.cooldownTicks.value : 0}

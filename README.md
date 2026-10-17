@@ -118,6 +118,10 @@ flowsint.example.com {
 
 When fronting with a reverse proxy, also bind the app port to localhost in `docker-compose.prod.yml` (`"127.0.0.1:5173:8080"`) so clients can only go through HTTPS.
 
+## One-click deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Flowsint/)
+
 
 ## What is it?
 

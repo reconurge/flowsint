@@ -493,7 +493,7 @@ class FlowOrchestrator(Enricher):
                     )
                     results["results"][node_id] = {"error": error_msg}
                     self._update_execution_log(log_entry)
-                    return results
+                    raise
 
                 except Exception as e:
                     error_msg = f"Error during scan: {str(e)}"
@@ -506,7 +506,7 @@ class FlowOrchestrator(Enricher):
                     )
                     results["results"][node_id] = {"error": error_msg}
                     self._update_execution_log(log_entry)
-                    return results
+                    raise
 
                 # Update execution log with this step
                 self._update_execution_log(log_entry)

@@ -445,7 +445,7 @@ class Enricher(ABC):
                     self.sketch_id,
                     {"message": f"Enricher {self.name()} errored: {str(e)}"},
                 )
-            return []
+            raise
 
     def create_node(self, node_obj: FlowsintType) -> None:
         """

@@ -53,9 +53,8 @@ export const TopNavbar = memo(() => {
       data-tour-id="navigation"
     >
       <div className="flex items-center gap-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <img src="/icon.png" alt="Flowsint" className="h-8 w-8" />
-          <span className="text-lg font-semibold">Flowsint</span>
+        <Link to="/dashboard" className="flex items-center">
+          <img src="/logo-wordmark.svg" alt="Flowsint" className="h-4" />
         </Link>
         <div className="hidden lg:flex items-center gap-2">
           {investigationId && <InvestigationSelector />}

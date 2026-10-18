@@ -79,7 +79,7 @@ function FloatingChat() {
                     variant="outline"
                     onClick={toggleChat}
                   >
-                    <img src="/icon.png" alt="Flowsint" className="h-12 w-12 object-contain" />
+                    <img src="/logo.svg" alt="Flowsint" className="h-8 w-8 object-contain" />
                   </Button>
                 </div>
               </TooltipTrigger>
@@ -166,9 +166,9 @@ function FloatingChat() {
                                 <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-primary/10 rounded-full blur-xl animate-pulse"></div>
                                 <div className="relative bg-linear-to-br from-primary/10 to-primary/5 rounded-full p-4 border border-primary/20">
                                   <img
-                                    src="/icon.png"
+                                    src="/logo.svg"
                                     alt="Flowsint"
-                                    className="h-12 w-12 object-cover"
+                                    className="h-12 w-12 object-contain"
                                   />
                                 </div>
                               </div>

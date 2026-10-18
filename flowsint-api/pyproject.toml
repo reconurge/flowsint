@@ -27,7 +27,6 @@ dependencies = [
     "sse-starlette>=1.8,<2.0",
     "networkx>=2.6.3,<3.0.0",
     "email-validator>=2.2.0,<3.0.0",
-    "mistralai>=1.9.3,<2.0.0",
     "python-multipart>=0.0.27,<0.1.0",
     "openpyxl>=3.1.2,<4.0.0",
     "jsonschema>=4.25.1,<5.0.0",

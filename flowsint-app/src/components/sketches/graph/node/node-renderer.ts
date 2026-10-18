@@ -705,14 +705,19 @@ export const paintNodePointerArea = (
   node: GraphNode,
   color: string,
   ctx: CanvasRenderingContext2D,
-  forceSettings: GraphForceSettings
+  forceSettings: GraphForceSettings,
+  globalScale: number
 ) => {
   const isDotStyle = forceSettings?.dotStyle?.value ?? true
 
   if (isDotStyle) {
-    const size = calculateNodeSize(node, forceSettings, true, CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER)
-    ctx.beginPath()
-    ctx.arc(node.x, node.y, size, 0, 2 * Math.PI)
+    const size = calculateNodeSize(
+      node,
+      forceSettings,
+      globalScale > CONSTANTS.ZOOM_NODE_DETAIL_THRESHOLD,
+      CONSTANTS.ZOOMED_OUT_SIZE_MULTIPLIER
+    )
+    drawNodePath(ctx, node.x, node.y, size, node.nodeShape ?? 'circle')
     ctx.fillStyle = color
     ctx.fill()
   } else {

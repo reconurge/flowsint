@@ -15,6 +15,7 @@ from app.api.routes import (
     flows,
     investigations,
     keys,
+    orcarouter,
     scan,
     sketches,
     types,
@@ -41,7 +42,7 @@ app.add_middleware(
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     """Health check endpoint for Docker healthcheck"""
     return {"status": "ok"}
 
@@ -58,6 +59,7 @@ app.include_router(analysis.router, prefix="/api/analyses", tags=["analyses"])
 app.include_router(chat.router, prefix="/api/chats", tags=["chats"])
 app.include_router(scan.router, prefix="/api/scans", tags=["scans"])
 app.include_router(keys.router, prefix="/api/keys", tags=["keys"])
+app.include_router(orcarouter.router, prefix="/api/orcarouter", tags=["orcarouter"])
 app.include_router(types.router, prefix="/api/types", tags=["types"])
 app.include_router(
     custom_types.router, prefix="/api/custom-types", tags=["custom-types"]

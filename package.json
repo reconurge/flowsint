@@ -15,7 +15,8 @@
     "release:first": "standard-version --first-release",
     "sync-version": "node scripts/sync-versions.js",
     "migrate": "node scripts/migrate.js",
-    "migrate:dry-run": "node scripts/migrate.js --dry-run"
+    "migrate:dry-run": "node scripts/migrate.js --dry-run",
+    "evidence:orcarouter": "python3 scripts/capture-orcarouter-evidence.py"
   },
   "config": {
     "commitizen": {

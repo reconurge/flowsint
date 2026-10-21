@@ -1,12 +1,23 @@
 """Pytest configuration for flowsint-core tests."""
 
-from unittest.mock import MagicMock
+import os
 
-import pytest
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
+# flowsint_core hard-requires these at import time: core/auth.py raises without
+# AUTH_SECRET, and core/config.py indexes REDIS_URL while building `Settings()`.
+# CI supplies them as job env vars (.github/workflows/tests.yml) and developers
+# get them from a local .env, so set inert defaults *before* the imports below
+# to keep the suite runnable from a bare checkout. Nothing connects — the SQL
+# and celery clients are created lazily.
+os.environ.setdefault("AUTH_SECRET", "test-secret-please-ignore")
+os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
 
-from flowsint_core.core.models import Base
+from unittest.mock import MagicMock  # noqa: E402
+
+import pytest  # noqa: E402
+from sqlalchemy import create_engine, event  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+
+from flowsint_core.core.models import Base  # noqa: E402
 
 
 @pytest.fixture(autouse=True)

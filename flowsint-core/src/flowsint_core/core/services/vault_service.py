@@ -25,6 +25,9 @@ class VaultService(BaseService):
     def set_secret(self, owner_id: UUID, vault_ref: str, plain_key: str) -> Key:
         return Vault(db=self._db, owner_id=owner_id).set_secret(vault_ref, plain_key)
 
+    def delete_secret(self, owner_id: UUID, vault_ref: str) -> int:
+        return Vault(db=self._db, owner_id=owner_id).delete_secret(vault_ref)
+
     def for_user(self, owner_id: UUID) -> VaultProtocol:
         return Vault(db=self._db, owner_id=owner_id)
 

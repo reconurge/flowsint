@@ -50,8 +50,36 @@ HIBP_API_KEY # HaveIBeenPwned API key [HIBP]
 ETHERSCAN_API_KEY # Etherscan crypto API key [ETHERSCAN]
 # for Flo, AI assistant
 MISTRAL_API_KEY
+# OrcaRouter is a first-class provider: an OpenAI-compatible AI gateway with
+# adaptive routing. Two authentication entries are available, both on this page:
+#   OrcaRouter - API   paste an existing `sk-orca-…` key
+#   OrcaRouter - Auth  sign in with an OrcaRouter account (OAuth 2.0 + PKCE)
+ORCAROUTER_API_KEY
 # but other providers will be supported soon (ChatGPT, etc.)
 ```
+
+## Connecting OrcaRouter
+
+Select OrcaRouter as the AI provider with `LLM_PROVIDER=orcarouter`. Its
+credentials are managed on this page, which offers two independent choices:
+
+- **OrcaRouter - API** — paste a key you created in the
+  [OrcaRouter console](https://www.orcarouter.ai/console/authorized-apps). It is
+  encrypted into the vault under `ORCAROUTER_API_KEY`, like every other key here.
+- **OrcaRouter - Auth** — sign in with an OrcaRouter account. The app opens the
+  consent screen and you paste back the short code it displays. There is no
+  client secret and no callback address to configure; the authorization code is
+  bound to this instance by PKCE, so an intercepted code cannot be redeemed by
+  anyone else.
+
+Either way the resulting key belongs to **your** OrcaRouter account: it is billed
+to you, listed in your console, and revocable from the same page at any time.
+Both entries produce the same kind of credential, so switching between them does
+not change how inference, model discovery, or the assistant behave.
+
+Model selection uses OrcaRouter's live catalog (`GET /v1/models`), filtered for
+the entry point you are using, so the list only offers models that can actually
+serve the current request.
 
 There are also some other tools that could need a bunch of other API keys like [Subfinder](https://github.com/projectdiscovery/subfinder). Configuring them is not possible for now, but will be soon.
 

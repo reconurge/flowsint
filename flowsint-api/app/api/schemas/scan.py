@@ -16,3 +16,4 @@ class ScanRead(ORMBase):
     id: UUID4
     sketch_id: Optional[UUID4]
     status: Optional[str]
+    error: Optional[str] = None

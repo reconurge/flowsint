@@ -18,7 +18,8 @@ from flowsint_core.core.services import (
 )
 
 router = APIRouter()
-
+# do avoid flowsint_enrichers import requires REDIS_URL
+event_emitter.connect()
 
 @router.get("/sketch/{sketch_id}/logs")
 def get_logs_by_sketch(

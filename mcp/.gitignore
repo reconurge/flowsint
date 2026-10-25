@@ -1,0 +1,4 @@
+.env
+allowlist.yaml
+__pycache__/
+CONOUT$

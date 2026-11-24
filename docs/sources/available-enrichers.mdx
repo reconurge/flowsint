@@ -100,6 +100,9 @@ Tools/Pivots: [naabu](https://github.com/projectdiscovery/naabu) (CLI)
 **ip_to_fraudscore**: Compute a fraud risk score for an IP address.
 Tools/APIs: [Scamalytics API](https://scamalytics.com/ip-api)
 
+**ip_to_vpn**: Flag VPN, Tor and privacy relay addresses, and proxies and hosting with a paid key.
+Tools/APIs: [VPNDetection API](https://docs.vpndetection.io/api), no key needed ([terms](https://vpndetection.io/terms#no-key), [privacy](https://vpndetection.io/privacy))
+
 **ip_to_intelligence**: Get breach intelligence (credentials, related individuals) associated with an IP.
 Tools/APIs: [DeHashed API](https://www.dehashed.com/docs)
 
@@ -159,5 +162,5 @@ Tools/APIs: recontrack TrackingCodeExtractor
 
 Notes
 - Some enrichers optionally depend on docker binaries: `subfinder`, `asnmap`, `dnsx`, `naabu`, `httpx`, and `jq` which are installed in the docker container.
-- API-keyed enrichers read keys from params or environment (e.g., `HIBP_API_KEY`, `ETHERSCAN_API_KEY`, `WHOXY_API_KEY`, `WHOISXML_API_KEY`, `DEHASHED_API_KEY`, `SCAMALYTICS_API_KEY`, `VERIPHONE_API_KEY`, `C99_API_KEY`).
+- API-keyed enrichers read keys from params or environment (e.g., `HIBP_API_KEY`, `ETHERSCAN_API_KEY`, `WHOXY_API_KEY`, `WHOISXML_API_KEY`, `DEHASHED_API_KEY`, `SCAMALYTICS_API_KEY`, `VPNDETECTION_API_KEY` (optional), `VERIPHONE_API_KEY`, `C99_API_KEY`).
 - Internal/test enrichers (`domain_to_dummy`, `ip_to_dummy_domains`, `n8n_connector`) are not listed here — they exist in the codebase but are not part of the public catalog.

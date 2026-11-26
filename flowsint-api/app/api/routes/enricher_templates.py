@@ -17,7 +17,7 @@ from app.api.schemas.enricher_template import (
     EnricherTemplateTestResponse,
     EnricherTemplateUpdate,
 )
-from flowsint_core.core.models import Profile
+from flowsint_core.core.models import EnricherTemplate, Profile
 from flowsint_core.core.postgre_db import get_db
 from flowsint_core.core.services import (
     ConflictError,
@@ -42,7 +42,7 @@ def create_template(
     template: EnricherTemplateCreate,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> EnricherTemplate:
     """Create a new enricher template."""
     content = template.content
     name = content.get("name", template.name)
@@ -73,10 +73,13 @@ def list_templates(
     ),
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> List[EnricherTemplate]:
     """List enricher templates."""
     service = create_enricher_template_service(db)
-    return service.list_templates(current_user.id, category, include_public)
+    templates: List[EnricherTemplate] = service.list_templates(
+        current_user.id, category, include_public
+    )
+    return templates
 
 
 @router.post("/generate", response_model=EnricherTemplateGenerateResponse)
@@ -84,7 +87,7 @@ async def generate_template(
     request: EnricherTemplateGenerateRequest,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> EnricherTemplateGenerateResponse:
     """Generate an enricher template from a free-text description using AI."""
     load_all_types()
 
@@ -130,7 +133,7 @@ async def test_template(
     test_request: EnricherTemplateTestRequest,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> EnricherTemplateTestResponse:
     """Test an enricher template with a sample input value."""
     service = create_enricher_template_service(db)
     try:
@@ -161,7 +164,7 @@ def get_template(
     template_id: UUID,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> EnricherTemplate:
     """Get a specific enricher template by ID."""
     service = create_enricher_template_service(db)
     try:
@@ -176,7 +179,7 @@ def update_template(
     update_data: EnricherTemplateUpdate,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> EnricherTemplate:
     """Update an enricher template. Only the owner can update."""
     service = create_enricher_template_service(db)
     try:
@@ -196,7 +199,7 @@ def delete_template(
     template_id: UUID,
     db: Session = Depends(get_db),
     current_user: Profile = Depends(get_current_user),
-):
+) -> None:
     """Delete an enricher template. Only the owner can delete."""
     service = create_enricher_template_service(db)
     try:

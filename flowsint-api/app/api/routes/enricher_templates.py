@@ -124,6 +124,9 @@ async def generate_template(
         )
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    except ValueError as e:
+        # LLM factory: no API key set, or unknown LLM_PROVIDER.
+        raise HTTPException(status_code=422, detail=str(e))
     return EnricherTemplateGenerateResponse(yaml_content=yaml_content)
 
 

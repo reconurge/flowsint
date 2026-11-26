@@ -17,7 +17,7 @@ def test_ip_to_vpn_metadata() -> None:
 
 # Answers below are trimmed from live api.vpndetection.io lookups.
 def test_risk_factors_free_plan_vpn() -> None:
-    answer = {"is_vpn": True, "is_tor": False, "is_relay": False, "is_bot": False}
+    answer = {"is_vpn": True, "is_tor": False, "is_relay": False}
     assert IpToVpn._risk_factors(answer) == ["VPN"]
 
 
@@ -48,14 +48,16 @@ def test_risk_factors_paid_plan_flags() -> None:
         "is_dcproxy": True,
         "is_hosting": True,
         "is_resproxy": False,
+        "is_bot": True,
     }
     assert IpToVpn._risk_factors(answer) == [
         "VPN: NordVPN",
         "Datacenter proxy",
         "Hosting",
+        "Bot",
     ]
 
 
 def test_risk_factors_clean_address() -> None:
-    answer = {"is_vpn": False, "is_tor": False, "is_relay": False, "is_bot": False}
+    answer = {"is_vpn": False, "is_tor": False, "is_relay": False}
     assert IpToVpn._risk_factors(answer) == []

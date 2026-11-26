@@ -42,7 +42,7 @@ class IpToVpn(Enricher):
             {
                 "name": "VPNDETECTION_API_KEY",
                 "type": "vaultSecret",
-                "description": "Optional VPNDetection API key. Without one, the free plan returns the VPN, Tor and relay flags; a paid key adds the proxy and hosting flags.",
+                "description": "Optional VPNDetection API key. Without one, the free plan returns the VPN, Tor and relay flags; a paid key adds the proxy, hosting and bot flags.",
                 "required": False,
             },
         ]
